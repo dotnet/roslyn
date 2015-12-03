@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public void Refresh(TableEntriesFactory<TData> factory)
         {
-            var snapshot = this._subscriptions;
+            var snapshot = _subscriptions;
 
             for (var i = 0; i < snapshot.Length; i++)
             {

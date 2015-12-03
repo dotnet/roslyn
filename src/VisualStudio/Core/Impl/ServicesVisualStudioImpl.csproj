@@ -294,6 +294,7 @@
     <Compile Include="CodeModel\MethodXml\AbstractMethodXmlBuilder.cs" />
     <Compile Include="CodeModel\MethodXml\BinaryOperatorKind.cs" />
     <Compile Include="CodeModel\MetadataNameHelpers.cs" />
+    <Compile Include="CodeModel\MethodXml\SpecialCastKind.cs" />
     <Compile Include="CodeModel\MethodXml\VariableKind.cs" />
     <Compile Include="CodeModel\NodeKeyValidation.cs" />
     <Compile Include="CodeModel\ParentHandle.cs" />

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_1()
+        public async Task TestExample1_1()
         {
-            Test(
+            await TestAsync(
                 @"static double CalculateArea(double radius) {
     Func<double, double> f = r => {
         if (Double.IsNan(r)) {
@@ -32,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_2()
+        public async Task TestExample1_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
 static double CalculateArea(double radius) {
     Func<double, double> f = r => {
@@ -53,9 +54,9 @@ static double CalculateArea(double radius) {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_3()
+        public async Task TestExample1_3()
         {
-            Test(
+            await TestAsync(
 @"class C {
     static double CalculateArea(double radius) {
         Func<double, double> f = r => {
@@ -73,9 +74,9 @@ static double CalculateArea(double radius) {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_4()
+        public async Task TestExample1_4()
         {
-            Test(
+            await TestAsync(
         @"class C {
 static double CalculateArea(double radius) {
     Func<double, double> f = r => {
@@ -94,9 +95,9 @@ static double CalculateArea(double radius) {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_5()
+        public async Task TestExample1_5()
         {
-            Test(
+            await TestAsync(
         @"class C {
 static double CalculateArea(double radius) {
     Func<double, double> f = r => {
@@ -115,9 +116,9 @@ static double CalculateArea(double radius) {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_6()
+        public async Task TestExample1_6()
         {
-            Test(
+            await TestAsync(
 @"class C {
     static double CalculateArea(double radius) {
         Func<double, double> f = r => {
@@ -135,9 +136,9 @@ static double CalculateArea(double radius) {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_7()
+        public async Task TestExample1_7()
         {
-            Test(
+            await TestAsync(
         @"class C {
 static double CalculateArea(double radius) {
     Func<double, double> f = r => {
@@ -156,9 +157,9 @@ static double CalculateArea(double radius) {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_8()
+        public async Task TestExample1_8()
         {
-            Test(
+            await TestAsync(
         @"class C {
 static double CalculateArea(double radius) {
     Func<double, double> f = r => {
@@ -177,9 +178,9 @@ static double CalculateArea(double radius) {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_9()
+        public async Task TestExample1_9()
         {
-            Test(
+            await TestAsync(
 @"class C {
     static double CalculateArea(double radius) {
         Func<double, double> f = r => {

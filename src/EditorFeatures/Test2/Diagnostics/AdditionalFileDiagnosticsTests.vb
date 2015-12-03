@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
         End Function
 
         <WpfFact>
-        Public Sub TestAdditionalFiles()
+        Public Async Function TestAdditionalFiles() As Task
             Dim input =
                 <Workspace>
                     <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='true'>
@@ -37,12 +37,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(input)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(input)
                 Dim project = workspace.Projects.First()
                 Dim newSln = workspace.CurrentSolution.AddAdditionalDocument(DocumentId.CreateNewId(project.Id), "App.Config", SourceText.From("false"))
                 workspace.TryApplyChanges(newSln)
 
-                Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.First().Action
                 Dim operations = codeAction.GetOperationsAsync(CancellationToken.None).Result
                 Dim edit = operations.OfType(Of ApplyChangesOperation)().First()
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
 
                 AssertEx.Equal("true", actual)
             End Using
-        End Sub
+        End Function
     End Class
 
     Public Class AdditionalFileAnalyzer

@@ -28,7 +28,7 @@ governing permissions and limitations under the License.
     <DisplayName>Make Const for C#</DisplayName>
     <Description>This is a sample code issue extension for the Microsoft Roslyn CTP.</Description>
   </Metadata>
-  <Installation InstalledByMsi="false">
+  <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="14.0" />
   </Installation>
   <Dependencies>

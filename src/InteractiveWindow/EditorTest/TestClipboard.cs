@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Windows;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
@@ -10,8 +11,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         internal void Clear() => _data = null;
 
-        internal IDataObject GetDataObject() => _data;
-
         internal override bool ContainsData(string format) => _data?.GetData(format) != null;
 
         internal override object GetData(string format) => _data?.GetData(format);
@@ -21,5 +20,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         internal override string GetText() => _data?.GetText();
 
         internal override void SetDataObject(object data, bool copy) => _data = (DataObject)data;
+
+        internal override IDataObject GetDataObject() => _data;
     }
 }

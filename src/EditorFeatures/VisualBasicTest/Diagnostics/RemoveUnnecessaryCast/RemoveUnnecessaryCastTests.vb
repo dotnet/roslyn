@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
 
         <WorkItem(545979)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastToErrorType()
+        Public Async Function TestDontRemoveCastToErrorType() As Task
             Dim markup =
 <File>
 Module M
@@ -25,12 +26,12 @@ Module M
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545148)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub ParenthesizeToKeepParseTheSame1()
+        Public Async Function TestParenthesizeToKeepParseTheSame1() As Task
             Dim markup =
 <File>
 Imports System.Collections
@@ -55,12 +56,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(530762)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub ParenthesizeToKeepParseTheSame2()
+        Public Async Function TestParenthesizeToKeepParseTheSame2() As Task
             Dim markup =
 <File>
 Module Program
@@ -79,12 +80,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(530762)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub ParenthesizeToKeepParseTheSame3()
+        Public Async Function TestParenthesizeToKeepParseTheSame3() As Task
             Dim markup =
 <File>
 Module Program
@@ -103,12 +104,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545149)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub InsertCallKeywordIfNecessary1()
+        Public Async Function TestInsertCallKeywordIfNecessary1() As Task
             Dim markup =
 <File>
 Module Program
@@ -127,12 +128,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545150)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub InsertCallKeywordIfNecessary2()
+        Public Async Function TestInsertCallKeywordIfNecessary2() As Task
             Dim markup =
 <File>
 Module Program
@@ -155,12 +156,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545229)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
-        Public Sub InsertCallKeywordIfNecessary3()
+        Public Async Function TestInsertCallKeywordIfNecessary3() As Task
             Dim code =
 <File>
 Imports System
@@ -185,13 +186,13 @@ Class C1
 End Class
 </File>
 
-            Test(code, expected)
-        End Sub
+            Await TestAsync(code, expected)
+        End Function
 
         <WorkItem(545528)>
         <WorkItem(16488, "DevDiv_Projects/Roslyn")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub AddExplicitArgumentListIfNecessary1()
+        Public Async Function TestAddExplicitArgumentListIfNecessary1() As Task
             Dim markup =
 <File>
 Imports System
@@ -214,12 +215,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545134)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveConversionFromNullableLongToIComparable()
+        Public Async Function TestDontRemoveConversionFromNullableLongToIComparable() As Task
             Dim markup =
 <File>
 Option Strict On
@@ -231,12 +232,12 @@ Class M
 End Class
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545151)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveArrayLiteralConversion()
+        Public Async Function TestDontRemoveArrayLiteralConversion() As Task
             Dim markup =
 <File>
 Module Program
@@ -247,12 +248,12 @@ Module Program
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545152)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveAddressOfCastToDelegate()
+        Public Async Function TestDontRemoveAddressOfCastToDelegate() As Task
             Dim markup =
 <File>
 Imports System
@@ -264,12 +265,12 @@ Module Program
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545311)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastInLambda1()
+        Public Async Function TestRemoveUnneededCastInLambda1() As Task
             Dim markup =
 <File>
 Module Program
@@ -288,12 +289,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545311)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastInLambda2()
+        Public Async Function TestRemoveUnneededCastInLambda2() As Task
             Dim markup =
 <File>
 Module Program
@@ -316,12 +317,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545311)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastInLambda3()
+        Public Async Function TestRemoveUnneededCastInLambda3() As Task
             Dim markup =
 <File>
 Imports System
@@ -349,12 +350,12 @@ Module Module1
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545311)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastInFunctionStatement()
+        Public Async Function TestRemoveUnneededCastInFunctionStatement() As Task
             Dim markup =
 <File>
 Module Program
@@ -373,12 +374,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545311)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastInFunctionVariableAssignment()
+        Public Async Function TestRemoveUnneededCastInFunctionVariableAssignment() As Task
             Dim markup =
 <File>
 Module Program
@@ -397,12 +398,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545312)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastInBinaryExpression()
+        Public Async Function TestRemoveUnneededCastInBinaryExpression() As Task
             Dim markup =
 <File>
 Module Module1
@@ -425,12 +426,12 @@ Module Module1
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545423)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastInsideCaseLabel()
+        Public Async Function TestRemoveUnneededCastInsideCaseLabel() As Task
             Dim markup =
 <File>
 Module Module1
@@ -453,12 +454,12 @@ Module Module1
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545421)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastInOptionalParameterValue()
+        Public Async Function TestRemoveUnneededCastInOptionalParameterValue() As Task
             Dim markup =
 <File>
 Module Program
@@ -477,12 +478,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545579)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastInRangeCaseClause1()
+        Public Async Function TestRemoveUnneededCastInRangeCaseClause1() As Task
             Dim markup =
 <File>
 Module Module1
@@ -507,12 +508,12 @@ Module Module1
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545579)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastInRangeCaseClause2()
+        Public Async Function TestRemoveUnneededCastInRangeCaseClause2() As Task
             Dim markup =
 <File>
 Module Module1
@@ -537,12 +538,12 @@ Module Module1
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545580)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastForLoop1()
+        Public Async Function TestRemoveUnneededCastForLoop1() As Task
             Dim markup =
 <File>
 Module Module1
@@ -563,12 +564,12 @@ Module Module1
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545580)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastForLoop2()
+        Public Async Function TestRemoveUnneededCastForLoop2() As Task
             Dim markup =
 <File>
 Module Module1
@@ -589,12 +590,12 @@ Module Module1
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545580)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnneededCastForLoop3()
+        Public Async Function TestRemoveUnneededCastForLoop3() As Task
             Dim markup =
 <File>
 Module Module1
@@ -615,12 +616,12 @@ Module Module1
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545599)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveNeededCastWithUserDefinedConversionsAndOptionStrictOff()
+        Public Async Function TestDontRemoveNeededCastWithUserDefinedConversionsAndOptionStrictOff() As Task
             Dim markup =
 <File>
 Option Strict Off
@@ -638,12 +639,12 @@ Public Class X
 End Class
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(529535)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveNeededCastWhenResultIsAmbiguous()
+        Public Async Function TestDontRemoveNeededCastWhenResultIsAmbiguous() As Task
             Dim markup =
 <File>
 Option Strict On
@@ -686,12 +687,12 @@ Module VarianceExample
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545261)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastToNothingInArrayInitializer()
+        Public Async Function TestRemoveUnnecessaryCastToNothingInArrayInitializer() As Task
             Dim markup =
 <File>
 Module Program
@@ -710,12 +711,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545526)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastThatResultsInDifferentStringRepresentations()
+        Public Async Function TestDontRemoveCastThatResultsInDifferentStringRepresentations() As Task
             Dim markup =
 <File>
 Option Strict Off
@@ -731,12 +732,12 @@ Module M
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545631)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastThatChangesArrayLiteralTypeAndBreaksOverloadResolution()
+        Public Async Function TestDontRemoveCastThatChangesArrayLiteralTypeAndBreaksOverloadResolution() As Task
             Dim markup =
 <File>
 Module Program
@@ -750,12 +751,12 @@ Module Program
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545456)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastInAttribute()
+        Public Async Function TestRemoveCastInAttribute() As Task
             Dim markup =
 <File>
 Imports System
@@ -788,12 +789,12 @@ Class C
 End Class
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545701)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub AddParenthesesIfCopyBackAffected1()
+        Public Async Function TestAddParenthesesIfCopyBackAffected1() As Task
             Dim markup =
 <File>
 Module M
@@ -822,12 +823,12 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545701)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub AddParenthesesIfCopyBackAffected2()
+        Public Async Function TestAddParenthesesIfCopyBackAffected2() As Task
             Dim markup =
 <File>
 Module M
@@ -856,12 +857,12 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545701)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub AddParenthesesIfCopyBackAffected3()
+        Public Async Function TestAddParenthesesIfCopyBackAffected3() As Task
             Dim markup =
 <File>
 Module M
@@ -890,12 +891,12 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545971)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveNecessaryCastPassedToParamArray1()
+        Public Async Function TestDontRemoveNecessaryCastPassedToParamArray1() As Task
             Dim markup =
 <File>
 Module M
@@ -908,12 +909,12 @@ Module M
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545971)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveNecessaryCastPassedToParamArray2()
+        Public Async Function TestDontRemoveNecessaryCastPassedToParamArray2() As Task
             Dim markup =
 <File>
 Module M
@@ -926,12 +927,12 @@ Module M
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545971)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastPassedToParamArray1()
+        Public Async Function TestRemoveUnnecessaryCastPassedToParamArray1() As Task
             Dim markup =
 <File>
 Module M
@@ -956,12 +957,12 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545971)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastPassedToParamArray2()
+        Public Async Function TestRemoveUnnecessaryCastPassedToParamArray2() As Task
             Dim markup =
 <File>
 Module M
@@ -986,12 +987,12 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545971)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastPassedToParamArray3()
+        Public Async Function TestRemoveUnnecessaryCastPassedToParamArray3() As Task
             Dim markup =
 <File>
 Imports System
@@ -1018,12 +1019,12 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545971)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastPassedToParamArray4()
+        Public Async Function TestRemoveUnnecessaryCastPassedToParamArray4() As Task
             Dim markup =
 <File>
 Imports System
@@ -1050,12 +1051,12 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545971)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastPassedToParamArray5()
+        Public Async Function TestRemoveUnnecessaryCastPassedToParamArray5() As Task
             Dim markup =
 <File>
 Imports System
@@ -1082,11 +1083,11 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastToArrayLiteral1()
+        Public Async Function TestRemoveUnnecessaryCastToArrayLiteral1() As Task
             Dim markup =
 <File>
 Module M
@@ -1105,11 +1106,11 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveNecessaryCastToArrayLiteral2()
+        Public Async Function TestDontRemoveNecessaryCastToArrayLiteral2() As Task
             Dim markup =
 <File>
 Module Program
@@ -1123,11 +1124,11 @@ Module Program
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveNecessaryCastToArrayLiteral()
+        Public Async Function TestDontRemoveNecessaryCastToArrayLiteral() As Task
             Dim markup =
 <File>
 Module M
@@ -1137,12 +1138,12 @@ Module M
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545972)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastInBinaryIf1()
+        Public Async Function TestRemoveUnnecessaryCastInBinaryIf1() As Task
             Dim markup =
 <File>
 Class Test
@@ -1161,12 +1162,12 @@ Class Test
 End Class
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545972)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastInBinaryIf2()
+        Public Async Function TestRemoveUnnecessaryCastInBinaryIf2() As Task
             Dim markup =
 <File>
 Class Test
@@ -1185,12 +1186,12 @@ Class Test
 End Class
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545974)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastInObjectCreationExpression()
+        Public Async Function TestRemoveUnnecessaryCastInObjectCreationExpression() As Task
             Dim markup =
 <File>
 Imports System
@@ -1211,12 +1212,12 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545973)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastInSelectCase()
+        Public Async Function TestRemoveUnnecessaryCastInSelectCase() As Task
             Dim markup =
 <File>
 Imports System
@@ -1243,12 +1244,12 @@ Module Module1
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545526)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastToDoubleInOptionStrictOff()
+        Public Async Function TestDontRemoveCastToDoubleInOptionStrictOff() As Task
             Dim markup =
 <File>
 Option Strict Off
@@ -1264,12 +1265,12 @@ Module M
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545828)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCStrInCharToStringToObjectChain()
+        Public Async Function TestDontRemoveCStrInCharToStringToObjectChain() As Task
             Dim markup =
 <File>
 Imports System
@@ -1281,12 +1282,12 @@ Module Program
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545808)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveNecessaryCastWithMultipleUserDefinedConversionsAndOptionStrictOff()
+        Public Async Function TestDontRemoveNecessaryCastWithMultipleUserDefinedConversionsAndOptionStrictOff() As Task
             Dim markup =
 <File>
 Option Strict Off
@@ -1307,12 +1308,12 @@ Public Class X
 End Class
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545998)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastWhichWouldChangeAttributeOverloadResolution()
+        Public Async Function TestDontRemoveCastWhichWouldChangeAttributeOverloadResolution() As Task
             Dim markup =
 <File>
 Imports System
@@ -1329,11 +1330,11 @@ Class A
 End Class
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontMoveTrailingComment()
+        Public Async Function TestDontMoveTrailingComment() As Task
             Dim markup =
 <File>
 Module Program
@@ -1356,11 +1357,11 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastInFieldInitializer()
+        Public Async Function TestRemoveCastInFieldInitializer() As Task
             Dim markup =
 <File>
 Imports System.Collections.Generic
@@ -1385,11 +1386,11 @@ Class B
 End Class
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontDuplicateTrivia()
+        Public Async Function TestDontDuplicateTrivia() As Task
             Dim markup =
 <File>
 Imports System
@@ -1416,12 +1417,12 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(531479)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub EscapeNextStatementIfNeeded()
+        Public Async Function TestEscapeNextStatementIfNeeded() As Task
             Dim markup =
 <File>
 Imports System.Collections.Generic
@@ -1452,12 +1453,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(607749)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub Bugfix_607749()
+        Public Async Function TestBugfix_607749() As Task
             Dim markup =
 <File>
 Imports System
@@ -1484,12 +1485,12 @@ Class C
 End Class
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(609477)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub Bugfix_609477()
+        Public Async Function TestBugfix_609477() As Task
             Dim markup =
 <File>
 Imports System
@@ -1511,12 +1512,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(552813)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastWhileNarrowingWithOptionOn()
+        Public Async Function TestDontRemoveCastWhileNarrowingWithOptionOn() As Task
             Dim markup =
 <File>
 Option Strict On
@@ -1528,12 +1529,12 @@ Module Program
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(577929)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastWhileDefaultingNullables()
+        Public Async Function TestDontRemoveCastWhileDefaultingNullables() As Task
             Dim markup =
 <File>
 Module M
@@ -1544,11 +1545,11 @@ Module M
 End Module
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastAroundAction()
+        Public Async Function TestRemoveCastAroundAction() As Task
             Dim markup =
 <File>
 Imports System
@@ -1572,12 +1573,12 @@ Module Program
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(578016)>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCStr()
+        Public Async Function TestDontRemoveCStr() As Task
             Dim markup =
 <File>Option Strict On
 
@@ -1590,24 +1591,24 @@ Module M
     End Sub
 End Module
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(530105)>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveNumericCast()
+        Public Async Function TestDontRemoveNumericCast() As Task
             Dim markup =
 <File>
 Interface I
     [|Sub Foo(Optional x As Object = CByte(1))|]
 End Interface
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(530104)>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCTypeFromNumberToEnum()
+        Public Async Function TestDontRemoveCTypeFromNumberToEnum() As Task
             Dim markup =
 <File>
 Option Strict On
@@ -1616,12 +1617,12 @@ Interface I
     [|Sub Foo(Optional x As DayOfWeek = CType(-1, DayOfWeek))|]
 End Interface
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(530077)>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastForLambdaToDelegateConversionWithOptionStrictOn()
+        Public Async Function TestDontRemoveCastForLambdaToDelegateConversionWithOptionStrictOn() As Task
             Dim markup =
  <File>
 Option Strict On
@@ -1635,12 +1636,12 @@ Module Program
     End Sub
 End Module
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(529966)>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveForNarrowingConversionFromObjectWithOptionStrictOnInsideQueryExpression()
+        Public Async Function TestDontRemoveForNarrowingConversionFromObjectWithOptionStrictOnInsideQueryExpression() As Task
             Dim markup =
 <File>
 Option Strict On
@@ -1654,12 +1655,12 @@ Module Program
     End Sub
 End Module
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(530650)>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastFromLambdaToDelegateParenthesizeLambda()
+        Public Async Function TestRemoveUnnecessaryCastFromLambdaToDelegateParenthesizeLambda() As Task
             Dim markup =
 <File>
 Imports System
@@ -1681,12 +1682,12 @@ Module M
     End Sub
 End Module
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(707189)>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastFromInvocationStatement()
+        Public Async Function TestRemoveUnnecessaryCastFromInvocationStatement() As Task
             Dim markup =
 <File>
 Imports System
@@ -1714,12 +1715,12 @@ Module Module1
     End Function
 End Module
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(707189)>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastFromInvocationStatement2()
+        Public Async Function TestRemoveUnnecessaryCastFromInvocationStatement2() As Task
             Dim markup =
 <File>
 Interface I1
@@ -1751,12 +1752,12 @@ Class M
     End Sub
 End Class
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(768895)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveUnnecessaryCastInTernary()
+        Public Async Function TestRemoveUnnecessaryCastInTernary() As Task
             Dim markup =
 <File>
 Class Program
@@ -1776,12 +1777,12 @@ Class Program
     End Sub
 End Class
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(770187)>
         <WpfFact(Skip:="770187"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveNecessaryCastInSelectCaseExpression()
+        Public Async Function TestDontRemoveNecessaryCastInSelectCaseExpression() As Task
             ' Cast removal invokes a different user defined operator, hence the cast is necessary.
 
             Dim markup =
@@ -1821,12 +1822,12 @@ Namespace ConsoleApplication23
     End Class
 End Namespace]]>
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(770187)>
         <WpfFact(Skip:="770187"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveNecessaryCastInSelectCaseExpression2()
+        Public Async Function TestDontRemoveNecessaryCastInSelectCaseExpression2() As Task
             ' Cast removal invokes a different user defined operator, hence the cast is necessary.
 
             Dim markup =
@@ -1866,12 +1867,12 @@ Namespace ConsoleApplication23
     End Class
 End Namespace]]>
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(770187)>
         <WpfFact(Skip:="770187"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveNecessaryCastInSelectCaseExpression3()
+        Public Async Function TestDontRemoveNecessaryCastInSelectCaseExpression3() As Task
             ' Cast removal invokes a different user defined operator, hence the cast is necessary.
 
             Dim markup =
@@ -1911,14 +1912,14 @@ Namespace ConsoleApplication23
     End Class
 End Namespace]]>
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
 #Region "Interface Casts"
 
         <WorkItem(545889)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastToInterfaceForUnsealedType()
+        Public Async Function TestDontRemoveCastToInterfaceForUnsealedType() As Task
             Dim markup =
 <File>
 Imports System
@@ -1943,12 +1944,12 @@ Class Y
 End Class
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545890)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastToInterfaceForSealedType1()
+        Public Async Function TestRemoveCastToInterfaceForSealedType1() As Task
             ' Note: The cast below can be removed because C is sealed and the
             ' unspecified optional parameters of I.Foo() and C.Foo() have the
             ' same default values.
@@ -1992,12 +1993,12 @@ NotInheritable Class C
     End Sub
 End Class
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545890)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastToInterfaceForSealedType2()
+        Public Async Function TestRemoveCastToInterfaceForSealedType2() As Task
             ' Note: The cast below can be removed because C is sealed and the
             ' interface member has no parameters.
 
@@ -2044,12 +2045,12 @@ NotInheritable Class C
     End Sub
 End Class
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545890)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastToInterfaceForSealedType3()
+        Public Async Function TestRemoveCastToInterfaceForSealedType3() As Task
             ' Note: The cast below can be removed because C is sealed and the
             ' interface member has no parameters.
 
@@ -2108,12 +2109,12 @@ NotInheritable Class C
     End Sub
 End Class
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545890)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastToInterfaceForSealedType4()
+        Public Async Function TestDontRemoveCastToInterfaceForSealedType4() As Task
             ' Note: The cast below can't be removed (even though C is sealed)
             ' because the unspecified optional parameter default values differ.
 
@@ -2137,12 +2138,12 @@ NotInheritable Class C
 End Class
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545890)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastToInterfaceForSealedType5()
+        Public Async Function TestDontRemoveCastToInterfaceForSealedType5() As Task
             ' Note: The cast below cannot be removed (even though C is sealed)
             ' because default values differ for optional parameters and
             ' hence the method is not considered an implementation. 
@@ -2167,12 +2168,12 @@ NotInheritable Class C
 End Class
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545888)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastToInterfaceForSealedType6()
+        Public Async Function TestDontRemoveCastToInterfaceForSealedType6() As Task
             ' Note: The cast below can't be removed (even though C is sealed)
             ' because the specified named arguments refer to parameters that
             ' appear at different positions in the member signatures.
@@ -2197,12 +2198,12 @@ NotInheritable Class C
 End Class
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545888)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastToInterfaceForSealedType7()
+        Public Async Function TestRemoveCastToInterfaceForSealedType7() As Task
             ' Note: The cast below can be removed as C is sealed and
             ' because the specified named arguments refer to parameters that
             ' appear at same positions in the member signatures.
@@ -2246,12 +2247,12 @@ NotInheritable Class C
     End Sub
 End Class
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545888)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastToInterfaceForSealedType9()
+        Public Async Function TestDontRemoveCastToInterfaceForSealedType9() As Task
             ' Note: The cast below can't be removed (even though C is sealed)
             ' because it would result in binding to a Dispose method that doesn't
             ' implement IDisposable.Dispose().
@@ -2274,12 +2275,12 @@ NotInheritable Class C
 End Class
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545887)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastToInterfaceForStruct1()
+        Public Async Function TestDontRemoveCastToInterfaceForStruct1() As Task
             ' Note: The cast below can't be removed because the cast boxes 's' and
             ' unboxing would change program behavior.
 
@@ -2315,12 +2316,12 @@ Structure S
 End Structure
 </File>
 
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(545834), WorkItem(530073)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastToInterfaceForStruct2()
+        Public Async Function TestRemoveCastToInterfaceForStruct2() As Task
             ' Note: The cast below can be removed because we are sure to have
             ' a fresh copy of the struct from the GetEnumerator() method.
 
@@ -2357,12 +2358,12 @@ Class Program
     End Function
 End Class
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(544655)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastToICloneableForDelegate()
+        Public Async Function TestRemoveCastToICloneableForDelegate() As Task
             ' Note: The cast below can be removed because delegates are implicitly sealed.
 
             Dim markup =
@@ -2390,12 +2391,12 @@ Class C
     End Sub
 End Class
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(545926)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastToICloneableForArray()
+        Public Async Function TestRemoveCastToICloneableForArray() As Task
             ' Note: The cast below can be removed because arrays are implicitly sealed.
 
             Dim markup =
@@ -2421,12 +2422,12 @@ Class C
     End Sub
 End Class
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(529937)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastToICloneableForArray2()
+        Public Async Function TestRemoveCastToICloneableForArray2() As Task
             ' Note: The cast below can be removed because arrays are implicitly sealed.
 
             Dim markup =
@@ -2450,12 +2451,12 @@ Module module1
     End Sub
 End Module
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(529897)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastToIConvertibleForEnum()
+        Public Async Function TestRemoveCastToIConvertibleForEnum() As Task
             ' Note: The cast below can be removed because enums are implicitly sealed.
 
             Dim markup =
@@ -2482,13 +2483,13 @@ Class Program
 End Class
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(844482)>
         <WorkItem(1031406)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DoNotRemoveCastFromDerivedToBaseWithImplicitReference()
+        Public Async Function TestDoNotRemoveCastFromDerivedToBaseWithImplicitReference() As Task
             ' Cast removal changes the runtime behavior of the program.
             Dim markup =
 <File>
@@ -2506,12 +2507,12 @@ Class D
     Inherits C
 End Class
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(995908)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastIntroducesDuplicateAnnotations()
+        Public Async Function TestRemoveCastIntroducesDuplicateAnnotations() As Task
             Dim markup =
 <File>
     <![CDATA[
@@ -2571,14 +2572,14 @@ Module Program
 End Module
 ]]>
 </File>
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
 #End Region
 
         <WorkItem(739, "#739")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveAroundArrayLiteralInInterpolation1()
+        Public Async Function TestRemoveAroundArrayLiteralInInterpolation1() As Task
             Dim markup =
 <File>
 Module M
@@ -2593,12 +2594,12 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(739, "#739")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveAroundArrayLiteralInInterpolation2()
+        Public Async Function TestRemoveAroundArrayLiteralInInterpolation2() As Task
             Dim markup =
 <File>
 Module M
@@ -2613,12 +2614,12 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(739, "#739")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveAroundArrayLiteralInInterpolation3()
+        Public Async Function TestRemoveAroundArrayLiteralInInterpolation3() As Task
             Dim markup =
 <File>
 Module M
@@ -2633,12 +2634,12 @@ Module M
 End Module
 </File>
 
-            Test(markup, expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(markup, expected, compareTokens:=False)
+        End Function
 
         <WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastFromBaseToDerivedWithNarrowingReference()
+        Public Async Function TestDontRemoveCastFromBaseToDerivedWithNarrowingReference() As Task
             Dim markup =
 <File>
 Module Module1
@@ -2656,12 +2657,12 @@ End Class
 Class Derived2 : Inherits Base
 End Class
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastToTypeParameterWithExceptionConstraint()
+        Public Async Function TestDontRemoveCastToTypeParameterWithExceptionConstraint() As Task
             Dim markup =
 <File>
 Imports System
@@ -2674,12 +2675,12 @@ Class Program
     End Sub
 End Class
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastToTypeParameterWithExceptionSubTypeConstraint()
+        Public Async Function TestDontRemoveCastToTypeParameterWithExceptionSubTypeConstraint() As Task
             Dim markup =
 <File>
 Imports System
@@ -2692,12 +2693,12 @@ Class Program
     End Sub
 End Class
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DoNotRemoveCastInUserDefinedNarrowingConversionStrictOn()
+        Public Async Function TestDoNotRemoveCastInUserDefinedNarrowingConversionStrictOn() As Task
             Dim markup =
 <File>
 Option Strict On
@@ -2731,12 +2732,12 @@ Public Structure Color
     End Function
 End Structure
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
 
         <WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DoNotRemoveCastInUserDefinedNarrowingConversionStrictOff()
+        Public Async Function TestDoNotRemoveCastInUserDefinedNarrowingConversionStrictOff() As Task
             Dim markup =
 <File>
 Option Strict Off
@@ -2770,7 +2771,7 @@ Public Structure Color
     End Function
 End Structure
 </File>
-            TestMissing(markup)
-        End Sub
+            Await TestMissingAsync(markup)
+        End Function
     End Class
 End Namespace

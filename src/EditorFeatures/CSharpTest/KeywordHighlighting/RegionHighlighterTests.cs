@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_1()
+        public async Task TestExample1_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
 {|Cursor:[|#region|]|} Main
 static void Main() {
@@ -27,9 +28,9 @@ static void Main() {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_2()
+        public async Task TestExample1_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
 [|#region|] Main
 static void Main() {
@@ -40,9 +41,9 @@ static void Main() {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_1()
+        public async Task TestNestedExample1_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
 {|Cursor:[|#region|]|} Main
 static void Main() {
@@ -55,9 +56,9 @@ static void Main() {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_2()
+        public async Task TestNestedExample1_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
 #region Main
 static void Main() {
@@ -70,9 +71,9 @@ static void Main() {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_3()
+        public async Task TestNestedExample1_3()
         {
-            Test(
+            await TestAsync(
         @"class C {
 #region Main
 static void Main() {
@@ -85,9 +86,9 @@ static void Main() {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_4()
+        public async Task TestNestedExample1_4()
         {
-            Test(
+            await TestAsync(
         @"class C {
 [|#region|] Main
 static void Main() {

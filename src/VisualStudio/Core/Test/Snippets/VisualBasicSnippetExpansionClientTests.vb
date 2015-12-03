@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -13,36 +14,36 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Public Class VisualBasicSnippetExpansionClientTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_EmptyDocument()
+        Public Async Function TestAddImport_EmptyDocument() As Task
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"System"}
             Dim expectedUpdatedCode = <![CDATA[Imports System
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_EmptyDocument_SystemAtTop()
+        Public Async Function TestAddImport_EmptyDocument_SystemAtTop() As Task
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"First.Alphabetically", "System.Bar"}
             Dim expectedUpdatedCode = <![CDATA[Imports System.Bar
 Imports First.Alphabetically
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_EmptyDocument_SystemNotSortedToTop()
+        Public Async Function TestAddImport_EmptyDocument_SystemNotSortedToTop() As Task
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"First.Alphabetically", "System.Bar"}
             Dim expectedUpdatedCode = <![CDATA[Imports First.Alphabetically
 Imports System.Bar
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=False, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=False, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_AddsOnlyNewNamespaces()
+        Public Async Function TestAddImport_AddsOnlyNewNamespaces() As Task
             Dim originalCode = <![CDATA[Imports A.B.C
 Imports D.E.F
 ]]>.Value
@@ -51,11 +52,11 @@ Imports D.E.F
 Imports D.E.F
 Imports G.H.I
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact(Skip:="Issue #321"), Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_AddsOnlyNewAliasAndNamespacePairs()
+        Public Async Function TestAddImport_AddsOnlyNewAliasAndNamespacePairs() As Task
             Dim originalCode = <![CDATA[Imports A = B.C
 Imports D = E.F
 Imports G = H.I
@@ -68,51 +69,51 @@ Imports D = E.F
 Imports G = H.I
 Imports J = K.L
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_DuplicateNamespaceDetectionIgnoresCase()
+        Public Async Function TestAddImport_DuplicateNamespaceDetectionIgnoresCase() As Task
             Dim originalCode = <![CDATA[Imports A.b.C
 ]]>.Value
             Dim namespacesToAdd = {"a.B.C", "A.B.c"}
             Dim expectedUpdatedCode = <![CDATA[Imports A.b.C
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_DuplicateAliasNamespacePairDetectionIgnoresWhitespace1()
+        Public Async Function TestAddImport_DuplicateAliasNamespacePairDetectionIgnoresWhitespace1() As Task
             Dim originalCode = <![CDATA[Imports A = B.C
 ]]>.Value
             Dim namespacesToAdd = {"A  =        B.C"}
             Dim expectedUpdatedCode = <![CDATA[Imports A = B.C
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_DuplicateAliasNamespacePairDetectionIgnoresWhitespace2()
+        Public Async Function TestAddImport_DuplicateAliasNamespacePairDetectionIgnoresWhitespace2() As Task
             Dim originalCode = <![CDATA[Imports A     =  B.C
 ]]>.Value
             Dim namespacesToAdd = {"A=B.C"}
             Dim expectedUpdatedCode = <![CDATA[Imports A     =  B.C
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_DuplicateAliasNamespacePairDetectionIgnoresCase()
+        Public Async Function TestAddImport_DuplicateAliasNamespacePairDetectionIgnoresCase() As Task
             Dim originalCode = <![CDATA[Imports A = B.C
 ]]>.Value
             Dim namespacesToAdd = {"a = b.C"}
             Dim expectedUpdatedCode = <![CDATA[Imports A = B.C
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_OnlyFormatNewImports()
+        Public Async Function TestAddImport_OnlyFormatNewImports() As Task
             Dim originalCode = <![CDATA[Imports A     =  B.C
 Imports G=   H.I
 ]]>.Value
@@ -121,82 +122,82 @@ Imports G=   H.I
 Imports D = E.F
 Imports G=   H.I
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_XmlNamespaceImport()
+        Public Async Function TestAddImport_XmlNamespaceImport() As Task
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"<xmlns:db=""http://example.org/database-two"">"}
             Dim expectedUpdatedCode = <![CDATA[Imports <xmlns:db="http://example.org/database-two">
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_DuplicateXmlNamespaceDetectionIgnoresWhitespace1()
+        Public Async Function TestAddImport_DuplicateXmlNamespaceDetectionIgnoresWhitespace1() As Task
             Dim originalCode = <![CDATA[Imports <xmlns:db    = "http://example.org/database-two">
 ]]>.Value
             Dim namespacesToAdd = {"<xmlns:db=""http://example.org/database-two"">"}
             Dim expectedUpdatedCode = <![CDATA[Imports <xmlns:db    = "http://example.org/database-two">
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_DuplicateXmlNamespaceDetectionIgnoresWhitespace2()
+        Public Async Function TestAddImport_DuplicateXmlNamespaceDetectionIgnoresWhitespace2() As Task
             Dim originalCode = <![CDATA[Imports <xmlns:db="http://example.org/database-two">
 ]]>.Value
             Dim namespacesToAdd = {"<xmlns:db   =          ""http://example.org/database-two"">"}
             Dim expectedUpdatedCode = <![CDATA[Imports <xmlns:db="http://example.org/database-two">
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub AddImport_DuplicateXmlNamespaceDetectionIgnoresCase()
+        Public Async Function TestAddImport_DuplicateXmlNamespaceDetectionIgnoresCase() As Task
             Dim originalCode = <![CDATA[Imports <xmlns:db="http://example.org/database-two">
 ]]>.Value
             Dim namespacesToAdd = {"<xmlns:Db=""http://example.org/database-two"">", "<xmlns:db=""http://example.org/Database-Two"">"}
             Dim expectedUpdatedCode = <![CDATA[Imports <xmlns:db="http://example.org/database-two">
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         <WorkItem(640961)>
-        Public Sub AddImport_BadNamespaceGetsAdded()
+        Public Async Function TestAddImport_BadNamespaceGetsAdded() As Task
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"$system"}
             Dim expectedUpdatedCode = <![CDATA[Imports $system
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         <WorkItem(640961)>
-        Public Sub AddImport_TrailingTriviaIsIncluded()
+        Public Async Function TestAddImport_TrailingTriviaIsIncluded() As Task
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"System.Data ' Trivia!"}
             Dim expectedUpdatedCode = <![CDATA[Imports System.Data ' Trivia!
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         <WorkItem(640961)>
-        Public Sub AddImport_TrailingTriviaNotUsedInDuplicationDetection()
+        Public Async Function TestAddImport_TrailingTriviaNotUsedInDuplicationDetection() As Task
             Dim originalCode = <![CDATA[Imports System.Data ' Original trivia!
 ]]>.Value
             Dim namespacesToAdd = {"System.Data ' Different trivia, should not be added!", "System ' Different namespace, should be added"}
             Dim expectedUpdatedCode = <![CDATA[Imports System ' Different namespace, should be added
 Imports System.Data ' Original trivia!
 ]]>.Value
-            TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
-        End Sub
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub SnippetFormatting_ProjectionBuffer_FullyInSubjectBuffer()
+        Public Async Function TestSnippetFormatting_ProjectionBuffer_FullyInSubjectBuffer() As Task
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
     <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
@@ -220,11 +221,11 @@ End Class</Document>
 Next 
 &lt;/div&gt;</SurfaceBuffer>
 
-            TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
-        End Sub
+            Await TestFormattingAsync(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub SnippetFormatting_ProjectionBuffer_FullyInSubjectBuffer2()
+        Public Async Function TestSnippetFormatting_ProjectionBuffer_FullyInSubjectBuffer2() As Task
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
     <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
@@ -252,11 +253,11 @@ For index2 = 1 to length
         Next 
 &lt;/div&gt;</SurfaceBuffer>
 
-            TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
-        End Sub
+            Await TestFormattingAsync(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub SnippetFormatting_ProjectionBuffer_ExpandedIntoSurfaceBuffer()
+        Public Async Function TestSnippetFormatting_ProjectionBuffer_ExpandedIntoSurfaceBuffer() As Task
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
     <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
@@ -280,11 +281,11 @@ Next|]
 Next
 &lt;/div&gt;</SurfaceBuffer>
 
-            TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
-        End Sub
+            Await TestFormattingAsync(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub SnippetFormatting_ProjectionBuffer_FullyInSurfaceBuffer()
+        Public Async Function TestSnippetFormatting_ProjectionBuffer_FullyInSurfaceBuffer() As Task
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
     <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
@@ -308,28 +309,28 @@ Next|]
 Next
 &lt;/div&gt;</SurfaceBuffer>
 
-            TestFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
-        End Sub
+            Await TestFormattingAsync(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+        End Function
 
         <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub SnippetFormatting_TabSize_3()
-            TestFormattingWithTabSize(3)
-        End Sub
+        Public Async Function TestSnippetFormatting_TabSize_3() As Task
+            Await TestFormattingWithTabSizeAsync(3)
+        End Function
 
         <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub SnippetFormatting_TabSize_4()
-            TestFormattingWithTabSize(4)
-        End Sub
+        Public Async Function TestSnippetFormatting_TabSize_4() As Task
+            Await TestFormattingWithTabSizeAsync(4)
+        End Function
 
         <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
         <Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub SnippetFormatting_TabSize_5()
-            TestFormattingWithTabSize(5)
-        End Sub
+        Public Async Function TestSnippetFormatting_TabSize_5() As Task
+            Await TestFormattingWithTabSizeAsync(5)
+        End Function
 
-        Public Sub TestFormattingWithTabSize(tabSize As Integer)
+        Public Async Function TestFormattingWithTabSizeAsync(tabSize As Integer) As Tasks.Task
             Dim workspaceXml =
 <Workspace>
     <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
@@ -351,7 +352,7 @@ End Class</Document>
 	End Sub
 End Class</Test>
 
-            Using testWorkspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+            Using testWorkspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml)
                 Dim document = testWorkspace.Documents.Single()
 
                 Dim optionService = testWorkspace.Services.GetService(Of IOptionService)()
@@ -369,9 +370,9 @@ End Class</Test>
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
-        End Sub
+        End Function
 
-        Private Sub TestSnippetAddImports(originalCode As String, namespacesToAdd As String(), placeSystemNamespaceFirst As Boolean, expectedUpdatedCode As String)
+        Private Async Function TestSnippetAddImportsAsync(originalCode As String, namespacesToAdd As String(), placeSystemNamespaceFirst As Boolean, expectedUpdatedCode As String) As Tasks.Task
             Dim workspaceXml = <Workspace>
                                    <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
                                        <CompilationOptions/>
@@ -390,7 +391,7 @@ End Class</Test>
                                                    </Import>)
             Next
 
-            Using testWorkspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+            Using testWorkspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml)
                 Dim expansionClient = New SnippetExpansionClient(
                     Guids.VisualBasicDebuggerLanguageId,
                     testWorkspace.Documents.Single().GetTextView(),
@@ -403,12 +404,12 @@ End Class</Test>
                     placeSystemNamespaceFirst, CancellationToken.None)
 
                 Assert.Equal(expectedUpdatedCode.Replace(vbLf, vbCrLf),
-                             updatedDocument.GetTextAsync(CancellationToken.None).Result.ToString())
+                             (Await updatedDocument.GetTextAsync()).ToString())
             End Using
-        End Sub
+        End Function
 
-        Public Sub TestFormatting(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement)
-            Using testWorkspace = TestWorkspaceFactory.CreateWorkspace(workspaceXmlWithSubjectBufferDocument)
+        Public Async Function TestFormattingAsync(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement) As Tasks.Task
+            Using testWorkspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXmlWithSubjectBufferDocument)
                 Dim subjectBufferDocument = testWorkspace.Documents.Single()
 
                 Dim surfaceBufferDocument = testWorkspace.CreateProjectionBufferDocument(
@@ -425,6 +426,6 @@ End Class</Test>
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, subjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -180,10 +180,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6968")]
         public async Task TestPreviewDiagnosticTagger()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class { }"))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class { }"))
             using (var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution))
             {
                 //// preview workspace and owner of the solution now share solution and its underlying text buffer
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 //// enable preview diagnostics
                 previewWorkspace.EnableDiagnostic();
 
-                var spans = await SquiggleUtilities.GetErrorSpans(workspace).ConfigureAwait(true);
+                var spans = await SquiggleUtilities.GetErrorSpans(workspace);
                 Assert.Equal(1, spans.Count);
             }
         }
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class { }"))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class { }"))
             {
                 // set up listener to wait until diagnostic finish running
                 var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>() as DiagnosticService;
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
                 // create a diff view
                 var previewFactoryService = workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
-                var diffView = (IWpfDifferenceViewer)(await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None).ConfigureAwait(true));
+                var diffView = (IWpfDifferenceViewer)(await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None));
 
                 var foregroundService = workspace.GetService<IForegroundNotificationService>();
                 var optionsService = workspace.Services.GetService<IOptionService>();
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                         }
 
                         // wait taggers
-                        await waiter.CreateWaitTask().ConfigureAwait(true);
+                        await waiter.CreateWaitTask();
 
                         // check left buffer
                         var leftSnapshot = leftBuffer.CurrentSnapshot;

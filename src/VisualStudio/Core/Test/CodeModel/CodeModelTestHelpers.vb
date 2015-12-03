@@ -33,8 +33,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         ' "probably not crash" as an improvement over "will crash when the finalizer throws."
 
         <HandleProcessCorruptedStateExceptions()>
-        Public Function CreateCodeModelTestState(definition As XElement) As CodeModelTestState
-            Dim workspace = TestWorkspaceFactory.CreateWorkspace(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+        Public Async Function CreateCodeModelTestStateAsync(definition As XElement) As Threading.Tasks.Task(Of CodeModelTestState)
+            Dim workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
 
             Dim result As CodeModelTestState = Nothing
             Try

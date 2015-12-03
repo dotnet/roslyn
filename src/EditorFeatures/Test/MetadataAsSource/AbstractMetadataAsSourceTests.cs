@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,15 +14,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public abstract partial class AbstractMetadataAsSourceTests
     {
-        internal static void GenerateAndVerifySource(string metadataSource, string symbolName, string projectLanguage, string expected, bool compareTokens = true, bool includeXmlDocComments = false)
+        internal static async Task GenerateAndVerifySourceAsync(string metadataSource, string symbolName, string projectLanguage, string expected, bool compareTokens = true, bool includeXmlDocComments = false)
         {
-            using (var context = new TestContext(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments))
+            using (var context = await TestContext.CreateAsync(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments))
             {
                 context.GenerateAndVerifySource(symbolName, expected, compareTokens);
             }
         }
 
-        internal static void TestNotReusedOnAssemblyDiffers(string projectLanguage)
+        internal static async Task TestNotReusedOnAssemblyDiffersAsync(string projectLanguage)
         {
             var metadataSources = new[]
             {
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class D {}"
             };
 
-            using (var context = new TestContext(projectLanguage))
+            using (var context = await TestContext.CreateAsync(projectLanguage))
             {
                 var projectId = ProjectId.CreateNewId();
                 var metadataProject = context.CurrentSolution
@@ -57,12 +58,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             }
         }
 
-        internal static void TestSymbolIdMatchesMetadata(string projectLanguage)
+        internal static async Task TestSymbolIdMatchesMetadataAsync(string projectLanguage)
         {
             var metadataSource = @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C { }";
             var symbolName = "C";
 
-            using (var context = new TestContext(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource)))
+            using (var context = await TestContext.CreateAsync(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource)))
             {
                 var metadataSymbol = context.ResolveSymbol(symbolName);
                 var metadataSymbolId = metadataSymbol.GetSymbolKey();

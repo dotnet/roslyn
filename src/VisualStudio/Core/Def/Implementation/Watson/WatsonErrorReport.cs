@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
         /// Particularly when the failing code happens to be in a loop or on multiple threads, we don't want to get
         /// the same crash over and over.
         /// </remarks>
-        private static readonly TimeSpan MinimumSubmissionInterval = TimeSpan.FromHours(1);
+        private static readonly TimeSpan s_minimumSubmissionInterval = TimeSpan.FromHours(1);
 
         /// <summary>
         /// A record of when a given component last submitted an error report in this app domain's lifetime.  
@@ -424,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
             }
             else
             {
-                DateTime denyIfMoreRecentlyThan = DateTime.UtcNow - MinimumSubmissionInterval;
+                DateTime denyIfMoreRecentlyThan = DateTime.UtcNow - s_minimumSubmissionInterval;
                 DateTime lastSubmission;
 
                 lock (s_lastReportSubmissionByComponent)

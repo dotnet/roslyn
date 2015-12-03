@@ -316,7 +316,8 @@ public class Test
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
 
-        [Fact]
+        [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void PubKeyContainerBogusOptions()
         {
             string s = "public class C {}";
@@ -1022,7 +1023,8 @@ public class Z
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute);
         }
 
-        [Fact]
+        [WorkItem(5665, "https://github.com/dotnet/roslyn/issues/5665")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void SignModuleKeyContainerBogus()
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyName(""bogus"")] public class C {}";
@@ -1852,7 +1854,7 @@ public class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void AssemblySignatureKeyAttribute_3()
         {
             var other = CreateCompilation(

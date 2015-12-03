@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
 
             var workspace = targetDocument.Project.Solution.Workspace;
-            newRoot = Formatter.Format(newRoot, Formatter.Annotation, workspace, workspace.Options, formattingRules, cancellationToken);
+            newRoot = Formatter.FormatAsync(newRoot, Formatter.Annotation, workspace, workspace.Options, formattingRules, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var newMember = newRoot.GetAnnotatedNodesAndTokens(annotation).Single();
             var newMemberText = newMember.ToFullString();

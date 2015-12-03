@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
@@ -26,8 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private readonly MemberRangeMap _memberRangeMap;
         private readonly AnalyzerExecutor _executor;
         private readonly StateManager _stateManager;
-        private readonly SimpleTaskQueue _eventQueue;
-        
+
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService owner,
             int correlationId,
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _correlationId = correlationId;
             _memberRangeMap = new MemberRangeMap();
             _executor = new AnalyzerExecutor(this);
-            _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
+
             _stateManager = new StateManager(analyzerManager);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
         }
@@ -52,9 +50,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return;
             }
 
-            // guarantee order of the events.
-            var asyncToken = Owner.Listener.BeginAsyncOperation(nameof(OnProjectAnalyzerReferenceChanged));
-            _eventQueue.ScheduleTask(() => ClearProjectStatesAsync(e.Project, e.Removed, CancellationToken.None), CancellationToken.None).CompletesAsyncOperation(asyncToken);
+            // events will be automatically serialized.
+            ClearProjectStatesAsync(e.Project, e.Removed, CancellationToken.None);
         }
 
         public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
@@ -80,11 +77,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
             {
-                // unlike document open or close where we don't know whether this document will be re-analyzed again due to
-                // engine's option such as "Close File Diagnostics", this one will be called when we want to re-analyze the document
-                // for whatever reason. so we let events to be raised when actual analysis happens but clear the cache so that
-                // we don't return existing data without re-analysis.
-                return ClearOnlyDocumentStates(document, raiseEvent: false, cancellationToken: cancellationToken);
+                // clear states for re-analysis and raise events about it. otherwise, some states might not updated on re-analysis
+                // due to our build-live de-duplication logic where we put all state in Documents state.
+                return ClearOnlyDocumentStates(document, raiseEvent: true, cancellationToken: cancellationToken);
             }
         }
 

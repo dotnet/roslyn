@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
@@ -8,7 +9,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
         Inherits AbstractEventCollectorTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_Rename()
+        Public Async Function TestClass_Rename() As Task
             Dim code =
 <Code>
 class C
@@ -23,12 +24,12 @@ class D
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Rename("D"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_AddStaticModifier()
+        Public Async Function TestClass_AddStaticModifier() As Task
             Dim code =
 <Code>
 class C
@@ -43,12 +44,12 @@ static class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Unknown("C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_ChangeToStruct()
+        Public Async Function TestClass_ChangeToStruct() As Task
             Dim code =
 <Code>
 class C
@@ -63,13 +64,13 @@ struct C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Remove("C", Nothing),
                  Add("C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_AddField()
+        Public Async Function TestClass_AddField() As Task
             Dim code =
 <Code>
 class C
@@ -85,12 +86,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Add("i", "C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_AddSecondField()
+        Public Async Function TestClass_AddSecondField() As Task
             Dim code =
 <Code>
 class C
@@ -107,12 +108,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Add("j", "C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_AddTwoDisjointFields()
+        Public Async Function TestClass_AddTwoDisjointFields() As Task
             Dim code =
 <Code>
 class C
@@ -129,12 +130,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Unknown("C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_AddTwoContiguousFields()
+        Public Async Function TestClass_AddTwoContiguousFields() As Task
             Dim code =
 <Code>
 class C
@@ -151,13 +152,13 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Add("a", "C"),
                  Add("b", "C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_RemoveTwoDisjointFields()
+        Public Async Function TestClass_RemoveTwoDisjointFields() As Task
             Dim code =
 <Code>
 class C
@@ -174,12 +175,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Unknown("C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_ReplaceFourFieldsWithProperty()
+        Public Async Function TestClass_ReplaceFourFieldsWithProperty() As Task
             Dim code =
 <Code>
 class C
@@ -196,16 +197,16 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Remove("i", "C"),
                  Remove("x", "C"),
                  Remove("j", "C"),
                  Remove("y", "C"),
                  Add("Foo", "C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_RemoveTwoContiguousFields()
+        Public Async Function TestClass_RemoveTwoContiguousFields() As Task
             Dim code =
 <Code>
 class C
@@ -222,13 +223,13 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Remove("a", "C"),
                  Remove("b", "C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_RemoveField()
+        Public Async Function TestClass_RemoveField() As Task
             Dim code =
 <Code>
 class C
@@ -244,12 +245,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Remove("i", "C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_ReplaceFieldWithEvent()
+        Public Async Function TestClass_ReplaceFieldWithEvent() As Task
             Dim code =
 <Code>
 class C
@@ -266,13 +267,13 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Remove("E", "C"),
                  Add("E", "C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_AddAutoProperty()
+        Public Async Function TestClass_AddAutoProperty() As Task
             Dim code =
 <Code>
 class C
@@ -288,12 +289,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Add("Foo", "C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestClass_AddIndexer()
+        Public Async Function TestClass_AddIndexer() As Task
             Dim code =
 <Code>
 class C
@@ -309,12 +310,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Add("this", "C"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestField_AddConstModifier()
+        Public Async Function TestField_AddConstModifier() As Task
             Dim code =
 <Code>
 class C
@@ -331,12 +332,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Unknown("i"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestMethod_AddAccessModifier()
+        Public Async Function TestMethod_AddAccessModifier() As Task
             Dim code =
 <Code>
 class C
@@ -353,12 +354,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Unknown("M"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestMethod_AddParameter1()
+        Public Async Function TestMethod_AddParameter1() As Task
             Dim code =
 <Code>
 class C
@@ -375,12 +376,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Add("i", "M"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestMethod_AddParameter2()
+        Public Async Function TestMethod_AddParameter2() As Task
             Dim code =
 <Code>
 class C
@@ -397,12 +398,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Add("j", "M"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestMethod_RemoveParameter()
+        Public Async Function TestMethod_RemoveParameter() As Task
             Dim code =
 <Code>
 class C
@@ -419,12 +420,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Remove("i", "M"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestMethod_AddAttribute1()
+        Public Async Function TestMethod_AddAttribute1() As Task
             Dim code =
 <Code>
 class C
@@ -442,12 +443,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Add("System.CLSCompliant", "M"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestMethod_AddAttribute2()
+        Public Async Function TestMethod_AddAttribute2() As Task
             Dim code =
 <Code>
 class C
@@ -466,12 +467,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Add("System.Diagnostics.Conditional", "M"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestMethod_RemoveAttributes()
+        Public Async Function TestMethod_RemoveAttributes() As Task
             Dim code =
 <Code>
 class C
@@ -489,13 +490,13 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Remove("System.Diagnostics.Conditional", "M"),
                  Remove("System.CLSCompliant", "M"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestMethod_ChangeAttribute()
+        Public Async Function TestMethod_ChangeAttribute() As Task
             Dim code =
 <Code>
 class C
@@ -514,12 +515,12 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  ArgChange("System.Diagnostics.Conditional"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub LargeTopLevelReplace()
+        Public Async Function TestLargeTopLevelReplace() As Task
             Dim code =
 <Code>
 class A { }
@@ -539,12 +540,12 @@ class J { }
 class K { }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Unknown(Nothing))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub ReplaceWithTwoClasses()
+        Public Async Function TestReplaceWithTwoClasses() As Task
             Dim code =
 <Code>
 namespace N
@@ -562,12 +563,12 @@ namespace N
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Unknown("N"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub ChangingClassClassToPartial()
+        Public Async Function TestChangingClassClassToPartial() As Task
             Dim code =
 <Code>
 namespace N
@@ -588,13 +589,13 @@ namespace N
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Remove("C", "N"),
                  Add("C", "N"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub RenameDelegate()
+        Public Async Function TestRenameDelegate() As Task
             Dim code =
 <Code>
 namespace N
@@ -611,12 +612,12 @@ namespace N
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Rename("Bar"))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub Bug788750()
+        Public Async Function TestBug788750() As Task
             Dim code =
 <Code>
 class C
@@ -663,12 +664,12 @@ class B
 }
 </Code>
 
-            Test(code, changedCode)
-        End Sub
+            Await TestAsync(code, changedCode)
+        End Function
 
         <WorkItem(844611)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestField_AddAttributeToField()
+        Public Async Function TestField_AddAttributeToField() As Task
             Dim code =
 <Code>
 class C
@@ -686,13 +687,13 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Add("System.CLSCompliant", "foo"))
-        End Sub
+        End Function
 
         <WorkItem(844611)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestField_AddAttributeToTwoFields()
+        Public Async Function TestField_AddAttributeToTwoFields() As Task
             Dim code =
 <Code>
 class C
@@ -710,14 +711,14 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Add("System.CLSCompliant", "foo"),
                  Add("System.CLSCompliant", "bar"))
-        End Sub
+        End Function
 
         <WorkItem(844611)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestField_RemoveAttributeFromField()
+        Public Async Function TestField_RemoveAttributeFromField() As Task
             Dim code =
 <Code>
 class C
@@ -735,13 +736,13 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Remove("System.CLSCompliant", "foo"))
-        End Sub
+        End Function
 
         <WorkItem(844611)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestField_RemoveAttributeFromTwoFields()
+        Public Async Function TestField_RemoveAttributeFromTwoFields() As Task
             Dim code =
 <Code>
 class C
@@ -759,14 +760,14 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Remove("System.CLSCompliant", "foo"),
                  Remove("System.CLSCompliant", "bar"))
-        End Sub
+        End Function
 
         <WorkItem(844611)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestField_ChangeAttributeOnField()
+        Public Async Function TestField_ChangeAttributeOnField() As Task
             Dim code =
 <Code>
 class C
@@ -785,14 +786,14 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  ArgChange("System.CLSCompliant", "foo"))
-        End Sub
+        End Function
 
         <WorkItem(1147865)>
         <WorkItem(844611)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestField_ChangeAttributeOnTwoFields()
+        Public Async Function TestField_ChangeAttributeOnTwoFields() As Task
             Dim code =
 <Code>
 class C
@@ -811,14 +812,14 @@ class C
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  ArgChange("System.CLSCompliant", "foo"),
                  ArgChange("System.CLSCompliant", "bar"))
-        End Sub
+        End Function
 
         <WorkItem(1147865)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestField_AddOneMoreAttribute()
+        Public Async Function TestField_AddOneMoreAttribute() As Task
             Dim code =
 <Code>
 using System;
@@ -841,13 +842,13 @@ class Program
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Add("System.CLSCompliant", "bar"))
-        End Sub
+        End Function
 
         <WorkItem(1147865)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Sub TestField_RemoveOneAttribute()
+        Public Async Function TestField_RemoveOneAttribute() As Task
             Dim code =
 <Code>
 using System;
@@ -870,9 +871,9 @@ class Program
 }
 </Code>
 
-            Test(code, changedCode,
+            Await TestAsync(code, changedCode,
                  Remove("System.CLSCompliant", "bar"))
-        End Sub
+        End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

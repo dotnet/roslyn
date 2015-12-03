@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
@@ -11,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestXmlLiteralSample6_1()
-            Test(<Text><![CDATA[
+        Public Async Function TestXmlLiteralSample6_1() As Task
+            Await TestAsync(<Text><![CDATA[
 Class C
 Sub M()
 Dim q = <?xml version="1.0"?>
@@ -25,11 +26,11 @@ Dim q = <?xml version="1.0"?>
 </contact>
 End Sub
 End Class]]></Text>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestXmlLiteralSample6_2()
-            Test(<Text><![CDATA[
+        Public Async Function TestXmlLiteralSample6_2() As Task
+            Await TestAsync(<Text><![CDATA[
 Class C
 Sub M()
 Dim q = <?xml version="1.0"?>
@@ -42,11 +43,11 @@ Dim q = <?xml version="1.0"?>
 </contact>
 End Sub
 End Class]]></Text>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestXmlLiteralSample6_3()
-            Test(<Text><![CDATA[
+        Public Async Function TestXmlLiteralSample6_3() As Task
+            Await TestAsync(<Text><![CDATA[
 Class C
 Sub M()
 Dim q = <?xml version="1.0"?>
@@ -59,6 +60,6 @@ Dim q = <?xml version="1.0"?>
 </contact>
 End Sub
 End Class]]></Text>)
-        End Sub
+        End Function
     End Class
 End Namespace

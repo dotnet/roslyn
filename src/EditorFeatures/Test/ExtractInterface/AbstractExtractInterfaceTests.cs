@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Xunit;
 
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
     public abstract class AbstractExtractInterfaceTests
     {
-        public static void TestExtractInterfaceCommandCSharp(
+        public static async Task TestExtractInterfaceCommandCSharpAsync(
             string markup,
             bool expectedSuccess,
             string expectedMemberName = null,
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             string expectedUpdatedOriginalDocumentCode = null,
             string expectedInterfaceCode = null)
         {
-            TestExtractInterfaceCommand(
+            await TestExtractInterfaceCommandAsync(
                 markup,
                 LanguageNames.CSharp,
                 expectedSuccess,
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 expectedInterfaceCode);
         }
 
-        public static void TestExtractInterfaceCommandVisualBasic(
+        public static async Task TestExtractInterfaceCommandVisualBasicAsync(
             string markup,
             bool expectedSuccess,
             string expectedMemberName = null,
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             string expectedInterfaceCode = null,
             string rootNamespace = null)
         {
-            TestExtractInterfaceCommand(
+            await TestExtractInterfaceCommandAsync(
                 markup,
                 LanguageNames.VisualBasic,
                 expectedSuccess,
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));
         }
 
-        private static void TestExtractInterfaceCommand(
+        private static async Task TestExtractInterfaceCommandAsync(
             string markup,
             string languageName,
             bool expectedSuccess,
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             string expectedInterfaceCode = null,
             CompilationOptions compilationOptions = null)
         {
-            using (var testState = new ExtractInterfaceTestState(markup, languageName, compilationOptions))
+            using (var testState = await ExtractInterfaceTestState.CreateAsync(markup, languageName, compilationOptions))
             {
                 var result = testState.ExtractViaCommand();
 
@@ -101,14 +102,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     if (expectedUpdatedOriginalDocumentCode != null)
                     {
                         var updatedOriginalDocument = result.UpdatedSolution.GetDocument(testState.ExtractFromDocument.Id);
-                        var updatedCode = updatedOriginalDocument.GetTextAsync(CancellationToken.None).Result.ToString();
+                        var updatedCode = updatedOriginalDocument.GetTextAsync().Result.ToString();
                         Assert.Equal(expectedUpdatedOriginalDocumentCode, updatedCode);
                     }
 
                     if (expectedInterfaceCode != null)
                     {
                         var interfaceDocument = result.UpdatedSolution.GetDocument(result.NavigationDocumentId);
-                        var interfaceCode = interfaceDocument.GetTextAsync(CancellationToken.None).Result.ToString();
+                        var interfaceCode = interfaceDocument.GetTextAsync().Result.ToString();
                         Assert.Equal(expectedInterfaceCode, interfaceCode);
                     }
                 }

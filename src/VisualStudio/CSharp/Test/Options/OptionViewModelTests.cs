@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
@@ -37,9 +38,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
-        public void TestCheckBox()
+        public async Task TestCheckBox()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(""))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(""))
             {
                 var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
                 using (var viewModel = new SpacingViewModel(workspace.Options, serviceProvider))
@@ -63,9 +64,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
-        public void TestOptionLoading()
+        public async Task TestOptionLoading()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(""))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(""))
             {
                 var optionService = workspace.GetService<IOptionService>();
                 var optionSet = optionService.GetOptions();
@@ -82,9 +83,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
-        public void TestOptionSaving()
+        public async Task TestOptionSaving()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(""))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(""))
             {
                 var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
                 using (var viewModel = new SpacingViewModel(workspace.Options, serviceProvider))
@@ -104,9 +105,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
-        public void TestFeatureBasedSaving()
+        public async Task TestFeatureBasedSaving()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(""))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(""))
             {
                 // Set an option for an unrelated feature
                 var optionService = workspace.GetService<IOptionService>();

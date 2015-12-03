@@ -10,15 +10,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     internal class RegionCollector
     {
         private readonly SyntacticDocument _document;
-        private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxNodeOutliner>> _nodeOutlinerMap;
-        private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxTriviaOutliner>> _triviaOutlinerMap;
+        private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxOutliner>> _nodeOutlinerMap;
+        private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxOutliner>> _triviaOutlinerMap;
         private readonly List<OutliningSpan> _regions;
         private readonly CancellationToken _cancellationToken;
 
         private RegionCollector(
             SyntacticDocument document,
-            ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxNodeOutliner>> nodeOutlinerMap,
-            ImmutableDictionary<int, ImmutableArray<AbstractSyntaxTriviaOutliner>> triviaOutlinerMap,
+            ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxOutliner>> nodeOutlinerMap,
+            ImmutableDictionary<int, ImmutableArray<AbstractSyntaxOutliner>> triviaOutlinerMap,
             List<OutliningSpan> spans,
             CancellationToken cancellationToken)
         {
@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
         public static void CollectOutliningSpans(
             SyntacticDocument document,
-            ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxNodeOutliner>> nodeOutlinerMap,
-            ImmutableDictionary<int, ImmutableArray<AbstractSyntaxTriviaOutliner>> triviaOutlinerMap,
+            ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxOutliner>> nodeOutlinerMap,
+            ImmutableDictionary<int, ImmutableArray<AbstractSyntaxOutliner>> triviaOutlinerMap,
             List<OutliningSpan> spans,
             CancellationToken cancellationToken)
         {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
         private void GetOutliningSpans(SyntaxNode node)
         {
-            ImmutableArray<AbstractSyntaxNodeOutliner> outliners;
+            ImmutableArray<AbstractSyntaxOutliner> outliners;
             if (_nodeOutlinerMap.TryGetValue(node.GetType(), out outliners))
             {
                 foreach (var outliner in outliners)
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                ImmutableArray<AbstractSyntaxTriviaOutliner> outliners;
+                ImmutableArray<AbstractSyntaxOutliner> outliners;
                 if (_triviaOutlinerMap.TryGetValue(trivia.RawKind, out outliners))
                 {
                     foreach (var outliner in outliners)

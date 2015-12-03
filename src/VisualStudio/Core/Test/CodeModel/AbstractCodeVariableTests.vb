@@ -94,41 +94,41 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return Sub(value) codeElement.Type = value
         End Function
 
-        Protected Sub TestIsConstant(code As XElement, expected As Boolean)
-            TestElement(code,
+        Protected Async Function TestIsConstant(code As XElement, expected As Boolean) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.IsConstant)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean)
-            TestSetIsConstant(code, expectedCode, value, NoThrow(Of Boolean)())
-        End Sub
+        Protected Async Function TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean) As Threading.Tasks.Task
+            Await TestSetIsConstant(code, expectedCode, value, NoThrow(Of Boolean)())
+        End Function
 
-        Protected Sub TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean))
-            TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Threading.Tasks.Task
+            Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)
                     action(value, Sub(v) codeElement.IsConstant = v)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestInitExpression(code As XElement, expected As Object)
-            TestElement(code,
+        Protected Async Function TestInitExpression(code As XElement, expected As Object) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.InitExpression)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object)
-            TestSetInitExpression(code, expectedCode, value, NoThrow(Of Object)())
-        End Sub
+        Protected Async Function TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object) As Threading.Tasks.Task
+            Await TestSetInitExpression(code, expectedCode, value, NoThrow(Of Object)())
+        End Function
 
-        Protected Sub TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object, action As SetterAction(Of Object))
-            TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object, action As SetterAction(Of Object)) As Threading.Tasks.Task
+            Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)
                     action(value, Sub(v) codeElement.InitExpression = v)
                 End Sub)
-        End Sub
+        End Function
 
     End Class
 End Namespace

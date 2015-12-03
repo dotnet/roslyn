@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
 
         <WpfFact>
         <WorkItem(1107492)>
-        Public Sub TestProjectThatDoesntSupportCompilations()
+        Public Async Function TestProjectThatDoesntSupportCompilations() As Tasks.Task
             Dim workspaceDefinition =
 <Workspace>
     <Project Language="NoCompilation" AssemblyName="TestAssembly" CommonReferencesPortable="true">
@@ -22,16 +22,16 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
                 Dim project = GetProject(workspace.CurrentSolution, "TestAssembly")
-                Assert.Null(project.GetCompilationAsync(CancellationToken.None).Result)
+                Assert.Null(project.GetCompilationAsync().Result)
 
                 Dim solution = project.Solution
-                Assert.Null(project.GetCompilationAsync(CancellationToken.None).Result)
+                Assert.Null(Await project.GetCompilationAsync())
                 Assert.False(solution.ContainsSymbolsWithNameAsync(project.Id, Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None).Result)
                 Assert.Empty(solution.GetDocumentsWithName(project.Id, Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None).Result)
             End Using
-        End Sub
+        End Function
     End Class
 
 End Namespace

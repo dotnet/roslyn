@@ -94,5 +94,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
         }
-    } 
+    }
 }

@@ -100,10 +100,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                                           c.ThrowIfCancellationRequested()
                                                                           Return Task.FromResult(model)
                                                                       End Function)
-            Await checkpoint1.Task.ConfigureAwait(True)
+            Await checkpoint1.Task
             modelComputation.Stop()
             checkpoint2.Release()
-            Await checkpoint3.Task.ConfigureAwait(True)
+            Await checkpoint3.Task
 
             controller.Verify(Sub(c) c.OnModelUpdated(model), Times.Never)
         End Function
