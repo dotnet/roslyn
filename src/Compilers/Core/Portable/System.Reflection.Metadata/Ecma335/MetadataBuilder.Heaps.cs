@@ -1,17 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
-using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
-namespace Microsoft.Cci
+namespace System.Reflection.Metadata.Ecma335
 {
     /// <summary>
     /// Represents a value on #GUID heap that has not been serialized yet.
@@ -193,7 +189,7 @@ namespace Microsoft.Cci
                 return this.GetBlobIndex(str);
             }
 
-            var writer = PooledBlobBuilder.GetInstance();
+            var writer = Microsoft.Cci.PooledBlobBuilder.GetInstance();
             writer.WriteConstant(value);
             var result = this.GetBlobIndex(writer);
             writer.Free();

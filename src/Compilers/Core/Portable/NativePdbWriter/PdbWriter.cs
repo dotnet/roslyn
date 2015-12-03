@@ -6,9 +6,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
@@ -17,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
+    using OP = PdbLogger.PdbWriterOperation;
 
     /// <summary>
     /// Exception to enable callers to catch all of the exceptions originating

@@ -12,7 +12,6 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Utilities;
-using MetadataSizes = Microsoft.Cci.MetadataSizes;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
