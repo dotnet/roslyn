@@ -14,15 +14,14 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class SetWithInsertionOrder<T> : IEnumerable<T>
     {
-        private Dictionary<T, uint> _map = new Dictionary<T, uint>();
+        private HashSet<T> _set = new HashSet<T>();
         private uint _nextElementValue = 0;
         private T[] _elements = null;
 
         public bool Add(T value)
         {
-            if (_map.ContainsKey(value)) return false;
+            if (!_set.Add(value)) return false;
             var thisValue = _nextElementValue++;
-            _map.Add(value, thisValue);
             if (_elements == null)
             {
                 _elements = new T[10];
@@ -38,7 +37,7 @@ namespace Roslyn.Utilities
 
         public int Count => (int)_nextElementValue;
 
-        public bool Contains(T value) => _map.ContainsKey(value);
+        public bool Contains(T value) => _set.Contains(value);
 
         public IEnumerator<T> GetEnumerator()
         {
@@ -47,6 +46,9 @@ namespace Roslyn.Utilities
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>
+        /// An enumerable that yields the set's elements in insertion order.
+        /// </summary>
         public SetWithInsertionOrder<T> InInsertionOrder => this;
 
         public ImmutableArray<T> AsImmutable()
