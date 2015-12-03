@@ -2144,17 +2144,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Is the target type simply bad?
 
             // If the target type is an error then we've already reported a diagnostic. Don't bother
-            // reporting the conversion error.  However, do at least try to bind the body of the 
-            // lambda for the errors that would be produced.  These errors are used by the IDE for
-            // code fixes, and we don't want to avoid producing them just because there was a syntax
-            // error.
-            //
-            // However, in order to avoid cluttering the display, we'll only report these with
-            // hidden severity.
+            // reporting the conversion error.
             if (targetType.IsErrorType() || syntax.HasErrors)
             {
-                var bindingResult = anonymousFunction.BindForErrorRecovery();
-                diagnostics.AddRange(bindingResult.Diagnostics.Select(d => d.WithSeverity(DiagnosticSeverity.Hidden)));
                 return false;
             }
 
