@@ -23,6 +23,8 @@
     <CodeAnalysisRuleset>nonRedistBar</CodeAnalysisRuleset>
     <CreateVSNowLocalGacCopy>true</CreateVSNowLocalGacCopy>
     <NoWarn>$(NoWarn);42105;42107;42353;42355</NoWarn>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <CopyReferencesByDefault>false</CopyReferencesByDefault>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Accessibility">
