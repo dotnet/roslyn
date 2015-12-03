@@ -2617,7 +2617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 syntax: initializerArgumentListOpt.Parent,
                                 resultKind: LookupResultKind.Empty,
                                 symbols: ImmutableArray<Symbol>.Empty,
-                                childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments).Cast<BoundExpression, BoundNode>(),
+                                childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments, diagnostics).Cast<BoundExpression, BoundNode>(),
                                 type: constructorReturnType);
                         }
                     }
@@ -2628,7 +2628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax: initializerArgumentListOpt.Parent,
                             resultKind: LookupResultKind.Empty,
                             symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType
-                            childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments).Cast<BoundExpression, BoundNode>(),
+                            childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments, diagnostics).Cast<BoundExpression, BoundNode>(),
                             type: constructorReturnType);
                     }
                 }
@@ -2646,7 +2646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax: initializerArgumentListOpt.Parent,
                             resultKind: LookupResultKind.Empty,
                             symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType
-                            childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments).Cast<BoundExpression, BoundNode>(),
+                            childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments, diagnostics).Cast<BoundExpression, BoundNode>(),
                             type: constructorReturnType);
                 }
 
@@ -2733,7 +2733,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeArguments: ImmutableArray<TypeSymbol>.Empty,
                         analyzedArguments: analyzedArguments,
                         invokedAsExtensionMethod: false,
-                        isDelegate: false);
+                        isDelegate: false,
+                        diagnostics: diagnostics);
                     result.WasCompilerGenerated = initializerArgumentListOpt == null;
                     return result;
                 }
@@ -2942,7 +2943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Note that we want failed "new" expression to use the constructors as their symbols.
                 ArrayBuilder<BoundNode> childNodes = ArrayBuilder<BoundNode>.GetInstance();
-                childNodes.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
+                childNodes.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments, diagnostics));
                 return new BoundBadExpression(node, LookupResultKind.OverloadResolutionFailure, StaticCast<Symbol>.From(type.InstanceConstructors), childNodes.ToImmutableAndFree(), type);
             }
             finally
@@ -2967,7 +2968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_InstantiatingStaticClass, node.Location, type);
 
                     var children = ArrayBuilder<BoundNode>.GetInstance();
-                    children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
+                    children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments, diagnostics));
                     if (boundInitializerOpt != null)
                     {
                         children.Add(boundInitializerOpt);
@@ -3828,12 +3829,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (candidateConstructors.Length == 1)
             {
-                ImmutableArray<BoundExpression> args = BuildArgumentsForErrorRecovery(analyzedArguments, candidateConstructors[0].Parameters);
+                ImmutableArray<BoundExpression> args = BuildArgumentsForErrorRecovery(
+                    analyzedArguments, candidateConstructors[0].Parameters, diagnostics);
                 childNodes.AddRange(args);
             }
             else
             {
-                childNodes.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
+                childNodes.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments, diagnostics));
             }
 
             if (boundInitializerOpt != null)
@@ -3875,7 +3877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
 
             BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
-            ImmutableArray<BoundNode> childNodes = BuildArgumentsForErrorRecovery(analyzedArguments).Cast<BoundExpression, BoundNode>();
+            ImmutableArray<BoundNode> childNodes = BuildArgumentsForErrorRecovery(analyzedArguments, diagnostics).Cast<BoundExpression, BoundNode>();
 
             BoundExpression result = new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(type), childNodes, type);
             analyzedArguments.Free();
@@ -3982,7 +3984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, node.ArgumentList.Location, interfaceType, analyzedArguments.Arguments.Count);
 
                     var children = ArrayBuilder<BoundNode>.GetInstance();
-                    children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
+                    children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments, diagnostics));
                     children.Add(creation);
 
                     return new BoundBadExpression(node, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, children.ToImmutableAndFree(), creation.Type);
@@ -5612,7 +5614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(errorOpt ?? new CSDiagnosticInfo(ErrorCode.ERR_BadIndexLHS, expr.Display), node.Location);
             }
 
-            var childBoundNodes = StaticCast<BoundNode>.From(BuildArgumentsForErrorRecovery(analyzedArguments)).Add(expr);
+            var childBoundNodes = StaticCast<BoundNode>.From(BuildArgumentsForErrorRecovery(analyzedArguments, diagnostics)).Add(expr);
             return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childBoundNodes, CreateErrorType(), hasErrors: true);
         }
 
@@ -5683,7 +5685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arguments.Arguments.Count != rank)
             {
                 Error(diagnostics, ErrorCode.ERR_BadIndexCount, node, rank);
-                return new BoundArrayAccess(node, expr, BuildArgumentsForErrorRecovery(arguments), arrayType.ElementType, hasErrors: true);
+                return new BoundArrayAccess(node, expr, BuildArgumentsForErrorRecovery(arguments, diagnostics), arrayType.ElementType, hasErrors: true);
             }
 
             // Convert all the arguments to the array index type.
@@ -5815,7 +5817,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_PtrIndexSingle, node);
                 }
-                return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments).ToArray()), CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
+                return new BoundPointerElementAccess(node, expr, BadExpression(node, 
+                    BuildArgumentsForErrorRecovery(analyzedArguments, diagnostics).ToArray()), CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
             }
 
             if (pointedAtType.SpecialType == SpecialType.System_Void)
@@ -6027,14 +6030,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (candidates.Length == 1)
                 {
                     property = candidates[0];
-                    arguments = BuildArgumentsForErrorRecovery(analyzedArguments, property.Parameters);
+                    arguments = BuildArgumentsForErrorRecovery(analyzedArguments, property.Parameters, diagnostics);
                 }
                 else
                 {
                     // A bad BoundIndexerAccess containing an ErrorPropertySymbol will produce better flow analysis results than
                     // a BoundBadExpression containing the candidate indexers.
                     property = CreateErrorPropertySymbol(candidates);
-                    arguments = BuildArgumentsForErrorRecovery(analyzedArguments);
+                    arguments = BuildArgumentsForErrorRecovery(analyzedArguments, diagnostics);
                 }
 
                 propertyAccess = BoundIndexerAccess.ErrorAccess(
