@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
                 return ImmutableArray.Create(
                     IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                     IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
-                    IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId);
+                    IDEDiagnosticIds.RemoveQualificationDiagnosticId);
             }
         }
 
@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
                 case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId:
                     return string.Format(CSharpFeaturesResources.SimplifyMemberAccess, nodeText);
 
-                case IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId:
-                    return CSharpFeaturesResources.SimplifyThisQualification;
+                case IDEDiagnosticIds.RemoveQualificationDiagnosticId:
+                    return CSharpFeaturesResources.RemoveThisQualification;
 
                 default:
                     throw ExceptionUtilities.Unreachable;

@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)expression;
                     diagnosticId = memberAccess.Expression.Kind() == SyntaxKind.ThisExpression ?
-                        IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId :
+                        IDEDiagnosticIds.RemoveQualificationDiagnosticId :
                         IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
                 }
             }

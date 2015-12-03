@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
-        private static readonly LocalizableString s_localizableTitleSimplifyThisOrMe = new LocalizableResourceString(nameof(FeaturesResources.SimplifyThisOrMe), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor s_descriptorSimplifyThisOrMe = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId,
-                                                                    s_localizableTitleSimplifyThisOrMe,
+        private static readonly LocalizableString s_localizableTitleRemoveThisOrMe = new LocalizableResourceString(nameof(FeaturesResources.RemoveQualification), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly DiagnosticDescriptor s_descriptorRemoveThisOrMe = new DiagnosticDescriptor(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                                                                    s_localizableTitleRemoveThisOrMe,
                                                                     s_localizableMessage,
                                                                     DiagnosticCategory.Style,
                                                                     DiagnosticSeverity.Hidden,
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
         {
             get
             {
-                return ImmutableArray.Create(s_descriptorSimplifyNames, s_descriptorSimplifyMemberAccess, s_descriptorSimplifyThisOrMe);
+                return ImmutableArray.Create(s_descriptorSimplifyNames, s_descriptorSimplifyMemberAccess, s_descriptorRemoveThisOrMe);
             }
         }
 
@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                     descriptor = s_descriptorSimplifyMemberAccess;
                     break;
 
-                case IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId:
-                    descriptor = s_descriptorSimplifyThisOrMe;
+                case IDEDiagnosticIds.RemoveQualificationDiagnosticId:
+                    descriptor = s_descriptorRemoveThisOrMe;
                     break;
 
                 default:

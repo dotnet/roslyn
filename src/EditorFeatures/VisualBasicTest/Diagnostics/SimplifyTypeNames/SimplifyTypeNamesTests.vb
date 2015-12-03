@@ -1632,7 +1632,7 @@ End Module
 </Code>
 
             Using workspace = Await CreateWorkspaceFromFileAsync(source, Nothing, Nothing)
-                Dim diagnostics = (Await GetDiagnosticsAsync(workspace)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId)
+                Dim diagnostics = (Await GetDiagnosticsAsync(workspace)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
         End Function

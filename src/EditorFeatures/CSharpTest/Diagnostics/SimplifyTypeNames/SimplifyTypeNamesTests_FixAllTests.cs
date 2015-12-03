@@ -348,7 +348,7 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_RemoveThis()
         {
-            var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId, null);
+            var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.RemoveQualificationDiagnosticId, null);
 
             var input = @"
 <Workspace>

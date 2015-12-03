@@ -1,6 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.EncapsulateField
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.EncapsulateField
@@ -305,7 +307,7 @@ Class C
             Return [Class]
         End Get
         Set(value As String)
-            Me.Class = value
+            [Class] = value
         End Set
     End Property
 End Class</File>.ConvertTestSourceTag()
@@ -315,6 +317,31 @@ End Class</File>.ConvertTestSourceTag()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        Public Async Function TestEncapsulateEscapedIdentifierWithQualifiedAccess() As Task
+            Dim text = <File>
+Class C
+    Private [|[Class]|] As String
+End Class</File>.ConvertTestSourceTag()
+
+            Dim expected = <File>
+Class C
+    Private [Class] As String
+
+    Public Property Class1 As String
+        Get
+            Return Me.Class
+        End Get
+        Set(value As String)
+            Me.Class = value
+        End Set
+    End Property
+End Class</File>.ConvertTestSourceTag()
+
+            Await TestAsync(text, expected, compareTokens:=False, index:=0, options:=[Option](SimplificationOptions.QualifyFieldAccess, True))
+
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Async Function TestEncapsulateFieldNamedValue() As Task
             Dim text = <File>
 Class C
@@ -581,6 +608,30 @@ End Enum
 </File>.ConvertTestSourceTag()
             Await TestMissingAsync(enumField)
 
+        End Function
+
+        <WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        Public Async Function ApplyCurrentMePrefixStyle() As Task
+            Await TestAsync("
+Class C
+    Dim [|i|] As Integer
+End Class
+", "
+Class C
+    Dim i As Integer
+
+    Public Property I1 As Integer
+        Get
+            Return Me.i
+        End Get
+        Set(value As Integer)
+            Me.i = value
+        End Set
+    End Property
+End Class
+",
+options:=[Option](SimplificationOptions.QualifyFieldAccess, True))
         End Function
     End Class
 End Namespace

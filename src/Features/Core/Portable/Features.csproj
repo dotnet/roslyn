@@ -107,13 +107,14 @@
     <Compile Include="CodeFixes\CodeFixService.ProjectCodeFixProvider.cs" />
     <Compile Include="CodeFixes\FirstDiagnosticResult.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\IFixMultipleOccurrencesService.cs" />
-    <Compile Include="CodeFixes\FullyQualify\AbstractFullyQualifyCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
     <Compile Include="CodeFixes\ICodeFixService.cs" />
     <Compile Include="CodeFixes\ICodeFixProviderFactory.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\IFixAllGetFixesService.cs" />
     <Compile Include="CodeFixes\Iterator\AbstractIteratorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\PredefinedCodeFixProviderNames.cs" />
+    <Compile Include="CodeFixes\Qualify\AbstractQualifyMemberAccessCodeFixprovider.cs" />
     <Compile Include="CodeFixes\RoslynAssemblyHelper.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.IPragmaBasedCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaBatchFixHelpers.cs" />
@@ -176,6 +177,7 @@
     <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionProvider.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
+    <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
     <Compile Include="Diagnostics\DiagnosticEventTaskScheduler.cs" />
     <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />

@@ -37,9 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             }
 
             var tempAnnotation = new SyntaxAnnotation();
-            var newIdentifier = SyntaxFactory.Identifier(originalFieldName)
-                                             .WithTrailingTrivia(declarator.Identifier.TrailingTrivia)
-                                             .WithLeadingTrivia(declarator.Identifier.LeadingTrivia);
+            var escapedName = originalFieldName.EscapeIdentifier();
+            var newIdentifier = SyntaxFactory.Identifier(
+                    leading: SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker),
+                    contextualKind: SyntaxKind.IdentifierName,
+                    text: escapedName,
+                    valueText: originalFieldName,
+                    trailing: SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))
+                .WithTrailingTrivia(declarator.Identifier.TrailingTrivia)
+                .WithLeadingTrivia(declarator.Identifier.LeadingTrivia);
 
             var updatedDeclarator = declarator.WithIdentifier(newIdentifier).WithAdditionalAnnotations(tempAnnotation);
 
