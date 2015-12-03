@@ -51,13 +51,6 @@ namespace Roslyn.Test.EditorUtilities
             return exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(buffer);
         }
 
-        public static IWpfTextView CreateView(
-            ExportProvider exportProvider,
-            ITextBuffer buffer)
-        {
-            return exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(buffer);
-        }
-
         public static string LinesToFullText(params string[] lines)
         {
             var builder = new StringBuilder();
