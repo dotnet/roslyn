@@ -2457,7 +2457,7 @@ namespace Microsoft.CodeAnalysis
 
                 string moduleName = GetModuleRefNameOrThrow(methodImport.Module);
                 string entryPointName = MetadataReader.GetString(methodImport.Name);
-                Cci.PInvokeAttributes flags = (Cci.PInvokeAttributes)methodImport.Attributes;
+                MethodImportAttributes flags = (MethodImportAttributes)methodImport.Attributes;
 
                 return new DllImportData(moduleName, entryPointName, flags);
             }
