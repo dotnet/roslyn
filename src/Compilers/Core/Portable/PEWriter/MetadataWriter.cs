@@ -777,7 +777,7 @@ namespace Microsoft.Cci
                 : GetMemberRefIndex(methodReference).ToCodedIndex(CustomAttributeTypeTag.MemberRef);
         }
 
-        public static EventAttributes GetEventFlags(IEventDefinition eventDef)
+        public static EventAttributes GetEventAttributes(IEventDefinition eventDef)
         {
             EventAttributes result = 0;
             if (eventDef.IsSpecialName)
@@ -807,55 +807,55 @@ namespace Microsoft.Cci
             return result;
         }
 
-        public static FieldAttributes GetFieldFlags(IFieldDefinition fieldDef)
+        public static FieldAttributes GetFieldAttributes(IFieldDefinition fieldDef)
         {
-            ushort result = GetTypeMemberVisibilityFlags(fieldDef);
+            var result = (FieldAttributes)fieldDef.Visibility;
             if (fieldDef.IsStatic)
             {
-                result |= 0x0010;
+                result |= FieldAttributes.Static;
             }
 
             if (fieldDef.IsReadOnly)
             {
-                result |= 0x0020;
+                result |= FieldAttributes.InitOnly;
             }
 
             if (fieldDef.IsCompileTimeConstant)
             {
-                result |= 0x0040;
+                result |= FieldAttributes.Literal;
             }
 
             if (fieldDef.IsNotSerialized)
             {
-                result |= 0x0080;
+                result |= FieldAttributes.NotSerialized;
             }
 
             if (!fieldDef.MappedData.IsDefault)
             {
-                result |= 0x0100;
+                result |= FieldAttributes.HasFieldRVA;
             }
 
             if (fieldDef.IsSpecialName)
             {
-                result |= 0x0200;
+                result |= FieldAttributes.SpecialName;
             }
 
             if (fieldDef.IsRuntimeSpecial)
             {
-                result |= 0x0400;
+                result |= FieldAttributes.RTSpecialName;
             }
 
             if (fieldDef.IsMarshalledExplicitly)
             {
-                result |= 0x1000;
+                result |= FieldAttributes.HasFieldMarshal;
             }
 
             if (fieldDef.IsCompileTimeConstant)
             {
-                result |= 0x8000;
+                result |= FieldAttributes.HasDefault;
             }
 
-            return (FieldAttributes)result;
+            return result;
         }
 
         internal BlobIdx GetFieldSignatureIndex(IFieldReference fieldReference)
@@ -924,7 +924,7 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private static GenericParameterAttributes GetGenericParamFlags(IGenericParameter genPar)
+        private static GenericParameterAttributes GetGenericParameterAttributes(IGenericParameter genPar)
         {
             GenericParameterAttributes result = 0;
             switch (genPar.Variance)
@@ -1057,70 +1057,70 @@ namespace Microsoft.Cci
                 : GetMemberRefIndex(methodReference).ToCodedIndex(MethodDefOrRefTag.MemberRef);
         }
 
-        public static MethodAttributes GetMethodFlags(IMethodDefinition methodDef)
+        public static MethodAttributes GetMethodAttributes(IMethodDefinition methodDef)
         {
-            ushort result = GetTypeMemberVisibilityFlags(methodDef);
+            var result = (MethodAttributes)methodDef.Visibility;
             if (methodDef.IsStatic)
             {
-                result |= 0x0010;
+                result |= MethodAttributes.Static;
             }
 
             if (methodDef.IsSealed)
             {
-                result |= 0x0020;
+                result |= MethodAttributes.Final;
             }
 
             if (methodDef.IsVirtual)
             {
-                result |= 0x0040;
+                result |= MethodAttributes.Virtual;
             }
 
             if (methodDef.IsHiddenBySignature)
             {
-                result |= 0x0080;
+                result |= MethodAttributes.HideBySig;
             }
 
             if (methodDef.IsNewSlot)
             {
-                result |= 0x0100;
+                result |= MethodAttributes.NewSlot;
             }
 
             if (methodDef.IsAccessCheckedOnOverride)
             {
-                result |= 0x0200;
+                result |= MethodAttributes.CheckAccessOnOverride;
             }
 
             if (methodDef.IsAbstract)
             {
-                result |= 0x0400;
+                result |= MethodAttributes.Abstract;
             }
 
             if (methodDef.IsSpecialName)
             {
-                result |= 0x0800;
+                result |= MethodAttributes.SpecialName;
             }
 
             if (methodDef.IsRuntimeSpecial)
             {
-                result |= 0x1000;
+                result |= MethodAttributes.RTSpecialName;
             }
 
             if (methodDef.IsPlatformInvoke)
             {
-                result |= 0x2000;
+                result |= MethodAttributes.PinvokeImpl;
             }
 
             if (methodDef.HasDeclarativeSecurity)
             {
-                result |= 0x4000;
+                result |= MethodAttributes.HasSecurity;
             }
 
             if (methodDef.RequiresSecurityObject)
             {
-                result |= 0x8000;
+                result |= MethodAttributes.RequireSecObject;
             }
 
-            return (MethodAttributes)result;
+            return result;
         }
 
         internal BlobIdx GetMethodInstanceSignatureIndex(IGenericMethodInstanceReference methodInstanceReference)
@@ -1258,7 +1258,7 @@ namespace Microsoft.Cci
                 : 0x0A000000 | this.GetMemberRefIndex(methodReference);
         }
 
-        public static ParameterAttributes GetParameterFlags(IParameterDefinition parDef)
+        public static ParameterAttributes GetParameterAttributes(IParameterDefinition parDef)
         {
             ParameterAttributes result = 0;
             if (parDef.IsIn)
@@ -1313,7 +1313,7 @@ namespace Microsoft.Cci
             return result;
         }
 
-        public static PropertyAttributes GetPropertyFlags(IPropertyDefinition propertyDef)
+        public static PropertyAttributes GetPropertyAttributes(IPropertyDefinition propertyDef)
         {
             PropertyAttributes result = 0;
             if (propertyDef.IsSpecialName)
@@ -1512,14 +1512,14 @@ namespace Microsoft.Cci
             return symbolOpt != null && !symbolOpt.Locations.IsDefaultOrEmpty ? symbolOpt.Locations[0] : Location.None;
         }
 
-        internal TypeAttributes GetTypeDefFlags(ITypeDefinition typeDef)
+        internal TypeAttributes GetTypeAttributes(ITypeDefinition typeDef)
         {
-            return GetTypeDefFlags(typeDef, Context);
+            return GetTypeAttributes(typeDef, Context);
         }
 
-        public static TypeAttributes GetTypeDefFlags(ITypeDefinition typeDef, EmitContext context)
+        public static TypeAttributes GetTypeAttributes(ITypeDefinition typeDef, EmitContext context)
         {
-            TypeAttributes result = default(TypeAttributes);
+            TypeAttributes result = 0;
 
             switch (typeDef.Layout)
             {
@@ -1642,34 +1642,6 @@ namespace Microsoft.Cci
             return treatRefAsPotentialTypeSpec && typeReference.IsTypeSpecification()
                 ? GetTypeSpecIndex(typeReference).ToCodedIndex(TypeDefOrRefTag.TypeSpec)
                 : GetTypeRefIndex(typeReference).ToCodedIndex(TypeDefOrRefTag.TypeRef);
-        }
-
-        private static ushort GetTypeMemberVisibilityFlags(ITypeDefinitionMember member)
-        {
-            ushort result = 0;
-            switch (member.Visibility)
-            {
-                case TypeMemberVisibility.Private:
-                    result |= 0x00000001;
-                    break;
-                case TypeMemberVisibility.FamilyAndAssembly:
-                    result |= 0x00000002;
-                    break;
-                case TypeMemberVisibility.Assembly:
-                    result |= 0x00000003;
-                    break;
-                case TypeMemberVisibility.Family:
-                    result |= 0x00000004;
-                    break;
-                case TypeMemberVisibility.FamilyOrAssembly:
-                    result |= 0x00000005;
-                    break;
-                case TypeMemberVisibility.Public:
-                    result |= 0x00000006;
-                    break;
-            }
-
-            return result;
         }
 
         private uint GetTypeOrMethodDefCodedIndex(IGenericParameter genPar)
@@ -2328,7 +2300,7 @@ namespace Microsoft.Cci
             foreach (IEventDefinition eventDef in eventDefs)
             {
                 tables.AddEvent(
-                    attributes: GetEventFlags(eventDef),
+                    attributes: GetEventAttributes(eventDef),
                     name: GetStringIndexForNameAndCheckLength(eventDef.Name, eventDef),
                     type: GetTypeDefOrRefCodedIndex(eventDef.GetType(Context), true));
             }
@@ -2498,7 +2470,7 @@ namespace Microsoft.Cci
                 }
 
                 tables.AddFieldDefinition(
-                    attributes: GetFieldFlags(fieldDef),
+                    attributes: GetFieldAttributes(fieldDef),
                     name: GetStringIndexForNameAndCheckLength(fieldDef.Name, fieldDef),
                     signature: GetFieldSignatureIndex(fieldDef));
             }
@@ -2574,7 +2546,7 @@ namespace Microsoft.Cci
                 // they should be restricted in the same way.
                 int genericParameterRowId = tables.AddGenericParameter(
                     parent: GetTypeOrMethodDefCodedIndex(genericParameter),
-                    attributes: GetGenericParamFlags(genericParameter),
+                    attributes: GetGenericParameterAttributes(genericParameter),
                     name: GetStringIndexForNameAndCheckLength(genericParameter.Name, genericParameter),
                     index: genericParameter.Index);
 
@@ -2605,7 +2577,7 @@ namespace Microsoft.Cci
 
                 tables.AddMethodImport(
                     member: GetMethodDefIndex(methodDef).ToCodedIndex(MemberForwardedTag.MethodDef),
-                    attributes: (MethodImportAttributes)data.Flags,
+                    attributes: data.Flags,
                     name: importName,
                     moduleReferenceRowId: GetModuleRefIndex(data.ModuleName));
             }
@@ -2701,7 +2673,7 @@ namespace Microsoft.Cci
             foreach (IMethodDefinition methodDef in methodDefs)
             {
                 tables.AddMethodDefinition(
-                    attributes: GetMethodFlags(methodDef),
+                    attributes: GetMethodAttributes(methodDef),
                     implAttributes: methodDef.GetImplementationAttributes(Context),
                     name: GetStringIndexForNameAndCheckLength(methodDef.Name, methodDef),
                     signature: GetMethodSignatureIndex(methodDef),
@@ -2817,7 +2789,7 @@ namespace Microsoft.Cci
             foreach (IParameterDefinition parDef in parameterDefs)
             {
                 tables.AddParameter(
-                    attributes: GetParameterFlags(parDef),
+                    attributes: GetParameterAttributes(parDef),
                     sequenceNumber: (parDef is ReturnValueParameter) ? 0 : parDef.Index + 1,
                     name: GetStringIndexForNameAndCheckLength(parDef.Name, parDef));
             }
@@ -2831,7 +2803,7 @@ namespace Microsoft.Cci
             foreach (IPropertyDefinition propertyDef in propertyDefs)
             {
                 tables.AddProperty(
-                    attributes: GetPropertyFlags(propertyDef),
+                    attributes: GetPropertyAttributes(propertyDef),
                     name: GetStringIndexForNameAndCheckLength(propertyDef.Name, propertyDef),
                     signature: GetPropertySignatureIndex(propertyDef));
             }
@@ -2849,7 +2821,7 @@ namespace Microsoft.Cci
                 ITypeReference baseType = typeDef.GetBaseClass(Context);
 
                 tables.AddTypeDefinition(
-                    attributes: GetTypeDefFlags(typeDef),
+                    attributes: GetTypeAttributes(typeDef),
                     @namespace: (namespaceType != null) ? GetStringIndexForNamespaceAndCheckLength(namespaceType, mangledTypeName) : default(StringIdx),
                     name: GetStringIndexForNameAndCheckLength(mangledTypeName, typeDef),
                     baseTypeCodedIndex: (baseType != null) ? GetTypeDefOrRefCodedIndex(baseType, true) : 0,
