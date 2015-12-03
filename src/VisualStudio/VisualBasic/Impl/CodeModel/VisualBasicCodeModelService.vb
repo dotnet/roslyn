@@ -56,14 +56,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private Shared ReadOnly s_externalNameFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable)
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeName)
 
         Private Shared ReadOnly s_externalfullNameFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions:=SymbolDisplayMemberOptions.IncludeContainingType,
-                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable)
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeName)
 
         Private Shared ReadOnly s_setTypeFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
