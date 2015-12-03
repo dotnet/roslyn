@@ -1378,22 +1378,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return _lazyLexicalSortKey
         End Function
 
-        Public Function LocationKey(ByVal l As Location) As Long
-            If Not l.IsInSource Then
-                Dim vbLocation = TryCast(l, VBLocation)
-                Return 1L << 62 + If(vbLocation Is Nothing, 0, vbLocation.PossiblyEmbeddedOrMySourceSpan.Start)
-            End If
-
-            Dim treeIndex = Me.DeclaringCompilation.GetSyntaxTreeOrdinal(l.SourceTree)
-            Return (CLng(treeIndex) << 40) + l.SourceSpan.Start
-        End Function
-
         Public NotOverridable Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Dim result = _declaration.NameLocations
-                If result.Length > 2 Then
-                    result = result.OrderBy(AddressOf LocationKey).ToImmutableArray()
-                End If
                 Return result
             End Get
         End Property
@@ -1405,11 +1392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property SyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Dim result = _declaration.SyntaxReferences
-                If result.Length >= 2 Then
-                    result = result.OrderBy(Function(ByVal r As SyntaxReference) LocationKey(r.GetLocation())).ToImmutableArray()
-                End If
-                Return result
+                Return _declaration.SyntaxReferences
             End Get
         End Property
 

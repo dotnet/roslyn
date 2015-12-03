@@ -68,6 +68,7 @@
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.CompilationData.cs" />
     <Compile Include="DiagnosticAnalyzer\SuppressMessageInfo.cs" />
     <Compile Include="Diagnostic\SuppressionInfo.cs" />
+    <Compile Include="InternalUtilities\SetWithInsertionOrder.cs" />
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
     <Compile Include="RealParser.cs" />
