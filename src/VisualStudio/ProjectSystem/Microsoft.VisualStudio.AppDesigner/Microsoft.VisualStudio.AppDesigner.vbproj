@@ -37,10 +37,6 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DocumentationFile>Microsoft.VisualStudio.AppDesigner.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022;42105;42107</NoWarn>
-    <CodeAnalysisRuleSet>Migrated rules for Microsoft.VisualStudio.AppDesigner (6).ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules />
-    <CodeAnalysisRuleAssemblies />
-    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -50,10 +46,6 @@
     <OutputPath>bin\Release\</OutputPath>
     <DocumentationFile>Microsoft.VisualStudio.AppDesigner.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022;42105;42107</NoWarn>
-    <CodeAnalysisRuleset>Migrated rules for Microsoft.VisualStudio.AppDesigner (6).ruleset</CodeAnalysisRuleset>
-    <CodeAnalysisRules />
-    <CodeAnalysisRuleAssemblies />
-    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <ItemGroup>
     <Import Include="VSErrorHandler=Microsoft.VisualStudio.ErrorHandler" />
@@ -361,13 +353,7 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{94E38DFF-614B-4CBD-B67C-F211BB35CE8B}" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Migrated rules for Microsoft.VisualStudio.AppDesigner %283%29.ruleset" />
-    <None Include="Migrated rules for Microsoft.VisualStudio.AppDesigner %284%29.ruleset" />
-    <None Include="Migrated rules for Microsoft.VisualStudio.AppDesigner %285%29.ruleset" />
-    <None Include="Migrated rules for Microsoft.VisualStudio.AppDesigner %286%29.ruleset" />
-  </ItemGroup>
+  </ItemGroup>  
   <ItemGroup>
     <PublishPartLinked Include="$(OutputPath)\$(AssemblyName).dll">
       <FileType>Reference</FileType>
