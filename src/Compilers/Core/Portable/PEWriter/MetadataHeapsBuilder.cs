@@ -112,7 +112,7 @@ namespace Microsoft.Cci
         }
     }
 
-    internal sealed class MetadataHeapsBuilder
+    internal sealed partial class MetadataBuilder
     {
         // #US heap
         private readonly Dictionary<string, int> _userStrings = new Dictionary<string, int>();
@@ -136,7 +136,7 @@ namespace Microsoft.Cci
 
         private bool _streamsAreComplete;
 
-        public MetadataHeapsBuilder(
+        public MetadataBuilder(
             int userStringHeapStartOffset = 0,
             int stringHeapStartOffset = 0,
             int blobHeapStartOffset = 0,
@@ -355,7 +355,7 @@ namespace Microsoft.Cci
             return 0x70000000 | index;
         }
 
-        internal void Complete()
+        internal void CompleteHeaps()
         {
             Debug.Assert(!_streamsAreComplete);
             _streamsAreComplete = true;
@@ -444,7 +444,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public void WriteTo(BlobBuilder writer, out int guidHeapStartOffset)
+        public void WriteHeapsTo(BlobBuilder writer, out int guidHeapStartOffset)
         {
             WriteAligned(_stringWriter, writer);
             WriteAligned(_userStringWriter, writer);
