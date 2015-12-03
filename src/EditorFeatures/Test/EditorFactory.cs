@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
+using Roslyn.Test.Utilities;
 
 namespace Roslyn.Test.EditorUtilities
 {
@@ -46,6 +46,7 @@ namespace Roslyn.Test.EditorUtilities
             params string[] lines)
         {
             TestWorkspace.ResetThreadAffinity();
+            WpfTestCase.RequireWpfFact($"Creates an IWpfTextView through {nameof(EditorFactory)}.{nameof(CreateView)}");
 
             var buffer = CreateBuffer(contentType, exportProvider, lines);
             return exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(buffer);

@@ -1408,6 +1408,8 @@ class C
                 var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
                 var contentType = contentTypeService.GetDefaultContentType();
                 var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
+
+                WpfTestCase.RequireWpfFact("Creates an IWpfTextView explicitly with an unrelated buffer");
                 var textView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(extraBuffer);
 
                 var waiter = new Waiter();
