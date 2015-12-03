@@ -401,8 +401,18 @@ a.vb
             args.Errors.Verify()
             Assert.True(args.InteractiveMode)
 
-            args = InteractiveParse({"/i arg"}, _baseDirectory)
-            args.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/i arg").WithLocation(1, 1))
+            args = InteractiveParse({"/i+", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.InteractiveMode)
+
+            args = InteractiveParse({"/i+ /i-", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.False(args.InteractiveMode)
+
+            For Each flag In {"i", "i+", "i-"}
+                args = InteractiveParse({"/" + flag + ":arg"}, _baseDirectory)
+                args.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("i").WithLocation(1, 1))
+            Next
         End Sub
 
         <Fact>
