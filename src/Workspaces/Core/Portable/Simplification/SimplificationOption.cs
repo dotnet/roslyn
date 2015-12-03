@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Simplification
@@ -45,9 +46,30 @@ namespace Microsoft.CodeAnalysis.Simplification
         public static Option<bool> AllowSimplificationToBaseType { get; } = new Option<bool>(NonPerLanguageFeatureName, "AllowSimplificationToBaseType", true);
 
         /// <summary>
-        /// This option says if we should simplify away the this. or Me. in member access expression
+        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in member access expressions.
         /// </summary>
-        public static PerLanguageOption<bool> QualifyMemberAccessWithThisOrMe { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMemberAccessWithThisOrMe", defaultValue: false);
+        [Obsolete]
+        public static PerLanguageOption<bool> QualifyMemberAccessWithThisOrMe { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMemberAccessWithThisOrMe", false);
+
+        /// <summary>
+        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in member field access expressions.
+        /// </summary>
+        public static PerLanguageOption<bool> QualifyMemberFieldAccessWithThisOrMe { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMemberFieldAccessWithThisOrMe", defaultValue: false);
+
+        /// <summary>
+        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in member property access expressions.
+        /// </summary>
+        public static PerLanguageOption<bool> QualifyMemberPropertyAccessWithThisOrMe { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMemberPropertyAccessWithThisOrMe", defaultValue: false);
+
+        /// <summary>
+        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in member method access expressions.
+        /// </summary>
+        public static PerLanguageOption<bool> QualifyMemberMethodAccessWithThisOrMe { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMemberMethodAccessWithThisOrMe", defaultValue: false);
+
+        /// <summary>
+        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in member event access expressions.
+        /// </summary>
+        public static PerLanguageOption<bool> QualifyMemberEventAccessWithThisOrMe { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMemberEventAccessWithThisOrMe", defaultValue: false);
 
         /// <summary>
         /// This option says if we should prefer keyword for Intrinsic Predefined Types in Declarations

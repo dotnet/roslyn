@@ -79,6 +79,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 diagnosticId = If(memberAccess.Expression.Kind = SyntaxKind.MeExpression,
                     IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId,
                     IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
+            ElseIf expression.IsKind(SyntaxKind.IdentifierName) AndAlso replacementSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
+                diagnosticId = IDEDiagnosticIds.AddThisOrMeDiagnosticId
             End If
 
             Return True

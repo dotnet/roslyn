@@ -62,6 +62,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add &apos;this&apos; qualification.
+        /// </summary>
+        internal static string AddThisQualification {
+            get {
+                return ResourceManager.GetString("AddThisQualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous method.
         /// </summary>
         internal static string AnonymousMethod {

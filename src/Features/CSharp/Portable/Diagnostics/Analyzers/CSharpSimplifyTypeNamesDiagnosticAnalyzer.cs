@@ -141,6 +141,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                         IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId :
                         IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
                 }
+                else if (expression.IsKind(SyntaxKind.IdentifierName) && replacementSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                {
+                    diagnosticId = IDEDiagnosticIds.AddThisOrMeDiagnosticId;
+                }
             }
 
             return true;

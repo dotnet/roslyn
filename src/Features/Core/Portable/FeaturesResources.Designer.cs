@@ -233,6 +233,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add &apos;this&apos; or &apos;Me&apos; qualification..
+        /// </summary>
+        internal static string AddThisOrMeQualification {
+            get {
+                return ResourceManager.GetString("AddThisOrMeQualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session..
         /// </summary>
         internal static string AnActiveStatementHasBeenRemoved {

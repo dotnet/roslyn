@@ -2746,7 +2746,7 @@ class Attribute : System.Attribute
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task ThisQualificationOption()
+        public async Task ThisQualificationOnFieldOption()
         {
             await TestMissingAsync(
 @"
@@ -2758,7 +2758,7 @@ class C
         [|this|].x = 4;
     }
 }
-", new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+", new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberFieldAccessWithThisOrMe, LanguageNames.CSharp), true } });
         }
 
         [WorkItem(942568)]

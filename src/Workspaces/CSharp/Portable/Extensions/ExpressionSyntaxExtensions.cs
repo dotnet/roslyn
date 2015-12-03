@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            TypeSyntax replacementTypeNode;
+            ExpressionSyntax replacementTypeNode;
             if (expression.TryReduceExplicitName(semanticModel, out replacementTypeNode, out issueSpan, optionSet, cancellationToken))
             {
                 replacementNode = replacementTypeNode;
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool TryReduceExplicitName(
             this ExpressionSyntax expression,
             SemanticModel semanticModel,
-            out TypeSyntax replacementNode,
+            out ExpressionSyntax replacementNode,
             out TextSpan issueSpan,
             OptionSet optionSet,
             CancellationToken cancellationToken)
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             else if (expression is NameSyntax)
             {
                 var name = (NameSyntax)expression;
-                return name.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
+                return name.TryNormalizeOrReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
             }
             else if (expression is TypeSyntax)
             {
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool TryReduce(
             this MemberAccessExpressionSyntax memberAccess,
             SemanticModel semanticModel,
-            out TypeSyntax replacementNode,
+            out ExpressionSyntax replacementNode,
             out TextSpan issueSpan,
             OptionSet optionSet,
             CancellationToken cancellationToken)
@@ -699,10 +699,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) &&
-                memberAccess.Expression.Kind() == SyntaxKind.ThisExpression)
+            if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression))
             {
-                return false;
+                // if we can't resolve the symbol then nothing can be inferred
+                var nameSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, memberAccess.Name);
+                if (nameSymbol == null)
+                {
+                    return false;
+                }
+
+                if ((nameSymbol.IsKind(SymbolKind.Field) && optionSet.GetOption(SimplificationOptions.QualifyMemberFieldAccessWithThisOrMe, semanticModel.Language)) ||
+                    (nameSymbol.IsKind(SymbolKind.Property) && optionSet.GetOption(SimplificationOptions.QualifyMemberPropertyAccessWithThisOrMe, semanticModel.Language)) ||
+                    (nameSymbol.IsKind(SymbolKind.Method) && optionSet.GetOption(SimplificationOptions.QualifyMemberMethodAccessWithThisOrMe, semanticModel.Language)) ||
+                    (nameSymbol.IsKind(SymbolKind.Event) && optionSet.GetOption(SimplificationOptions.QualifyMemberEventAccessWithThisOrMe, semanticModel.Language)))
+                {
+                    return false;
+                }
             }
 
             // if this node is annotated as being a specialtype, let's use this information.
@@ -1114,10 +1126,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return -1;
         }
 
+        private static bool TryNormalizeOrReduce(
+            this NameSyntax name,
+            SemanticModel semanticModel,
+            out ExpressionSyntax replacementNode,
+            out TextSpan issueSpan,
+            OptionSet optionSet,
+            CancellationToken cancellationToken)
+        {
+            if (name.TryNormalize(semanticModel, out replacementNode, out issueSpan, optionSet))
+            {
+                return true;
+            }
+
+            return name.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
+        }
+
+        private static bool TryNormalize(
+            this NameSyntax name,
+            SemanticModel semanticModel,
+            out ExpressionSyntax replacementNode,
+            out TextSpan issueSpan,
+            OptionSet optionSet)
+        {
+            replacementNode = null;
+            issueSpan = default(TextSpan);
+
+            // if we can't resolve the symbol then nothing can be inferred
+            var symbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, name);
+            if (symbol == null)
+            {
+                return false;
+            }
+
+            // if not static and not already part of a `this.` expression
+            if (!symbol.IsStatic &&
+                name is SimpleNameSyntax &&
+                (name.Parent as MemberAccessExpressionSyntax)?.Expression.Kind() != SyntaxKind.ThisExpression)
+            {
+                if ((symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(SimplificationOptions.QualifyMemberFieldAccessWithThisOrMe, semanticModel.Language)) ||
+                    (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(SimplificationOptions.QualifyMemberPropertyAccessWithThisOrMe, semanticModel.Language)) ||
+                    (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(SimplificationOptions.QualifyMemberMethodAccessWithThisOrMe, semanticModel.Language)) ||
+                    (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(SimplificationOptions.QualifyMemberEventAccessWithThisOrMe, semanticModel.Language)))
+                {
+                    replacementNode =
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.ThisExpression(),
+                            (SimpleNameSyntax)name.WithLeadingTrivia().WithoutAnnotations(Simplifier.Annotation))
+                        .WithLeadingTrivia(name.GetLeadingTrivia());
+                    issueSpan = name.Span;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static bool TryReduce(
             this NameSyntax name,
             SemanticModel semanticModel,
-            out TypeSyntax replacementNode,
+            out ExpressionSyntax replacementNode,
             out TextSpan issueSpan,
             OptionSet optionSet,
             CancellationToken cancellationToken)
@@ -1180,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     .WithTrailingTrivia(genericName.GetTrailingTrivia());
 
                 issueSpan = genericName.TypeArgumentList.Span;
-                return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+                return name.CanReplaceWithReducedName((IdentifierNameSyntax)replacementNode, semanticModel, cancellationToken);
             }
 
             if (!(symbol is INamespaceOrTypeSymbol))
@@ -1198,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 issueSpan = name.Span;
 
-                return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken);
+                return name.CanReplaceWithReducedNameInContext((PredefinedTypeSyntax)replacementNode, semanticModel);
             }
             else
             {
@@ -1270,19 +1339,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         }
 
                         // first check if this would be a valid reduction
-                        if (name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken))
+                        if (name.CanReplaceWithReducedNameInContext((SimpleNameSyntax)replacementNode, semanticModel))
                         {
                             // in case this alias name ends with "Attribute", we're going to see if we can also 
                             // remove that suffix.
-                            TypeSyntax replacementNodeWithoutAttributeSuffix;
+                            ExpressionSyntax replacementNodeWithoutAttributeSuffix;
                             TextSpan issueSpanWithoutAttributeSuffix;
                             if (TryReduceAttributeSuffix(
                                 name,
                                 identifierToken,
                                 semanticModel,
                                 out replacementNodeWithoutAttributeSuffix,
-                                out issueSpanWithoutAttributeSuffix,
-                                cancellationToken))
+                                out issueSpanWithoutAttributeSuffix))
                             {
                                 if (name.CanReplaceWithReducedName(replacementNodeWithoutAttributeSuffix, semanticModel, cancellationToken))
                                 {
@@ -1349,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                 var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
                                 if (keywordKind != SyntaxKind.None)
                                 {
-                                    return CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, cancellationToken);
+                                    return CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind);
                                 }
                             }
                             else
@@ -1360,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                     var keywordKind = GetPredefinedKeywordKind(((INamedTypeSymbol)typeSymbol).SpecialType);
                                     if (keywordKind != SyntaxKind.None)
                                     {
-                                        return CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, cancellationToken);
+                                        return CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind);
                                     }
                                 }
                             }
@@ -1398,7 +1466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             // we need to simplify the whole qualified name at once, because replacing the identifier on the left in
                             // System.Nullable<int> alone would be illegal.
                             // If this fails we want to continue to try at least to remove the System if possible.
-                            if (name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken))
+                            if (name.CanReplaceWithReducedNameInContext((NullableTypeSyntax)replacementNode, semanticModel))
                             {
                                 return true;
                             }
@@ -1434,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         identifier = ((IdentifierNameSyntax)name).Identifier;
 
                         // we can try to remove the Attribute suffix if this is the attribute name
-                        TryReduceAttributeSuffix(name, identifier, semanticModel, out replacementNode, out issueSpan, cancellationToken);
+                        TryReduceAttributeSuffix(name, identifier, semanticModel, out replacementNode, out issueSpan);
                         break;
                 }
             }
@@ -1501,13 +1569,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return !name.Span.Contains(argumentDecl.Span);
         }
 
-        private static bool CanReplaceWithPredefinedTypeKeywordInContext(NameSyntax name, SemanticModel semanticModel, out TypeSyntax replacementNode, ref TextSpan issueSpan, SyntaxKind keywordKind, CancellationToken cancellationToken)
+        private static bool CanReplaceWithPredefinedTypeKeywordInContext(NameSyntax name, SemanticModel semanticModel, out ExpressionSyntax replacementNode, ref TextSpan issueSpan, SyntaxKind keywordKind)
         {
             replacementNode = CreatePredefinedTypeSyntax(name, keywordKind);
 
             issueSpan = name.Span; // we want to show the whole name expression as unnecessary
 
-            return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken);
+            return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel);
         }
 
         private static TypeSyntax CreatePredefinedTypeSyntax(ExpressionSyntax expression, SyntaxKind keywordKind)
@@ -1519,9 +1587,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             NameSyntax name,
             SyntaxToken identifierToken,
             SemanticModel semanticModel,
-            out TypeSyntax replacementNode,
-            out TextSpan issueSpan,
-            CancellationToken cancellationToken)
+            out ExpressionSyntax replacementNode,
+            out TextSpan issueSpan)
         {
             issueSpan = default(TextSpan);
             replacementNode = default(TypeSyntax);
@@ -1908,7 +1975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return semanticModel.GetSymbolInfo(memberAccess.Name).CandidateReason == CandidateReason.LateBound;
         }
 
-        private static bool CanReplaceWithReducedName(this NameSyntax name, TypeSyntax reducedName, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool CanReplaceWithReducedName(this NameSyntax name, ExpressionSyntax reducedName, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var speculationAnalyzer = new SpeculationAnalyzer(name, reducedName, semanticModel, cancellationToken);
             if (speculationAnalyzer.ReplacementChangesSemantics())
@@ -1916,10 +1983,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            return CanReplaceWithReducedNameInContext(name, reducedName, semanticModel, cancellationToken);
+            return CanReplaceWithReducedNameInContext(name, reducedName, semanticModel);
         }
 
-        private static bool CanReplaceWithReducedNameInContext(this NameSyntax name, TypeSyntax reducedName, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool CanReplaceWithReducedNameInContext(this NameSyntax name, ExpressionSyntax reducedName, SemanticModel semanticModel)
         {
             // Special case.  if this new minimal name parses out to a predefined type, then we
             // have to make sure that we're not in a using alias. That's the one place where the
@@ -1940,7 +2007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return true;
         }
 
-        private static bool IsNotNullableReplaceable(this NameSyntax name, TypeSyntax reducedName)
+        private static bool IsNotNullableReplaceable(this NameSyntax name, ExpressionSyntax reducedName)
         {
             var isNotNullableReplaceable = false;
             var isLeftSideOfDot = name.IsLeftSideOfDot();
@@ -2001,7 +2068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool IsReplaceableByVar(
             this TypeSyntax simpleName,
             SemanticModel semanticModel,
-            out TypeSyntax replacementNode,
+            out ExpressionSyntax replacementNode,
             out TextSpan issueSpan,
             OptionSet optionSet,
             CancellationToken cancellationToken)

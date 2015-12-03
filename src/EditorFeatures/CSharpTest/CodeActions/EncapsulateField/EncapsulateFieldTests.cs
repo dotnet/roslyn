@@ -1,8 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EncapsulateField;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1163,6 +1166,36 @@ class C
 }
 ");
             }
+        }
+
+        [WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task ApplyCurrentThisPrefixStyle()
+        {
+            await TestAsync(@"
+class C
+{
+    int [|i|];
+}
+", @"
+class C
+{
+    int i;
+
+    public int I
+    {
+        get
+        {
+            return this.i;
+        }
+        set
+        {
+            this.i = value;
+        }
+    }
+
+}
+", options: new Dictionary<OptionKey, object>() { { new OptionKey(SimplificationOptions.QualifyMemberFieldAccessWithThisOrMe, LanguageNames.CSharp), true } });
         }
     }
 }

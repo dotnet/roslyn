@@ -882,4 +882,7 @@ Do you want to continue?</value>
   <data name="WRN_UnableToLoadAnalyzer" xml:space="preserve">
     <value>Unable to load Analyzer assembly {0}: {1}</value>
   </data>
+  <data name="AddThisOrMeQualification" xml:space="preserve">
+    <value>Add 'this' or 'Me' qualification.</value>
+  </data>
 </root>

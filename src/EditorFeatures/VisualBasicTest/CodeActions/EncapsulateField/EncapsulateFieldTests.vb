@@ -1,6 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.EncapsulateField
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.EncapsulateField
@@ -581,6 +583,30 @@ End Enum
 </File>.ConvertTestSourceTag()
             Await TestMissingAsync(enumField)
 
+        End Function
+
+        <WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        Public Async Function ApplyCurrentThisPrefixStyle() As Task
+            Await TestAsync("
+Class C
+    Dim [|i|] As Integer
+End Class
+", "
+Class C
+    Dim i As Integer
+
+    Public Property I1 As Integer
+        Get
+            Return Me.i
+        End Get
+        Set(value As Integer)
+            Me.i = value
+        End Set
+    End Property
+End Class
+",
+options:=New Dictionary(Of OptionKey, Object)() From {{New OptionKey(SimplificationOptions.QualifyMemberFieldAccessWithThisOrMe, LanguageNames.VisualBasic), True}})
         End Function
     End Class
 End Namespace
