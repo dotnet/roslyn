@@ -957,16 +957,6 @@ namespace Microsoft.Cci
         new string Name { get; }
     }
 
-    internal enum EncFuncCode
-    {
-        Default = 0,
-        AddMethod = 1,
-        AddField = 2,
-        AddParameter = 3,
-        AddProperty = 4,
-        AddEvent = 5
-    }
-
     internal static class Extensions
     {
         internal static bool HasBody(this IMethodDefinition methodDef)

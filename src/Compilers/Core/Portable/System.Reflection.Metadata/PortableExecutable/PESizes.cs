@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Microsoft.Cci
+namespace System.Reflection.PortableExecutable
 {
     internal sealed class PESizes
     {
@@ -16,13 +16,13 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// The size of mapped field data stream.
-        /// Aligned to <see cref="MetadataWriter.MappedFieldDataAlignment"/>.
+        /// Aligned to <see cref="Microsoft.Cci.MetadataWriter.MappedFieldDataAlignment"/>.
         /// </summary>
         public readonly int MappedFieldDataSize;
 
         /// <summary>
         /// The size of managed resource data stream.
-        /// Aligned to <see cref="MetadataWriter.ManagedResourcesDataAlignment"/>.
+        /// Aligned to <see cref="Microsoft.Cci.MetadataWriter.ManagedResourcesDataAlignment"/>.
         /// </summary>
         public readonly int ResourceDataSize;
 

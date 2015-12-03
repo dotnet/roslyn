@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
 
-namespace Microsoft.Cci
+namespace System.Reflection.Metadata.Ecma335
 {
     internal sealed class MetadataSizes
     {
