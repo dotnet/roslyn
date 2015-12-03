@@ -16,15 +16,7 @@
     <AssemblyAttributeClsCompliant>false</AssemblyAttributeClsCompliant>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{19725D6F-4690-412B-934A-FC48D752B802}</ProjectGuid>
-    <!-- BEGIN The following are necessary in order for the VB background compiler to be happy.
-         Also, do not reference system or mscorlib in any VB project in the solution -->
-    <FrameworkPathOverride>$(WinFx45ExternalRefPath)</FrameworkPathOverride>
-    <OutputType>Library</OutputType>
-    <NoStdLib>false</NoStdLib>
-    <NoExplicitReferenceToStdLib>true</NoExplicitReferenceToStdLib>
-    <!-- END happy VB background compiler -->
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.AppDesigner</AssemblyName>
     <OptionExplicit>On</OptionExplicit>
     <OptionCompare>binary</OptionCompare>
