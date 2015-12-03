@@ -2115,16 +2115,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, CSharpSyntaxNode syntax,
             UnboundLambda anonymousFunction, TypeSymbol targetType)
         {
+            var boundLambdaDiagnosticsReported = GenerateAnonymousFunctionConversionErrorWorker(diagnostics, syntax, anonymousFunction, targetType);
+            if (boundLambdaDiagnosticsReported)
+            {
+                return;
+            }
+
+            // We didn't report the errors within the bound lambda.  This can happen when:
+            // a) there is an issue with teh target type of the conversion.
+            // b) there were syntax errors in the lambda.
+            // c) we reported other issues about the lambda (i.e. about its signature and not its body).
+            //
+            // In all these cases we want to supress further errors so they don't clutter the experience.
+            // However, we *do* want to at least report the errors in a hidden fashion so that features
+            // like CodeActions can still depend on them to trigger their experience.
+            var delegateType = targetType.GetDelegateType();
+            var bindingResult = delegateType != null ? anonymousFunction.Bind(delegateType) : anonymousFunction.BindForErrorRecovery();
+            diagnostics.AddRange(bindingResult.Diagnostics.Select(d => d.WithSeverity(DiagnosticSeverity.Hidden)));
+        }
+
+        // Returns true if the diagnostics for the bound lambda conversion were reported
+        internal bool GenerateAnonymousFunctionConversionErrorWorker(DiagnosticBag diagnostics, CSharpSyntaxNode syntax,
+            UnboundLambda anonymousFunction, TypeSymbol targetType)
+        {
             Debug.Assert((object)targetType != null);
             Debug.Assert(anonymousFunction != null);
 
             // Is the target type simply bad?
 
             // If the target type is an error then we've already reported a diagnostic. Don't bother
-            // reporting the conversion error.
+            // reporting the conversion error.  However, do at least try to bind the body of the 
+            // lambda for the errors that would be produced.  These errors are used by the IDE for
+            // code fixes, and we don't want to avoid producing them just because there was a syntax
+            // error.
+            //
+            // However, in order to avoid cluttering the display, we'll only report these with
+            // hidden severity.
             if (targetType.IsErrorType() || syntax.HasErrors)
             {
-                return;
+                var bindingResult = anonymousFunction.BindForErrorRecovery();
+                diagnostics.AddRange(bindingResult.Diagnostics.Select(d => d.WithSeverity(DiagnosticSeverity.Hidden)));
+                return false;
             }
 
             // CONSIDER: Instead of computing this again, cache the reason why the conversion failed in
@@ -2140,7 +2171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.Success)
             {
-                return;
+                return false;
             }
 
             var id = anonymousFunction.MessageID.Localize();
@@ -2149,26 +2180,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, node: syntax))
                 {
-                    return;
+                    return false;
                 }
 
                 // Cannot convert {0} to type '{1}' because it is not a delegate type
                 Error(diagnostics, ErrorCode.ERR_AnonMethToNonDel, syntax, id, targetType);
-                return;
+                return false;
             }
 
             if (reason == LambdaConversionResult.ExpressionTreeMustHaveDelegateTypeArgument)
             {
                 Debug.Assert(targetType.IsExpressionTree());
                 Error(diagnostics, ErrorCode.ERR_ExpressionTreeMustHaveDelegate, syntax, ((NamedTypeSymbol)targetType).TypeArgumentsNoUseSiteDiagnostics[0]);
-                return;
+                return false;
             }
 
             if (reason == LambdaConversionResult.ExpressionTreeFromAnonymousMethod)
             {
                 Debug.Assert(targetType.IsExpressionTree());
                 Error(diagnostics, ErrorCode.ERR_AnonymousMethodToExpressionTree, syntax);
-                return;
+                return false;
             }
 
             // At this point we know that we have either a delegate type or an expression type for the target.
@@ -2196,7 +2227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and unnecessary. I propose that we eliminate the first error.
 
                 Error(diagnostics, ErrorCode.ERR_CantConvAnonMethNoParams, syntax, targetType);
-                return;
+                return false;
             }
 
             // There is a parameter list. Does it have the right number of elements?
@@ -2205,7 +2236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Delegate '{0}' does not take {1} arguments
                 Error(diagnostics, ErrorCode.ERR_BadDelArgCount, syntax, targetType, anonymousFunction.ParameterCount);
-                return;
+                return false;
             }
 
             // The parameter list exists and had the right number of parameters. Were any of its types bad?
@@ -2218,7 +2249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (anonymousFunction.ParameterType(i).IsErrorType())
                     {
-                        return;
+                        return false;
                     }
                 }
             }
@@ -2241,7 +2272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             i + 1, delegateRefKind.ToDisplayString());
                     }
                 }
-                return;
+                return false;
             }
 
             // See the comments in IsAnonymousFunctionCompatibleWithDelegate for an explanation of this one.
@@ -2255,7 +2286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, anonymousFunction.ParameterLocation(i), delegateParameters[i].Type);
                     }
                 }
-                return;
+                return false;
             }
 
             // Otherwise, there might be a more complex reason why the parameter types are mismatched.
@@ -2300,7 +2331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                return;
+                return false;
             }
 
             if (reason == LambdaConversionResult.BindingFailed)
@@ -2308,12 +2339,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var bindingResult = anonymousFunction.Bind(delegateType);
                 Debug.Assert(ErrorFacts.PreventsSuccessfulDelegateConversion(bindingResult.Diagnostics));
                 diagnostics.AddRange(bindingResult.Diagnostics);
-                return;
+                return true;
             }
 
             // UNDONE: LambdaConversionResult.VoidExpressionLambdaMustBeStatementExpression:
 
             Debug.Assert(false, "Missing case in lambda conversion error reporting");
+            return false;
         }
 
         protected static void GenerateImplicitConversionError(DiagnosticBag diagnostics, Compilation compilation, CSharpSyntaxNode syntax,

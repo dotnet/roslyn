@@ -276,7 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // the delegate type. Otherwise, null.
         public static NamedTypeSymbol GetDelegateType(this TypeSymbol type)
         {
-            if ((object)type == null) return null;
+            if ((object)type == null)
+            {
+                return null;
+            }
+
             if (type.IsExpressionTree())
             {
                 type = ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0];
