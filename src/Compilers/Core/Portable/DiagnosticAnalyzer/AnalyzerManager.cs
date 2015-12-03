@@ -132,27 +132,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Get tuple with:
-        /// (a) All the analyzer actions to execute for the given analyzer against a given compilation and
-        /// (b) A flag indicating if these actions can be executed concurrently.
+        /// Get all the analyzer actions to execute for the given analyzer against a given compilation.
         /// The returned actions include the actions registered during <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> method as well as
         /// the actions registered during <see cref="CompilationStartAnalyzerAction"/> for the given compilation.
         /// </summary>
-        public async Task<Tuple<AnalyzerActions, bool>> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-            AnalyzerActions allActions;
             if (sessionScope.CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
             {
                 var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
-                allActions = compilationScope.GetAnalyzerActions(analyzer);
-            }
-            else
-            {
-                allActions = sessionScope.GetAnalyzerActions(analyzer);
+                return compilationScope.GetAnalyzerActions(analyzer);
             }
 
-            return Tuple.Create(allActions, sessionScope.IsConcurrentAnalyzer(analyzer));
+            return sessionScope.GetAnalyzerActions(analyzer);
+        }
+
+        /// <summary>
+        /// Returns true if the given analyzer has enabled concurrent execution by invoking <see cref="AnalysisContext.EnableConcurrentExecution"/>.
+        /// </summary>
+        public async Task<bool> IsConcurrentAnalyzerAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        {
+            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            return sessionScope.IsConcurrentAnalyzer(analyzer);
         }
 
         /// <summary>

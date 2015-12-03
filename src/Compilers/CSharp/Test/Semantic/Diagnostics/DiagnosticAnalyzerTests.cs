@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -1148,14 +1149,15 @@ class D
         [Fact, WorkItem(6737, "https://github.com/dotnet/roslyn/issues/6737")]
         public void TestNonConcurrentAnalyzer()
         {
-            var source = string.Empty;
+            var builder = new StringBuilder();
             var typeCount = 100;
             for (int i = 1; i <= typeCount; i++)
             {
                 var typeName = $"C{i}";
-                source = source + $"\r\nclass {typeName} {{ }}";
+                builder.Append($"\r\nclass {typeName} {{ }}");
             }
 
+            var source = builder.ToString();
             var analyzers = new DiagnosticAnalyzer[] { new NonConcurrentAnalyzer() };
 
             // Verify no diagnostics.
@@ -1173,16 +1175,17 @@ class D
                 return;
             }
 
-            var source = string.Empty;
+            var builder = new StringBuilder();
             var typeCount = 100;
             var typeNames = new string[typeCount];
             for (int i = 1; i <= typeCount; i++)
             {
                 var typeName = $"C{i}";
                 typeNames[i - 1] = typeName;
-                source = source + $"\r\nclass {typeName} {{ }}";
+                builder.Append($"\r\nclass {typeName} {{ }}");
             }
 
+            var source = builder.ToString();
             var compilation = GetCompilationWithConcurrentBuildEnabled(source);
             compilation.VerifyDiagnostics();
 

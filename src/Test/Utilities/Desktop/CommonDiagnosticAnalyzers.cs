@@ -512,8 +512,8 @@ namespace Microsoft.CodeAnalysis
             {
                 context.RegisterCompilationStartAction(this.OnCompilationStart);
 
-                // Register concurrent action callbacks on analyzer.
-                context.RegisterConcurrentExecution();
+                // Enable concurrent action callbacks on analyzer.
+                context.EnableConcurrentExecution();
             }
 
             private void OnCompilationStart(CompilationStartAnalysisContext context)

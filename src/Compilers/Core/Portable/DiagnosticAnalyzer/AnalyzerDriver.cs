@@ -100,17 +100,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.DiagnosticQueue = diagnosticQueue;
 
                 // Compute the set of effective actions based on suppression, and running the initial analyzers
-                var analyzerActionsTask = GetAnalyzerActionsAsync(analyzers, analyzerManager, analyzerExecutor);
-                _initializeTask = analyzerActionsTask.ContinueWith(t =>
+                _initializeTask = Task.Run(async () =>
                 {
-                    this.analyzerActions = t.Result.Item1;
-                    this._analyzerGateMap = t.Result.Item2;
+                    this.analyzerActions = await GetAnalyzerActionsAsync(analyzers, analyzerManager, analyzerExecutor).ConfigureAwait(false);
+                    this._analyzerGateMap = await GetAnalyzerGateMapAsync(analyzers, analyzerManager, analyzerExecutor).ConfigureAwait(false);
+
                     _symbolActionsByKind = MakeSymbolActionsByKind();
                     _semanticModelActionsMap = MakeSemanticModelActionsByAnalyzer();
                     _syntaxTreeActionsMap = MakeSyntaxTreeActionsByAnalyzer();
                     _compilationActionsMap = MakeCompilationActionsByAnalyzer(this.analyzerActions.CompilationActions);
                     _compilationEndActionsMap = MakeCompilationActionsByAnalyzer(this.analyzerActions.CompilationEndActions);
-                }, cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+                }, cancellationToken);
 
                 // create the primary driver task.
                 cancellationToken.ThrowIfCancellationRequested();
@@ -546,7 +546,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var workerTasks = new Task<CompilationCompletedEvent>[workerCount];
                     for (int i = 0; i < workerCount; i++)
                     {
-                        workerTasks[i] = Task.Run(async() => await ProcessCompilationEventsCoreAsync(analysisScope, analysisStateOpt, prePopulatedEventQueue, cancellationToken).ConfigureAwait(false));
+                        // Create separate worker tasks to process all compilation events - we do not want to process any events on the main thread.
+                        workerTasks[i] = Task.Run(async () => await ProcessCompilationEventsCoreAsync(analysisScope, analysisStateOpt, prePopulatedEventQueue, cancellationToken).ConfigureAwait(false));
                     }
 
                     cancellationToken.ThrowIfCancellationRequested();
@@ -861,53 +862,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return compilation.Options.FilterDiagnostic(diagnostic);
         }
 
-        private static Task<Tuple<AnalyzerActions, ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>>> GetAnalyzerActionsAsync(
+        private static async Task<AnalyzerActions> GetAnalyzerActionsAsync(
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor)
         {
-            return Task.Run(async () =>
+            var allAnalyzerActions = new AnalyzerActions();
+            foreach (var analyzer in analyzers)
             {
-                var allAnalyzerActions = new AnalyzerActions();
-                var concurrentAnalyzers = new HashSet<DiagnosticAnalyzer>();
-                foreach (var analyzer in analyzers)
+                if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor))
                 {
-                    if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor))
+                    var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+                    if (analyzerActions != null)
                     {
-                        var tuple = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-                        var analyzerActions = tuple.Item1;
-                        if (analyzerActions != null)
-                        {
-                            allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
-
-                            var isConcurrentAnalyzer = tuple.Item2;
-                            if (isConcurrentAnalyzer)
-                            {
-                                concurrentAnalyzers.Add(analyzer);
-                            }
-                        }
+                        allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
                     }
                 }
-
-                var analyzerGateMap = GetAnalyzerGateMap(analyzers, concurrentAnalyzers);
-                return Tuple.Create(allAnalyzerActions, analyzerGateMap);
-            }, analyzerExecutor.CancellationToken);
-        }
-
-        private static ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim> GetAnalyzerGateMap(ImmutableArray<DiagnosticAnalyzer> allAnalyzers, HashSet<DiagnosticAnalyzer> concurrentAnalyzers)
-        {
-            // Non-concurrent analyzers need their action callbacks from the analyzer drive to be guarded by a gate.
-            if (allAnalyzers.Length == concurrentAnalyzers.Count)
-            {
-                // All concurrent analyzers, so we need no gates.
-                return ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
             }
 
+            return allAnalyzerActions;
+        }
+
+        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>> GetAnalyzerGateMapAsync(
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AnalyzerManager analyzerManager,
+            AnalyzerExecutor analyzerExecutor)
+        {
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, SemaphoreSlim>();
-            foreach (var analyzer in allAnalyzers)
+            foreach (var analyzer in analyzers)
             {
-                if (!concurrentAnalyzers.Contains(analyzer))
+                var isConcurrent = await analyzerManager.IsConcurrentAnalyzerAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+                if (!isConcurrent)
                 {
+                    // Non-concurrent analyzers need their action callbacks from the analyzer driver to be guarded by a gate.
                     var gate = new SemaphoreSlim(initialCount: 1);
                     builder.Add(analyzer, gate);
                 }
@@ -920,7 +907,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var executor = analyzerExecutor.WithCancellationToken(cancellationToken);
             var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, executor).ConfigureAwait(false);
-            return AnalyzerActionCounts.Create(analyzerActions.Item1);
+            return AnalyzerActionCounts.Create(analyzerActions);
         }
 
         /// <summary>

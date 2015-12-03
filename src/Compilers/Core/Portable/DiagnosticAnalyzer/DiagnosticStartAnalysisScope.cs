@@ -89,9 +89,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterOperationBlockAction(_analyzer, action);
         }
 
-        public override void RegisterConcurrentExecution()
+        public override void EnableConcurrentExecution()
         {
-            _scope.RegisterConcurrentExecution(_analyzer);
+            _scope.EnableConcurrentExecution(_analyzer);
         }
     }
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilationStartActions = _compilationStartActions.Add(analyzerAction);
         }
 
-        public void RegisterConcurrentExecution(DiagnosticAnalyzer analyzer)
+        public void EnableConcurrentExecution(DiagnosticAnalyzer analyzer)
         {
             _concurrentAnalyzers = _concurrentAnalyzers.Add(analyzer);
         }

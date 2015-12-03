@@ -164,16 +164,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
 
         /// <summary>
-        /// Register for concurrent execution of analyzer actions registered by this analyzer.
-        /// An analyzer that registers for concurrent execution should be more performant then a non-concurrent analyzer.
-        /// However, such analyzers must ensure that its actions are implemented in a thread-safe manner.
+        /// Enable concurrent execution of analyzer actions registered by this analyzer.
+        /// An analyzer that registers for concurrent execution can have better performance than a non-concurrent analyzer.
+        /// However, such an analyzer must ensure that its actions can execute correctly in parallel.
         /// </summary>
         /// <remarks>
         /// Even when an analyzer registers for concurrent execution, certain related actions are *never* executed concurrently.
         /// For example, end actions registered on any analysis unit (compilation, code block, operation block, etc.) are by definition semantically dependent on analysis from non-end actions registered on the same analysis unit.
         /// Hence, end actions are never executed concurrently with non-end actions operating on the same analysis unit.
         /// </remarks>
-        public abstract void RegisterConcurrentExecution();
+        public abstract void EnableConcurrentExecution();
     }
 
     /// <summary>
