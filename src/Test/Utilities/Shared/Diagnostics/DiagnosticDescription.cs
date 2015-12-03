@@ -29,6 +29,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly Type _errorCodeType;
         private readonly bool _ignoreArgumentsWhenComparing;
 
+        // Null if the diagnostic has its default severity.  Non-null if the severity is different 
+        // from the default.
+        private readonly DiagnosticSeverity? _severity;
+
         // fields for DiagnosticDescriptions constructed via factories
         private readonly Func<SyntaxNode, bool> _syntaxPredicate;
         private bool _showPredicate; // show predicate in ToString if comparison fails
@@ -59,6 +63,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public DiagnosticDescription(
             object code,
+            DiagnosticSeverity? severity,
+            string squiggledText,
+            object[] arguments,
+            LinePosition? startLocation,
+            Func<SyntaxNode, bool> syntaxNodePredicate,
+            bool argumentOrderDoesNotMatter,
+            Type errorCodeType = null) : this(code, severity, 
+                isWarningAsError: false, 
+                squiggledText: squiggledText,
+                arguments: arguments,
+                startLocation: startLocation,
+                syntaxNodePredicate: syntaxNodePredicate,
+                argumentOrderDoesNotMatter: argumentOrderDoesNotMatter,
+                errorCodeType: errorCodeType)
+        {
+        }
+
+        public DiagnosticDescription(
+            object code,
+            DiagnosticSeverity? severity,
             bool isWarningAsError,
             string squiggledText,
             object[] arguments,
@@ -68,26 +92,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Type errorCodeType = null)
         {
             _code = code;
+            _severity = severity;
             _isWarningAsError = isWarningAsError;
-            _squiggledText = squiggledText;
-            _arguments = arguments;
-            _startPosition = startLocation;
-            _syntaxPredicate = syntaxNodePredicate;
-            _argumentOrderDoesNotMatter = argumentOrderDoesNotMatter;
-            _errorCodeType = errorCodeType ?? code.GetType();
-        }
-
-        public DiagnosticDescription(
-            object code,
-            string squiggledText,
-            object[] arguments,
-            LinePosition? startLocation,
-            Func<SyntaxNode, bool> syntaxNodePredicate,
-            bool argumentOrderDoesNotMatter,
-            Type errorCodeType = null)
-        {
-            _code = code;
-            _isWarningAsError = false;
             _squiggledText = squiggledText;
             _arguments = arguments;
             _startPosition = startLocation;
@@ -99,6 +105,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool showPosition = false)
         {
             _code = d.Code;
+            _severity = d.Severity == d.DefaultSeverity ? (DiagnosticSeverity?)null : d.Severity;
             _isWarningAsError = d.IsWarningAsError;
             _location = d.Location;
 
@@ -162,17 +169,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public DiagnosticDescription WithArguments(params string[] arguments)
         {
-            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, false, _errorCodeType);
+            return new DiagnosticDescription(_code, _severity, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, false, _errorCodeType);
         }
 
         public DiagnosticDescription WithArgumentsAnyOrder(params string[] arguments)
         {
-            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, true, _errorCodeType);
+            return new DiagnosticDescription(_code, _severity, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, true, _errorCodeType);
         }
 
         public DiagnosticDescription WithWarningAsError(bool isWarningAsError)
         {
-            return new DiagnosticDescription(_code, isWarningAsError, _squiggledText, _arguments, _startPosition, _syntaxPredicate, true, _errorCodeType);
+            return new DiagnosticDescription(_code, _severity, isWarningAsError, _squiggledText, _arguments, _startPosition, _syntaxPredicate, true, _errorCodeType);
+        }
+
+        public DiagnosticDescription WithSeverity(DiagnosticSeverity severity)
+        {
+            return new DiagnosticDescription(_code, severity, _isWarningAsError, _squiggledText, _arguments, _startPosition, _syntaxPredicate, true, _errorCodeType);
         }
 
         /// <summary>
@@ -180,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public DiagnosticDescription WithLocation(int line, int column)
         {
-            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, new LinePosition(line - 1, column - 1), _syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType);
+            return new DiagnosticDescription(_code, _severity, _isWarningAsError, _squiggledText, _arguments, new LinePosition(line - 1, column - 1), _syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType);
         }
 
         /// <summary>
@@ -189,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="syntaxPredicate">The argument to syntaxPredicate will be the nearest SyntaxNode whose Span contains first squiggled character.</param>
         public DiagnosticDescription WhereSyntax(Func<SyntaxNode, bool> syntaxPredicate)
         {
-            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, _startPosition, syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType);
+            return new DiagnosticDescription(_code, _severity, _isWarningAsError, _squiggledText, _arguments, _startPosition, syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType);
         }
 
         public object Code => _code;
@@ -203,6 +215,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (!_code.Equals(d._code))
                 return false;
+
+            // If we're reporting something with non-default severity, then make sure the severity
+            // matches.  Otherwise, just checking the code is good enough.
+            if (_severity != null)
+            {
+                if (!_severity.Equals(d._severity))
+                    return false;
+            }
 
             if (_isWarningAsError != d._isWarningAsError)
                 return false;
@@ -293,6 +313,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             int hashCode;
             hashCode = _code.GetHashCode();
+
+            if (_severity != null)
+            {
+                hashCode = Hash.Combine((int)_severity.Value, hashCode);
+            }
+
             hashCode = Hash.Combine(_isWarningAsError.GetHashCode(), hashCode);
 
             // TODO: !!! This implementation isn't consistent with Equals, which might ignore inequality of some members based on ignoreArgumentsWhenComparing flag, etc.
@@ -314,9 +340,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             else
             {
-                sb.Append(_errorCodeType.Name);
-                sb.Append(".");
-                sb.Append(Enum.GetName(_errorCodeType, _code));
+                sb.Append($"{_errorCodeType.Name}.{Enum.GetName(_errorCodeType, _code)}");
             }
 
             if (_squiggledText != null)
@@ -356,11 +380,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (_startPosition != null && _showPosition)
             {
-                sb.Append(".WithLocation(");
-                sb.Append(_startPosition.Value.Line + 1);
-                sb.Append(", ");
-                sb.Append(_startPosition.Value.Character + 1);
-                sb.Append(")");
+                sb.Append($".WithLocation({_startPosition.Value.Line + 1}, {_startPosition.Value.Character + 1})");
             }
 
             if (_isWarningAsError)
@@ -371,6 +391,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (_syntaxPredicate != null && _showPredicate)
             {
                 sb.Append(".WhereSyntax(...)");
+            }
+
+            if (_severity != null)
+            {
+                sb.Append($".WithSeverity(DiagnosticSeverity.{_severity.Value})");
             }
 
             return sb.ToString();

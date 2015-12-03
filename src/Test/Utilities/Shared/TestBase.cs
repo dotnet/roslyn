@@ -551,6 +551,7 @@ namespace Roslyn.Test.Utilities
 
             return new DiagnosticDescription(
                 code as string ?? (object)(int)code,
+                null,
                 false,
                 squiggledText,
                 arguments,
