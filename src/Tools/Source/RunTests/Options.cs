@@ -13,6 +13,8 @@ namespace RunTests
 
         public bool Test64 { get; set; }
 
+        public bool UseCachedResults { get; set; }
+
         public string Trait { get; set; }
 
         public string NoTrait { get; set; }
@@ -30,8 +32,7 @@ namespace RunTests
                 return null;
             }
 
-            var opt = new Options { XunitPath = args[0], UseHtml = true };
-
+            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true };
             int index = 1;
 
             var comp = StringComparer.OrdinalIgnoreCase;
@@ -46,6 +47,11 @@ namespace RunTests
                 else if (comp.Equals(current, "-xml"))
                 {
                     opt.UseHtml = false;
+                    index++;
+                }
+                else if (comp.Equals(current, "-nocache"))
+                {
+                    opt.UseCachedResults = false;
                     index++;
                 }
                 else if (current.Length > 7 && current.StartsWith("-trait:", StringComparison.OrdinalIgnoreCase))
