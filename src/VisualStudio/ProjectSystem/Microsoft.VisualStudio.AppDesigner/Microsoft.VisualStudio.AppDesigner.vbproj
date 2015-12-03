@@ -13,6 +13,7 @@
     <OptionExplicit>On</OptionExplicit>    
     <OptionStrict>On</OptionStrict>
     <OptionInfer>On</OptionInfer>
+    <SignAssembly>true</SignAssembly>
     <NoWarn>$(NoWarn);42105;42107;42353;42307</NoWarn>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <CopyReferencesByDefault>false</CopyReferencesByDefault>

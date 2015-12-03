@@ -12,7 +12,8 @@
     <OptionCompare>binary</OptionCompare>
     <OptionExplicit>On</OptionExplicit>
     <OptionStrict>On</OptionStrict>
-    <OptionInfer>On</OptionInfer>    
+    <OptionInfer>On</OptionInfer>
+    <SignAssembly>true</SignAssembly>
     <NoWarn>$(NoWarn);42105;42107;42353;42355</NoWarn>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <CopyReferencesByDefault>false</CopyReferencesByDefault>
