@@ -135,19 +135,19 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class FinalState : State
             {
-                private readonly bool hasCompleteReferences;
+                private readonly bool _hasCompleteReferences;
 
                 public override ValueSource<Compilation> FinalCompilation
                 {
                     get { return this.Compilation; }
                 }
 
-                public override bool? HasCompleteReferences => hasCompleteReferences;
+                public override bool? HasCompleteReferences => _hasCompleteReferences;
 
                 public FinalState(ValueSource<Compilation> finalCompilationSource, bool hasCompleteReferences)
                     : base(finalCompilationSource, finalCompilationSource.GetValue().Clone().RemoveAllReferences())
                 {
-                    this.hasCompleteReferences = hasCompleteReferences;
+                    _hasCompleteReferences = hasCompleteReferences;
                 }
             }
         }

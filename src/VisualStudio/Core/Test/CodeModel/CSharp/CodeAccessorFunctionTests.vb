@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
@@ -10,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "Access tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Access1()
+        Public Async Function TestAccess1() As Task
             Dim code =
     <Code>
 class C
@@ -28,11 +29,11 @@ class C
 }
 </Code>
 
-            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Sub
+            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Access2()
+        Public Async Function TestAccess2() As Task
             Dim code =
     <Code>
 class C
@@ -50,13 +51,13 @@ class C
 }
 </Code>
 
-            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Sub
+            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+        End Function
 
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TypeDescriptor_GetProperties()
+        Public Async Function TestTypeDescriptor_GetProperties() As Task
             Dim code =
 <Code>
 class C
@@ -72,8 +73,8 @@ class C
                  "IsShared", "MustImplement", "Overloads", "Attributes", "DocComment", "Comment",
                  "CanOverride", "OverrideKind", "IsGeneric"}
 
-            TestPropertyDescriptors(code, expectedPropertyNames)
-        End Sub
+            Await TestPropertyDescriptors(code, expectedPropertyNames)
+        End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

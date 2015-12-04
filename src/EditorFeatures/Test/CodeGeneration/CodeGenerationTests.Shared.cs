@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         public class Shared
         {
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-            public void TestSorting()
+            public async Task TestSorting()
             {
                 var initial = "namespace [|N|] { }";
                 var generationSource = @"
@@ -246,7 +246,7 @@ namespace N
         private delegate void DAccessA();
     }
 }";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected,
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
                     forceLanguage: LanguageNames.CSharp);
 
@@ -392,13 +392,13 @@ Namespace N
         Private Delegate Sub DAccessA()
     End Class
 End Namespace";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected,
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
                     forceLanguage: LanguageNames.VisualBasic);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-            public void TestSortingDefaultTypeMemberAccessibility1()
+            public async Task TestSortingDefaultTypeMemberAccessibility1()
             {
                 var generationSource = "public class [|C|] { private string B; public string C; }";
                 var initial = "public class [|C|] { string A; }";
@@ -409,7 +409,7 @@ public class C
     string A;
     private string B;
 }";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected, onlyGenerateMembers: true);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "public struct [|S|] { string A; }";
                 expected = @"
@@ -419,7 +419,7 @@ public struct S
     string A;
     private string B;
 }";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected, onlyGenerateMembers: true);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "Public Class [|C|] \n Dim A As String \n End Class";
                 expected = @"
@@ -428,7 +428,7 @@ Public Class C
     Dim A As String
     Private B As String
 End Class";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected, onlyGenerateMembers: true);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "Public Module [|M|] \n Dim A As String \n End Module";
                 expected = @"
@@ -437,7 +437,7 @@ Public Module M
     Dim A As String
     Private B As String
 End Module";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected, onlyGenerateMembers: true);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "Public Structure [|S|] \n Dim A As String \n End Structure";
                 expected = @"
@@ -446,11 +446,11 @@ Public Structure S
     Public C As String
     Private B As String
 End Structure";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected, onlyGenerateMembers: true);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-            public void TestDefaultTypeMemberAccessibility2()
+            public async Task TestDefaultTypeMemberAccessibility2()
             {
                 var generationSource = "public class [|C|] { private void B(){} public void C(){}  }";
                 var initial = "public interface [|I|] { void A(); }";
@@ -461,7 +461,7 @@ public interface I
     void B();
     void C();
 }";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected, onlyGenerateMembers: true);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "Public Interface [|I|] \n Sub A() \n End Interface";
                 expected = @"
@@ -470,7 +470,7 @@ Public Interface I
     Sub B()
     Sub C()
 End Interface";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected, onlyGenerateMembers: true);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "Public Class [|C|] \n Sub A() \n End Sub \n End Class";
                 expected = @"
@@ -482,7 +482,7 @@ Public Class C
     Private Sub B()
     End Sub
 End Class";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected, onlyGenerateMembers: true);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
 
                 initial = "Public Module [|M|] \n Sub A() \n End Sub \n End Module";
                 expected = @"
@@ -494,37 +494,37 @@ Public Module M
     Private Sub B()
     End Sub
 End Module";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected, onlyGenerateMembers: true);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-            public void TestDefaultNamespaceMemberAccessibility1()
+            public async Task TestDefaultNamespaceMemberAccessibility1()
             {
                 var generationSource = "internal class [|B|]{}";
                 var initial = "namespace [|N|] { class A{} }";
                 var expected = "namespace N { class A{} internal class B{} }";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
 
                 initial = "Namespace [|N|] \n Class A \n End Class \n End Namespace";
                 expected = "Namespace N \n Class A \n End Class \n Friend Class B \n End Class \n End Namespace";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-            public void TestDefaultNamespaceMemberAccessibility2()
+            public async Task TestDefaultNamespaceMemberAccessibility2()
             {
                 var generationSource = "public class [|C|]{}";
                 var initial = "namespace [|N|] { class A{} }";
                 var expected = "namespace N { public class C{} class A{} }";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
 
                 initial = "Namespace [|N|] \n Class A \n End Class \n End Namespace";
                 expected = "Namespace N \n Public Class C \n End Class \n Class A \n End Class \n End Namespace";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-            public void TestDocumentationComment()
+            public async Task TestDocumentationComment()
             {
                 var generationSource = @"
 public class [|C|]
@@ -539,13 +539,13 @@ public class C
     /// <summary>When in need, a documented method is a friend, indeed.</summary>
     public C();
 }";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected,
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false, generateDocumentationComments: true),
                     onlyGenerateMembers: true);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void TestModifiers()
+            public async Task TestModifiers()
             {
                 var generationSource = @"
 namespace [|N|]
@@ -589,7 +589,7 @@ namespace N
 }
 }
 ";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected,
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
 
                 var initialVB = "Namespace [|N|] End Namespace";
@@ -610,7 +610,7 @@ Namespace N
     End Class
 End Namespace
 ";
-                TestGenerateFromSourceSymbol(generationSource, initialVB, expectedVB,
+                await TestGenerateFromSourceSymbolAsync(generationSource, initialVB, expectedVB,
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
             }
         }

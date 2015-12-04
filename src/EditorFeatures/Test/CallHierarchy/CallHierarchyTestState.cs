@@ -92,11 +92,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             }
         }
 
-        public CallHierarchyTestState(XElement markup, params Type[] additionalTypes)
+        public static async Task<CallHierarchyTestState> CreateAsync(XElement markup, params Type[] additionalTypes)
         {
             var exportProvider = CreateExportProvider(additionalTypes);
+            var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(markup, exportProvider: exportProvider);
 
-            this.Workspace = TestWorkspaceFactory.CreateWorkspace(markup, exportProvider: exportProvider);
+            return new CallHierarchyTestState(workspace);
+        }
+
+        private CallHierarchyTestState(TestWorkspace workspace)
+        {
+            this.Workspace = workspace;
             var testDocument = Workspace.Documents.Single(d => d.CursorPosition.HasValue);
 
             _textView = testDocument.GetTextView();
@@ -123,10 +129,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             return MinimalTestExportProvider.CreateExportProvider(catalog);
         }
 
-        public CallHierarchyTestState(string markup, params Type[] additionalTypes)
+        public static async Task<CallHierarchyTestState> CreateAsync(string markup, params Type[] additionalTypes)
         {
             var exportProvider = CreateExportProvider(additionalTypes);
-            this.Workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup, exportProvider: exportProvider);
+            var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, exportProvider: exportProvider);
+            return new CallHierarchyTestState(markup, workspace);
+        }
+
+        private CallHierarchyTestState(string markup, TestWorkspace workspace)
+        {
+            this.Workspace = workspace;
             var testDocument = Workspace.Documents.Single(d => d.CursorPosition.HasValue);
 
             _textView = testDocument.GetTextView();

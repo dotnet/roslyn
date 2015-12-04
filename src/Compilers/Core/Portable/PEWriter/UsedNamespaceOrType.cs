@@ -64,9 +64,9 @@ namespace Microsoft.Cci
         public bool Equals(UsedNamespaceOrType other)
         {
             return AliasOpt == other.AliasOpt
-                && TargetAssemblyOpt == other.TargetAssemblyOpt
-                && TargetNamespaceOpt == other.TargetNamespaceOpt
-                && TargetTypeOpt == other.TargetTypeOpt
+                && object.Equals(TargetAssemblyOpt, other.TargetAssemblyOpt)
+                && object.Equals(TargetNamespaceOpt, other.TargetNamespaceOpt)
+                && object.Equals(TargetTypeOpt, other.TargetTypeOpt)
                 && TargetXmlNamespaceOpt == other.TargetXmlNamespaceOpt;
         }
 

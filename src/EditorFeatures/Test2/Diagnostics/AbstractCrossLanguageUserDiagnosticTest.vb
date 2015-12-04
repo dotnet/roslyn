@@ -2,6 +2,7 @@
 
 Option Strict Off
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -18,19 +19,29 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
 
-        Protected Sub Test(definition As XElement,
+        Protected Async Function TestMissing(definition As XElement) As Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
+                Assert.Null(diagnosticAndFix)
+            End Using
+        End Function
+
+        Protected Async Function TestAsync(definition As XElement,
                            Optional expected As String = Nothing,
                            Optional codeActionIndex As Integer = 0,
                            Optional verifyTokens As Boolean = True,
-                           Optional fileNameToExpected As Dictionary(Of String, String) = Nothing)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition)
-                Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
+                           Optional fileNameToExpected As Dictionary(Of String, String) = Nothing,
+                           Optional verifySolutions As Action(Of Solution, Solution) = Nothing) As Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(codeActionIndex).Action
                 Dim operations = codeAction.GetOperationsAsync(CancellationToken.None).Result
                 Dim edit = operations.OfType(Of ApplyChangesOperation)().First()
 
                 Dim oldSolution = workspace.CurrentSolution
                 Dim updatedSolution = edit.ChangedSolution
+
+                verifySolutions?.Invoke(oldSolution, updatedSolution)
 
                 If fileNameToExpected Is Nothing Then
                     Dim updatedDocument = SolutionUtilities.GetSingleChangedDocument(oldSolution, updatedSolution)
@@ -43,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     Next
                 End If
             End Using
-        End Sub
+        End Function
 
         Private Shared Sub Verify(expected As String, verifyTokens As Boolean, updatedDocument As Document)
             Dim actual = updatedDocument.GetTextAsync().Result.ToString().Trim()
@@ -55,8 +66,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             End If
         End Sub
 
-        Friend Function GetDiagnosticAndFix(workspace As TestWorkspace) As Tuple(Of Diagnostic, CodeFixCollection)
-            Return GetDiagnosticAndFixes(workspace).FirstOrDefault()
+        Friend Async Function GetDiagnosticAndFixAsync(workspace As TestWorkspace) As Task(Of Tuple(Of Diagnostic, CodeFixCollection))
+            Return (Await GetDiagnosticAndFixesAsync(workspace)).FirstOrDefault()
         End Function
 
         Private Function GetHostDocument(workspace As TestWorkspace) As TestHostDocument
@@ -65,12 +76,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Return hostDocument
         End Function
 
-        Private Iterator Function GetDiagnosticAndFixes(workspace As TestWorkspace) As IEnumerable(Of Tuple(Of Diagnostic, CodeFixCollection))
+        Private Async Function GetDiagnosticAndFixesAsync(workspace As TestWorkspace) As Task(Of IEnumerable(Of Tuple(Of Diagnostic, CodeFixCollection)))
             Dim hostDocument = GetHostDocument(workspace)
             Dim providerAndFixer = CreateDiagnosticProviderAndFixer(workspace, hostDocument.Project.Language)
             Dim fixer = providerAndFixer.Item2
 
-            Dim docAndDiagnostics = GetDocumentAndDiagnostics(workspace, providerAndFixer.Item1)
+            Dim result = New List(Of Tuple(Of Diagnostic, CodeFixCollection))
+            Dim docAndDiagnostics = Await GetDocumentAndDiagnosticsAsync(workspace, providerAndFixer.Item1)
             Dim _document = docAndDiagnostics.Item1
 
             Dim ids = New HashSet(Of String)(fixer.FixableDiagnosticIds)
@@ -82,12 +94,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Dim context = New CodeFixContext(_document, diagnostic, Sub(a, d) fixes.Add(New CodeFix(_document.Project, a, d)), CancellationToken.None)
                 providerAndFixer.Item2.RegisterCodeFixesAsync(context).Wait()
                 If fixes.Any() Then
-                    Yield Tuple.Create(diagnostic, New CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes))
+                    result.Add(Tuple.Create(diagnostic, New CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes)))
                 End If
             Next
+
+            Return result
         End Function
 
-        Private Function GetDocumentAndDiagnostics(workspace As TestWorkspace, provider As DiagnosticAnalyzer) As Tuple(Of Document, IEnumerable(Of Diagnostic))
+        Private Async Function GetDocumentAndDiagnosticsAsync(workspace As TestWorkspace, provider As DiagnosticAnalyzer) As Task(Of Tuple(Of Document, IEnumerable(Of Diagnostic)))
             Dim hostDocument = GetHostDocument(workspace)
 
             Dim invocationBuffer = hostDocument.TextBuffer
@@ -99,20 +113,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Dim root = document.GetSyntaxRootAsync().Result
             Dim start = syntaxFacts.GetContainingMemberDeclaration(root, invocationPoint)
 
-            Dim result = DiagnosticProviderTestUtilities.GetAllDiagnostics(provider, document, start.FullSpan)
+            Dim result = Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, start.FullSpan)
 
             '' currently, we don't test compilation level user diagnostic
             Return Tuple.Create(document, result.Where(Function(d) d.Location.SourceSpan.IntersectsWith(invocationPoint)))
         End Function
 
 
-        Protected Sub TestAddProjectReference(xmlDefinition As XElement,
+        Protected Async Function TestAddProjectReferenceAsync(xmlDefinition As XElement,
                                               expectedProjectReferenceFrom As String,
                                               expectedProjectReferenceTo As String,
-                                              Optional index As Integer = 0)
+                                              Optional index As Integer = 0) As Task
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(xmlDefinition)
-                Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xmlDefinition)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = codeAction.GetOperationsAsync(CancellationToken.None).Result
                 Dim edit = operations.OfType(Of ApplyChangesOperation)().First()
@@ -123,15 +137,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Dim projectTo = edit.ChangedSolution.GetProject(addedProjectReference.Item2.ProjectId)
                 Assert.Equal(expectedProjectReferenceTo, projectTo.Name)
             End Using
-        End Sub
+        End Function
 
-        Protected Sub TestAddUnresolvedMetadataReference(xmlDefinition As XElement,
+        Protected Async Function TestAddUnresolvedMetadataReferenceAsync(xmlDefinition As XElement,
                                                          expectedProjectToReceiveReference As String,
                                                          expectedAssemblyIdentity As String,
-                                                         Optional index As Integer = 0)
+                                                         Optional index As Integer = 0) As Task
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(xmlDefinition)
-                Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xmlDefinition)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = codeAction.GetOperationsAsync(CancellationToken.None).Result
 
@@ -143,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Assert.Equal(expectedAssemblyIdentity, postOp.AssemblyIdentity.GetDisplayName())
                 Assert.Equal(expectedProjectToReceiveReference, workspace.CurrentSolution.GetProject(postOp.ProjectId).Name)
             End Using
-        End Sub
+        End Function
 
 
         Protected Overridable Function GetNode(doc As Document, position As Integer) As SyntaxNode

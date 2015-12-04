@@ -4685,10 +4685,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Console->WriteLine();
                 //
                 // C 
-                // A + B; // etc.
+                // A + B;
                 //
                 // C 
                 // A ? B : D;
+                //
+                // C 
+                // A()
                 var resetPoint = this.GetResetPoint();
                 try
                 {
@@ -4709,6 +4712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 SyntaxFacts.IsBinaryExpressionOperatorToken(currentTokenKind);
 
                             if (currentTokenKind == SyntaxKind.DotToken ||
+                                currentTokenKind == SyntaxKind.OpenParenToken ||
                                 currentTokenKind == SyntaxKind.MinusGreaterThanToken ||
                                 isNonEqualsBinaryToken)
                             {
@@ -7994,6 +7998,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (k == SyntaxKind.StaticKeyword || k == SyntaxKind.ReadOnlyKeyword || k == SyntaxKind.VolatileKeyword)
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
+                }
+                else if (list.Any(mod.Kind))
+                {
+                    // check for duplicates, can only be const
+                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected, mod.Text);
                 }
 
                 list.Add(mod);

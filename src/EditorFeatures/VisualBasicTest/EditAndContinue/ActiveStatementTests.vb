@@ -677,6 +677,24 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active)
         End Sub
+
+        <WpfFact>
+        Public Sub Delete_EntireNamespace()
+            Dim src1 = "
+Module Module1
+    Sub Main()
+        <AS:0>Console.WriteLine(0)</AS:0>
+    End Sub
+End Module
+"
+
+            Dim src2 = "<AS:0></AS:0>"
+
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, Nothing, "module"))
+        End Sub
 #End Region
 
 #Region "Constructors"

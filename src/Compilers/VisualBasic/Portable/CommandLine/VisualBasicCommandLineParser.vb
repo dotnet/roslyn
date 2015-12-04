@@ -151,6 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim touchedFilesPath As String = Nothing
             Dim features = New List(Of String)()
             Dim reportAnalyzer As Boolean = False
+            Dim publicSign As Boolean = False
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -800,6 +801,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             delaySignSetting = False
                             Continue For
 
+                        Case "publicsign", "publicsign+"
+                            If value IsNot Nothing Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "publicsign")
+                                Continue For
+                            End If
+
+                            publicSign = True
+                            Continue For
+
+                        Case "publicsign-"
+                            If value IsNot Nothing Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "publicsign")
+                                Continue For
+                            End If
+
+                            publicSign = False
+                            Continue For
+
                         Case "keycontainer"
                             ' NOTE: despite what MSDN says, Dev11 resets '/keyfile' in this case:
                             '
@@ -1235,6 +1254,7 @@ lVbRuntimePlus:
                 cryptoKeyContainer:=keyContainerSetting,
                 cryptoKeyFile:=keyFileSetting,
                 delaySign:=delaySignSetting,
+                publicSign:=publicSign,
                 platform:=platform,
                 generalDiagnosticOption:=generalDiagnosticOption,
                 specificDiagnosticOptions:=specificDiagnosticOptions,

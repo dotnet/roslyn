@@ -10,8 +10,12 @@
                                  '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and
                                  '$(OS)' != 'Windows_NT'">$([System.Environment]::GetFolderPath(SpecialFolder.Personal))\.nuget\packages</NuGetPackageRoot>
+
+    <!-- 
+        $(OS) is only specific enough for windows builds.  For non-windows builds the identifier
+        is specified on the command line of MSBuild
+    -->
     <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
-    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
 
     <!-- Turn on hard-linking on Windows to reduce copy time and disk space -->
     <CreateHardLinksForCopyLocalIfPossible Condition="'$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyLocalIfPossible>
@@ -101,6 +105,14 @@
   <!-- Build reliability -->
   <PropertyGroup>
     <OverwriteReadOnlyFiles Condition="'$(OverwriteReadOnlyFiles)' == ''">true</OverwriteReadOnlyFiles>
+  </PropertyGroup>
+
+  <!-- Don't validate our .vsixmanifests for correct schemas. Right now our build machines are on Visual Studio 2015 RTM, but we want to set a property
+       (Experimental) that was added in Update 1. Since the schema is pulled from the box, you can't build with RTM unless we either disable schema
+       validation or otherwise copy the schemas in and then point the target to those. Since schema changes happen fairly rarely, I'll just disable
+       schema validation and turn it on as soon as we're on update 1 only. -->
+  <PropertyGroup>
+    <BypassVsixValidation>true</BypassVsixValidation>
   </PropertyGroup>
 
   <!-- Project language -->
@@ -232,7 +244,6 @@
         <DebugSymbols>true</DebugSymbols>
         <DebugType>full</DebugType>
         <DefineConstants>DEBUG;TRACE</DefineConstants>
-        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <DebugType>pdbonly</DebugType>
@@ -259,6 +270,7 @@
     <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' == '' ">$(MSBuildProgramFiles32)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\sn.exe</SnToolPath>
 
     <EditBinToolPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio $(VisualStudioVersion)\VC\bin\editbin.exe</EditBinToolPath>
+
   </PropertyGroup>
 
   <PropertyGroup>

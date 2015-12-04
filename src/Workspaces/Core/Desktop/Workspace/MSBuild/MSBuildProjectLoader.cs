@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string> properties = null)
         {
             _workspace = workspace;
-            _properties = properties ??  ImmutableDictionary<string, string>.Empty;
+            _properties = properties ?? ImmutableDictionary<string, string>.Empty;
         }
 
         /// <summary>
@@ -231,8 +231,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// The first <see cref="ProjectInfo"/> in the result corresponds to the specified project file.
         /// </summary>
         public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
-            string projectFilePath, 
-            ImmutableDictionary<string, ProjectId> projectPathToProjectIdMap = null, 
+            string projectFilePath,
+            ImmutableDictionary<string, ProjectId> projectPathToProjectIdMap = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (projectFilePath == null)

@@ -101,6 +101,7 @@
           NoWin32Manifest="$(NoWin32Manifest)"
           Optimize="$(Optimize)"
           Deterministic="$(Deterministic)"
+          PublicSign="$(PublicSign)"
           OutputAssembly="@(IntermediateAssembly)"
           PdbFile="$(PdbFile)"
           Platform="$(PlatformTarget)"

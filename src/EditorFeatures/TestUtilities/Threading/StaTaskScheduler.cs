@@ -1,4 +1,6 @@
-﻿// ParallelExtensionsExtras: https://code.msdn.microsoft.com/ParExtSamples
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+// ParallelExtensionsExtras: https://code.msdn.microsoft.com/ParExtSamples
 
 using System;
 using System.Collections.Concurrent;
@@ -32,7 +34,7 @@ namespace Roslyn.Test.Utilities
         {
             // Validate arguments
             if (numberOfThreads < 1)
-                throw new ArgumentOutOfRangeException("concurrencyLevel");
+                throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
 
             // Initialize the tasks collection
             _tasks = new BlockingCollection<Task>();

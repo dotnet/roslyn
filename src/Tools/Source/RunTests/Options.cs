@@ -13,6 +13,8 @@ namespace RunTests
 
         public bool Test64 { get; set; }
 
+        public bool UseCachedResults { get; set; }
+
         public string Trait { get; set; }
 
         public string NoTrait { get; set; }
@@ -26,14 +28,13 @@ namespace RunTests
         internal static Options Parse(string[] args)
         {
             if (args == null || args.Any(a => a == null) || args.Length < 2)
-            {                
+            {
                 return null;
             }
 
-            var opt = new Options {XunitPath = args[0], UseHtml = true};
-
+            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true };
             int index = 1;
-                    
+
             var comp = StringComparer.OrdinalIgnoreCase;
             while (index < args.Length)
             {
@@ -46,6 +47,11 @@ namespace RunTests
                 else if (comp.Equals(current, "-xml"))
                 {
                     opt.UseHtml = false;
+                    index++;
+                }
+                else if (comp.Equals(current, "-nocache"))
+                {
+                    opt.UseCachedResults = false;
                     index++;
                 }
                 else if (current.Length > 7 && current.StartsWith("-trait:", StringComparison.OrdinalIgnoreCase))
@@ -99,7 +105,7 @@ namespace RunTests
                     opt.Assemblies.Add(assemblyPath);
                     continue;
                 }
-                opt.MissingAssemblies.Add(assemblyPath);                
+                opt.MissingAssemblies.Add(assemblyPath);
             }
 
             return opt;
@@ -111,7 +117,5 @@ namespace RunTests
             Console.WriteLine("Example:");
             Console.WriteLine(@"runtests c:\path-that-contains-xunit.console.exe\ -trait:Feature=Classification Assembly1.dll Assembly2.dll");
         }
-
     }
-
 }

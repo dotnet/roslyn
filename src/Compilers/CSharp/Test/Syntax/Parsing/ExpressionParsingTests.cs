@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        private void TestConditionalAccessNotVersion5()
+        public void TestConditionalAccessNotVersion5()
         {
             var text = "a.b?.c.d?[1]?.e()?.f";
             var expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        private void TestConditionalAccess()
+        public void TestConditionalAccess()
         {
             var text = "a.b?.c.d?[1]?.e()?.f";
             var expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));

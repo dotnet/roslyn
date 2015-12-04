@@ -11,13 +11,13 @@ namespace Roslyn.Utilities
         // Keep around a few arrays of size 256 that we can use for operations without
         // causing lots of garbage to be created.  If we do compare items larger than
         // that, then we will just allocate and release those arrays on demand.
-        private static ObjectPool<int[]> pool = new ObjectPool<int[]>(() => new int[MaxPooledArraySize]);
+        private static ObjectPool<int[]> s_pool = new ObjectPool<int[]>(() => new int[MaxPooledArraySize]);
 
         public static int[] GetArray(int size)
         {
             if (size <= MaxPooledArraySize)
             {
-                var array = pool.Allocate();
+                var array = s_pool.Allocate();
                 Array.Clear(array, 0, array.Length);
                 return array;
             }
@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
         {
             if (array.Length <= MaxPooledArraySize)
             {
-                pool.Free(array);
+                s_pool.Free(array);
             }
         }
 
@@ -132,7 +132,6 @@ namespace Roslyn.Utilities
             int[] rowCurrent = GetArray(rowWidth);
             try
             {
-
                 for (int row = 1; row < columnHeight; row++)
                 {
                     // Shift the row data upwards, rowBefore1 falls off and the memory is

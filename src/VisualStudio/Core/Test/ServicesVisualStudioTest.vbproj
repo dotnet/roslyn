@@ -232,6 +232,10 @@
     <Compile Include="AnalyzerSupport\AnalyzerDependencyCheckerTests.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureViewModelTests.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureViewModelTestState.vb" />
+    <Compile Include="ClassView\MockNavigationTool.vb" />
+    <Compile Include="ClassView\MockVsServiceProvider.vb" />
+    <Compile Include="ClassView\MockSyncClassViewCommandHandler.vb" />
+    <Compile Include="ClassView\SyncClassViewTests.vb" />
     <Compile Include="CodeModel\AbstractCodeAttributeTests.vb" />
     <Compile Include="CodeModel\AbstractCodeClassTests.vb" />
     <Compile Include="CodeModel\AbstractCodeDelegateTests.vb" />
@@ -364,6 +368,7 @@
     <Compile Include="Help\HelpTests.vb" />
     <Compile Include="LanguageBlockTests.vb" />
     <Compile Include="MockComponentModel.vb" />
+    <Compile Include="Utilities\VsNavInfoHelpers.vb" />
     <Compile Include="VsNavInfo\VsNavInfoTests.vb" />
     <Compile Include="ObjectBrowser\AbstractObjectBrowserTests.vb" />
     <Compile Include="ObjectBrowser\CSharp\ObjectBrowerTests.vb" />
@@ -431,7 +436,6 @@
     <Compile Include="SolutionExplorer\AnalyzersFolderProviderTests.vb" />
     <Compile Include="SolutionExplorer\DiagnosticDescriptorComparerTests.vb" />
     <Compile Include="SolutionExplorer\DiagnosticItemTests.vb" />
-    <Compile Include="Venus\AbstractContainedDocumentTests.vb" />
     <Compile Include="Venus\AbstractContainedLanguageCodeSupportTests.vb" />
     <Compile Include="Venus\ContainedDocumentTests_AdjustIndentation.vb" />
     <Compile Include="Venus\ContainedDocumentTests_UpdateText.vb" />

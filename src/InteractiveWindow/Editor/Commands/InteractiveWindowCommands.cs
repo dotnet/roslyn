@@ -168,7 +168,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         {
             string format = "{0,-" + _maxCommandNameLength + "}  {1}";
             return _commands.GroupBy(entry => entry.Value).
-                Select(group => string.Format(format, string.Join(_commandSeparator, group.Key.Names.Select(s => "#" + s)), group.Key.Description)).
+                Select(group => string.Format(format, string.Join(_commandSeparator, group.Key.Names.Select(s => CommandPrefix + s)), group.Key.Description)).
                 OrderBy(line => line);
         }
 

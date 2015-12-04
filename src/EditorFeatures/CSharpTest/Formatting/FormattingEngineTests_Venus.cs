@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
     public class FormattingEngineTests_Venus : FormattingEngineTestBase
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
-        public void SimpleOneLineNugget()
+        public async Task SimpleOneLineNugget()
         {
             var code = @"public class Default
 {
@@ -33,11 +34,11 @@ int x=1 ;
 }
 }";
 
-            AssertFormatWithBaseIndent(expected, code, baseIndentation: 7);
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 7);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
-        public void SimpleMultiLineNugget()
+        public async Task SimpleMultiLineNugget()
         {
             var code = @"public class Default
 {
@@ -66,11 +67,11 @@ Console.WriteLine(5);}
 }
 }";
 
-            AssertFormatWithBaseIndent(expected, code, baseIndentation: 3);
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 3);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
-        public void SimpleQueryWithinNugget()
+        public async Task SimpleQueryWithinNugget()
         {
             var code = @"public class Default
 {
@@ -100,11 +101,11 @@ var even =  from     n      in  numbers
 }
 }";
 
-            AssertFormatWithBaseIndent(expected, code, baseIndentation: 7);
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 7);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
-        public void LambdaExpressionInNugget()
+        public async Task LambdaExpressionInNugget()
         {
             var code = @"public class Default
 {
@@ -134,12 +135,12 @@ foreach(int i   in source.Where(x  =>  x  > 5))
 }
 }";
 
-            AssertFormatWithBaseIndent(expected, code, baseIndentation: 3);
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 3);
         }
 
         [WorkItem(576457)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
-        public void StatementLambdaInNugget()
+        public async Task StatementLambdaInNugget()
         {
             var code = @"public class Default
 {
@@ -190,7 +191,7 @@ foreach(int i   in source.Where(x  =>  x  > 5))
             // It is somewhat odd that the 'x' and the ')' maintain their
             // position relative to 'foreach', but the block doesn't, but that isn't
             // Venus specific, just the way the formatting engine is.
-            AssertFormatWithBaseIndent(expected, code, baseIndentation: 3);
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 3);
         }
     }
 }

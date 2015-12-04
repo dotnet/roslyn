@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -21,17 +22,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NoPartialMethods1()
+        public async Task NoPartialMethods1()
         {
             var text = @"class c
 {
     $$
 }";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NoPartialMethods2()
+        public async Task NoPartialMethods2()
         {
             var text = @"class c
 {
@@ -39,11 +40,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     partial void $$
 }";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void PartialMethodInPartialClass()
+        public async Task PartialMethodInPartialClass()
         {
             var text = @"partial class c
 {
@@ -51,11 +52,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     partial void $$
 }";
-            VerifyItemExists(text, "foo()");
+            await VerifyItemExistsAsync(text, "foo()");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void PartialMethodInPartialGenericClass()
+        public async Task PartialMethodInPartialGenericClass()
         {
             var text = @"partial class c<T>
 {
@@ -63,11 +64,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     partial void $$
 }";
-            VerifyItemExists(text, "foo(T bar)");
+            await VerifyItemExistsAsync(text, "foo(T bar)");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void PartialMethodInPartialStruct()
+        public async Task PartialMethodInPartialStruct()
         {
             var text = @"partial struct c
 {
@@ -75,11 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     partial void $$
 }";
-            VerifyItemExists(text, "foo()");
+            await VerifyItemExistsAsync(text, "foo()");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CompletionOnPartial1()
+        public async Task CompletionOnPartial1()
         {
             var text = @"partial class c
 {
@@ -87,11 +88,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     partial $$
 }";
-            VerifyItemExists(text, "foo()");
+            await VerifyItemExistsAsync(text, "foo()");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CompletionOnPartial2()
+        public async Task CompletionOnPartial2()
         {
             var text = @"partial class c
 {
@@ -99,11 +100,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     void partial $$
 }";
-            VerifyItemExists(text, "foo()");
+            await VerifyItemExistsAsync(text, "foo()");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void StaticUnsafePartial()
+        public async Task StaticUnsafePartial()
         {
             var text = @"partial class c
 {
@@ -111,11 +112,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     void static unsafe partial $$
 }";
-            VerifyItemExists(text, "foo()");
+            await VerifyItemExistsAsync(text, "foo()");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void PartialCompletionWithPrivate()
+        public async Task PartialCompletionWithPrivate()
         {
             var text = @"partial class c
 {
@@ -123,11 +124,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     private partial $$
 }";
-            VerifyItemExists(text, "foo()");
+            await VerifyItemExistsAsync(text, "foo()");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotCompletionDespiteValidModifier()
+        public async Task NotCompletionDespiteValidModifier()
         {
             var text = @"partial class c
 {
@@ -135,11 +136,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     void partial unsafe $$
 }";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotIfPublic()
+        public async Task NotIfPublic()
         {
             var text = @"partial class c
 {
@@ -147,11 +148,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     void partial $$
 }";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotIfInternal()
+        public async Task NotIfInternal()
         {
             var text = @"partial class c
 {
@@ -159,11 +160,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     void partial $$
 }";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotIfProtected()
+        public async Task NotIfProtected()
         {
             var text = @"partial class c
 {
@@ -171,11 +172,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     void partial $$
 }";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotIfProtectedInternal()
+        public async Task NotIfProtectedInternal()
         {
             var text = @"partial class c
 {
@@ -183,11 +184,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     void partial $$
 }";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotIfExtern()
+        public async Task NotIfExtern()
         {
             var text = @"partial class c
 {
@@ -195,11 +196,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     extern void partial $$
 }";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotIfVirtual()
+        public async Task NotIfVirtual()
         {
             var text = @"partial class c
 {
@@ -207,11 +208,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     void partial $$
 }";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotIfNonVoidReturnType()
+        public async Task NotIfNonVoidReturnType()
         {
             var text = @"partial class c
 {
@@ -219,11 +220,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     partial $$
 }";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotInsideInterface()
+        public async Task NotInsideInterface()
         {
             var text = @"partial interface i
 {
@@ -231,11 +232,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
     partial $$
 }";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitInPartialClass()
+        public async Task CommitInPartialClass()
         {
             var markupBeforeCommit = @"partial class c
 {
@@ -256,11 +257,11 @@ partial class c
     }
 }";
 
-            VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitGenericPartialMethod()
+        public async Task CommitGenericPartialMethod()
         {
             var markupBeforeCommit = @"partial class c<T>
 {
@@ -281,11 +282,11 @@ partial class c<T>
     }
 }";
 
-            VerifyCustomCommitProvider(markupBeforeCommit, "foo(T bar)", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo(T bar)", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitMethodErasesPrivate()
+        public async Task CommitMethodErasesPrivate()
         {
             var markupBeforeCommit = @"partial class c
 {
@@ -306,11 +307,11 @@ partial class c
     }
 }";
 
-            VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitInPartialClassPart()
+        public async Task CommitInPartialClassPart()
         {
             var markupBeforeCommit = @"partial class c
 {
@@ -337,11 +338,11 @@ partial class c
     }
 }";
 
-            VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitInPartialStruct()
+        public async Task CommitInPartialStruct()
         {
             var markupBeforeCommit = @"partial struct c
 {
@@ -362,11 +363,11 @@ partial struct c
     }
 }";
 
-            VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotIfNoPartialKeyword()
+        public async Task NotIfNoPartialKeyword()
         {
             var text = @"partial class C
     {
@@ -378,12 +379,12 @@ partial struct c
         void $$
     }
 ";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WorkItem(578757)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void DoNotConsiderFollowingDeclarationPartial()
+        public async Task DoNotConsiderFollowingDeclarationPartial()
         {
             var text = @"class Program
 {
@@ -395,12 +396,12 @@ partial struct c
     }
 }
 ";
-            VerifyNoItemsExist(text);
+            await VerifyNoItemsExistAsync(text);
         }
 
         [WorkItem(578078)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitAsync()
+        public async Task CommitAsync()
         {
             var markupBeforeCommit = @"using System;
 
@@ -423,12 +424,12 @@ partial class Bar
     }
 }";
 
-            VerifyCustomCommitProvider(markupBeforeCommit, "Foo()", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Foo()", expectedCodeAfterCommit);
         }
 
         [WorkItem(578078)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AmbiguityCommittingWithParen()
+        public async Task AmbiguityCommittingWithParen()
         {
             var markupBeforeCommit = @"using System;
 
@@ -451,12 +452,12 @@ partial class Bar
     }
 }";
 
-            VerifyCustomCommitProvider(markupBeforeCommit, "Foo()", expectedCodeAfterCommit, commitChar: '(');
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Foo()", expectedCodeAfterCommit, commitChar: '(');
         }
 
         [WorkItem(965677)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NoDefaultParameterValues()
+        public async Task NoDefaultParameterValues()
         {
             var text = @"namespace PartialClass
 {
@@ -484,7 +485,7 @@ namespace PartialClass
     }
 }
 ";
-            VerifyCustomCommitProvider(text, "PMethod(int i)", expected);
+            await VerifyCustomCommitProviderAsync(text, "PMethod(int i)", expected);
         }
     }
 }

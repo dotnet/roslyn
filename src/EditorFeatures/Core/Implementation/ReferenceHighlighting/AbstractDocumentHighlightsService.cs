@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                             }
 
                             if (documentToSearch.Contains(document))
-                            { 
+                            {
                                 await AddLocationSpan(location, solution, spanSet, tagMap, HighlightSpanKind.Definition, cancellationToken).ConfigureAwait(false);
                             }
                         }

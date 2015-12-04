@@ -22,6 +22,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 {
+    using SymbolReference = ValueTuple<INamespaceOrTypeSymbol, MetadataReference>;
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddUsingOrImport), Shared]
     internal class CSharpAddImportCodeFixProvider : AbstractAddImportCodeFixProvider
     {
@@ -69,16 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         /// 'A' is not an attribute class
         /// </summary>
         private const string CS0616 = "CS0616";
-
-        /// <summary>
-        /// ; expected.
-        /// </summary>
-        private const string CS1002 = "CS1002";
-
-        /// <summary>
-        /// Syntax error, 'A' expected
-        /// </summary>
-        private const string CS1003 = "CS1003";
 
         /// <summary>
         ///  No overload for method 'X' takes 'N' arguments
@@ -129,8 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     CS0122,
                     CS0307,
                     CS0616,
-                    CS1002,
-                    CS1003,
                     CS1501,
                     CS1503,
                     CS1574,
@@ -268,37 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 case CS0122:
                 case CS0307:
                 case CS0616:
-                case CS1003:
                 case CS1580:
                 case CS1581:
-                    break;
-
-                case CS1002:
-                    //// only lookup errors inside ParenthesizedLambdaExpression e.g., () => { ... }
-                    if (node.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>().Any())
-                    {
-                        if (node is SimpleNameSyntax)
-                        {
-                            break;
-                        }
-                        else if (node is BlockSyntax || node is MemberAccessExpressionSyntax || node is BinaryExpressionSyntax)
-                        {
-                            var last = node.DescendantNodes().OfType<SimpleNameSyntax>().LastOrDefault();
-                            if (!TryFindStandaloneType(ref node))
-                            {
-                                node = node.DescendantNodes().OfType<SimpleNameSyntax>().FirstOrDefault();
-                            }
-                            else
-                            {
-                                node = last;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
                     break;
 
                 case CS1574:
@@ -665,22 +626,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             var leftExpressionType = semanticInfo.Type;
 
             return leftExpressionType != null && method.ReduceExtensionMethod(leftExpressionType) != null;
-        }
-
-        protected override IEnumerable<ITypeSymbol> GetProposedTypes(string name, List<ITypeSymbol> accessibleTypeSymbols, SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope)
-        {
-            if (accessibleTypeSymbols == null)
-            {
-                yield break;
-            }
-
-            foreach (var typeSymbol in accessibleTypeSymbols)
-            {
-                if (typeSymbol?.ContainingType != null)
-                {
-                    yield return typeSymbol.ContainingType;
-                }
-            }
         }
 
         internal override bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
@@ -11,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "GetStartPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetStartPoint1()
+        Public Async Function TestGetStartPoint1() As Task
             Dim code =
 <Code>
 Class B
@@ -22,7 +23,7 @@ Class C
 End Class
 </Code>
 
-            TestGetStartPoint(code,
+            Await TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -43,14 +44,14 @@ End Class
                      TextPoint(line:=5, lineOffset:=5, absoluteOffset:=32, lineLength:=14)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=5, lineOffset:=5, absoluteOffset:=32, lineLength:=14)))
-        End Sub
+        End Function
 
 #End Region
 
 #Region "GetEndPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetEndPoint1()
+        Public Async Function TestGetEndPoint1() As Task
             Dim code =
 <Code>
 Class B
@@ -61,7 +62,7 @@ Class C
 End Class
 </Code>
 
-            TestGetEndPoint(code,
+            Await TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -82,14 +83,14 @@ End Class
                      TextPoint(line:=5, lineOffset:=15, absoluteOffset:=42, lineLength:=14)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=5, lineOffset:=15, absoluteOffset:=42, lineLength:=14)))
-        End Sub
+        End Function
 
 #End Region
 
 #Region "Kind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Kind()
+        Public Async Function TestKind1() As Task
             Dim code =
 <Code>
 Class B
@@ -100,15 +101,15 @@ Class C
 End Class
 </Code>
 
-            TestKind(code, EnvDTE.vsCMElement.vsCMElementInheritsStmt)
-        End Sub
+            Await TestKind(code, EnvDTE.vsCMElement.vsCMElementInheritsStmt)
+        End Function
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Name1()
+        Public Async Function TestName1() As Task
             Dim code =
 <Code>
 Class B
@@ -119,8 +120,8 @@ Class C
 End Class
 </Code>
 
-            TestName(code, "Inherits")
-        End Sub
+            Await TestName(code, "Inherits")
+        End Function
 
 #End Region
 

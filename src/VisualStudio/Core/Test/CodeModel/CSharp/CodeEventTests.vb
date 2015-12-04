@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
@@ -10,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "GetStartPoint tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetStartPoint1()
+        Public Async Function TestGetStartPoint1() As Task
             Dim code =
 <Code>
 class C
@@ -19,7 +20,7 @@ class C
 }
 </Code>
 
-            TestGetStartPoint(code,
+            Await TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -40,10 +41,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=42)))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetStartPoint2()
+        Public Async Function TestGetStartPoint2() As Task
             Dim code =
 <Code>
 class C
@@ -52,7 +53,7 @@ class C
 }
 </Code>
 
-            TestGetStartPoint(code,
+            Await TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -73,10 +74,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=42)))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetStartPoint3()
+        Public Async Function TestGetStartPoint3() As Task
             Dim code =
 <Code>
 class C
@@ -89,7 +90,7 @@ class C
 }
 </Code>
 
-            TestGetStartPoint(code,
+            Await TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -110,11 +111,11 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=38)))
-        End Sub
+        End Function
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetStartPointExplicitlyImplementedEvent()
+        Public Async Function TestGetStartPointExplicitlyImplementedEvent() As Task
             Dim code =
 <Code>
 delegate void SampleEventHandler(object sender);
@@ -139,17 +140,17 @@ class C1 : I1
 }
 </Code>
 
-            TestGetStartPoint(code,
+            Await TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=10, lineOffset:=5, absoluteOffset:=131, lineLength:=43)))
-        End Sub
+        End Function
 
 #End Region
 
 #Region "GetEndPoint tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetEndPoint1()
+        Public Async Function TestGetEndPoint1() As Task
             Dim code =
 <Code>
 class C
@@ -158,7 +159,7 @@ class C
 }
 </Code>
 
-            TestGetEndPoint(code,
+            Await TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -179,10 +180,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=43, absoluteOffset:=53, lineLength:=42)))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetEndPoint2()
+        Public Async Function TestGetEndPoint2() As Task
             Dim code =
 <Code>
 class C
@@ -191,7 +192,7 @@ class C
 }
 </Code>
 
-            TestGetEndPoint(code,
+            Await TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -212,10 +213,10 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=43, absoluteOffset:=53, lineLength:=42)))
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetEndPoint3()
+        Public Async Function TestGetEndPoint3() As Task
             Dim code =
 <Code>
 class C
@@ -228,7 +229,7 @@ class C
 }
 </Code>
 
-            TestGetEndPoint(code,
+            Await TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -249,11 +250,11 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=7, lineOffset:=6, absoluteOffset:=96, lineLength:=5)))
-        End Sub
+        End Function
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub GetEndPointExplicitlyImplementedEvent()
+        Public Async Function TestGetEndPointExplicitlyImplementedEvent() As Task
             Dim code =
 <Code>
 delegate void SampleEventHandler(object sender);
@@ -278,17 +279,17 @@ class C1 : I1
 }
 </Code>
 
-            TestGetEndPoint(code,
+            Await TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=19, lineOffset:=6, absoluteOffset:=250, lineLength:=5)))
-        End Sub
+        End Function
 
 #End Region
 
 #Region "Access tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Access1()
+        Public Async Function TestAccess1() As Task
             Dim code =
 <Code>
 class C
@@ -297,11 +298,11 @@ class C
 }
 </Code>
 
-            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Sub
+            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Access2()
+        Public Async Function TestAccess2() As Task
             Dim code =
 <Code>
 class C
@@ -310,11 +311,11 @@ class C
 }
 </Code>
 
-            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Sub
+            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Access3()
+        Public Async Function TestAccess3() As Task
             Dim code =
 <Code>
 class C
@@ -323,11 +324,11 @@ class C
 }
 </Code>
 
-            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
-        End Sub
+            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Access4()
+        Public Async Function TestAccess4() As Task
             Dim code =
 <Code>
 class C
@@ -336,11 +337,11 @@ class C
 }
 </Code>
 
-            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
-        End Sub
+            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Access5()
+        Public Async Function TestAccess5() As Task
             Dim code =
 <Code>
 class C
@@ -349,11 +350,11 @@ class C
 }
 </Code>
 
-            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
-        End Sub
+            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Access6()
+        Public Async Function TestAccess6() As Task
             Dim code =
 <Code>
 class C
@@ -362,15 +363,15 @@ class C
 }
 </Code>
 
-            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Sub
+            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+        End Function
 
 #End Region
 
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub FullName1()
+        Public Async Function TestFullName1() As Task
             Dim code =
 <Code>
 class C
@@ -379,11 +380,11 @@ class C
 }
 </Code>
 
-            TestFullName(code, "C.E")
-        End Sub
+            Await TestFullName(code, "C.E")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub FullName2()
+        Public Async Function TestFullName2() As Task
             Dim code =
 <Code>
 class C
@@ -392,12 +393,12 @@ class C
 }
 </Code>
 
-            TestFullName(code, "C.F")
-        End Sub
+            Await TestFullName(code, "C.F")
+        End Function
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub FullName_ExplicitlyImplementedEvent()
+        Public Async Function TestFullName_ExplicitlyImplementedEvent() As Task
             Dim code =
 <Code>
 delegate void SampleEventHandler(object sender);
@@ -422,15 +423,15 @@ class C1 : I1
 }
 </Code>
 
-            TestFullName(code, "C1.I1.SampleEvent")
-        End Sub
+            Await TestFullName(code, "C1.I1.SampleEvent")
+        End Function
 
 #End Region
 
 #Region "IsPropertyStyleEvent tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub IsPropertyStyleEvent1()
+        Public Async Function TestIsPropertyStyleEvent1() As Task
             Dim code =
 <Code>
 class C
@@ -439,11 +440,11 @@ class C
 }
 </Code>
 
-            TestIsPropertyStyleEvent(code, False)
-        End Sub
+            Await TestIsPropertyStyleEvent(code, False)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub IsPropertyStyleEvent2()
+        Public Async Function TestIsPropertyStyleEvent2() As Task
             Dim code =
 <Code>
 class C
@@ -456,15 +457,15 @@ class C
 }
 </Code>
 
-            TestIsPropertyStyleEvent(code, True)
-        End Sub
+            Await TestIsPropertyStyleEvent(code, True)
+        End Function
 
 #End Region
 
 #Region "IsShared tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub IsShared1()
+        Public Async Function TestIsShared1() As Task
             Dim code =
 <Code>
 class C
@@ -473,11 +474,11 @@ class C
 }
 </Code>
 
-            TestIsShared(code, False)
-        End Sub
+            Await TestIsShared(code, False)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub IsShared2()
+        Public Async Function TestIsShared2() As Task
             Dim code =
 <Code>
 class C
@@ -486,15 +487,15 @@ class C
 }
 </Code>
 
-            TestIsShared(code, True)
-        End Sub
+            Await TestIsShared(code, True)
+        End Function
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Name1()
+        Public Async Function TestName1() As Task
             Dim code =
 <Code>
 class C
@@ -503,11 +504,11 @@ class C
 }
 </Code>
 
-            TestName(code, "E")
-        End Sub
+            Await TestName(code, "E")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Name2()
+        Public Async Function TestName2() As Task
             Dim code =
 <Code>
 class C
@@ -516,12 +517,12 @@ class C
 }
 </Code>
 
-            TestName(code, "F")
-        End Sub
+            Await TestName(code, "F")
+        End Function
 
         <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Name_ExplicitlyImplementedEvent()
+        Public Async Function TestName_ExplicitlyImplementedEvent() As Task
             Dim code =
 <Code>
 delegate void SampleEventHandler(object sender);
@@ -546,15 +547,15 @@ class C1 : I1
 }
 </Code>
 
-            TestName(code, "I1.SampleEvent")
-        End Sub
+            Await TestName(code, "I1.SampleEvent")
+        End Function
 
 #End Region
 
 #Region "Type tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Type1()
+        Public Async Function TestType1() As Task
             Dim code =
 <Code>
 class C
@@ -563,17 +564,17 @@ class C
 }
 </Code>
 
-            TestTypeProp(code,
+            Await TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "System.EventHandler",
                              .AsFullName = "System.EventHandler",
                              .CodeTypeFullName = "System.EventHandler",
                              .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType
                          })
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Type2()
+        Public Async Function TestType2() As Task
             Dim code =
 <Code>
 class C
@@ -582,17 +583,17 @@ class C
 }
 </Code>
 
-            TestTypeProp(code,
+            Await TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "System.EventHandler",
                              .AsFullName = "System.EventHandler",
                              .CodeTypeFullName = "System.EventHandler",
                              .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType
                          })
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Type3()
+        Public Async Function TestType3() As Task
             Dim code =
 <Code>
 class C
@@ -605,21 +606,21 @@ class C
 }
 </Code>
 
-            TestTypeProp(code,
+            Await TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "System.EventHandler",
                              .AsFullName = "System.EventHandler",
                              .CodeTypeFullName = "System.EventHandler",
                              .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType
                          })
-        End Sub
+        End Function
 
 #End Region
 
 #Region "Set IsShared tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetIsShared1()
+        Public Async Function TestSetIsShared1() As Task
             Dim code =
 <Code>
 class C
@@ -636,11 +637,11 @@ class C
 }
 </Code>
 
-            TestSetIsShared(code, expected, False)
-        End Sub
+            Await TestSetIsShared(code, expected, False)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetIsShared2()
+        Public Async Function TestSetIsShared2() As Task
             Dim code =
 <Code>
 class C
@@ -657,11 +658,11 @@ class C
 }
 </Code>
 
-            TestSetIsShared(code, expected, True)
-        End Sub
+            Await TestSetIsShared(code, expected, True)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetIsShared3()
+        Public Async Function TestSetIsShared3() As Task
             Dim code =
 <Code>
 class C
@@ -678,11 +679,11 @@ class C
 }
 </Code>
 
-            TestSetIsShared(code, expected, True)
-        End Sub
+            Await TestSetIsShared(code, expected, True)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetIsShared4()
+        Public Async Function TestSetIsShared4() As Task
             Dim code =
 <Code>
 class C
@@ -699,15 +700,15 @@ class C
 }
 </Code>
 
-            TestSetIsShared(code, expected, False)
-        End Sub
+            Await TestSetIsShared(code, expected, False)
+        End Function
 
 #End Region
 
 #Region "Set Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetName1()
+        Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
 class C
@@ -724,15 +725,15 @@ class C
 }
 </Code>
 
-            TestSetName(code, expected, "Bar", NoThrow(Of String)())
-        End Sub
+            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+        End Function
 
 #End Region
 
 #Region "Set Type tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetType1()
+        Public Async Function TestSetType1() As Task
             Dim code =
 <Code>
 class C
@@ -749,11 +750,11 @@ class C
 }
 </Code>
 
-            TestSetTypeProp(code, expected, "System.ConsoleCancelEventHandler")
-        End Sub
+            Await TestSetTypeProp(code, expected, "System.ConsoleCancelEventHandler")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetType2()
+        Public Async Function TestSetType2() As Task
             Dim code =
 <Code>
 class C
@@ -770,11 +771,11 @@ class C
 }
 </Code>
 
-            TestSetTypeProp(code, expected, "System.ConsoleCancelEventHandler")
-        End Sub
+            Await TestSetTypeProp(code, expected, "System.ConsoleCancelEventHandler")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetType3()
+        Public Async Function TestSetType3() As Task
             Dim code =
 <Code>
 class C
@@ -799,14 +800,14 @@ class C
 }
 </Code>
 
-            TestSetTypeProp(code, expected, "System.ConsoleCancelEventHandler")
-        End Sub
+            Await TestSetTypeProp(code, expected, "System.ConsoleCancelEventHandler")
+        End Function
 
 #End Region
 
 #Region "AddAttribute tests"
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute1()
+        Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
 using System;
@@ -827,11 +828,11 @@ class C
     public event EventHandler E;
 }
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute2()
+        Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
 using System;
@@ -854,12 +855,12 @@ class C
     public event EventHandler E;
 }
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute_BelowDocComment()
+        Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
 <Code>
 using System;
@@ -882,13 +883,13 @@ class C
     public event EventHandler E;
 }
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Function
 
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TypeDescriptor_GetProperties()
+        Public Async Function TestTypeDescriptor_GetProperties() As Task
             Dim code =
 <Code>
 class C
@@ -903,8 +904,8 @@ class C
                  "ExtenderCATID", "Parent", "Access", "Attributes", "DocComment", "Comment", "Adder",
                  "Remover", "Thrower", "IsPropertyStyleEvent", "Type", "OverrideKind", "IsShared"}
 
-            TestPropertyDescriptors(code, expectedPropertyNames)
-        End Sub
+            Await TestPropertyDescriptors(code, expectedPropertyNames)
+        End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

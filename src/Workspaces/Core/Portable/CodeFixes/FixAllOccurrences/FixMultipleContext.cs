@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal partial class FixMultipleContext : FixAllContext
     {
         private readonly FixMultipleDiagnosticProvider _diagnosticProvider;
-        
+
         /// <summary>
         /// Creates a new <see cref="FixMultipleContext"/>.
         /// Use this overload when applying fix multiple diagnostics with a source location.

@@ -191,6 +191,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                     return ReferenceHighlightTag.Instance;
             }
         }
-
     }
 }
