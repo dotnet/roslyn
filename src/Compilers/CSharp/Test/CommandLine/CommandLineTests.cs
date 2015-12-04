@@ -2947,7 +2947,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         }
 
         [Fact]
-        private void ModuleName001()
+        public void ModuleName001()
         {
             var dir = Temp.CreateDirectory();
 
@@ -4357,7 +4357,7 @@ class myClass
         }
 
         [Fact]
-        private void ResponseFileSplitting()
+        public void ResponseFileSplitting()
         {
             string[] responseFile;
 

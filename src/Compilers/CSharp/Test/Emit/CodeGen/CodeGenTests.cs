@@ -428,7 +428,7 @@ public class C
         }
         [WorkItem(546412, "DevDiv")]
         [Fact]
-        private void TestBug15818()
+        public void TestBug15818()
         {
             var source =
 @"using System;
@@ -526,7 +526,7 @@ class C
         [WorkItem(546853, "DevDiv")]
         [Fact]
 
-        private void TestBug16981b()
+        public void TestBug16981b()
         {
             var il = @"
 .class public auto ansi beforefieldinit B

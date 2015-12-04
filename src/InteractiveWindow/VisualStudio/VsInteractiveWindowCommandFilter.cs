@@ -215,6 +215,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             {
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
+                    case VSConstants.VSStd2KCmdID.TYPECHAR:
+                        {
+                            var operations = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations != null)
+                            {
+                                char typedChar = (char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn);
+                                operations.TypeChar(typedChar);
+                                return VSConstants.S_OK;
+                            }
+                            else
+                            {
+                                _window.Operations.Delete();
+                            }
+                            break;
+                        }
+
                     case VSConstants.VSStd2KCmdID.RETURN:
                         if (_window.Operations.Return())
                         {
@@ -416,19 +432,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             {
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
-                    case VSConstants.VSStd2KCmdID.TYPECHAR:
-                        {
-                            var operations = _window.Operations as IInteractiveWindowOperations2;
-                            if (operations != null)
-                            {
-                                char typedChar = (char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn);
-                                operations.TypeChar(typedChar);
-                                return VSConstants.S_OK;
-                            }
-                            _window.Operations.Delete();
-                            break;
-                        }
-
                     case VSConstants.VSStd2KCmdID.RETURN:
                         if (_window.Operations.TrySubmitStandardInput())
                         {
