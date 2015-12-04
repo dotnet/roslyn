@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
@@ -172,6 +173,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
             Assert.True(codeElement IsNot Nothing, "Expected code element")
             Assert.True(codeElement.InfoLocation = EnvDTE.vsCMInfoLocation.vsCMInfoLocationProject, "Expected internal code element")
+
+            If TypeOf codeElement Is EnvDTE.CodeParameter Then
+                Dim codeParameter = DirectCast(codeElement, EnvDTE.CodeParameter)
+                Dim externalParentCodeElement = codeParameter.Parent.AsExternal()
+                Dim externalParentCodeElementImpl = ComAggregate.GetManagedObject(Of AbstractExternalCodeMember)(externalParentCodeElement)
+
+                Return DirectCast(externalParentCodeElementImpl.Parameters.Item(codeParameter.Name), T)
+            End If
 
             Dim codeElementImpl = ComAggregate.GetManagedObject(Of AbstractCodeElement)(codeElement)
             Dim state = codeElementImpl.State
