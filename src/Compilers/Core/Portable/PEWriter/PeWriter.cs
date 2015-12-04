@@ -89,12 +89,12 @@ namespace Microsoft.Cci
         private bool WritePeToStream(MetadataWriter mdWriter, Func<Stream> getPeStream, Func<Stream> getPortablePdbStreamOpt, PdbWriter nativePdbWriterOpt)
         {
             // TODO: we can precalculate the exact size of IL stream
-            var ilWriter = new BlobBuilder(32 * 1024);
-            var metadataWriter = new BlobBuilder(16 * 1024);
-            var mappedFieldDataWriter = new BlobBuilder();
-            var managedResourceWriter = new BlobBuilder(1024);
+            var ilBuilder = new BlobBuilder(32 * 1024);
+            var metadataBuilder = new BlobBuilder(16 * 1024);
+            var mappedFieldDataBuilder = new BlobBuilder();
+            var managedResourceBuilder = new BlobBuilder(1024);
 
-            var debugMetadataWriterOpt = (getPortablePdbStreamOpt != null) ? new BlobBuilder(16 * 1024) : null;
+            var debugMetadataBuilderOpt = (getPortablePdbStreamOpt != null) ? new BlobBuilder(16 * 1024) : null;
 
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
@@ -120,12 +120,12 @@ namespace Microsoft.Cci
             int entryPointToken;
             MetadataSizes metadataSizes;
             mdWriter.SerializeMetadataAndIL(
-                metadataWriter,
-                debugMetadataWriterOpt,
+                metadataBuilder,
+                debugMetadataBuilderOpt,
                 nativePdbWriterOpt,
-                ilWriter,
-                mappedFieldDataWriter,
-                managedResourceWriter,
+                ilBuilder,
+                mappedFieldDataBuilder,
+                managedResourceBuilder,
                 _properties.ImageCharacteristics,
                 _properties.Machine,
                 textSectionRva,
@@ -170,7 +170,7 @@ namespace Microsoft.Cci
             Stream portablePdbStream = getPortablePdbStreamOpt?.Invoke();
             if (portablePdbStream != null)
             {
-                debugMetadataWriterOpt.WriteContentTo(portablePdbStream);
+                debugMetadataBuilderOpt.WriteContentTo(portablePdbStream);
 
                 if (_deterministic)
                 {
@@ -200,6 +200,17 @@ namespace Microsoft.Cci
                 return false;
             }
 
+            BlobBuilder debugTableBuilderOpt;
+            if (EmitPdb || _deterministic)
+            {
+                debugTableBuilderOpt = new BlobBuilder();
+                textSection.WriteDebugTable(debugTableBuilderOpt, textSectionRva, textSectionPointer, nativePdbContentId, portablePdbContentId);
+            }
+            else
+            {
+                debugTableBuilderOpt = null;
+            }
+
             // Only the size of the fixed part of the debug table goes here.
             var debugDirectory = textSection.GetDebugDirectoryEntry(textSectionRva);
             var importAddressTable = textSection.GetImportAddressTableDirectoryEntry(textSectionRva);
@@ -210,29 +221,35 @@ namespace Microsoft.Cci
             long ntHeaderTimestampPosition;
             long metadataPosition;
 
+            var peHeadersBuilder = new BlobBuilder(sizeOfPeHeaders);
             List<SectionHeader> sectionHeaders = CreateSectionHeaders(textSection, sectionCount);
-
             CoffHeader coffHeader;
             NtHeader ntHeader;
             FillInNtHeader(sectionHeaders, entryPointAddress, corHeaderDirectory, importTable, importAddressTable, debugDirectory, out coffHeader, out ntHeader);
+            WriteHeaders(peHeadersBuilder, ntHeader, coffHeader, sectionHeaders, out ntHeaderTimestampPosition);
+            peHeadersBuilder.Align(_properties.FileAlignment);
 
-            WriteHeaders(peStream, ntHeader, coffHeader, sectionHeaders, out ntHeaderTimestampPosition);
+            BlobBuilder textSectionBuilder = new BlobBuilder();
 
-            textSection.WriteTextSection(
-                peStream,
+            textSection.Serialize(
+                textSectionBuilder,
                 textSectionRva,
-                textSectionPointer,
                 entryPointToken,
                 _properties.GetCorHeaderFlags(),
                 _properties.BaseAddress,
-                _properties.FileAlignment,
-                metadataWriter,
-                ilWriter,
-                mappedFieldDataWriter,
-                managedResourceWriter,
-                nativePdbContentId, // TODO: separate debug table builder
-                portablePdbContentId, // TODO: separate debug table builder
+                metadataBuilder,
+                ilBuilder,
+                mappedFieldDataBuilder,
+                managedResourceBuilder,
+                debugTableBuilderOpt,
                 out metadataPosition);
+
+            textSectionBuilder.Align(_properties.FileAlignment);
+
+            peHeadersBuilder.WriteContentTo(peStream);
+            textSectionBuilder.WriteContentTo(peStream);
+
+            // TODO: switch resource and reloc sections to BlobBuilders:
 
             var resourceSection = sectionHeaders.FirstOrDefault(s => s.Name == ResourceSectionName);
             if (resourceSection != null)
@@ -248,7 +265,7 @@ namespace Microsoft.Cci
 
             if (_deterministic)
             {
-                var mvidPosition = metadataPosition + moduleVersionIdOffsetInMetadataStream;
+                var mvidPosition = textSectionPointer + metadataPosition + moduleVersionIdOffsetInMetadataStream;
                 WriteDeterministicGuidAndTimestamps(peStream, mvidPosition, ntHeaderTimestampPosition);
             }
 
@@ -877,130 +894,127 @@ namespace Microsoft.Cci
             0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
         };
 
-        private void WriteHeaders(Stream peStream, NtHeader ntHeader, CoffHeader coffHeader, List<SectionHeader> sectionHeaders, out long ntHeaderTimestampPosition)
+        private void WriteHeaders(BlobBuilder builder, NtHeader ntHeader, CoffHeader coffHeader, List<SectionHeader> sectionHeaders, out long ntHeaderTimestampPosition)
         {
-            var writer = PooledBlobBuilder.GetInstance();
+            Debug.Assert(builder.Count == 0);
 
             // MS-DOS stub (128 bytes)
-            writer.WriteBytes(s_dosHeader);
+            builder.WriteBytes(s_dosHeader);
 
             // PE Signature "PE\0\0" 
-            writer.WriteUInt32(0x00004550);
+            builder.WriteUInt32(0x00004550);
 
             // COFF Header (20 bytes)
-            writer.WriteUInt16((ushort)coffHeader.Machine);
-            writer.WriteUInt16((ushort)coffHeader.NumberOfSections);
-            ntHeaderTimestampPosition = writer.Position + peStream.Position;
-            writer.WriteUInt32((uint)coffHeader.TimeDateStamp);
-            writer.WriteUInt32((uint)coffHeader.PointerToSymbolTable);
-            writer.WriteUInt32((uint)coffHeader.NumberOfSymbols);
-            writer.WriteUInt16((ushort)(_is32bit ? 224 : 240)); // SizeOfOptionalHeader
-            writer.WriteUInt16((ushort)coffHeader.Characteristics);
+            builder.WriteUInt16((ushort)coffHeader.Machine);
+            builder.WriteUInt16((ushort)coffHeader.NumberOfSections);
+            ntHeaderTimestampPosition = builder.Position; // TODO
+            builder.WriteUInt32((uint)coffHeader.TimeDateStamp);
+            builder.WriteUInt32((uint)coffHeader.PointerToSymbolTable);
+            builder.WriteUInt32((uint)coffHeader.NumberOfSymbols);
+            builder.WriteUInt16((ushort)(_is32bit ? 224 : 240)); // SizeOfOptionalHeader
+            builder.WriteUInt16((ushort)coffHeader.Characteristics);
 
             // PE Headers:
-            writer.WriteUInt16((ushort)(_is32bit ? PEMagic.PE32 : PEMagic.PE32Plus)); // 2
-            writer.WriteByte(ntHeader.MajorLinkerVersion); // 3
-            writer.WriteByte(ntHeader.MinorLinkerVersion); // 4
-            writer.WriteUInt32((uint)ntHeader.SizeOfCode); // 8
-            writer.WriteUInt32((uint)ntHeader.SizeOfInitializedData); // 12
-            writer.WriteUInt32((uint)ntHeader.SizeOfUninitializedData); // 16
-            writer.WriteUInt32((uint)ntHeader.AddressOfEntryPoint); // 20
-            writer.WriteUInt32((uint)ntHeader.BaseOfCode); // 24
+            builder.WriteUInt16((ushort)(_is32bit ? PEMagic.PE32 : PEMagic.PE32Plus)); // 2
+            builder.WriteByte(ntHeader.MajorLinkerVersion); // 3
+            builder.WriteByte(ntHeader.MinorLinkerVersion); // 4
+            builder.WriteUInt32((uint)ntHeader.SizeOfCode); // 8
+            builder.WriteUInt32((uint)ntHeader.SizeOfInitializedData); // 12
+            builder.WriteUInt32((uint)ntHeader.SizeOfUninitializedData); // 16
+            builder.WriteUInt32((uint)ntHeader.AddressOfEntryPoint); // 20
+            builder.WriteUInt32((uint)ntHeader.BaseOfCode); // 24
 
             if (_is32bit)
             {
-                writer.WriteUInt32((uint)ntHeader.BaseOfData); // 28
-                writer.WriteUInt32((uint)ntHeader.ImageBase); // 32
+                builder.WriteUInt32((uint)ntHeader.BaseOfData); // 28
+                builder.WriteUInt32((uint)ntHeader.ImageBase); // 32
             }
             else
             {
-                writer.WriteUInt64(ntHeader.ImageBase); // 32
+                builder.WriteUInt64(ntHeader.ImageBase); // 32
             }
 
             // NT additional fields:
-            writer.WriteUInt32((uint)ntHeader.SectionAlignment); // 36
-            writer.WriteUInt32((uint)ntHeader.FileAlignment); // 40
-            writer.WriteUInt16(ntHeader.MajorOperatingSystemVersion); // 42
-            writer.WriteUInt16(ntHeader.MinorOperatingSystemVersion); // 44
-            writer.WriteUInt16(ntHeader.MajorImageVersion); // 46
-            writer.WriteUInt16(ntHeader.MinorImageVersion); // 48
-            writer.WriteUInt16(ntHeader.MajorSubsystemVersion); // MajorSubsystemVersion 50
-            writer.WriteUInt16(ntHeader.MinorSubsystemVersion); // MinorSubsystemVersion 52
+            builder.WriteUInt32((uint)ntHeader.SectionAlignment); // 36
+            builder.WriteUInt32((uint)ntHeader.FileAlignment); // 40
+            builder.WriteUInt16(ntHeader.MajorOperatingSystemVersion); // 42
+            builder.WriteUInt16(ntHeader.MinorOperatingSystemVersion); // 44
+            builder.WriteUInt16(ntHeader.MajorImageVersion); // 46
+            builder.WriteUInt16(ntHeader.MinorImageVersion); // 48
+            builder.WriteUInt16(ntHeader.MajorSubsystemVersion); // MajorSubsystemVersion 50
+            builder.WriteUInt16(ntHeader.MinorSubsystemVersion); // MinorSubsystemVersion 52
 
             // Win32VersionValue (reserved, should be 0)
-            writer.WriteUInt32(0); // 56
+            builder.WriteUInt32(0); // 56
 
-            writer.WriteUInt32((uint)ntHeader.SizeOfImage); // 60
-            writer.WriteUInt32((uint)ntHeader.SizeOfHeaders); // 64
-            writer.WriteUInt32(ntHeader.Checksum); // 68            
-            writer.WriteUInt16((ushort)ntHeader.Subsystem); // 70
-            writer.WriteUInt16((ushort)ntHeader.DllCharacteristics);
+            builder.WriteUInt32((uint)ntHeader.SizeOfImage); // 60
+            builder.WriteUInt32((uint)ntHeader.SizeOfHeaders); // 64
+            builder.WriteUInt32(ntHeader.Checksum); // 68            
+            builder.WriteUInt16((ushort)ntHeader.Subsystem); // 70
+            builder.WriteUInt16((ushort)ntHeader.DllCharacteristics);
 
             if (_is32bit)
             {
-                writer.WriteUInt32((uint)ntHeader.SizeOfStackReserve); // 76
-                writer.WriteUInt32((uint)ntHeader.SizeOfStackCommit); // 80
-                writer.WriteUInt32((uint)ntHeader.SizeOfHeapReserve); // 84
-                writer.WriteUInt32((uint)ntHeader.SizeOfHeapCommit); // 88
+                builder.WriteUInt32((uint)ntHeader.SizeOfStackReserve); // 76
+                builder.WriteUInt32((uint)ntHeader.SizeOfStackCommit); // 80
+                builder.WriteUInt32((uint)ntHeader.SizeOfHeapReserve); // 84
+                builder.WriteUInt32((uint)ntHeader.SizeOfHeapCommit); // 88
             }
             else
             {
-                writer.WriteUInt64(ntHeader.SizeOfStackReserve); // 80
-                writer.WriteUInt64(ntHeader.SizeOfStackCommit); // 88
-                writer.WriteUInt64(ntHeader.SizeOfHeapReserve); // 96
-                writer.WriteUInt64(ntHeader.SizeOfHeapCommit); // 104
+                builder.WriteUInt64(ntHeader.SizeOfStackReserve); // 80
+                builder.WriteUInt64(ntHeader.SizeOfStackCommit); // 88
+                builder.WriteUInt64(ntHeader.SizeOfHeapReserve); // 96
+                builder.WriteUInt64(ntHeader.SizeOfHeapCommit); // 104
             }
 
             // LoaderFlags
-            writer.WriteUInt32(0); // 92|108
+            builder.WriteUInt32(0); // 92|108
 
             // The number of data-directory entries in the remainder of the header.
-            writer.WriteUInt32(16); //  96|112
+            builder.WriteUInt32(16); //  96|112
 
             // directory entries:
-            writer.WriteUInt32((uint)ntHeader.ExportTable.RelativeVirtualAddress); // 100|116
-            writer.WriteUInt32((uint)ntHeader.ExportTable.Size); // 104|120
-            writer.WriteUInt32((uint)ntHeader.ImportTable.RelativeVirtualAddress); // 108|124
-            writer.WriteUInt32((uint)ntHeader.ImportTable.Size); // 112|128
-            writer.WriteUInt32((uint)ntHeader.ResourceTable.RelativeVirtualAddress); // 116|132
-            writer.WriteUInt32((uint)ntHeader.ResourceTable.Size); // 120|136
-            writer.WriteUInt32((uint)ntHeader.ExceptionTable.RelativeVirtualAddress); // 124|140
-            writer.WriteUInt32((uint)ntHeader.ExceptionTable.Size); // 128|144
-            writer.WriteUInt32((uint)ntHeader.CertificateTable.RelativeVirtualAddress); // 132|148
-            writer.WriteUInt32((uint)ntHeader.CertificateTable.Size); // 136|152
-            writer.WriteUInt32((uint)ntHeader.BaseRelocationTable.RelativeVirtualAddress); // 140|156
-            writer.WriteUInt32((uint)ntHeader.BaseRelocationTable.Size); // 144|160
-            writer.WriteUInt32((uint)ntHeader.DebugTable.RelativeVirtualAddress); // 148|164
-            writer.WriteUInt32((uint)ntHeader.DebugTable.Size); // 152|168
-            writer.WriteUInt32((uint)ntHeader.CopyrightTable.RelativeVirtualAddress); // 156|172
-            writer.WriteUInt32((uint)ntHeader.CopyrightTable.Size); // 160|176
-            writer.WriteUInt32((uint)ntHeader.GlobalPointerTable.RelativeVirtualAddress); // 164|180
-            writer.WriteUInt32((uint)ntHeader.GlobalPointerTable.Size); // 168|184
-            writer.WriteUInt32((uint)ntHeader.ThreadLocalStorageTable.RelativeVirtualAddress); // 172|188
-            writer.WriteUInt32((uint)ntHeader.ThreadLocalStorageTable.Size); // 176|192
-            writer.WriteUInt32((uint)ntHeader.LoadConfigTable.RelativeVirtualAddress); // 180|196
-            writer.WriteUInt32((uint)ntHeader.LoadConfigTable.Size); // 184|200
-            writer.WriteUInt32((uint)ntHeader.BoundImportTable.RelativeVirtualAddress); // 188|204
-            writer.WriteUInt32((uint)ntHeader.BoundImportTable.Size); // 192|208
-            writer.WriteUInt32((uint)ntHeader.ImportAddressTable.RelativeVirtualAddress); // 196|212
-            writer.WriteUInt32((uint)ntHeader.ImportAddressTable.Size); // 200|216
-            writer.WriteUInt32((uint)ntHeader.DelayImportTable.RelativeVirtualAddress); // 204|220
-            writer.WriteUInt32((uint)ntHeader.DelayImportTable.Size); // 208|224
-            writer.WriteUInt32((uint)ntHeader.CliHeaderTable.RelativeVirtualAddress); // 212|228
-            writer.WriteUInt32((uint)ntHeader.CliHeaderTable.Size); // 216|232
-            writer.WriteUInt64(0); // 224|240
+            builder.WriteUInt32((uint)ntHeader.ExportTable.RelativeVirtualAddress); // 100|116
+            builder.WriteUInt32((uint)ntHeader.ExportTable.Size); // 104|120
+            builder.WriteUInt32((uint)ntHeader.ImportTable.RelativeVirtualAddress); // 108|124
+            builder.WriteUInt32((uint)ntHeader.ImportTable.Size); // 112|128
+            builder.WriteUInt32((uint)ntHeader.ResourceTable.RelativeVirtualAddress); // 116|132
+            builder.WriteUInt32((uint)ntHeader.ResourceTable.Size); // 120|136
+            builder.WriteUInt32((uint)ntHeader.ExceptionTable.RelativeVirtualAddress); // 124|140
+            builder.WriteUInt32((uint)ntHeader.ExceptionTable.Size); // 128|144
+            builder.WriteUInt32((uint)ntHeader.CertificateTable.RelativeVirtualAddress); // 132|148
+            builder.WriteUInt32((uint)ntHeader.CertificateTable.Size); // 136|152
+            builder.WriteUInt32((uint)ntHeader.BaseRelocationTable.RelativeVirtualAddress); // 140|156
+            builder.WriteUInt32((uint)ntHeader.BaseRelocationTable.Size); // 144|160
+            builder.WriteUInt32((uint)ntHeader.DebugTable.RelativeVirtualAddress); // 148|164
+            builder.WriteUInt32((uint)ntHeader.DebugTable.Size); // 152|168
+            builder.WriteUInt32((uint)ntHeader.CopyrightTable.RelativeVirtualAddress); // 156|172
+            builder.WriteUInt32((uint)ntHeader.CopyrightTable.Size); // 160|176
+            builder.WriteUInt32((uint)ntHeader.GlobalPointerTable.RelativeVirtualAddress); // 164|180
+            builder.WriteUInt32((uint)ntHeader.GlobalPointerTable.Size); // 168|184
+            builder.WriteUInt32((uint)ntHeader.ThreadLocalStorageTable.RelativeVirtualAddress); // 172|188
+            builder.WriteUInt32((uint)ntHeader.ThreadLocalStorageTable.Size); // 176|192
+            builder.WriteUInt32((uint)ntHeader.LoadConfigTable.RelativeVirtualAddress); // 180|196
+            builder.WriteUInt32((uint)ntHeader.LoadConfigTable.Size); // 184|200
+            builder.WriteUInt32((uint)ntHeader.BoundImportTable.RelativeVirtualAddress); // 188|204
+            builder.WriteUInt32((uint)ntHeader.BoundImportTable.Size); // 192|208
+            builder.WriteUInt32((uint)ntHeader.ImportAddressTable.RelativeVirtualAddress); // 196|212
+            builder.WriteUInt32((uint)ntHeader.ImportAddressTable.Size); // 200|216
+            builder.WriteUInt32((uint)ntHeader.DelayImportTable.RelativeVirtualAddress); // 204|220
+            builder.WriteUInt32((uint)ntHeader.DelayImportTable.Size); // 208|224
+            builder.WriteUInt32((uint)ntHeader.CliHeaderTable.RelativeVirtualAddress); // 212|228
+            builder.WriteUInt32((uint)ntHeader.CliHeaderTable.Size); // 216|232
+            builder.WriteUInt64(0); // 224|240
 
             // Section Headers
             foreach (var sectionHeader in sectionHeaders)
             {
-                WriteSectionHeader(sectionHeader, writer);
+                WriteSectionHeader(builder, sectionHeader);
             }
-
-            writer.WriteContentTo(peStream);
-            writer.Free();
         }
 
-        private static void WriteSectionHeader(SectionHeader sectionHeader, BlobBuilder writer)
+        private static void WriteSectionHeader(BlobBuilder builder, SectionHeader sectionHeader)
         {
             if (sectionHeader.VirtualSize == 0)
             {
@@ -1011,23 +1025,23 @@ namespace Microsoft.Cci
             {
                 if (j < m)
                 {
-                    writer.WriteByte((byte)sectionHeader.Name[j]);
+                    builder.WriteByte((byte)sectionHeader.Name[j]);
                 }
                 else
                 {
-                    writer.WriteByte(0);
+                    builder.WriteByte(0);
                 }
             }
 
-            writer.WriteUInt32((uint)sectionHeader.VirtualSize);
-            writer.WriteUInt32((uint)sectionHeader.RelativeVirtualAddress);
-            writer.WriteUInt32((uint)sectionHeader.SizeOfRawData);
-            writer.WriteUInt32((uint)sectionHeader.PointerToRawData);
-            writer.WriteUInt32((uint)sectionHeader.PointerToRelocations);
-            writer.WriteUInt32((uint)sectionHeader.PointerToLinenumbers);
-            writer.WriteUInt16(sectionHeader.NumberOfRelocations);
-            writer.WriteUInt16(sectionHeader.NumberOfLinenumbers);
-            writer.WriteUInt32((uint)sectionHeader.Characteristics);
+            builder.WriteUInt32((uint)sectionHeader.VirtualSize);
+            builder.WriteUInt32((uint)sectionHeader.RelativeVirtualAddress);
+            builder.WriteUInt32((uint)sectionHeader.SizeOfRawData);
+            builder.WriteUInt32((uint)sectionHeader.PointerToRawData);
+            builder.WriteUInt32((uint)sectionHeader.PointerToRelocations);
+            builder.WriteUInt32((uint)sectionHeader.PointerToLinenumbers);
+            builder.WriteUInt16(sectionHeader.NumberOfRelocations);
+            builder.WriteUInt16(sectionHeader.NumberOfLinenumbers);
+            builder.WriteUInt32((uint)sectionHeader.Characteristics);
         }
 
         private void WriteRelocSection(Stream peStream, SectionHeader relocSection, int entryPointAddress)
