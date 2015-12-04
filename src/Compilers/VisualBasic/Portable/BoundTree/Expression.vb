@@ -61,6 +61,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IHasErrors As Boolean Implements IOperation.HasErrors
+            Get
+                Return Me.HasErrors
+            End Get
+        End Property
+
         Private ReadOnly Property IResultType As ITypeSymbol Implements IExpression.ResultType
             Get
                 Return Me.Type
@@ -734,7 +740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundBadExpression
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.None
+            Return OperationKind.BadExpression
         End Function
     End Class
 

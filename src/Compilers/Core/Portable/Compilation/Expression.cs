@@ -104,6 +104,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.ConditionalChoiceExpression;
 
+        public bool HasErrors => false;
+
         public object ConstantValue => null;
     }
 
@@ -120,6 +122,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntaxNode Syntax { get; }
 
         public OperationKind Kind => OperationKind.ExpressionStatement;
+
+        public bool HasErrors => false;
 
         public IExpression Expression => _assignment;
 
@@ -142,6 +146,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public OperationKind Kind => OperationKind.AssignmentExpression;
 
+            public bool HasErrors => false;
+
             public object ConstantValue => null;
         }
     }
@@ -159,6 +165,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntaxNode Syntax { get; }
 
         public OperationKind Kind => OperationKind.ExpressionStatement;
+
+        public bool HasErrors => false;
 
         public IExpression Expression => _compoundAssignment;
 
@@ -187,6 +195,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public OperationKind Kind => OperationKind.CompoundAssignmentExpression;
 
+            public bool HasErrors => false;
+
             public object ConstantValue => null;
 
             public bool UsesOperatorMethod => this.Operator != null;
@@ -210,6 +220,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.LiteralExpression;
 
+        public bool HasErrors => false;
+
         public object ConstantValue => _value;
 
         public SyntaxNode Syntax { get; }
@@ -231,6 +243,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ITypeSymbol ResultType { get; }
 
         public OperationKind Kind => OperationKind.LiteralExpression;
+
+        public bool HasErrors => false;
 
         public object ConstantValue => _value.Value;
 
@@ -262,6 +276,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public OperationKind Kind => OperationKind.BinaryOperatorExpression;
 
+        public bool HasErrors => false;
+
         public object ConstantValue => null;
 
         public SyntaxNode Syntax { get; }
@@ -290,6 +306,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SyntaxNode Syntax { get; }
 
         public OperationKind Kind => OperationKind.ArrayCreationExpression;
+
+        public bool HasErrors => false;
 
         public object ConstantValue => null;
 
