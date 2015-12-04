@@ -9,6 +9,68 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     // These analyzers are not intended for any actual use. They exist solely to test IOperation support.
 
+    /// <summary>Analyzer used to test for bad statements and expressions.</summary>
+    public class BadStuffTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor BadExpressionDescriptor = new DiagnosticDescriptor(
+            "BadExpression",
+            "Bad Expression",
+            "Bad expression found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor BadStatementDescriptor = new DiagnosticDescriptor(
+            "BadStatement",
+            "Bad Statement",
+            "Bad statement found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor HasErrorsDescriptor = new DiagnosticDescriptor(
+            "HasErrors",
+            "Has Errors",
+            "Operation with errors found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(BadExpressionDescriptor, BadStatementDescriptor, HasErrorsDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(BadExpressionDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.BadExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(BadStatementDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.BadStatement);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     if (operationContext.Operation.HasErrors)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(HasErrorsDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.InvocationExpression,
+                 OperationKind.BadExpression,
+                 OperationKind.BadStatement);
+        }
+    }
+
     /// <summary>Analyzer used to test for loop IOperations.</summary>
     public class BigForTestAnalyzer : DiagnosticAnalyzer
     {

@@ -101,6 +101,43 @@ End Structure
         End Sub
 
         <Fact>
+        Public Sub BadStuffVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M1(z as Integer)
+        Framitz()
+        Dim x As Integer = Bexley()
+        Dim y As Integer = 10
+        Dim d As Double() = Nothing
+        M1(d)
+        Goto
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New BadStuffTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "Framitz()").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Framitz()").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "Framitz").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Framitz").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "Bexley()").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Bexley()").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "Bexley").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Bexley").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "M1(d)").WithLocation(7, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "M1(d)").WithLocation(7, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.BadStatementDescriptor.Id, "Goto").WithLocation(8, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Goto").WithLocation(8, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "").WithLocation(8, 13),
+                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "").WithLocation(8, 13))
+        End Sub
+
+        <Fact>
         Public Sub BigForVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">

@@ -109,6 +109,39 @@ class D
         }
 
         [Fact]
+        public void BadStuffCSharp()
+        {
+            const string source = @"
+class C
+{
+    public void M1(int z)
+    {
+        Framitz();
+        int x = Bexley();
+        int y = 10;
+        double d = 20;
+        M1(y + d);
+        goto;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new BadStuffTestAnalyzer() }, null, null, false,
+                Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Framitz()").WithLocation(6, 9),
+                Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "Framitz").WithLocation(6, 9),
+                Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Framitz").WithLocation(6, 9),
+                Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Bexley()").WithLocation(7, 17),
+                Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "Bexley").WithLocation(7, 17),
+                Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Bexley").WithLocation(7, 17),
+                Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "M1(y + d)").WithLocation(10, 9),
+                Diagnostic(BadStuffTestAnalyzer.BadStatementDescriptor.Id, "goto;").WithLocation(11, 9),
+                Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "goto;").WithLocation(11, 9),
+                Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "").WithLocation(11, 13),
+                Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "").WithLocation(11, 13)
+                );
+        }
+
+        [Fact]
         public void BigForCSharp()
         {
             const string source = @"

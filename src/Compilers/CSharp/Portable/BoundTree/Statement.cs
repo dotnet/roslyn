@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         OperationKind IOperation.Kind => this.StatementKind;
 
+        bool IOperation.HasErrors => this.HasErrors;
+
         SyntaxNode IOperation.Syntax => this.Syntax;
 
         protected abstract OperationKind StatementKind { get; }
@@ -278,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundBadStatement
     {
-        protected override OperationKind StatementKind => OperationKind.None;
+        protected override OperationKind StatementKind => OperationKind.BadStatement;
     }
 
     partial class BoundStatementList
