@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Argument {0} should not be passed with the &apos;{1}&apos; keyword.
+        ///   Looks up a localized string similar to Argument {0} may not be passed with the &apos;{1}&apos; keyword.
         /// </summary>
         internal static string ERR_BadArgExtraRef {
             get {

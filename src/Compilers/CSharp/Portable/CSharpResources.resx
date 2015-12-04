@@ -2636,7 +2636,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</value>
   </data>
   <data name="ERR_BadArgExtraRef" xml:space="preserve">
-    <value>Argument {0} should not be passed with the '{1}' keyword</value>
+    <value>Argument {0} may not be passed with the '{1}' keyword</value>
   </data>
   <data name="WRN_CmdOptionConflictsSource" xml:space="preserve">
     <value>Option '{0}' overrides attribute '{1}' given in a source file or added module</value>
