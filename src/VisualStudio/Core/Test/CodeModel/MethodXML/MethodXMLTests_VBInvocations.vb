@@ -1,12 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBInvocations_InvocationWithoutMe()
+        Public Async Function TestVBInvocations_InvocationWithoutMe() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -42,11 +43,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBInvocations_InvocationWithMe()
+        Public Async Function TestVBInvocations_InvocationWithMe() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -82,11 +83,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBInvocations_WithArrayInitializer1()
+        Public Async Function TestVBInvocations_WithArrayInitializer1() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -157,11 +158,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBInvocations_InvokeOnCast()
+        Public Async Function TestVBInvocations_InvokeOnCast() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -227,11 +228,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBInvocations_InvokeFixInCast()
+        Public Async Function TestVBInvocations_InvokeFixInCast() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -281,12 +282,12 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <WorkItem(870422)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBAssignments_MethodCallWithoutTypeQualification()
+        Public Async Function TestVBAssignments_MethodCallWithoutTypeQualification() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -342,8 +343,8 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
     End Class
 End Namespace

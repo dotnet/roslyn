@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var uninitializedMember in uninitializedMembers)
             {
                 context.AddItem(CreateItem(
-                    workspace, 
+                    workspace,
                     uninitializedMember.Name,
                     filterSpan,
                     CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, initializerLocation.SourceSpan.Start, uninitializedMember),

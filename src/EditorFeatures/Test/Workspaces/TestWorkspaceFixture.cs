@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
@@ -10,35 +11,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public abstract class TestWorkspaceFixture : IDisposable
     {
-        private TestWorkspace _workspace;
+        private Task<TestWorkspace> _workspaceTask;
 
-        public TestWorkspace Workspace
+        public Task<TestWorkspace> GetWorkspaceAsync()
         {
-            get
-            {
-                _workspace = _workspace ?? CreateWorkspace();
-                return _workspace;
-            }
+            _workspaceTask = _workspaceTask ?? CreateWorkspaceAsync();
+            return _workspaceTask;
         }
 
         public TestWorkspaceFixture()
         {
         }
 
-        protected abstract TestWorkspace CreateWorkspace();
+        protected abstract Task<TestWorkspace> CreateWorkspaceAsync();
 
         public void Dispose()
         {
-            if (_workspace != null)
+            if (_workspaceTask != null)
             {
-                _workspace.Dispose();
-                _workspace = null;
+                _workspaceTask.Result.Dispose();
+                _workspaceTask = null;
             }
         }
 
-        public Document UpdateDocument(string text, SourceCodeKind sourceCodeKind, bool cleanBeforeUpdate = true)
+        public async Task<Document> UpdateDocumentAsync(string text, SourceCodeKind sourceCodeKind, bool cleanBeforeUpdate = true)
         {
-            var hostDocument = Workspace.Documents.Single();
+            var hostDocument = (await GetWorkspaceAsync()).Documents.Single();
             var textBuffer = hostDocument.TextBuffer;
 
             // clear the document
@@ -50,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // and set the content
             UpdateText(hostDocument.TextBuffer, text);
 
-            Workspace.OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
+            (await GetWorkspaceAsync()).OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
 
-            return Workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            return (await GetWorkspaceAsync()).CurrentSolution.GetDocument(hostDocument.Id);
         }
 
         private static void UpdateText(ITextBuffer textBuffer, string text)
@@ -64,9 +62,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public void CloseTextView()
+        public async Task CloseTextViewAsync()
         {
-            Workspace.Documents.Single().CloseTextView();
+            (await GetWorkspaceAsync()).Documents.Single().CloseTextView();
 
             // The editor caches TextFormattingRunProperties instances for better perf, but since things like
             // Brushes are DispatcherObjects, they are tied to the thread they are created on. Since we're going

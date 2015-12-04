@@ -18,13 +18,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return FindDeclarationsAsync(project, name, ignoreCase, SymbolFilter.All, cancellationToken);
+            return FindDeclarationsAsync(project, name, ignoreCase, includeDirectReferences: true, cancellationToken: cancellationToken);
+        }
+
+        internal static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            Project project, string name, bool ignoreCase, bool includeDirectReferences, CancellationToken cancellationToken)
+        {
+            return FindDeclarationsAsync(project, name, ignoreCase, SymbolFilter.All, includeDirectReferences, cancellationToken);
         }
 
         /// <summary>
         /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
         /// </summary>
         public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FindDeclarationsAsync(project, name, ignoreCase, filter, includeDirectReferences: true, cancellationToken: cancellationToken);
+        }
+
+        internal static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            Project project, string name, bool ignoreCase, SymbolFilter filter, bool includeDirectReferences, CancellationToken cancellationToken)
         {
             if (project == null)
             {
@@ -43,12 +55,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_FindDeclarationsAsync, cancellationToken))
             {
-                return FindDeclarationsAsyncImpl(project, name, ignoreCase, filter, cancellationToken);
+                return FindDeclarationsAsyncImpl(project, name, ignoreCase, filter, includeDirectReferences, cancellationToken);
             }
         }
 
         private static async Task<IEnumerable<ISymbol>> FindDeclarationsAsyncImpl(
-            Project project, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
+            Project project, string name, bool ignoreCase, SymbolFilter criteria, bool includeDirectReferences, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -58,10 +70,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             await AddDeclarationsAsync(project, name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
 
             // get declarations from directly referenced projects and metadata
-            foreach (var mr in compilation.References)
+            if (includeDirectReferences)
             {
-                var assembly = compilation.GetAssemblyOrModuleSymbol(mr) as IAssemblySymbol;
-                if (assembly != null)
+                foreach (var assembly in compilation.GetReferencedAssemblySymbols())
                 {
                     var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
                     if (assemblyProject != null)
@@ -70,18 +81,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                     else
                     {
-                        await AddDeclarationsAsync(project.Solution, assembly, GetMetadataReferenceFilePath(mr), name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
+                        await AddDeclarationsAsync(project.Solution, assembly, GetMetadataReferenceFilePath(compilation.GetMetadataReference(assembly)), name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
                     }
-                }
-            }
-
-            // get declarations from metadata referenced in source directives
-            foreach (var mr in compilation.DirectiveReferences)
-            {
-                var assembly = compilation.GetAssemblyOrModuleSymbol(mr) as IAssemblySymbol;
-                if (assembly != null)
-                {
-                    await AddDeclarationsAsync(project.Solution, assembly, GetMetadataReferenceFilePath(mr), name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -90,13 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static string GetMetadataReferenceFilePath(MetadataReference metadataReference)
         {
-            var executableReference = metadataReference as PortableExecutableReference;
-            if (executableReference == null)
-            {
-                return null;
-            }
-
-            return executableReference.FilePath;
+            return (metadataReference as PortableExecutableReference)?.FilePath;
         }
 
         /// <summary>
@@ -148,6 +143,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     list.AddRange(FilterByCriteria(compilation.GetSymbolsWithName(predicate, filter, cancellationToken), filter));
                 }
             }
+        }
+
+        internal static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            Solution solution, IAssemblySymbol assembly, string filePath, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            var result = new List<ISymbol>();
+            await AddDeclarationsAsync(solution, assembly, filePath, name, ignoreCase, filter, result, cancellationToken).ConfigureAwait(false);
+            return result;
         }
 
         private static async Task AddDeclarationsAsync(

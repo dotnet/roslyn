@@ -42,6 +42,7 @@
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
     <Compile Include="PEWriter\BlobUtilitiesTests.cs" />
     <Compile Include="PEWriter\BlobTests.cs" />
+    <Compile Include="PEWriter\UsedNamespaceOrTypeTests.cs" />
     <Compile Include="RealParserTests.cs" />
     <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="SourceFileResolverTest.cs" />

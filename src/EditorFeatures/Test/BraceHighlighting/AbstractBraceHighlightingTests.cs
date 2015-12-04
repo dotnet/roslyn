@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -12,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 {
     public abstract class AbstractBraceHighlightingTests
     {
-        protected void TestBraceHighlighting(string markup)
+        protected async Task TestBraceHighlightingAsync(string markup)
         {
-            using (var workspace = CreateWorkspace(markup))
+            using (var workspace = await CreateWorkspaceAsync(markup))
             {
                 var provider = new BraceHighlightingViewTaggerProvider(
                     workspace.GetService<IBraceMatchingService>(),
@@ -36,6 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             }
         }
 
-        protected abstract TestWorkspace CreateWorkspace(string markup);
+        protected abstract Task<TestWorkspace> CreateWorkspaceAsync(string markup);
     }
 }

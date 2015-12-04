@@ -468,7 +468,7 @@ class C
         [Fact]
         public void TestMethodTypeInferenceErrors()
         {
-            TestErrors(@"
+            var source = @"
 class C 
 { 
     delegate R F<out R>();
@@ -478,10 +478,11 @@ class C
       Apply(delegate { while (true) { } });
     }
 }
-",
-"'Apply' error CS0411: The type arguments for method 'C.Apply<T>(C.F<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly."
-
-               );
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (8,7): error CS0411: The type arguments for method 'C.Apply<T>(C.F<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //       Apply(delegate { while (true) { } });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Apply").WithArguments("C.Apply<T>(C.F<T>)").WithLocation(8, 7));
         }
 
         [Fact, WorkItem(578362, "DevDiv")]

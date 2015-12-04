@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return false;
             }
 
-            return _mainMvids.Count == 0 
-                || (assembly.ManifestModule != null && _mainMvids.Contains(assembly.ManifestModule.ModuleVersionId)) 
+            return _mainMvids.Count == 0
+                || (assembly.ManifestModule != null && _mainMvids.Contains(assembly.ManifestModule.ModuleVersionId))
                 || _loadedAssemblies.Contains(assembly);
         }
 
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                 }
                 else
-                { 
+                {
                     if (module.Kind == OutputKind.NetModule)
                     {
                         _containsNetModules = true;
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // dumping lots of unnecessary data.
                 if (s_dumpCount > 10)
                 {
-                    break; 
+                    break;
                 }
 
                 if (module.InMemoryModule)
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             "Dumps");
                         try
                         {
-                             Directory.CreateDirectory(dumpDirectory);
+                            Directory.CreateDirectory(dumpDirectory);
                         }
                         catch
                         {

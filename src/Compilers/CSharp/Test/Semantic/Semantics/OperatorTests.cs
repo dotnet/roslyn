@@ -1105,7 +1105,7 @@ class C
         [Fact]
         public void TestUnaryOperatorOverloadingErrors()
         {
-            TestErrors(@"
+            var source = @"
 class C 
 { 
 // UNDONE: Write tests for the rest of them
@@ -1114,8 +1114,11 @@ class C
         if(!1) {}
     }
 }
-",
-"'!1' error CS0023: Operator '!' cannot be applied to operand of type 'int'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,12): error CS0023: Operator '!' cannot be applied to operand of type 'int'
+                //         if(!1) {}
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!1").WithArguments("!", "int").WithLocation(7, 12));
         }
 
         [Fact]
@@ -1167,7 +1170,7 @@ Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 == ex1").WithArguments("==", "string"
         [Fact]
         public void TestCompoundOperatorErrors()
         {
-            TestErrors(@"
+            var source = @"
 class C 
 { 
     // UNDONE: Add more error cases
@@ -1209,11 +1212,20 @@ class C
 
 
     }
-}",
-"'c.ReadOnly' error CS0200: Property or indexer 'C.ReadOnly' cannot be assigned to -- it is read only",
-"'c.WriteOnly' error CS0154: The property or indexer 'C.WriteOnly' cannot be used in this context because it lacks the get accessor",
-"'i32 += i64' error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)",
-"'d += c' error CS0266: Cannot implicitly convert type 'C' to 'C.D'. An explicit conversion exists (are you missing a cast?)");
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (17,9): error CS0200: Property or indexer 'C.ReadOnly' cannot be assigned to -- it is read only
+                //         c.ReadOnly += 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c.ReadOnly").WithArguments("C.ReadOnly").WithLocation(17, 9),
+                // (18,9): error CS0154: The property or indexer 'C.WriteOnly' cannot be used in this context because it lacks the get accessor
+                //         c.WriteOnly += 1;
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.WriteOnly").WithArguments("C.WriteOnly").WithLocation(18, 9),
+                // (34,9): error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         i32 += i64;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i32 += i64").WithArguments("long", "int").WithLocation(34, 9),
+                // (39,9): error CS0266: Cannot implicitly convert type 'C' to 'C.D'. An explicit conversion exists (are you missing a cast?)
+                //         d += c;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "d += c").WithArguments("C", "C.D").WithLocation(39, 9));
         }
 
         [Fact]

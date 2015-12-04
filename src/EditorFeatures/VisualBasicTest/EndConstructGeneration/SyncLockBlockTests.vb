@@ -12,8 +12,8 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class SyncLockBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub ApplyAfterSyncLockStatement()
-            VerifyStatementEndConstructApplied(
+        Public Async Function ApplyAfterSyncLockStatement() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "Sub foo()",
                          "SyncLock variable",
@@ -28,11 +28,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "End Sub",
                         "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyForMatchedUsing()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DontApplyForMatchedUsing() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class c1",
                        "Sub foo()",
                        "SyncLock variable",
@@ -40,11 +40,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyNestedSyncBlock()
-            VerifyStatementEndConstructApplied(
+        Public Async Function VerifyNestedSyncBlock() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    Sub S",
                          "        SyncLock x",
@@ -63,26 +63,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End Sub",
                          "End Class"},
                 afterCaret:={4, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidSyntax()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSyntax() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub S",
                        "        Using (SyncLock 1) ",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidLocation()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidLocation() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class EC",
                        "    Synclock 1",
                        "End Class"},
                 caret:={1, -1})
-        End Sub
+        End Function
     End Class
 End Namespace

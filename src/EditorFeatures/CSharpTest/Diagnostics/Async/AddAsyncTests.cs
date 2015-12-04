@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Async;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
     public partial class AddAsyncTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void AwaitInVoidMethodWithModifiers()
+        public async Task AwaitInVoidMethodWithModifiers()
         {
             var initial =
 @"using System;
@@ -37,11 +38,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void AwaitInTaskMethodNoModifiers()
+        public async Task AwaitInTaskMethodNoModifiers()
         {
             var initial =
 @"using System;
@@ -66,11 +67,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void AwaitInTaskMethodWithModifiers()
+        public async Task AwaitInTaskMethodWithModifiers()
         {
             var initial =
 @"using System;
@@ -95,11 +96,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void AwaitInLambdaFunction()
+        public async Task AwaitInLambdaFunction()
         {
             var initial =
 @"using System;
@@ -126,11 +127,11 @@ class Program
         Func<Task> b = async () => await Task.Run(a);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void AwaitInLambdaAction()
+        public async Task AwaitInLambdaAction()
         {
             var initial =
 @"using System;
@@ -155,11 +156,11 @@ class Program
         Action a = async () => await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void BadAwaitInNonAsyncMethod()
+        public async Task BadAwaitInNonAsyncMethod()
         {
             var initial =
 @"using System.Threading.Tasks;
@@ -180,11 +181,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void BadAwaitInNonAsyncMethod2()
+        public async Task BadAwaitInNonAsyncMethod2()
         {
             var initial =
 @"using System.Threading.Tasks;
@@ -205,11 +206,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void BadAwaitInNonAsyncMethod3()
+        public async Task BadAwaitInNonAsyncMethod3()
         {
             var initial =
 @"using System.Threading.Tasks;
@@ -230,11 +231,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void BadAwaitInNonAsyncMethod4()
+        public async Task BadAwaitInNonAsyncMethod4()
         {
             var initial =
 @"using System.Threading.Tasks;
@@ -255,11 +256,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void BadAwaitInNonAsyncMethod5()
+        public async Task BadAwaitInNonAsyncMethod5()
         {
             var initial =
 @"class Program
@@ -278,11 +279,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void BadAwaitInNonAsyncMethod6()
+        public async Task BadAwaitInNonAsyncMethod6()
         {
             var initial =
 @"class Program
@@ -301,11 +302,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void BadAwaitInNonAsyncMethod7()
+        public async Task BadAwaitInNonAsyncMethod7()
         {
             var initial =
 @"class Program
@@ -324,11 +325,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void BadAwaitInNonAsyncMethod8()
+        public async Task BadAwaitInNonAsyncMethod8()
         {
             var initial =
 @"class Program
@@ -347,11 +348,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void BadAwaitInNonAsyncMethod9()
+        public async Task BadAwaitInNonAsyncMethod9()
         {
             var initial =
 @"class Program
@@ -370,11 +371,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void BadAwaitInNonAsyncMethod10()
+        public async Task BadAwaitInNonAsyncMethod10()
         {
             var initial =
 @"class Program
@@ -393,11 +394,11 @@ class Program
         await Task.Delay(1);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void AwaitInMember()
+        public async Task AwaitInMember()
         {
             var code =
 @"using System.Threading.Tasks;
@@ -406,38 +407,38 @@ class Program
 {
     var x = [|await Task.Delay(3)|];
 }";
-            TestMissing(code);
+            await TestMissingAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void AddAsyncInDelegate()
+        public async Task AddAsyncInDelegate()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Threading . Tasks ; class Program { private async void method ( ) { string content = await Task < String > . Run ( delegate ( ) { [|await Task . Delay ( 1000 )|] ; return ""Test"" ; } ) ; } } ",
 @"using System ; using System . Threading . Tasks ; class Program { private async void method ( ) { string content = await Task < String > . Run ( async delegate ( ) { await Task . Delay ( 1000 ) ; return ""Test"" ; } ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void AddAsyncInDelegate2()
+        public async Task AddAsyncInDelegate2()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Threading . Tasks ; class Program { private void method ( ) { string content = await Task < String > . Run ( delegate ( ) { [|await Task . Delay ( 1000 )|] ; return ""Test"" ; } ) ; } } ",
 @"using System ; using System . Threading . Tasks ; class Program { private void method ( ) { string content = await Task < String > . Run ( async delegate ( ) { await Task . Delay ( 1000 ) ; return ""Test"" ; } ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void AddAsyncInDelegate3()
+        public async Task AddAsyncInDelegate3()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Threading . Tasks ; class Program { private void method ( ) { string content = await Task < String > . Run ( delegate ( ) { [|await Task . Delay ( 1000 )|] ; return ""Test"" ; } ) ; } } ",
 @"using System ; using System . Threading . Tasks ; class Program { private void method ( ) { string content = await Task < String > . Run ( async delegate ( ) { await Task . Delay ( 1000 ) ; return ""Test"" ; } ) ; } } ");
         }
 
         [WorkItem(6477, @"https://github.com/dotnet/roslyn/issues/6477")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
-        public void NullNodeCrash()
+        public async Task NullNodeCrash()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System.Threading.Tasks;
 
 class C

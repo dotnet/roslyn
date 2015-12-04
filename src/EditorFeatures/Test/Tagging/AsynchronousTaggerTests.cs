@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         [WorkItem(530368)]
         public async Task LargeNumberOfSpans()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(@"class Program
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(@"class Program
 {
     void M()
     {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
                     eventSource.SendUpdateEvent();
 
-                    await asyncListener.CreateWaitTask().ConfigureAwait(true);
+                    await asyncListener.CreateWaitTask();
 
                     var tags = tagger.GetTags(snapshotSpans);
 
@@ -90,9 +90,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         }
 
         [WpfFact]
-        public void TestSynchronousOutlining()
+        public async Task TestSynchronousOutlining()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile("class Program {\r\n\r\n}"))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync("class Program {\r\n\r\n}"))
             {
                 var tagProvider = new OutliningTaggerProvider(
                     workspace.GetService<IForegroundNotificationService>(),

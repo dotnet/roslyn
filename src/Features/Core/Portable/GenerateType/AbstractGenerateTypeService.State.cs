@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -64,14 +65,14 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 Compilation = compilation;
             }
 
-            public static State Generate(
+            public static async Task<State> GenerateAsync(
                 TService service,
                 SemanticDocument document,
                 SyntaxNode node,
                 CancellationToken cancellationToken)
             {
                 var state = new State(document.SemanticModel.Compilation);
-                if (!state.TryInitialize(service, document, node, cancellationToken))
+                if (!await state.TryInitializeAsync(service, document, node, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return state;
             }
 
-            private bool TryInitialize(
+            private async Task<bool> TryInitializeAsync(
                 TService service,
                 SemanticDocument document,
                 SyntaxNode node,
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                DetermineNamespaceOrTypeToGenerateIn(service, document, cancellationToken);
+                await DetermineNamespaceOrTypeToGenerateInAsync(service, document, cancellationToken).ConfigureAwait(false);
 
                 // Now, try to infer a possible base type for this new class/interface.
                 this.InferBaseType(service, document, cancellationToken);
@@ -272,7 +273,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return service.IsInInterfaceList(this.NameOrMemberAccessExpression);
             }
 
-            private void DetermineNamespaceOrTypeToGenerateIn(
+            private async Task DetermineNamespaceOrTypeToGenerateInAsync(
                 TService service,
                 SemanticDocument document,
                 CancellationToken cancellationToken)
@@ -289,7 +290,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                     else
                     {
-                        var symbol = SymbolFinder.FindSourceDefinitionAsync(this.TypeToGenerateInOpt, document.Project.Solution, cancellationToken).WaitAndGetResult(cancellationToken);
+                        var symbol = await SymbolFinder.FindSourceDefinitionAsync(this.TypeToGenerateInOpt, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                         if (symbol == null ||
                             !symbol.IsKind(SymbolKind.NamedType) ||
                             !symbol.Locations.Any(loc => loc.IsInSource))

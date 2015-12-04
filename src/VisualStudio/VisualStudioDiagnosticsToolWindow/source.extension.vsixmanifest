@@ -5,7 +5,7 @@
     <DisplayName>Roslyn Diagnostics</DisplayName>
     <Description xml:space="preserve">Roslyn Diagnostics Window</Description>
   </Metadata>
-  <Installation InstalledByMsi="false">
+  <Installation Experimental="true">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[14.0,]" />
     <InstallationTarget Version="[14.0,]" Id="Microsoft.VisualStudio.VSWinDesktopExpress" />
     <InstallationTarget Version="[14.0,]" Id="Microsoft.VisualStudio.VWDExpress" />
