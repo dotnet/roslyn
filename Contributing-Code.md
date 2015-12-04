@@ -39,7 +39,7 @@ Please follow these guidelines when creating new issues in the issue tracker:
 
 ###Coding Conventions
 
-- Use the coding style outlined in the [.Net Foundation Coding Guidelines](https://github.com/dotnet/corefx/wiki/Coding-style)
+- Use the coding style outlined in the [.NET Foundation Coding Guidelines](https://github.com/dotnet/corefx/wiki/Coding-style)
 - Use plain code to validate parameters at public boundaries. Do not use Contracts or magic helpers.
 
 ```csharp
