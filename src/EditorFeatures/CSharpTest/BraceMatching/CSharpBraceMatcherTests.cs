@@ -501,5 +501,127 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
 
             await TestAsync(code, expected);
         }
+
+        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        public async Task TestConditionalDirectiveWithSingleMatchingDirective()
+        {
+            var code = @"
+public class C 
+{
+#if$$ CHK 
+#endif
+}";
+            var expected = @"
+public class C 
+{
+#if$$ CHK 
+[|#endif|]
+}";
+
+            await TestAsync(code, expected);
+        }
+
+        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        public async Task TestConditionalDirectiveWithTwoMatchingDirectives()
+        {
+            var code = @"
+public class C 
+{
+#if$$ CHK 
+#else
+#endif
+}";
+            var expected = @"
+public class C 
+{
+#if$$ CHK 
+[|#else|]
+#endif
+}";
+
+            await TestAsync(code, expected);
+        }
+
+        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        public async Task TestConditionalDirectiveWithAllMatchingDirectives()
+        {
+            var code = @"
+public class C 
+{
+#if CHK 
+#elif RET
+#else
+#endif$$
+}";
+            var expected = @"
+public class C 
+{
+[|#if|] CHK 
+#elif RET
+#else
+#endif
+}";
+
+            await TestAsync(code, expected);
+        }
+
+        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        public async Task TestRegionDirective()
+        {
+            var code = @"
+public class C 
+{
+$$#region test
+#endregion
+}";
+            var expected = @"
+public class C 
+{
+#region test
+[|#endregion|]
+}";
+
+            await TestAsync(code, expected);
+        }
+
+        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        public async Task TestUnmatchedDirective1()
+        {
+            var code = @"
+public class C 
+{
+$$#region test
+}";
+            var expected = @"
+public class C 
+{
+#region test
+}";
+
+            await TestAsync(code, expected);
+        }
+
+        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        public async Task TestUnmatchedDirective2()
+        {
+            var code = @"
+#d$$efine CHK
+public class C 
+{
+}";
+            var expected = @"
+#define CHK
+public class C 
+{
+}";
+
+            await TestAsync(code, expected);
+        }
     }
 }
