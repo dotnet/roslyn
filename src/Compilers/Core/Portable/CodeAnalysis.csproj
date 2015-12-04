@@ -78,7 +78,7 @@
     <Compile Include="System.Reflection.Metadata\Ecma335\MetadataSerializer.cs" />
     <Compile Include="System.Reflection.Metadata\Ecma335\MetadataBuilder.Tables.cs" />
     <Compile Include="System.Reflection.Metadata\Ecma335\MetadataWriterUtilities.cs" />
-    <Compile Include="System.Reflection.Metadata\PortableExecutable\PESizes.cs" />
+    <Compile Include="System.Reflection.Metadata\PortableExecutable\ManagedTextSection.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />

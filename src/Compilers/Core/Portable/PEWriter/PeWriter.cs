@@ -29,13 +29,6 @@ namespace Microsoft.Cci
         private const string RelocationSectionName = ".reloc";
 
         /// <summary>
-        /// Minimal size of PDB path in Debug Directory. We pad the path to this minimal size to
-        /// allow some tools to patch the path without the need to rewrite the entire image.
-        /// This is a workaround put in place until these tools are retired.
-        /// </summary>
-        private readonly int _minPdbPath;
-
-        /// <summary>
         /// True if we should attempt to generate a deterministic output (no timestamps or random data).
         /// </summary>
         private readonly bool _deterministic;
@@ -61,8 +54,6 @@ namespace Microsoft.Cci
             _pdbPathOpt = pdbPathOpt;
             _deterministic = deterministic;
 
-            // The PDB padding workaround is only needed for legacy tools that don't use deterministic build.
-            _minPdbPath = deterministic ? 0 : 260;
             _nativeResourcesOpt = nativeResourcesOpt;
             _nativeResourceSectionOpt = nativeResourceSectionOpt;
             _is32bit = !_properties.Requires64bits;
@@ -117,14 +108,16 @@ namespace Microsoft.Cci
             if (!IteratorHelper.EnumerableIsEmpty(_nativeResourcesOpt) || _nativeResourceSectionOpt != null) sectionCount++; //.rsrc;
 
             int sizeOfPeHeaders = ComputeSizeOfPeHeaders(sectionCount);
+
             int textSectionRva = BitArithmeticUtilities.Align(sizeOfPeHeaders, _properties.SectionAlignment);
+            int textSectionPointer = BitArithmeticUtilities.Align(sizeOfPeHeaders, _properties.FileAlignment);
+
+            ManagedTextSection textSection;
 
             int moduleVersionIdOffsetInMetadataStream;
-            int methodBodyStreamRva = textSectionRva + OffsetToILStream;
             int pdbIdOffsetInPortablePdbStream;
 
             int entryPointToken;
-            PESizes peSizes;
             MetadataSizes metadataSizes;
             mdWriter.SerializeMetadataAndIL(
                 metadataWriter,
@@ -133,12 +126,14 @@ namespace Microsoft.Cci
                 ilWriter,
                 mappedFieldDataWriter,
                 managedResourceWriter,
-                methodBodyStreamRva,
-                sizes => CalculateMappedFieldDataStreamRva(textSectionRva, sizes),
+                _properties.ImageCharacteristics,
+                _properties.Machine,
+                textSectionRva,
+                _pdbPathOpt,
                 out moduleVersionIdOffsetInMetadataStream,
                 out pdbIdOffsetInPortablePdbStream,
                 out entryPointToken,
-                out peSizes,
+                out textSection,
                 out metadataSizes);
 
             ContentId nativePdbContentId;
@@ -199,56 +194,44 @@ namespace Microsoft.Cci
                 portablePdbContentId = default(ContentId);
             }
 
-            // Only the size of the fixed part of the debug table goes here.
-            DirectoryEntry debugDirectory = default(DirectoryEntry);
-            DirectoryEntry importTable = default(DirectoryEntry);
-            DirectoryEntry importAddressTable = default(DirectoryEntry);
-            int entryPointAddress = 0;
-
-            if (EmitPdb || _deterministic)
-            {
-                debugDirectory = new DirectoryEntry(textSectionRva + ComputeOffsetToDebugTable(peSizes), ImageDebugDirectoryBaseSize);
-            }
-
-            if (_properties.RequiresStartupStub)
-            {
-                importAddressTable = new DirectoryEntry(textSectionRva, SizeOfImportAddressTable);
-                entryPointAddress = CalculateMappedFieldDataStreamRva(textSectionRva, peSizes) - (_is32bit ? 6 : 10); // TODO: constants
-                importTable = new DirectoryEntry(textSectionRva + ComputeOffsetToImportTable(peSizes), (_is32bit ? 66 : 70) + 13); // TODO: constants
-            }
-
-            var corHeaderDirectory = new DirectoryEntry(textSectionRva + SizeOfImportAddressTable, size: CorHeaderSize);
-
-            long ntHeaderTimestampPosition;
-            long metadataPosition;
-
-            List<SectionHeader> sectionHeaders = CreateSectionHeaders(peSizes, sectionCount);
-
-            CoffHeader coffHeader;
-            NtHeader ntHeader;
-            FillInNtHeader(sectionHeaders, entryPointAddress, corHeaderDirectory, importTable, importAddressTable, debugDirectory, out coffHeader, out ntHeader);
-
             Stream peStream = getPeStream();
             if (peStream == null)
             {
                 return false;
             }
 
+            // Only the size of the fixed part of the debug table goes here.
+            var debugDirectory = textSection.GetDebugDirectoryEntry(textSectionRva);
+            var importAddressTable = textSection.GetImportAddressTableDirectoryEntry(textSectionRva);
+            int entryPointAddress = textSection.GetEntryPointAddress(textSectionRva);
+            var importTable = textSection.GetImportTableDirectoryEntry(textSectionRva);
+            var corHeaderDirectory = textSection.GetCorHeaderDirectoryEntry(textSectionRva);
+
+            long ntHeaderTimestampPosition;
+            long metadataPosition;
+
+            List<SectionHeader> sectionHeaders = CreateSectionHeaders(textSection, sectionCount);
+
+            CoffHeader coffHeader;
+            NtHeader ntHeader;
+            FillInNtHeader(sectionHeaders, entryPointAddress, corHeaderDirectory, importTable, importAddressTable, debugDirectory, out coffHeader, out ntHeader);
+
             WriteHeaders(peStream, ntHeader, coffHeader, sectionHeaders, out ntHeaderTimestampPosition);
 
-            WriteTextSection(
+            textSection.WriteTextSection(
                 peStream,
-                sectionHeaders[0],
-                importTable.RelativeVirtualAddress,
-                importAddressTable.RelativeVirtualAddress,
+                textSectionRva,
+                textSectionPointer,
                 entryPointToken,
+                _properties.GetCorHeaderFlags(),
+                _properties.BaseAddress,
+                _properties.FileAlignment,
                 metadataWriter,
                 ilWriter,
                 mappedFieldDataWriter,
                 managedResourceWriter,
-                peSizes,
-                nativePdbContentId,
-                portablePdbContentId,
+                nativePdbContentId, // TODO: separate debug table builder
+                portablePdbContentId, // TODO: separate debug table builder
                 out metadataPosition);
 
             var resourceSection = sectionHeaders.FirstOrDefault(s => s.Name == ResourceSectionName);
@@ -272,12 +255,12 @@ namespace Microsoft.Cci
             return true;
         }
 
-        private List<SectionHeader> CreateSectionHeaders(PESizes peSizes, int sectionCount)
+        private List<SectionHeader> CreateSectionHeaders(ManagedTextSection textSection, int sectionCount)
         {
             var sectionHeaders = new List<SectionHeader>();
             SectionHeader lastSection;
             int sizeOfPeHeaders = ComputeSizeOfPeHeaders(sectionCount);
-            int sizeOfTextSection = ComputeSizeOfTextSection(peSizes);
+            int sizeOfTextSection = textSection.ComputeSizeOfTextSection();
 
             sectionHeaders.Add(lastSection = new SectionHeader(
                 characteristics: SectionCharacteristics.MemRead |
@@ -337,48 +320,6 @@ namespace Microsoft.Cci
             return sectionHeaders;
         }
 
-        private const string CorEntryPointDll = "mscoree.dll";
-        private string CorEntryPointName => (_properties.ImageCharacteristics & Characteristics.Dll) != 0 ? "_CorDllMain" : "_CorExeMain";
-
-        private int SizeOfImportAddressTable => _properties.RequiresStartupStub ? (_is32bit ? 2 * sizeof(uint) : 2 * sizeof(ulong)) : 0;
-
-        // (_is32bit ? 66 : 70);
-        private int SizeOfImportTable =>
-            sizeof(uint) + // RVA
-            sizeof(uint) + // 0           
-            sizeof(uint) + // 0
-            sizeof(uint) + // name RVA
-            sizeof(uint) + // import address table RVA
-            20 +           // ?
-            (_is32bit ? 3 * sizeof(uint) : 2 * sizeof(ulong)) + // import lookup table
-            sizeof(ushort) + // hint
-            CorEntryPointName.Length + 
-            1;    // NUL
-
-        private static int SizeOfNameTable =>
-            CorEntryPointDll.Length + 1 + sizeof(ushort);
-
-        private int SizeOfRuntimeStartupStub => _is32bit ? 8 : 16;
-
-        private int CalculateOffsetToMappedFieldDataStream(PESizes peSizes)
-        {
-            int result = ComputeOffsetToImportTable(peSizes);
-
-            if (_properties.RequiresStartupStub)
-            {
-                result += SizeOfImportTable + SizeOfNameTable;
-                result = BitArithmeticUtilities.Align(result, _is32bit ? 4 : 8); //optional padding to make startup stub's target address align on word or double word boundary
-                result += SizeOfRuntimeStartupStub;
-            }
-
-            return result;
-        }
-
-        private int CalculateMappedFieldDataStreamRva(int textSectionRva, PESizes peSizes)
-        {
-            return textSectionRva + CalculateOffsetToMappedFieldDataStream(peSizes);
-        }
-
         /// <summary>
         /// Compute a deterministic Guid and timestamp based on the contents of the stream, and replace
         /// the 16 zero bytes at the given position and one or two 4-byte values with that computed Guid and timestamp.
@@ -424,81 +365,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private int ComputeOffsetToDebugTable(PESizes peSizes)
-        {
-            Debug.Assert(peSizes.MetadataSize % 4 == 0);
-            Debug.Assert(peSizes.ResourceDataSize % 4 == 0);
-
-            return
-                ComputeOffsetToMetadata(peSizes.ILStreamSize) +
-                peSizes.MetadataSize +
-                peSizes.ResourceDataSize +
-                peSizes.StrongNameSignatureSize;
-        }
-
-        private int ComputeOffsetToImportTable(PESizes peSizes)
-        {
-            return
-                ComputeOffsetToDebugTable(peSizes) +
-                ComputeSizeOfDebugDirectory();
-        }
-
-        private const int CorHeaderSize =
-            sizeof(int) +    // header size
-            sizeof(short) +  // major runtime version
-            sizeof(short) +  // minor runtime version
-            sizeof(long) +   // metadata directory
-            sizeof(int) +    // COR flags
-            sizeof(int) +    // entry point
-            sizeof(long) +   // resources directory
-            sizeof(long) +   // strong name signature directory
-            sizeof(long) +   // code manager table directory
-            sizeof(long) +   // vtable fixups directory
-            sizeof(long) +   // export address table jumps directory
-            sizeof(long);   // managed-native header directory
-
-        private int OffsetToILStream => SizeOfImportAddressTable + CorHeaderSize; 
-
-        private int ComputeOffsetToMetadata(int ilStreamLength)
-        {
-            return OffsetToILStream + BitArithmeticUtilities.Align(ilStreamLength, 4);
-        }
-
-        /// <summary>
-        /// The size of a single entry in the "Debug Directory (Image Only)"
-        /// </summary>
-        private const int ImageDebugDirectoryEntrySize =
-                    sizeof(uint) +   // Characteristics
-                    sizeof(uint) +   // TimeDataStamp
-                    sizeof(uint) +   // Version
-                    sizeof(uint) +   // Type
-                    sizeof(uint) +   // SizeOfData
-                    sizeof(uint) +   // AddressOfRawData
-                    sizeof(uint);    // PointerToRawData
-
-        /// <summary>
-        /// The size of our debug directory: one entry for debug information, and an optional second one indicating
-        /// that the timestamp is deterministic (i.e. not really a timestamp)
-        /// </summary>
-        private int ImageDebugDirectoryBaseSize =>
-            (_deterministic ? ImageDebugDirectoryEntrySize : 0) +
-            (EmitPdb ? ImageDebugDirectoryEntrySize : 0);
-
-        private int ComputeSizeOfDebugDirectoryData()
-        {
-            // The debug directory data is only needed if this.EmitPdb.
-            return (!EmitPdb) ? 0 :
-                4 +              // 4B signature "RSDS"
-                16 +             // GUID
-                sizeof(uint) +   // Age
-                Math.Max(BlobUtilities.GetUTF8ByteCount(_pdbPathOpt) + 1, _minPdbPath);
-        }
-
-        private int ComputeSizeOfDebugDirectory()
-        {
-            return ImageDebugDirectoryBaseSize + ComputeSizeOfDebugDirectoryData();
-        }
-
         private int ComputeSizeOfPeHeaders(int sectionCount)
         {
             int sizeOfPeHeaders = 128 + 4 + 20 + 224 + 40 * sectionCount; // TODO: constants
@@ -508,12 +374,6 @@ namespace Microsoft.Cci
             }
 
             return sizeOfPeHeaders;
-        }
-
-        private int ComputeSizeOfTextSection(PESizes peSizes)
-        {
-            Debug.Assert(peSizes.MappedFieldDataSize % MetadataWriter.MappedFieldDataAlignment == 0);
-            return CalculateOffsetToMappedFieldDataStream(peSizes) + peSizes.MappedFieldDataSize;
         }
 
         private int ComputeSizeOfWin32Resources(int resourcesRva)
@@ -526,20 +386,6 @@ namespace Microsoft.Cci
             }            // result += Align(this.win32ResourceWriter.Length+1, 8);
 
             return result;
-        }
-
-        private CorHeader CreateCorHeader(PESizes peSizes, int textSectionRva, int entryPointToken)
-        {
-            int metadataRva = textSectionRva + ComputeOffsetToMetadata(peSizes.ILStreamSize);
-            int resourcesRva = metadataRva + peSizes.MetadataSize;
-            int signatureRva = resourcesRva + peSizes.ResourceDataSize;
-
-            return new CorHeader(
-                entryPointTokenOrRelativeVirtualAddress: entryPointToken,
-                flags: _properties.GetCorHeaderFlags(),
-                metadataDirectory: new DirectoryEntry(metadataRva, peSizes.MetadataSize),
-                resourcesDirectory: new DirectoryEntry(resourcesRva, peSizes.ResourceDataSize),
-                strongNameSignatureDirectory: new DirectoryEntry(signatureRva, peSizes.StrongNameSignatureSize));
         }
 
         private void FillInNtHeader(
@@ -1182,323 +1028,6 @@ namespace Microsoft.Cci
             writer.WriteUInt16(sectionHeader.NumberOfRelocations);
             writer.WriteUInt16(sectionHeader.NumberOfLinenumbers);
             writer.WriteUInt32((uint)sectionHeader.Characteristics);
-        }
-
-        private void WriteTextSection(
-            Stream peStream,
-            SectionHeader textSection,
-            int importTableRva,
-            int importAddressTableRva,
-            int entryPointToken,
-            BlobBuilder metadataWriter,
-            BlobBuilder ilWriter,
-            BlobBuilder mappedFieldDataWriter,
-            BlobBuilder managedResourceWriter,
-            PESizes peSizes,
-            ContentId nativePdbContentId,
-            ContentId portablePdbContentId,
-            out long metadataPosition)
-        {
-            // TODO: zero out all bytes:
-            peStream.Position = textSection.PointerToRawData;
-
-            if (_properties.RequiresStartupStub)
-            {
-                WriteImportAddressTable(peStream, importTableRva);
-            }
-
-            var corHeader = CreateCorHeader(peSizes, textSection.RelativeVirtualAddress, entryPointToken);
-            WriteCorHeader(peStream, corHeader);
-
-            // IL:
-            ilWriter.Align(4);
-            ilWriter.WriteContentTo(peStream);
-
-            // metadata:
-            metadataPosition = peStream.Position;
-            Debug.Assert(metadataWriter.Count % 4 == 0);
-            metadataWriter.WriteContentTo(peStream);
-
-            // managed resources:
-            Debug.Assert(managedResourceWriter.Count % 4 == 0);
-            managedResourceWriter.WriteContentTo(peStream);
-
-            // strong name signature:
-            WriteSpaceForHash(peStream, peSizes.StrongNameSignatureSize);
-
-            if (EmitPdb || _deterministic)
-            {
-                WriteDebugTable(peStream, textSection, nativePdbContentId, portablePdbContentId, peSizes);
-            }
-
-            if (_properties.RequiresStartupStub)
-            {
-                WriteImportTable(peStream, importTableRva, importAddressTableRva);
-                WriteNameTable(peStream);
-                WriteRuntimeStartupStub(peStream, importAddressTableRva);
-            }
-
-            // mapped field data:            
-            mappedFieldDataWriter.WriteContentTo(peStream);
-
-            // TODO: zero out all bytes:
-            int alignedPosition = textSection.PointerToRawData + textSection.SizeOfRawData;
-            if (peStream.Position != alignedPosition)
-            {
-                peStream.Position = alignedPosition - 1;
-                peStream.WriteByte(0);
-            }
-        }
-
-        private void WriteImportAddressTable(Stream peStream, int importTableRva)
-        {
-            var writer = new BlobBuilder(SizeOfImportAddressTable);
-            int ilRVA = importTableRva + 40;
-            int hintRva = ilRVA + (_is32bit ? 12 : 16);
-
-            // Import Address Table
-            if (_is32bit)
-            {
-                writer.WriteUInt32((uint)hintRva); // 4
-                writer.WriteUInt32(0); // 8
-            }
-            else
-            {
-                writer.WriteUInt64((uint)hintRva); // 8
-                writer.WriteUInt64(0); // 16
-            }
-
-            Debug.Assert(writer.Count == SizeOfImportAddressTable);
-            writer.WriteContentTo(peStream);
-        }
-
-        private void WriteImportTable(Stream peStream, int importTableRva, int importAddressTableRva)
-        {
-            var writer = new BlobBuilder(SizeOfImportTable);
-            int ilRVA = importTableRva + 40;
-            int hintRva = ilRVA + (_is32bit ? 12 : 16);
-            int nameRva = hintRva + 12 + 2;
-
-            // Import table
-            writer.WriteUInt32((uint)ilRVA); // 4
-            writer.WriteUInt32(0); // 8
-            writer.WriteUInt32(0); // 12
-            writer.WriteUInt32((uint)nameRva); // 16
-            writer.WriteUInt32((uint)importAddressTableRva); // 20
-            writer.WriteBytes(0, 20); // 40
-
-            // Import Lookup table
-            if (_is32bit)
-            {
-                writer.WriteUInt32((uint)hintRva); // 44
-                writer.WriteUInt32(0); // 48
-                writer.WriteUInt32(0); // 52
-            }
-            else
-            {
-                writer.WriteUInt64((uint)hintRva); // 48
-                writer.WriteUInt64(0); // 56
-            }
-
-            // Hint table
-            writer.WriteUInt16(0); // Hint 54|58
-
-            foreach (char ch in CorEntryPointName)
-            {
-                writer.WriteByte((byte)ch); // 65|69
-            }
-
-            writer.WriteByte(0); // 66|70
-            Debug.Assert(writer.Count == SizeOfImportTable);
-
-            writer.WriteContentTo(peStream);
-        }
-
-        private static void WriteNameTable(Stream peStream)
-        {
-            var writer = new BlobBuilder(SizeOfNameTable);
-            foreach (char ch in CorEntryPointDll)
-            {
-                writer.WriteByte((byte)ch);
-            }
-
-            writer.WriteByte(0);
-            writer.WriteUInt16(0);
-            Debug.Assert(writer.Count == SizeOfNameTable);
-
-            writer.WriteContentTo(peStream);
-        }
-
-        private static void WriteCorHeader(Stream peStream, CorHeader corHeader)
-        {
-            var writer = new BlobBuilder(CorHeaderSize);
-            writer.WriteUInt32(CorHeaderSize);
-            writer.WriteUInt16(corHeader.MajorRuntimeVersion);
-            writer.WriteUInt16(corHeader.MinorRuntimeVersion); 
-            writer.WriteUInt32((uint)corHeader.MetadataDirectory.RelativeVirtualAddress); 
-            writer.WriteUInt32((uint)corHeader.MetadataDirectory.Size);
-            writer.WriteUInt32((uint)corHeader.Flags);
-            writer.WriteUInt32((uint)corHeader.EntryPointTokenOrRelativeVirtualAddress);
-            writer.WriteUInt32((uint)(corHeader.ResourcesDirectory.Size == 0 ? 0 : corHeader.ResourcesDirectory.RelativeVirtualAddress)); // 28
-            writer.WriteUInt32((uint)corHeader.ResourcesDirectory.Size);
-            writer.WriteUInt32((uint)(corHeader.StrongNameSignatureDirectory.Size == 0 ? 0 : corHeader.StrongNameSignatureDirectory.RelativeVirtualAddress)); // 36
-            writer.WriteUInt32((uint)corHeader.StrongNameSignatureDirectory.Size);
-            writer.WriteUInt32((uint)corHeader.CodeManagerTableDirectory.RelativeVirtualAddress); 
-            writer.WriteUInt32((uint)corHeader.CodeManagerTableDirectory.Size); 
-            writer.WriteUInt32((uint)corHeader.VtableFixupsDirectory.RelativeVirtualAddress); 
-            writer.WriteUInt32((uint)corHeader.VtableFixupsDirectory.Size); 
-            writer.WriteUInt32((uint)corHeader.ExportAddressTableJumpsDirectory.RelativeVirtualAddress);
-            writer.WriteUInt32((uint)corHeader.ExportAddressTableJumpsDirectory.Size);
-            writer.WriteUInt64(0);
-            Debug.Assert(writer.Count == CorHeaderSize);
-            Debug.Assert(writer.Count % 4 == 0);
-
-            writer.WriteContentTo(peStream);
-        }
-
-        private static void WriteSpaceForHash(Stream peStream, int strongNameSignatureSize)
-        {
-            while (strongNameSignatureSize > 0)
-            {
-                peStream.WriteByte(0);
-                strongNameSignatureSize--;
-            }
-        }
-
-        /// <summary>
-        /// Write one entry in the "Debug Directory (Image Only)"
-        /// See https://msdn.microsoft.com/en-us/windows/hardware/gg463119.aspx
-        /// section 5.1.1 (pages 71-72).
-        /// </summary>
-        private static void WriteDebugTableEntry(
-            PooledBlobBuilder writer,
-            byte[] stamp,
-            uint version, // major and minor version, combined
-            uint debugType,
-            uint sizeOfData,
-            uint addressOfRawData,
-            uint pointerToRawData
-            )
-        {
-            writer.WriteUInt32(0); // characteristics
-            Debug.Assert(stamp.Length == 4);
-            writer.WriteBytes(stamp);
-            writer.WriteUInt32(version);
-            writer.WriteUInt32(debugType);
-            writer.WriteUInt32(sizeOfData);
-            writer.WriteUInt32(addressOfRawData);
-            writer.WriteUInt32(pointerToRawData);
-        }
-
-        private readonly static byte[] zeroStamp = new byte[4]; // four bytes of zero
-
-        /// <summary>
-        /// Write the entire "Debug Directory (Image Only)" along with data that it points to.
-        /// </summary>
-        private void WriteDebugTable(Stream peStream, SectionHeader textSection, ContentId nativePdbContentId, ContentId portablePdbContentId, PESizes peSizes)
-        {
-            int tableSize = ImageDebugDirectoryBaseSize;
-            Debug.Assert(tableSize != 0);
-            Debug.Assert(nativePdbContentId.IsDefault || portablePdbContentId.IsDefault);
-            Debug.Assert(!EmitPdb || (nativePdbContentId.IsDefault ^ portablePdbContentId.IsDefault));
-
-            var writer = PooledBlobBuilder.GetInstance();
-
-            int dataSize = ComputeSizeOfDebugDirectoryData();
-            if (this.EmitPdb)
-            {
-                const int IMAGE_DEBUG_TYPE_CODEVIEW = 2; // from PE spec
-                uint dataOffset = (uint)(ComputeOffsetToDebugTable(peSizes) + tableSize);
-                WriteDebugTableEntry(writer,
-                    stamp: nativePdbContentId.Stamp ?? portablePdbContentId.Stamp,
-                    version: portablePdbContentId.IsDefault ? (uint)0 : ('P' << 24 | 'M' << 16 | 0x01 << 8 | 0x00),
-                    debugType: IMAGE_DEBUG_TYPE_CODEVIEW,
-                    sizeOfData: (uint)dataSize,
-                    addressOfRawData: (uint)textSection.RelativeVirtualAddress + dataOffset, // RVA of the data
-                    pointerToRawData: (uint)textSection.PointerToRawData + dataOffset); // position of the data in the PE stream
-            }
-
-            if (this._deterministic)
-            {
-                const int IMAGE_DEBUG_TYPE_NO_TIMESTAMP = 16; // from PE spec
-                WriteDebugTableEntry(writer,
-                    stamp: zeroStamp,
-                    version: 0,
-                    debugType: IMAGE_DEBUG_TYPE_NO_TIMESTAMP,
-                    sizeOfData: 0,
-                    addressOfRawData: 0,
-                    pointerToRawData: 0);
-            }
-
-            // We should now have written all and precisely the data we said we'd write for the table entries.
-            Debug.Assert(writer.Count == tableSize);
-
-            // ====================
-            // The following is additional data beyond the debug directory at the offset `dataOffset`
-            // pointed to by the ImageDebugTypeCodeView entry.
-
-            if (EmitPdb)
-            {
-                writer.WriteByte((byte)'R');
-                writer.WriteByte((byte)'S');
-                writer.WriteByte((byte)'D');
-                writer.WriteByte((byte)'S');
-
-                // PDB id:
-                writer.WriteBytes(nativePdbContentId.Guid ?? portablePdbContentId.Guid);
-
-                // age
-                writer.WriteUInt32(PdbWriter.Age);
-
-                // UTF-8 encoded zero-terminated path to PDB
-                int pathStart = writer.Position;
-                writer.WriteUTF8(_pdbPathOpt, allowUnpairedSurrogates: true);
-                writer.WriteByte(0);
-
-                // padding:
-                writer.WriteBytes(0, Math.Max(0, _minPdbPath - (writer.Position - pathStart)));
-            }
-
-            // We should now have written all and precisely the data we said we'd write for the table and its data.
-            Debug.Assert(writer.Count == tableSize + dataSize);
-
-            writer.WriteContentTo(peStream);
-            writer.Free();
-        }
-
-        private void WriteRuntimeStartupStub(Stream peStream, int importAddressTableRva)
-        {
-            var writer = new BlobBuilder(16);
-            // entry point code, consisting of a jump indirect to _CorXXXMain
-            if (_is32bit)
-            {
-                //emit 0's (nops) to pad the entry point code so that the target address is aligned on a 4 byte boundary.
-                for (uint i = 0, n = (uint)(BitArithmeticUtilities.Align((uint)peStream.Position, 4) - peStream.Position); i < n; i++)
-                {
-                    writer.WriteByte(0);
-                }
-
-                writer.WriteUInt16(0);
-                writer.WriteByte(0xff);
-                writer.WriteByte(0x25); //4
-                writer.WriteUInt32((uint)importAddressTableRva + (uint)_properties.BaseAddress); //8
-            }
-            else
-            {
-                //emit 0's (nops) to pad the entry point code so that the target address is aligned on a 8 byte boundary.
-                for (uint i = 0, n = (uint)(BitArithmeticUtilities.Align((uint)peStream.Position, 8) - peStream.Position); i < n; i++)
-                {
-                    writer.WriteByte(0);
-                }
-
-                writer.WriteUInt32(0);
-                writer.WriteUInt16(0);
-                writer.WriteByte(0xff);
-                writer.WriteByte(0x25); //8
-                writer.WriteUInt64((ulong)importAddressTableRva + _properties.BaseAddress); //16
-            }
-
-            writer.WriteContentTo(peStream);
         }
 
         private void WriteRelocSection(Stream peStream, SectionHeader relocSection, int entryPointAddress)
