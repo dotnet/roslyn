@@ -8,7 +8,6 @@ using Roslyn.Utilities;
 namespace System.Reflection.PortableExecutable
 {
     using CciDirectoryEntry = Microsoft.Cci.DirectoryEntry;
-    using CciCorHeader = Microsoft.Cci.CorHeader;
     using ContentId = Microsoft.Cci.ContentId;
 
     /// <summary>
@@ -41,7 +40,7 @@ namespace System.Reflection.PortableExecutable
         public int MetadataSize { get; }
 
         /// <summary>
-        /// The size of IL stream.
+        /// The size of IL stream (unaligned).
         /// </summary>
         public int ILStreamSize { get; }
 
@@ -144,7 +143,7 @@ namespace System.Reflection.PortableExecutable
             Debug.Assert(ResourceDataSize % 4 == 0);
 
             return
-                ComputeOffsetToMetadata(ILStreamSize) +
+                ComputeOffsetToMetadata() +
                 MetadataSize +
                 ResourceDataSize +
                 StrongNameSignatureSize;
@@ -173,9 +172,9 @@ namespace System.Reflection.PortableExecutable
 
         public int OffsetToILStream => SizeOfImportAddressTable + CorHeaderSize;
 
-        private int ComputeOffsetToMetadata(int ilStreamLength)
+        private int ComputeOffsetToMetadata()
         {
-            return OffsetToILStream + BitArithmeticUtilities.Align(ilStreamLength, 4);
+            return OffsetToILStream + BitArithmeticUtilities.Align(ILStreamSize, 4);
         }
 
         /// <summary>
@@ -300,7 +299,7 @@ namespace System.Reflection.PortableExecutable
             Debug.Assert(resourceBuilder.Count == ResourceDataSize);
             Debug.Assert(resourceBuilder.Count % 4 == 0);
 
-            // TODO: avoid multiple recalculation
+            // TODO: avoid recalculation
             int importTableRva = GetImportTableDirectoryEntry(relativeVirtualAddess).RelativeVirtualAddress;
             int importAddressTableRva = GetImportAddressTableDirectoryEntry(relativeVirtualAddess).RelativeVirtualAddress;
 
@@ -309,8 +308,7 @@ namespace System.Reflection.PortableExecutable
                 WriteImportAddressTable(builder, importTableRva);
             }
 
-            var corHeader = CreateCorHeader(relativeVirtualAddess, entryPointTokenOrRelativeVirtualAddress, corFlags);
-            WriteCorHeader(builder, corHeader);
+            WriteCorHeader(builder, relativeVirtualAddess, entryPointTokenOrRelativeVirtualAddress, corFlags);
 
             // IL:
             ilBuilder.Align(4);
@@ -342,20 +340,6 @@ namespace System.Reflection.PortableExecutable
             builder.LinkSuffix(mappedFieldDataBuilder);
 
             Debug.Assert(builder.Count == ComputeSizeOfTextSection());
-        }
-
-        private CciCorHeader CreateCorHeader(int textSectionRva, int entryPointTokenOrRva, CorFlags corFlags)
-        {
-            int metadataRva = textSectionRva + ComputeOffsetToMetadata(ILStreamSize);
-            int resourcesRva = metadataRva + MetadataSize;
-            int signatureRva = resourcesRva + ResourceDataSize;
-
-            return new CciCorHeader(
-                entryPointTokenOrRelativeVirtualAddress: entryPointTokenOrRva,
-                flags: corFlags,
-                metadataDirectory: new CciDirectoryEntry(metadataRva, MetadataSize),
-                resourcesDirectory: new CciDirectoryEntry(resourcesRva, ResourceDataSize),
-                strongNameSignatureDirectory: new CciDirectoryEntry(signatureRva, StrongNameSignatureSize));
         }
 
         private void WriteImportAddressTable(BlobBuilder builder, int importTableRva)
@@ -435,28 +419,57 @@ namespace System.Reflection.PortableExecutable
             Debug.Assert(builder.Count - start == SizeOfNameTable);
         }
 
-        private static void WriteCorHeader(BlobBuilder builder, CciCorHeader corHeader)
+        private void WriteCorHeader(BlobBuilder builder, int textSectionRva, int entryPointTokenOrRva, CorFlags corFlags)
         {
+            const ushort majorRuntimeVersion = 2;
+            const ushort minorRuntimeVersion = 5;
+
+            int metadataRva = textSectionRva + ComputeOffsetToMetadata();
+            int resourcesRva = metadataRva + MetadataSize;
+            int signatureRva = resourcesRva + ResourceDataSize;
+
             int start = builder.Count;
 
+            // Size:
             builder.WriteUInt32(CorHeaderSize);
-            builder.WriteUInt16(corHeader.MajorRuntimeVersion);
-            builder.WriteUInt16(corHeader.MinorRuntimeVersion);
-            builder.WriteUInt32((uint)corHeader.MetadataDirectory.RelativeVirtualAddress);
-            builder.WriteUInt32((uint)corHeader.MetadataDirectory.Size);
-            builder.WriteUInt32((uint)corHeader.Flags);
-            builder.WriteUInt32((uint)corHeader.EntryPointTokenOrRelativeVirtualAddress);
-            builder.WriteUInt32((uint)(corHeader.ResourcesDirectory.Size == 0 ? 0 : corHeader.ResourcesDirectory.RelativeVirtualAddress)); // 28
-            builder.WriteUInt32((uint)corHeader.ResourcesDirectory.Size);
-            builder.WriteUInt32((uint)(corHeader.StrongNameSignatureDirectory.Size == 0 ? 0 : corHeader.StrongNameSignatureDirectory.RelativeVirtualAddress)); // 36
-            builder.WriteUInt32((uint)corHeader.StrongNameSignatureDirectory.Size);
-            builder.WriteUInt32((uint)corHeader.CodeManagerTableDirectory.RelativeVirtualAddress);
-            builder.WriteUInt32((uint)corHeader.CodeManagerTableDirectory.Size);
-            builder.WriteUInt32((uint)corHeader.VtableFixupsDirectory.RelativeVirtualAddress);
-            builder.WriteUInt32((uint)corHeader.VtableFixupsDirectory.Size);
-            builder.WriteUInt32((uint)corHeader.ExportAddressTableJumpsDirectory.RelativeVirtualAddress);
-            builder.WriteUInt32((uint)corHeader.ExportAddressTableJumpsDirectory.Size);
-            builder.WriteUInt64(0);
+
+            // Version:
+            builder.WriteUInt16(majorRuntimeVersion);
+            builder.WriteUInt16(minorRuntimeVersion);
+
+            // MetadataDirectory:
+            builder.WriteUInt32((uint)metadataRva);
+            builder.WriteUInt32((uint)MetadataSize);
+
+            // COR Flags:
+            builder.WriteUInt32((uint)corFlags);
+
+            // EntryPoint:
+            builder.WriteUInt32((uint)entryPointTokenOrRva);
+
+            // ResourcesDirectory:
+            builder.WriteUInt32((uint)(ResourceDataSize == 0 ? 0 : resourcesRva)); // 28
+            builder.WriteUInt32((uint)ResourceDataSize);
+
+            // StrongNameSignatureDirectory:
+            builder.WriteUInt32((uint)(StrongNameSignatureSize == 0 ? 0 : signatureRva)); // 36
+            builder.WriteUInt32((uint)StrongNameSignatureSize);
+
+            // CodeManagerTableDirectory (not supported):
+            builder.WriteUInt32(0);
+            builder.WriteUInt32(0);
+
+            // VtableFixupsDirectory (not supported):
+            builder.WriteUInt32(0);
+            builder.WriteUInt32(0);
+
+            // ExportAddressTableJumpsDirectory (not supported):
+            builder.WriteUInt32(0);
+            builder.WriteUInt32(0);
+
+            // ManagedNativeHeaderDirectory (not supported):
+            builder.WriteUInt32(0);
+            builder.WriteUInt32(0);
 
             Debug.Assert(builder.Count - start == CorHeaderSize);
             Debug.Assert(builder.Count % 4 == 0);
