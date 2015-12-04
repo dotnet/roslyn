@@ -199,6 +199,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _codeElementTable.Add(nodeKey, element);
         }
 
+        internal void OnCodeElementDeleted(SyntaxNodeKey nodeKey)
+        {
+            _codeElementTable.Remove(nodeKey);
+        }
+
         internal T GetOrCreateCodeElement<T>(SyntaxNode node)
         {
             var nodeKey = CodeModelService.TryGetNodeKey(node);
@@ -612,7 +617,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (codeElement == null)
             {
-                throw new ArgumentException(ServicesVSResources.ElementIsNotValid, "element");
+                throw new ArgumentException(ServicesVSResources.ElementIsNotValid, nameof(element));
             }
 
             codeElement.Delete();

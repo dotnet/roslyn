@@ -3125,6 +3125,23 @@ End Class
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestAddDeleteManyTimes() As Task
+            Dim code =
+<Code>
+Class C$$
+End Class
+</Code>
+
+            Await TestElement(code,
+                Sub(codeClass)
+                    For i = 1 To 100
+                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+                        codeClass.RemoveMember(variable)
+                    Next
+                End Sub)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestExternalClass_ImplementedInterfaces() As Task
             Dim code =
 <Code>

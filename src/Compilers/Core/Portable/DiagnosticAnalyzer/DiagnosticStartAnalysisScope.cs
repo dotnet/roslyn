@@ -74,19 +74,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action, operationKinds);
-            _scope.RegisterOperationAction(this._analyzer, action, operationKinds);
+            _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 
         public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            _scope.RegisterOperationBlockStartAction(this._analyzer, action);
+            _scope.RegisterOperationBlockStartAction(_analyzer, action);
         }
 
         public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            _scope.RegisterOperationBlockAction(this._analyzer, action);
+            _scope.RegisterOperationBlockAction(_analyzer, action);
+        }
+
+        public override void EnableConcurrentExecution()
+        {
+            _scope.EnableConcurrentExecution(_analyzer);
         }
     }
 
@@ -226,10 +231,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class HostSessionStartAnalysisScope : HostAnalysisScope
     {
         private ImmutableArray<CompilationStartAnalyzerAction> _compilationStartActions = ImmutableArray<CompilationStartAnalyzerAction>.Empty;
+        private ImmutableHashSet<DiagnosticAnalyzer> _concurrentAnalyzers = ImmutableHashSet<DiagnosticAnalyzer>.Empty;
 
         public ImmutableArray<CompilationStartAnalyzerAction> CompilationStartActions
         {
             get { return _compilationStartActions; }
+        }
+
+        public bool IsConcurrentAnalyzer(DiagnosticAnalyzer analyzer)
+        {
+            return _concurrentAnalyzers.Contains(analyzer);
         }
 
         public void RegisterCompilationStartAction(DiagnosticAnalyzer analyzer, Action<CompilationStartAnalysisContext> action)
@@ -237,6 +248,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CompilationStartAnalyzerAction analyzerAction = new CompilationStartAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).AddCompilationStartAction(analyzerAction);
             _compilationStartActions = _compilationStartActions.Add(analyzerAction);
+        }
+
+        public void EnableConcurrentExecution(DiagnosticAnalyzer analyzer)
+        {
+            _concurrentAnalyzers = _concurrentAnalyzers.Add(analyzer);
         }
     }
 
@@ -567,6 +583,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.GetOrCreateAnalyzerActions(analyzer).AddOperationBlockAction(analyzerAction);
             _operationBlockActions = _operationBlockActions.Add(analyzerAction);
         }
+
         public void RegisterOperationAction(DiagnosticAnalyzer analyzer, Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             OperationAnalyzerAction analyzerAction = new OperationAnalyzerAction(action, operationKinds, analyzer);
@@ -766,7 +783,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void AddOperationAction(OperationAnalyzerAction action)
         {
-            this._operationActions = this._operationActions.Add(action);
+            _operationActions = _operationActions.Add(action);
         }
 
         /// <summary>
