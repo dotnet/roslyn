@@ -14,35 +14,36 @@ namespace Microsoft.CodeAnalysis.Text
 {
     internal class LargeTextWriter : SourceTextWriter
     {
+        private readonly Encoding _encoding;
+        private readonly SourceHashAlgorithm _checksumAlgorithm;
         private readonly ArrayBuilder<char[]> _chunks;
 
-        private int _currentUsed;
+        private int _bufferSize;
         private char[] _buffer;
-        private int _currentPosition;
+        private int _currentUsed;
 
-        private Encoding _encoding;
-        private SourceHashAlgorithm _checksumAlgorithm;
-
-        public LargeTextWriter(Encoding encoding, SourceHashAlgorithm checksumAlgorithm, int capacity)
+        public LargeTextWriter(Encoding encoding, SourceHashAlgorithm checksumAlgorithm, int length)
         {
             _encoding = encoding;
             _checksumAlgorithm = checksumAlgorithm;
-
-            _chunks = ArrayBuilder<char[]>.GetInstance(1 + capacity / LargeEncodedText.ChunkSize);
-
-            var bufferSize = Math.Min(LargeEncodedText.ChunkSize, capacity);
-            _buffer = new char[bufferSize];
+            _chunks = ArrayBuilder<char[]>.GetInstance(1 + length / LargeText.ChunkSize);
+            _bufferSize = Math.Min(LargeText.ChunkSize, length);
         }
 
         public override SourceText ToSourceText()
         {
             this.Flush();
-            return new LargeEncodedText(_chunks.ToImmutableAndFree(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm);
+            return new LargeText(_chunks.ToImmutableAndFree(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm);
         }
 
         public override Encoding Encoding
         {
             get { return _encoding; }
+        }
+
+        public bool CanFitInAllocatedBuffer(int chars)
+        {
+            return _buffer != null && chars <= (_buffer.Length - _currentUsed);
         }
 
         public override void Write(char value)
@@ -67,6 +68,8 @@ namespace Microsoft.CodeAnalysis.Text
 
                 while (count > 0)
                 {
+                    EnsureBuffer();
+
                     var remaining = _buffer.Length - _currentUsed;
                     var copy = Math.Min(remaining, count);
 
@@ -84,24 +87,26 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override void Write(char[] buffer, int index, int count)
+        public override void Write(char[] chars, int index, int count)
         {
-            if (index < 0 || index >= buffer.Length)
+            if (index < 0 || index >= chars.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            if (count < 0 || count > buffer.Length - index)
+            if (count < 0 || count > chars.Length - index)
             {
                 throw new ArgumentOutOfRangeException(nameof(count));
             }
 
             while (count > 0)
             {
+                EnsureBuffer();
+
                 var remaining = _buffer.Length - _currentUsed;
                 var copy = Math.Min(remaining, count);
 
-                Array.Copy(buffer, index, _buffer, _currentUsed, copy);
+                Array.Copy(chars, index, _buffer, _currentUsed, copy);
                 _currentUsed += copy;
                 index += copy;
                 count -= copy;
@@ -118,8 +123,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         internal void AppendChunk(char[] chunk)
         {
-            var remaining = _buffer.Length - _currentUsed;
-            if (chunk.Length < remaining)
+            if (CanFitInAllocatedBuffer(chunk.Length))
             {
                 this.Write(chunk, 0, chunk.Length);
             }
@@ -127,20 +131,29 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 this.Flush();
                 _chunks.Add(chunk);
-                _currentPosition += chunk.Length;
             }
         }
 
         public override void Flush()
         {
-            if (_currentUsed > 0)
+            if (_buffer != null && _currentUsed > 0)
             {
-                var text = new char[_currentUsed];
-                Array.Copy(_buffer, text, _currentUsed);
-                _chunks.Add(text);
-                Array.Clear(_buffer, 0, _currentUsed);
-                _currentPosition += _currentUsed;
+                if (_currentUsed < _buffer.Length)
+                {
+                    Array.Resize(ref _buffer, _currentUsed);
+                }
+
+                _chunks.Add(_buffer);
+                _buffer = null;
                 _currentUsed = 0;
+            }
+        }
+
+        private void EnsureBuffer()
+        {
+            if (_buffer == null)
+            {
+                _buffer = new char[_bufferSize];
             }
         }
     }

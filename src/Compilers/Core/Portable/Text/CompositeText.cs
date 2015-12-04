@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Text
     {
         private readonly ImmutableArray<SourceText> _segments;
         private readonly int _length;
-        private readonly int _size;
+        private readonly int _storageSize;
+        private readonly int[] _segmentOffsets;
         private readonly Encoding _encoding;
 
         private CompositeText(ImmutableArray<SourceText> segments, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
@@ -29,7 +30,15 @@ namespace Microsoft.CodeAnalysis.Text
             _segments = segments;
             _encoding = encoding;
 
-            ComputeLengthAndSize(segments, out _length, out _size);
+            ComputeLengthAndStorageSize(segments, out _length, out _storageSize);
+
+            _segmentOffsets = new int[segments.Length];
+            int offset = 0;
+            for (int i = 0; i < _segmentOffsets.Length; i++)
+            {
+                _segmentOffsets[i] = offset;
+                offset += _segments[i].Length;
+            }
         }
 
         public override Encoding Encoding
@@ -42,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Text
             get { return _length; }
         }
 
-        internal override int Size
+        internal override int StorageSize
         {
-            get { return _size; }
+            get { return _storageSize; }
         }
 
         internal override ImmutableArray<SourceText> Segments
@@ -92,34 +101,10 @@ namespace Microsoft.CodeAnalysis.Text
 
         private void GetIndexAndOffset(int position, out int index, out int offset)
         {
-#if false
-            // TODO: not sure if this is necessary if number of segments is constrained.
-
             // Binary search to find the chunk that contains the given position.
             int idx = _segmentOffsets.BinarySearch(position);
             index = idx >= 0 ? idx : (~idx - 1);
             offset = position - _segmentOffsets[index];
-
-#else
-            for (int i = 0; i < _segments.Length; i++)
-            {
-                var segment = _segments[i];
-                if (position < segment.Length)
-                {
-                    index = i;
-                    offset = position;
-                    return;
-                }
-                else
-                {
-                    position -= segment.Length;
-                }
-            }
-
-            index = 0;
-            offset = 0;
-            throw new ArgumentException("position");
-#endif
         }
 
         /// <summary>
@@ -184,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Text
             if (adjustSegments)
             {
                 TrimInaccessibleText(segments);
-                ReduceSegmentCount(segments);
+                ReduceSegmentCountIfNecessary(segments);
             }
 
             if (segments.Count == 0)
@@ -204,55 +189,93 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        internal const int IDEAL_SEGMENT_COUNT = 10;
-        internal const int MAXIMUM_SEGMENT_COUNT = 20;
+        // both of these numbers are currently arbitrary.
+        internal const int TARGET_SEGMENT_COUNT_AFTER_REDUCTION = 32;
+        internal const int MAXIMUM_SEGMENT_COUNT_BEFORE_REDUCTION = 64;
 
         /// <summary>
-        /// Reduces the number of segments toward the ideal number of segments.
+        /// Reduces the number of segments toward the target number of segments,
+        /// if the number of regments is deemed to be too large (beyond the maximum).
         /// </summary>
-        private static void ReduceSegmentCount(ArrayBuilder<SourceText> segments)
+        private static void ReduceSegmentCountIfNecessary(ArrayBuilder<SourceText> segments)
         {
-            if (segments.Count > MAXIMUM_SEGMENT_COUNT)
+            if (segments.Count > MAXIMUM_SEGMENT_COUNT_BEFORE_REDUCTION)
             {
-                var minimumSegmentSize = GetMinimalSegmentSize(segments);
-                if (minimumSegmentSize > 0)
-                {
-                    CombineSegments(segments, minimumSegmentSize);
-                }
+                var segmentSize = GetMinimalSegmentSizeToUseForCombining(segments);
+                CombineSegments(segments, segmentSize);
             }
         }
 
-        private const int INITIAL_SEGMENT_SIZE = 32;        // allow combining if each text segment size is less than this
-        private const int MAXIMUM_SEGMENT_SIZE = int.MaxValue / 16; // give up on reducing if segment sizes are all greater than this
+        // Allow combining segments if each has a size less than or equal to this amount.
+        // This is some arbitrary number deemed to be small
+        private const int INITIAL_SEGMENT_SIZE_FOR_COMBINING = 32;
+
+        // Segments must be less than (or equal) to this size to be combined with other segments.
+        // This is some arbitrary number that is a fraction of max int.
+        private const int MAXIMUM_SEGMENT_SIZE_FOR_COMBINING = int.MaxValue / 16; 
 
         /// <summary>
-        /// Gets the minimal segment size used to determine which segments are eligible to be combined with their neighbors.
+        /// Determines the segment size to use for call to CombineSegments, that will result in the segment count
+        /// being reduced to less than or equal to the target segment count.
         /// </summary>
-        private static int GetMinimalSegmentSize(ArrayBuilder<SourceText> segments)
+        private static int GetMinimalSegmentSizeToUseForCombining(ArrayBuilder<SourceText> segments)
         {
             // find the minimal segment size that reduces enough segments to less that or equal to the ideal segment count
-            for (var minimumSegmentSize = INITIAL_SEGMENT_SIZE;
-                minimumSegmentSize <= MAXIMUM_SEGMENT_SIZE;
-                minimumSegmentSize *= 2)
+            for (var segmentSize = INITIAL_SEGMENT_SIZE_FOR_COMBINING;
+                segmentSize <= MAXIMUM_SEGMENT_SIZE_FOR_COMBINING;
+                segmentSize *= 2)
             {
-                if (GetReducedSize(segments, minimumSegmentSize) <= IDEAL_SEGMENT_COUNT)
+                if (GetSegmentCountIfCombined(segments, segmentSize) <= TARGET_SEGMENT_COUNT_AFTER_REDUCTION)
                 {
-                    return minimumSegmentSize;
+                    return segmentSize;
                 }
             }
 
-            // cannot find an appropriate size for segments to be combined.
-            return -1;
+            return MAXIMUM_SEGMENT_SIZE_FOR_COMBINING;
         }
 
         /// <summary>
-        /// Combines continguous segments with lengths that are each less than or equal to the minimum segment size.
+        /// Determines the segment count that would result if the segments of size less than or equal to 
+        /// the specified segment size were to be combined.
         /// </summary>
-        private static void CombineSegments(ArrayBuilder<SourceText> segments, int minimumSegmentSize)
+        private static int GetSegmentCountIfCombined(ArrayBuilder<SourceText> segments, int segmentSize)
+        {
+            int numberOfSegmentsReduced = 0;
+
+            for (int i = 0; i < segments.Count - 1; i++)
+            {
+                if (segments[i].Length <= segmentSize)
+                {
+                    // count how many contiguous segments can be combined
+                    int count = 1;
+                    for (int j = i + 1; j < segments.Count; j++)
+                    {
+                        if (segments[j].Length <= segmentSize)
+                        {
+                            count++;
+                        }
+                    }
+
+                    if (count > 1)
+                    {
+                        var removed = count - 1;
+                        numberOfSegmentsReduced += removed;
+                        i += removed;
+                    }
+                }
+            }
+
+            return segments.Count - numberOfSegmentsReduced;
+        }
+
+        /// <summary>
+        /// Combines continguous segments with lengths that are each less than or equal to the specified segment size.
+        /// </summary>
+        private static void CombineSegments(ArrayBuilder<SourceText> segments, int segmentSize)
         {
             for (int i = 0; i < segments.Count - 1; i++)
             {
-                if (segments[i].Length <= minimumSegmentSize)
+                if (segments[i].Length <= segmentSize)
                 {
                     int combinedLength = segments[i].Length;
 
@@ -260,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Text
                     int count = 1;
                     for (int j = i + 1; j < segments.Count; j++)
                     {
-                        if (segments[j].Length <= minimumSegmentSize)
+                        if (segments[j].Length <= segmentSize)
                         {
                             count++;
                             combinedLength += segments[j].Length;
@@ -290,49 +313,15 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        /// <summary>
-        /// Determines the total number of segments that would remain if the contiguous segments of length less than or equal to
-        /// the minimum segment size are combined together.
-        /// </summary>
-        private static int GetReducedSize(ArrayBuilder<SourceText> segments, int minimumSegmentSize)
-        {
-            int numberOfSegmentsReduced = 0;
-
-            for (int i = 0; i < segments.Count - 1; i++)
-            {
-                if (segments[i].Length <= minimumSegmentSize)
-                {
-                    // count how many contiguous segments are reducible
-                    int count = 1;
-                    for (int j = i + 1; j < segments.Count; j++)
-                    {
-                        if (segments[j].Length <= minimumSegmentSize)
-                        {
-                            count++;
-                        }
-                    }
-
-                    if (count > 1)
-                    {
-                        var removed = count - 1;
-                        numberOfSegmentsReduced += removed;
-                        i += removed;
-                    }
-                }
-            }
-
-            return segments.Count - numberOfSegmentsReduced;
-        }
-
-        private static ObjectPool<HashSet<SourceText>> _uniqueSourcesPool
-            = new ObjectPool<HashSet<SourceText>>(() => new HashSet<SourceText>(), 10);
+        private static ObjectPool<HashSet<SourceText>> s_uniqueSourcesPool
+            = new ObjectPool<HashSet<SourceText>>(() => new HashSet<SourceText>(), 5);
 
         /// <summary>
         /// Compute total text length and total size of storage buffers held
         /// </summary>
-        private static void ComputeLengthAndSize(IReadOnlyList<SourceText> segments, out int length, out int size)
+        private static void ComputeLengthAndStorageSize(IReadOnlyList<SourceText> segments, out int length, out int size)
         {
-            var uniqueSources = _uniqueSourcesPool.Allocate();
+            var uniqueSources = s_uniqueSourcesPool.Allocate();
 
             length = 0;
             for (int i = 0; i < segments.Count; i++)
@@ -345,11 +334,11 @@ namespace Microsoft.CodeAnalysis.Text
             size = 0;
             foreach (var segment in uniqueSources)
             {
-                size += segment.Size;
+                size += segment.StorageSize;
             }
 
             uniqueSources.Clear();
-            _uniqueSourcesPool.Free(uniqueSources);
+            s_uniqueSourcesPool.Free(uniqueSources);
         }
 
         /// <summary>
@@ -358,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Text
         private static void TrimInaccessibleText(ArrayBuilder<SourceText> segments)
         {
             int length, size;
-            ComputeLengthAndSize(segments, out length, out size);
+            ComputeLengthAndStorageSize(segments, out length, out size);
 
             // if more than half of the storage is unused, compress into a single new segment
             if (length < size / 2)

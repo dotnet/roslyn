@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public sealed class EncodedStringTextTests : TestBase
+    public sealed class StringTextDecodingTests : TestBase
     {
         private static SourceText CreateMemoryStreamBasedEncodedText(string text, Encoding writeEncoding, Encoding readEncodingOpt, SourceHashAlgorithm algorithm = SourceHashAlgorithm.Sha1)
         {

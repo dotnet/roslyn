@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override int Length => UnderlyingSpan.Length;
 
-        internal override int Size
+        internal override int StorageSize
         {
-            get { return this.UnderlyingText.Size; }
+            get { return this.UnderlyingText.StorageSize; }
         }
 
         internal override SourceText StorageKey

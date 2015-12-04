@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Text
             // If the resulting string would end up on the large object heap, then use LargeEncodedText.
             if (encoding.GetMaxCharCount((int)stream.Length) >= LargeObjectHeapLimitInChars)
             {
-                return LargeEncodedText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected);
+                return LargeText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected);
             }
 
             string text = Decode(stream, encoding, out encoding);
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// The size of the storage representation of the text (in characters).
         /// This can differ from length when storage buffers are reused to represent fragments/subtext.
         /// </summary>
-        internal virtual int Size
+        internal virtual int StorageSize
         {
             get { return this.Length; }
         }
@@ -644,11 +644,6 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        internal bool HasComputedLineInfo
-        {
-            get { return _lazyLineInfo != null; }
-        }
-
         /// <summary>
         /// Called from <see cref="Lines"/> to initialize the <see cref="TextLineCollection"/>. Thereafter,
         /// the collection is cached.
@@ -740,55 +735,96 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+        private void EnumerateChars(Action<int, char[], int> action)
+        {
+            var position = 0;
+            var buffer = s_charArrayPool.Allocate();
+
+            var length = this.Length;
+            while (position < length)
+            {
+                var contentLength = Math.Min(length - position, buffer.Length);
+                this.CopyTo(position, buffer, 0, contentLength);
+                action(position, buffer, contentLength);
+                position += contentLength;
+            }
+
+            // once more with zero length to signal the end
+            action(position, buffer, 0);
+
+            s_charArrayPool.Free(buffer);
+        }
+
         private int[] ParseLineStarts()
         {
-            int length = this.Length;
-
             // Corner case check
             if (0 == this.Length)
             {
                 return new[] { 0 };
             }
 
-            var position = 0;
-            var index = 0;
-            var arrayBuilder = ArrayBuilder<int>.GetInstance();
+            var lineStarts = ArrayBuilder<int>.GetInstance();
+            lineStarts.Add(0); // there is always the first line
+
+            var lastWasCR = false;
 
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks
             // and non-line breaks.
-            while (index < length)
+            EnumerateChars((int position, char[] buffer, int length) =>
             {
-                char c = this[index++];
-
-                // Common case - ASCII & not a line break
-                // if (c > '\r' && c <= 127)
-                // if (c >= ('\r'+1) && c <= 127)
-                const uint bias = '\r' + 1;
-                if (unchecked(c - bias) <= (127 - bias))
+                var index = 0;
+                if (lastWasCR)
                 {
-                    continue;
+                    if (buffer.Length > 0 && buffer[0] == '\n')
+                    {
+                        index++;
+                    }
+
+                    lineStarts.Add(position + index);
+                    lastWasCR = false;
                 }
 
-                // Assumes that the only 2-char line break sequence is CR+LF
-                if (c == '\r' && index < length && this[index] == '\n')
+                while (index < length)
                 {
+                    char c = buffer[index];
                     index++;
+
+                    // Common case - ASCII & not a line break
+                    // if (c > '\r' && c <= 127)
+                    // if (c >= ('\r'+1) && c <= 127)
+                    const uint bias = '\r' + 1;
+                    if (unchecked(c - bias) <= (127 - bias))
+                    {
+                        continue;
+                    }
+
+                    // Assumes that the only 2-char line break sequence is CR+LF
+                    if (c == '\r')
+                    {
+                        if (index < length && buffer[index] == '\n')
+                        {
+                            index++;
+                        }
+                        else if (index >= length)
+                        {
+                            lastWasCR = true;
+                            continue;
+                        }
+                    }
+                    else if (!TextUtilities.IsAnyLineBreakCharacter(c))
+                    {
+                        continue;
+                    }
+
+                    // next line starts at index
+                    lineStarts.Add(position + index);
                 }
-                else if (!TextUtilities.IsAnyLineBreakCharacter(c))
-                {
-                    continue;
-                }
+            });
 
-                arrayBuilder.Add(position);
-                position = index;
-            }
-
-            // Create a start for the final line.  
-            arrayBuilder.Add(position);
-
-            return arrayBuilder.ToArrayAndFree();
+            return lineStarts.ToArrayAndFree();
         }
+        #endregion
 
         /// <summary>
         /// Compares the content with content of another <see cref="SourceText"/>.
@@ -861,8 +897,6 @@ namespace Microsoft.CodeAnalysis.Text
                 s_charArrayPool.Free(buffer1);
             }
         }
-
-        #endregion
 
         /// <summary>
         /// Detect an encoding by looking for byte order marks.

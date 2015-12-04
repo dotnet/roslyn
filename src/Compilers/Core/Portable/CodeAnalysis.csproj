@@ -674,7 +674,7 @@
     <Compile Include="Syntax\TranslationSyntaxReference.cs" />
     <Compile Include="Text\ChangedText.cs" />
     <Compile Include="Text\CompositeText.cs" />
-    <Compile Include="Text\LargeEncodedText.cs" />
+    <Compile Include="Text\LargeText.cs" />
     <Compile Include="Text\LinePosition.cs" />
     <Compile Include="Text\LinePositionSpan.cs" />
     <Compile Include="Text\SourceHashAlgorithm.cs" />

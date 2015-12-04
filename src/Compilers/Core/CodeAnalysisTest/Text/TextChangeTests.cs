@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
@@ -352,7 +353,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var len = text.Length;
             Assert.Equal(1024, len);
 
-            Assert.True(text.Size < text.Length * 2);
+            Assert.True(text.StorageSize < text.Length * 2);
         }
 
         [Fact]
@@ -361,12 +362,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
 
             Assert.Equal(26, text.Length);
-            Assert.Equal(26, text.Size);
+            Assert.Equal(26, text.StorageSize);
 
             var subtext = text.GetSubText(new TextSpan(5, 10));
             Assert.Equal(10, subtext.Length);
             Assert.Equal("fghijklmno", subtext.ToString());
-            Assert.Equal(26, subtext.Size);
+            Assert.Equal(26, subtext.StorageSize);
         }
 
         [Fact]
@@ -377,7 +378,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var newText = text.Replace(new TextSpan(0, 20), "");
 
             Assert.Equal(6, newText.Length);
-            Assert.Equal(6, newText.Size);
+            Assert.Equal(6, newText.StorageSize);
         }
 
         [Fact]
@@ -388,7 +389,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var newText = text.Replace(new TextSpan(10, 6), "");
 
             Assert.Equal(20, newText.Length);
-            Assert.Equal(26, newText.Size);
+            Assert.Equal(26, newText.StorageSize);
         }
 
         [Fact]
@@ -400,7 +401,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var newText = text.Replace(new TextSpan(10, 1), "");
 
             Assert.Equal(25, newText.Length);
-            Assert.Equal(26, newText.Size);
+            Assert.Equal(26, newText.StorageSize);
 
             Assert.Equal(2, newText.Segments.Length);
             Assert.Equal("abcdefghij", newText.Segments[0].ToString());
@@ -432,12 +433,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(0, text.Segments.Length);
             var textWithSegments = text.Replace(new TextSpan(10, 0), "*");
             Assert.Equal(27, textWithSegments.Length);
-            Assert.Equal(27, textWithSegments.Size);
+            Assert.Equal(27, textWithSegments.StorageSize);
 
             var textWithFewerSegments = textWithSegments.Replace(new TextSpan(9, 3), "");
             Assert.Equal("abcdefghilmnopqrstuvwxyz", textWithFewerSegments.ToString());
             Assert.Equal(24, textWithFewerSegments.Length);
-            Assert.Equal(26, textWithFewerSegments.Size);
+            Assert.Equal(26, textWithFewerSegments.StorageSize);
 
             Assert.Equal(2, textWithFewerSegments.Segments.Length);
             Assert.Equal("abcdefghi", textWithFewerSegments.Segments[0].ToString());
@@ -452,7 +453,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(0, text.Segments.Length);
             var textWithSegments = text.Replace(new TextSpan(0, text.Length), "");
             Assert.Equal(0, textWithSegments.Length);
-            Assert.Equal(0, textWithSegments.Size);
+            Assert.Equal(0, textWithSegments.StorageSize);
         }
 
         [Fact]
@@ -540,6 +541,66 @@ namespace Microsoft.CodeAnalysis.UnitTests
             secondEdit = firstEdit.Replace(11, 3, "newer");
 
             weakFirstEdit = new WeakReference(firstEdit);
+        }
+
+        [Fact]
+        public void TestLargeTextWriterReusesLargeChunks()
+        {
+            var chunk1 = "this is the large text".ToArray();
+            var largeText = CreateLargeText(chunk1);
+
+            // chunks are considered large because they are bigger than the expected size
+            var writer = new LargeTextWriter(largeText.Encoding, largeText.ChecksumAlgorithm, 10);
+            largeText.Write(writer);
+
+            var newText = (LargeText)writer.ToSourceText();
+            Assert.NotSame(largeText, newText);
+
+            Assert.Equal(1, GetChunks(newText).Length);
+            Assert.Same(chunk1, GetChunks(newText)[0]);
+        }
+
+        private SourceText CreateLargeText(params char[][] chunks)
+        {
+            return new LargeText(ImmutableArray.Create(chunks), Encoding.UTF8, default(ImmutableArray<byte>), SourceHashAlgorithm.Sha256);
+        }
+
+        private ImmutableArray<char[]> GetChunks(SourceText text)
+        {
+            var largeText = text as LargeText;
+            if (largeText != null)
+            {
+                var chunkField = text.GetType().GetField("_chunks", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                return (ImmutableArray<char[]>)chunkField.GetValue(text);
+            }
+            else
+            {
+                return ImmutableArray<char[]>.Empty;
+            }
+        }
+
+        [Fact]
+        public void TestLargeTextWriterDoesNotResuseSmallChunks()
+        {
+            var text = SourceText.From("small preamble");
+            var chunk1 = "this is the large text".ToArray();
+            var largeText = CreateLargeText(chunk1);
+
+            // chunks are considered small because they fit within the buffer (which is the expected length for this test)
+            var writer = new LargeTextWriter(largeText.Encoding, largeText.ChecksumAlgorithm, chunk1.Length * 4);
+
+            // write preamble so buffer is allocated and has contents.
+            text.Write(writer); 
+
+            // large text fits within the remaining buffer
+            largeText.Write(writer);
+
+            var newText = (LargeText)writer.ToSourceText();
+            Assert.NotSame(largeText, newText);
+            Assert.Equal(text.Length + largeText.Length, newText.Length);
+
+            Assert.Equal(1, GetChunks(newText).Length);
+            Assert.NotSame(chunk1, GetChunks(newText)[0]);
         }
     }
 }

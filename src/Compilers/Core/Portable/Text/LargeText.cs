@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// A <see cref="SourceText"/> optimized for very large sources. The text is stored as
     /// a list of chunks (char arrays).
     /// </summary>
-    internal sealed class LargeEncodedText : SourceText
+    internal sealed class LargeText : SourceText
     {
         /// <remarks>
         /// internal for unit testing
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly int _length;
         private readonly Encoding _encoding;
 
-        internal LargeEncodedText(ImmutableArray<char[]> chunks, Encoding encoding, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm)
+        internal LargeText(ImmutableArray<char[]> chunks, Encoding encoding, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm)
             : base(checksum, checksumAlgorithm)
         {
             _chunks = chunks;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Text
                     chunks.Add(chunk);
                 }
 
-                return new LargeEncodedText(chunks.ToImmutableAndFree(), reader.CurrentEncoding, default(ImmutableArray<byte>), checksumAlgorithm);
+                return new LargeText(chunks.ToImmutableAndFree(), reader.CurrentEncoding, default(ImmutableArray<byte>), checksumAlgorithm);
             }
         }
 
