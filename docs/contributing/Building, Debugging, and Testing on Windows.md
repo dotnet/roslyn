@@ -93,4 +93,4 @@ version and clicking Uninstall.
 
 # Contributing
 
-Please see [Contributing Code](https://github.com/dotnet/wiki/Contributing-Code) for details on contributing changes back to the code.
+Please see [Contributing Code](https://github.com/dotnet/roslyn/wiki/Contributing-Code) for details on contributing changes back to the code.
