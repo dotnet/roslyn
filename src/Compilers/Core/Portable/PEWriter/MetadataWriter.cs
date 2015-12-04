@@ -459,9 +459,6 @@ namespace Microsoft.Cci
         internal static readonly string[,] dummyAssemblyAttributeParentQualifier = { { "", "M" }, { "S", "SM" } };
         private readonly uint[,] _dummyAssemblyAttributeParent = { { 0, 0 }, { 0, 0 } };
 
-        internal const int MappedFieldDataAlignment = 8;
-        internal const int ManagedResourcesDataAlignment = 8;
-
         internal IModule Module => module;
 
         private void CreateMethodBodyReferenceIndex()
@@ -1840,7 +1837,7 @@ namespace Microsoft.Cci
             int pdbIdOffsetInMetadataStream;
             int entryPointToken;
 
-            PESizes peSizes; 
+            ManagedTextSection textSection; 
             SerializeMetadataAndIL(
                 metadataWriter,
                 default(BlobBuilder),
@@ -1848,13 +1845,15 @@ namespace Microsoft.Cci
                 ilWriter,
                 mappedFieldDataWriter,
                 managedResourceDataWriter,
-                methodBodyStreamRva: 0,
-                calculateMappedFieldDataStreamRva: _ => 0,
+                imageCharacteristics: default(Characteristics),
+                machine: default(Machine),
+                textSectionRva: -1,
+                pdbPathOpt: null,
                 moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream,
                 pdbIdOffsetInPortablePdbStream: out pdbIdOffsetInMetadataStream,
-                peSizes: out peSizes,
-                metadataSizes: out metadataSizes,
-                entryPointToken: out entryPointToken);
+                entryPointToken: out entryPointToken,
+                textSection: out textSection,
+                metadataSizes: out metadataSizes);
 
             ilWriter.WriteContentTo(ilStream);
             metadataWriter.WriteContentTo(metadataStream);
@@ -1872,12 +1871,14 @@ namespace Microsoft.Cci
             BlobBuilder ilWriter,
             BlobBuilder mappedFieldDataWriter,
             BlobBuilder managedResourceDataWriter,
-            int methodBodyStreamRva,
-            Func<PESizes, int> calculateMappedFieldDataStreamRva,
+            Characteristics imageCharacteristics,
+            Machine machine,
+            int textSectionRva,
+            string pdbPathOpt,
             out int moduleVersionIdOffsetInMetadataStream,
             out int pdbIdOffsetInPortablePdbStream,
             out int entryPointToken,
-            out PESizes peSizes,
+            out ManagedTextSection textSection,
             out MetadataSizes metadataSizes)
         {
             // Extract information from object model into tables, indices and streams
@@ -1934,15 +1935,34 @@ namespace Microsoft.Cci
             var serializer = new TypeSystemMetadataSerializer(builder, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
 
             metadataSizes = serializer.MetadataSizes;
+            
+            int methodBodyStreamRva;
+            int mappedFieldDataStreamRva;
 
-            peSizes = new PESizes(
-                metadataSizes.MetadataSize,
-                ilStreamSize: ilWriter.Count,
-                mappedFieldDataSize: mappedFieldDataWriter.Count,
-                resourceDataSize: managedResourceDataWriter.Count,
-                strongNameSignatureSize: CalculateStrongNameSignatureSize(module));
+            if (textSectionRva >= 0)
+            {
+                textSection = new ManagedTextSection(
+                    metadataSizes.MetadataSize,
+                    ilStreamSize: ilWriter.Count,
+                    mappedFieldDataSize: mappedFieldDataWriter.Count,
+                    resourceDataSize: managedResourceDataWriter.Count,
+                    strongNameSignatureSize: CalculateStrongNameSignatureSize(module),
+                    imageCharacteristics: imageCharacteristics,
+                    machine: machine,
+                    pdbPathOpt: pdbPathOpt,
+                    isDeterministic: _deterministic);
 
-            serializer.SerializeMetadata(metadataWriter, methodBodyStreamRva, calculateMappedFieldDataStreamRva(peSizes));
+                methodBodyStreamRva = textSectionRva + textSection.OffsetToILStream;
+                mappedFieldDataStreamRva = textSectionRva + textSection.CalculateOffsetToMappedFieldDataStream();
+            }
+            else
+            {
+                textSection = null;
+                methodBodyStreamRva = 0;
+                mappedFieldDataStreamRva = 0;
+            }
+
+            serializer.SerializeMetadata(metadataWriter, methodBodyStreamRva, mappedFieldDataStreamRva);
             moduleVersionIdOffsetInMetadataStream = serializer.ModuleVersionIdOffset;
 
             if (!EmitStandaloneDebugMetadata)
@@ -2440,7 +2460,7 @@ namespace Microsoft.Cci
 
                 int rva = mappedFieldDataWriter.Position;
                 mappedFieldDataWriter.WriteBytes(fieldDef.MappedData);
-                mappedFieldDataWriter.Align(MappedFieldDataAlignment);
+                mappedFieldDataWriter.Align(ManagedTextSection.MappedFieldDataAlignment);
 
                 builder.AddFieldRelativeVirtualAddress(
                     fieldDefinitionRowId: GetFieldDefIndex(fieldDef),
@@ -2612,7 +2632,7 @@ namespace Microsoft.Cci
             }
 
             // the stream should be aligned:
-            Debug.Assert((resourceDataWriter.Count % ManagedResourcesDataAlignment) == 0);
+            Debug.Assert((resourceDataWriter.Count % ManagedTextSection.ManagedResourcesDataAlignment) == 0);
         }
 
         private void PopulateMemberRefTableRows()
