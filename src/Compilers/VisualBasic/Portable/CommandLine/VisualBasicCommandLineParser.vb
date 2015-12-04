@@ -135,7 +135,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim includeVbRuntimeReference As Boolean = True
             Dim generalDiagnosticOption As ReportDiagnostic = ReportDiagnostic.Default
             Dim pathMap As ImmutableArray(Of KeyValuePair(Of String, String)) = ImmutableArray(Of KeyValuePair(Of String, String)).Empty
-            Dim interactiveMode As Boolean = False
 
             ' Diagnostic ids specified via /nowarn /warnaserror must be processed in case-insensitive fashion.
             Dim specificDiagnosticOptionsFromRuleSet = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
@@ -408,17 +407,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             sourcePaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
-
-                        Case "i", "i+"
-                            If value IsNot Nothing Then Exit Select
-                            interactiveMode = True
-                            Continue For
-
-                        Case "i-"
-                            If value IsNot Nothing Then Exit Select
-                            interactiveMode = False
-                            Continue For
-
                     End Select
                 Else
                     Select Case name
@@ -1284,7 +1272,6 @@ lVbRuntimePlus:
             Return New VisualBasicCommandLineArguments With
             {
                 .IsScriptRunner = IsScriptRunner,
-                .InteractiveMode = interactiveMode OrElse (IsScriptRunner AndAlso sourceFiles.Count = 0),
                 .BaseDirectory = baseDirectory,
                 .Errors = diagnostics.AsImmutable(),
                 .Utf8Output = utf8output,
