@@ -1865,12 +1865,12 @@ namespace Microsoft.Cci
         }
 
         public void SerializeMetadataAndIL(
-            BlobBuilder metadataWriter,
-            BlobBuilder debugMetadataWriterOpt,
+            BlobBuilder metadataBuilder,
+            BlobBuilder debugMetadataBuilderOpt,
             PdbWriter nativePdbWriterOpt,
-            BlobBuilder ilWriter,
-            BlobBuilder mappedFieldDataWriter,
-            BlobBuilder managedResourceDataWriter,
+            BlobBuilder ilBuilder,
+            BlobBuilder mappedFieldDataBuilder,
+            BlobBuilder managedResourceDataBuilder,
             Characteristics imageCharacteristics,
             Machine machine,
             int textSectionRva,
@@ -1889,7 +1889,7 @@ namespace Microsoft.Cci
                 DefineModuleImportScope();
             }
 
-            int[] methodBodyRvas = SerializeMethodBodies(ilWriter, nativePdbWriterOpt);
+            int[] methodBodyRvas = SerializeMethodBodies(ilBuilder, nativePdbWriterOpt);
 
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -1898,7 +1898,7 @@ namespace Microsoft.Cci
 
             ReportReferencesToAddedSymbols();
 
-            PopulateTables(methodBodyRvas, mappedFieldDataWriter, managedResourceDataWriter);
+            PopulateTables(methodBodyRvas, mappedFieldDataBuilder, managedResourceDataBuilder);
 
             int debugEntryPointToken;
             if (IsFullMetadata)
@@ -1943,9 +1943,9 @@ namespace Microsoft.Cci
             {
                 textSection = new ManagedTextSection(
                     metadataSizes.MetadataSize,
-                    ilStreamSize: ilWriter.Count,
-                    mappedFieldDataSize: mappedFieldDataWriter.Count,
-                    resourceDataSize: managedResourceDataWriter.Count,
+                    ilStreamSize: ilBuilder.Count,
+                    mappedFieldDataSize: mappedFieldDataBuilder.Count,
+                    resourceDataSize: managedResourceDataBuilder.Count,
                     strongNameSignatureSize: CalculateStrongNameSignatureSize(module),
                     imageCharacteristics: imageCharacteristics,
                     machine: machine,
@@ -1962,7 +1962,7 @@ namespace Microsoft.Cci
                 mappedFieldDataStreamRva = 0;
             }
 
-            serializer.SerializeMetadata(metadataWriter, methodBodyStreamRva, mappedFieldDataStreamRva);
+            serializer.SerializeMetadata(metadataBuilder, methodBodyStreamRva, mappedFieldDataStreamRva);
             moduleVersionIdOffsetInMetadataStream = serializer.ModuleVersionIdOffset;
 
             if (!EmitStandaloneDebugMetadata)
@@ -1974,7 +1974,7 @@ namespace Microsoft.Cci
             Debug.Assert(_debugBuilderOpt != null);
 
             var debugSerializer = new StandaloneDebugMetadataSerializer(_debugBuilderOpt, metadataSizes.RowCounts, debugEntryPointToken, IsMinimalDelta);
-            debugSerializer.SerializeMetadata(debugMetadataWriterOpt);
+            debugSerializer.SerializeMetadata(debugMetadataBuilderOpt);
             pdbIdOffsetInPortablePdbStream = debugSerializer.PdbIdOffset;
         }
 
