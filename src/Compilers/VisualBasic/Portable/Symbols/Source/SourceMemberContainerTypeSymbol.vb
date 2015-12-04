@@ -1397,24 +1397,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                ' PERF: Declaring references are cached for compilations with event queue.
-                Return If(Me.DeclaringCompilation?.EventQueue IsNot Nothing, GetCachedDeclaringReferences(), ComputeDeclaringReferencesCore())
+                Return GetDeclaringSyntaxReferenceHelper(SyntaxReferences)
             End Get
         End Property
-
-        Private Function GetCachedDeclaringReferences() As ImmutableArray(Of SyntaxReference)
-            Dim declaringReferences As ImmutableArray(Of SyntaxReference) = Nothing
-            If Not Diagnostics.AnalyzerDriver.TryGetCachedDeclaringReferences(Me, DeclaringCompilation, declaringReferences) Then
-                declaringReferences = ComputeDeclaringReferencesCore()
-                Diagnostics.AnalyzerDriver.CacheDeclaringReferences(Me, DeclaringCompilation, declaringReferences)
-            End If
-
-            Return declaringReferences
-        End Function
-
-        Private Function ComputeDeclaringReferencesCore() As ImmutableArray(Of SyntaxReference)
-            Return GetDeclaringSyntaxReferenceHelper(SyntaxReferences)
-        End Function
 #End Region
 
 #Region "Member from Syntax"

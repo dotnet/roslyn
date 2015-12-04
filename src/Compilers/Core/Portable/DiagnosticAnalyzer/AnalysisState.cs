@@ -321,11 +321,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 UpdateEventsMap_NoLock(compilationEvent, add: false);
             }
-
-            if (symbolDeclaredEvent != null)
-            {
-                AnalyzerDriver.RemoveCachedDeclaringReferences(symbolDeclaredEvent.Symbol, symbolDeclaredEvent.Compilation);
-            }
         }
 
         /// <summary>
