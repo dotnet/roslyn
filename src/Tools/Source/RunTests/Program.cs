@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using RunTests.Cache;
 
 namespace RunTests
 {
@@ -29,7 +30,13 @@ namespace RunTests
                 cts.Cancel();
             };
 
-            var testRunner = new TestRunner(options);
+            ITestExecutor testExecutor = new ProcessTestExecutor(options);
+            if (options.UseCachedResults)
+            {
+                testExecutor = new CachingTestExecutor(options, testExecutor, new LocalDataStorage());
+            }
+
+            var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
 
             Console.WriteLine("Running {0} test assemblies", options.Assemblies.Count());
@@ -42,6 +49,8 @@ namespace RunTests
             {
                 ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
             }
+
+            Logger.Finish();
 
             if (!result)
             {

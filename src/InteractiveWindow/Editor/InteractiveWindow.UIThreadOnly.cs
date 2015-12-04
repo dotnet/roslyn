@@ -475,9 +475,26 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             /// <summary>Implements <see cref="IInteractiveWindowOperations2.TypeChar"/>.</summary>
-            internal void TypeChar(char typedChar)
+            public void TypeChar(char typedChar)
             {
-                InsertText(typedChar.ToString());
+                using (var transaction = UndoHistory?.CreateTransaction(InteractiveWindowResources.TypeChar))
+                {
+                    if (transaction != null)
+                    {
+                        var mergeDirections = TextTransactionMergeDirections.Forward | TextTransactionMergeDirections.Backward;
+                        // replacing selected text should be an atomic undo operation).
+                        if ((!TextView.Selection.IsEmpty && !IsEmptyBoxSelection()))
+                        {
+                            mergeDirections = TextTransactionMergeDirections.Forward;
+                        }
+                        transaction.MergePolicy = new TextTransactionMergePolicy(mergeDirections);
+                    }
+
+                    if (InsertText(typedChar.ToString()))
+                    {
+                        transaction?.Complete();
+                    }
+                }
             }
 
             /// <summary>Implements <see cref="IInteractiveWindow.InsertCode"/>.</summary>
@@ -498,44 +515,39 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            private void InsertText(string text)
+            private bool InsertText(string text)
             {
-                using (var transaction = UndoHistory?.CreateTransaction(InteractiveWindowResources.TypeChar))
+                var selection = TextView.Selection;
+                var caretPosition = TextView.Caret.Position.BufferPosition;
+                if (!TextView.Selection.IsEmpty)
                 {
-                    var selection = TextView.Selection;
-                    var caretPosition = TextView.Caret.Position.BufferPosition;
-                    if (!TextView.Selection.IsEmpty)
+                    if (!IsSelectionInsideCurrentSubmission())
                     {
-                        if (!IsSelectionInsideCurrentSubmission())
-                        {
-                            return;
-                        }
-
-                        DeleteSelection();
-
-                        if (selection.Mode == TextSelectionMode.Box)
-                        {
-                            ReduceBoxSelectionToEditableBox(isDelete: true);
-                        }
-                        else
-                        {
-                            selection.Clear();
-                            MoveCaretToClosestEditableBuffer();
-                        }
+                        return false;
                     }
-                    else if (IsInActivePrompt(caretPosition))
+
+                    DeleteSelection();
+
+                    if (selection.Mode == TextSelectionMode.Box)
                     {
+                        ReduceBoxSelectionToEditableBox(isDelete: true);
+                    }
+                    else
+                    {
+                        selection.Clear();
                         MoveCaretToClosestEditableBuffer();
                     }
-                    else if (MapToEditableBuffer(caretPosition) == null)
-                    {
-                        return;
-                    }
-
-                    EditorOperations.InsertText(text);
-
-                    transaction?.Complete();
                 }
+                else if (IsInActivePrompt(caretPosition))
+                {
+                    MoveCaretToClosestEditableBuffer();
+                }
+                else if (MapToEditableBuffer(caretPosition) == null)
+                {
+                    return false;
+                }
+
+                return EditorOperations.InsertText(text);
             }
 
             /// <summary>Implements the core of <see cref="IInteractiveWindow.SubmitAsync"/>.</summary>

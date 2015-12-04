@@ -162,6 +162,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
         public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
+
+        /// <summary>
+        /// Enable concurrent execution of analyzer actions registered by this analyzer.
+        /// An analyzer that registers for concurrent execution can have better performance than a non-concurrent analyzer.
+        /// However, such an analyzer must ensure that its actions can execute correctly in parallel.
+        /// </summary>
+        /// <remarks>
+        /// Even when an analyzer registers for concurrent execution, certain related actions are *never* executed concurrently.
+        /// For example, end actions registered on any analysis unit (compilation, code block, operation block, etc.) are by definition semantically dependent on analysis from non-end actions registered on the same analysis unit.
+        /// Hence, end actions are never executed concurrently with non-end actions operating on the same analysis unit.
+        /// </remarks>
+        public abstract void EnableConcurrentExecution();
     }
 
     /// <summary>

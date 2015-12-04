@@ -34,7 +34,7 @@ namespace Roslyn.Test.Utilities
         {
             // Validate arguments
             if (numberOfThreads < 1)
-                throw new ArgumentOutOfRangeException("concurrencyLevel");
+                throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
 
             // Initialize the tasks collection
             _tasks = new BlockingCollection<Task>();

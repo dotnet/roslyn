@@ -17,6 +17,9 @@ USE_CACHE=true
 MONO_ARGS='--debug=mdb-optimizations --attach=disable'
 MSBUILD_ADDITIONALARGS='/v:m /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal'
 
+# LTTNG is the logging infrastructure used by coreclr.  Need this variable set 
+# so it doesn't output warnings to the console.
+export LTTNG_HOME=$HOME
 export MONO_THREADS_PER_CPU=50
 
 # There are some stability issues that are causing Jenkins builds to fail at an 
