@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
@@ -10,8 +9,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp.Vis
 
 #Region "FullName tests"
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        Public Sub TestFullName1()
             Dim code =
 <Code>
 Class C
@@ -20,15 +21,17 @@ Class C
 End Class
 </Code>
 
-            Await TestFullName(code, "C.Foo")
-        End Function
+            TestFullName(code, "C.Foo")
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 Class C
@@ -37,8 +40,8 @@ Class C
 End Class
 </Code>
 
-            Await TestName(code, "Foo")
-        End Function
+            TestName(code, "Foo")
+        End Sub
 
 #End Region
 

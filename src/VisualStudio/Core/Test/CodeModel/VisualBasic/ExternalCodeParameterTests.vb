@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
@@ -10,8 +9,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
 #Region "FullName tests"
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        Public Sub TestFullName1()
             Dim code =
 <Code>
 Class C
@@ -20,14 +21,16 @@ Class C
 End Class
 </Code>
 
-            Await TestFullName(code, "s")
-        End Function
+            TestFullName(code, "s")
+        End Sub
 #End Region
 
 #Region "Name tests"
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_NoModifiers() As Task
+        Public Sub TestName_NoModifiers()
             Dim code =
 <Code>
 Public Class C1
@@ -38,11 +41,13 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p1")
-        End Function
+            TestName(code, "p1")
+        End Sub
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_ByValModifier() As Task
+        Public Sub TestName_ByValModifier()
             Dim code =
 <Code>
 Public Class C1
@@ -53,11 +58,13 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p2")
-        End Function
+            TestName(code, "p2")
+        End Sub
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_ByRefModifier() As Task
+        Public Sub TestName_ByRefModifier()
             Dim code =
 <Code>
 Public Class C1
@@ -68,11 +75,13 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p3")
-        End Function
+            TestName(code, "p3")
+        End Sub
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_OptionalByValModifiers() As Task
+        Public Sub TestName_OptionalByValModifiers()
             Dim code =
 <Code>
 Public Class C1
@@ -83,11 +92,13 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p4")
-        End Function
+            TestName(code, "p4")
+        End Sub
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_ByValParamArrayModifiers() As Task
+        Public Sub TestName_ByValParamArrayModifiers()
             Dim code =
 <Code>
 Public Class C1
@@ -98,11 +109,13 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p5")
-        End Function
+            TestName(code, "p5")
+        End Sub
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_TypeCharacter() As Task
+        Public Sub TestName_TypeCharacter()
             Dim code =
 <Code>
 Public Class C1
@@ -113,8 +126,8 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestName(code, "p6")
-        End Function
+            TestName(code, "p6")
+        End Sub
 
 #End Region
 

@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
@@ -10,8 +9,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "FullName tests"
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        Public Sub TestFullName1()
             Dim code =
 <Code>
 class C
@@ -22,11 +23,13 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "s")
-        End Function
+            TestFullName(code, "s")
+        End Sub
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName2() As Task
+        Public Sub TestFullName2()
             Dim code =
 <Code>
 class C
@@ -37,11 +40,13 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "s")
-        End Function
+            TestFullName(code, "s")
+        End Sub
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName3() As Task
+        Public Sub TestFullName3()
             Dim code =
 <Code>
 class C
@@ -52,15 +57,17 @@ class C
 }
 </Code>
 
-            Await TestFullName(code, "s")
-        End Function
+            TestFullName(code, "s")
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 class C
@@ -71,11 +78,13 @@ class C
 }
 </Code>
 
-            Await TestName(code, "s")
-        End Function
+            TestName(code, "s")
+        End Sub
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName2() As Task
+        Public Sub TestName2()
             Dim code =
 <Code>
 class C
@@ -86,11 +95,13 @@ class C
 }
 </Code>
 
-            Await TestName(code, "s")
-        End Function
+            TestName(code, "s")
+        End Sub
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName3() As Task
+        Public Sub TestName3()
             Dim code =
 <Code>
 class C
@@ -101,8 +112,8 @@ class C
 }
 </Code>
 
-            Await TestName(code, "s")
-        End Function
+            TestName(code, "s")
+        End Sub
 
 #End Region
 
