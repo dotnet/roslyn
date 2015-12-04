@@ -58,14 +58,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         private static readonly SymbolDisplayFormat s_externalNameFormat =
             new SymbolDisplayFormat(
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeName);
 
         private static readonly SymbolDisplayFormat s_externalFullNameFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeName);
 
         private static readonly SymbolDisplayFormat s_setTypeFormat =
             new SymbolDisplayFormat(
