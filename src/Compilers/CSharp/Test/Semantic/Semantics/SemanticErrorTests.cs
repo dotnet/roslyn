@@ -5960,6 +5960,25 @@ class MyClass
                 );
         }
 
+        [Fact]
+        public void FieldAssignedInReferencedConstructor()
+        {
+            var text =
+@"struct S
+{
+    private readonly object _x;
+    S(object o)
+    {
+        _x = o;
+    }
+    S(object x, object y) : this(x ?? y)
+    {
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(); // No CS0171 for S._x
+        }
+
         [Fact()]
         public void CS0172ERR_AmbigQM()
         {
@@ -19565,6 +19584,28 @@ ftftftft";
             var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
             this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
             this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(fullExpected);
+        }
+
+        [Fact]
+        public void CS0472WRN_NubExprIsConstBool_ConstructorInitializer()
+        {
+            var text =
+@"class A
+{
+    internal A(bool b)
+    {
+    }
+}
+class B : A
+{
+    B(int i) : base(i == null)
+    {
+    }
+}";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (9,21): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
+                //     B(int i) : base(i == null)
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i == null").WithArguments("false", "int", "int?").WithLocation(9, 21));
         }
 
         [Fact]
