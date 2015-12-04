@@ -202,4 +202,6 @@ The PR doesn’t require anyone other than the developer to review it – it mig
 
 ![image](https://cloud.githubusercontent.com/assets/20570/11490030/b5519efc-9789-11e5-8692-e50efef22370.png)
 
-Not currently assigned to anyone on the team at Microsoft, but it’s still perhaps an interesting issue to solve, and so the community is therefore welcome to take the issue on by themselves.
+The team believes these issues require minimal context and are well-suited for new contributors. These issues are also aggregated by [Up-For-Grabs.net](http://up-for-grabs.net). Be sure to leave a comment indicating your plan to work on any issue.
+
+Some Up For Grabs issues are in the "Unknown" milestone. These are typically not assigned to anyone on the team at Microsoft but are still interesting issues to solve, and so the community is therefore welcome to take the issue on by themselves.
