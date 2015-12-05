@@ -525,6 +525,14 @@ namespace Roslyn.Utilities
 
         public bool IsCloseMatch(string candidateText, out double matchCost)
         {
+            if (this.originalText.Length < 4)
+            {
+                // If we're comparing strings that are too short, we'll find 
+                // far too many spurious hits.  Don't even both in this case.
+                matchCost = double.MaxValue;
+                return false;
+            }
+
             if (lastIsCloseMatchResult.Item1 == candidateText)
             {
                 matchCost = lastIsCloseMatchResult.Item3;
