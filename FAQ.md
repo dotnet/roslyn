@@ -102,9 +102,7 @@ We do want to make it super easy for customers who have given us feedback to log
 
 ## GitHub Site
 ### Why are there several solution files?
-The Roslyn GitHub site includes code for the compilers, workspaces and Visual Studio layers.  In order to build the layers which rely on Visual Studio a compatible version of the VS SDK must be available.  The VS SDK itself depends on Visual Studio.  Hence this means both Visual Studio and the VS SDK are required to build Roslyn.
-
-The main solution, Roslyn.sln, contains the entire codebase and all layers. The Compilers.sln solution contains only the compiler layer (and nothing above it.) The CrossPlatform.sln solution contains the projects that currently support building on Linux.
+The main solution, Roslyn.sln, contains the entire codebase consisting of the compilers, workspaces, and Visual Studio layers. Building Roslyn.sln requires Visual Studio and a compatible version of the VS SDK. The Compilers.sln solution contains only the compiler layer and can therefore be built without Visual Studio or the VS SDK, but only on Windows. The CrossPlatform.sln solution contains the projects that currently support building on Linux. 
 
 ### What components can I run locally in Visual Studio?
 Starting with Visual Studio 2015 Update 1, all parts of Roslyn can be ran inside Visual Studio. Read our instructions for [Building on Windows](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building, Debugging, and Testing on Windows.md) for more information.
