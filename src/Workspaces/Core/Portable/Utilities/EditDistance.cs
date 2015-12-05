@@ -380,7 +380,8 @@ namespace Roslyn.Utilities
                         // (i-1,*).  Once we write into it that value will represent (i, *).
 
                         // As we move down the column our previously written edit distance becomes the 
-                        // 'above' value for the next computation.
+                        // 'above' value for the next computation.  i.e. the value we previously wrote 
+                        // into (i, j) is now at (i, j-1).
                         var aboveEditDistance = editDistance;
 
                         var currentTwiddleCost = nextTwiddleCost;
@@ -392,7 +393,11 @@ namespace Roslyn.Utilities
                         editDistance = aboveLeftEditDistance;
 
                         // before we overwrite the current cost at (i,j), keep track of the value
-                        // of (i-1, j).
+                        // of (i-1, j).  At this point:
+                        //
+                        //  1) editDistance corresponds to      (i-1, j-1) 
+                        //  2) aboveEditDistance corresponds to (i, j-1)
+                        //  3) leftEditDistance correponds to   (i-1, j)
                         var leftEditDistance = costArray[j];
 
                         previousCostArray[j] = editDistance;
@@ -422,6 +427,7 @@ namespace Roslyn.Utilities
                                 editDistance = aboveEditDistance;
                             }
 
+                            // We're always one greater than the min edit distance for inserting/deleting/changing.
                             editDistance++;
 
                             // Check for twiddles if we're past the first row and column.
@@ -473,63 +479,6 @@ namespace Roslyn.Utilities
                 // by capping at "threshold + 1" we ensure certain peices of math work 
                 // nicely.
                 array[i] = threshold + 1;
-            }
-        }
-
-        // =============================================================================
-        // Get the length of the longest common subsequence of the two given strings
-        // =============================================================================
-        public static int GetLongestCommonSubsequenceLength(string oldString, string newString)
-        {
-            // Expand the counts by one to include the empty string
-            int rowWidth = oldString.Length + 1;
-            int columnHeight = newString.Length + 1;
-
-            // This stores the row before the current one
-            int[] rowBefore1 = Pool<int>.GetArray(rowWidth);
-
-            // This stores the current row
-            int[] rowCurrent = Pool<int>.GetArray(rowWidth);
-            try
-            {
-                for (int row = 1; row < columnHeight; row++)
-                {
-                    // Shift the row data upwards, rowBefore1 falls off and the memory is
-                    // recycled for the current row
-                    var temp = rowBefore1;
-                    rowBefore1 = rowCurrent;
-                    rowCurrent = temp;
-
-                    // First element of the row is always 0
-                    rowCurrent[0] = 0;
-
-                    for (int column = 1; column < rowWidth; column++)
-                    {
-                        int currentLength = 0;
-
-                        if (oldString[column - 1] == newString[row - 1])
-                        {
-                            // Both chars are the same, so increment the length
-                            currentLength = rowBefore1[column - 1] + 1;
-                        }
-                        else
-                        {
-                            // The chars are not the same, so pick the maximum of the
-                            // left and upper entries
-                            currentLength = Max(rowCurrent[column - 1], rowBefore1[column]);
-                        }
-
-                        rowCurrent[column] = currentLength;
-                    }
-                }
-
-                // The LCS length is the last element in the current row
-                return rowCurrent[rowWidth - 1];
-            }
-            finally
-            {
-                Pool<int>.ReleaseArray(rowBefore1);
-                Pool<int>.ReleaseArray(rowCurrent);
             }
         }
 
