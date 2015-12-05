@@ -18,12 +18,15 @@ namespace Roslyn.Utilities
             originalTextArray = ConvertToLowercaseArray(text);
 
             // We only allow fairly close matches (in order to prevent too many
-            // spurious hits).  So once the string length is at 8 characters or
-            // more, we cap the number of changes in the text at '4'.
+            // spurious hits).  A reasonable heauristic for this is the Log_2(length) (rounded 
+            // down).  
             //
-            // If the string length is lower than 8 then we only allow up to half
-            // of the characters to be changes (rounded down).
-            closeMatchThreshold = Min(4, text.Length / 2);
+            // Strings length 1-3 : 1 edit allowed.
+            //         length 4-7 : 2 edits allowed.
+            //         length 8-15: 3 edits allowed.
+            //
+            // and so forth.
+            closeMatchThreshold = Max(1, (int)Log(text.Length, 2));
         }
 
         private static char[] ConvertToLowercaseArray(string text)
@@ -281,24 +284,25 @@ namespace Roslyn.Utilities
             //          we need to keep around our i-2 values.  We can't do that if we're overwriting all the values
             //          in the column.  So we do keep around one additional column for the i-2 generation.
             //
-            //          This will end up producing the following set of values:
+            //          With our heuristic of Log_2(length) changes allowed this will end up producing the following
+            //          set of values:
             //
-            //              i<- 0 1 2 3 4 5 6 7
-            //            j    |X l m R e a d e
-            //            ^   0|1 2 3 4 5 6 7 8
-            //            -----+---------------
-            //            0 X 1|0 1 2 3
-            //            1 m 2|1 1 1 2 3
-            //            2 l 3|2 1 1 2 3 4
-            //            3 R 4|3 2 2 1 2 3 4
-            //            4 e 5|4 3 3 2 1 2 3 4
-            //            5 a 6|  4 4 3 2 1 2 3
-            //            6 d 7|    5 4 3 2 1 2
-            //            7 e 8|      5 4 3 2 1
-            //            8 r 9         5 4 3 2
+            //      i<- 0 1 2 3 4 5 6 7
+            //    j    |X l m R e a d e
+            //    ^   0|1 2 3 4 5 6 7 8
+            //    -----+---------------
+            //    0 X 1|0 1 2
+            //    1 m 2|1 1 1 2 
+            //    2 l 3|2 1 1 2 3 
+            //    3 R 4|3 2 2 1 2 3 
+            //    4 e 5|  3 3 2 1 2 3 
+            //    5 a 6|    4 3 2 1 2 3
+            //    6 d 7|      4 3 2 1 2
+            //    7 e 8|        4 3 2 1
+            //    8 r 9|          4 3 2
             //
-            //          Note that we've avoid examining 20 elements in the matrix (out of 8*9=72), or roughly
-            //          25%. 
+            //          Note that we've avoid examining 30 elements in the matrix (out of 8*9=72), or roughly
+            //          40%. 
 
             var costArray = Pool<int>.GetArray(longLength);
             var previousCostArray = Pool<int>.GetArray(longLength);
@@ -357,23 +361,27 @@ namespace Roslyn.Utilities
                     //     ^   0|1 2 3 4 5 6 7 8    <-- above values
                     //
                     // i.e. the're just equal to i+1.  However, if we're only processing
-                    // a part of a column, then the 'above' value is the value right above
-                    // the entry we're going to be starting at.  This represents the 
-                    // entry up and to the left.  i.e.:
+                    // a part of a column, then the 'above' value is the value doesn't
+                    // exist.  In this case 
                     //
-                    //      3 R 4|3 2 2 1 2 3 4     <-- last 4 is the 'above' value.
-                    //      4 e 5|4 3 3 2 1 2 3 4
+                    //      3 R 4|3 2 2 1 2 3 4 
+                    //      4 e 5|4 3 3 2 1 2 3 ?    <-- No value above when we're starting at ?
                     //
                     // This is because we can't actually have an edit that comes in through
                     // the top of the column.  This edit would necessarily be more costly 
-                    // than our threshold.
-                    //
-                    // 'aboveLeft' is computed in a similar fashion.
-                    editDistance = jFrom == 0 ? i + 1 : costArray[jFrom - 1];
+                    // than our threshold.  To handle this, we simply set the edit distance
+                    // to int.Max.  This will make the 'above' value int.Max, and it means
+                    // we'll never pick it as our path.
+                    editDistance = jFrom == 0 ? i + 1 : int.MaxValue;
 
+                    // 'aboveLeft' is computed in a similar fashion, but doesn't have this same
+                    // problem.  In the case where we're at the top aboveLeft is simply i.  And
+                    // in a case where we're starting in the middle of the column, by construction,
+                    // we'll always have the aboveLeft value in location in the column right above
+                    // where we're starting at.
                     var aboveLeftEditDistance = jFrom == 0 ? i : costArray[jFrom - 1];
-                    var nextTwiddleCost = 0;
 
+                    var nextTwiddleCost = 0;
                     for (var j = jFrom; j < jTo; j++)
                     {
                         // Note: any acceses into costArray *before* we write into it represent values of 
@@ -448,6 +456,12 @@ namespace Roslyn.Utilities
                         aboveLeftEditDistance = leftEditDistance;
                     }
 
+                    // Recall that minimumEditCount is simply the difference in length of our two
+                    // strings.  So costArray[i] is the cost for the upper-left diagonal of hte 
+                    // matrix.  costArray[i+minimumEditCount] is the cost for the lower right diagonal.
+                    // Here we are simply getting the lowest cost edit of hese two substrings so far.
+                    // If this lowest cost edit is greater than our threshold, then there is no need 
+                    // to proceed.
                     if (checkThreshold && (costArray[i + minimumEditCount] > costThreshold))
                     {
                         return int.MaxValue;
