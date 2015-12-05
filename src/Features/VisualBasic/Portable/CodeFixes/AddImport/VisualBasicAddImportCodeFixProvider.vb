@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return CanAddImportForTypeOrNamespaceCore(node, nameNode)
         End Function
 
-        Private Shared Function CanAddImportForTypeOrNamespaceCore(node As SyntaxNode, nameNode As SimpleNameSyntax) As Boolean
+        Private Shared Function CanAddImportForTypeOrNamespaceCore(node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Dim qn = TryCast(node, QualifiedNameSyntax)
             If qn IsNot Nothing Then
                 node = GetLeftMostSimpleName(qn)
