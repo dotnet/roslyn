@@ -216,6 +216,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
             {
                 var info = await SymbolTreeInfo.GetInfoForAssemblyAsync(solution, assembly, filePath, cancellationToken).ConfigureAwait(false);
+
+                // If the query has a specific string provided, then call into the SymbolTreeInfo
+                // helpers optimized for lookup based on an exact name.
                 if (query.Name != null)
                 {
                     if (info.HasSymbols(query.Name, query.IgnoreCase))
@@ -225,6 +228,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
                 else
                 {
+                    // Otherwise, we'll have to do a slow linear search over all possible symbols.
                     list.AddRange(FilterByCriteria(info.Find(assembly, query.Predicate, cancellationToken), filter));
                 }
             }
