@@ -2239,6 +2239,28 @@ public class MyClass {
         }
 
         [Fact]
+        public void CS0118ERR_BadSKknown_02()
+        {
+            CreateCompilationWithMscorlib(@"
+using System;
+public class P {
+    public static void Main(string[] args) {
+#pragma warning disable 219
+        Action<args> a = null;
+        Action<a> b = null;
+    }
+}")
+                .VerifyDiagnostics(
+                    // (6,16): error CS0118: 'args' is a variable but is used like a type
+                    //         Action<args> a = null;
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "args").WithArguments("args", "variable", "type").WithLocation(6, 16),
+                    // (7,16): error CS0118: 'a' is a variable but is used like a type
+                    //         Action<a> b = null;
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "a").WithArguments("a", "variable", "type").WithLocation(7, 16));
+        }
+
+
+        [Fact]
         public void CS0118ERR_BadSKknown_CheckedUnchecked()
         {
             string source = @"
