@@ -141,7 +141,7 @@ class C
         }
 
         [Fact]
-        public void SparseSwitchCSharp()
+        public void SwitchCSharp()
         {
             const string source = @"
 class C
@@ -167,14 +167,35 @@ class C
             default:
                 break;
         }
+
+        switch (x)
+        {
+            case 1:
+                break;
+            case 1000:
+                break;
+        }
+
+        switch (y) 
+        {
+            default:
+                break;
+        }
+
+        switch (y) {}
+
     }
 }
 ";
             CreateCompilationWithMscorlib45(source)
-            .VerifyDiagnostics()
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SparseSwitchTestAnalyzer() }, null, null, false,
-                Diagnostic(SparseSwitchTestAnalyzer.SparseSwitchDescriptor.Id, "y").WithLocation(16, 17)
-                );
+            .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(40, 20))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SwitchTestAnalyzer() }, null, null, false,
+                Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "y").WithLocation(16, 17),
+                Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(26, 17),
+                Diagnostic(SwitchTestAnalyzer.NoDefaultSwitchDescriptor.Id, "x").WithLocation(26, 17),
+                Diagnostic(SwitchTestAnalyzer.OnlyDefaultSwitchDescriptor.Id, "y").WithLocation(34, 17),
+                Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "y").WithLocation(40, 17),
+                Diagnostic(SwitchTestAnalyzer.NoDefaultSwitchDescriptor.Id, "y").WithLocation(40, 17));
         }
 
         [Fact]

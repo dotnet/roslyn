@@ -126,7 +126,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub SparseSwitchVisualBasic()
+        Public Sub SwitchVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
@@ -171,11 +171,19 @@ Class C
                 Exit Select
         End Select
 
-         Select Case x
+        Select Case x
             Case 1
                 Exit Select
             Case > 100000
                 Exit Select
+        End Select   
+
+        Select Case x
+            Case Else
+                Exit Select
+        End Select     
+
+        Select Case x
         End Select
     End Sub
 End Class
@@ -185,10 +193,15 @@ End Class
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New SparseSwitchTestAnalyzer}, Nothing, Nothing, False,
-                                           Diagnostic(SparseSwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(12, 21),
-                                           Diagnostic(SparseSwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(30, 21),
-                                           Diagnostic(SparseSwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(37, 21))
+            comp.VerifyAnalyzerDiagnostics({New SwitchTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(12, 21),
+                                           Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(30, 21),
+                                           Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(37, 21),
+                                           Diagnostic(SwitchTestAnalyzer.NoDefaultSwitchDescriptor.Id, "x").WithLocation(37, 21),
+                                           Diagnostic(SwitchTestAnalyzer.NoDefaultSwitchDescriptor.Id, "x").WithLocation(42, 21),
+                                           Diagnostic(SwitchTestAnalyzer.OnlyDefaultSwitchDescriptor.Id, "x").WithLocation(49, 21),
+                                           Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(54, 21),
+                                           Diagnostic(SwitchTestAnalyzer.NoDefaultSwitchDescriptor.Id, "x").WithLocation(54, 21))
         End Sub
 
         <Fact>

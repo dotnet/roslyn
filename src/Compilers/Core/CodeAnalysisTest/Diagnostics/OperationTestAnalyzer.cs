@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     }
 
     /// <summary>Analyzer used to test switch IOperations.</summary>
-    public class SparseSwitchTestAnalyzer : DiagnosticAnalyzer
+    public class SwitchTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Reliability".</summary>
         private const string ReliabilityCategory = "Reliability";
@@ -179,10 +179,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor NoDefaultSwitchDescriptor = new DiagnosticDescriptor(
+            "NoDefaultSwitchRule",
+            "No default switch",
+            "Switch has no default case",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor OnlyDefaultSwitchDescriptor = new DiagnosticDescriptor(
+            "OnlyDefaultSwitchRule",
+            "Only default switch",
+            "Switch only has a default case",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(SparseSwitchDescriptor); }
+            get { return ImmutableArray.Create(SparseSwitchDescriptor, 
+                                                NoDefaultSwitchDescriptor,
+                                                OnlyDefaultSwitchDescriptor); }
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -194,6 +212,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      long minCaseValue = long.MaxValue;
                      long maxCaseValue = long.MinValue;
                      long caseValueCount = 0;
+                     bool hasDefault = false;
+                     bool hasNonDefault = false;
                      foreach (ICase switchCase in switchOperation.Cases)
                      {
                          foreach (ICaseClause clause in switchCase.Clauses)
@@ -202,6 +222,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                              {
                                  case CaseKind.SingleValue:
                                      {
+                                         hasNonDefault = true;
                                          ISingleValueCaseClause singleValueClause = (ISingleValueCaseClause)clause;
                                          IExpression singleValueExpression = singleValueClause.Value;
                                          if (singleValueExpression.ConstantValue != null &&
@@ -219,6 +240,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                      }
                                  case CaseKind.Range:
                                      {
+                                         hasNonDefault = true;
                                          IRangeCaseClause rangeClause = (IRangeCaseClause)clause;
                                          IExpression rangeMinExpression = rangeClause.MinimumValue;
                                          IExpression rangeMaxExpression = rangeClause.MaximumValue;
@@ -240,6 +262,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                      }
                                  case CaseKind.Relational:
                                      {
+                                         hasNonDefault = true;
                                          IRelationalCaseClause relationalClause = (IRelationalCaseClause)clause;
                                          IExpression relationalValueExpression = relationalClause.Value;
                                          if (relationalValueExpression.ConstantValue != null &&
@@ -285,6 +308,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                      }
                                  case CaseKind.Default:
                                      {
+                                         hasDefault = true;
                                          break;
                                      }
                              }
@@ -292,9 +316,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
 
                      long span = maxCaseValue - minCaseValue + 1;
-                     if (caseValueCount == 0 || span / caseValueCount > 100)
+                     if (caseValueCount == 0 && !hasDefault || 
+                         caseValueCount != 0 && span / caseValueCount > 100)
                      {
                          Report(operationContext, switchOperation.Value.Syntax, SparseSwitchDescriptor);
+                     }
+                     if (!hasDefault)
+                     {
+                         Report(operationContext, switchOperation.Value.Syntax, NoDefaultSwitchDescriptor);
+                     }
+                     if (hasDefault && !hasNonDefault)
+                     {
+                         Report(operationContext, switchOperation.Value.Syntax, OnlyDefaultSwitchDescriptor);
                      }
                  },
                  OperationKind.SwitchStatement);

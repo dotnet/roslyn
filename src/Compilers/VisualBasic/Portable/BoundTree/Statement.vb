@@ -102,7 +102,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Class CaseElse
             Implements ICaseClause
-
             Private ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseKind
                 Get
                     Return CaseKind.Default
@@ -165,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides ReadOnly Property ICaseClass As CaseKind
             Get
-                Return If(Me.IValue IsNot Nothing, CaseKind.SingleValue, CaseKind.Default)
+                Return CaseKind.SingleValue
             End Get
         End Property
     End Class
