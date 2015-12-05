@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddUsingOrImport), [Shared]>
     Friend Class VisualBasicAddImportCodeFixProvider
-        Inherits AbstractAddImportCodeFixProvider
+        Inherits AbstractAddImportCodeFixProvider(Of SimpleNameSyntax)
 
         ''' <summary>
         ''' Type xxx is not defined
@@ -289,6 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                 contextNode As SyntaxNode,
                 symbol As INamespaceOrTypeSymbol,
                 desiredName As String,
+                nameNode As SimpleNameSyntax,
                 document As Document,
                 placeSystemNamespaceFirst As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
@@ -299,14 +300,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
 
             Dim root = originalRoot
 
-            If Not String.IsNullOrEmpty(desiredName) Then
-                Dim firstToken = contextNode.GetFirstToken()
-                If firstToken.IsKind(SyntaxKind.IdentifierToken) AndAlso firstToken.ValueText <> desiredName Then
-                    Dim annotation = New SyntaxAnnotation()
-                    root = root.ReplaceToken(firstToken, SyntaxFactory.Identifier(desiredName).WithTriviaFrom(firstToken).WithAdditionalAnnotations(annotation))
-                    document = document.WithSyntaxRoot(root)
-                    contextNode = root.GetAnnotatedTokens(annotation).First().Parent
-                End If
+            If Not String.IsNullOrEmpty(desiredName) AndAlso nameNode IsNot Nothing AndAlso nameNode.Identifier.ValueText <> desiredName Then
+                Dim annotation = New SyntaxAnnotation()
+                root = root.ReplaceToken(nameNode.Identifier,
+                    SyntaxFactory.Identifier(desiredName).WithTriviaFrom(nameNode.Identifier).WithAdditionalAnnotations(annotation))
+                document = document.WithSyntaxRoot(root)
+                contextNode = root.GetAnnotatedTokens(annotation).First().Parent
             End If
 
             Dim memberImportsClause =

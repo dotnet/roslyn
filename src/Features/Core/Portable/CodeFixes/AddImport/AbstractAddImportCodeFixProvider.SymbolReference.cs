@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider
+    internal abstract partial class AbstractAddImportCodeFixProvider<TIdentifierNameSyntax>
     {
         private abstract class SymbolReference : IComparable<SymbolReference>, IEquatable<SymbolReference>
         {
