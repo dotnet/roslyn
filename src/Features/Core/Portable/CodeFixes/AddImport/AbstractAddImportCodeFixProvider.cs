@@ -474,8 +474,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // also lookup type symbols with the "Attribute" suffix.
                 if (inAttributeContext)
                 {
+                    var attributeSymbols = await searchScope.FindDeclarationsAsync(name + "Attribute", SymbolFilter.Type).ConfigureAwait(false);
+
                     symbols = symbols.Concat(
-                        await searchScope.FindDeclarationsAsync(name + "Attribute", SymbolFilter.Type).ConfigureAwait(false));
+                        attributeSymbols.Select(r => r.WithDesiredName(r.DesiredName.GetWithoutAttributeSuffix(isCaseSensitive: false))));
                 }
 
                 return OfType<ITypeSymbol>(symbols);
@@ -748,6 +750,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public SearchResult<T2> WithSymbol<T2>(T2 symbol) where T2 : ISymbol
             {
                 return new SearchResult<T2>(this.DesiredName, symbol, this.Weight);
+            }
+
+            internal SearchResult<T> WithDesiredName(string desiredName)
+            {
+                return new SearchResult<T>(desiredName, Symbol, Weight);
             }
         }
 
