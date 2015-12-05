@@ -715,8 +715,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private struct SearchResult<T> where T : ISymbol
         {
+            // The symbol that matched the string being searched for.
             public readonly T Symbol;
+
+            // How good a match this was.  0 means it was a perfect match.  Larger numbers are less 
+            // and less good.
             public readonly double Weight;
+
+            // The desired name to change the user text to if this was a fuzzy (spell-checking) match.
             public readonly string DesiredName;
 
             public SearchResult(string desiredName, T symbol, double weight)
