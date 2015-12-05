@@ -397,13 +397,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             var root = originalRoot;
 
-            var firstToken = contextNode.GetFirstToken();
-            if (firstToken.IsKind(SyntaxKind.IdentifierToken) && firstToken.ValueText != desiredName)
+            if (!string.IsNullOrEmpty(desiredName))
             {
-                var annotation = new SyntaxAnnotation();
-                root = root.ReplaceToken(firstToken, SyntaxFactory.Identifier(desiredName).WithTriviaFrom(firstToken).WithAdditionalAnnotations(annotation));
-                document = document.WithSyntaxRoot(root);
-                contextNode = root.GetAnnotatedTokens(annotation).First().Parent;
+                var firstToken = contextNode.GetFirstToken();
+                if (firstToken.IsKind(SyntaxKind.IdentifierToken) && firstToken.ValueText != desiredName)
+                {
+                    var annotation = new SyntaxAnnotation();
+                    root = root.ReplaceToken(firstToken, SyntaxFactory.Identifier(desiredName).WithTriviaFrom(firstToken).WithAdditionalAnnotations(annotation));
+                    document = document.WithSyntaxRoot(root);
+                    contextNode = root.GetAnnotatedTokens(annotation).First().Parent;
+                }
             }
 
             var newRoot = await AddImportWorkerAsync(document, root, contextNode, namespaceOrTypeSymbol, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
