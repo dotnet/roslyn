@@ -508,6 +508,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 int arity;
                 _syntaxFacts.GetNameAndArityOfSimpleName(_node, out name, out arity);
 
+                if (arity > 0)
+                {
+                    return null;
+                }
+
                 if (ExpressionBinds(checkForExtensionMethods: false))
                 {
                     return null;

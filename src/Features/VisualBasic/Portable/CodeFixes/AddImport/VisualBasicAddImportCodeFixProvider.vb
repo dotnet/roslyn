@@ -293,13 +293,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                 placeSystemNamespaceFirst As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
+            Dim originalDocument = document
+            Dim originalContextNode = contextNode
+            Dim originalRoot = DirectCast(contextNode.SyntaxTree.GetRoot(cancellationToken), CompilationUnitSyntax)
+
+            Dim root = originalRoot
+
+            If Not String.IsNullOrEmpty(desiredName) Then
+                Dim firstToken = contextNode.GetFirstToken()
+                If firstToken.IsKind(SyntaxKind.IdentifierToken) AndAlso firstToken.ValueText <> desiredName Then
+                    Dim annotation = New SyntaxAnnotation()
+                    root = root.ReplaceToken(firstToken, SyntaxFactory.Identifier(desiredName).WithTriviaFrom(firstToken).WithAdditionalAnnotations(annotation))
+                    document = document.WithSyntaxRoot(root)
+                    contextNode = root.GetAnnotatedTokens(annotation).First().Parent
+                End If
+            End If
+
             Dim memberImportsClause =
                 SyntaxFactory.SimpleImportsClause(name:=DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax).WithAdditionalAnnotations(Simplifier.Annotation))
             Dim newImport = SyntaxFactory.ImportsStatement(
                 importsClauses:=SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(memberImportsClause))
 
             Dim syntaxTree = contextNode.SyntaxTree
-            Dim root = DirectCast(syntaxTree.GetRoot(cancellationToken), CompilationUnitSyntax)
             Return Task.FromResult(
                 document.WithSyntaxRoot(
                 root.AddImportsStatement(newImport, placeSystemNamespaceFirst,
