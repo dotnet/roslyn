@@ -309,7 +309,29 @@ namespace Roslyn.Utilities
 
             try
             {
-                InitializeArray(costThreshold, costArray);
+                // here we are setting the initial 'left' array:
+
+                //      i<-|
+                //    j    |
+                //    ^   0|
+                //    -----+ 
+                //    0 X 1|
+                //    1 m 2|
+                //    2 l 3|
+                //    3 R 4|
+                //    4 e 5|
+                //    5 a 6|
+                //    6 d 7|
+                //    7 e 8|
+                //    8 r 9|
+                //
+                // This is the cost to go from an empty string to the longString, and is essentially
+                // the cost of inserting all the characters.  By doing this, we have access to 'left'
+                // values as we actualy walk through each column.
+                for (var i = 0; i < longLength; i++)
+                {
+                    costArray[i] = i + 1;
+                }
 
                 // We only need to bother even checking the threshold if it's lower than the 
                 // cost of just creating all of t.
@@ -392,9 +414,6 @@ namespace Roslyn.Utilities
                         // into (i, j) is now at (i, j-1).
                         var aboveEditDistance = editDistance;
 
-                        var currentTwiddleCost = nextTwiddleCost;
-                        nextTwiddleCost = previousCostArray[j];
-
                         // Initialize the editDistance for (i,j) to be the edit distance for
                         // (i-1, j-1).  If they match on characters, we'll keep this edit distance.
                         // If they differ, then we'll check what gives us the cheapest edit distance.
@@ -405,13 +424,16 @@ namespace Roslyn.Utilities
                         //
                         //  1) editDistance corresponds to      (i-1, j-1) 
                         //  2) aboveEditDistance corresponds to (i, j-1)
-                        //  3) leftEditDistance correponds to   (i-1, j)
+                        //  3) leftEditDistance corresponds to   (i-1, j)
                         var leftEditDistance = costArray[j];
 
+                        var currentTwiddleCost = nextTwiddleCost;
+                        nextTwiddleCost = previousCostArray[j];
                         previousCostArray[j] = editDistance;
 
                         var previousLongCharacter = currentLongCharacter;
                         currentLongCharacter = longString[startIndex + j];
+
                         if (currentShortCharacter != currentLongCharacter)
                         {
                             // Because the characters didn't match, our edit distance is the min of:
@@ -474,25 +496,6 @@ namespace Roslyn.Utilities
             {
                 Pool<int>.ReleaseArray(costArray);
                 Pool<int>.ReleaseArray(previousCostArray);
-            }
-        }
-
-        private static void InitializeArray(int threshold, int[] array)
-        {
-            for (var i = 0; i < threshold; i++)
-            {
-                // Within the threshold, the cost to produce longString is just the cost of 
-                // inserting all the the characters in it.
-                array[i] = i + 1;
-            }
-
-            for (var i = threshold; i < array.Length; i++)
-            {
-                // Outside of the threshold the cost to produce longString would always be
-                // too much.  We could just set things at i + 1 (like above).  However, 
-                // by capping at "threshold + 1" we ensure certain peices of math work 
-                // nicely.
-                array[i] = threshold + 1;
             }
         }
 
