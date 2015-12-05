@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             if (externAliasUsingDirective != null)
             {
-                return root.AddExterns(
+                root = root.AddExterns(
                     externAliasUsingDirective
                         .WithAdditionalAnnotations(Formatter.Annotation));
             }
