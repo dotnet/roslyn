@@ -53,6 +53,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private Func<string, bool> GetInexactPredicate(string name)
             {
+                // Create the edit distance object outside of the lambda  That way we only create it
+                // once and it can cache all the information it needs while it does the IsCloseMatch
+                // check against all the possible candidates.
                 var editDistance = new EditDistance(name);
                 return n =>
                 {
