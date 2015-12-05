@@ -34,8 +34,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 if (Exact)
                 {
-                    // Exact matches always have a weight of 0.  This way they come before all other matches.
-                    return symbols.Select(s => SearchResult.Create(s.Name, s, weight: 0)).ToList();
+                    // We did an exact, case insensitive, search.  Case sensitive matches should
+                    // be preffered though over insensitive ones.
+                    return symbols.Select(s => SearchResult.Create(s.Name, s, weight: s.Name == name ? 0 : 1)).ToList();
                 }
 
                 // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
