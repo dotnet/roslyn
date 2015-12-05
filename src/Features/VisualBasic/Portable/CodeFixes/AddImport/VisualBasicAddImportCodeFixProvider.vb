@@ -289,9 +289,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                 contextNode As SyntaxNode,
                 symbol As INamespaceOrTypeSymbol,
                 desiredName As String,
-                Document As Document,
+                document As Document,
                 placeSystemNamespaceFirst As Boolean,
-                CancellationToken As CancellationToken) As Task(Of Document)
+                cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim memberImportsClause =
                 SyntaxFactory.SimpleImportsClause(name:=DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax).WithAdditionalAnnotations(Simplifier.Annotation))
@@ -299,9 +299,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                 importsClauses:=SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(memberImportsClause))
 
             Dim syntaxTree = contextNode.SyntaxTree
-            Dim root = DirectCast(syntaxTree.GetRoot(CancellationToken), CompilationUnitSyntax)
+            Dim root = DirectCast(syntaxTree.GetRoot(cancellationToken), CompilationUnitSyntax)
             Return Task.FromResult(
-                Document.WithSyntaxRoot(
+                document.WithSyntaxRoot(
                 root.AddImportsStatement(newImport, placeSystemNamespaceFirst,
                                          CaseCorrector.Annotation, Formatter.Annotation)))
         End Function
