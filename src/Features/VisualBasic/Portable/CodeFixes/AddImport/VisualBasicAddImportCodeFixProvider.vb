@@ -105,7 +105,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return node.CanAddImportsStatements(cancellationToken)
         End Function
 
-        Protected Overrides Function CanAddImportForMethod(diagnostic As Diagnostic, syntaxFacts As ISyntaxFactsService, ByRef node As SyntaxNode) As Boolean
+        Protected Overrides Function CanAddImportForMethod(
+                diagnostic As Diagnostic,
+                syntaxFacts As ISyntaxFactsService,
+                node As SyntaxNode,
+                ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnostic.Id
                 Case BC30456, BC30390, BC42309, BC30451
                     Exit Select
@@ -151,15 +155,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                 Return False
             End If
 
-            Dim simpleName = TryCast(node, SimpleNameSyntax)
-            If simpleName Is Nothing Then
+            nameNode = TryCast(node, SimpleNameSyntax)
+            If nameNode Is Nothing Then
                 Return False
             End If
 
             Return True
         End Function
 
-        Protected Overrides Function CanAddImportForNamespace(diagnostic As Diagnostic, ByRef node As SyntaxNode) As Boolean
+        Protected Overrides Function CanAddImportForNamespace(diagnostic As Diagnostic, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnostic.Id
                 Case BC30002, BC30451
                     Exit Select
@@ -167,10 +171,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                     Return False
             End Select
 
-            Return CanAddImportForTypeOrNamespaceCore(node)
+            Return CanAddImportForTypeOrNamespaceCore(node, nameNode)
         End Function
 
-        Protected Overrides Function CanAddImportForQuery(diagnostic As Diagnostic, ByRef node As SyntaxNode) As Boolean
+        Protected Overrides Function CanAddImportForQuery(diagnostic As Diagnostic, node As SyntaxNode) As Boolean
             If diagnostic.Id <> BC36593 Then
                 Return False
             End If
@@ -184,7 +188,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return True
         End Function
 
-        Protected Overrides Function CanAddImportForType(diagnostic As Diagnostic, ByRef node As SyntaxNode) As Boolean
+        Protected Overrides Function CanAddImportForType(
+                diagnostic As Diagnostic, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnostic.Id
                 Case BC30002, BC30451, BC32042, BC32045, BC30389, BC31504, BC36610, BC30182
                     Exit Select
@@ -199,17 +204,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                     Return False
             End Select
 
-            Return CanAddImportForTypeOrNamespaceCore(node)
+            Return CanAddImportForTypeOrNamespaceCore(node, nameNode)
         End Function
 
-        Private Shared Function CanAddImportForTypeOrNamespaceCore(ByRef node As SyntaxNode) As Boolean
+        Private Shared Function CanAddImportForTypeOrNamespaceCore(node As SyntaxNode, nameNode As SimpleNameSyntax) As Boolean
             Dim qn = TryCast(node, QualifiedNameSyntax)
             If qn IsNot Nothing Then
                 node = GetLeftMostSimpleName(qn)
             End If
 
-            Dim simpleName = TryCast(node, SimpleNameSyntax)
-            Return simpleName.LooksLikeStandaloneTypeName()
+            nameNode = TryCast(node, SimpleNameSyntax)
+            Return nameNode.LooksLikeStandaloneTypeName()
         End Function
 
         Private Shared Function GetLeftMostSimpleName(qn As QualifiedNameSyntax) As SimpleNameSyntax
