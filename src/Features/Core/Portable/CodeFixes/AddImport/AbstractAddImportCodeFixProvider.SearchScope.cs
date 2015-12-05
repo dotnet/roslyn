@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider
+    internal abstract partial class AbstractAddImportCodeFixProvider<TIdentifierNameSyntax>
     {
         private abstract class SearchScope
         {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected abstract Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
             public abstract SymbolReference CreateReference<T>(SearchResult<T> symbol) where T : INamespaceOrTypeSymbol;
 
-            public async Task<IEnumerable<SearchResult<ISymbol>>> FindDeclarationsAsync(string name, SymbolFilter filter)
+            public async Task<IEnumerable<SearchResult<ISymbol>>> FindDeclarationsAsync(string name, TIdentifierNameSyntax nameNode, SymbolFilter filter)
             {
                 var query = this.Exact ? new SearchQuery(name, ignoreCase: true) : new SearchQuery(GetInexactPredicate(name));
                 var symbols = await FindDeclarationsAsync(name, filter, query).ConfigureAwait(false);
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     // We did an exact, case insensitive, search.  Case sensitive matches should
                     // be preffered though over insensitive ones.
-                    return symbols.Select(s => SearchResult.Create(s.Name, s, weight: s.Name == name ? 0 : 1)).ToList();
+                    return symbols.Select(s => SearchResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1)).ToList();
                 }
 
                 // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     var isCloseMatch = EditDistance.IsCloseMatch(name, s.Name, out matchCost);
 
                     Debug.Assert(isCloseMatch);
-                    return SearchResult.Create(s.Name, s, matchCost);
+                    return SearchResult.Create(s.Name, nameNode, s, matchCost);
                 }).ToList();
             }
 

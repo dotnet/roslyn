@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
     using SymbolReference = ValueTuple<INamespaceOrTypeSymbol, MetadataReference>;
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddUsingOrImport), Shared]
-    internal class CSharpAddImportCodeFixProvider : AbstractAddImportCodeFixProvider
+    internal class CSharpAddImportCodeFixProvider : AbstractAddImportCodeFixProvider<SimpleNameSyntax>
     {
         /// <summary>
         /// name does not exist in context
@@ -387,6 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             SyntaxNode contextNode,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             string desiredName,
+            SimpleNameSyntax nameNode,
             Document document,
             bool placeSystemNamespaceFirst,
             CancellationToken cancellationToken)
@@ -397,16 +398,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             var root = originalRoot;
 
-            if (!string.IsNullOrEmpty(desiredName))
+            if (!string.IsNullOrEmpty(desiredName) && nameNode != null && nameNode.Identifier.ValueText != desiredName)
             {
-                var firstToken = contextNode.GetFirstToken();
-                if (firstToken.IsKind(SyntaxKind.IdentifierToken) && firstToken.ValueText != desiredName)
-                {
-                    var annotation = new SyntaxAnnotation();
-                    root = root.ReplaceToken(firstToken, SyntaxFactory.Identifier(desiredName).WithTriviaFrom(firstToken).WithAdditionalAnnotations(annotation));
-                    document = document.WithSyntaxRoot(root);
-                    contextNode = root.GetAnnotatedTokens(annotation).First().Parent;
-                }
+                var annotation = new SyntaxAnnotation();
+                root = root.ReplaceToken(nameNode.Identifier,
+                    SyntaxFactory.Identifier(desiredName).WithTriviaFrom(nameNode.Identifier).WithAdditionalAnnotations(annotation));
+                document = document.WithSyntaxRoot(root);
+                contextNode = root.GetAnnotatedTokens(annotation).First().Parent;
             }
 
             var newRoot = await AddImportWorkerAsync(document, root, contextNode, namespaceOrTypeSymbol, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);

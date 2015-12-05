@@ -16,7 +16,8 @@ using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
+    internal abstract partial class AbstractAddImportCodeFixProvider<TIdentifierNameSyntax> : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
+        where TIdentifierNameSyntax : SyntaxNode
     {
         private const int MaxResults = 3;
 
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         protected abstract ISet<INamespaceSymbol> GetNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract string GetDescription(INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root);
-        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, string desiredName, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
+        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, string desiredName, TIdentifierNameSyntax nameNode, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
         protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
@@ -120,7 +121,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             SyntaxNode node, SymbolReference reference, Document document, bool placeSystemNamespaceFirst, CancellationToken c)
         {
             // Defer to the language to add the actual import/using.
-            var newDocument = await this.AddImportAsync(node, reference.SearchResult.Symbol, reference.SearchResult.DesiredName,
+            var newDocument = await this.AddImportAsync(node, 
+                reference.SearchResult.Symbol, reference.SearchResult.DesiredName, reference.SearchResult.NameNode,
                 document, placeSystemNamespaceFirst, c).ConfigureAwait(false);
 
             return reference.UpdateSolution(newDocument);
@@ -283,10 +285,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                    && (!inAttributeContext || symbol.IsAttribute());
         }
 
-        private static void CalculateContext(SyntaxNode node, ISyntaxFactsService syntaxFacts, out string name, out int arity, out bool inAttributeContext, out bool hasIncompleteParentMember)
+        private static void CalculateContext(
+            SyntaxNode node, ISyntaxFactsService syntaxFacts, out string name, out int arity,
+            out TIdentifierNameSyntax nameNode, out bool inAttributeContext, out bool hasIncompleteParentMember)
         {
             // Has to be a simple identifier or generic name.
             syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
+            nameNode = name != null ? (TIdentifierNameSyntax)node : null;
 
             inAttributeContext = syntaxFacts.IsAttributeName(node);
             hasIncompleteParentMember = syntaxFacts.HasIncompleteParentMember(node);
@@ -322,12 +327,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private readonly ISymbol _containingTypeOrAssembly;
             private readonly ISet<INamespaceSymbol> _namespacesInScope;
             private readonly ISyntaxFactsService _syntaxFacts;
-            private readonly AbstractAddImportCodeFixProvider _owner;
+            private readonly AbstractAddImportCodeFixProvider<TIdentifierNameSyntax> _owner;
 
             private SyntaxNode _node;
 
             public SymbolReferenceFinder(
-                AbstractAddImportCodeFixProvider owner,
+                AbstractAddImportCodeFixProvider<TIdentifierNameSyntax> owner,
                 Document document, SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode node, CancellationToken cancellationToken)
             {
                 _owner = owner;
@@ -422,9 +427,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 string name;
                 int arity;
                 bool inAttributeContext, hasIncompleteParentMember;
-                CalculateContext(_node, _syntaxFacts, out name, out arity, out inAttributeContext, out hasIncompleteParentMember);
+                TIdentifierNameSyntax nameNode;
+                CalculateContext(_node, _syntaxFacts, out name, out arity, out nameNode, out inAttributeContext, out hasIncompleteParentMember);
 
-                var symbols = await GetTypeSymbols(searchScope, name, inAttributeContext).ConfigureAwait(false);
+                var symbols = await GetTypeSymbols(searchScope, name, nameNode, inAttributeContext).ConfigureAwait(false);
                 if (symbols == null)
                 {
                     return null;
@@ -443,9 +449,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 string name;
                 int arity;
                 bool inAttributeContext, hasIncompleteParentMember;
-                CalculateContext(_node, _syntaxFacts, out name, out arity, out inAttributeContext, out hasIncompleteParentMember);
+                TIdentifierNameSyntax nameNode;
+                CalculateContext(_node, _syntaxFacts, out name, out arity, out nameNode, out inAttributeContext, out hasIncompleteParentMember);
 
-                var symbols = await GetTypeSymbols(searchScope, name, inAttributeContext).ConfigureAwait(false);
+                var symbols = await GetTypeSymbols(searchScope, name, nameNode, inAttributeContext).ConfigureAwait(false);
                 if (symbols == null)
                 {
                     return null;
@@ -457,6 +464,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private async Task<IEnumerable<SearchResult<ITypeSymbol>>> GetTypeSymbols(
                 SearchScope searchScope,
                 string name,
+                TIdentifierNameSyntax nameNode,
                 bool inAttributeContext)
             {
                 if (_cancellationToken.IsCancellationRequested)
@@ -469,12 +477,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return null;
                 }
 
-                var symbols = await searchScope.FindDeclarationsAsync(name, SymbolFilter.Type).ConfigureAwait(false);
+                var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Type).ConfigureAwait(false);
 
                 // also lookup type symbols with the "Attribute" suffix.
                 if (inAttributeContext)
                 {
-                    var attributeSymbols = await searchScope.FindDeclarationsAsync(name + "Attribute", SymbolFilter.Type).ConfigureAwait(false);
+                    var attributeSymbols = await searchScope.FindDeclarationsAsync(name + "Attribute", nameNode, SymbolFilter.Type).ConfigureAwait(false);
 
                     symbols = symbols.Concat(
                         attributeSymbols.Select(r => r.WithDesiredName(r.DesiredName.GetWithoutAttributeSuffix(isCaseSensitive: false))));
@@ -497,7 +505,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return symbolInfo.Symbol != null;
             }
 
-            private async Task<IList<SymbolReference>> GetNamespacesForMatchingNamespacesAsync(SearchScope searchScope)
+            private async Task<IList<SymbolReference>> GetNamespacesForMatchingNamespacesAsync(
+                SearchScope searchScope)
             {
                 if (!_owner.CanAddImportForNamespace(_diagnostic, ref _node))
                 {
@@ -508,6 +517,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 int arity;
                 _syntaxFacts.GetNameAndArityOfSimpleName(_node, out name, out arity);
 
+                var nameNode = (TIdentifierNameSyntax)_node;
                 if (arity > 0)
                 {
                     return null;
@@ -518,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return null;
                 }
 
-                var symbols = await searchScope.FindDeclarationsAsync(name, SymbolFilter.Namespace).ConfigureAwait(false);
+                var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Namespace).ConfigureAwait(false);
 
                 return GetProposedNamespaces(
                     searchScope, OfType<INamespaceSymbol>(symbols).Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
@@ -582,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 // find extension methods named "Select"
-                var symbols = await searchScope.FindDeclarationsAsync("Select", SymbolFilter.Member).ConfigureAwait(false);
+                var symbols = await searchScope.FindDeclarationsAsync("Select", nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
 
                 // Note: there is no "desiredName" when doing this.  We're not going to do any
                 // renames of the user code.  We're just looking for an extension method called 
@@ -670,7 +680,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return SpecializedTasks.EmptyEnumerable<SearchResult<ISymbol>>();
                 }
 
-                return searchScope.FindDeclarationsAsync(name, SymbolFilter.Member);
+                var nameNode = (TIdentifierNameSyntax)_node;
+                return searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Member);
             }
 
             private IEnumerable<SymbolReference> FilterForExtensionMethods(
@@ -719,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // Note: there is no desiredName for these search results.  We're searching for
                 // extension methods called "Add", but we have no intention of renaming any 
                 // of the existing user code to that name.
-                var symbols = await searchScope.FindDeclarationsAsync("Add", SymbolFilter.Member).ConfigureAwait(false);
+                var symbols = await searchScope.FindDeclarationsAsync("Add", nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
                 return OfType<IMethodSymbol>(symbols)
                     .Where(s => s.Symbol.IsExtensionMethod &&
                                 s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
@@ -745,29 +756,33 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // The desired name to change the user text to if this was a fuzzy (spell-checking) match.
             public readonly string DesiredName;
 
-            public SearchResult(string desiredName, T symbol, double weight)
+            // The node to convert to the desired name
+            public readonly TIdentifierNameSyntax NameNode;
+
+            public SearchResult(string desiredName, TIdentifierNameSyntax nameNode, T symbol, double weight)
             {
                 DesiredName = desiredName;
                 Symbol = symbol;
                 Weight = weight;
+                NameNode = nameNode;
             }
 
             public SearchResult<T2> WithSymbol<T2>(T2 symbol) where T2 : ISymbol
             {
-                return new SearchResult<T2>(this.DesiredName, symbol, this.Weight);
+                return new SearchResult<T2>(DesiredName, NameNode, symbol, this.Weight);
             }
 
             internal SearchResult<T> WithDesiredName(string desiredName)
             {
-                return new SearchResult<T>(desiredName, Symbol, Weight);
+                return new SearchResult<T>(desiredName, NameNode, Symbol, Weight);
             }
         }
 
         private struct SearchResult
         {
-            public static SearchResult<T> Create<T>(string desiredName, T symbol, double weight) where T : ISymbol
+            public static SearchResult<T> Create<T>(string desiredName, TIdentifierNameSyntax nameNode, T symbol, double weight) where T : ISymbol
             {
-                return new SearchResult<T>(desiredName, symbol, weight);
+                return new SearchResult<T>(desiredName, nameNode, symbol, weight);
             }
         }
     }
