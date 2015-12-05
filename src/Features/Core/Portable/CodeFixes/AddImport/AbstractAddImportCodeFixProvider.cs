@@ -359,15 +359,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private async Task<List<SymbolReference>> DoAsync(SearchScope searchScope)
             {
                 // Spin off tasks to do all our searching.
-                var tasks = new[]
+                var tasks = new List<Task<IList<SymbolReference>>>
                 {
                     this.GetNamespacesForMatchingTypesAsync(searchScope),
                     this.GetMatchingTypesAsync(searchScope),
                     this.GetNamespacesForMatchingNamespacesAsync(searchScope),
-                    this.GetNamespacesForMatchingExtensionMethodsAsync(searchScope),
                     this.GetNamespacesForMatchingFieldsAndPropertiesAsync(searchScope),
-                    this.GetNamespacesForQueryPatternsAsync(searchScope)
+                    this.GetNamespacesForMatchingExtensionMethodsAsync(searchScope),
                 };
+
+                // Searching for things like "Add" (for collection initializers) and "Select"
+                // (for extension methods) should only be done when doing an 'exact' search.
+                // We should not do fuzzy searches for these names.  In this case it's not
+                // like the user was writing Add or Select, but instead we're looking for
+                // viable symbols with those names to make a collection initializer or 
+                // query expression valid.
+                if (searchScope.Exact)
+                {
+                    tasks.Add(this.GetNamespacesForCollectionInitializerMethodsAsync(searchScope));
+                    tasks.Add(this.GetNamespacesForQueryPatternsAsync(searchScope));
+                }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
                 _cancellationToken.ThrowIfCancellationRequested();
@@ -513,23 +524,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return null;
                 }
 
-                var expression = _node.Parent;
-
-                var extensionMethods = SpecializedCollections.EmptyEnumerable<SymbolReference>();
                 var symbols = await GetSymbolsAsync(searchScope).ConfigureAwait(false);
-                if (symbols != null)
+                var extensionMethods = FilterForExtensionMethods(searchScope, _node.Parent, symbols);
+
+                return extensionMethods.ToList();
+            }
+
+            private async Task<IList<SymbolReference>> GetNamespacesForCollectionInitializerMethodsAsync(SearchScope searchScope)
+            {
+                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, ref _node))
                 {
-                    extensionMethods = FilterForExtensionMethods(searchScope, expression, symbols);
+                    return null;
                 }
 
-                var addMethods = SpecializedCollections.EmptyEnumerable<SymbolReference>();
-                var methodSymbols = await GetAddMethodsAsync(searchScope, expression).ConfigureAwait(false);
-                if (methodSymbols != null)
-                {
-                    addMethods = GetProposedNamespaces(searchScope, methodSymbols.Select(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
-                }
-
-                return extensionMethods.Concat(addMethods).ToList();
+                var methodSymbols = await GetAddMethodsAsync(searchScope, _node.Parent).ConfigureAwait(false);
+                return GetProposedNamespaces(searchScope, methodSymbols.Select(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
             }
 
             private async Task<IList<SymbolReference>> GetNamespacesForMatchingFieldsAndPropertiesAsync(
@@ -568,8 +577,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // find extension methods named "Select"
                 var symbols = await searchScope.FindDeclarationsAsync("Select", SymbolFilter.Member).ConfigureAwait(false);
 
+                // Note: there is no "desiredName" when doing this.  We're not going to do any
+                // renames of the user code.  We're just looking for an extension method called 
+                // "Select", but that name has no bearing on the code in question that we're
+                // trying to fix up.
                 var extensionMethodSymbols = OfType<IMethodSymbol>(symbols)
                     .Where(s => s.Symbol.IsExtensionMethod && _owner.IsViableExtensionMethod(type, s.Symbol))
+                    .Select(s => s.WithDesiredName(null))
                     .ToList();
 
                 return GetProposedNamespaces(
@@ -690,21 +704,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 string name;
                 int arity;
                 _syntaxFacts.GetNameAndArityOfSimpleName(_node, out name, out arity);
-                if (name != null)
+                if (name != null || !_owner.IsAddMethodContext(_node, _semanticModel))
                 {
                     return SpecializedCollections.EmptyEnumerable<SearchResult<IMethodSymbol>>();
                 }
 
-                if (_owner.IsAddMethodContext(_node, _semanticModel))
-                {
-                    var symbols = await searchScope.FindDeclarationsAsync("Add", SymbolFilter.Member).ConfigureAwait(false);
-                    return OfType<IMethodSymbol>(symbols)
-                        .Where(s => s.Symbol.IsExtensionMethod &&
-                                    s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
-                                         _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, _cancellationToken));
-                }
-
-                return SpecializedCollections.EmptyEnumerable<SearchResult<IMethodSymbol>>();
+                // Note: there is no desiredName for these search results.  We're searching for
+                // extension methods called "Add", but we have no intention of renaming any 
+                // of the existing user code to that name.
+                var symbols = await searchScope.FindDeclarationsAsync("Add", SymbolFilter.Member).ConfigureAwait(false);
+                return OfType<IMethodSymbol>(symbols)
+                    .Where(s => s.Symbol.IsExtensionMethod &&
+                                s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
+                                     _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, _cancellationToken))
+                    .Select(s => s.WithDesiredName(null));
             }
 
             private IEnumerable<SearchResult<T>> OfType<T>(IEnumerable<SearchResult<ISymbol>> symbols) where T : ISymbol
