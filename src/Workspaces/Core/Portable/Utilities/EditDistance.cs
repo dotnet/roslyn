@@ -12,6 +12,11 @@ namespace Roslyn.Utilities
         private char[] originalTextArray;
         private int closeMatchThreshold;
 
+        // Cache the result of the last call to IsCloseMatch.  We'll often be called with the same
+        // value multiple times in a row, so we can avoid expensive computation by returning the
+        // same value immediately.
+        private ValueTuple<string, bool, double> lastIsCloseMatchResult;
+
         public EditDistance(string text)
         {
             originalText = text;
@@ -519,6 +524,19 @@ namespace Roslyn.Utilities
         }
 
         public bool IsCloseMatch(string candidateText, out double matchCost)
+        {
+            if (lastIsCloseMatchResult.Item1 == candidateText)
+            {
+                matchCost = lastIsCloseMatchResult.Item3;
+                return lastIsCloseMatchResult.Item2;
+            }
+
+            var result = IsCloseMatchWorker(candidateText, out matchCost);
+            lastIsCloseMatchResult = ValueTuple.Create(candidateText, result, matchCost);
+            return result;
+        }
+
+        private bool IsCloseMatchWorker(string candidateText, out double matchCost)
         {
             matchCost = double.MaxValue;
 
