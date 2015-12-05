@@ -74,10 +74,18 @@ index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public async Task TestGenericWithWrongArgs()
+        public async Task TestGenericWithWrongArgs1()
         {
             await TestMissingAsync(
-@"class Class { [|List<int,string>|] Method() { Foo(); } }");
+@"class Class { [|List<int,string,bool>|] Method() { Foo(); } }");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestGenericWithWrongArgs2()
+        {
+            await TestAsync(
+@"class Class { [|List<int,string>|] Method() { Foo(); } }",
+@"using System.Collections.Generic; class Class { SortedList<int,string> Method() { Foo(); } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
