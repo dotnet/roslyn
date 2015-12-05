@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TIdentifierNameSyntax>
+    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
         private abstract class SearchScope
         {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected abstract Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
             public abstract SymbolReference CreateReference<T>(SearchResult<T> symbol) where T : INamespaceOrTypeSymbol;
 
-            public async Task<IEnumerable<SearchResult<ISymbol>>> FindDeclarationsAsync(string name, TIdentifierNameSyntax nameNode, SymbolFilter filter)
+            public async Task<IEnumerable<SearchResult<ISymbol>>> FindDeclarationsAsync(string name, TSimpleNameSyntax nameNode, SymbolFilter filter)
             {
                 var query = this.Exact ? new SearchQuery(name, ignoreCase: true) : new SearchQuery(GetInexactPredicate(name));
                 var symbols = await FindDeclarationsAsync(name, filter, query).ConfigureAwait(false);

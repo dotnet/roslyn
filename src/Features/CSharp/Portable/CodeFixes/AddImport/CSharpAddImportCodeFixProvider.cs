@@ -141,8 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return node.CanAddUsingDirectives(cancellationToken);
         }
 
-        protected override bool CanAddImportForMethod(Diagnostic diagnostic, ISyntaxFactsService syntaxFacts, ref SyntaxNode node)
+        protected override bool CanAddImportForMethod(
+            Diagnostic diagnostic, ISyntaxFactsService syntaxFacts, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
+            nameNode = null;
+
             switch (diagnostic.Id)
             {
                 case CS1061:
@@ -202,15 +205,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     return false;
             }
 
-            var simpleName = node as SimpleNameSyntax;
-            if (!simpleName.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) &&
-                !simpleName.IsParentKind(SyntaxKind.MemberBindingExpression))
+            nameNode = node as SimpleNameSyntax;
+            if (!nameNode.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) &&
+                !nameNode.IsParentKind(SyntaxKind.MemberBindingExpression))
             {
                 return false;
             }
 
-            var memberAccess = simpleName.Parent as MemberAccessExpressionSyntax;
-            var memberBinding = simpleName.Parent as MemberBindingExpressionSyntax;
+            var memberAccess = nameNode.Parent as MemberAccessExpressionSyntax;
+            var memberBinding = nameNode.Parent as MemberBindingExpressionSyntax;
             if (memberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) ||
                 memberAccess.IsParentKind(SyntaxKind.ElementAccessExpression) ||
                 memberBinding.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) ||
@@ -227,12 +230,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return true;
         }
 
-        protected override bool CanAddImportForNamespace(Diagnostic diagnostic, ref SyntaxNode node)
+        protected override bool CanAddImportForNamespace(Diagnostic diagnostic, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
+            nameNode = null;
             return false;
         }
 
-        protected override bool CanAddImportForQuery(Diagnostic diagnostic, ref SyntaxNode node)
+        protected override bool CanAddImportForQuery(Diagnostic diagnostic, SyntaxNode node)
         {
             if (diagnostic.Id != CS1935)
             {
@@ -242,8 +246,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return node.AncestorsAndSelf().Any(n => n is QueryExpressionSyntax && !(n.Parent is QueryContinuationSyntax));
         }
 
-        protected override bool CanAddImportForType(Diagnostic diagnostic, ref SyntaxNode node)
+        protected override bool CanAddImportForType(Diagnostic diagnostic, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
+            nameNode = null;
             switch (diagnostic.Id)
             {
                 case CS0103:
@@ -271,10 +276,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     return false;
             }
 
-            return TryFindStandaloneType(ref node);
+            return TryFindStandaloneType(node, out nameNode);
         }
 
-        private static bool TryFindStandaloneType(ref SyntaxNode node)
+        private static bool TryFindStandaloneType(SyntaxNode node, out SimpleNameSyntax nameNode)
         {
             var qn = node as QualifiedNameSyntax;
             if (qn != null)
@@ -282,8 +287,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 node = GetLeftMostSimpleName(qn);
             }
 
-            var simpleName = node as SimpleNameSyntax;
-            return simpleName.LooksLikeStandaloneTypeName();
+            nameNode = node as SimpleNameSyntax;
+            return nameNode.LooksLikeStandaloneTypeName();
         }
 
         private static SimpleNameSyntax GetLeftMostSimpleName(QualifiedNameSyntax qn)
