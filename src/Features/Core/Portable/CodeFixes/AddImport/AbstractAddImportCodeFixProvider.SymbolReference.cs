@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public int CompareTo(SymbolReference other)
             {
+                // If references have different weights, order by the ones with lower weight (i.e.
+                // they are better matches).
                 if (this.SearchResult.Weight < other.SearchResult.Weight)
                 {
                     return -1;
@@ -28,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return 1;
                 }
 
+                // If the weight are the same, just order them based on their names.
                 return INamespaceOrTypeSymbolExtensions.CompareNamespaceOrTypeSymbols(this.SearchResult.Symbol, other.SearchResult.Symbol);
             }
 
