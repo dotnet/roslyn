@@ -312,7 +312,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestActionCountAsync(text.ConvertTestSourceTag(), 3)
+            Await TestActionCountAsync(text.ConvertTestSourceTag(), 2)
             Await TestAsync(text, expected, index:=0)
         End Function
 
