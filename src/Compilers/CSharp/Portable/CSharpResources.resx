@@ -4709,7 +4709,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Possible null reference return.</value>
   </data>
   <data name="WRN_NullReferenceArgument" xml:space="preserve">
-    <value>Possible null reference argument.</value>
+    <value>Possible null reference argument for parameter '{0}' in '{1}'.</value>
   </data>
   <data name="WRN_NullReferenceArgument_Title" xml:space="preserve">
     <value>Possible null reference argument.</value>

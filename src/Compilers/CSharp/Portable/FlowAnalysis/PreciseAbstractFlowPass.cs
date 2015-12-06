@@ -731,6 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void NotePossibleException(BoundNode node)
         {
             Debug.Assert(_trackExceptions);
+            Debug.Assert(!IsConditionalState);
             IntersectWith(ref _pendingBranches[0].State, ref this.State);
         }
 
@@ -913,15 +914,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
-            VisitRvalue(node.ReceiverOpt);
+            VisitReceiverOfDynamicAccessAsRvalue(node.ReceiverOpt);
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null, default(ImmutableArray<int>), false);
             if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
+        protected virtual void VisitReceiverOfDynamicAccessAsRvalue(BoundExpression receiverOpt)
+        {
+            VisitRvalue(receiverOpt);
+        }
+
         public override BoundNode VisitDynamicMemberAccess(BoundDynamicMemberAccess node)
         {
-            VisitRvalue(node.Receiver);
+            VisitReceiverOfDynamicAccessAsRvalue(node.Receiver);
             if (_trackExceptions) NotePossibleException(node);
             return null;
         }
@@ -1132,10 +1138,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
-            VisitRvalue(node.ReceiverOpt);
+            VisitReceiverOfEventAssignmentAsRvalue(node);
             VisitRvalue(node.Argument);
             if (_trackExceptions) NotePossibleException(node);
             return null;
+        }
+
+        protected virtual void VisitReceiverOfEventAssignmentAsRvalue(BoundEventAssignmentOperator node)
+        {
+            VisitRvalue(node.ReceiverOpt);
         }
 
         private void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
@@ -1324,22 +1335,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression receiver = ((BoundMethodGroup)node.Operand).ReceiverOpt;
                     // A method group's "implicit this" is only used for instance methods.
-                    // TODO: StaticNullChecking - should we use VisitReceiverBeforeCall if we are dealing with an instance method?
                     if (_trackRegions)
                     {
                         if (node.Operand == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();
-                        Visit(receiver);
-                        if (node.Operand == this.lastInRegion && IsInside) LeaveRegion();
+                    }
+
+                    if (node.SymbolOpt?.IsStatic == false)
+                    {
+                        VisitReceiverBeforeCall(receiver, node.SymbolOpt);
                     }
                     else
                     {
-                        Visit(receiver);
+                        VisitRvalue(receiver);
+                    }
+
+                    if (_trackRegions)
+                    {
+                        if (node.Operand == this.lastInRegion && IsInside) LeaveRegion();
                     }
                 }
             }
             else
             {
-                Visit(node.Operand);
+                VisitRvalue(node.Operand);
                 if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             }
 
@@ -1520,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // returns false if expression is not a property access 
         // or if the property has a backing field
         // and accessed in a corresponding constructor
-        private bool RegularPropertyAccess(BoundExpression expr)
+        protected bool RegularPropertyAccess(BoundExpression expr)
         {
             if (expr.Kind != BoundKind.PropertyAccess)
             {
@@ -1553,6 +1571,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
+            VisitCompoundAssignmentTarget(node);
+            VisitRvalue(node.Right);
+            AfterRightHasBeenVisited(node);
+            return null;
+        }
+
+        protected void VisitCompoundAssignmentTarget(BoundCompoundAssignmentOperator node)
+        {
             // TODO: should events be handled specially too?
             if (RegularPropertyAccess(node.Left))
             {
@@ -1564,19 +1590,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
                 if (_trackExceptions) NotePossibleException(node);
                 VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
-                VisitRvalue(node.Right);
+            }
+            else
+            {
+                VisitRvalue(node.Left);
+            }
+        }
+
+        protected void AfterRightHasBeenVisited(BoundCompoundAssignmentOperator node)
+        { 
+            if (RegularPropertyAccess(node.Left))
+            {
+                var left = (BoundPropertyAccess)node.Left;
+                var property = left.PropertySymbol;
+                var writeMethod = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
                 PropertySetter(node, left.ReceiverOpt, writeMethod);
                 if (_trackExceptions) NotePossibleException(node);
                 VisitReceiverAfterCall(left.ReceiverOpt, writeMethod);
             }
             else
             {
-                VisitRvalue(node.Left);
-                VisitRvalue(node.Right);
                 if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             }
-
-            return null;
         }
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
@@ -1859,6 +1894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                    Debug.Assert(!binOp.OperatorKind.IsUserDefined());
                     binary = child;
                     child = binOp.Left;
                 }
@@ -1911,34 +1947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftFalse = this.StateWhenFalse;
                 SetState(isAnd ? leftTrue : leftFalse);
 
-                VisitCondition(right);
-                if (!isBool)
-                {
-                    this.Unsplit();
-                    this.Split();
-                }
-
-                var resultTrue = this.StateWhenTrue;
-                var resultFalse = this.StateWhenFalse;
-                if (isAnd)
-                {
-                    IntersectWith(ref resultFalse, ref leftFalse);
-                }
-                else
-                {
-                    IntersectWith(ref resultTrue, ref leftTrue);
-                }
-                SetConditionalState(resultTrue, resultFalse);
-
-                if (!isBool)
-                {
-                    this.Unsplit();
-                }
-
-                if (_trackExceptions && binary.HasExpressionSymbols())
-                {
-                    NotePossibleException(binary);
-                }
+                AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(binary, right, isAnd, isBool, ref leftTrue, ref leftFalse);
 
                 if (stack.Count == 0)
                 {
@@ -1950,6 +1959,45 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)binary == node);
             stack.Free();
+        }
+
+        protected virtual void AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression binary, BoundExpression right, bool isAnd, bool isBool, ref LocalState leftTrue, ref LocalState leftFalse)
+        {
+            Visit(right); // First part of VisitCondition
+            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(binary, right, isAnd, isBool, ref leftTrue, ref leftFalse);
+        }
+
+        protected void AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression binary, BoundExpression right, bool isAnd, bool isBool, ref LocalState leftTrue, ref LocalState leftFalse)
+        {
+            AdjustConditionalState(right); // Second part of VisitCondition
+
+            if (!isBool)
+            {
+                this.Unsplit();
+                this.Split();
+            }
+
+            var resultTrue = this.StateWhenTrue;
+            var resultFalse = this.StateWhenFalse;
+            if (isAnd)
+            {
+                IntersectWith(ref resultFalse, ref leftFalse);
+            }
+            else
+            {
+                IntersectWith(ref resultTrue, ref leftTrue);
+            }
+            SetConditionalState(resultTrue, resultFalse);
+
+            if (!isBool)
+            {
+                this.Unsplit();
+            }
+
+            if (_trackExceptions && binary.HasExpressionSymbols())
+            {
+                NotePossibleException(binary);
+            }
         }
 
         private void VisitBinaryOperatorChildren(BoundBinaryOperator node)
@@ -1989,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
 
-                AfterNestedBinaryOperatorHasBeenVisited(binary);
+                Unsplit(); // VisitRvalue does this
             }
 
             Debug.Assert((object)binary == node);
@@ -1999,20 +2047,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void AfterLeftChildHasBeenVisited(BoundBinaryOperator binary)
         {
             VisitRvalue(binary.Right);
-            AfterBinaryOperatorChildrenHaveBeenVisited(binary);
+            AfterRightChildHasBeenVisited(binary);
         }
 
-        protected void AfterBinaryOperatorChildrenHaveBeenVisited(BoundBinaryOperator binary)
+        protected void AfterRightChildHasBeenVisited(BoundBinaryOperator binary)
         {
             if (_trackExceptions && binary.HasExpressionSymbols())
             {
                 NotePossibleException(binary);
             }
-        }
-
-        protected virtual void AfterNestedBinaryOperatorHasBeenVisited(BoundBinaryOperator binary)
-        {
-            Unsplit(); // VisitRvalue does this
         }
 
         public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
@@ -2099,7 +2142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Can be called as part of a bad expression.
-        public sealed override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
+        public override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
         {
             foreach (var child in node.Initializers)
             {
@@ -2634,14 +2677,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
-            // TODO: StaticNullChecking - Should we use VisitArguments to properly handle arguments?
             var arguments = node.Arguments;
             if (!arguments.IsDefaultOrEmpty)
             {
-                foreach (var argument in arguments)
+                MethodSymbol method = null;
+
+                if (node.MemberSymbol?.Kind == SymbolKind.Property)
                 {
-                    VisitRvalue(argument);
+                    var property = (PropertySymbol)node.MemberSymbol;
+                    method = property.GetOwnOrInheritedGetMethod() ?? property.SetMethod;
                 }
+
+                VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
             }
 
             return null;
