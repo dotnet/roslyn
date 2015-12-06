@@ -1139,6 +1139,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Creates the syntax representation of an xml newline token for xml documentation comments.
+        /// </summary>
+        /// <param name="text">The raw text within the new line.</param>
+        /// <param name="continueXmlDocumentationComment">
+        /// If set to true, a documentation comment exterior token will be added to the trailing trivia
+        /// of the new token.</param>
+        public static SyntaxToken XmlTextNewLine(string text, bool continueXmlDocumentationComment)
+        {
+            var value = Environment.NewLine;
+            var token = new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlTextNewLine((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+
+            if (continueXmlDocumentationComment)
+                token = token.WithTrailingTrivia(DocumentationCommentExterior("/// "));
+
+            return token;
+        }
+
+        /// <summary>
         /// Generates the syntax representation of a xml text node (e.g. for xml documentation comments).
         /// </summary>
         /// <param name="value">The string literal used as the text of the xml text node.</param>
@@ -1166,11 +1184,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       states to avoid LINQ (https://github.com/dotnet/roslyn/wiki/Contributing-Code). With
             //       XText we have a reference to System.Xml.Linq. Isn't this rule valid here? 
             string encoded = new XText(value).ToString();
+
             return XmlTextLiteral(
                 TriviaList(),
                 encoded,
                 value,
                 TriviaList());
+        }
+
+        /// <summary>
+        /// Generates the syntax representation of an xml text literal.
+        /// </summary>
+        /// <param name="text">The raw text of the literal.</param>
+        /// <param name="value">The text used within the xml text literal.</param>
+        public static SyntaxToken XmlTextLiteral(string text, string value)
+        {
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlTextLiteral((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
