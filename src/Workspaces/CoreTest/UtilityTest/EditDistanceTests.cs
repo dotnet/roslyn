@@ -7,56 +7,61 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class EditDistanceTests
     {
+        private static int GetEditDistance(string s, string t)
+        {
+            return EditDistance.GetEditDistance(s, t, int.MaxValue);
+        }
+
         [Fact]
         public void EditDistance0()
         {
-            Assert.Equal(EditDistance.GetEditDistance("", ""), 0);
-            Assert.Equal(EditDistance.GetEditDistance("a", "a"), 0);
+            Assert.Equal(GetEditDistance("", ""), 0);
+            Assert.Equal(GetEditDistance("a", "a"), 0);
         }
 
         [Fact]
         public void EditDistance1()
         {
-            Assert.Equal(EditDistance.GetEditDistance("", "a"), 1);
-            Assert.Equal(EditDistance.GetEditDistance("a", ""), 1);
-            Assert.Equal(EditDistance.GetEditDistance("a", "b"), 1);
-            Assert.Equal(EditDistance.GetEditDistance("ab", "a"), 1);
-            Assert.Equal(EditDistance.GetEditDistance("a", "ab"), 1);
-            Assert.Equal(EditDistance.GetEditDistance("aabb", "abab"), 1);
+            Assert.Equal(GetEditDistance("", "a"), 1);
+            Assert.Equal(GetEditDistance("a", ""), 1);
+            Assert.Equal(GetEditDistance("a", "b"), 1);
+            Assert.Equal(GetEditDistance("ab", "a"), 1);
+            Assert.Equal(GetEditDistance("a", "ab"), 1);
+            Assert.Equal(GetEditDistance("aabb", "abab"), 1);
         }
 
         [Fact]
         public void EditDistance2()
         {
-            Assert.Equal(EditDistance.GetEditDistance("", "aa"), 2);
-            Assert.Equal(EditDistance.GetEditDistance("aa", ""), 2);
-            Assert.Equal(EditDistance.GetEditDistance("aa", "bb"), 2);
-            Assert.Equal(EditDistance.GetEditDistance("aab", "a"), 2);
-            Assert.Equal(EditDistance.GetEditDistance("a", "aab"), 2);
-            Assert.Equal(EditDistance.GetEditDistance("aababb", "ababab"), 2);
+            Assert.Equal(GetEditDistance("", "aa"), 2);
+            Assert.Equal(GetEditDistance("aa", ""), 2);
+            Assert.Equal(GetEditDistance("aa", "bb"), 2);
+            Assert.Equal(GetEditDistance("aab", "a"), 2);
+            Assert.Equal(GetEditDistance("a", "aab"), 2);
+            Assert.Equal(GetEditDistance("aababb", "ababab"), 2);
         }
 
         [Fact]
         public void EditDistance3()
         {
-            Assert.Equal(EditDistance.GetEditDistance("", "aaa"), 3);
-            Assert.Equal(EditDistance.GetEditDistance("aaa", ""), 3);
-            Assert.Equal(EditDistance.GetEditDistance("aaa", "bbb"), 3);
-            Assert.Equal(EditDistance.GetEditDistance("aaab", "a"), 3);
-            Assert.Equal(EditDistance.GetEditDistance("a", "aaab"), 3);
-            Assert.Equal(EditDistance.GetEditDistance("aababbab", "abababaa"), 3);
+            Assert.Equal(GetEditDistance("", "aaa"), 3);
+            Assert.Equal(GetEditDistance("aaa", ""), 3);
+            Assert.Equal(GetEditDistance("aaa", "bbb"), 3);
+            Assert.Equal(GetEditDistance("aaab", "a"), 3);
+            Assert.Equal(GetEditDistance("a", "aaab"), 3);
+            Assert.Equal(GetEditDistance("aababbab", "abababaa"), 3);
         }
 
         [Fact]
         public void EditDistance4()
         {
-            Assert.Equal(EditDistance.GetEditDistance("XlmReade", "XmlReader"), 2);
+            Assert.Equal(GetEditDistance("XlmReade", "XmlReader"), 2);
         }
 
         [Fact]
         public void MoreEditDistance()
         {
-            Assert.Equal(EditDistance.GetEditDistance("barking", "corkliness"), 6);
+            Assert.Equal(GetEditDistance("barking", "corkliness"), 6);
         }
 
         [Fact]

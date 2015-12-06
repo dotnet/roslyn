@@ -10,14 +10,14 @@ namespace Roslyn.Utilities
     {
         private string originalText;
         private char[] originalTextArray;
-        private int closeMatchThreshold;
+        private int threshold;
 
         // Cache the result of the last call to IsCloseMatch.  We'll often be called with the same
         // value multiple times in a row, so we can avoid expensive computation by returning the
         // same value immediately.
         private ValueTuple<string, bool, double> lastIsCloseMatchResult;
 
-        public EditDistance(string text)
+        public EditDistance(string text, int? threshold = null)
         {
             originalText = text;
             originalTextArray = ConvertToLowercaseArray(text);
@@ -31,7 +31,7 @@ namespace Roslyn.Utilities
             //         length 8-15: 3 edits allowed.
             //
             // and so forth.
-            closeMatchThreshold = Max(1, (int)Log(text.Length, 2));
+            this.threshold = threshold ?? Max(1, (int)Log(text.Length, 2));
         }
 
         private static char[] ConvertToLowercaseArray(string text)
@@ -52,9 +52,9 @@ namespace Roslyn.Utilities
             originalTextArray = null;
         }
 
-        public static int GetEditDistance(string s, string t)
+        public static int GetEditDistance(string s, string t, int? threshold = null)
         {
-            using (var editDistance = new EditDistance(s))
+            using (var editDistance = new EditDistance(s, threshold))
             {
                 return editDistance.GetEditDistance(t);
             }
@@ -68,8 +68,8 @@ namespace Roslyn.Utilities
                 // Swap the strings so the first is always the shortest.  This helps ensure some
                 // nice invariants in the code that walks both strings below.
                 return originalText.Length <= other.Length
-                    ? GetEditDistance(originalTextArray, otherCharacterArray, originalText.Length, other.Length, closeMatchThreshold)
-                    : GetEditDistance(otherCharacterArray, originalTextArray, other.Length, originalText.Length, closeMatchThreshold);
+                    ? GetEditDistance(originalTextArray, otherCharacterArray, originalText.Length, other.Length, threshold)
+                    : GetEditDistance(otherCharacterArray, originalTextArray, other.Length, originalText.Length, threshold);
             }
             finally
             {
@@ -551,12 +551,12 @@ namespace Roslyn.Utilities
             // If the two strings differ by more characters than the cost threshold, then there's 
             // no point in even computing the edit distance as it would necessarily take at least
             // that many additions/deletions.
-            if (Math.Abs(originalText.Length - candidateText.Length) <= closeMatchThreshold)
+            if (Math.Abs(originalText.Length - candidateText.Length) <= threshold)
             {
                 matchCost = GetEditDistance(candidateText);
             }
 
-            if (matchCost > closeMatchThreshold)
+            if (matchCost > threshold)
             {
                 // it had a high cost.  However, the string the user typed was contained
                 // in the string we're currently looking at.  That's enough to consider it
@@ -564,11 +564,11 @@ namespace Roslyn.Utilities
                 // other matches).
                 if (candidateText.IndexOf(originalText, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    matchCost = closeMatchThreshold;
+                    matchCost = threshold;
                 }
             }
 
-            if (matchCost > closeMatchThreshold)
+            if (matchCost > threshold)
             {
                 return false;
             }
