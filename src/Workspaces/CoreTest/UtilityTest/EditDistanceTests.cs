@@ -48,6 +48,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void EditDistance4()
+        {
+            Assert.Equal(EditDistance.GetEditDistance("XlmReade", "XmlReader"), 2);
+        }
+
+        [Fact]
         public void MoreEditDistance()
         {
             Assert.Equal(EditDistance.GetEditDistance("barking", "corkliness"), 6);

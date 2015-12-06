@@ -9,16 +9,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private abstract class SymbolReference : IComparable<SymbolReference>, IEquatable<SymbolReference>
         {
-            public readonly INamespaceOrTypeSymbol Symbol;
+            public readonly SearchResult<INamespaceOrTypeSymbol> SearchResult;
 
-            protected SymbolReference(INamespaceOrTypeSymbol symbol)
+            protected SymbolReference(SearchResult<INamespaceOrTypeSymbol> searchResult)
             {
-                this.Symbol = symbol;
+                this.SearchResult = searchResult;
             }
 
             public int CompareTo(SymbolReference other)
             {
-                return INamespaceOrTypeSymbolExtensions.CompareNamespaceOrTypeSymbols(this.Symbol, other.Symbol);
+                if (this.SearchResult.Weight < other.SearchResult.Weight)
+                {
+                    return -1;
+                }
+
+                if (this.SearchResult.Weight > other.SearchResult.Weight)
+                {
+                    return 1;
+                }
+
+                return INamespaceOrTypeSymbolExtensions.CompareNamespaceOrTypeSymbols(this.SearchResult.Symbol, other.SearchResult.Symbol);
             }
 
             public override bool Equals(object obj)
@@ -28,12 +38,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public bool Equals(SymbolReference other)
             {
-                return object.Equals(this.Symbol, other?.Symbol);
+                return object.Equals(this.SearchResult.Symbol, other?.SearchResult.Symbol);
             }
 
             public override int GetHashCode()
             {
-                return this.Symbol.GetHashCode();
+                return this.SearchResult.Symbol.GetHashCode();
             }
 
             public abstract Solution UpdateSolution(Document newDocument);
@@ -43,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             private readonly ProjectId _projectId;
 
-            public ProjectSymbolReference(INamespaceOrTypeSymbol symbol, ProjectId projectId)
-                : base(symbol)
+            public ProjectSymbolReference(SearchResult<INamespaceOrTypeSymbol> searchResult, ProjectId projectId)
+                : base(searchResult)
             {
                 _projectId = projectId;
             }
@@ -71,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             private readonly PortableExecutableReference _reference;
 
-            public MetadataSymbolReference(INamespaceOrTypeSymbol symbol, PortableExecutableReference reference)
-                : base(symbol)
+            public MetadataSymbolReference(SearchResult<INamespaceOrTypeSymbol> searchResult, PortableExecutableReference reference)
+                : base(searchResult)
             {
                 _reference = reference;
             }
