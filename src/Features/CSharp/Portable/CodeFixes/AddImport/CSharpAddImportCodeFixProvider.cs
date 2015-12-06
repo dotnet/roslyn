@@ -131,11 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             }
         }
 
-        protected override bool IgnoreCase
-        {
-            get { return false; }
-        }
-
         protected override bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -390,76 +385,100 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
         protected override async Task<Document> AddImportAsync(
             SyntaxNode contextNode,
-            INamespaceOrTypeSymbol namespaceSymbol,
+            INamespaceOrTypeSymbol namespaceOrTypeSymbol,
+            string desiredName,
             Document document,
             bool placeSystemNamespaceFirst,
             CancellationToken cancellationToken)
         {
-            var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
+            var originalDocument = document;
+            var originalContextNode = contextNode;
+            var originalRoot = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
+
+            var root = originalRoot;
+
+            var firstToken = contextNode.GetFirstToken();
+            if (firstToken.IsKind(SyntaxKind.IdentifierToken) && firstToken.ValueText != desiredName)
+            {
+                var annotation = new SyntaxAnnotation();
+                root = root.ReplaceToken(firstToken, SyntaxFactory.Identifier(desiredName).WithTriviaFrom(firstToken).WithAdditionalAnnotations(annotation));
+                document = document.WithSyntaxRoot(root);
+                contextNode = root.GetAnnotatedTokens(annotation).First().Parent;
+            }
+
+            var newRoot = await AddImportWorkerAsync(document, root, contextNode, namespaceOrTypeSymbol, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+            return document.WithSyntaxRoot(newRoot);
+        }
+
+        private async Task<CompilationUnitSyntax> AddImportWorkerAsync(
+            Document document, CompilationUnitSyntax root, SyntaxNode contextNode, 
+            INamespaceOrTypeSymbol namespaceOrTypeSymbol, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+        {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var simpleUsingDirective = GetUsingDirective(root, namespaceSymbol, semanticModel, fullyQualify: false);
-            var externAliasUsingDirective = GetExternAliasUsingDirective(root, namespaceSymbol, semanticModel);
+            var simpleUsingDirective = GetUsingDirective(root, namespaceOrTypeSymbol, semanticModel, fullyQualify: false);
+            var externAliasUsingDirective = GetExternAliasUsingDirective(root, namespaceOrTypeSymbol, semanticModel);
+
             if (externAliasUsingDirective != null)
             {
-                root = root.AddExterns(
+                return root.AddExterns(
                     externAliasUsingDirective
                         .WithAdditionalAnnotations(Formatter.Annotation));
             }
 
-            if (simpleUsingDirective != null)
+            if (simpleUsingDirective == null)
             {
-                // Because of the way usings can be nested inside of namespace declarations,
-                // we need to check if the usings must be fully qualified so as not to be
-                // ambiguous with the containing namespace. 
-                if (UsingsAreContainedInNamespace(contextNode))
-                {
-                    // When we add usings we try and place them, as best we can, where the user
-                    // wants them according to their settings.  This means we can't just add the fully-
-                    // qualified usings and expect the simplifier to take care of it, the usings have to be
-                    // simplified before we attempt to add them to the document.
-                    // You might be tempted to think that we could call 
-                    //   AddUsings -> Simplifier -> SortUsings
-                    // But this will clobber the users using settings without asking.  Instead we create a new
-                    // Document and check if our using can be simplified.  Worst case we need to back out the 
-                    // fully qualified change and reapply with the simple name.
-                    var fullyQualifiedUsingDirective = GetUsingDirective(root, namespaceSymbol, semanticModel, fullyQualify: true);
-                    SyntaxNode newRoot = root.AddUsingDirective(
-                                    fullyQualifiedUsingDirective, contextNode, placeSystemNamespaceFirst,
-                                    Formatter.Annotation);
-                    var newUsing = newRoot
-                        .DescendantNodes().OfType<UsingDirectiveSyntax>()
-                        .Where(uds => uds.IsEquivalentTo(fullyQualifiedUsingDirective, topLevel: true))
-                        .Single();
-                    newRoot = newRoot.TrackNodes(newUsing);
-                    var documentWithSyntaxRoot = document.WithSyntaxRoot(newRoot);
-                    var options = document.Project.Solution.Workspace.Options;
-                    var simplifiedDocument = await Simplifier.ReduceAsync(documentWithSyntaxRoot, newUsing.Span, options, cancellationToken).ConfigureAwait(false);
+                return root;
+            }
 
-                    newRoot = await simplifiedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var simplifiedUsing = newRoot.GetCurrentNode(newUsing);
-                    if (simplifiedUsing.Name.IsEquivalentTo(newUsing.Name, topLevel: true))
-                    {
-                        // Not fully qualifying the using causes to refer to a different namespace so we need to keep it as is.
-                        return documentWithSyntaxRoot;
-                    }
-                    else
-                    {
-                        // It does not matter if it is fully qualified or simple so lets return the simple name.
-                        return document.WithSyntaxRoot(root.AddUsingDirective(
-                            simplifiedUsing.WithoutTrivia().WithoutAnnotations(), contextNode, placeSystemNamespaceFirst,
-                            Formatter.Annotation));
-                    }
+            // Because of the way usings can be nested inside of namespace declarations,
+            // we need to check if the usings must be fully qualified so as not to be
+            // ambiguous with the containing namespace. 
+            if (UsingsAreContainedInNamespace(contextNode))
+            {
+                // When we add usings we try and place them, as best we can, where the user
+                // wants them according to their settings.  This means we can't just add the fully-
+                // qualified usings and expect the simplifier to take care of it, the usings have to be
+                // simplified before we attempt to add them to the document.
+                // You might be tempted to think that we could call 
+                //   AddUsings -> Simplifier -> SortUsings
+                // But this will clobber the users using settings without asking.  Instead we create a new
+                // Document and check if our using can be simplified.  Worst case we need to back out the 
+                // fully qualified change and reapply with the simple name.
+                var fullyQualifiedUsingDirective = GetUsingDirective(root, namespaceOrTypeSymbol, semanticModel, fullyQualify: true);
+                var newRoot = root.AddUsingDirective(
+                                fullyQualifiedUsingDirective, contextNode, placeSystemNamespaceFirst,
+                                Formatter.Annotation);
+                var newUsing = newRoot
+                    .DescendantNodes().OfType<UsingDirectiveSyntax>()
+                    .Where(uds => uds.IsEquivalentTo(fullyQualifiedUsingDirective, topLevel: true))
+                    .Single();
+                newRoot = newRoot.TrackNodes(newUsing);
+                var documentWithSyntaxRoot = document.WithSyntaxRoot(newRoot);
+                var options = document.Project.Solution.Workspace.Options;
+                var simplifiedDocument = await Simplifier.ReduceAsync(documentWithSyntaxRoot, newUsing.Span, options, cancellationToken).ConfigureAwait(false);
+
+                newRoot = (CompilationUnitSyntax)await simplifiedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var simplifiedUsing = newRoot.GetCurrentNode(newUsing);
+                if (simplifiedUsing.Name.IsEquivalentTo(newUsing.Name, topLevel: true))
+                {
+                    // Not fully qualifying the using causes to refer to a different namespace so we need to keep it as is.
+                    return (CompilationUnitSyntax)await documentWithSyntaxRoot.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    // simple form
-                    return document.WithSyntaxRoot(root.AddUsingDirective(
-                            simpleUsingDirective, contextNode, placeSystemNamespaceFirst,
-                            Formatter.Annotation));
+                    // It does not matter if it is fully qualified or simple so lets return the simple name.
+                    return root.AddUsingDirective(
+                        simplifiedUsing.WithoutTrivia().WithoutAnnotations(), contextNode, placeSystemNamespaceFirst,
+                        Formatter.Annotation);
                 }
             }
-
-            return document.WithSyntaxRoot(root);
+            else
+            {
+                // simple form
+                return root.AddUsingDirective(
+                    simpleUsingDirective, contextNode, placeSystemNamespaceFirst,
+                    Formatter.Annotation);
+            }
         }
 
         private static ExternAliasDirectiveSyntax GetExternAliasUsingDirective(CompilationUnitSyntax root, INamespaceOrTypeSymbol namespaceSymbol, SemanticModel semanticModel)

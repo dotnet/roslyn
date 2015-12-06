@@ -97,12 +97,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property IgnoreCase As Boolean
-            Get
-                Return True
-            End Get
-        End Property
-
         Protected Overrides Function CanAddImport(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
             If node.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing Then
                 Return False
@@ -294,9 +288,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
         Protected Overloads Overrides Function AddImportAsync(
                 contextNode As SyntaxNode,
                 symbol As INamespaceOrTypeSymbol,
+                desiredName As String,
                 document As Document,
                 placeSystemNamespaceFirst As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
+
             Dim memberImportsClause =
                 SyntaxFactory.SimpleImportsClause(name:=DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax).WithAdditionalAnnotations(Simplifier.Annotation))
             Dim newImport = SyntaxFactory.ImportsStatement(

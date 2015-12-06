@@ -40,6 +40,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return FindNodes(name, GetComparer(ignoreCase)).Any();
         }
 
+        public IEnumerable<ISymbol> Find(IAssemblySymbol assembly, Func<string, bool> predicate, CancellationToken cancellationToken)
+        {
+            for (int i = 0, n = _nodes.Count; i < n; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var node = _nodes[i];
+                if (predicate(node.Name))
+                {
+                    foreach (var symbol in Bind(i, assembly.GlobalNamespace, cancellationToken))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        yield return symbol;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Get all symbols that have a name matching the specified name.
         /// </summary>
@@ -53,8 +70,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             foreach (var node in FindNodes(name, comparer))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 foreach (var symbol in Bind(node, assembly.GlobalNamespace, cancellationToken))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     yield return symbol;
                 }
             }
