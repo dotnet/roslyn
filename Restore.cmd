@@ -15,10 +15,6 @@ call %NugetExe% restore -verbosity quiet "%~dp0build\ToolsetPackages\project.jso
 echo Restoring packages: Samples
 call %NugetExe% restore -verbosity quiet "%~dp0src\Samples\Samples.sln" -configfile "%~dp0nuget.config" || goto :RestoreFailed
 
-echo Restoring packages: Syntax Vizualizer Components
-call %NugetExe% restore -verbosity quiet "%~dp0src\Tools\Source\SyntaxVisualizer\SyntaxVisualizerControl\project.json" -configfile "%~dp0nuget.config" || goto :RestoreFailed
-call %NugetExe% restore -verbosity quiet "%~dp0src\Tools\Source\SyntaxVisualizer\SyntaxVisualizerDgmlHelper\project.json" -configfile "%~dp0nuget.config" || goto :RestoreFailed
-
 echo Restoring packages: Roslyn (this may take some time)
 call %NugetExe% restore -verbosity quiet "%RoslynSolution%" -configfile "%~dp0nuget.config" || goto :RestoreFailed
 
