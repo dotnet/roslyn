@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         protected abstract ISet<INamespaceSymbol> GetNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract string GetDescription(INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root);
-        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, string desiredName, TSimpleNameSyntax nameNode, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
+        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
         protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
@@ -118,14 +120,43 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
         private async Task<Solution> AddImportAndReferenceAsync(
-            SyntaxNode node, SymbolReference reference, Document document, bool placeSystemNamespaceFirst, CancellationToken c)
+            SyntaxNode contextNode, SymbolReference reference, Document document,
+            bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
         {
+            ReplaceNameNode(reference, ref contextNode, ref document, cancellationToken);
+
             // Defer to the language to add the actual import/using.
-            var newDocument = await this.AddImportAsync(node, 
-                reference.SearchResult.Symbol, reference.SearchResult.DesiredName, reference.SearchResult.NameNode,
-                document, placeSystemNamespaceFirst, c).ConfigureAwait(false);
+            var newDocument = await this.AddImportAsync(contextNode,
+                reference.SearchResult.Symbol, document,
+                placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
             return reference.UpdateSolution(newDocument);
+        }
+
+        private static void ReplaceNameNode(
+            SymbolReference reference, ref SyntaxNode contextNode, ref Document document, CancellationToken cancellationToken)
+        {
+            var desiredName = reference.SearchResult.DesiredName;
+            if (!string.IsNullOrEmpty(reference.SearchResult.DesiredName))
+            {
+                var nameNode = reference.SearchResult.NameNode;
+
+                if (nameNode != null)
+                {
+                    var identifier = nameNode.GetFirstToken();
+                    if (identifier.ValueText != desiredName)
+                    {
+                        var generator = SyntaxGenerator.GetGenerator(document);
+                        var newIdentifier = generator.IdentifierName(desiredName).GetFirstToken().WithTriviaFrom(identifier);
+                        var annotation = new SyntaxAnnotation();
+
+                        var root = contextNode.SyntaxTree.GetRoot(cancellationToken);
+                        root = root.ReplaceToken(identifier, newIdentifier.WithAdditionalAnnotations(annotation));
+                        document = document.WithSyntaxRoot(root);
+                        contextNode = root.GetAnnotatedTokens(annotation).First().Parent;
+                    }
+                }
+            }
         }
 
         private async Task FindResultsInUnreferencedProjects(

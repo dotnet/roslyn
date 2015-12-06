@@ -391,27 +391,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         protected override async Task<Document> AddImportAsync(
             SyntaxNode contextNode,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
-            string desiredName,
-            SimpleNameSyntax nameNode,
             Document document,
             bool placeSystemNamespaceFirst,
             CancellationToken cancellationToken)
         {
-            var originalDocument = document;
-            var originalContextNode = contextNode;
-            var originalRoot = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
-
-            var root = originalRoot;
-
-            if (!string.IsNullOrEmpty(desiredName) && nameNode != null && nameNode.Identifier.ValueText != desiredName)
-            {
-                var annotation = new SyntaxAnnotation();
-                root = root.ReplaceToken(nameNode.Identifier,
-                    SyntaxFactory.Identifier(desiredName).WithTriviaFrom(nameNode.Identifier).WithAdditionalAnnotations(annotation));
-                document = document.WithSyntaxRoot(root);
-                contextNode = root.GetAnnotatedTokens(annotation).First().Parent;
-            }
-
+            var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
             var newRoot = await AddImportWorkerAsync(document, root, contextNode, namespaceOrTypeSymbol, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
         }

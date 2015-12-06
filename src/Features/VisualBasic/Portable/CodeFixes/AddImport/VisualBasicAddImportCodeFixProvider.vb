@@ -293,25 +293,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
         Protected Overloads Overrides Function AddImportAsync(
                 contextNode As SyntaxNode,
                 symbol As INamespaceOrTypeSymbol,
-                desiredName As String,
-                nameNode As SimpleNameSyntax,
                 document As Document,
                 placeSystemNamespaceFirst As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
-            Dim originalDocument = document
-            Dim originalContextNode = contextNode
-            Dim originalRoot = DirectCast(contextNode.SyntaxTree.GetRoot(cancellationToken), CompilationUnitSyntax)
-
-            Dim root = originalRoot
-
-            If Not String.IsNullOrEmpty(desiredName) AndAlso nameNode IsNot Nothing AndAlso nameNode.Identifier.ValueText <> desiredName Then
-                Dim annotation = New SyntaxAnnotation()
-                root = root.ReplaceToken(nameNode.Identifier,
-                    SyntaxFactory.Identifier(desiredName).WithTriviaFrom(nameNode.Identifier).WithAdditionalAnnotations(annotation))
-                document = document.WithSyntaxRoot(root)
-                contextNode = root.GetAnnotatedTokens(annotation).First().Parent
-            End If
+            Dim root = DirectCast(contextNode.SyntaxTree.GetRoot(cancellationToken), CompilationUnitSyntax)
 
             Dim memberImportsClause =
                 SyntaxFactory.SimpleImportsClause(name:=DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax).WithAdditionalAnnotations(Simplifier.Annotation))
