@@ -54,31 +54,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void LongestCommonSubstring0()
-        {
-            Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("", ""), 0);
-            Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("a", "b"), 0);
-        }
-
-        [Fact]
-        public void LongestCommonSubstring1()
-        {
-            Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("a", "a"), 1);
-            Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("ab", "a"), 1);
-            Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("a", "ab"), 1);
-            Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("ba", "ab"), 1);
-            Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("foo", "arf"), 1);
-        }
-
-        [Fact]
-        public void MoreLongestCommonSubstring()
-        {
-            Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("aabaaab", "aaa"), 3);
-            Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("kangaroo", "schoolbus"), 2);
-            Assert.Equal(EditDistance.GetLongestCommonSubsequenceLength("inexorable", "exorcism"), 4);
-        }
-
-        [Fact]
         public void TestCloseMatch()
         {
             Assert.True(EditDistance.IsCloseMatch("variabledeclaratorsyntax", "variabledeclaratorsyntaxextensions"));
