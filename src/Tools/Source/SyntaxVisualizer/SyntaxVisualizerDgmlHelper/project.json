@@ -1,8 +1,11 @@
-{
-    "dependencies": {
-        
-    },
-    "frameworks": {
-        "net45": {}
-    },
+﻿{
+  "dependencies": {
+    "Microsoft.CodeAnalysis.CSharp": "1.0.0",
+    "Microsoft.CodeAnalysis.VisualBasic": "1.0.0",
+    "Microsoft.CodeAnalysis.Analyzers": "1.1.0"
+  },
+  "frameworks": {
+    "net45": { }
+  },
+  "runtimes": { "win7": { } }
 }
