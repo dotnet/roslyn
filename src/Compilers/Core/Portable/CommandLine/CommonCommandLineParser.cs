@@ -405,11 +405,16 @@ namespace Microsoft.CodeAnalysis
         /// Only defined if errors were encountered.
         /// The error message for the encountered error.
         /// </param>
+        /// <param name="pipeName">
+        /// Only specified if <paramref name="containsShared"/> is true and the pipe name
+        /// was provided.  Can be null
+        /// </param>
         internal static bool TryParseClientArgs(
             IEnumerable<string> args,
             out List<string> parsedArgs,
             out bool containsShared,
             out string keepAliveValue,
+            out string pipeName,
             out string errorMessage)
         {
             const string keepAlive = "/keepalive";
@@ -418,6 +423,7 @@ namespace Microsoft.CodeAnalysis
             keepAliveValue = null;
             errorMessage = null;
             parsedArgs = null;
+            pipeName = null;
             var newArgs = new List<string>();
             foreach (var arg in args)
             {
@@ -451,11 +457,17 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (string.Equals(arg, shared, StringComparison.OrdinalIgnoreCase))
+                if (arg.StartsWith(shared, StringComparison.OrdinalIgnoreCase))
                 {
+                    if (arg.Length > shared.Length && arg[shared.Length] == ':')
+                    {
+                        pipeName = arg.Substring(shared.Length + 1).Trim('"');
+                    }
+
                     containsShared = true;
                     continue;
                 }
+
                 newArgs.Add(arg);
             }
 

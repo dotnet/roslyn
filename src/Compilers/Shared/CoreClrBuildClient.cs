@@ -41,7 +41,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return _compileFunc(clientDir, sdkDir, arguments.ToArray(), CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault());
         }
 
-        protected override async Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string keepAlive, string libDirectory, CancellationToken cancellationToken)
+        protected override string GetPipeName(BuildPaths buildPaths)
+        {
+            return string.Empty;
+        }
+
+        protected override async Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string pipeName, string keepAlive, string libDirectory, CancellationToken cancellationToken)
         {
             var client = new TcpClient();
             await client.ConnectAsync("127.0.0.1", port: 12000).ConfigureAwait(true);

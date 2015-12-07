@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 _createServerFunc = createServerFunc;
             }
 
-            protected override string GetPipeName(string compilerExeDirectory)
+            protected override string GetPipeName(BuildPaths buildPaths)
             {
                 return _pipeName;
             }

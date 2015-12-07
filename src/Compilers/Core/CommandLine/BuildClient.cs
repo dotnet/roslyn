@@ -60,12 +60,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             bool hasShared;
             string keepAlive;
             string errorMessage;
+            string pipeName;
             List<string> parsedArgs;
             if (!CommandLineParser.TryParseClientArgs(
                     args,
                     out parsedArgs,
                     out hasShared,
                     out keepAlive,
+                    out pipeName,
                     out errorMessage))
             {
                 Console.Out.WriteLine(errorMessage);
@@ -77,9 +79,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 var libDirectory = Environment.GetEnvironmentVariable("LIB");
                 try
                 {
+                    pipeName = pipeName ?? GetPipeName(buildPaths);
                     var buildResponseTask = RunServerCompilation(
                         parsedArgs,
                         buildPaths,
+                        pipeName,
                         keepAlive,
                         libDirectory,
                         CancellationToken.None);
@@ -101,7 +105,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         protected abstract int RunLocalCompilation(List<string> arguments, string clientDir, string sdkDir);
 
-        protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string keepAlive, string libDirectory, CancellationToken cancellationToken);
+        protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string pipeName, string keepAlive, string libDirectory, CancellationToken cancellationToken);
+
+        protected abstract string GetPipeName(BuildPaths buildPaths);
 
         protected virtual int HandleResponse(BuildResponse response, List<string> arguments, BuildPaths buildPaths)
         {
