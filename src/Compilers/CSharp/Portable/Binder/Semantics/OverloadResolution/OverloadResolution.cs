@@ -547,6 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MemberResolutionKind.TypeInferenceExtensionInstanceArgument:
                         case MemberResolutionKind.ConstructedParameterFailedConstraintCheck:
                         case MemberResolutionKind.NoCorrespondingNamedParameter:
+                        case MemberResolutionKind.UseSiteError:
                             return true;
                     }
                     break;
