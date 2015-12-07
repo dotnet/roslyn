@@ -1933,6 +1933,42 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[null, ""A""]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
+        [Fact]
+        public void OverloadResolutionWithUseSiteErrors_WithParamArguments_ReturnsUseSiteErrors()
+        {
+            var missingSource = @"
+public class Missing { }
+";
+
+            var libSource = @"
+public class C
+{
+    public static Missing GetMissing(params int[] args) { return null; }
+    public static void SetMissing(params Missing[] args) { }
+}
+";
+
+            var testSource = @"
+class Test
+{
+    static void Main()
+    {
+        C.GetMissing();
+        C.GetMissing(1, 1);
+        C.SetMissing();
+    }
+}
+";
+            var missingRef = CreateCompilationWithMscorlib(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateCompilationWithMscorlib(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateCompilationWithMscorlib(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+
+            CreateCompilationWithMscorlib(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.GetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.GetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.SetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+        }
+
         [WorkItem(708169, "DevDiv")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedExists()
