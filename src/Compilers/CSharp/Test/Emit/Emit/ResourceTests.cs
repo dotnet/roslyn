@@ -434,7 +434,7 @@ class C
         }
         [Fact]
 
-        private void AddResourceToModule()
+        public void AddResourceToModule()
         {
             for (int metadataOnlyIfNonzero = 0; metadataOnlyIfNonzero < 2; metadataOnlyIfNonzero++)
             {

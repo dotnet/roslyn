@@ -249,6 +249,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             CodeModelService.Rename(LookupSymbol(), newName, this.Workspace.CurrentSolution);
         }
 
+        protected virtual Document DeleteCore(Document document)
+        {
+            var node = LookupNode();
+            return CodeModelService.Delete(document, node);
+        }
+
         /// <summary>
         /// Delete the element from the source file.
         /// </summary>
@@ -256,8 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             FileCodeModel.PerformEdit(document =>
             {
-                var node = LookupNode();
-                return CodeModelService.Delete(document, node);
+                return DeleteCore(document);
             });
         }
 
