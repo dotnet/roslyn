@@ -450,7 +450,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var conversion = (BoundConversion)operand;
                 if (!conversion.ConversionKind.IsUserDefinedConversion() &&
-                    conversion.ConversionKind.IsImplicitConversion() && 
+                    conversion.ConversionKind.IsImplicitConversion() &&
+                    conversion.ConversionKind != ConversionKind.NullLiteral &&
                     conversion.Type.StrippedType().IsEnumType())
                 {
                     operand = conversion.Operand;
