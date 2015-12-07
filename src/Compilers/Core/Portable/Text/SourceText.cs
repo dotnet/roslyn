@@ -517,6 +517,12 @@ namespace Microsoft.CodeAnalysis.Text
                     throw new ArgumentException(CodeAnalysisResources.ChangesMustBeOrderedAndNotOverlapping, nameof(changes));
                 }
 
+                var newTextLength = change.NewText?.Length ?? 0;
+
+                // ignore changes that don't change anything
+                if (change.Span.Length == 0 && newTextLength == 0)
+                    continue;
+
                 // if we've skipped a range, add
                 if (change.Span.Start > position)
                 {
@@ -524,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Text
                     CompositeText.AddSegments(segments, subText);
                 }
 
-                if (!string.IsNullOrEmpty(change.NewText))
+                if (newTextLength > 0)
                 {
                     var segment = SourceText.From(change.NewText, this.Encoding, this.ChecksumAlgorithm);
                     CompositeText.AddSegments(segments, segment);
@@ -532,7 +538,14 @@ namespace Microsoft.CodeAnalysis.Text
 
                 position = change.Span.End;
 
-                changeRanges.Add(new TextChangeRange(change.Span, change.NewText?.Length ?? 0));
+                changeRanges.Add(new TextChangeRange(change.Span, newTextLength));
+            }
+
+            // no changes actually happend?
+            if (position == 0 && segments.Count == 0)
+            {
+                changeRanges.Free();
+                return this;
             }
 
             if (position < this.Length)
@@ -542,8 +555,14 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             var newText = CompositeText.ToSourceTextAndFree(segments, this, adjustSegments: true);
-
-            return new ChangedText(this, newText, changeRanges.ToImmutableAndFree());
+            if (newText != this)
+            {
+                return new ChangedText(this, newText, changeRanges.ToImmutableAndFree());
+            }
+            else
+            {
+                return this;
+            }
         }
 
         /// <summary>

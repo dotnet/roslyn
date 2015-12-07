@@ -320,20 +320,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var lines = text.Lines;
             int n = 20000;
+            var expected = str;
             for (int i = 0; i < n; i++)
             {
                 char c = (char)(((ushort)'a') + (i % 26));
-
                 text = text.Replace(50 + i, 0, c.ToString());
-                lines = text.Lines;
+                expected = expected.Substring(0, 50 + i) + c + expected.Substring(50 + i);
             }
 
-            var len = text.Length;
-            Assert.Equal(str.Length + n, len);
-
-            lines = text.Lines;
-            var result = text.ToString();
-            Assert.Equal(1, lines.Count);
+            Assert.Equal(str.Length + n, text.Length);
+            Assert.Equal(expected, text.ToString());
         }
 
         [Fact]
@@ -343,17 +339,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = SourceText.From(str);
 
             var lines = text.Lines;
+            var expected = str;
             for (int i = 0; i < str.Length; i++)
             {
                 char c = (char)(((ushort)'a') + (i % 26));
 
                 text = text.Replace(i, 1, c.ToString());
+                expected = expected.Substring(0, i) + c + str.Substring(i + 1);
             }
 
-            var len = text.Length;
-            Assert.Equal(1024, len);
-
-            Assert.True(text.StorageSize < text.Length * 2);
+            Assert.Equal(str.Length, text.Length);
+            Assert.Equal(expected, text.ToString());
         }
 
         [Fact]
@@ -385,7 +381,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestRemovingMinorityOfTextDoesNotCompressesStorage()
         {
             var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
-            
+
             var newText = text.Replace(new TextSpan(10, 6), "");
 
             Assert.Equal(20, newText.Length);
@@ -590,7 +586,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var writer = new LargeTextWriter(largeText.Encoding, largeText.ChecksumAlgorithm, chunk1.Length * 4);
 
             // write preamble so buffer is allocated and has contents.
-            text.Write(writer); 
+            text.Write(writer);
 
             // large text fits within the remaining buffer
             largeText.Write(writer);
