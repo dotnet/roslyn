@@ -12,28 +12,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function BuildNamespaceScope(
             moduleBuilder As Emit.PEModuleBuilder,
-            xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition),
-            aliasImports As IEnumerable(Of AliasAndImportsClausePosition),
+            xmlNamespacesOpt As IReadOnlyDictionary(Of String, XmlNamespaceAndImportsClausePosition),
+            aliasImportsOpt As IEnumerable(Of AliasAndImportsClausePosition),
             memberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
             diagnostics As DiagnosticBag
         ) As ImmutableArray(Of Cci.UsedNamespaceOrType)
             Dim scopeBuilder = ArrayBuilder(Of Cci.UsedNamespaceOrType).GetInstance
 
             ' first come xml imports
-            If xmlNamespaces IsNot Nothing Then
-                For Each xmlImport In xmlNamespaces
+            If xmlNamespacesOpt IsNot Nothing Then
+                For Each xmlImport In xmlNamespacesOpt
                     scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateXmlNamespace(xmlImport.Key, xmlImport.Value.XmlNamespace))
                 Next
             End If
 
             ' then come alias imports
-            If aliasImports IsNot Nothing Then
-                For Each aliasImport In aliasImports
+            If aliasImportsOpt IsNot Nothing Then
+                For Each aliasImport In aliasImportsOpt
                     Dim target = aliasImport.Alias.Target
                     If target.IsNamespace Then
                         scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateNamespace(DirectCast(target, NamespaceSymbol), aliasOpt:=aliasImport.Alias.Name))
-                    ElseIf Not target.ContainingAssembly.IsLinked
-                        ' We skip alias imports of embedded types to avoid breaking existing code that
+                    ElseIf target.Kind <> SymbolKind.ErrorType AndAlso Not target.ContainingAssembly.IsLinked Then
+                        ' It is not an error to import a non-existing type (unlike C#), skip the error types.
+                        ' We also skip alias imports of embedded types to avoid breaking existing code that
                         ' imports types that can't be embedded but doesn't use them anywhere else in the code.
                         Dim typeRef = GetTypeReference(DirectCast(target, NamedTypeSymbol), moduleBuilder, diagnostics)
                         scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateType(typeRef, aliasOpt:=aliasImport.Alias.Name))
@@ -42,19 +43,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' then come the imports
-            If Not memberImports.IsEmpty Then
-                For Each import In memberImports
-                    Dim target = import.NamespaceOrType
-                    If target.IsNamespace Then
-                        scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateNamespace(DirectCast(target, NamespaceSymbol)))
-                    ElseIf Not target.ContainingAssembly.IsLinked
-                        ' We skip imports of embedded types to avoid breaking existing code that
-                        ' imports types that can't be embedded but doesn't use them anywhere else in the code.
-                        Dim typeRef = GetTypeReference(DirectCast(target, NamedTypeSymbol), moduleBuilder, diagnostics)
-                        scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateType(typeRef))
-                    End If
-                Next
-            End If
+            For Each import In memberImports
+                Dim target = import.NamespaceOrType
+
+                ' Imports with erroneous targets are skipped during binding.
+                Debug.Assert(target.Kind <> SymbolKind.ErrorType)
+
+                If target.IsNamespace Then
+                    scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateNamespace(DirectCast(target, NamespaceSymbol)))
+                ElseIf Not target.ContainingAssembly.IsLinked Then
+                    ' We skip imports of embedded types to avoid breaking existing code that
+                    ' imports types that can't be embedded but doesn't use them anywhere else in the code.
+                    Dim typeRef = GetTypeReference(DirectCast(target, NamedTypeSymbol), moduleBuilder, diagnostics)
+                    scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateType(typeRef))
+                End If
+            Next
 
             Return scopeBuilder.ToImmutableAndFree()
         End Function
