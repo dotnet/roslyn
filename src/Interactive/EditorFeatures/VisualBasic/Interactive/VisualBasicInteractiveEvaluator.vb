@@ -71,8 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
                 Return True
             End If
 
-            ' TODO (tomat): Return Syntax.IsCompleteSubmission(SyntaxTree.ParseCompilationUnit(text, options:=ParseOptions))
-            Return True
+            Return SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(text, options:=ParseOptions))
         End Function
     End Class
 End Namespace
