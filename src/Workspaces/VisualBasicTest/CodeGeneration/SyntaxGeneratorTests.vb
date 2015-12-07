@@ -813,6 +813,134 @@ End Sub</x>.Value)
         End Sub
 
         <Fact>
+        Public Sub TestOperatorDeclaration()
+            Dim parameterTypes = {
+                _emptyCompilation.GetSpecialType(SpecialType.System_Int32),
+                _emptyCompilation.GetSpecialType(SpecialType.System_String)
+                }
+
+            Dim parameters = parameterTypes.Select(Function(t, i) _g.ParameterDeclaration("p" & i, _g.TypeExpression(t))).ToList()
+            Dim returnType = _g.TypeExpression(SpecialType.System_Boolean)
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.Addition, parameters, returnType),
+"Operator +(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.BitwiseAnd, parameters, returnType),
+"Operator And(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.BitwiseOr, parameters, returnType),
+"Operator Or(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.Division, parameters, returnType),
+"Operator /(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.Equality, parameters, returnType),
+"Operator =(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.ExclusiveOr, parameters, returnType),
+"Operator Xor(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.False, parameters, returnType),
+"Operator IsFalse(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.GreaterThan, parameters, returnType),
+"Operator>(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.GreaterThanOrEqual, parameters, returnType),
+"Operator >=(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.Inequality, parameters, returnType),
+"Operator <>(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.LeftShift, parameters, returnType),
+"Operator <<(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.LessThan, parameters, returnType),
+"Operator <(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.LessThanOrEqual, parameters, returnType),
+"Operator <=(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.LogicalNot, parameters, returnType),
+"Operator Not(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.Modulus, parameters, returnType),
+"Operator Mod(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.Multiply, parameters, returnType),
+"Operator *(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.RightShift, parameters, returnType),
+"Operator >>(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.Subtraction, parameters, returnType),
+"Operator -(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.True, parameters, returnType),
+"Operator IsTrue(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.UnaryNegation, parameters, returnType),
+"Operator -(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.UnaryPlus, parameters, returnType),
+"Operator +(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            ' Conversion operators
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.ImplicitConversion, parameters, returnType),
+"Widening Operator CType(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+
+            VerifySyntax(Of OperatorBlockSyntax)(
+                _g.OperatorDeclaration(OperatorKind.ExplicitConversion, parameters, returnType),
+"Narrowing Operator CType(p0 As System.Int32, p1 As System.String) As Boolean
+End Operator")
+        End Sub
+
+        <Fact>
         Public Sub MethodDeclarationCanRoundTrip()
             Dim tree = VisualBasicSyntaxTree.ParseText(
 <x>

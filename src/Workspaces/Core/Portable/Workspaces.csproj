@@ -340,6 +340,7 @@
     <Compile Include="Editing\GenerationOptionsProvider.cs" />
     <Compile Include="Editing\ImportAdder.cs" />
     <Compile Include="Editing\ImportAdderService.cs" />
+    <Compile Include="Editing\OperatorKind.cs" />
     <Compile Include="Editing\SolutionEditor.cs" />
     <Compile Include="Editing\SymbolEditor.cs" />
     <Compile Include="Editing\SymbolEditorExtensions.cs" />
