@@ -86,6 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IClauses As ImmutableArray(Of ICaseClause) Implements ICase.Clauses
             Get
+                ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses, 
+                ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
                 If Me.CaseStatement.CaseClauses.IsEmpty Then
                     Return ImmutableArray.Create(CaseElseClause)
                 End If
