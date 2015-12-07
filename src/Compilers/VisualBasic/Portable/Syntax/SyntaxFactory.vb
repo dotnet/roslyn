@@ -539,7 +539,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="tree">Syntax tree.</param>
         Public Shared Function IsCompleteSubmission(tree As SyntaxTree) As Boolean
-            ' TODO: https://github.com/dotnet/roslyn/issues/5235
             Dim options As VisualBasicParseOptions = DirectCast(tree.Options, VisualBasicParseOptions)
             Dim languageVersion As LanguageVersion = options.LanguageVersion
 
@@ -561,6 +560,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case ERRID.ERR_LbExpectedEndIf,
                          ERRID.ERR_ExpectedEndRegion
                         Return False
+                    Case ERRID.ERR_ExpectedEOS
+                        Return True
                 End Select
             Next
 
@@ -571,6 +572,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim lastToken = lastNode.GetLastToken(includeZeroWidth:=True, includeSkipped:=True)
             If lastToken.IsMissing Then
+                If lastToken.IsKind(SyntaxKind.IdentifierToken) Then
+                    ' Handle case of expressions such as `Dim x =`.
+                    ' The expression is incomplete only if ended with a line-continuation character `_`.
+                    Return Not lastToken.HasTrailingTrivia OrElse Not lastToken.TrailingTrivia.Last().IsKind(SyntaxKind.LineContinuationTrivia)
+                End If
                 Return False
             End If
 
