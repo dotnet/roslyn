@@ -60,6 +60,7 @@
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\Diagnostics\IRemoteHostDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="Implementation\DefinitionContextTracker.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.AnalyzerAssemblyLoader.cs" />
     <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
