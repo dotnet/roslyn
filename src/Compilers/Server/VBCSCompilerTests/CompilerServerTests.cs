@@ -18,6 +18,7 @@ using Xunit;
 using System.Xml;
 using System.Threading.Tasks;
 using MSBuildTask::Microsoft.CodeAnalysis.BuildTasks;
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -2366,8 +2367,9 @@ namespace Class____foo____Library1
             var start = DateTime.Now;
             while (true)
             {
+                var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipename);
                 Mutex ignore;
-                if (Mutex.TryOpenExisting($"{pipename}.server", out ignore))
+                if (Mutex.TryOpenExisting(serverMutexName, out ignore))
                 {
                     break;
                 }

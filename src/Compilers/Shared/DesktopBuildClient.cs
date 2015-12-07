@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             var clientDir = buildPaths.ClientDirectory;
 
-            var clientMutexName = $"{pipeName}.client";
+            var clientMutexName = BuildProtocolConstants.GetClientMutexName(pipeName);
             bool holdsMutex;
             using (var clientMutex = new Mutex(initiallyOwned: true,
                                                name: clientMutexName,
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
 
                     // Check for an already running server
-                    var serverMutexName = $"{pipeName}.server";
+                    var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
                     Mutex mutexIgnore;
                     bool wasServerRunning = Mutex.TryOpenExisting(serverMutexName, out mutexIgnore);
                     var timeout = wasServerRunning ? TimeOutMsExistingProcess : TimeOutMsNewProcess;

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
                     var compilerServerHost = new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
                     var clientConnectionHost = new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
-                    var mutexName = $"{pipeName}.server";
+                    var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
                     VBCSCompiler.Run(mutexName, clientConnectionHost, TimeSpan.MaxValue, cts.Token);
                 }
                 finally

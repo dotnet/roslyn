@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             var pipeName = args[0].Substring(pipeArgPrefix.Length);
-            var serverMutexName = $"{pipeName}.server";
+            var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
 
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
             // location of the response files.

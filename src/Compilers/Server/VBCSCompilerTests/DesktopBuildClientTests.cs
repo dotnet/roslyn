@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 {
                     var compilerServerHost = new DesktopCompilerServerHost(ClientDirectory, SdkDirectory);
                     var clientConnectionHost = new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
-                    var mutexName = $"{pipeName}.server";
+                    var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
                     VBCSCompiler.Run(mutexName, clientConnectionHost, TimeSpan.FromSeconds(3));
                 };
 
