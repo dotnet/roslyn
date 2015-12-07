@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _parameter = parameter
             End Sub
 
-            Public ReadOnly Property Kind As ArgumentKind Implements IArgument.Kind
+            Public ReadOnly Property ArgumentKind As ArgumentKind Implements IArgument.ArgumentKind
                 Get
                     Return _kind
                 End Get
@@ -408,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public ReadOnly Property Kind As ArgumentKind Implements IArgument.Kind
+            Public ReadOnly Property ArgumentKind As ArgumentKind Implements IArgument.ArgumentKind
                 Get
                     ' Do the VB bound trees encode named arguments?
                     Return ArgumentKind.Positional
@@ -496,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IUnaryKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryKind
+        Private ReadOnly Property IUnaryKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryOperationKind
             Get
                 Return DeriveUnaryOperationKind(Me.OperatorKind, Me.Operand)
             End Get
@@ -528,7 +528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IUnaryKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryKind
+        Private ReadOnly Property IUnaryKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryOperationKind
             Get
                 Select Case OperatorKind And UnaryOperatorKind.OpMask
                     Case UnaryOperatorKind.Plus
@@ -557,7 +557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryKind
+        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
                 Return DeriveBinaryOperationKind(Me.OperatorKind, Me.Left)
             End Get
@@ -596,7 +596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryKind
+        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
                 Select Case OperatorKind And BinaryOperatorKind.OpMask
                     Case BinaryOperatorKind.Add
@@ -703,7 +703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryKind
+        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
                 Return If((Me.BitwiseOperator.OperatorKind And BinaryOperatorKind.And) <> 0, BinaryOperationKind.OperatorConditionalAnd, BinaryOperationKind.OperatorConditionalOr)
             End Get
@@ -741,7 +741,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundTryCast
         Implements IConversionExpression
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.Conversion
+        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
                 Return Semantics.ConversionKind.AsCast
             End Get
@@ -779,7 +779,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundDirectCast
         Implements IConversionExpression
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.Conversion
+        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
                 Return Semantics.ConversionKind.Cast
             End Get
@@ -817,7 +817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundConversion
         Implements IConversionExpression
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.Conversion
+        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
                 Return Semantics.ConversionKind.Basic
             End Get
@@ -855,7 +855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundUserDefinedConversion
         Implements IConversionExpression
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.Conversion
+        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
                 Return Semantics.ConversionKind.Operator
             End Get
@@ -1046,7 +1046,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            ReadOnly Property ArrayClass As ArrayInitializerKind Implements IExpressionArrayInitializer.ArrayClass
+            ReadOnly Property ArrayInitializerKind As ArrayInitializerKind Implements IExpressionArrayInitializer.ArrayInitializerKind
                 Get
                     Return ArrayInitializerKind.Expression
                 End Get
@@ -1068,7 +1068,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            ReadOnly Property ArrayClass As ArrayInitializerKind Implements IDimensionArrayInitializer.ArrayClass
+            ReadOnly Property ArrayInitializerKind As ArrayInitializerKind Implements IDimensionArrayInitializer.ArrayInitializerKind
                 Get
                     Return ArrayInitializerKind.Dimension
                 End Get

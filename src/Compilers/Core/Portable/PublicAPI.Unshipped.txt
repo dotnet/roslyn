@@ -116,7 +116,7 @@ Microsoft.CodeAnalysis.Semantics.IntegerLiteral.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.Binary
 Microsoft.CodeAnalysis.Semantics.Binary.Binary(Microsoft.CodeAnalysis.Semantics.BinaryOperationKind binaryKind, Microsoft.CodeAnalysis.Semantics.IExpression left, Microsoft.CodeAnalysis.Semantics.IExpression right, Microsoft.CodeAnalysis.ITypeSymbol resultType, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
-Microsoft.CodeAnalysis.Semantics.Binary.BinaryKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.Binary.BinaryOperationKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.Binary.Left.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.Binary.Right.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.Binary.UsesOperatorMethod.get -> bool
@@ -145,7 +145,7 @@ Microsoft.CodeAnalysis.Semantics.IInvocationExpression.ArgumentsInParameterOrder
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression.ArgumentsInSourceOrder.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
 Microsoft.CodeAnalysis.Semantics.IInvocationExpression.ArgumentMatchingParameter(Microsoft.CodeAnalysis.IParameterSymbol parameter) -> Microsoft.CodeAnalysis.Semantics.IArgument
 Microsoft.CodeAnalysis.Semantics.IArgument
-Microsoft.CodeAnalysis.Semantics.IArgument.Kind.get -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
+Microsoft.CodeAnalysis.Semantics.IArgument.ArgumentKind.get -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.IArgument.Parameter.get -> Microsoft.CodeAnalysis.IParameterSymbol
 Microsoft.CodeAnalysis.Semantics.IArgument.Value.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IArgument.InConversion.get -> Microsoft.CodeAnalysis.Semantics.IExpression
@@ -182,10 +182,10 @@ Microsoft.CodeAnalysis.Semantics.IHasOperatorExpression
 Microsoft.CodeAnalysis.Semantics.IHasOperatorExpression.UsesOperatorMethod.get -> bool
 Microsoft.CodeAnalysis.Semantics.IHasOperatorExpression.Operator.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression
-Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression.UnaryKind.get -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression.UnaryOperationKind.get -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression.Operand.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression
-Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression.BinaryKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression.BinaryOperationKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression.Left.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression.Right.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression
@@ -197,13 +197,13 @@ Microsoft.CodeAnalysis.Semantics.INullCoalescingExpression.Primary.get -> Micros
 Microsoft.CodeAnalysis.Semantics.INullCoalescingExpression.Secondary.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IConversionExpression
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.Operand.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.IConversionExpression.Conversion.get -> Microsoft.CodeAnalysis.Semantics.ConversionKind
+Microsoft.CodeAnalysis.Semantics.IConversionExpression.ConversionKind.get -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.IsExplicit.get -> bool
 Microsoft.CodeAnalysis.Semantics.IIsExpression
 Microsoft.CodeAnalysis.Semantics.IIsExpression.Operand.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IIsExpression.IsType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.ITypeOperationExpression
-Microsoft.CodeAnalysis.Semantics.ITypeOperationExpression.TypeOperationClass.get -> Microsoft.CodeAnalysis.Semantics.TypeOperationKind
+Microsoft.CodeAnalysis.Semantics.ITypeOperationExpression.TypeOperationKind.get -> Microsoft.CodeAnalysis.Semantics.TypeOperationKind
 Microsoft.CodeAnalysis.Semantics.ITypeOperationExpression.TypeOperand.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.TypeOperationKind
 Microsoft.CodeAnalysis.Semantics.TypeOperationKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.TypeOperationKind
@@ -224,7 +224,7 @@ Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression.ConstructorArguments.
 Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression.ArgumentMatchingParameter(Microsoft.CodeAnalysis.IParameterSymbol parameter) -> Microsoft.CodeAnalysis.Semantics.IArgument
 Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression.MemberInitializers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IMemberInitializer>
 Microsoft.CodeAnalysis.Semantics.IMemberInitializer
-Microsoft.CodeAnalysis.Semantics.IMemberInitializer.MemberClass.get -> Microsoft.CodeAnalysis.Semantics.MemberInitializerKind
+Microsoft.CodeAnalysis.Semantics.IMemberInitializer.MemberInitializerKind.get -> Microsoft.CodeAnalysis.Semantics.MemberInitializerKind
 Microsoft.CodeAnalysis.Semantics.IMemberInitializer.Value.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IFieldInitializer
 Microsoft.CodeAnalysis.Semantics.IFieldInitializer.Field.get -> Microsoft.CodeAnalysis.IFieldSymbol
@@ -235,7 +235,7 @@ Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression.ElementType.get -> Mic
 Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression.DimensionSizes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IExpression>
 Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression.ElementValues.get -> Microsoft.CodeAnalysis.Semantics.IArrayInitializer
 Microsoft.CodeAnalysis.Semantics.IArrayInitializer
-Microsoft.CodeAnalysis.Semantics.IArrayInitializer.ArrayClass.get -> Microsoft.CodeAnalysis.Semantics.ArrayInitializerKind
+Microsoft.CodeAnalysis.Semantics.IArrayInitializer.ArrayInitializerKind.get -> Microsoft.CodeAnalysis.Semantics.ArrayInitializerKind
 Microsoft.CodeAnalysis.Semantics.IExpressionArrayInitializer
 Microsoft.CodeAnalysis.Semantics.IExpressionArrayInitializer.ElementValue.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IDimensionArrayInitializer

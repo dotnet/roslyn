@@ -241,14 +241,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         public Binary(BinaryOperationKind binaryKind, IExpression left, IExpression right, ITypeSymbol resultType, SyntaxNode syntax)
         {
-            this.BinaryKind = binaryKind;
+            this.BinaryOperationKind = binaryKind;
             this.Left = left;
             this.Right = right;
             this.ResultType = resultType;
             this.Syntax = syntax;
         }
 
-        public BinaryOperationKind BinaryKind { get; }
+        public BinaryOperationKind BinaryOperationKind { get; }
 
         public IExpression Left { get; }
 
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 _elementValues = builder.ToImmutableAndFree();
             }
 
-            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Dimension;
+            public ArrayInitializerKind ArrayInitializerKind => ArrayInitializerKind.Dimension;
 
             public ImmutableArray<IArrayInitializer> ElementValues => _elementValues;
         }
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 ElementValue = expression;
             }
 
-            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Expression;
+            public ArrayInitializerKind ArrayInitializerKind => ArrayInitializerKind.Expression;
 
             public IExpression ElementValue { get; }
         }

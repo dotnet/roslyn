@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                              {
                                                                  // Advance binary operation is known to involve a reference to the local used in the test and a constant.
                                                                  advanceIncrement = advanceOperation.Right;
-                                                                 advanceOperationCode = advanceOperation.BinaryKind;
+                                                                 advanceOperationCode = advanceOperation.BinaryOperationKind;
                                                              }
                                                          }
                                                      }
@@ -129,11 +129,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                                          if (advanceOperationCode == BinaryOperationKind.IntegerAdd &&
                                                              incrementValue != 0 &&
-                                                             (condition.BinaryKind == BinaryOperationKind.IntegerLessThan ||
-                                                              condition.BinaryKind == BinaryOperationKind.IntegerLessThanOrEqual ||
-                                                              condition.BinaryKind == BinaryOperationKind.IntegerNotEquals ||
-                                                              condition.BinaryKind == BinaryOperationKind.IntegerGreaterThan ||
-                                                              condition.BinaryKind == BinaryOperationKind.IntegerGreaterThanOrEqual))
+                                                             (condition.BinaryOperationKind == BinaryOperationKind.IntegerLessThan ||
+                                                              condition.BinaryOperationKind == BinaryOperationKind.IntegerLessThanOrEqual ||
+                                                              condition.BinaryOperationKind == BinaryOperationKind.IntegerNotEquals ||
+                                                              condition.BinaryOperationKind == BinaryOperationKind.IntegerGreaterThan ||
+                                                              condition.BinaryOperationKind == BinaryOperationKind.IntegerGreaterThanOrEqual))
                                                          {
                                                              int iterationCount = (testValue - initialValue) / incrementValue;
                                                              if (iterationCount >= 1000000)
@@ -360,10 +360,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      {
                          TestAscendingArgument(operationContext, argument.Value, ref priorArgumentValue);
                          
-                         if (argument.Kind == ArgumentKind.ParamArray)
+                         if (argument.ArgumentKind == ArgumentKind.ParamArray)
                          {
                              IArrayCreationExpression arrayArgument = argument.Value as IArrayCreationExpression;
-                             if (arrayArgument != null && arrayArgument.ElementValues.ArrayClass == ArrayInitializerKind.Dimension)
+                             if (arrayArgument != null && arrayArgument.ElementValues.ArrayInitializerKind == ArrayInitializerKind.Dimension)
                              {
                                  IDimensionArrayInitializer dimension = arrayArgument.ElementValues as IDimensionArrayInitializer;
                                  if (dimension != null)
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                      foreach (IArrayInitializer dimensionValues in dimension.ElementValues)
                                      {
-                                         if (dimensionValues.ArrayClass == ArrayInitializerKind.Expression)
+                                         if (dimensionValues.ArrayInitializerKind == ArrayInitializerKind.Expression)
                                          {
                                              IExpressionArrayInitializer expressionInitializer = dimensionValues as IExpressionArrayInitializer;
                                              if (expressionInitializer != null)

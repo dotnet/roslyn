@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Parameter = parameter;
             }
 
-            public ArgumentKind Kind => ArgumentKind.Positional;
+            public ArgumentKind ArgumentKind => ArgumentKind.Positional;
 
             public IParameterSymbol Parameter { get; }
 
@@ -239,11 +239,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public Argument(ArgumentKind kind, IParameterSymbol parameter, IExpression value)
             {
                 this.Value = value;
-                this.Kind = kind;
+                this.ArgumentKind = kind;
                 this.Parameter = parameter;
             }
 
-            public ArgumentKind Kind { get; }
+            public ArgumentKind ArgumentKind { get; }
 
             public IParameterSymbol Parameter { get; }
             
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IExpression IConversionExpression.Operand => this.Operand;
 
-        Semantics.ConversionKind IConversionExpression.Conversion
+        Semantics.ConversionKind IConversionExpression.ConversionKind
         {
             get
             {
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         IExpression IConversionExpression.Operand => this.Operand;
 
-        Semantics.ConversionKind IConversionExpression.Conversion => Semantics.ConversionKind.AsCast;
+        Semantics.ConversionKind IConversionExpression.ConversionKind => Semantics.ConversionKind.AsCast;
 
         bool IConversionExpression.IsExplicit => true;
 
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundSizeOfOperator : ITypeOperationExpression
     {
-        TypeOperationKind ITypeOperationExpression.TypeOperationClass => TypeOperationKind.SizeOf;
+        TypeOperationKind ITypeOperationExpression.TypeOperationKind => TypeOperationKind.SizeOf;
 
         ITypeSymbol ITypeOperationExpression.TypeOperand => this.SourceType.Type;
 
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundTypeOfOperator : ITypeOperationExpression
     {
-        TypeOperationKind ITypeOperationExpression.TypeOperationClass => TypeOperationKind.TypeOf;
+        TypeOperationKind ITypeOperationExpression.TypeOperationKind => TypeOperationKind.TypeOf;
 
         ITypeSymbol ITypeOperationExpression.TypeOperand => this.SourceType.Type;
 
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IExpression ElementValue => _element;
 
-            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Expression;
+            public ArrayInitializerKind ArrayInitializerKind => ArrayInitializerKind.Expression;
         }
 
         class DimensionInitializer : IDimensionArrayInitializer
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public ImmutableArray<IArrayInitializer> ElementValues => _dimension;
 
-            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Dimension;
+            public ArrayInitializerKind ArrayInitializerKind => ArrayInitializerKind.Dimension;
         }
     }
 
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundUnaryOperator : IUnaryOperatorExpression
     {
-        UnaryOperationKind IUnaryOperatorExpression.UnaryKind => Expression.DeriveUnaryOperationKind(this.OperatorKind);
+        UnaryOperationKind IUnaryOperatorExpression.UnaryOperationKind => Expression.DeriveUnaryOperationKind(this.OperatorKind);
 
         IExpression IUnaryOperatorExpression.Operand => this.Operand;
 
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundBinaryOperator : IBinaryOperatorExpression
     {
-        BinaryOperationKind IBinaryOperatorExpression.BinaryKind => Expression.DeriveBinaryOperationKind(this.OperatorKind);
+        BinaryOperationKind IBinaryOperatorExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(this.OperatorKind);
 
         IExpression IBinaryOperatorExpression.Left => this.Left;
 

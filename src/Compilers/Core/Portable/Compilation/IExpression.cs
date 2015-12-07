@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of argument.
         /// </summary>
-        ArgumentKind Kind { get; }
+        ArgumentKind ArgumentKind { get; }
         /// <summary>
         /// Parameter the argument matches.
         /// </summary>
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of unary operation.
         /// </summary>
-        UnaryOperationKind UnaryKind { get; }
+        UnaryOperationKind UnaryOperationKind { get; }
         /// <summary>
         /// Single operand.
         /// </summary>
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of binary operation.
         /// </summary>
-        BinaryOperationKind BinaryKind { get; }
+        BinaryOperationKind BinaryOperationKind { get; }
         /// <summary>
         /// Left operand.
         /// </summary>
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of conversion.
         /// </summary>
-        ConversionKind Conversion { get; }
+        ConversionKind ConversionKind { get; }
         /// <summary>
         /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
         /// </summary>
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of type operation.
         /// </summary>
-        TypeOperationKind TypeOperationClass { get; }
+        TypeOperationKind TypeOperationKind { get; }
         /// <summary>
         /// Type operand.
         /// </summary>
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     public interface IMemberInitializer
     {
-        MemberInitializerKind MemberClass { get; }
+        MemberInitializerKind MemberInitializerKind { get; }
         IExpression Value { get; }
     }
 
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of array initialization.
         /// </summary>
-        ArrayInitializerKind ArrayClass { get; }
+        ArrayInitializerKind ArrayInitializerKind { get; }
     }
 
     /// <summary>
