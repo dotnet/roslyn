@@ -8,25 +8,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
     Friend Class ConstructorDeclarationOutliner
         Inherits AbstractSyntaxNodeOutliner(Of SubNewStatementSyntax)
 
-        Private Shared Function GetBannerText(constructorDeclaration As SubNewStatementSyntax) As String
-            Dim builder As New BannerTextBuilder()
-            For Each modifier In constructorDeclaration.Modifiers
-                builder.Append(modifier.ToString())
-                builder.Append(" "c)
-            Next
-
-            builder.Append(constructorDeclaration.DeclarationKeyword.ToString())
-            builder.Append(" "c)
-            builder.Append(constructorDeclaration.NewKeyword.ToString())
-
-            builder.AppendParameterList(constructorDeclaration.ParameterList, emptyParentheses:=True)
-
-            builder.Append(" "c)
-            builder.Append(Ellipsis)
-
-            Return builder.ToString()
-        End Function
-
         Protected Overrides Sub CollectOutliningSpans(constructorDeclaration As SubNewStatementSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
             Dim regions As New List(Of OutliningSpan)
 
@@ -38,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
                     spans.Add(
                         VisualBasicOutliningHelpers.CreateRegionFromBlock(
                             methodBlock,
-                            GetBannerText(constructorDeclaration),
+                            constructorDeclaration.ConvertToSingleLine().ToString() & " " & Ellipsis,
                             autoCollapse:=True))
                 End If
             End If

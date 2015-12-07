@@ -8,28 +8,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
     Friend Class PropertyDeclarationOutliner
         Inherits AbstractSyntaxNodeOutliner(Of PropertyStatementSyntax)
 
-        Private Shared Function GetBannerText(propertyDeclaration As PropertyStatementSyntax) As String
-            Dim builder As New BannerTextBuilder()
-
-            For Each modifier In propertyDeclaration.Modifiers
-                builder.Append(modifier.ToString())
-                builder.Append(" "c)
-            Next
-
-            builder.Append(propertyDeclaration.DeclarationKeyword.ToString())
-            builder.Append(" "c)
-            builder.Append(propertyDeclaration.Identifier.ToString())
-
-            builder.AppendParameterList(propertyDeclaration.ParameterList, emptyParentheses:=False)
-            builder.AppendAsClause(propertyDeclaration.AsClause)
-            builder.AppendImplementsClause(propertyDeclaration.ImplementsClause)
-
-            builder.Append(" "c)
-            builder.Append(Ellipsis)
-
-            Return builder.ToString()
-        End Function
-
         Protected Overrides Sub CollectOutliningSpans(propertyDeclaration As PropertyStatementSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
             VisualBasicOutliningHelpers.CollectCommentsRegions(propertyDeclaration, spans)
 
@@ -39,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
                 spans.Add(
                     VisualBasicOutliningHelpers.CreateRegionFromBlock(
                         propertyBlock,
-                        GetBannerText(propertyDeclaration),
+                        propertyDeclaration.ConvertToSingleLine().ToString() & " " & Ellipsis,
                         autoCollapse:=True))
 
                 VisualBasicOutliningHelpers.CollectCommentsRegions(propertyBlock.EndPropertyStatement, spans)

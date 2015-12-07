@@ -11,16 +11,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
         Protected Overrides Sub CollectOutliningSpans(namespaceDeclaration As NamespaceStatementSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
             VisualBasicOutliningHelpers.CollectCommentsRegions(namespaceDeclaration, spans)
 
-            Dim bannerText = namespaceDeclaration.NamespaceKeyword.ToString() & " " &
-                             namespaceDeclaration.Name.ToString & " " &
-                             Ellipsis
-
             Dim namespaceBlock = TryCast(namespaceDeclaration.Parent, NamespaceBlockSyntax)
             If Not namespaceBlock.EndNamespaceStatement.IsMissing Then
                 spans.Add(
                     VisualBasicOutliningHelpers.CreateRegionFromBlock(
                         namespaceBlock,
-                        bannerText,
+                        namespaceDeclaration.ConvertToSingleLine().ToString() & " " & Ellipsis,
                         autoCollapse:=False))
 
                 VisualBasicOutliningHelpers.CollectCommentsRegions(namespaceBlock.EndNamespaceStatement, spans)
