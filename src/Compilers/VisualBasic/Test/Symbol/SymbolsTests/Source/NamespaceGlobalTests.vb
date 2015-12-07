@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                         Class A
                         End Class
                         Namespace Global
-                            Class A	'invalid
+                            Class A 'invalid
                             End Class
                         End Namespace
                     </file>

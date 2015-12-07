@@ -1768,7 +1768,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The old native compiler ignores ref/out in a delegate creation expression.
             // For compatibility we implement the same bug except in strict mode.
-            RefKind refKind = (!isDelegateCreation || Compilation.FeatureStrictEnabled)
+            // Note: An inline delegate should still be rejected
+            RefKind refKind = (!isDelegateCreation || Compilation.FeatureStrictEnabled || (isDelegateCreation && argumentSyntax.Expression.IsAnonymousFunction()))
                 ? argumentSyntax.RefOrOutKeyword.Kind().GetRefKind()
                 : RefKind.None;
 
