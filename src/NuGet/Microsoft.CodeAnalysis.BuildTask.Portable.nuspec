@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>Microsoft.CodeAnalysis.BuildTask.Portable</id>
+        <description>
+            CoreCLR-compatible versions of the C# and VB compilers.
+
+            Supported Platforms:
+            - .NET Core (dnxcore50)
+        </description>
+        <language>en-US</language>
+        <requireLicenseAcceptance>true</requireLicenseAcceptance>
+        <version>$version$</version>
+        <authors>$authors$</authors>
+        <licenseUrl>$licenseUrl$</licenseUrl>
+        <projectUrl>$projectUrl$</projectUrl>
+        <tags>$tags$</tags>
+        <dependencies>
+            <group targetFramework="dnxcore50">
+                <dependency id="Microsoft.Net.Compilers.netcore" version="1.2.0-beta-20151118-02" />
+                <dependency id="Microsoft.CodeAnalysis.CSharp" version="1.1.0" />
+                <dependency id="Microsoft.Build.Tasks.Core" version="0.1.0-preview-00005" />
+                <dependency id="Microsoft.Build.Utilities.Core" version="0.1.0-preview-00005" />
+                <dependency id="Microsoft.Win32.Primitives" version="4.0.1-beta-23428" />
+                <dependency id="System.Console" version="4.0.0-beta-23428" />
+                <dependency id="System.Diagnostics.Tools" version="4.0.1-beta-23428" />
+                <dependency id="System.Diagnostics.Process" version="4.1.0-beta-23428" />
+                <dependency id="System.IO.Pipes" version="4.0.0-beta-23428" />
+                <dependency id="System.Runtime" version="4.0.21-beta-23428" />
+                <dependency id="System.Runtime.InteropServices.RuntimeInformation" version="4.0.0-beta-23428" />
+                <dependency id="System.IO.FileSystem" version="4.0.1-beta-23428" />
+                <dependency id="System.IO.FileSystem.DriveInfo" version="4.0.0-beta-23428" />
+            </group>
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="BuildTaskCodeAnalysis/Microsoft.Build.Tasks.CodeAnalysis.dll" target="lib/dotnet" />
+        <file src="BuildTaskCodeAnalysis/Microsoft.CSharp.Core.targets" target="content" />
+        <file src="BuildTaskCodeAnalysis/Microsoft.VisualBasic.Core.targets" target="content" />
+    </files>
+</package>
