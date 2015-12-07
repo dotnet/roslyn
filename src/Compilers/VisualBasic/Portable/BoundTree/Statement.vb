@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IHasErrors As Boolean Implements IOperation.HasErrors
+        Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
             Get
                 Return Me.HasErrors
             End Get
@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public ReadOnly Property HasErrors As Boolean Implements IExpression.HasErrors
+            Public ReadOnly Property IsInvalid As Boolean Implements IExpression.IsInvalid
                 Get
                     Return False
                 End Get
@@ -594,7 +594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IHasErrors As Boolean Implements IOperation.HasErrors
+        Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
             Get
                 Return Me.HasErrors
             End Get
@@ -629,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundBadStatement
         Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.BadStatement
+            Return OperationKind.InvalidStatement
         End Function
     End Class
 
@@ -967,7 +967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public ReadOnly Property HasErrors As Boolean Implements IOperation.HasErrors
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
                 Get
                     Return False
                 End Get

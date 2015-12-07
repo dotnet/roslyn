@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         OperationKind IOperation.Kind => this.ExpressionKind;
 
-        bool IOperation.HasErrors => this.HasErrors;
+        bool IOperation.IsInvalid => this.HasErrors;
           
         object IExpression.ConstantValue => this.ConstantValue?.Value;
 
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundBadExpression
     {
-        protected override OperationKind ExpressionKind => OperationKind.BadExpression;
+        protected override OperationKind ExpressionKind => OperationKind.InvalidExpression;
     }
 
     partial class BoundNewT

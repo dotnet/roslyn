@@ -12,33 +12,33 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     /// <summary>Analyzer used to test for bad statements and expressions.</summary>
     public class BadStuffTestAnalyzer : DiagnosticAnalyzer
     {
-        public static readonly DiagnosticDescriptor BadExpressionDescriptor = new DiagnosticDescriptor(
-            "BadExpression",
-            "Bad Expression",
-            "Bad expression found.",
+        public static readonly DiagnosticDescriptor InvalidExpressionDescriptor = new DiagnosticDescriptor(
+            "InvalidExpression",
+            "Invalid Expression",
+            "Invalid expression found.",
             "Testing",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor BadStatementDescriptor = new DiagnosticDescriptor(
-            "BadStatement",
-            "Bad Statement",
-            "Bad statement found.",
+        public static readonly DiagnosticDescriptor InvalidStatementDescriptor = new DiagnosticDescriptor(
+            "InvalidStatement",
+            "Invalid Statement",
+            "Invalid statement found.",
             "Testing",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor HasErrorsDescriptor = new DiagnosticDescriptor(
-            "HasErrors",
-            "Has Errors",
-            "Operation with errors found.",
+        public static readonly DiagnosticDescriptor IsInvalidDescriptor = new DiagnosticDescriptor(
+            "IsInvalid",
+            "Is Invalid",
+            "Operation found that is invalid.",
             "Testing",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(BadExpressionDescriptor, BadStatementDescriptor, HasErrorsDescriptor); }
+            get { return ImmutableArray.Create(InvalidExpressionDescriptor, InvalidStatementDescriptor, IsInvalidDescriptor); }
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -46,28 +46,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     operationContext.ReportDiagnostic(Diagnostic.Create(BadExpressionDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                     operationContext.ReportDiagnostic(Diagnostic.Create(InvalidExpressionDescriptor, operationContext.Operation.Syntax.GetLocation()));
                  },
-                 OperationKind.BadExpression);
+                 OperationKind.InvalidExpression);
 
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     operationContext.ReportDiagnostic(Diagnostic.Create(BadStatementDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                     operationContext.ReportDiagnostic(Diagnostic.Create(InvalidStatementDescriptor, operationContext.Operation.Syntax.GetLocation()));
                  },
-                 OperationKind.BadStatement);
+                 OperationKind.InvalidStatement);
 
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     if (operationContext.Operation.HasErrors)
+                     if (operationContext.Operation.IsInvalid)
                      {
-                         operationContext.ReportDiagnostic(Diagnostic.Create(HasErrorsDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                         operationContext.ReportDiagnostic(Diagnostic.Create(IsInvalidDescriptor, operationContext.Operation.Syntax.GetLocation()));
                      }
                  },
                  OperationKind.InvocationExpression,
-                 OperationKind.BadExpression,
-                 OperationKind.BadStatement);
+                 OperationKind.InvalidExpression,
+                 OperationKind.InvalidStatement);
         }
     }
 

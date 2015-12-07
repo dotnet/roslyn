@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         OperationKind Kind { get; }
 
         /// <summary>
-        /// Indicates whether the compiler has reported semantic errors about the operation.
+        ///  Indicates whether the operation is invalid, either semantically or syntactically.
         /// </summary>
-        bool HasErrors { get; }
+        bool IsInvalid { get; }
 
         /// <summary>
         /// Syntax that was analyzed to produce the operation.
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         None,
 
-        BadStatement,
+        InvalidStatement,
         BlockStatement,
         VariableDeclarationStatement,
         SwitchStatement,
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         ExpressionStatement,
 
-        BadExpression,
+        InvalidExpression,
         LiteralExpression,
         ConversionExpression,
         InvocationExpression,

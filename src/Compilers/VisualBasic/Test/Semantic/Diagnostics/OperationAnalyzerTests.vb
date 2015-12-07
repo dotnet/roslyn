@@ -121,20 +121,20 @@ End Class
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyAnalyzerDiagnostics({New BadStuffTestAnalyzer}, Nothing, Nothing, False,
-                                           Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "Framitz()").WithLocation(3, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Framitz()").WithLocation(3, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "Framitz").WithLocation(3, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Framitz").WithLocation(3, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "Bexley()").WithLocation(4, 28),
-                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Bexley()").WithLocation(4, 28),
-                                           Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "Bexley").WithLocation(4, 28),
-                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Bexley").WithLocation(4, 28),
-                                           Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "M1(d)").WithLocation(7, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "M1(d)").WithLocation(7, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.BadStatementDescriptor.Id, "Goto").WithLocation(8, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "Goto").WithLocation(8, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.BadExpressionDescriptor.Id, "").WithLocation(8, 13),
-                                           Diagnostic(BadStuffTestAnalyzer.HasErrorsDescriptor.Id, "").WithLocation(8, 13))
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz()").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz()").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Bexley()").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley()").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Bexley").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "M1(d)").WithLocation(7, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "M1(d)").WithLocation(7, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidStatementDescriptor.Id, "Goto").WithLocation(8, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Goto").WithLocation(8, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "").WithLocation(8, 13),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "").WithLocation(8, 13))
         End Sub
 
         <Fact>

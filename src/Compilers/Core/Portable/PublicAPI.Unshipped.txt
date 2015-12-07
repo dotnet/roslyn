@@ -87,7 +87,7 @@ abstract Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.Regi
 abstract Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 Microsoft.CodeAnalysis.Semantics.IOperation
 Microsoft.CodeAnalysis.Semantics.IOperation.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.IOperation.HasErrors.get -> bool
+Microsoft.CodeAnalysis.Semantics.IOperation.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.IOperation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.ConditionalChoice(Microsoft.CodeAnalysis.Semantics.IExpression condition, Microsoft.CodeAnalysis.Semantics.IExpression ifTrue, Microsoft.CodeAnalysis.Semantics.IExpression ifFalse, Microsoft.CodeAnalysis.ITypeSymbol resultType, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
@@ -97,26 +97,26 @@ Microsoft.CodeAnalysis.Semantics.ConditionalChoice.IfFalse.get -> Microsoft.Code
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.ConditionalChoice.HasErrors.get -> bool
+Microsoft.CodeAnalysis.Semantics.ConditionalChoice.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.Assignment
 Microsoft.CodeAnalysis.Semantics.Assignment.Assignment(Microsoft.CodeAnalysis.Semantics.IReferenceExpression target, Microsoft.CodeAnalysis.Semantics.IExpression value, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.Assignment.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.Assignment.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.Assignment.HasErrors.get -> bool
+Microsoft.CodeAnalysis.Semantics.Assignment.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.Assignment.Expression.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment.CompoundAssignment(Microsoft.CodeAnalysis.Semantics.IReferenceExpression target, Microsoft.CodeAnalysis.Semantics.IExpression value, Microsoft.CodeAnalysis.Semantics.BinaryOperationKind binaryKind, Microsoft.CodeAnalysis.IMethodSymbol operatorMethod, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.CompoundAssignment.HasErrors.get -> bool
+Microsoft.CodeAnalysis.Semantics.CompoundAssignment.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment.Expression.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.IntegerLiteral(long value, Microsoft.CodeAnalysis.ITypeSymbol resultType, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.Spelling.get -> string
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.IntegerLiteral.HasErrors.get -> bool
+Microsoft.CodeAnalysis.Semantics.IntegerLiteral.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.Binary
@@ -128,7 +128,7 @@ Microsoft.CodeAnalysis.Semantics.Binary.UsesOperatorMethod.get -> bool
 Microsoft.CodeAnalysis.Semantics.Binary.Operator.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.Binary.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.Binary.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.Binary.HasErrors.get -> bool
+Microsoft.CodeAnalysis.Semantics.Binary.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.Binary.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.Binary.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.ArrayCreation
@@ -138,7 +138,7 @@ Microsoft.CodeAnalysis.Semantics.ArrayCreation.ElementValues.get -> Microsoft.Co
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.ArrayCreation.HasErrors.get -> bool
+Microsoft.CodeAnalysis.Semantics.ArrayCreation.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.IExpression
@@ -579,7 +579,7 @@ Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression
 Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression.Access.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.BadStatement = 1 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.InvalidStatement = 1 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.BlockStatement = 2 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.VariableDeclarationStatement = 3 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.SwitchStatement = 4 -> Microsoft.CodeAnalysis.Semantics.OperationKind
@@ -603,7 +603,7 @@ Microsoft.CodeAnalysis.Semantics.OperationKind.YieldReturnStatement = 21 -> Micr
 Microsoft.CodeAnalysis.Semantics.OperationKind.FixedStatement = 22 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.LocalFunctionStatement = 23 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.ExpressionStatement = 24 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.BadExpression = 25 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.InvalidExpression = 25 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.LiteralExpression = 26 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.ConversionExpression = 27 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.InvocationExpression = 28 -> Microsoft.CodeAnalysis.Semantics.OperationKind

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         OperationKind IOperation.Kind => this.StatementKind;
 
-        bool IOperation.HasErrors => this.HasErrors;
+        bool IOperation.IsInvalid => this.HasErrors;
 
         SyntaxNode IOperation.Syntax => this.Syntax;
 
@@ -225,6 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         OperationKind IOperation.Kind => OperationKind.CatchHandler;
 
+        bool IOperation.IsInvalid => this.Body.HasErrors || (this.ExceptionFilterOpt != null && this.ExceptionFilterOpt.HasErrors);
+
         SyntaxNode IOperation.Syntax => this.Syntax;
     }
 
@@ -280,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundBadStatement
     {
-        protected override OperationKind StatementKind => OperationKind.BadStatement;
+        protected override OperationKind StatementKind => OperationKind.InvalidStatement;
     }
 
     partial class BoundStatementList
