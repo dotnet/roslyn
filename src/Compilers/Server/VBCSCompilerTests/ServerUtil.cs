@@ -26,7 +26,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
     internal static class ServerUtil
     {
-        internal static ServerData CreateServer(string clientDir, string pipeName)
+        internal static string DefaultClientDirectory { get; } = Path.GetDirectoryName(typeof(DesktopBuildClientTests).Assembly.Location);
+        internal static string DefaultSdkDirectory { get; } = RuntimeEnvironment.GetRuntimeDirectory();
+
+        internal static BuildPaths CreateBuildPaths(string workingDir)
+        {
+            return new BuildPaths(
+                clientDir: DefaultClientDirectory,
+                workingDir: workingDir,
+                sdkDir: DefaultSdkDirectory);
+        }
+
+        internal static ServerData CreateServer(string pipeName, TimeSpan? timeout = null)
         {
             var taskSource = new TaskCompletionSource<bool>();
             var cts = new CancellationTokenSource();
@@ -35,12 +46,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 try
                 {
-                    var clientDirectory = Path.GetDirectoryName(typeof(DesktopBuildClientTests).Assembly.Location);
-                    var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
+                    var clientDirectory = DefaultClientDirectory;
+                    var sdkDirectory = DefaultSdkDirectory;
                     var compilerServerHost = new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
                     var clientConnectionHost = new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
                     var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
-                    VBCSCompiler.Run(mutexName, clientConnectionHost, TimeSpan.MaxValue, cts.Token);
+                    VBCSCompiler.Run(
+                        mutexName, 
+                        clientConnectionHost, 
+                        timeout ?? TimeSpan.FromMilliseconds(-1), 
+                        cts.Token);
                 }
                 finally
                 {
