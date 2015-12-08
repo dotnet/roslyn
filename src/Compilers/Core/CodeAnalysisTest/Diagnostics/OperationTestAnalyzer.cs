@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          hasNonDefault = true;
                                          ISingleValueCaseClause singleValueClause = (ISingleValueCaseClause)clause;
                                          IExpression singleValueExpression = singleValueClause.Value;
-                                         if (singleValueExpression.ConstantValue != null &&
+                                         if (singleValueExpression?.ConstantValue != null &&
                                              singleValueExpression.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
                                              int singleValue = (int)singleValueExpression.ConstantValue;
@@ -244,9 +244,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          IRangeCaseClause rangeClause = (IRangeCaseClause)clause;
                                          IExpression rangeMinExpression = rangeClause.MinimumValue;
                                          IExpression rangeMaxExpression = rangeClause.MaximumValue;
-                                         if (rangeMinExpression.ConstantValue != null &&
+                                         if (rangeMinExpression?.ConstantValue != null &&
                                              rangeMinExpression.ResultType.SpecialType == SpecialType.System_Int32 &&
-                                             rangeMaxExpression.ConstantValue != null &&
+                                             rangeMaxExpression?.ConstantValue != null &&
                                              rangeMaxExpression.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
                                              int rangeMinValue = (int)rangeMinExpression.ConstantValue;
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          hasNonDefault = true;
                                          IRelationalCaseClause relationalClause = (IRelationalCaseClause)clause;
                                          IExpression relationalValueExpression = relationalClause.Value;
-                                         if (relationalValueExpression.ConstantValue != null &&
+                                         if (relationalValueExpression?.ConstantValue != null &&
                                              relationalValueExpression.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
                                              int rangeMinValue = int.MaxValue;

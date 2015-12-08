@@ -184,11 +184,20 @@ class C
 
         switch (y) {}
 
+        switch (x)
+        {
+            case :
+                break;
+            case 1000:
+                break;
+        }
+
     }
 }
 ";
             CreateCompilationWithMscorlib45(source)
-            .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(40, 20))
+            .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(40, 20),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, ":").WithLocation(44, 18))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SwitchTestAnalyzer() }, null, null, false,
                 Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "y").WithLocation(16, 17),
                 Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(26, 17),

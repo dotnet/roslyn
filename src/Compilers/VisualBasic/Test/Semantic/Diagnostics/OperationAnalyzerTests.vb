@@ -185,6 +185,27 @@ Class C
 
         Select Case x
         End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case
+                Exit Select
+        End Select   
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case =
+                Exit Select
+        End Select  
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case 2 to
+                Exit Select
+        End Select  
     End Sub
 End Class
 ]]>
@@ -192,7 +213,9 @@ End Class
                          </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            comp.VerifyDiagnostics()
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(60, 17),
+                                   Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(68, 1),
+                                   Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(74, 22))
             comp.VerifyAnalyzerDiagnostics({New SwitchTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(12, 21),
                                            Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(30, 21),

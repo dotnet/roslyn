@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses, 
                 ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
-                If Me.CaseStatement.CaseClauses.IsEmpty Then
+                If Me.CaseStatement.CaseClauses.IsEmpty AndAlso Me.CaseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
                     Return ImmutableArray.Create(CaseElseClause)
                 End If
 
