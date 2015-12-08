@@ -86,6 +86,7 @@
     <Compile Include="Text\LargeTextWriter.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />
     <Compile Include="Text\StringTextWriter.cs" />
+    <Compile Include="System.Reflection.Metadata\PortableExecutable\PESectionLocation.cs" />
     <Compile Include="UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -441,7 +442,6 @@
     <Compile Include="System.Reflection.Metadata\Ecma335\BlobWriter.cs" />
     <Compile Include="System.Reflection.Metadata\Ecma335\BlobWriterImpl.cs" />
     <Compile Include="System.Reflection.Metadata\Ecma335\BlobUtilities.cs" />
-    <Compile Include="PEWriter\CoffHeader.cs" />
     <Compile Include="PEWriter\ContentId.cs" />
     <Compile Include="System.Reflection.Metadata\Ecma335\MetadataBuilder.Heaps.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
@@ -490,14 +490,13 @@
     <Compile Include="PEWriter\Miscellaneous.cs" />
     <Compile Include="PEWriter\ModifiedTypeReference.cs" />
     <Compile Include="PEWriter\IImportScope.cs" />
-    <Compile Include="System.Reflection.Metadata\PortableExecutable\NtHeader.cs" />
+    <Compile Include="System.Reflection.Metadata\PortableExecutable\PEBuilder.cs" />
     <Compile Include="NativePdbWriter\PdbMetadataWrapper.cs" />
     <Compile Include="NativePdbWriter\PdbWriter.cs" />
     <Compile Include="PEWriter\PeWriter.cs" />
     <Compile Include="PEWriter\ReferenceIndexer.cs" />
     <Compile Include="PEWriter\ReturnValueParameter.cs" />
     <Compile Include="PEWriter\RootModuleType.cs" />
-    <Compile Include="System.Reflection.Metadata\PortableExecutable\SectionHeader.cs" />
     <Compile Include="PEWriter\SequencePoint.cs" />
     <Compile Include="PEWriter\TypeLibTypeFlags.cs" />
     <Compile Include="PEWriter\Types.cs" />

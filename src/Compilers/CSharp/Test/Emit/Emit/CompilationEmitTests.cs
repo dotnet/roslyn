@@ -2701,10 +2701,7 @@ class C
 
             var output = new BrokenStream();
             Assert.Throws<IOException>(() => compilation.Emit(output));
-
-            output.BreakHow = 1;
-            Assert.Throws<NotSupportedException>(() => compilation.Emit(output));
-
+            
             // disposed stream is not writable
             var outReal = new MemoryStream();
             outReal.Dispose();
