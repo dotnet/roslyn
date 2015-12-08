@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             if (processedCount > 0)
             {
-                _diagnosticListener.ConnectionProcessed(processedCount);
+                _diagnosticListener.ConnectionCompleted(processedCount);
             }
 
             return allFine;

@@ -299,14 +299,22 @@ End Module")
 
         #endregion
 
+        private static async Task Verify(ServerData serverData, int connections, int completed)
+        {
+            var serverStats = await serverData.Complete().ConfigureAwait(true);
+            Assert.Equal(connections, serverStats.Connections);
+            Assert.Equal(completed, serverStats.CompletedConnections);
+        }
+
         [Fact]
-        public void FallbackToCsc()
+        public async Task FallbackToCsc()
         {
             // Verify csc will fall back to command line when server fails to process
             using (var serverData = ServerUtil.CreateServerFailsConnection())
             {
                 var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
+                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 

@@ -13,17 +13,35 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
+    internal struct ServerStats
+    {
+        internal readonly int Connections;
+        internal readonly int CompletedConnections;
+
+        internal ServerStats(int connections, int completedConnections)
+        {
+            Connections = connections;
+            CompletedConnections = completedConnections;
+        }
+    }
+
     internal sealed class ServerData : IDisposable
     {
         internal CancellationTokenSource CancellationTokenSource { get; }
-        internal Task ServerTask { get; }
+        internal Task<ServerStats> ServerTask { get; }
         internal string PipeName { get; }
 
-        internal ServerData(CancellationTokenSource cancellationTokenSource, Task serverTask, string pipeName)
+        internal ServerData(CancellationTokenSource cancellationTokenSource, Task<ServerStats> serverTask, string pipeName)
         {
             CancellationTokenSource = cancellationTokenSource;
             ServerTask = serverTask;
             PipeName = pipeName;
+        }
+
+        internal async Task<ServerStats> Complete()
+        {
+            CancellationTokenSource.Cancel();
+            return await ServerTask;
         }
 
         public void Dispose()
@@ -34,6 +52,39 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
 
             ServerTask.Wait();
+        }
+    }
+
+    internal sealed class ServerStatsListener : IDiagnosticListener
+    {
+        private int _connections;
+        private int _completedConnections;
+
+        internal ServerStats ServerStats => new ServerStats(_connections, _completedConnections);
+
+        public void Connection() 
+        {
+            _connections++;
+        }
+
+        public void ConnectionCompleted(int count)
+        {
+            _completedConnections += count;
+        }
+
+        public void DetectedBadConnection()
+        {
+
+        }
+
+        public void KeepAliveReached()
+        {
+
+        }
+
+        public void UpdateKeepAlive(TimeSpan timeSpan)
+        {
+
         }
     }
 
@@ -51,30 +102,32 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         internal static ServerData CreateServer(
-            string pipeName = null, 
+            string pipeName = null,
             TimeSpan? timeout = null,
             ICompilerServerHost compilerServerHost = null)
         {
             pipeName = pipeName ?? Guid.NewGuid().ToString();
             compilerServerHost = compilerServerHost ?? new DesktopCompilerServerHost(ServerUtil.DefaultClientDirectory, ServerUtil.DefaultSdkDirectory);
 
-            var taskSource = new TaskCompletionSource<bool>();
+            var taskSource = new TaskCompletionSource<ServerStats>();
             var cts = new CancellationTokenSource();
             var thread = new Thread(_ =>
             {
+                var listener = new ServerStatsListener();
                 try
                 {
                     var clientConnectionHost = new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
                     var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
                     VBCSCompiler.Run(
-                        mutexName, 
-                        clientConnectionHost, 
-                        timeout ?? TimeSpan.FromMilliseconds(-1), 
+                        mutexName,
+                        clientConnectionHost,
+                        listener,
+                        timeout ?? TimeSpan.FromMilliseconds(-1),
                         cts.Token);
                 }
                 finally
                 {
-                    taskSource.SetResult(true);
+                    taskSource.SetResult(listener.ServerStats);
                 }
             });
 
@@ -90,19 +143,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             pipeName = pipeName ?? Guid.NewGuid().ToString();
 
-            var taskSource = new TaskCompletionSource<bool>();
+            var taskSource = new TaskCompletionSource<ServerStats>();
             var cts = new CancellationTokenSource();
 
             var thread = new Thread(_ =>
             {
-                try
-                {
-                    CreateServerFailsConnectionCore(pipeName, cts.Token).Wait();
-                }
-                finally
-                {
-                    taskSource.SetResult(true);
-                }
+                var connections = CreateServerFailsConnectionCore(pipeName, cts.Token).Result;
+                taskSource.SetResult(new ServerStats(connections: connections, completedConnections: 0));
             });
 
             thread.Start();
@@ -110,14 +157,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             return new ServerData(cts, taskSource.Task, pipeName);
         }
 
-        private static async Task CreateServerFailsConnectionCore(string pipeName, CancellationToken cancellationToken)
+        private static async Task<int> CreateServerFailsConnectionCore(string pipeName, CancellationToken cancellationToken)
         {
+            var connections = 0;
             try
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     var pipeStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                     await pipeStream.WaitForConnectionAsync(cancellationToken);
+                    connections++;
                     pipeStream.Close();
                 }
             }
@@ -125,6 +174,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 // Exceptions are okay and expected here
             }
+
+            return connections;
         }
     }
 }

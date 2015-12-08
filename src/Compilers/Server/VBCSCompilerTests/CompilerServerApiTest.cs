@@ -24,7 +24,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public bool HasDetectedBadConnection;
             public bool HitKeepAliveTimeout;
 
-            public void ConnectionProcessed(int count)
+            public void Connection()
+            {
+
+            }
+
+            public void ConnectionCompleted(int count)
             {
                 ProcessedCount += count;
                 LastProcessedTime = DateTime.Now;

@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
             var compilerServerHost = new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
             var clientConnectionHost = new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
-            return Run(serverMutexName, clientConnectionHost, keepAliveTimeout);
+            var listener = new EmptyDiagnosticListener();
+            return Run(serverMutexName, clientConnectionHost, listener, keepAliveTimeout);
         }
 
         private static TimeSpan? GetKeepAliveTimeout()
@@ -82,6 +83,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal static int Run(string mutexName, IClientConnectionHost connectionHost, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
         {
+            return Run(mutexName, connectionHost, new EmptyDiagnosticListener(), keepAlive, cancellationToken);
+        }
+
+        internal static int Run(string mutexName, IClientConnectionHost connectionHost, IDiagnosticListener listener, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
+        {
             // Grab the server mutex to prevent multiple servers from starting with the same
             // pipename and consuming excess resources. If someone else holds the mutex
             // exit immediately with a non-zero exit code
@@ -97,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 try
                 {
-                    return RunCore(connectionHost, keepAlive, cancellationToken);
+                    return RunCore(connectionHost, listener, keepAlive, cancellationToken);
                 }
                 finally
                 {
@@ -106,12 +112,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private static int RunCore(IClientConnectionHost connectionHost, TimeSpan? keepAliveTimeout, CancellationToken cancellationToken = default(CancellationToken))
+        private static int RunCore(
+            IClientConnectionHost connectionHost, 
+            IDiagnosticListener listener,
+            TimeSpan? keepAliveTimeout, 
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAliveTimeout?.TotalMilliseconds ?? 0);
             FatalError.Handler = FailFast.OnFatalException;
 
-            var dispatcher = new ServerDispatcher(connectionHost, new EmptyDiagnosticListener());
+            var dispatcher = new ServerDispatcher(connectionHost, listener);
             dispatcher.ListenAndDispatchConnections(keepAliveTimeout, cancellationToken);
             return CommonCompiler.Succeeded;
         }
