@@ -121,8 +121,8 @@ namespace Roslyn.Utilities
             -------------
 
             And we can cap the search past the diagonals based on the threshold.  For larger strings
-            With a small threshold, this can be very valuable.  For example, if we had 10 char strings
-            with a a threshold of 2, we'd only have to search
+            with a small threshold, this can be very valuable.  For example, if we had 10 char strings
+            with a threshold of 2, we'd only have to search
 
             -------------
             | abcdefghij|
