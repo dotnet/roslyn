@@ -223,6 +223,7 @@ namespace System.Reflection.PortableExecutable
 
         public CciDirectoryEntry GetDebugDirectoryEntry(int rva)
         {
+            // Only the size of the fixed part of the debug table goes here.
             return (EmitPdb || IsDeterministic) ?
                 new CciDirectoryEntry(rva + ComputeOffsetToDebugTable(), ImageDebugDirectoryBaseSize) :
                 default(CciDirectoryEntry);
@@ -504,7 +505,7 @@ namespace System.Reflection.PortableExecutable
         /// <summary>
         /// Write the entire "Debug Directory (Image Only)" along with data that it points to.
         /// </summary>
-        internal void WriteDebugTable(BlobBuilder builder, int textRva, int textPointer, ContentId nativePdbContentId, ContentId portablePdbContentId)
+        internal void WriteDebugTable(BlobBuilder builder, PESectionLocation textSectionLocation, ContentId nativePdbContentId, ContentId portablePdbContentId)
         {
             Debug.Assert(builder.Count == 0);
 
@@ -523,8 +524,8 @@ namespace System.Reflection.PortableExecutable
                     version: portablePdbContentId.IsDefault ? (uint)0 : ('P' << 24 | 'M' << 16 | 0x01 << 8 | 0x00),
                     debugType: IMAGE_DEBUG_TYPE_CODEVIEW,
                     sizeOfData: (uint)dataSize,
-                    addressOfRawData: (uint)textRva + dataOffset, // RVA of the data
-                    pointerToRawData: (uint)textPointer + dataOffset); // position of the data in the PE stream
+                    addressOfRawData: (uint)textSectionLocation.RelativeVirtualAddress + dataOffset, // RVA of the data
+                    pointerToRawData: (uint)textSectionLocation.PointerToRawData + dataOffset); // position of the data in the PE stream
             }
 
             if (IsDeterministic)
