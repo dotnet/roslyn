@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private readonly IReadOnlyList<Node> _nodes;
 
-        // We first sort in a case insensitive manner.  But, within items htat match insensitively, 
+        // We first sort in a case insensitive manner.  But, within items that match insensitively, 
         // we then sort in a case sensitive manner.  This helps for searching as we'll walk all 
         // the items of a specific casing at once.  This way features can cache values for that
-        // casing and reuse them.  i.e. if we didn't do htis we might get "Prop, prop, Prop, prop"
+        // casing and reuse them.  i.e. if we didn't do this we might get "Prop, prop, Prop, prop"
         // which might cause other features to continually recalculate if that string matches what
         // they're searching for.  However, with this sort of comparison we now get 
         // "prop, prop, Prop, Prop".  Features can take advantage of that by caching their previous
@@ -187,44 +187,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Get all symbols that have a matching name as determined by the predicate.
-        /// </summary>
-        public IEnumerable<ISymbol> Search(
-            IAssemblySymbol assembly,
-            Func<string, bool> predicate,
-            CancellationToken cancellationToken)
-        {
-            string lastName = null;
-            bool lastGood = false;
-
-            for (int i = 0; i < _nodes.Count; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var node = _nodes[i];
-                var isSameName = node.Name == (object)lastName;
-                if ((isSameName && lastGood) // check for same string instance to avoid invoking predicate when we already know the outcome (assumes no side effects of predicate.)
-                    || (!string.IsNullOrEmpty(node.Name) // don't consider unnamed things like the global namespace itself.
-                          && predicate(node.Name)))
-                {
-                    lastGood = true;
-
-                    // yield all symbols for this node
-                    foreach (var symbol in Bind(i, assembly.GlobalNamespace, cancellationToken))
-                    {
-                        yield return symbol;
-                    }
-                }
-                else
-                {
-                    lastGood = false;
-                }
-
-                lastName = node.Name;
-            }
         }
 
         #region Construction

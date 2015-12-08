@@ -164,7 +164,7 @@ namespace Roslyn.Utilities
             // characters to lowercase, we do a prepass over the string and convert it to
             // a lowercase char array.  We also pool these arrays to avoid the allocations.
             // By doing this, we only need to convert characters once, and we can then 
-            // access the characters extremely quickly from teh array.
+            // access the characters extremely quickly from the array.
             //
             // Sixth, we optimize for the case where we will be comparing a single string
             // against many potential match strings.  We cache the information about the 
@@ -270,11 +270,11 @@ namespace Roslyn.Utilities
             //    7 e 8|
             //    8 r 9|
             //
-            //          We'll then proceed a column at a time from left ot right producing the new column values.
+            //          We'll then proceed a column at a time from left to right producing the new column values.
             //          In the absense of twiddles we can note something useful:  The value for any given (i,j) we
             //          are computing is only dependent on (i - 1, j), (i, j-1), and (i - 1, j - 1).  These correspond,
             //          respectively, to the costs to delete, insert, or change/keep a character.  In traditional 
-            //          implementations we coudl accomplish this by having an array for the column we are generating
+            //          implementations we could accomplish this by having an array for the column we are generating
             //          and having an array for the previous column as well.  
             //          
             //          However, we can be a bit smarter and use a single array.  How?  Well, instead of writing 
@@ -282,11 +282,11 @@ namespace Roslyn.Utilities
             //          traversing.  After all, if we're writing into (i, j), then (i-1, j) is just the current value
             //          in the cell.  (i, j-1) is the value in the cell right above us that we just computed before 
             //          this cell.  And (i-1, j-1) is the value in the cell right above *before* we computed the 
-            //          new value for it.  The only trickyness is we have to store the value of the cell above us
+            //          new value for it.  The only trickiness is we have to store the value of the cell above us
             //          in a temporary before we overwrite it.  Now we have access to all three values we need to
             //          compute the new (i,j) value.
             //
-            //          No, we do something similar for twiddling. However, because a twiddle cost is "1 + (i-2, j-2)"
+            //          Note, we do something similar for twiddling. However, because a twiddle cost is "1 + (i-2, j-2)"
             //          we need to keep around our i-2 values.  We can't do that if we're overwriting all the values
             //          in the column.  So we do keep around one additional column for the i-2 generation.
             //
@@ -344,7 +344,7 @@ namespace Roslyn.Utilities
                 var checkThreshold = costThreshold < longLength;
 
                 // Some complicated indices here.  We effectively only want to walk the portion
-                // of hte matrix that is 'offset' around the diagonal.  So as we're walking
+                // of the matrix that is 'offset' around the diagonal.  So as we're walking
                 // we check if we're getting past the offset, and if so, we bump our indices
                 // to skip the values we don't need to check.
 
@@ -382,15 +382,14 @@ namespace Roslyn.Utilities
 
                     // Note: we're just setting 'editDistance' here so that it is the initial
                     // 'above' value when we start processing this column.  The above values
-                    // are very simply if we're processing the entire column:
+                    // are very simple if we're processing the entire column:
                     // 
                     //       i<- 0 1 2 3 4 5 6 7
                     //     j    |X l m R e a d e
                     //     ^   0|1 2 3 4 5 6 7 8    <-- above values
                     //
-                    // i.e. the're just equal to i+1.  However, if we're only processing
-                    // a part of a column, then the 'above' value is the value doesn't
-                    // exist.  In this case 
+                    // i.e. they're just equal to i+1.  However, if we're only processing
+                    // a part of a column, then the 'above' value doesn't exist.  In this case 
                     //
                     //      3 R 4|3 2 2 1 2 3 4 
                     //      4 e 5|4 3 3 2 1 2 3 ?    <-- No value above when we're starting at ?
@@ -448,7 +447,7 @@ namespace Roslyn.Utilities
                             // No matter what we have to add one, so we always do that below.
                             // So now we just need to compare (i-1,j-1)   (i-1,j)   and    (i, j-1)
                             //
-                            // editDistance was alreayd set to (i-1,j-1) above.  So all we need to do
+                            // editDistance was already set to (i-1,j-1) above.  So all we need to do
                             // is compare that to (i-1,j) and (i, j-1)  and pick the smallest.
 
                             if (leftEditDistance < editDistance)
@@ -485,7 +484,7 @@ namespace Roslyn.Utilities
                     }
 
                     // Recall that minimumEditCount is simply the difference in length of our two
-                    // strings.  So costArray[i] is the cost for the upper-left diagonal of hte 
+                    // strings.  So costArray[i] is the cost for the upper-left diagonal of the
                     // matrix.  costArray[i+minimumEditCount] is the cost for the lower right diagonal.
                     // Here we are simply getting the lowest cost edit of hese two substrings so far.
                     // If this lowest cost edit is greater than our threshold, then there is no need 
