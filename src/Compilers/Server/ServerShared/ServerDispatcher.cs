@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // If there is a connection event that has highest priority. 
                 if (listenTask.IsCompleted && !cancellationToken.IsCancellationRequested)
                 {
+                    _diagnosticListener.Connection();
                     var connectionTask = HandleClientConnection(listenTask, cancellationToken);
                     connectionList.Add(connectionTask);
                     listenTask = null;
@@ -127,7 +128,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             try
             {
-                Task.WaitAll(connectionList.ToArray());
+                if (connectionList.Count > 0)
+                {
+                    Task.WaitAll(connectionList.ToArray());
+
+                    TimeSpan? ignoredTimeSpan = null;
+                    bool ignoredBool = false;
+                    CheckConnectionTask(connectionList, ref ignoredTimeSpan, ref ignoredBool);
+                }
             }
             catch
             {

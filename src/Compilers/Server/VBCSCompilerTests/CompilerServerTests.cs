@@ -343,9 +343,11 @@ End Module")
             using (var serverData = ServerUtil.CreateServerFailsConnection())
             {
                 var result = ProcessUtilities.Run("cmd",
-                    string.Format($"/C {0} /shared:{serverData.PipeName} /utf8output /nologo /t:library {1} > {2}",
+                    string.Format("/C {0} /shared:{3} /utf8output /nologo /t:library {1} > {2}",
                     _csharpCompilerClientExecutable,
-                    srcFile, tempOut.Path));
+                    srcFile,
+                    tempOut.Path,
+                    serverData.PipeName));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'".Trim(),
@@ -650,7 +652,7 @@ End Class"}};
                 Assert.Contains("error BC2001", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
-                await Verify(serverData, connections: 0, completed: 0).ConfigureAwait(true);
+                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
