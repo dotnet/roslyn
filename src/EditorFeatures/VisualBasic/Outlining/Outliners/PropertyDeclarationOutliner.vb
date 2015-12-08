@@ -9,18 +9,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
         Inherits AbstractSyntaxNodeOutliner(Of PropertyStatementSyntax)
 
         Protected Overrides Sub CollectOutliningSpans(propertyDeclaration As PropertyStatementSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
-            VisualBasicOutliningHelpers.CollectCommentsRegions(propertyDeclaration, spans)
+            CollectCommentsRegions(propertyDeclaration, spans)
 
-            Dim propertyBlock = TryCast(propertyDeclaration.Parent, PropertyBlockSyntax)
-            If propertyBlock IsNot Nothing AndAlso
-               Not propertyBlock.EndPropertyStatement.IsMissing Then
+            Dim block = TryCast(propertyDeclaration.Parent, PropertyBlockSyntax)
+            If Not block?.EndPropertyStatement.IsMissing Then
                 spans.Add(
-                    VisualBasicOutliningHelpers.CreateRegionFromBlock(
-                        propertyBlock,
-                        propertyDeclaration.ConvertToSingleLine().ToString() & " " & Ellipsis,
-                        autoCollapse:=True))
+                    CreateRegionFromBlock(block, bannerNode:=propertyDeclaration, autoCollapse:=True))
 
-                VisualBasicOutliningHelpers.CollectCommentsRegions(propertyBlock.EndPropertyStatement, spans)
+                CollectCommentsRegions(block.EndPropertyStatement, spans)
             End If
         End Sub
     End Class

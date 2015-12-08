@@ -9,17 +9,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
         Inherits AbstractSyntaxNodeOutliner(Of AccessorStatementSyntax)
 
         Protected Overrides Sub CollectOutliningSpans(accessorDeclaration As AccessorStatementSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
-            VisualBasicOutliningHelpers.CollectCommentsRegions(accessorDeclaration, spans)
+            CollectCommentsRegions(accessorDeclaration, spans)
 
-            Dim methodBlock = TryCast(accessorDeclaration.Parent, AccessorBlockSyntax)
-            If methodBlock IsNot Nothing Then
-                If Not methodBlock.EndBlockStatement.IsMissing Then
-                    spans.Add(
-                    VisualBasicOutliningHelpers.CreateRegionFromBlock(
-                        methodBlock,
-                        accessorDeclaration.ConvertToSingleLine().ToString() & " " & Ellipsis,
-                        autoCollapse:=True))
-                End If
+            Dim block = TryCast(accessorDeclaration.Parent, AccessorBlockSyntax)
+            If Not block?.EndBlockStatement.IsMissing Then
+                spans.Add(
+                    CreateRegionFromBlock(block, bannerNode:=accessorDeclaration, autoCollapse:=True))
             End If
         End Sub
     End Class

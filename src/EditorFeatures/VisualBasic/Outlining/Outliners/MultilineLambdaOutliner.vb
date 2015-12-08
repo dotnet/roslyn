@@ -9,15 +9,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
         Inherits AbstractSyntaxNodeOutliner(Of MultiLineLambdaExpressionSyntax)
 
         Protected Overrides Sub CollectOutliningSpans(lambdaExpression As MultiLineLambdaExpressionSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
-            If lambdaExpression.EndSubOrFunctionStatement.IsMissing Then
-                Return
+            If Not lambdaExpression.EndSubOrFunctionStatement.IsMissing Then
+                spans.Add(
+                    CreateRegionFromBlock(lambdaExpression, bannerNode:=lambdaExpression.SubOrFunctionHeader, autoCollapse:=False))
             End If
-
-            spans.Add(
-                VisualBasicOutliningHelpers.CreateRegionFromBlock(
-                    lambdaExpression,
-                    lambdaExpression.SubOrFunctionHeader.ConvertToSingleLine().ToString() & " " & Ellipsis,
-                    autoCollapse:=False))
         End Sub
     End Class
 End Namespace

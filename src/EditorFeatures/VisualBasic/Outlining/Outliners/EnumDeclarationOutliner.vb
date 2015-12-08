@@ -9,20 +9,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
         Inherits AbstractSyntaxNodeOutliner(Of EnumStatementSyntax)
 
         Protected Overrides Sub CollectOutliningSpans(enumDeclaration As EnumStatementSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
-            VisualBasicOutliningHelpers.CollectCommentsRegions(enumDeclaration, spans)
+            CollectCommentsRegions(enumDeclaration, spans)
 
-            Dim enumBlock = TryCast(enumDeclaration.Parent, EnumBlockSyntax)
-            If enumBlock IsNot Nothing Then
-                If Not enumBlock.EndEnumStatement.IsMissing Then
+            Dim block = TryCast(enumDeclaration.Parent, EnumBlockSyntax)
+            If Not block?.EndEnumStatement.IsMissing Then
+                spans.Add(
+                    CreateRegionFromBlock(block, bannerNode:=enumDeclaration, autoCollapse:=True))
 
-                    spans.Add(
-                            VisualBasicOutliningHelpers.CreateRegionFromBlock(
-                                enumBlock,
-                                enumDeclaration.ConvertToSingleLine().ToString() & " " & Ellipsis,
-                                autoCollapse:=True))
-
-                    VisualBasicOutliningHelpers.CollectCommentsRegions(enumBlock.EndEnumStatement, spans)
-                End If
+                CollectCommentsRegions(block.EndEnumStatement, spans)
             End If
         End Sub
     End Class
