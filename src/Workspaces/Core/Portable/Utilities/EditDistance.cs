@@ -23,7 +23,7 @@ namespace Roslyn.Utilities
             originalTextArray = ConvertToLowercaseArray(text);
 
             // We only allow fairly close matches (in order to prevent too many
-            // spurious hits).  A reasonable heauristic for this is the Log_2(length) (rounded 
+            // spurious hits).  A reasonable heuristic for this is the Log_2(length) (rounded 
             // down).  
             //
             // Strings length 1-3 : 1 edit allowed.
