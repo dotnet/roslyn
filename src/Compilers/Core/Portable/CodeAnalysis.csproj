@@ -71,6 +71,13 @@
     <Compile Include="InternalUtilities\SetWithInsertionOrder.cs" />
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\CodedIndex.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\EncFuncCode.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\HeapSizeFlag.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\MetadataSerializer.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\MetadataBuilder.Tables.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\MetadataWriterUtilities.cs" />
+    <Compile Include="System.Reflection.Metadata\PortableExecutable\PESizes.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
@@ -429,13 +436,13 @@
     <Compile Include="FileSystem\PathUtilities.cs" />
     <Compile Include="FileSystem\FileUtilities.cs" />
     <Compile Include="FileSystem\RelativePathResolver.cs" />
-    <Compile Include="PEWriter\Blob.cs" />
-    <Compile Include="PEWriter\BlobWriter.cs" />
-    <Compile Include="PEWriter\BlobWriterImpl.cs" />
-    <Compile Include="PEWriter\BlobUtilities.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\Blob.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\BlobWriter.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\BlobWriterImpl.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\BlobUtilities.cs" />
     <Compile Include="PEWriter\CoffHeader.cs" />
     <Compile Include="PEWriter\ContentId.cs" />
-    <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\MetadataBuilder.Heaps.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
     <Compile Include="PEWriter\MetadataWriter.PortablePdb.cs" />
     <Compile Include="PEWriter\NoPiaReferenceIndexer.cs" />
@@ -455,13 +462,13 @@
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="OutputKind.cs" />
-    <Compile Include="PEWriter\CorHeader.cs" />
+    <Compile Include="System.Reflection.Metadata\PortableExecutable\CorHeader.cs" />
     <Compile Include="PEWriter\Constants.cs" />
     <Compile Include="PEWriter\Core.cs" />
     <Compile Include="PEWriter\CustomDebugInfoConstants.cs" />
     <Compile Include="PEWriter\CustomDebugInfoWriter.cs" />
     <Compile Include="PEWriter\DebugSourceDocument.cs" />
-    <Compile Include="PEWriter\DirectoryEntry.cs" />
+    <Compile Include="System.Reflection.Metadata\PortableExecutable\DirectoryEntry.cs" />
     <Compile Include="PEWriter\ExceptionHandlerRegion.cs" />
     <Compile Include="PEWriter\Expressions.cs" />
     <Compile Include="PEWriter\AssemblyReferenceAlias.cs" />
@@ -476,21 +483,21 @@
     <Compile Include="PEWriter\ManagedResource.cs" />
     <Compile Include="PEWriter\MemberRefComparer.cs" />
     <Compile Include="PEWriter\Members.cs" />
-    <Compile Include="PEWriter\BlobBuilder.cs" />
-    <Compile Include="PEWriter\MetadataSizes.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\BlobBuilder.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\MetadataSizes.cs" />
     <Compile Include="PEWriter\MetadataVisitor.cs" />
     <Compile Include="PEWriter\MethodSpecComparer.cs" />
     <Compile Include="PEWriter\Miscellaneous.cs" />
     <Compile Include="PEWriter\ModifiedTypeReference.cs" />
     <Compile Include="PEWriter\IImportScope.cs" />
-    <Compile Include="PEWriter\NtHeader.cs" />
+    <Compile Include="System.Reflection.Metadata\PortableExecutable\NtHeader.cs" />
     <Compile Include="NativePdbWriter\PdbMetadataWrapper.cs" />
     <Compile Include="NativePdbWriter\PdbWriter.cs" />
     <Compile Include="PEWriter\PeWriter.cs" />
     <Compile Include="PEWriter\ReferenceIndexer.cs" />
     <Compile Include="PEWriter\ReturnValueParameter.cs" />
     <Compile Include="PEWriter\RootModuleType.cs" />
-    <Compile Include="PEWriter\SectionHeader.cs" />
+    <Compile Include="System.Reflection.Metadata\PortableExecutable\SectionHeader.cs" />
     <Compile Include="PEWriter\SequencePoint.cs" />
     <Compile Include="PEWriter\TypeLibTypeFlags.cs" />
     <Compile Include="PEWriter\Types.cs" />
@@ -765,7 +772,7 @@
     <None Include="..\CodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
-    <Compile Include="PEWriter\BlobBuilder.Enumerators.cs" />
+    <Compile Include="System.Reflection.Metadata\Ecma335\BlobBuilder.Enumerators.cs" />
     <None Include="project.json" />
     <None Include="RuleSet\RuleSetSchema.xsd">
       <SubType>Designer</SubType>
@@ -773,6 +780,7 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

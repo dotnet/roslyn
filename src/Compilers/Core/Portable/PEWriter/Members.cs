@@ -184,7 +184,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Offset of the field.
         /// </summary>
-        uint Offset
+        int Offset
         {
             get;
             // ^ requires this.ContainingTypeDefinition.Layout == LayoutKind.Explicit;
@@ -955,16 +955,6 @@ namespace Microsoft.Cci
         /// The name of the method.
         /// </summary>
         new string Name { get; }
-    }
-
-    internal enum EncFuncCode
-    {
-        Default = 0,
-        AddMethod = 1,
-        AddField = 2,
-        AddParameter = 3,
-        AddProperty = 4,
-        AddEvent = 5
     }
 
     internal static class Extensions
