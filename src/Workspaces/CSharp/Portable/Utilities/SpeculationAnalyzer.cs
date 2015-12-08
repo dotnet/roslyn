@@ -426,6 +426,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 return ReplacementBreaksInterpolation((InterpolationSyntax)currentOriginalNode, (InterpolationSyntax)currentReplacedNode);
             }
+            else if (currentOriginalNode.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
+            {
+                return !TypesAreCompatible((ImplicitArrayCreationExpressionSyntax)currentOriginalNode, (ImplicitArrayCreationExpressionSyntax)currentReplacedNode);
+            }
 
             return false;
         }

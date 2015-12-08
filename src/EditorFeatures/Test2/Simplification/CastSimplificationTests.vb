@@ -4824,6 +4824,46 @@ class C
             Await TestAsync(input, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(6966, "https://github.com/dotnet/roslyn/issues/6966")>
+        Public Async Function TestCSharp_DontRemove_NecessaryCastToNullInImplicitlyTypedArray() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    object M()
+    {
+        return new
+        {
+            Something = new[] { {|Simplify:(object)null|}, null, null, null }
+        };
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    object M()
+    {
+        return new
+        {
+            Something = new[] { (object)null, null, null, null }
+        };
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
 #End Region
 
 #Region "Visual Basic tests"
