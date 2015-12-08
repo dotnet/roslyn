@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -26,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     public class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void Brackets_0()
+        public async Task Brackets_0()
         {
-            TestInMethodAndScript(@"
+            await TestInMethodAndScriptAsync(@"
             switch (true)
             {
             }$$
@@ -37,27 +38,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void Brackets_1()
+        public async Task Brackets_1()
         {
-            TestInClass("int Property { get; }$$ ", "int Property {");
+            await TestInClassAsync("int Property { get; }$$ ", "int Property {");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void Brackets_2()
+        public async Task Brackets_2()
         {
-            TestInClass("void M()\r\n{ }$$ ", "void M()\r\n{");
+            await TestInClassAsync("void M()\r\n{ }$$ ", "void M()\r\n{");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void Brackets_3()
+        public async Task Brackets_3()
         {
-            TestInMethodAndScript("var a = new int[] { }$$ ", "new int[] {");
+            await TestInMethodAndScriptAsync("var a = new int[] { }$$ ", "new int[] {");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void Brackets_4()
+        public async Task Brackets_4()
         {
-            TestInMethodAndScript(@"
+            await TestInMethodAndScriptAsync(@"
             if (true)
             {
             }$$
@@ -67,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void ScopeBrackets_0()
+        public async Task ScopeBrackets_0()
         {
-            TestInMethodAndScript(@"
+            await TestInMethodAndScriptAsync(@"
             if (true)
             {
                 {
@@ -81,9 +82,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void ScopeBrackets_1()
+        public async Task ScopeBrackets_1()
         {
-            TestInMethodAndScript(@"
+            await TestInMethodAndScriptAsync(@"
             while (true)
             {
                 // some
@@ -99,9 +100,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void ScopeBrackets_2()
+        public async Task ScopeBrackets_2()
         {
-            TestInMethodAndScript(@"
+            await TestInMethodAndScriptAsync(@"
             do
             {
                 /* comment */
@@ -116,9 +117,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void ScopeBrackets_3()
+        public async Task ScopeBrackets_3()
         {
-            TestInMethodAndScript(@"
+            await TestInMethodAndScriptAsync(@"
             if (true)
             {
             }
@@ -137,9 +138,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void ScopeBrackets_4()
+        public async Task ScopeBrackets_4()
         {
-            TestInMethodAndScript(@"
+            await TestInMethodAndScriptAsync(@"
             using (var x = new X())
             {
                 {
@@ -153,9 +154,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void ScopeBrackets_5()
+        public async Task ScopeBrackets_5()
         {
-            TestInMethodAndScript(@"
+            await TestInMethodAndScriptAsync(@"
             foreach (var x in xs)
             {
                 // above
@@ -170,9 +171,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void ScopeBrackets_6()
+        public async Task ScopeBrackets_6()
         {
-            TestInMethodAndScript(@"
+            await TestInMethodAndScriptAsync(@"
             for (;;)
             {
                 /*************/
@@ -194,9 +195,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void ScopeBrackets_7()
+        public async Task ScopeBrackets_7()
         {
-            TestInMethodAndScript(@"
+            await TestInMethodAndScriptAsync(@"
             try
             {
                 /*************/
@@ -219,9 +220,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void ScopeBrackets_8()
+        public async Task ScopeBrackets_8()
         {
-            TestInMethodAndScript(@"
+            await TestInMethodAndScriptAsync(@"
             {
                 /*************/
 
@@ -240,9 +241,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void ScopeBrackets_9()
+        public async Task ScopeBrackets_9()
         {
-            TestInClass(@"
+            await TestInClassAsync(@"
             int Property
             {
                 set
@@ -257,9 +258,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public void ScopeBrackets_10()
+        public async Task ScopeBrackets_10()
         {
-            TestInMethodAndScript(@"
+            await TestInMethodAndScriptAsync(@"
             switch (true)
             {
                 default:
@@ -285,16 +286,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 workspace.GetService<ClassificationTypeMap>());
         }
 
-        protected override void AssertNoContent(
+        protected override async Task AssertNoContentAsync(
             TestWorkspace workspace,
             Document document,
             int position)
         {
             var provider = CreateProvider(workspace);
-            Assert.Null(provider.GetItemAsync(document, position, CancellationToken.None).Result);
+            Assert.Null(await provider.GetItemAsync(document, position, CancellationToken.None));
         }
 
-        protected override void AssertContentIs(
+        protected override async Task AssertContentIsAsync(
             TestWorkspace workspace,
             Document document,
             int position,
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider(workspace);
-            var state = provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None).Result;
+            var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
             Assert.NotNull(state);
 
             var viewHostingControl = (ViewHostingControl)((ElisionBufferDeferredContent)state.Content).Create();
@@ -317,28 +318,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
         }
 
-        protected override void TestInMethod(string code, string expectedContent, string expectedDocumentationComment = null)
+        protected override Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null)
         {
-            TestInClass("void M(){" + code + "}", expectedContent, expectedDocumentationComment);
+            return TestInClassAsync("void M(){" + code + "}", expectedContent, expectedDocumentationComment);
         }
 
-        protected override void TestInClass(string code, string expectedContent, string expectedDocumentationComment = null)
+        protected override Task TestInClassAsync(string code, string expectedContent, string expectedDocumentationComment = null)
         {
-            Test("class C {" + code + "}", expectedContent, expectedDocumentationComment);
+            return TestAsync("class C {" + code + "}", expectedContent, expectedDocumentationComment);
         }
 
-        protected override void TestInScript(string code, string expectedContent, string expectedDocumentationComment = null)
+        protected override Task TestInScriptAsync(string code, string expectedContent, string expectedDocumentationComment = null)
         {
-            Test(code, expectedContent, expectedContent, Options.Script);
+            return TestAsync(code, expectedContent, expectedContent, Options.Script);
         }
 
-        protected override void Test(
+        protected override async Task TestAsync(
             string code,
             string expectedContent,
             string expectedDocumentationComment = null,
             CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code, parseOptions))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code, parseOptions))
             {
                 var testDocument = workspace.Documents.Single();
                 var position = testDocument.CursorPosition.Value;
@@ -346,11 +347,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
                 if (string.IsNullOrEmpty(expectedContent))
                 {
-                    AssertNoContent(workspace, document, position);
+                    await AssertNoContentAsync(workspace, document, position);
                 }
                 else
                 {
-                    AssertContentIs(workspace, document, position, expectedContent, expectedDocumentationComment);
+                    await AssertContentIsAsync(workspace, document, position, expectedContent, expectedDocumentationComment);
                 }
             }
         }

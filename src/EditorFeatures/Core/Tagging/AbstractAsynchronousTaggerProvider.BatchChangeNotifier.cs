@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     {
                         AssertIsForeground();
 
-                    // First, clear the flag.  That way any new changes we hear about will enqueue a task
-                    // to run at a later point.
-                    _notificationRequestEnqueued = false;
+                        // First, clear the flag.  That way any new changes we hear about will enqueue a task
+                        // to run at a later point.
+                        _notificationRequestEnqueued = false;
                         this.NotifyEditor();
                     }, (int)delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds, _listener.BeginAsyncOperation("EnqueueNotificationRequest"));
                 }

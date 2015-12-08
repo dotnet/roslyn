@@ -1408,7 +1408,9 @@ class C : IEnumerable
             }
         }
 
-        [Fact, WorkItem(1145125, "DevDiv")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem(1145125, "DevDiv")]
+        [WorkItem(5666, "https://github.com/dotnet/roslyn/issues/5666")]
         public void GetEnumerableException()
         {
             var source =

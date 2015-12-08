@@ -1,9 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAlias1()
+        Public Async Function TestAlias1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -27,11 +29,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAlias2()
+        Public Async Function TestAlias2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -48,11 +50,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAlias3()
+        Public Async Function TestAlias3() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -72,11 +74,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestNamedType_CSharpAttributeEndingWithAttributeThroughAlias()
+        Public Async Function TestNamedType_CSharpAttributeEndingWithAttributeThroughAlias() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -102,12 +104,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(667962)>
-        Public Sub TestMultipleAliasSymbols()
+        Public Async Function TestMultipleAliasSymbols() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -134,12 +136,12 @@ namespace NS
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(667962)>
-        Public Sub TestMultipleAliasSymbols2()
+        Public Async Function TestMultipleAliasSymbols2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -165,11 +167,11 @@ namespace NS
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestNamedType_VBAttributeEndingWithAttributeThroughAlias()
+        Public Async Function TestNamedType_VBAttributeEndingWithAttributeThroughAlias() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -191,14 +193,13 @@ namespace NS
         <[|$$Foo|]()> ' Invoke FAR here on Foo
         Class Program
             Public Shared Sub Main()    
-            End Sub
+            End Function
         End Class
         ]]>
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
-
+            Await TestAsync(input)
+        End Function
     End Class
 End Namespace

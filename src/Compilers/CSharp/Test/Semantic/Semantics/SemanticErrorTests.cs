@@ -1406,14 +1406,17 @@ namespace ConsoleApplication3
         [Fact]
         public void CS0029ERR_NoImplicitConv02()
         {
-            DiagnosticsUtils.TestDiagnosticsExact("enum E { A = new[] { 1, 2, 3 } }",
-                "'new[] { 1, 2, 3 }' error CS0029: Cannot implicitly convert type 'int[]' to 'int'");
+            var source = "enum E { A = new[] { 1, 2, 3 } }";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (1,14): error CS0029: Cannot implicitly convert type 'int[]' to 'int'
+                // enum E { A = new[] { 1, 2, 3 } }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new[] { 1, 2, 3 }").WithArguments("int[]", "int").WithLocation(1, 14));
         }
 
         [Fact]
         public void CS0029ERR_NoImplicitConv03()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"class C
 {
     static void M()
@@ -1428,8 +1431,11 @@ namespace ConsoleApplication3
 class D
 {
 }
-",
-                "'F()' error CS0029: Cannot implicitly convert type 'D' to 'C'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,21): error CS0029: Cannot implicitly convert type 'D' to 'C'
+                //         const C d = F();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "F()").WithArguments("D", "C").WithLocation(5, 21));
         }
 
         [WorkItem(541719, "DevDiv")]
@@ -2231,6 +2237,28 @@ public class MyClass {
                 // (7,22): error CS0118: 'myTest' is a 'variable' but is used like a 'type'
                 Diagnostic(ErrorCode.ERR_BadSKknown, "myTest").WithArguments("myTest", "variable", "type"));
         }
+
+        [Fact]
+        public void CS0118ERR_BadSKknown_02()
+        {
+            CreateCompilationWithMscorlib(@"
+using System;
+public class P {
+    public static void Main(string[] args) {
+#pragma warning disable 219
+        Action<args> a = null;
+        Action<a> b = null;
+    }
+}")
+                .VerifyDiagnostics(
+                    // (6,16): error CS0118: 'args' is a variable but is used like a type
+                    //         Action<args> a = null;
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "args").WithArguments("args", "variable", "type").WithLocation(6, 16),
+                    // (7,16): error CS0118: 'a' is a variable but is used like a type
+                    //         Action<a> b = null;
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "a").WithArguments("a", "variable", "type").WithLocation(7, 16));
+        }
+
 
         [Fact]
         public void CS0118ERR_BadSKknown_CheckedUnchecked()
@@ -3286,7 +3314,7 @@ class Test
         [Fact]
         public void CS0126ERR_RetObjectRequired()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"namespace N
 {
     class C
@@ -3297,20 +3325,33 @@ class Test
         Y Q { get { return; } }
     }
 }
-",
-                "'return' error CS0126: An object of a type convertible to 'object' is required",
-                "'X' error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)",
-                "'return' error CS0126: An object of a type convertible to 'X' is required",
-                "'return' error CS0126: An object of a type convertible to 'C' is required",
-                "'Y' error CS0246: The type or namespace name 'Y' could not be found (are you missing a using directive or an assembly reference?)",
-                "'return' error CS0126: An object of a type convertible to 'Y' is required");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,9): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //         X G() { return; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 9),
+                // (8,9): error CS0246: The type or namespace name 'Y' could not be found (are you missing a using directive or an assembly reference?)
+                //         Y Q { get { return; } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Y").WithArguments("Y").WithLocation(8, 9),
+                // (5,22): error CS0126: An object of a type convertible to 'object' is required
+                //         object F() { return; }
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("object").WithLocation(5, 22),
+                // (6,17): error CS0126: An object of a type convertible to 'X' is required
+                //         X G() { return; }
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("X").WithLocation(6, 17),
+                // (7,21): error CS0126: An object of a type convertible to 'C' is required
+                //         C P { get { return; } }
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("N.C").WithLocation(7, 21),
+                // (8,21): error CS0126: An object of a type convertible to 'Y' is required
+                //         Y Q { get { return; } }
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("Y").WithLocation(8, 21));
         }
 
         [WorkItem(540115, "DevDiv")]
         [Fact]
         public void CS0126ERR_RetObjectRequired_02()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"namespace Test
 {
     public delegate object D();
@@ -3355,15 +3396,17 @@ class Test
         }
     }
 }
-",
-"'return' error CS0126: An object of a type convertible to 'object' is required"
-                );
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (18,48): error CS0126: An object of a type convertible to 'object' is required
+                //             return TestClass.Test(delegate() { return; });
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("object").WithLocation(18, 48));
         }
 
         [Fact]
         public void CS0127ERR_RetNoObjectRequired()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"namespace MyNamespace
 {
     public class MyClass
@@ -3376,9 +3419,14 @@ class Test
         }
     }
 }
-",
-                "'return' error CS0127: Since 'MyClass.F()' returns void, a return keyword must not be followed by an object expression",
-                "'return' error CS0127: Since 'MyClass.P.set' returns void, a return keyword must not be followed by an object expression");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,27): error CS0127: Since 'MyClass.F()' returns void, a return keyword must not be followed by an object expression
+                //         public void F() { return 0; } // CS0127
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("MyNamespace.MyClass.F()").WithLocation(5, 27),
+                // (9,19): error CS0127: Since 'MyClass.P.set' returns void, a return keyword must not be followed by an object expression
+                //             set { return 0; } // CS0127, set has an implicit void return type
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("MyNamespace.MyClass.P.set").WithLocation(9, 19));
         }
 
         [Fact]
@@ -3455,7 +3503,7 @@ namespace MyNamespace
         [Fact]
         public void CS0131ERR_AssgLvalueExpected02()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"class C
 {
     const object NoObject = null;
@@ -3470,13 +3518,26 @@ namespace MyNamespace
         NoObject = ""string"";
     }
 }
-",
-                "'i' error CS0131: The left-hand side of an assignment must be a variable, property or indexer",
-                "'3' error CS0131: The left-hand side of an assignment must be a variable, property or indexer",
-                "'i + 1' error CS0131: The left-hand side of an assignment must be a variable, property or indexer",
-                "'\"string\"' error CS0131: The left-hand side of an assignment must be a variable, property or indexer",
-                "'null' error CS0131: The left-hand side of an assignment must be a variable, property or indexer",
-                "'NoObject' error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         i += 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "i").WithLocation(7, 9),
+                // (8,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         3 *= 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "3").WithLocation(8, 9),
+                // (9,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         (i + 1) -= 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "i + 1").WithLocation(9, 10),
+                // (10,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         "string" = null;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"""string""").WithLocation(10, 9),
+                // (11,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         null = new object();
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "null").WithLocation(11, 9),
+                // (12,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         NoObject = "string";
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "NoObject").WithLocation(12, 9));
         }
 
         /// <summary>
@@ -3540,21 +3601,24 @@ class A
         [Fact]
         public void CS0133ERR_NotConstantExpression01()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"class MyClass
 {
    public const int a = b; //no error since b is declared const
    public const int b = c; //CS0133, c is not constant
    public static int c = 1; //change static to const to correct program
 }
-",
-                "'c' error CS0133: The expression being assigned to 'MyClass.b' must be constant");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,25): error CS0133: The expression being assigned to 'MyClass.b' must be constant
+                //    public const int b = c; //CS0133, c is not constant
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "c").WithArguments("MyClass.b").WithLocation(4, 25));
         }
 
         [Fact]
         public void CS0133ERR_NotConstantExpression02()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"enum E
 {
     X,
@@ -3572,15 +3636,20 @@ class C
         return 0;
     }
 }
-",
-                "'C.F()' error CS0266: Cannot implicitly convert type 'E' to 'int'. An explicit conversion exists (are you missing a cast?)",
-                "'C.G() + 1' error CS0133: The expression being assigned to 'E.Z' must be constant");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,9): error CS0266: Cannot implicitly convert type 'E' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //     Y = C.F(),
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.F()").WithArguments("E", "int").WithLocation(4, 9),
+                // (5,9): error CS0133: The expression being assigned to 'E.Z' must be constant
+                //     Z = C.G() + 1,
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "C.G() + 1").WithArguments("E.Z").WithLocation(5, 9));
         }
 
         [Fact]
         public void CS0133ERR_NotConstantExpression03()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"class C
 {
     static void M()
@@ -3589,8 +3658,11 @@ class C
         const int x = 2 * y;
     }
 }
-",
-                "'2 * y' error CS0133: The expression being assigned to 'x' must be constant");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,23): error CS0133: The expression being assigned to 'x' must be constant
+                //         const int x = 2 * y;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "2 * y").WithArguments("x").WithLocation(6, 23));
         }
 
         [Fact]
@@ -4076,7 +4148,7 @@ class Program
         [Fact]
         public void CS0154ERR_PropertyLacksGet02()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"class A
 {
     public virtual A P { get; set; }
@@ -4098,16 +4170,23 @@ class B : A
     }
     static void M(object o) { }
 }
-",
-                "'Q' error CS0154: The property or indexer 'A.Q' cannot be used in this context because it lacks the get accessor",
-                "'b.Q' error CS0154: The property or indexer 'A.Q' cannot be used in this context because it lacks the get accessor",
-                "'b.P.Q' error CS0154: The property or indexer 'A.Q' cannot be used in this context because it lacks the get accessor");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (11,11): error CS0154: The property or indexer 'A.Q' cannot be used in this context because it lacks the get accessor
+                //         M(Q); // CS0154, no get method
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Q").WithArguments("A.Q").WithLocation(11, 11),
+                // (16,13): error CS0154: The property or indexer 'A.Q' cannot be used in this context because it lacks the get accessor
+                //         o = b.Q; // CS0154, no get method
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "b.Q").WithArguments("A.Q").WithLocation(16, 13),
+                // (18,13): error CS0154: The property or indexer 'A.Q' cannot be used in this context because it lacks the get accessor
+                //         o = b.P.Q; // CS0154, no get method
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "b.P.Q").WithArguments("A.Q").WithLocation(18, 13));
         }
 
         [Fact]
         public void CS0154ERR_PropertyLacksGet03()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"class C
 {
     int P { set { } }
@@ -4116,21 +4195,27 @@ class B : A
         P += 1;
     }
 }
-",
-                "'P' error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,9): error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor
+                //         P += 1;
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "P").WithArguments("C.P").WithLocation(6, 9));
         }
 
         [Fact]
         public void CS0154ERR_PropertyLacksGet04()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"class C
 {
     object p;
     object P { set { p = P; } }
 }
-",
-                "'P' error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,26): error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor
+                //     object P { set { p = P; } }
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "P").WithArguments("C.P").WithLocation(4, 26));
         }
 
         [Fact]
@@ -6600,7 +6685,7 @@ public class C
         [Fact, WorkItem(538008, "DevDiv")]
         public void CS0191ERR_AssgReadonly()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"class MyClass
 {
     public readonly int TestInt = 6;  // OK to assign to readonly field in declaration
@@ -6631,10 +6716,17 @@ class MyDerived : MyClass
         TestInt = 15; // CS0191 - not in declaring class
     }
 }
-",
-                "'t.TestInt' error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)",
-                "'TestInt' error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)",
-                "'TestInt' error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (28,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                //         TestInt = 15; // CS0191 - not in declaring class
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "TestInt").WithLocation(28, 9),
+                // (11,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                //         t.TestInt = 14; // CS0191 - we can't be sure that the receiver is this
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "t.TestInt").WithLocation(11, 9),
+                // (16,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                //         TestInt = 19;                  // CS0191
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "TestInt").WithLocation(16, 9));
         }
 
         [WorkItem(538009, "DevDiv")]
@@ -8386,19 +8478,22 @@ class MyClass
         [Fact]
         public void CS0266ERR_NoImplicitConvCast02()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"class C
 {
     const int f = 0L;
 }
-",
-                "'0L' error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,19): error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //     const int f = 0L;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "0L").WithArguments("long", "int").WithLocation(3, 19));
         }
 
         [Fact]
         public void CS0266ERR_NoImplicitConvCast03()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"class C
 {
     static void M()
@@ -8406,14 +8501,17 @@ class MyClass
         const short s = 1L;
     }
 }
-",
-                "'1L' error CS0266: Cannot implicitly convert type 'long' to 'short'. An explicit conversion exists (are you missing a cast?)");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,25): error CS0266: Cannot implicitly convert type 'long' to 'short'. An explicit conversion exists (are you missing a cast?)
+                //         const short s = 1L;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1L").WithArguments("long", "short").WithLocation(5, 25));
         }
 
         [Fact]
         public void CS0266ERR_NoImplicitConvCast04()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"enum E { A = 1 }
 class C
 {
@@ -8425,58 +8523,71 @@ class C
         g = 'c'; // CS0266
     }
 }
-",
-                "'2' error CS0266: Cannot implicitly convert type 'int' to 'E'. An explicit conversion exists (are you missing a cast?)",
-                "''c'' error CS0266: Cannot implicitly convert type 'char' to 'E'. An explicit conversion exists (are you missing a cast?)");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,11): error CS0266: Cannot implicitly convert type 'int' to 'E'. An explicit conversion exists (are you missing a cast?)
+                //     E f = 2; // CS0266
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "2").WithArguments("int", "E").WithLocation(4, 11),
+                // (9,13): error CS0266: Cannot implicitly convert type 'char' to 'E'. An explicit conversion exists (are you missing a cast?)
+                //         g = 'c'; // CS0266
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "'c'").WithArguments("char", "E").WithLocation(9, 13));
         }
 
         [Fact]
         public void CS0266ERR_NoImplicitConvCast05()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"enum E : byte
 {
     A = 'a', // CS0266
     B = 0xff,
 }
-",
-                "''a'' error CS0266: Cannot implicitly convert type 'char' to 'byte'. An explicit conversion exists (are you missing a cast?)");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,9): error CS0266: Cannot implicitly convert type 'char' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                //     A = 'a', // CS0266
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "'a'").WithArguments("char", "byte").WithLocation(3, 9));
         }
 
         [Fact]
         public void CS0266ERR_NoImplicitConvCast06()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"enum E
 {
     A = 1,
     B = 1L // CS0266
 }
-",
-                "'1L' error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,9): error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //     B = 1L // CS0266
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1L").WithArguments("long", "int").WithLocation(4, 9));
         }
 
         [Fact]
         public void CS0266ERR_NoImplicitConvCast07()
         {
             // No errors
-            DiagnosticsUtils.TestDiagnosticsExact("enum E { A, B = A }");
+            var source = "enum E { A, B = A }";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact]
         public void CS0266ERR_NoImplicitConvCast08()
         {
             // No errors
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"enum E { A = 1, B }
 enum F { X = E.A + 1, Y }
-");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact]
         public void CS0266ERR_NoImplicitConvCast09()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"enum E
 {
     A = F.A,
@@ -8486,15 +8597,20 @@ enum F { X = E.A + 1, Y }
 }
 enum F : short { A = 1, B }
 enum G : long { A = 1, B }
-",
-                "'G.A' error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)",
-                "'G.B' error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,9): error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //     C = G.A,
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "G.A").WithArguments("long", "int").WithLocation(5, 9),
+                // (6,9): error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //     D = G.B,
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "G.B").WithArguments("long", "int").WithLocation(6, 9));
         }
 
         [Fact]
         public void CS0266ERR_NoImplicitConvCast10()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"class C
 {
     public const int F = D.G + 1;
@@ -8507,8 +8623,11 @@ class E
 {
     public const int H = 1L;
 }
-",
-                "'1L' error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (11,26): error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //     public const int H = 1L;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1L").WithArguments("long", "int").WithLocation(11, 26));
         }
 
         [Fact()]
@@ -8868,7 +8987,7 @@ class C
             // Test for both ERR_BadConstType and an error for RHS to ensure
             // the RHS is not reported multiple times (when calculating the
             // constant value for the symbol and also when binding).
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"struct S
 {
     static void M(object o)
@@ -8877,9 +8996,14 @@ class C
         M(s);
     }
 }
-",
-                "'S' error CS0283: The type 'S' cannot be declared const",
-                "'2' error CS0029: Cannot implicitly convert type 'int' to 'S'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,15): error CS0283: The type 'S' cannot be declared const
+                //         const S s = 2;
+                Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("S").WithLocation(5, 15),
+                // (5,21): error CS0029: Cannot implicitly convert type 'int' to 'S'
+                //         const S s = 2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "S").WithLocation(5, 21));
         }
 
         [Fact]
@@ -10244,7 +10368,7 @@ public struct cly
         [Fact]
         public void CS0543ERR_EnumeratorOverflow01()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"enum E
 {
     A = int.MaxValue - 1,
@@ -10257,31 +10381,43 @@ public struct cly
     H, // CS0543
     I
 }
-",
-                "'C' error CS0543: 'E.C': the enumerator value is too large to fit in its type",
-                "'H' error CS0543: 'E.H': the enumerator value is too large to fit in its type");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,5): error CS0543: 'E.C': the enumerator value is too large to fit in its type
+                //     C, // CS0543
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "C").WithArguments("E.C").WithLocation(5, 5),
+                // (10,5): error CS0543: 'E.H': the enumerator value is too large to fit in its type
+                //     H, // CS0543
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "H").WithArguments("E.H").WithLocation(10, 5));
         }
 
         [Fact]
         public void CS0543ERR_EnumeratorOverflow02()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"namespace N
 {
     enum E : byte { A = 255, B, C }
     enum F : short { A = 0x00ff, B = 0x7f00, C = A | B, D }
     enum G : int { X = int.MinValue, Y = X - 1, Z }
 }
-",
-                "'B' error CS0543: 'E.B': the enumerator value is too large to fit in its type",
-                "'D' error CS0543: 'F.D': the enumerator value is too large to fit in its type",
-                "'X - 1' error CS0220: The operation overflows at compile time in checked mode");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,30): error CS0543: 'E.B': the enumerator value is too large to fit in its type
+                //     enum E : byte { A = 255, B, C }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "B").WithArguments("N.E.B").WithLocation(3, 30),
+                // (5,42): error CS0220: The operation overflows at compile time in checked mode
+                //     enum G : int { X = int.MinValue, Y = X - 1, Z }
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "X - 1").WithLocation(5, 42),
+                // (4,57): error CS0543: 'F.D': the enumerator value is too large to fit in its type
+                //     enum F : short { A = 0x00ff, B = 0x7f00, C = A | B, D }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "D").WithArguments("N.F.D").WithLocation(4, 57));
         }
 
         [Fact]
         public void CS0543ERR_EnumeratorOverflow03()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"enum S8 : sbyte { A = sbyte.MinValue, B, C, D = -1, E, F, G = sbyte.MaxValue - 2, H, I, J, K }
 enum S16 : short { A = short.MinValue, B, C, D = -1, E, F, G = short.MaxValue - 2, H, I, J, K }
 enum S32 : int { A = int.MinValue, B, C, D = -1, E, F, G = int.MaxValue - 2, H, I, J, K }
@@ -10290,21 +10426,38 @@ enum U8 : byte { A = 0, B, C, D = byte.MaxValue - 2, E, F, G, H }
 enum U16 : ushort { A = 0, B, C, D = ushort.MaxValue - 2, E, F, G, H }
 enum U32 : uint { A = 0, B, C, D = uint.MaxValue - 2, E, F, G, H }
 enum U64 : ulong { A = 0, B, C, D = ulong.MaxValue - 2, E, F, G, H }
-",
-                "'J' error CS0543: 'S8.J': the enumerator value is too large to fit in its type",
-                "'J' error CS0543: 'S16.J': the enumerator value is too large to fit in its type",
-                "'J' error CS0543: 'S32.J': the enumerator value is too large to fit in its type",
-                "'J' error CS0543: 'S64.J': the enumerator value is too large to fit in its type",
-                "'G' error CS0543: 'U8.G': the enumerator value is too large to fit in its type",
-                "'G' error CS0543: 'U16.G': the enumerator value is too large to fit in its type",
-                "'G' error CS0543: 'U32.G': the enumerator value is too large to fit in its type",
-                "'G' error CS0543: 'U64.G': the enumerator value is too large to fit in its type");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,84): error CS0543: 'S32.J': the enumerator value is too large to fit in its type
+                // enum S32 : int { A = int.MinValue, B, C, D = -1, E, F, G = int.MaxValue - 2, H, I, J, K }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "J").WithArguments("S32.J").WithLocation(3, 84),
+                // (4,87): error CS0543: 'S64.J': the enumerator value is too large to fit in its type
+                // enum S64 : long { A = long.MinValue, B, C, D = -1, E, F, G = long.MaxValue - 2, H, I, J, K }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "J").WithArguments("S64.J").WithLocation(4, 87),
+                // (7,61): error CS0543: 'U32.G': the enumerator value is too large to fit in its type
+                // enum U32 : uint { A = 0, B, C, D = uint.MaxValue - 2, E, F, G, H }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "G").WithArguments("U32.G").WithLocation(7, 61),
+                // (6,65): error CS0543: 'U16.G': the enumerator value is too large to fit in its type
+                // enum U16 : ushort { A = 0, B, C, D = ushort.MaxValue - 2, E, F, G, H }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "G").WithArguments("U16.G").WithLocation(6, 65),
+                // (5,60): error CS0543: 'U8.G': the enumerator value is too large to fit in its type
+                // enum U8 : byte { A = 0, B, C, D = byte.MaxValue - 2, E, F, G, H }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "G").WithArguments("U8.G").WithLocation(5, 60),
+                // (2,90): error CS0543: 'S16.J': the enumerator value is too large to fit in its type
+                // enum S16 : short { A = short.MinValue, B, C, D = -1, E, F, G = short.MaxValue - 2, H, I, J, K }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "J").WithArguments("S16.J").WithLocation(2, 90),
+                // (1,89): error CS0543: 'S8.J': the enumerator value is too large to fit in its type
+                // enum S8 : sbyte { A = sbyte.MinValue, B, C, D = -1, E, F, G = sbyte.MaxValue - 2, H, I, J, K }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "J").WithArguments("S8.J").WithLocation(1, 89),
+                // (8,63): error CS0543: 'U64.G': the enumerator value is too large to fit in its type
+                // enum U64 : ulong { A = 0, B, C, D = ulong.MaxValue - 2, E, F, G, H }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "G").WithArguments("U64.G").WithLocation(8, 63));
         }
 
         [Fact]
         public void CS0543ERR_EnumeratorOverflow04()
         {
-            string text = string.Format(
+            string source = string.Format(
 @"enum A {0}
 enum B : byte {1}
 enum C : byte {2}
@@ -10313,10 +10466,14 @@ enum D : sbyte {2}",
                   CreateEnumValues(256, "E"),
                   CreateEnumValues(300, "E"),
                   CreateEnumValues(300, "E", sbyte.MinValue));
-            DiagnosticsUtils.TestDiagnostics(
-                text,
-                "'E256' error CS0543: 'C.E256': the enumerator value is too large to fit in its type",
-                "'E128' error CS0543: 'D.E128': the enumerator value is too large to fit in its type");
+           
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,676): error CS0543: 'D.E128': the enumerator value is too large to fit in its type
+                // enum D : sbyte { E0, E1, E2, E3, <snip>, E297, E298, E299,  }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "E128").WithArguments("D.E128").WithLocation(4, 676),
+                // (3,1443): error CS0543: 'C.E256': the enumerator value is too large to fit in its type
+                // enum C : byte { E0, E1, E2, E3, <snip>, E297, E298, E299,  }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "E256").WithArguments("C.E256").WithLocation(3, 1443));
         }
 
         // Create string "{ E0, E1, ..., En }"
@@ -10342,7 +10499,7 @@ enum D : sbyte {2}",
         [Fact]
         public void CS0571ERR_CantCallSpecialMethod01()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"class C
 {
     protected virtual object P { get; set; }
@@ -10358,12 +10515,23 @@ class D : C
 {
     protected override object P { get { return null; } set { } }
 }
-",
-                "'set_P' error CS0571: 'C.P.set': cannot explicitly call operator or accessor",
-                "'get_Q' error CS0571: 'C.Q.get': cannot explicitly call operator or accessor",
-                "'set_Q' error CS0571: 'C.Q.set': cannot explicitly call operator or accessor",
-                "'get_P' error CS0571: 'D.P.get': cannot explicitly call operator or accessor",
-                "'get_P' error CS0571: 'C.P.get': cannot explicitly call operator or accessor");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,20): error CS0571: 'C.Q.get': cannot explicitly call operator or accessor
+                //         this.set_P(get_Q());
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_Q").WithArguments("C.Q.get").WithLocation(7, 20),
+                // (7,14): error CS0571: 'C.P.set': cannot explicitly call operator or accessor
+                //         this.set_P(get_Q());
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_P").WithArguments("C.P.set").WithLocation(7, 14),
+                // (8,19): error CS0571: 'D.P.get': cannot explicitly call operator or accessor
+                //         D.set_Q(d.get_P());
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_P").WithArguments("D.P.get").WithLocation(8, 19),
+                // (8,11): error CS0571: 'C.Q.set': cannot explicitly call operator or accessor
+                //         D.set_Q(d.get_P());
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_Q").WithArguments("C.Q.set").WithLocation(8, 11),
+                // (9,16): error CS0571: 'C.P.get': cannot explicitly call operator or accessor
+                //         ((this.get_P))();
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_P").WithArguments("C.P.get").WithLocation(9, 16));
 
             // CONSIDER: Dev10 reports 'C.P.get' for the fourth error.  Roslyn reports 'D.P.get'
             // because it is in the more-derived type and because Binder.LookupMembersInClass
@@ -10374,7 +10542,7 @@ class D : C
         [Fact]
         public void CS0571ERR_CantCallSpecialMethod02()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"using System;
 namespace A.B
 {
@@ -10391,11 +10559,20 @@ namespace A.B
         }
     }
 }
-",
-                "'get_P' error CS0571: 'C.P.get': cannot explicitly call operator or accessor",
-                "'get_Q' error CS0571: 'C.Q.get': cannot explicitly call operator or accessor",
-                "'set_P' error CS0571: 'C.P.set': cannot explicitly call operator or accessor",
-                "'set_Q' error CS0571: 'C.Q.set': cannot explicitly call operator or accessor");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (10,30): error CS0571: 'C.P.get': cannot explicitly call operator or accessor
+                //             Func<object> f = get_P;
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_P").WithArguments("A.B.C.P.get").WithLocation(10, 30),
+                // (11,19): error CS0571: 'C.Q.get': cannot explicitly call operator or accessor
+                //             f = C.get_Q;
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_Q").WithArguments("A.B.C.Q.get").WithLocation(11, 19),
+                // (12,34): error CS0571: 'C.P.set': cannot explicitly call operator or accessor
+                //             Action<object> a = c.set_P;
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_P").WithArguments("A.B.C.P.set").WithLocation(12, 34),
+                // (13,17): error CS0571: 'C.Q.set': cannot explicitly call operator or accessor
+                //             a = set_Q;
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_Q").WithArguments("A.B.C.Q.set").WithLocation(13, 17));
         }
 
         /// <summary>
@@ -10405,7 +10582,7 @@ namespace A.B
         [Fact]
         public void CS0571ERR_CantCallSpecialMethod03()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"class A
 {
     public object get_P() { return null; }
@@ -10427,7 +10604,8 @@ class C
         o = b.get_P();
     }
 }
-");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact()]
@@ -10454,7 +10632,7 @@ class C
         [Fact]
         public void CS0571ERR_CantCallSpecialMethod05()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"
 using System;
 public class C
@@ -10468,12 +10646,23 @@ public class C
         IntPtr.op_Explicit(0);
     }
 }
-",
-"'op_Addition' error CS0571: 'IntPtr.operator +(IntPtr, int)': cannot explicitly call operator or accessor",
-"'op_Subtraction' error CS0571: 'IntPtr.operator -(IntPtr, int)': cannot explicitly call operator or accessor",
-"'op_Equality' error CS0571: 'IntPtr.operator ==(IntPtr, IntPtr)': cannot explicitly call operator or accessor",
-"'op_Inequality' error CS0571: 'IntPtr.operator !=(IntPtr, IntPtr)': cannot explicitly call operator or accessor",
-"'op_Explicit' error CS0571: 'IntPtr.explicit operator IntPtr(int)': cannot explicitly call operator or accessor");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,16): error CS0571: 'IntPtr.operator +(IntPtr, int)': cannot explicitly call operator or accessor
+                //         IntPtr.op_Addition(default(IntPtr), 0);
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_Addition").WithArguments("System.IntPtr.operator +(System.IntPtr, int)").WithLocation(7, 16),
+                // (8,16): error CS0571: 'IntPtr.operator -(IntPtr, int)': cannot explicitly call operator or accessor
+                //         IntPtr.op_Subtraction(default(IntPtr), 0);
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_Subtraction").WithArguments("System.IntPtr.operator -(System.IntPtr, int)").WithLocation(8, 16),
+                // (9,16): error CS0571: 'IntPtr.operator ==(IntPtr, IntPtr)': cannot explicitly call operator or accessor
+                //         IntPtr.op_Equality(default(IntPtr), default(IntPtr));
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_Equality").WithArguments("System.IntPtr.operator ==(System.IntPtr, System.IntPtr)").WithLocation(9, 16),
+                // (10,16): error CS0571: 'IntPtr.operator !=(IntPtr, IntPtr)': cannot explicitly call operator or accessor
+                //         IntPtr.op_Inequality(default(IntPtr), default(IntPtr));
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_Inequality").WithArguments("System.IntPtr.operator !=(System.IntPtr, System.IntPtr)").WithLocation(10, 16),
+                // (11,16): error CS0571: 'IntPtr.explicit operator IntPtr(int)': cannot explicitly call operator or accessor
+                //         IntPtr.op_Explicit(0);
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_Explicit").WithArguments("System.IntPtr.explicit operator System.IntPtr(int)").WithLocation(11, 16));
         }
 
         [Fact]
@@ -12412,7 +12601,7 @@ public class TestTheClasses
         [Fact]
         public void CS1061ERR_NoSuchMemberOrExtension02()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"enum E { }
 class C
 {
@@ -12420,8 +12609,11 @@ class C
     {
         object o = e.value__;
     }
-}",
-                "'value__' error CS1061: 'E' does not contain a definition for 'value__' and no extension method 'value__' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)");
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,22): error CS1061: 'E' does not contain a definition for 'value__' and no extension method 'value__' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
+                //         object o = e.value__;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "value__").WithArguments("E", "value__").WithLocation(6, 22));
         }
 
         [Fact]
@@ -12765,7 +12957,7 @@ namespace x
         [Fact]
         public void CS1503ERR_BadArgType01()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"namespace X
 {
     public class C
@@ -12779,15 +12971,17 @@ namespace x
         }
     }
 }
-",
-                 //"'C' error CS1502: The best overloaded method match for 'X.C.C(int, char)' has some invalid arguments",  //specifically omitted by roslyn
-                 "'2' error CS1503: Argument 2: cannot convert from 'int' to 'char'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (10,22): error CS1503: Argument 2: cannot convert from 'int' to 'char'
+                //             new C(1, 2); // CS1502 & CS1503
+                Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("2", "int", "char").WithLocation(10, 22));
         }
 
         [Fact]
         public void CS1503ERR_BadArgType02()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"enum E1 { A, B, C }
 enum E2 { X, Y, Z }
 class C
@@ -12804,22 +12998,27 @@ class C
         G((int)E2.Z); // CS1502 & CS1503
     }
 }
-",
-                 //"'F' error CS1502: The best overloaded method match for 'C.F(int)' has some invalid arguments",    //specifically omitted by roslyn              
-                 "'E1.A' error CS1503: Argument 1: cannot convert from 'E1' to 'int'",
-                 //"'F' error CS1502: The best overloaded method match for 'C.F(int)' has some invalid arguments",  //specifically omitted by roslyn
-                 "'(E2)E1.B' error CS1503: Argument 1: cannot convert from 'E2' to 'int'",
-                 //"'G' error CS1502: The best overloaded method match for 'C.G(E1)' has some invalid arguments",  //specifically omitted by roslyn
-                 "'E2.X' error CS1503: Argument 1: cannot convert from 'E2' to 'E1'",
-                 //"'G' error CS1502: The best overloaded method match for 'C.G(E1)' has some invalid arguments",  //specifically omitted by roslyn
-                 "'(int)E2.Z' error CS1503: Argument 1: cannot convert from 'int' to 'E1'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (9,11): error CS1503: Argument 1: cannot convert from 'E1' to 'int'
+                //         F(E1.A); // CS1502 & CS1503
+                Diagnostic(ErrorCode.ERR_BadArgType, "E1.A").WithArguments("1", "E1", "int").WithLocation(9, 11),
+                // (10,11): error CS1503: Argument 1: cannot convert from 'E2' to 'int'
+                //         F((E2)E1.B); // CS1502 & CS1503
+                Diagnostic(ErrorCode.ERR_BadArgType, "(E2)E1.B").WithArguments("1", "E2", "int").WithLocation(10, 11),
+                // (12,11): error CS1503: Argument 1: cannot convert from 'E2' to 'E1'
+                //         G(E2.X); // CS1502 & CS1503
+                Diagnostic(ErrorCode.ERR_BadArgType, "E2.X").WithArguments("1", "E2", "E1").WithLocation(12, 11),
+                // (14,11): error CS1503: Argument 1: cannot convert from 'int' to 'E1'
+                //         G((int)E2.Z); // CS1502 & CS1503
+                Diagnostic(ErrorCode.ERR_BadArgType, "(int)E2.Z").WithArguments("1", "int", "E1").WithLocation(14, 11));
         }
 
         [WorkItem(538939, "DevDiv")]
         [Fact]
         public void CS1503ERR_BadArgType03()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"class C
 {
     static void F(out int i)
@@ -12831,8 +13030,11 @@ class C
         F(out arg); // CS1503
     }
 }
-",
-                 "'arg' error CS1503: Argument 1: cannot convert from 'out long' to 'out int'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (9,15): error CS1503: Argument 1: cannot convert from 'out long' to 'out int'
+                //         F(out arg); // CS1503
+                Diagnostic(ErrorCode.ERR_BadArgType, "arg").WithArguments("1", "out long", "out int").WithLocation(9, 15));
         }
 
         [Fact]
@@ -12867,7 +13069,7 @@ class C : B
         }
 
         [Fact]
-        public void CS1510ERR_RefLvalueExpected()
+        public void CS1510ERR_RefLvalueExpected_01()
         {
             var text =
 @"class C
@@ -12880,6 +13082,147 @@ class C : B
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_RefLvalueExpected, Line = 5, Column = 15 });
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_02()
+        {
+            var text =
+@"class C
+{
+    void M()
+    {
+        var a = new System.Action<int>(ref x => x = 1);
+        var b = new System.Action<int, int>(ref (x,y) => x = 1);
+        var c = new System.Action<int>(ref delegate (int x) {x = 1;});
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (5,44): error CS1510: A ref or out argument must be an assignable variable
+                //         var a = new System.Action<int>(ref x => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(5, 44),
+                // (6,49): error CS1510: A ref or out argument must be an assignable variable
+                //         var b = new System.Action<int, int>(ref (x,y) => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(6, 49),
+                // (7,44): error CS1510: A ref or out argument must be an assignable variable
+                //         var c = new System.Action<int>(ref delegate (int x) {x = 1;});
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(7, 44));
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_03()
+        {
+            var text =
+@"class C
+{
+    void M()
+    {
+        var a = new System.Action<int>(out x => x = 1);
+        var b = new System.Action<int, int>(out (x,y) => x = 1);
+        var c = new System.Action<int>(out delegate (int x) {x = 1;});
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (5,44): error CS1510: A ref or out argument must be an assignable variable
+                //         var a = new System.Action<int>(out x => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(5, 44),
+                // (6,49): error CS1510: A ref or out argument must be an assignable variable
+                //         var b = new System.Action<int, int>(out (x,y) => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(6, 49),
+                // (7,44): error CS1510: A ref or out argument must be an assignable variable
+                //         var c = new System.Action<int>(out delegate (int x) {x = 1;});
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(7, 44));
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_04()
+        {
+            var text =
+@"class C
+{
+    void Foo<T>(ref System.Action<T> t) {}
+    void Foo<T1,T2>(ref System.Action<T1,T2> t) {}
+    void M()
+    {
+        Foo<int>(ref x => x = 1);
+        Foo<int, int>(ref (x,y) => x = 1);
+        Foo<int>(ref delegate (int x) {x = 1;});
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (7,22): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int>(ref x => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(7, 22),
+                // (8,27): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int, int>(ref (x,y) => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(8, 27),
+                // (9,22): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int>(ref delegate (int x) {x = 1;});
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_05()
+        {
+            var text =
+@"class C
+{
+    void Foo<T>(out System.Action<T> t) {t = null;}
+    void Foo<T1,T2>(out System.Action<T1,T2> t) {t = null;}
+    void M()
+    {
+        Foo<int>(out x => x = 1);
+        Foo<int, int>(out (x,y) => x = 1);
+        Foo<int>(out delegate (int x) {x = 1;});
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (7,22): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int>(out x => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(7, 22),
+                // (8,27): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int, int>(out (x,y) => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(8, 27),
+                // (9,22): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int>(out delegate (int x) {x = 1;});
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_Strict()
+        {
+            var text =
+@"class C
+{
+    void D(int i) {}
+    void M()
+    {
+        System.Action<int> del = D;
+
+        var a = new System.Action<int>(ref D);
+        var b = new System.Action<int>(out D);
+        var c = new System.Action<int>(ref del);
+        var d = new System.Action<int>(out del);
+    }
+}
+";
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+                // (8,44): error CS1657: Cannot pass 'D' as a ref or out argument because it is a 'method group'
+                //         var a = new System.Action<int>(ref D);
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "D").WithArguments("D", "method group").WithLocation(8, 44),
+                // (9,44): error CS1657: Cannot pass 'D' as a ref or out argument because it is a 'method group'
+                //         var b = new System.Action<int>(out D);
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "D").WithArguments("D", "method group").WithLocation(9, 44),
+                // (10,44): error CS0149: Method name expected
+                //         var c = new System.Action<int>(ref del);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "del").WithLocation(10, 44),
+                // (11,44): error CS0149: Method name expected
+                //         var d = new System.Action<int>(out del);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "del").WithLocation(11, 44));
         }
 
         [Fact]

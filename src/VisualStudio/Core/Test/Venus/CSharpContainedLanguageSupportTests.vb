@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -19,39 +20,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 #Region "IsValidId Tests"
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub IsValidId_1()
-            AssertValidId("field")
-        End Sub
+        Public Async Function TestIsValidId_1() As Task
+            Await AssertValidIdAsync("field")
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub IsValidId_Escaped()
-            AssertValidId("@field")
-        End Sub
+        Public Async Function TestIsValidId_Escaped() As Task
+            Await AssertValidIdAsync("@field")
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub IsValidId_EscapedKeyword()
-            AssertValidId("@class")
-        End Sub
+        Public Async Function TestIsValidId_EscapedKeyword() As Task
+            Await AssertValidIdAsync("@class")
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub IsValidId_ContainsNumbers()
-            AssertValidId("abc123")
-        End Sub
+        Public Async Function TestIsValidId_ContainsNumbers() As Task
+            Await AssertValidIdAsync("abc123")
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub IsValidId_Keyword()
-            AssertNotValidId("class")
-        End Sub
+        Public Async Function TestIsValidId_Keyword() As Task
+            Await AssertNotValidIdAsync("class")
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub IsValidId_StartsWithNumber()
-            AssertNotValidId("123abc")
-        End Sub
+        Public Async Function TestIsValidId_StartsWithNumber() As Task
+            Await AssertNotValidIdAsync("123abc")
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub IsValidId_Punctuation()
-            AssertNotValidId("abc.abc")
-        End Sub
+        Public Async Function TestIsValidId_Punctuation() As Task
+            Await AssertNotValidIdAsync("abc.abc")
+        End Function
 
         ' TODO: Does Dev10 cover more here, like conflicts with existing members?
 #End Region
@@ -59,94 +60,94 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 #Region "GetBaseClassName Tests"
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetBaseClassName_NonexistingClass()
+        Public Async Function TestGetBaseClassName_NonexistingClass() As Task
             Dim code As String = "class C { }"
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.False(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "A",
                     CancellationToken.None, baseClassName))
                 Assert.Null(baseClassName)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetBaseClassName_DerivedFromObject()
+        Public Async Function TestGetBaseClassName_DerivedFromObject() As Task
             Dim code As String = "class C { }"
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.True(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "C",
                     CancellationToken.None, baseClassName))
                 Assert.Equal("object", baseClassName)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetBaseClassName_DerivedFromFrameworkType()
+        Public Async Function TestGetBaseClassName_DerivedFromFrameworkType() As Task
             Dim code As String = "class C : Exception { }"
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.True(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "C",
                     CancellationToken.None, baseClassName))
                 Assert.Equal("Exception", baseClassName)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetBaseClassName_DerivedFromUserDefinedType()
+        Public Async Function TestGetBaseClassName_DerivedFromUserDefinedType() As Task
             Dim code As String = "class B { } class C : B { }"
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.True(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "C",
                     CancellationToken.None, baseClassName))
                 Assert.Equal("B", baseClassName)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetBaseClassName_FullyQualifiedNames()
+        Public Async Function TestGetBaseClassName_FullyQualifiedNames() As Task
             Dim code As String = "namespace N { class B { } class C : B { } }"
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.True(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "N.C",
                     CancellationToken.None, baseClassName))
                 Assert.Equal("N.B", baseClassName)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetBaseClassName_MinimallyQualifiedNames()
+        Public Async Function TestGetBaseClassName_MinimallyQualifiedNames() As Task
             Dim code As String = "namespace N { class B { } class C : B { } }"
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.True(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "N.C",
                     CancellationToken.None, baseClassName))
                 Assert.Equal("N.B", baseClassName)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetBaseClassName_EscapedKeyword()
+        Public Async Function TestGetBaseClassName_EscapedKeyword() As Task
             Dim code As String = "class @class { } class Derived : @class { }"
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim baseClassName As String = Nothing
                 Assert.True(ContainedLanguageCodeSupport.TryGetBaseClassName(document, "Derived",
                     CancellationToken.None, baseClassName))
                 Assert.Equal("@class", baseClassName)
             End Using
-        End Sub
+        End Function
 #End Region
 
 #Region "CreateUniqueEventName Tests"
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub CreateUniqueEventName_ButtonClick()
+        Public Async Function TestCreateUniqueEventName_ButtonClick() As Task
             Dim code As String = <text>
 public partial class _Default : System.Web.UI.Page
 {
@@ -156,7 +157,7 @@ public partial class _Default : System.Web.UI.Page
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
@@ -167,10 +168,10 @@ public partial class _Default : System.Web.UI.Page
 
                 Assert.Equal("Button1_Click", eventName)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub CreateUniqueEventName_NameCollisionWithEventHandler()
+        Public Async Function TestCreateUniqueEventName_NameCollisionWithEventHandler() As Task
             Dim code As String = <text>
 public class _Default : System.Web.UI.Page
 {
@@ -185,7 +186,7 @@ public class _Default : System.Web.UI.Page
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
@@ -196,10 +197,10 @@ public class _Default : System.Web.UI.Page
 
                 Assert.Equal("Button1_Click1", eventName)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub CreateUniqueEventName_NameCollisionWithOtherMembers()
+        Public Async Function TestCreateUniqueEventName_NameCollisionWithOtherMembers() As Task
             Dim code As String = <text>
 public class _Default : System.Web.UI.Page
 {
@@ -211,7 +212,7 @@ public class _Default : System.Web.UI.Page
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
@@ -222,10 +223,10 @@ public class _Default : System.Web.UI.Page
 
                 Assert.Equal("Button1_Click1", eventName)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub CreateUniqueEventName_NameCollisionFromPartialClass()
+        Public Async Function TestCreateUniqueEventName_NameCollisionFromPartialClass() As Task
             Dim code As String = <text>
 public partial class _Default : System.Web.UI.Page
 {
@@ -239,7 +240,7 @@ public partial class _Default
     public int Button1_Click { get; set; }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
@@ -250,10 +251,10 @@ public partial class _Default
 
                 Assert.Equal("Button1_Click1", eventName)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub CreateUniqueEventName_NameCollisionFromBaseClass()
+        Public Async Function TestCreateUniqueEventName_NameCollisionFromBaseClass() As Task
             Dim code As String = <text>
 public class _Default : MyBaseClass
 {
@@ -270,7 +271,7 @@ public class MyBaseClass
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
@@ -281,13 +282,13 @@ public class MyBaseClass
 
                 Assert.Equal("Button1_Click1", eventName)
             End Using
-        End Sub
+        End Function
 #End Region
 
 #Region "GetCompatibleEventHandlers"
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetCompatibleEventHandlers_EventDoesntExist()
+        Public Async Function TestGetCompatibleEventHandlers_EventDoesntExist() As Task
             Dim code As String = <text>
 using System;
 public class Button
@@ -304,7 +305,7 @@ public class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 AssertEx.Throws(Of InvalidOperationException)(
                     Sub()
@@ -316,10 +317,10 @@ public class _Default
                             cancellationToken:=Nothing)
                     End Sub)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetCompatibleEventHandlers_ObjTypeNameIsWrong()
+        Public Async Function TestGetCompatibleEventHandlers_ObjTypeNameIsWrong() As Task
             Dim code As String = <text>
 using System;
 namespace Test
@@ -340,7 +341,7 @@ namespace Test
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 AssertEx.Throws(Of InvalidOperationException)(
                     Sub()
@@ -352,10 +353,10 @@ namespace Test
                             cancellationToken:=Nothing)
                     End Sub)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetCompatibleEventHandlers_MatchExists()
+        Public Async Function TestGetCompatibleEventHandlers_MatchExists() As Task
             Dim code As String = <text>
 using System;
 public class Button
@@ -373,7 +374,7 @@ public class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim eventHandlers = ContainedLanguageCodeSupport.GetCompatibleEventHandlers(
                     document:=document,
@@ -386,10 +387,10 @@ public class _Default
                 Assert.Equal("Page_Load", eventHandlers.Single().Item1)
                 Assert.Equal("Page_Load(object,System.EventArgs)", eventHandlers.Single().Item2)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetCompatibleEventHandlers_MatchesExist()
+        Public Async Function TestGetCompatibleEventHandlers_MatchesExist() As Task
             Dim code As String = <text>
 using System;
 public class Button
@@ -412,7 +413,7 @@ public class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim eventHandlers = ContainedLanguageCodeSupport.GetCompatibleEventHandlers(
                     document:=document,
@@ -424,7 +425,7 @@ public class _Default
                 Assert.Equal(2, eventHandlers.Count())
                 ' It has to be page_load and button click, but are they always ordered in the same way?
             End Using
-        End Sub
+        End Function
 
         ' add tests for CompatibleSignatureToDelegate (#params, return type)
 #End Region
@@ -432,7 +433,7 @@ public class _Default
 #Region "GetEventHandlerMemberId"
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetEventHandlerMemberId_HandlerExists()
+        Public Async Function TestGetEventHandlerMemberId_HandlerExists() As Task
             Dim code As String = <text>
 using System;
 public class Button
@@ -455,7 +456,7 @@ public class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim eventHandlerId = ContainedLanguageCodeSupport.GetEventHandlerMemberId(
                     document:=document,
@@ -467,10 +468,10 @@ public class _Default
 
                 Assert.Equal("Button1_Click(object,System.EventArgs)", eventHandlerId)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetEventHandlerMemberId_CantFindHandler()
+        Public Async Function TestGetEventHandlerMemberId_CantFindHandler() As Task
             Dim code As String = <text>
 using System;
 public class Button
@@ -483,7 +484,7 @@ public class _Default
     Button button;
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim eventHandlerId = ContainedLanguageCodeSupport.GetEventHandlerMemberId(
                     document:=document,
@@ -495,7 +496,7 @@ public class _Default
 
                 Assert.Equal(Nothing, eventHandlerId)
             End Using
-        End Sub
+        End Function
 
 #End Region
 
@@ -503,7 +504,7 @@ public class _Default
 
         ' TODO: log a bug, Kevin doesn't use uint itemidInsertionPoint thats sent in.
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub EnsureEventHandler_HandlerExists()
+        Public Async Function TestEnsureEventHandler_HandlerExists() As Task
             Dim code As String = <text>
 using System;
 public class Button
@@ -526,7 +527,7 @@ public class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
 
                 Dim eventHandlerIdTextPosition = ContainedLanguageCodeSupport.EnsureEventHandler(
@@ -547,10 +548,10 @@ public class _Default
                 Assert.Equal(Nothing, eventHandlerIdTextPosition.Item2)
                 Assert.Equal(New TextSpan(), eventHandlerIdTextPosition.Item3)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub EnsureEventHandler_GenerateNewHandler()
+        Public Async Function TestEnsureEventHandler_GenerateNewHandler() As Task
             Dim code As String = <text>
 using System;
 public class Button
@@ -575,7 +576,7 @@ protected void Button1_Click(object sender, EventArgs e)
 }
 </text>.NormalizedValue
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
 
                 Dim eventHandlerIdTextPosition = ContainedLanguageCodeSupport.EnsureEventHandler(
@@ -595,12 +596,12 @@ protected void Button1_Click(object sender, EventArgs e)
                 TokenUtilities.AssertTokensEqual(generatedCode, eventHandlerIdTextPosition.Item2, Language)
                 Assert.Equal(New TextSpan With {.iStartLine = 15, .iEndLine = 15}, eventHandlerIdTextPosition.Item3)
             End Using
-        End Sub
+        End Function
 #End Region
 
 #Region "GetMemberNavigationPoint"
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetMemberNavigationPoint()
+        Public Async Function TestGetMemberNavigationPoint() As Task
             Dim code As String = <text>
 using System;
 public class Button
@@ -632,7 +633,7 @@ public class _Default
                 .iEndIndex = 8
             }
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim targetDocument As Document = Nothing
 
@@ -650,12 +651,12 @@ public class _Default
 
                 Assert.Equal(expectedSpan, actualSpan)
             End Using
-        End Sub
+        End Function
 #End Region
 
 #Region "GetMembers"
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetMembers_EventHandlersWrongParamType()
+        Public Async Function TestGetMembers_EventHandlersWrongParamType() As Task
             Dim code As String = <text>
 using System;
 public partial class _Default
@@ -666,7 +667,7 @@ public partial class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim members = ContainedLanguageCodeSupport.GetMembers(
                     document:=document,
@@ -676,10 +677,10 @@ public partial class _Default
 
                 Assert.Equal(0, members.Count())
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetMembers_EventHandlersWrongParamCount()
+        Public Async Function TestGetMembers_EventHandlersWrongParamCount() As Task
             Dim code As String = <text>
 using System;
 public partial class _Default
@@ -690,7 +691,7 @@ public partial class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim members = ContainedLanguageCodeSupport.GetMembers(
                     document:=document,
@@ -700,10 +701,10 @@ public partial class _Default
 
                 Assert.Equal(0, members.Count())
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetMembers_EventHandlersWrongReturnType()
+        Public Async Function TestGetMembers_EventHandlersWrongReturnType() As Task
             Dim code As String = <text>
 using System;
 public partial class _Default
@@ -714,7 +715,7 @@ public partial class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim members = ContainedLanguageCodeSupport.GetMembers(
                     document:=document,
@@ -724,10 +725,10 @@ public partial class _Default
 
                 Assert.Equal(0, members.Count())
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetMembers_EventHandlers()
+        Public Async Function TestGetMembers_EventHandlers() As Task
             Dim code As String = <text>
 using System;
 public partial class _Default
@@ -739,7 +740,7 @@ public partial class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim members = ContainedLanguageCodeSupport.GetMembers(
                     document:=document,
@@ -753,10 +754,10 @@ public partial class _Default
                 Assert.Equal("Page_Load", userFunction.Item1)
                 Assert.Equal("Page_Load(object,System.EventArgs)", userFunction.Item2)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetMembers_UserFunctions()
+        Public Async Function TestGetMembers_UserFunctions() As Task
             Dim code As String = <text>
 using System;
 public partial class _Default
@@ -767,7 +768,7 @@ public partial class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim members = ContainedLanguageCodeSupport.GetMembers(
                     document:=document,
@@ -781,10 +782,10 @@ public partial class _Default
                 Assert.Equal("Page_Load", userFunction.Item1)
                 Assert.Equal("Page_Load(object,System.EventArgs)", userFunction.Item2)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetMembers_Events()
+        Public Async Function TestGetMembers_Events() As Task
             Dim code As String = <text>
 using System;
 public class Button
@@ -792,7 +793,7 @@ public class Button
     public event EventHandler Click;
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim members = ContainedLanguageCodeSupport.GetMembers(
                     document:=document,
@@ -806,13 +807,13 @@ public class Button
                 Assert.Equal("Click", userFunction.Item1)
                 Assert.Equal("Click(EVENT)", userFunction.Item2)
             End Using
-        End Sub
+        End Function
 #End Region
 
 #Region "OnRenamed (TryRenameElement)"
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub TryRenameElement_ResolvableMembers()
+        Public Async Function TestTryRenameElement_ResolvableMembers() As Task
             Dim code As String = <text>
 using System;
 public partial class _Default
@@ -823,7 +824,7 @@ public partial class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
@@ -835,11 +836,11 @@ public partial class _Default
 
                 Assert.True(renameSucceeded)
             End Using
-        End Sub
+        End Function
 
         ' TODO: Who tests the fully qualified names and their absence?
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub TryRenameElement_UnresolvableMembers()
+        Public Async Function TestTryRenameElement_UnresolvableMembers() As Task
             Dim code As String = <text>
 using System;
 public partial class _Default
@@ -850,7 +851,7 @@ public partial class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
@@ -862,13 +863,13 @@ public partial class _Default
 
                 Assert.False(renameSucceeded)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub TryRenameElement_ResolvableClass()
+        Public Async Function TestTryRenameElement_ResolvableClass() As Task
             Dim code As String = <text>public partial class Foo { }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
@@ -880,13 +881,13 @@ public partial class _Default
 
                 Assert.True(renameSucceeded)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub TryRenameElement_ResolvableNamespace()
+        Public Async Function TestTryRenameElement_ResolvableNamespace() As Task
             Dim code As String = <text>namespace Foo { }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
@@ -898,10 +899,10 @@ public partial class _Default
 
                 Assert.True(renameSucceeded)
             End Using
-        End Sub
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub TryRenameElement_Button()
+        Public Async Function TestTryRenameElement_Button() As Task
             Dim code As String = <text>
 using System;
 public class Button
@@ -919,7 +920,7 @@ public class _Default
     }
 }</text>.Value
 
-            Using workspace = GetWorkspace(code)
+            Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
@@ -931,7 +932,7 @@ public class _Default
 
                 Assert.True(renameSucceeded)
             End Using
-        End Sub
+        End Function
 #End Region
 
         Protected Overrides ReadOnly Property Language As String

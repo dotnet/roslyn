@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -21,509 +22,509 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateVar
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestSimpleLowercaseIdentifier1()
+        public async Task TestSimpleLowercaseIdentifier1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|foo|]; } }",
 @"class Class { private object foo; void Method() { foo; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestSimpleLowercaseIdentifier2()
+        public async Task TestSimpleLowercaseIdentifier2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|foo|]; } }",
 @"class Class { private readonly object foo; void Method() { foo; } }",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestTestSimpleLowercaseIdentifier3()
+        public async Task TestTestSimpleLowercaseIdentifier3()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|foo|]; } }",
 @"class Class { public object foo { get; private set; } void Method() { foo; } }",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestSimpleUppercaseIdentifier1()
+        public async Task TestSimpleUppercaseIdentifier1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|Foo|]; } }",
 @"class Class { public object Foo { get; private set; } void Method() { Foo; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestSimpleUppercaseIdentifier2()
+        public async Task TestSimpleUppercaseIdentifier2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|Foo|]; } }",
 @"class Class { private object Foo; void Method() { Foo; } }",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestSimpleUppercaseIdentifier3()
+        public async Task TestSimpleUppercaseIdentifier3()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|Foo|]; } }",
 @"class Class { private readonly object Foo; void Method() { Foo; } }",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestSimpleRead1()
+        public async Task TestSimpleRead1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method(int i) { Method([|foo|]); } }",
 @"class Class { private int foo; void Method(int i) { Method(foo); } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestSimpleWriteCount()
+        public async Task TestSimpleWriteCount()
         {
-            TestExactActionSetOffered(
+            await TestExactActionSetOfferedAsync(
 @"class Class { void Method(int i) { [|foo|] = 1; } }",
 new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GeneratePropertyIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestSimpleWrite1()
+        public async Task TestSimpleWrite1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method(int i) { [|foo|] = 1; } }",
 @"class Class { private int foo; void Method(int i) { foo = 1; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestSimpleWrite2()
+        public async Task TestSimpleWrite2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method(int i) { [|foo|] = 1; } }",
 @"class Class { public int foo{ get; private set; } void Method(int i) { foo = 1; } }",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInRefCodeActionCount()
+        public async Task TestInRefCodeActionCount()
         {
-            TestExactActionSetOffered(
+            await TestExactActionSetOfferedAsync(
 @"class Class { void Method(ref int i) { Method(ref [|foo|]); } }",
 new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInRef1()
+        public async Task TestInRef1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method(ref int i) { Method(ref [|foo|]); } }",
 @"class Class { private int foo; void Method(ref int i) { Method(ref foo); } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInOutCodeActionCount()
+        public async Task TestInOutCodeActionCount()
         {
-            TestExactActionSetOffered(
+            await TestExactActionSetOfferedAsync(
 @"class Class { void Method(out int i) { Method(out [|foo|]); } }",
 new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInOut1()
+        public async Task TestInOut1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method(out int i) { Method(out [|foo|]); } }",
 @"class Class { private int foo; void Method(out int i) { Method(out foo); } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInStaticMember1()
+        public async Task TestGenerateInStaticMember1()
         {
-            Test(
+            await TestAsync(
 @"class Class { static void Method() { [|foo|]; } }",
 @"class Class { private static object foo; static void Method() { foo; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInStaticMember2()
+        public async Task TestGenerateInStaticMember2()
         {
-            Test(
+            await TestAsync(
 @"class Class { static void Method() { [|foo|]; } }",
 @"class Class { private static readonly object foo; static void Method() { foo; } }",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInStaticMember3()
+        public async Task TestGenerateInStaticMember3()
         {
-            Test(
+            await TestAsync(
 @"class Class { static void Method() { [|foo|]; } }",
 @"class Class { public static object foo { get; private set; } static void Method() { foo; } }",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffInstance1()
+        public async Task TestGenerateOffInstance1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { this.[|foo|]; } }",
 @"class Class { private object foo; void Method() { this.foo; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffInstance2()
+        public async Task TestGenerateOffInstance2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { this.[|foo|]; } }",
 @"class Class { private readonly object foo; void Method() { this.foo; } }",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffInstance3()
+        public async Task TestGenerateOffInstance3()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { this.[|foo|]; } }",
 @"class Class { public object foo { get; private set; } void Method() { this.foo; } }",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffWrittenInstance1()
+        public async Task TestGenerateOffWrittenInstance1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { this.[|foo|] = 1; } }",
 @"class Class { private int foo; void Method() { this.foo = 1; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffWrittenInstance2()
+        public async Task TestGenerateOffWrittenInstance2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { this.[|foo|] = 1; } }",
 @"class Class { public int foo { get; private set; } void Method() { this.foo = 1; } }",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffStatic1()
+        public async Task TestGenerateOffStatic1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { Class.[|foo|]; } }",
 @"class Class { private static object foo; void Method() { Class.foo; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffStatic2()
+        public async Task TestGenerateOffStatic2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { Class.[|foo|]; } }",
 @"class Class { private static readonly object foo; void Method() { Class.foo; } }",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffStatic3()
+        public async Task TestGenerateOffStatic3()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { Class.[|foo|]; } }",
 @"class Class { public static object foo { get; private set; } void Method() { Class.foo; } }",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffWrittenStatic1()
+        public async Task TestGenerateOffWrittenStatic1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { Class.[|foo|] = 1; } }",
 @"class Class { private static int foo; void Method() { Class.foo = 1; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffWrittenStatic2()
+        public async Task TestGenerateOffWrittenStatic2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { Class.[|foo|] = 1; } }",
 @"class Class { public static int foo { get; private set; } void Method() { Class.foo = 1; } }",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInstanceIntoSibling1()
+        public async Task TestGenerateInstanceIntoSibling1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { new D().[|foo|]; } } class D { }",
 @"class Class { void Method() { new D().foo; } } class D { internal object foo; }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInstanceIntoOuter1()
+        public async Task TestGenerateInstanceIntoOuter1()
         {
-            Test(
+            await TestAsync(
 @"class Outer { class Class { void Method() { new Outer().[|foo|]; } } }",
 @"class Outer { private object foo; class Class { void Method() { new Outer().foo; } } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInstanceIntoDerived1()
+        public async Task TestGenerateInstanceIntoDerived1()
         {
-            Test(
+            await TestAsync(
 @"class Class : Base { void Method(Base b) { b.[|foo|]; } } class Base { }",
 @"class Class : Base { void Method(Base b) { b.foo; } } class Base { internal object foo; }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateStaticIntoDerived1()
+        public async Task TestGenerateStaticIntoDerived1()
         {
-            Test(
+            await TestAsync(
 @"class Class : Base { void Method(Base b) { Base.[|foo|]; } } class Base { }",
 @"class Class : Base { void Method(Base b) { Base.foo; } } class Base { protected static object foo; }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateIntoInterfaceFixCount()
+        public async Task TestGenerateIntoInterfaceFixCount()
         {
-            TestActionCount(
+            await TestActionCountAsync(
 @"class Class { void Method(I i) { i.[|foo|]; } } interface I { }",
 count: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateIntoInterface1()
+        public async Task TestGenerateIntoInterface1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method(I i) { i.[|Foo|]; } } interface I { }",
 @"class Class { void Method(I i) { i.Foo; } } interface I { object Foo { get; set; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateIntoInterface2()
+        public async Task TestGenerateIntoInterface2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method(I i) { i.[|Foo|]; } } interface I { }",
 @"class Class { void Method(I i) { i.Foo; } } interface I { object Foo { get; } }",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateStaticIntoInterfaceMissing()
+        public async Task TestGenerateStaticIntoInterfaceMissing()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void Method(I i) { I.[|Foo|]; } } interface I { }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateWriteIntoInterfaceFixCount()
+        public async Task TestGenerateWriteIntoInterfaceFixCount()
         {
-            TestActionCount(
+            await TestActionCountAsync(
 @"class Class { void Method(I i) { i.[|Foo|] = 1; } } interface I { }",
 count: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateWriteIntoInterface1()
+        public async Task TestGenerateWriteIntoInterface1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method(I i) { i.[|Foo|] = 1; } } interface I { }",
 @"class Class { void Method(I i) { i.Foo = 1; } } interface I { int Foo { get; set; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInGenericType()
+        public async Task TestGenerateInGenericType()
         {
-            Test(
+            await TestAsync(
 @"class Class<T> { void Method(T t) { [|foo|] = t; } }",
 @"class Class<T> { private T foo; void Method(T t) { foo = t; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInGenericMethod1()
+        public async Task TestGenerateInGenericMethod1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method<T>(T t) { [|foo|] = t; } }",
 @"class Class { private object foo; void Method<T>(T t) { foo = t; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInGenericMethod2()
+        public async Task TestGenerateInGenericMethod2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method<T>(IList<T> t) { [|foo|] = t; } }",
 @"class Class { private IList<object> foo; void Method<T>(IList<T> t) { foo = t; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldBeforeFirstField()
+        public async Task TestGenerateFieldBeforeFirstField()
         {
-            Test(
+            await TestAsync(
 @"class Class { int i; void Method() { [|foo|]; } }",
 @"class Class { private object foo; int i; void Method() { foo; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldAfterLastField()
+        public async Task TestGenerateFieldAfterLastField()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|foo|]; } int i; }",
 @"class Class { void Method() { foo; } int i; private object foo; }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyAfterLastField1()
+        public async Task TestGeneratePropertyAfterLastField1()
         {
-            Test(
+            await TestAsync(
 @"class Class { int Bar; void Method() { [|Foo|]; } }",
 @"class Class { int Bar; public object Foo { get; private set; } void Method() { Foo; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyAfterLastField2()
+        public async Task TestGeneratePropertyAfterLastField2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|Foo|]; } int Bar; }",
 @"class Class { void Method() { Foo; } int Bar; public object Foo { get; private set; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyBeforeFirstProperty()
+        public async Task TestGeneratePropertyBeforeFirstProperty()
         {
-            Test(
+            await TestAsync(
 @"class Class { int Quux { get; } void Method() { [|Foo|]; } }",
 @"class Class { public object Foo { get; private set; } int Quux { get; } void Method() { Foo; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyBeforeFirstPropertyEvenWithField1()
+        public async Task TestGeneratePropertyBeforeFirstPropertyEvenWithField1()
         {
-            Test(
+            await TestAsync(
 @"class Class { int Bar; int Quux { get; } void Method() { [|Foo|]; } }",
 @"class Class { int Bar; public object Foo { get; private set; } int Quux { get; } void Method() { Foo; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyAfterLastPropertyEvenWithField2()
+        public async Task TestGeneratePropertyAfterLastPropertyEvenWithField2()
         {
-            Test(
+            await TestAsync(
 @"class Class { int Quux { get; } int Bar; void Method() { [|Foo|]; } }",
 @"class Class { int Quux { get; } public object Foo { get; private set; } int Bar; void Method() { Foo; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMissingInInvocation()
+        public async Task TestMissingInInvocation()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void Method() { [|Foo|](); } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMissingInObjectCreation()
+        public async Task TestMissingInObjectCreation()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void Method() { new [|Foo|](); } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMissingInTypeDeclaration()
+        public async Task TestMissingInTypeDeclaration()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void Method() { [|A|] a; } }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void Method() { [|A.B|] a; } }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void Method() { [|A|].B a; } }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void Method() { A.[|B|] a; } }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void Method() { [|A.B.C|] a; } }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void Method() { [|A.B|].C a; } }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void Method() { A.B.[|C|] a; } }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void Method() { [|A|].B.C a; } }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void Method() { A.[|B|].C a; } }");
         }
 
         [WorkItem(539336)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMissingInAttribute()
+        public async Task TestMissingInAttribute()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"[[|A|]]class Class { }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"[[|A.B|]]class Class { }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"[[|A|].B]class Class { }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"[A.[|B|]]class Class { }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"[[|A.B.C|]]class Class { }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"[[|A.B|].C]class Class { }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"[A.B.[|C|]]class Class { }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"[[|A|].B.C]class Class { }");
 
-            TestMissing(
+            await TestMissingAsync(
 @"[A.B.[|C|]]class Class { }");
         }
 
         [WorkItem(539340)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestSpansField()
+        public async Task TestSpansField()
         {
-            TestSpans(
+            await TestSpansAsync(
 @"class C { void M() { this.[|Foo|] }",
 @"class C { void M() { this.[|Foo|] }");
 
-            TestSpans(
+            await TestSpansAsync(
 @"class C { void M() { this.[|Foo|]; }",
 @"class C { void M() { this.[|Foo|]; }");
 
-            TestSpans(
+            await TestSpansAsync(
 @"class C { void M() { this.[|Foo|] = 1 }",
 @"class C { void M() { this.[|Foo|] = 1 }");
 
-            TestSpans(
+            await TestSpansAsync(
 @"class C { void M() { this.[|Foo|] = 1 + 2 }",
 @"class C { void M() { this.[|Foo|] = 1 + 2 }");
 
-            TestSpans(
+            await TestSpansAsync(
 @"class C { void M() { this.[|Foo|] = 1 + 2; }",
 @"class C { void M() { this.[|Foo|] = 1 + 2; }");
 
-            TestSpans(
+            await TestSpansAsync(
 @"class C { void M() { this.[|Foo|] += Bar() }",
 @"class C { void M() { this.[|Foo|] += Bar() }");
 
-            TestSpans(
+            await TestSpansAsync(
 @"class C { void M() { this.[|Foo|] += Bar(); }",
 @"class C { void M() { this.[|Foo|] += Bar(); }");
         }
 
         [WorkItem(539427)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFromLambda()
+        public async Task TestGenerateFromLambda()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method(int i) { [|foo|] = () => { return 2 }; } }",
 @"using System; class Class { private Func<int> foo; void Method(int i) { foo = () => { return 2 }; } }");
         }
@@ -531,9 +532,9 @@ count: 1);
         // TODO: Move to TypeInferrer.InferTypes, or something
         [WorkItem(539466)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInMethodOverload1()
+        public async Task TestGenerateInMethodOverload1()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method(int i) { System.Console.WriteLine([|foo|]); } }",
 @"class Class { private bool foo; void Method(int i) { System.Console.WriteLine(foo); } }");
         }
@@ -541,36 +542,36 @@ count: 1);
         // TODO: Move to TypeInferrer.InferTypes, or something
         [WorkItem(539466)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInMethodOverload2()
+        public async Task TestGenerateInMethodOverload2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method(int i) { System.Console.WriteLine(this.[|foo|]); } }",
 @"class Class { private bool foo; void Method(int i) { System.Console.WriteLine(this.foo); } }");
         }
 
         [WorkItem(539468)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestExplicitProperty1()
+        public async Task TestExplicitProperty1()
         {
-            Test(
+            await TestAsync(
 @"class Class : ITest { bool ITest.[|SomeProp|] { get; set; } } interface ITest { }",
 @"class Class : ITest { bool ITest.SomeProp { get; set; } } interface ITest { bool SomeProp { get; set; } }");
         }
 
         [WorkItem(539468)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestExplicitProperty2()
+        public async Task TestExplicitProperty2()
         {
-            Test(
+            await TestAsync(
 @"class Class : ITest { bool ITest.[|SomeProp|] { } } interface ITest { }",
 @"class Class : ITest { bool ITest.SomeProp { } } interface ITest { bool SomeProp { get; set; } }");
         }
 
         [WorkItem(539468)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestExplicitProperty3()
+        public async Task TestExplicitProperty3()
         {
-            Test(
+            await TestAsync(
 @"class Class : ITest { bool ITest.[|SomeProp|] { } } interface ITest { }",
 @"class Class : ITest { bool ITest.SomeProp { } } interface ITest { bool SomeProp { get; } }",
 index: 1);
@@ -578,87 +579,87 @@ index: 1);
 
         [WorkItem(539468)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestExplicitProperty4()
+        public async Task TestExplicitProperty4()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { bool ITest.[|SomeProp|] { } } interface ITest { }");
         }
 
         [WorkItem(539468)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestExplicitProperty5()
+        public async Task TestExplicitProperty5()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class : ITest { bool ITest.[|SomeProp|] { } } interface ITest { bool SomeProp { get; } }");
         }
 
         [WorkItem(539489)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestEscapedName()
+        public async Task TestEscapedName()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|@foo|]; } }",
 @"class Class { private object foo; void Method() { @foo; } }");
         }
 
         [WorkItem(539489)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestEscapedKeyword()
+        public async Task TestEscapedKeyword()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|@int|]; } }",
 @"class Class { private object @int; void Method() { @int; } }");
         }
 
         [WorkItem(539529)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestRefLambda()
+        public async Task TestRefLambda()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|test|] = (ref int x) => x = 10; } }",
 @"class Class { private object test; void Method() { test = (ref int x) => x = 10; } }");
         }
 
         [WorkItem(539595)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNotOnError()
+        public async Task TestNotOnError()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { void F<U,V>(U u1, V v1) { Foo<string,int>([|u1|], u2); } }");
         }
 
         [WorkItem(539571)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNameSimplification()
+        public async Task TestNameSimplification()
         {
-            Test(
+            await TestAsync(
 @"namespace TestNs { class Program { class Test { void Meth ( ) { Program . [|blah|] = new Test ( ) ; } } } } ",
 @"namespace TestNs { class Program { private static Test blah ; class Test { void Meth ( ) { Program . blah = new Test ( ) ; } } } } ");
         }
 
         [WorkItem(539717)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestPostIncrement()
+        public async Task TestPostIncrement()
         {
-            Test(
+            await TestAsync(
 @"class Program { static void Main ( string [ ] args ) { [|i|] ++ ; } } ",
 @"class Program { private static int i ; static void Main ( string [ ] args ) { i ++ ; } } ");
         }
 
         [WorkItem(539717)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestPreDecrement()
+        public async Task TestPreDecrement()
         {
-            Test(
+            await TestAsync(
 @"class Program { static void Main ( string [ ] args ) { -- [|i|] ; } } ",
 @"class Program { private static int i ; static void Main ( string [ ] args ) { -- i ; } } ");
         }
 
         [WorkItem(539738)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateIntoScript()
+        public async Task TestGenerateIntoScript()
         {
-            Test(
+            await TestAsync(
 @"using C ; static class C { } C . [|i|] ++ ; ",
 @"using C ; static class C { internal static int i ; } C . i ++ ; ",
 parseOptions: Options.Script);
@@ -666,9 +667,9 @@ parseOptions: Options.Script);
 
         [WorkItem(539558)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void BugFix5565()
+        public async Task BugFix5565()
         {
-            Test(
+            await TestAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -698,9 +699,9 @@ compareTokens: false);
 
         [WorkItem(539536)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void BugFix5538()
+        public async Task BugFix5538()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { new ( [|foo|] ) ( ) ; } } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { public static object foo { get ; private set ; } static void Main ( string [ ] args ) { new ( foo ) ( ) ; } } ",
 index: 2);
@@ -708,9 +709,9 @@ index: 2);
 
         [WorkItem(539665)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void BugFix5697()
+        public async Task BugFix5697()
         {
-            Test(
+            await TestAsync(
 @"class C { }
 class D
 {
@@ -737,55 +738,55 @@ compareTokens: false);
 
         [WorkItem(539793)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestIncrement()
+        public async Task TestIncrement()
         {
-            TestExactActionSetOffered(
+            await TestExactActionSetOfferedAsync(
 @"class Program { static void Main ( ) { [|p|] ++ ; } } ",
 new[] { string.Format(FeaturesResources.GenerateFieldIn, "p", "Program"), string.Format(FeaturesResources.GeneratePropertyIn, "p", "Program"), string.Format(FeaturesResources.GenerateLocal, "p") });
 
-            Test(
+            await TestAsync(
 @"class Program { static void Main ( ) { [|p|] ++ ; } } ",
 @"class Program { private static int p ; static void Main ( ) { p ++ ; } } ");
         }
 
         [WorkItem(539834)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestNotInGoto()
+        public async Task TestNotInGoto()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program { static void Main ( ) { goto [|foo|] ; } } ");
         }
 
         [WorkItem(539826)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestOnLeftOfDot()
+        public async Task TestOnLeftOfDot()
         {
-            Test(
+            await TestAsync(
 @"class Program { static void Main ( ) { [|foo|] . ToString ( ) ; } } ",
 @"class Program { private static object foo ; static void Main ( ) { foo . ToString ( ) ; } } ");
         }
 
         [WorkItem(539840)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNotBeforeAlias()
+        public async Task TestNotBeforeAlias()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { [|global|] :: System . String s ; } } ");
         }
 
         [WorkItem(539871)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMissingOnGenericName()
+        public async Task TestMissingOnGenericName()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class C < T > { public delegate void Foo < R > ( R r ) ; static void M ( ) { Foo < T > r = [|Goo < T >|] ; } } ");
         }
 
         [WorkItem(539934)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestOnDelegateAddition()
+        public async Task TestOnDelegateAddition()
         {
-            Test(
+            await TestAsync(
 @"class C { delegate void D ( ) ; void M ( ) { D d = [|M1|] + M2 ; } } ",
 @"class C { private D M1 { get ; set ; } delegate void D ( ) ; void M ( ) { D d = M1 + M2 ; } } ",
 parseOptions: null);
@@ -793,46 +794,46 @@ parseOptions: null);
 
         [WorkItem(539986)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestReferenceTypeParameter1()
+        public async Task TestReferenceTypeParameter1()
         {
-            Test(
+            await TestAsync(
 @"class C < T > { public void Test ( ) { C < T > c = A . [|M|] ; } } class A { } ",
 @"class C < T > { public void Test ( ) { C < T > c = A . M ; } } class A { public static C < object > M { get ; internal set ; } } ");
         }
 
         [WorkItem(539986)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestReferenceTypeParameter2()
+        public async Task TestReferenceTypeParameter2()
         {
-            Test(
+            await TestAsync(
 @"class C < T > { public void Test ( ) { C < T > c = A . [|M|] ; } class A { } } ",
 @"class C < T > { public void Test ( ) { C < T > c = A . M ; } class A { public static C < T > M { get ; internal set ; } } } ");
         }
 
         [WorkItem(540159)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestEmptyIdentifierName()
+        public async Task TestEmptyIdentifierName()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class C { static void M ( ) { int i = [|@|] } } ");
-            TestMissing(
+            await TestMissingAsync(
 @"class C { static void M ( ) { int i = [|@ |]} } ");
         }
 
         [WorkItem(541194)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestForeachVar()
+        public async Task TestForeachVar()
         {
-            Test(
+            await TestAsync(
 @"class C { void M ( ) { foreach ( var v in [|list|] ) { } } } ",
 @"using System.Collections.Generic; class C { private IEnumerable < object > list ; void M ( ) { foreach ( var v in list ) { } } } ");
         }
 
         [WorkItem(541265)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestExtensionMethodUsedAsInstance()
+        public async Task TestExtensionMethodUsedAsInstance()
         {
-            Test(
+            await TestAsync(
 @"using System ; class C { public static void Main ( ) { string s = ""Hello"" ; [|f|] = s . ExtensionMethod ; } } public static class MyExtension { public static int ExtensionMethod ( this String s ) { return s . Length ; } } ",
 @"using System ; class C { private static Func < int > f ; public static void Main ( ) { string s = ""Hello"" ; f = s . ExtensionMethod ; } } public static class MyExtension { public static int ExtensionMethod ( this String s ) { return s . Length ; } } ",
 parseOptions: null);
@@ -840,54 +841,54 @@ parseOptions: null);
 
         [WorkItem(541549)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestDelegateInvoke()
+        public async Task TestDelegateInvoke()
         {
-            Test(
+            await TestAsync(
 @"using System ; class Program { static void Main ( string [ ] args ) { Func < int , int > f = x => x + 1 ; f ( [|x|] ) ; } } ",
 @"using System ; class Program { private static int x ; static void Main ( string [ ] args ) { Func < int , int > f = x => x + 1 ; f ( x ) ; } } ");
         }
 
         [WorkItem(541597)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestComplexAssign1()
+        public async Task TestComplexAssign1()
         {
-            Test(
+            await TestAsync(
 @"class Program { static void Main ( string [ ] args ) { [|a|] = a + 10 ; } } ",
 @"class Program { private static int a ; static void Main ( string [ ] args ) { a = a + 10 ; } } ");
         }
 
         [WorkItem(541597)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestComplexAssign2()
+        public async Task TestComplexAssign2()
         {
-            Test(
+            await TestAsync(
 @"class Program { static void Main ( string [ ] args ) { a = [|a|] + 10 ; } } ",
 @"class Program { private static int a ; static void Main ( string [ ] args ) { a = a + 10 ; } } ");
         }
 
         [WorkItem(541659)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestTypeNamedVar()
+        public async Task TestTypeNamedVar()
         {
-            Test(
+            await TestAsync(
 @"using System ; class Program { public static void Main ( ) { var v = [|p|] ; } } class var { } ",
 @"using System ; class Program { private static var p ; public static void Main ( ) { var v = p ; } } class var { } ");
         }
 
         [WorkItem(541675)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestStaticExtensionMethodArgument()
+        public async Task TestStaticExtensionMethodArgument()
         {
-            Test(
+            await TestAsync(
 @"using System ; class Program { static void Main ( string [ ] args ) { MyExtension . ExMethod ( [|ss|] ) ; } } static class MyExtension { public static int ExMethod ( this string s ) { return s . Length ; } } ",
 @"using System ; class Program { private static string ss ; static void Main ( string [ ] args ) { MyExtension . ExMethod ( ss ) ; } } static class MyExtension { public static int ExMethod ( this string s ) { return s . Length ; } } ");
         }
 
         [WorkItem(539675)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void AddBlankLineBeforeCommentBetweenMembers1()
+        public async Task AddBlankLineBeforeCommentBetweenMembers1()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     //method
@@ -911,9 +912,9 @@ compareTokens: false);
 
         [WorkItem(539675)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void AddBlankLineBeforeCommentBetweenMembers2()
+        public async Task AddBlankLineBeforeCommentBetweenMembers2()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     //method
@@ -938,9 +939,9 @@ compareTokens: false);
 
         [WorkItem(543813)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void AddBlankLineBetweenMembers1()
+        public async Task AddBlankLineBetweenMembers1()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -963,9 +964,9 @@ compareTokens: false);
 
         [WorkItem(543813)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void AddBlankLineBetweenMembers2()
+        public async Task AddBlankLineBetweenMembers2()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -988,9 +989,9 @@ compareTokens: false);
 
         [WorkItem(543813)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void DontAddBlankLineBetweenFields()
+        public async Task DontAddBlankLineBetweenFields()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     private static int P;
@@ -1018,9 +1019,9 @@ compareTokens: false);
 
         [WorkItem(543813)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void DontAddBlankLineBetweenAutoProperties()
+        public async Task DontAddBlankLineBetweenAutoProperties()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     public static int P { get; private set; }
@@ -1048,9 +1049,9 @@ compareTokens: false);
 
         [WorkItem(539665)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestIntoEmptyClass()
+        public async Task TestIntoEmptyClass()
         {
-            Test(
+            await TestAsync(
 @"class C { }
 class D
 {
@@ -1075,9 +1076,9 @@ compareTokens: false);
 
         [WorkItem(540595)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInScript()
+        public async Task TestGeneratePropertyInScript()
         {
-            Test(
+            await TestAsync(
 @"[|Foo|]",
 @"object Foo { get; private set; }
 
@@ -1088,33 +1089,33 @@ compareTokens: false);
 
         [WorkItem(542535)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestConstantInParameterValue()
+        public async Task TestConstantInParameterValue()
         {
             const string Initial = @"class C { const int y = 1 ; public void Foo ( bool x = [|undeclared|] ) { } } ";
 
-            TestActionCount(
+            await TestActionCountAsync(
 Initial,
 count: 1);
 
-            Test(
+            await TestAsync(
 Initial,
 @"class C { private const bool undeclared ; const int y = 1 ; public void Foo ( bool x = undeclared ) { } } ");
         }
 
         [WorkItem(542900)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFromAttributeNamedArgument1()
+        public async Task TestGenerateFromAttributeNamedArgument1()
         {
-            Test(
+            await TestAsync(
 @"using System ; class ProgramAttribute : Attribute { [ Program ( [|Name|] = 0 ) ] static void Main ( string [ ] args ) { } } ",
 @"using System ; class ProgramAttribute : Attribute { public int Name { get ; set ; } [ Program ( Name = 0 ) ] static void Main ( string [ ] args ) { } } ");
         }
 
         [WorkItem(542900)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFromAttributeNamedArgument2()
+        public async Task TestGenerateFromAttributeNamedArgument2()
         {
-            Test(
+            await TestAsync(
 @"using System ; class ProgramAttribute : Attribute { [ Program ( [|Name|] = 0 ) ] static void Main ( string [ ] args ) { } } ",
 @"using System ; class ProgramAttribute : Attribute { public int Name ; [ Program ( Name = 0 ) ] static void Main ( string [ ] args ) { } } ",
 index: 1);
@@ -1122,9 +1123,9 @@ index: 1);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility1_InternalPrivate()
+        public async Task TestMinimalAccessibility1_InternalPrivate()
         {
-            Test(
+            await TestAsync(
 @"class Program { public static void Main ( ) { C c = [|P|] ; } private class C { } } ",
 @"class Program { private static C P { get ; set ; } public static void Main ( ) { C c = P ; } private class C { } } ",
 parseOptions: null);
@@ -1132,9 +1133,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility2_InternalProtected()
+        public async Task TestMinimalAccessibility2_InternalProtected()
         {
-            Test(
+            await TestAsync(
 @"class Program { public static void Main ( ) { C c = [|P|] ; } protected class C { } } ",
 @"class Program { protected static C P { get ; private set ; } public static void Main ( ) { C c = P ; } protected class C { } } ",
 parseOptions: null);
@@ -1142,9 +1143,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility3_InternalInternal()
+        public async Task TestMinimalAccessibility3_InternalInternal()
         {
-            Test(
+            await TestAsync(
 @"class Program { public static void Main ( ) { C c = [|P|] ; } internal class C { } } ",
 @"class Program { public static C P { get ; private set ; } public static void Main ( ) { C c = P ; } internal class C { } } ",
 parseOptions: null);
@@ -1152,9 +1153,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility4_InternalProtectedInternal()
+        public async Task TestMinimalAccessibility4_InternalProtectedInternal()
         {
-            Test(
+            await TestAsync(
 @"class Program { public static void Main ( ) { C c = [|P|] ; } protected internal class C { } } ",
 @"class Program { public static C P { get ; private set ; } public static void Main ( ) { C c = P ; } protected internal class C { } } ",
 parseOptions: null);
@@ -1162,9 +1163,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility5_InternalPublic()
+        public async Task TestMinimalAccessibility5_InternalPublic()
         {
-            Test(
+            await TestAsync(
 @"class Program { public static void Main ( ) { C c = [|P|] ; } public class C { } } ",
 @"class Program { public static C P { get ; private set ; } public static void Main ( ) { C c = P ; } public class C { } } ",
 parseOptions: null);
@@ -1172,9 +1173,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility6_PublicInternal()
+        public async Task TestMinimalAccessibility6_PublicInternal()
         {
-            Test(
+            await TestAsync(
 @"public class Program { public static void Main ( ) { C c = [|P|] ; } internal class C { } } ",
 @"public class Program { internal static C P { get ; private set ; } public static void Main ( ) { C c = P ; } internal class C { } } ",
 parseOptions: null);
@@ -1182,9 +1183,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility7_PublicProtectedInternal()
+        public async Task TestMinimalAccessibility7_PublicProtectedInternal()
         {
-            Test(
+            await TestAsync(
 @"public class Program { public static void Main ( ) { C c = [|P|] ; } protected internal class C { } } ",
 @"public class Program { protected internal static C P { get ; private set ; } public static void Main ( ) { C c = P ; } protected internal class C { } } ",
 parseOptions: null);
@@ -1192,9 +1193,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility8_PublicProtected()
+        public async Task TestMinimalAccessibility8_PublicProtected()
         {
-            Test(
+            await TestAsync(
 @"public class Program { public static void Main ( ) { C c = [|P|] ; } protected class C { } } ",
 @"public class Program { protected static C P { get ; private set ; } public static void Main ( ) { C c = P ; } protected class C { } } ",
 parseOptions: null);
@@ -1202,9 +1203,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility9_PublicPrivate()
+        public async Task TestMinimalAccessibility9_PublicPrivate()
         {
-            Test(
+            await TestAsync(
 @"public class Program { public static void Main ( ) { C c = [|P|] ; } private class C { } } ",
 @"public class Program { private static C P { get ; set ; } public static void Main ( ) { C c = P ; } private class C { } } ",
 parseOptions: null);
@@ -1212,9 +1213,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility10_PrivatePrivate()
+        public async Task TestMinimalAccessibility10_PrivatePrivate()
         {
-            Test(
+            await TestAsync(
 @"class outer { private class Program { public static void Main ( ) { C c = [|P|] ; } private class C { } } }",
 @"class outer { private class Program { public static C P { get ; private set ; } public static void Main ( ) { C c = P ; } private class C { } } }",
 parseOptions: null);
@@ -1222,9 +1223,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility11_PrivateProtected()
+        public async Task TestMinimalAccessibility11_PrivateProtected()
         {
-            Test(
+            await TestAsync(
 @"class outer { private class Program { public static void Main ( ) { C c = [|P|] ; } protected class C { } } }",
 @"class outer { private class Program { public static C P { get ; private set ; } public static void Main ( ) { C c = P ; } protected class C { } } }",
 parseOptions: null);
@@ -1232,9 +1233,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility12_PrivateProtectedInternal()
+        public async Task TestMinimalAccessibility12_PrivateProtectedInternal()
         {
-            Test(
+            await TestAsync(
 @"class outer { private class Program { public static void Main ( ) { C c = [|P|] ; } protected internal class C { } } }",
 @"class outer { private class Program { public static C P { get ; private set ; } public static void Main ( ) { C c = P ; } protected internal class C { } } }",
 parseOptions: null);
@@ -1242,9 +1243,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility13_PrivateInternal()
+        public async Task TestMinimalAccessibility13_PrivateInternal()
         {
-            Test(
+            await TestAsync(
 @"class outer { private class Program { public static void Main ( ) { C c = [|P|] ; } internal class C { } } }",
 @"class outer { private class Program { public static C P { get ; private set ; } public static void Main ( ) { C c = P ; } internal class C { } } }",
 parseOptions: null);
@@ -1252,9 +1253,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility14_ProtectedPrivate()
+        public async Task TestMinimalAccessibility14_ProtectedPrivate()
         {
-            Test(
+            await TestAsync(
 @"class outer { protected class Program { public static void Main ( ) { C c = [|P|] ; } private class C { } } }",
 @"class outer { protected class Program { private static C P { get ; set ; } public static void Main ( ) { C c = P ; } private class C { } } }",
 parseOptions: null);
@@ -1262,9 +1263,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility15_ProtectedInternal()
+        public async Task TestMinimalAccessibility15_ProtectedInternal()
         {
-            Test(
+            await TestAsync(
 @"class outer { protected class Program { public static void Main ( ) { C c = [|P|] ; } internal class C { } } }",
 @"class outer { protected class Program { public static C P { get ; private set ; } public static void Main ( ) { C c = P ; } internal class C { } } }",
 parseOptions: null);
@@ -1272,9 +1273,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility16_ProtectedInternalProtected()
+        public async Task TestMinimalAccessibility16_ProtectedInternalProtected()
         {
-            Test(
+            await TestAsync(
 @"class outer { protected internal class Program { public static void Main ( ) { C c = [|P|] ; } protected class C { } } }",
 @"class outer { protected internal class Program { protected static C P { get ; private set ; } public static void Main ( ) { C c = P ; } protected class C { } } }",
 parseOptions: null);
@@ -1282,9 +1283,9 @@ parseOptions: null);
 
         [WorkItem(541698)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMinimalAccessibility17_ProtectedInternalInternal()
+        public async Task TestMinimalAccessibility17_ProtectedInternalInternal()
         {
-            Test(
+            await TestAsync(
 @"class outer { protected internal class Program { public static void Main ( ) { C c = [|P|] ; } internal class C { } } }",
 @"class outer { protected internal class Program { public static C P { get ; private set ; } public static void Main ( ) { C c = P ; } internal class C { } } }",
 parseOptions: null);
@@ -1292,9 +1293,9 @@ parseOptions: null);
 
         [WorkItem(543153)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestAnonymousObjectInitializer1()
+        public async Task TestAnonymousObjectInitializer1()
         {
-            Test(
+            await TestAsync(
 @"class C { void M ( ) { var a = new { x = 5 } ; a = new { x = [|HERE|] } ; } } ",
 @"class C { private int HERE ; void M ( ) { var a = new { x = 5 } ; a = new { x = HERE } ; } } ",
 index: 1);
@@ -1302,100 +1303,100 @@ index: 1);
 
         [WorkItem(543124)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNoGenerationIntoAnonymousType()
+        public async Task TestNoGenerationIntoAnonymousType()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program { static void Main ( string [ ] args ) { var v = new { } ; bool b = v . [|Bar|] ; } } ");
         }
 
         [WorkItem(543543)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNotOfferedForBoundParametersOfOperators()
+        public async Task TestNotOfferedForBoundParametersOfOperators()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program { public Program ( string s ) { } static void Main ( string [ ] args ) { Program p = """" ; } public static implicit operator Program ( string str ) { return new Program ( [|str|] ) ; } } ");
         }
 
         [WorkItem(544175)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNotOnNamedParameterName1()
+        public async Task TestNotOnNamedParameterName1()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System ; class class1 { public void Test ( ) { Foo ( [|x|] : x ) ; } public string Foo ( int x ) { } } ");
         }
 
         [WorkItem(544271)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNotOnNamedParameterName2()
+        public async Task TestNotOnNamedParameterName2()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Foo { public Foo ( int a = 42 ) { } } class DogBed : Foo { public DogBed ( int b ) : base ( [|a|] : b ) { } } ");
         }
 
         [WorkItem(544164)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestPropertyOnObjectInitializer()
+        public async Task TestPropertyOnObjectInitializer()
         {
-            Test(
+            await TestAsync(
 @"class Foo { } class Bar { void foo ( ) { var c = new Foo { [|Gibberish|] = 24 } ; } } ",
 @"class Foo { public int Gibberish { get ; internal set ; } } class Bar { void foo ( ) { var c = new Foo { Gibberish = 24 } ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestPropertyOnObjectInitializer1()
+        public async Task TestPropertyOnObjectInitializer1()
         {
-            Test(
+            await TestAsync(
 @"class Foo { } class Bar { void foo ( ) { var c = new Foo { [|Gibberish|] = Gibberish } ; } } ",
 @"class Foo { public object Gibberish { get ; internal set ; } } class Bar { void foo ( ) { var c = new Foo { Gibberish = Gibberish } ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestPropertyOnObjectInitializer2()
+        public async Task TestPropertyOnObjectInitializer2()
         {
-            Test(
+            await TestAsync(
 @"class Foo { } class Bar { void foo ( ) { var c = new Foo { Gibberish = [|Gibberish|] } ; } } ",
 @"class Foo { } class Bar { public object Gibberish { get ; private set ; } void foo ( ) { var c = new Foo { Gibberish = Gibberish } ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestFieldOnObjectInitializer()
+        public async Task TestFieldOnObjectInitializer()
         {
-            Test(
+            await TestAsync(
 @"class Foo { } class Bar { void foo ( ) { var c = new Foo { [|Gibberish|] = 24 } ; } } ",
 @"class Foo { internal int Gibberish ; } class Bar { void foo ( ) { var c = new Foo { Gibberish = 24 } ; } } ",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestFieldOnObjectInitializer1()
+        public async Task TestFieldOnObjectInitializer1()
         {
-            Test(
+            await TestAsync(
 @"class Foo { } class Bar { void foo ( ) { var c = new Foo { [|Gibberish|] = Gibberish } ; } } ",
 @"class Foo { internal object Gibberish ; } class Bar { void foo ( ) { var c = new Foo { Gibberish = Gibberish } ; } } ",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestFieldOnObjectInitializer2()
+        public async Task TestFieldOnObjectInitializer2()
         {
-            Test(
+            await TestAsync(
 @"class Foo { } class Bar { void foo ( ) { var c = new Foo { Gibberish = [|Gibberish|] } ; } } ",
 @"class Foo { } class Bar { private object Gibberish ; void foo ( ) { var c = new Foo { Gibberish = Gibberish } ; } } ",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestOnlyPropertyAndFieldOfferedForObjectInitializer()
+        public async Task TestOnlyPropertyAndFieldOfferedForObjectInitializer()
         {
-            TestActionCount(
+            await TestActionCountAsync(
 @"class Foo { } class Bar { void foo ( ) { var c = new Foo { . [|Gibberish|] = 24 } ; } } ",
 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateLocalInObjectInitializerValue()
+        public async Task TestGenerateLocalInObjectInitializerValue()
         {
-            Test(
+            await TestAsync(
 @"class Foo { } class Bar { void foo ( ) { var c = new Foo { Gibberish = [|blah|] } ; } } ",
 @"class Foo { } class Bar { void foo ( ) { object blah = null ; var c = new Foo { Gibberish = blah } ; } } ",
 index: 3);
@@ -1403,58 +1404,58 @@ index: 3);
 
         [WorkItem(544319)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNotOnIncompleteMember1()
+        public async Task TestNotOnIncompleteMember1()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System; class Class1 { Console.[|WriteLine|](); }");
         }
 
         [WorkItem(544319)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNotOnIncompleteMember2()
+        public async Task TestNotOnIncompleteMember2()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System; class Class1 { [|WriteLine|](); }");
         }
 
         [WorkItem(544319)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNotOnIncompleteMember3()
+        public async Task TestNotOnIncompleteMember3()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System; class Class1 { [|WriteLine|] }");
         }
 
         [WorkItem(544384)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestPointerType()
+        public async Task TestPointerType()
         {
-            Test(
+            await TestAsync(
 @"class Program { static int x ; unsafe static void F ( int * p ) { * p = 1 ; } static unsafe void Main ( string [ ] args ) { int [ ] a = new int [ 10 ] ; fixed ( int * p2 = & x , int * p3 = ) F ( GetP2 ( [|p2|] ) ) ; } unsafe private static int * GetP2 ( int * p2 ) { return p2 ; } } ",
 @"class Program { static int x ; private static unsafe int * p2 ; unsafe static void F ( int * p ) { * p = 1 ; } static unsafe void Main ( string [ ] args ) { int [ ] a = new int [ 10 ] ; fixed ( int * p2 = & x , int * p3 = ) F ( GetP2 ( p2 ) ) ; } unsafe private static int * GetP2 ( int * p2 ) { return p2 ; } } ");
         }
 
         [WorkItem(544510)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNotOnUsingAlias()
+        public async Task TestNotOnUsingAlias()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using [|S|] = System ; S . Console . WriteLine ( ""hello world"" ) ; ");
         }
 
         [WorkItem(544907)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestExpressionTLambda()
+        public async Task TestExpressionTLambda()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Linq . Expressions ; class C { static void Main ( ) { Expression < Func < int , int > > e = x => [|Foo|] ; } } ",
 @"using System ; using System . Linq . Expressions ; class C { public static int Foo { get ; private set ; } static void Main ( ) { Expression < Func < int , int > > e = x => Foo ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNoGenerationIntoEntirelyHiddenType()
+        public async Task TestNoGenerationIntoEntirelyHiddenType()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"
 class C
 {
@@ -1473,33 +1474,33 @@ class D
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInReturnStatement()
+        public async Task TestInReturnStatement()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { return [|foo|] ; } } ",
 @"class Program { private object foo ; void Main ( ) { return foo ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestLocal1()
+        public async Task TestLocal1()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { Foo ( [|bar|] ) ; } static void Foo ( int i ) { } } ",
 @"class Program { void Main ( ) { int bar = 0 ; Foo ( bar ) ; } static void Foo ( int i ) { } } ",
 index: 3);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestLocalMissingForVar()
+        public async Task TestLocalMissingForVar()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program { void Main ( ) { var x = [|var|] ; } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestOutLocal1()
+        public async Task TestOutLocal1()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { Foo ( out [|bar|] ) ; } static void Foo ( out int i ) { } } ",
 @"class Program { void Main ( ) { int bar ; Foo ( out bar ) ; } static void Foo ( out int i ) { } } ",
 index: 1);
@@ -1507,9 +1508,9 @@ index: 1);
 
         [WorkItem(809542)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestLocalBeforeComment()
+        public async Task TestLocalBeforeComment()
         {
-            Test(
+            await TestAsync(
 @"class Program 
 { 
     void Main ()
@@ -1538,9 +1539,9 @@ index: 1);
 
         [WorkItem(809542)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestLocalAfterComment()
+        public async Task TestLocalAfterComment()
         {
-            Test(
+            await TestAsync(
 @"class Program 
 { 
     void Main ()
@@ -1569,9 +1570,9 @@ index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateIntoVisiblePortion()
+        public async Task TestGenerateIntoVisiblePortion()
         {
-            Test(
+            await TestAsync(
 @"using System;
 
 #line hidden
@@ -1600,9 +1601,9 @@ compareTokens: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMissingWhenNoAvailableRegionToGenerateInto()
+        public async Task TestMissingWhenNoAvailableRegionToGenerateInto()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System;
 
 #line hidden
@@ -1619,9 +1620,9 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateLocalAvailableIfBlockIsNotHidden()
+        public async Task TestGenerateLocalAvailableIfBlockIsNotHidden()
         {
-            Test(
+            await TestAsync(
 @"using System;
 
 #line hidden
@@ -1654,129 +1655,129 @@ compareTokens: false);
 
         [WorkItem(545217)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateLocalNameSimplification()
+        public async Task TestGenerateLocalNameSimplification()
         {
-            Test(
+            await TestAsync(
 @"class Program { void foo ( ) { bar ( [|xyz|] ) ; } struct sfoo { } void bar ( sfoo x ) { } } ",
 @"class Program { void foo ( ) { sfoo xyz = default ( sfoo ) ; bar ( xyz ) ; } struct sfoo { } void bar ( sfoo x ) { } } ",
 index: 3);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestParenthesizedExpression()
+        public async Task TestParenthesizedExpression()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { int v = 1 + ( [|k|] ) ; } } ",
 @"class Program { private int k ; void Main ( ) { int v = 1 + ( k ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInSelect()
+        public async Task TestInSelect()
         {
-            Test(
+            await TestAsync(
 @"using System . Linq ; class Program { void Main ( string [ ] args ) { var q = from a in args select [|v|] ; } } ",
 @"using System . Linq ; class Program { private object v ; void Main ( string [ ] args ) { var q = from a in args select v ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInChecked()
+        public async Task TestInChecked()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { int [ ] a = null ; int [ ] temp = checked ( [|foo|] ) ; } } ",
 @"class Program { private int [ ] foo ; void Main ( ) { int [ ] a = null ; int [ ] temp = checked ( foo ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInArrayRankSpecifier()
+        public async Task TestInArrayRankSpecifier()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { var v = new int [ [|k|] ] ; } } ",
 @"class Program { private int k ; void Main ( ) { var v = new int [ k ] ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInConditional1()
+        public async Task TestInConditional1()
         {
-            Test(
+            await TestAsync(
 @"class Program { static void Main ( ) { int i = [|foo|] ? bar : baz ; } } ",
 @"class Program { private static bool foo ; static void Main ( ) { int i = foo ? bar : baz ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInConditional2()
+        public async Task TestInConditional2()
         {
-            Test(
+            await TestAsync(
 @"class Program { static void Main ( ) { int i = foo ? [|bar|] : baz ; } } ",
 @"class Program { private static int bar ; static void Main ( ) { int i = foo ? bar : baz ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInConditional3()
+        public async Task TestInConditional3()
         {
-            Test(
+            await TestAsync(
 @"class Program { static void Main ( ) { int i = foo ? bar : [|baz|] ; } } ",
 @"class Program { private static int baz ; static void Main ( ) { int i = foo ? bar : baz ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInCast()
+        public async Task TestInCast()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { var x = ( int ) [|y|] ; } } ",
 @"class Program { private int y ; void Main ( ) { var x = ( int ) y ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInIf()
+        public async Task TestInIf()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { if ( [|foo|] ) { } } } ",
 @"class Program { private bool foo ; void Main ( ) { if ( foo ) { } } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInSwitch()
+        public async Task TestInSwitch()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { switch ( [|foo|] ) { } } } ",
 @"class Program { private int foo ; void Main ( ) { switch ( foo ) { } } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMissingOnNamespace()
+        public async Task TestMissingOnNamespace()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program { void Main ( ) { [|System|] . Console . WriteLine ( 4 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMissingOnType()
+        public async Task TestMissingOnType()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program { void Main ( ) { [|System . Console|] . WriteLine ( 4 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestMissingOnBase()
+        public async Task TestMissingOnBase()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program { void Main ( ) { [|base|] . ToString ( ) ; } } ");
         }
 
         [WorkItem(545273)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFromAssign1()
+        public async Task TestGenerateFromAssign1()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { [|undefined|] = 1 ; } } ",
 @"class Program { void Main ( ) { var undefined = 1 ; } } ",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestFuncAssignment()
+        public async Task TestFuncAssignment()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { [|undefined|] = ( x ) => 2 ; } } ",
 @"class Program { void Main ( ) { System.Func < object , int > undefined =  ( x ) => 2 ; } } ",
 index: 2);
@@ -1784,9 +1785,9 @@ index: 2);
 
         [WorkItem(545273)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFromAssign1NotAsVar()
+        public async Task TestGenerateFromAssign1NotAsVar()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { [|undefined|] = 1 ; } } ",
 @"class Program { void Main ( ) { int undefined = 1 ; } } ",
 index: 2,
@@ -1795,9 +1796,9 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
 
         [WorkItem(545273)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFromAssign2()
+        public async Task TestGenerateFromAssign2()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { [|undefined|] = new { P = ""1"" } ; } } ",
 @"class Program { void Main ( ) { var undefined = new { P = ""1"" } ; } } ",
 index: 2);
@@ -1805,9 +1806,9 @@ index: 2);
 
         [WorkItem(545269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInVenus1()
+        public async Task TestGenerateInVenus1()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"
 class C
 {
@@ -1824,7 +1825,7 @@ class C
 
         [WorkItem(545269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInVenus2()
+        public async Task TestGenerateInVenus2()
         {
             var code = @"
 class C
@@ -1838,9 +1839,9 @@ class C
 #line hidden
 }
 ";
-            TestExactActionSetOffered(code, new[] { string.Format(FeaturesResources.GenerateLocal, "Bar") });
+            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.GenerateLocal, "Bar") });
 
-            Test(code,
+            await TestAsync(code,
 @"
 class C
 {
@@ -1857,18 +1858,18 @@ class C
 
         [WorkItem(546027)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyFromAttribute()
+        public async Task TestGeneratePropertyFromAttribute()
         {
-            Test(
+            await TestAsync(
 @"using System ; [ AttributeUsage ( AttributeTargets . Class ) ] class MyAttrAttribute : Attribute { } [ MyAttr ( 123 , [|Version|] = 1 ) ] class D { } ",
 @"using System ; [ AttributeUsage ( AttributeTargets . Class ) ] class MyAttrAttribute : Attribute { public int Version { get ; set ; } } [ MyAttr ( 123 , Version = 1 ) ] class D { } ");
         }
 
         [WorkItem(545232)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestNewLinePreservationBeforeInsertingLocal()
+        public async Task TestNewLinePreservationBeforeInsertingLocal()
         {
-            Test(
+            await TestAsync(
 @"using System;
 namespace CSharpDemoApp
 {
@@ -1912,9 +1913,9 @@ compareTokens: false);
 
         [WorkItem(863346)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInGenericMethod_Local()
+        public async Task TestGenerateInGenericMethod_Local()
         {
-            Test(
+            await TestAsync(
 @"using System;
 class TestClass<T1>
 {
@@ -1954,9 +1955,9 @@ compareTokens: false);
 
         [WorkItem(863346)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateInGenericMethod_Property()
+        public async Task TestGenerateInGenericMethod_Property()
         {
-            Test(
+            await TestAsync(
 @"using System;
 class TestClass<T1>
 {
@@ -1996,72 +1997,72 @@ compareTokens: false);
 
         [WorkItem(865067)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestWithYieldReturn()
+        public async Task TestWithYieldReturn()
         {
-            Test(
+            await TestAsync(
 @"using System; using System.Collections.Generic; class Program { IEnumerable<DayOfWeek> Foo ( ) { yield return [|abc|]; } }",
 @"using System; using System.Collections.Generic; class Program { private DayOfWeek abc; IEnumerable<DayOfWeek> Foo ( ) { yield return abc; } }");
         }
 
         [WorkItem(877580)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestWithThrow()
+        public async Task TestWithThrow()
         {
-            Test(
+            await TestAsync(
 @"using System; class Program { void Foo ( ) { throw [|MyExp|]; } }",
 @"using System; class Program { private Exception MyExp; void Foo ( ) { throw MyExp; } }", index: 1);
         }
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafeField()
+        public async Task TestUnsafeField()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|int* a = foo|]; } }",
 @"class Class { private unsafe int* foo; void Method() { int* a = foo; } }");
         }
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafeField2()
+        public async Task TestUnsafeField2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|int*[] a = foo|]; } }",
 @"class Class { private unsafe int*[] foo; void Method() { int*[] a = foo; } }");
         }
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafeFieldInUnsafeClass()
+        public async Task TestUnsafeFieldInUnsafeClass()
         {
-            Test(
+            await TestAsync(
 @"unsafe class Class { void Method() { [|int* a = foo|]; } }",
 @"unsafe class Class { private int* foo; void Method() { int* a = foo; } }");
         }
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafeFieldInNestedClass()
+        public async Task TestUnsafeFieldInNestedClass()
         {
-            Test(
+            await TestAsync(
 @"unsafe class Class { class MyClass { void Method() { [|int* a = foo|]; } } }",
 @"unsafe class Class { class MyClass { private int* foo; void Method() { int* a = foo; } } }");
         }
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafeFieldInNestedClass2()
+        public async Task TestUnsafeFieldInNestedClass2()
         {
-            Test(
+            await TestAsync(
 @"class Class { unsafe class MyClass { void Method() { [|int* a = Class.foo|]; } } }",
 @"class Class { private static unsafe int* foo; unsafe class MyClass { void Method() { int* a = Class.foo; } } }");
         }
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafeReadOnlyField()
+        public async Task TestUnsafeReadOnlyField()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|int* a = foo|]; } }",
 @"class Class { private readonly unsafe int* foo; void Method() { int* a = foo; } }",
 index: 1);
@@ -2069,9 +2070,9 @@ index: 1);
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafeReadOnlyField2()
+        public async Task TestUnsafeReadOnlyField2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|int*[] a = foo|]; } }",
 @"class Class { private readonly unsafe int*[] foo; void Method() { int*[] a = foo; } }",
 index: 1);
@@ -2079,9 +2080,9 @@ index: 1);
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafeReadOnlyFieldInUnsafeClass()
+        public async Task TestUnsafeReadOnlyFieldInUnsafeClass()
         {
-            Test(
+            await TestAsync(
 @"unsafe class Class { void Method() { [|int* a = foo|]; } }",
 @"unsafe class Class { private readonly int* foo; void Method() { int* a = foo; } }",
 index: 1);
@@ -2089,9 +2090,9 @@ index: 1);
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafeReadOnlyFieldInNestedClass()
+        public async Task TestUnsafeReadOnlyFieldInNestedClass()
         {
-            Test(
+            await TestAsync(
 @"unsafe class Class { class MyClass { void Method() { [|int* a = foo|]; } } }",
 @"unsafe class Class { class MyClass { private readonly int* foo; void Method() { int* a = foo; } } }",
 index: 1);
@@ -2099,9 +2100,9 @@ index: 1);
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafeReadOnlyFieldInNestedClass2()
+        public async Task TestUnsafeReadOnlyFieldInNestedClass2()
         {
-            Test(
+            await TestAsync(
 @"class Class { unsafe class MyClass { void Method() { [|int* a = Class.foo|]; } } }",
 @"class Class { private static readonly unsafe int* foo; unsafe class MyClass { void Method() { int* a = Class.foo; } } }",
 index: 1);
@@ -2109,9 +2110,9 @@ index: 1);
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafeProperty()
+        public async Task TestUnsafeProperty()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|int* a = foo|]; } }",
 @"class Class { public unsafe int* foo { get; private set; } void Method() { int* a = foo; } }",
 index: 2);
@@ -2119,9 +2120,9 @@ index: 2);
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafeProperty2()
+        public async Task TestUnsafeProperty2()
         {
-            Test(
+            await TestAsync(
 @"class Class { void Method() { [|int*[] a = foo|]; } }",
 @"class Class { public unsafe int*[] foo { get; private set; } void Method() { int*[] a = foo; } }",
 index: 2);
@@ -2129,9 +2130,9 @@ index: 2);
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafePropertyInUnsafeClass()
+        public async Task TestUnsafePropertyInUnsafeClass()
         {
-            Test(
+            await TestAsync(
 @"unsafe class Class { void Method() { [|int* a = foo|]; } }",
 @"unsafe class Class { public int* foo { get; private set; } void Method() { int* a = foo; } }",
 index: 2);
@@ -2139,9 +2140,9 @@ index: 2);
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafePropertyInNestedClass()
+        public async Task TestUnsafePropertyInNestedClass()
         {
-            Test(
+            await TestAsync(
 @"unsafe class Class { class MyClass { void Method() { [|int* a = foo|]; } } }",
 @"unsafe class Class { class MyClass { public int* foo { get; private set; } void Method() { int* a = foo; } } }",
 index: 2);
@@ -2149,9 +2150,9 @@ index: 2);
 
         [WorkItem(530177)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestUnsafePropertyInNestedClass2()
+        public async Task TestUnsafePropertyInNestedClass2()
         {
-            Test(
+            await TestAsync(
 @"class Class { unsafe class MyClass { void Method() { [|int* a = Class.foo|]; } } }",
 @"class Class { public static unsafe int* foo { get; private set; } unsafe class MyClass { void Method() { int* a = Class.foo; } } }",
 index: 2);
@@ -2159,18 +2160,18 @@ index: 2);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfProperty()
+        public async Task TestInsideNameOfProperty()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|Z|]); } }",
 @"class C { public object Z { get; private set; } void M() { var x = nameof(Z); } }");
         }
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfField()
+        public async Task TestInsideNameOfField()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|Z|]); } }",
 @"class C { private object Z; void M() { var x = nameof(Z); } }",
 index: 1);
@@ -2178,9 +2179,9 @@ index: 1);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfReadonlyField()
+        public async Task TestInsideNameOfReadonlyField()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|Z|]); } }",
 @"class C { private readonly object Z; void M() { var x = nameof(Z); } }",
 index: 2);
@@ -2188,9 +2189,9 @@ index: 2);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfLocal()
+        public async Task TestInsideNameOfLocal()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|Z|]); } }",
 @"class C { void M() { object Z = null; var x = nameof(Z); } }",
 index: 3);
@@ -2198,18 +2199,18 @@ index: 3);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfProperty2()
+        public async Task TestInsideNameOfProperty2()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|Z.X|]); } }",
 @"class C { public object Z { get; private set; } void M() { var x = nameof(Z.X); } }");
         }
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfField2()
+        public async Task TestInsideNameOfField2()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|Z.X|]); } }",
 @"class C { private object Z; void M() { var x = nameof(Z.X); } }",
 index: 1);
@@ -2217,9 +2218,9 @@ index: 1);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfReadonlyField2()
+        public async Task TestInsideNameOfReadonlyField2()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|Z.X|]); } }",
 @"class C { private readonly object Z; void M() { var x = nameof(Z.X); } }",
 index: 2);
@@ -2227,9 +2228,9 @@ index: 2);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfLocal2()
+        public async Task TestInsideNameOfLocal2()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|Z.X|]); } }",
 @"class C { void M() { object Z = null; var x = nameof(Z.X); } }",
 index: 3);
@@ -2237,18 +2238,18 @@ index: 3);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfProperty3()
+        public async Task TestInsideNameOfProperty3()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|Z.X.Y|]); } }",
 @"class C { public object Z { get; private set; } void M() { var x = nameof(Z.X.Y); } }");
         }
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfField3()
+        public async Task TestInsideNameOfField3()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|Z.X.Y|]); } }",
 @"class C { private object Z; void M() { var x = nameof(Z.X.Y); } }",
 index: 1);
@@ -2256,9 +2257,9 @@ index: 1);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfReadonlyField3()
+        public async Task TestInsideNameOfReadonlyField3()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|Z.X.Y|]); } }",
 @"class C { private readonly object Z; void M() { var x = nameof(Z.X.Y); } }",
 index: 2);
@@ -2266,9 +2267,9 @@ index: 2);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfLocal3()
+        public async Task TestInsideNameOfLocal3()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|Z.X.Y|]); } }",
 @"class C { void M() { object Z = null; var x = nameof(Z.X.Y); } }",
 index: 3);
@@ -2276,30 +2277,30 @@ index: 3);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfMissing()
+        public async Task TestInsideNameOfMissing()
         {
-            TestMissing(@"class C { void M() { var x = [|nameof(1 + 2)|]; } }");
+            await TestMissingAsync(@"class C { void M() { var x = [|nameof(1 + 2)|]; } }");
         }
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfMissing2()
+        public async Task TestInsideNameOfMissing2()
         {
-            TestMissing(@"class C { void M() { var y = 1 + 2; var x = [|nameof(y)|]; } }");
+            await TestMissingAsync(@"class C { void M() { var y = 1 + 2; var x = [|nameof(y)|]; } }");
         }
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfMissing3()
+        public async Task TestInsideNameOfMissing3()
         {
-            TestMissing(@"class C { void M() { var y = 1 + 2; var z = """"; var x = [|nameof(y, z)|]; } }");
+            await TestMissingAsync(@"class C { void M() { var y = 1 + 2; var z = """"; var x = [|nameof(y, z)|]; } }");
         }
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfProperty4()
+        public async Task TestInsideNameOfProperty4()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|y|], z); } }",
 @"class C { public object y { get; private set; } void M() { var x = nameof(y, z); } }",
 index: 2);
@@ -2307,18 +2308,18 @@ index: 2);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfField4()
+        public async Task TestInsideNameOfField4()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|y|], z); } }",
 @"class C { private object y; void M() { var x = nameof(y, z); } }");
         }
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfReadonlyField4()
+        public async Task TestInsideNameOfReadonlyField4()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|y|], z); } }",
 @"class C { private readonly object y; void M() { var x = nameof(y, z); } }",
 index: 1);
@@ -2326,9 +2327,9 @@ index: 1);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfLocal4()
+        public async Task TestInsideNameOfLocal4()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|y|], z); } }",
 @"class C { void M() { object y = null; var x = nameof(y, z); } }",
 index: 3);
@@ -2336,9 +2337,9 @@ index: 3);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfProperty5()
+        public async Task TestInsideNameOfProperty5()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|y|]); } private object nameof(object y) { return null; } }",
 @"class C { public object y { get; private set; } void M() { var x = nameof(y); } private object nameof(object y) { return null; } }",
 index: 2);
@@ -2346,18 +2347,18 @@ index: 2);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfField5()
+        public async Task TestInsideNameOfField5()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|y|]); } private object nameof(object y) { return null; } }",
 @"class C { private object y; void M() { var x = nameof(y); } private object nameof(object y) { return null; } }");
         }
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfReadonlyField5()
+        public async Task TestInsideNameOfReadonlyField5()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|y|]); } private object nameof(object y) { return null; } }",
 @"class C { private readonly object y; void M() { var x = nameof(y); } private object nameof(object y) { return null; } }",
 index: 1);
@@ -2365,9 +2366,9 @@ index: 1);
 
         [WorkItem(1032176)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestInsideNameOfLocal5()
+        public async Task TestInsideNameOfLocal5()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var x = nameof([|y|]); } private object nameof(object y) { return null; } }",
 @"class C { void M() { object y = null; var x = nameof(y); } private object nameof(object y) { return null; } }",
 index: 3);
@@ -2375,18 +2376,18 @@ index: 3);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestConditionalAccessProperty()
+        public async Task TestConditionalAccessProperty()
         {
-            Test(
+            await TestAsync(
 @"class C { void Main ( C a ) { C x = a ? [|. Instance|] ; } } ",
 @"class C { public C Instance { get ; private set ; } void Main ( C a ) { C x = a ? . Instance ; } } ");
         }
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestConditionalAccessField()
+        public async Task TestConditionalAccessField()
         {
-            Test(
+            await TestAsync(
 @"class C { void Main ( C a ) { C x = a ? [|. Instance|] ; } } ",
 @"class C { private C Instance ; void Main ( C a ) { C x = a ? . Instance ; } } ",
 index: 1);
@@ -2394,9 +2395,9 @@ index: 1);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestConditionalAccessReadonlyField()
+        public async Task TestConditionalAccessReadonlyField()
         {
-            Test(
+            await TestAsync(
 @"class C { void Main ( C a ) { C x = a ? [|. Instance|] ; } } ",
 @"class C { private readonly C Instance ; void Main ( C a ) { C x = a ? . Instance ; } } ",
 index: 2);
@@ -2404,18 +2405,18 @@ index: 2);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestConditionalAccessVarProperty()
+        public async Task TestConditionalAccessVarProperty()
         {
-            Test(
+            await TestAsync(
 @"class C { void Main ( C a ) { var x = a ? [|. Instance|] ; } } ",
 @"class C { public object Instance { get ; private set ; } void Main ( C a ) { var x = a ? . Instance ; } } ");
         }
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestConditionalAccessVarField()
+        public async Task TestConditionalAccessVarField()
         {
-            Test(
+            await TestAsync(
 @"class C { void Main ( C a ) { var x = a ? [|. Instance|] ; } } ",
 @"class C { private object Instance ; void Main ( C a ) { var x = a ? . Instance ; } } ",
 index: 1);
@@ -2423,9 +2424,9 @@ index: 1);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestConditionalAccessVarReadOnlyField()
+        public async Task TestConditionalAccessVarReadOnlyField()
         {
-            Test(
+            await TestAsync(
 @"class C { void Main ( C a ) { var x = a ? [|. Instance|] ; } } ",
 @"class C { private readonly object Instance ; void Main ( C a ) { var x = a ? . Instance ; } } ",
 index: 2);
@@ -2433,18 +2434,18 @@ index: 2);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestConditionalAccessNullableProperty()
+        public async Task TestConditionalAccessNullableProperty()
         {
-            Test(
+            await TestAsync(
 @"class C { void Main ( C a ) { int ? x = a ? [|. B|] ; } } ",
 @"class C { public int B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B ; } } ");
         }
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestConditionalAccessNullableField()
+        public async Task TestConditionalAccessNullableField()
         {
-            Test(
+            await TestAsync(
 @"class C { void Main ( C a ) { int ? x = a ? [|. B|] ; } } ",
 @"class C { private int B ; void Main ( C a ) { int ? x = a ? . B ; } } ",
 index: 1);
@@ -2452,9 +2453,9 @@ index: 1);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestConditionalAccessNullableReadonlyField()
+        public async Task TestConditionalAccessNullableReadonlyField()
         {
-            Test(
+            await TestAsync(
 @"class C { void Main ( C a ) { int ? x = a ? [|. B|] ; } } ",
 @"class C { private readonly int B ; void Main ( C a ) { int ? x = a ? . B ; } } ",
 index: 2);
@@ -2462,45 +2463,45 @@ index: 2);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInConditionalAccessExpression()
+        public async Task TestGeneratePropertyInConditionalAccessExpression()
         {
-            Test(
+            await TestAsync(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { C x = a ? . B . [|C|] ; } public class E { } } ",
 @"class C { public E B { get ; private set ; } void Main ( C a ) { C x = a ? . B . C ; } public class E { public C C { get ; internal set ; } } } ");
         }
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInConditionalAccessExpression2()
+        public async Task TestGeneratePropertyInConditionalAccessExpression2()
         {
-            Test(
+            await TestAsync(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int x = a ? . B . [|C|] ; } public class E { } } ",
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int x = a ? . B . C ; } public class E { public int C { get ; internal set ; } } } ");
         }
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInConditionalAccessExpression3()
+        public async Task TestGeneratePropertyInConditionalAccessExpression3()
         {
-            Test(
+            await TestAsync(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B . [|C|] ; } public class E { } } ",
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B . C ; } public class E { public int C { get ; internal set ; } } } ");
         }
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInConditionalAccessExpression4()
+        public async Task TestGeneratePropertyInConditionalAccessExpression4()
         {
-            Test(
+            await TestAsync(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { var x = a ? . B . [|C|] ; } public class E { } } ",
 @"class C { public E B { get ; private set ; } void Main ( C a ) { var x = a ? . B . C ; } public class E { public object C { get ; internal set ; } } } ");
         }
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInConditionalAccessExpression()
+        public async Task TestGenerateFieldInConditionalAccessExpression()
         {
-            Test(
+            await TestAsync(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { C x = a ? . B . [|C|] ; } public class E { } } ",
 @"class C { public E B { get ; private set ; } void Main ( C a ) { C x = a ? . B . C ; } public class E { internal C C ; } } ",
 index: 1);
@@ -2508,9 +2509,9 @@ index: 1);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInConditionalAccessExpression2()
+        public async Task TestGenerateFieldInConditionalAccessExpression2()
         {
-            Test(
+            await TestAsync(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int x = a ? . B . [|C|] ; } public class E { } } ",
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int x = a ? . B . C ; } public class E { internal int C ; } } ",
 index: 1);
@@ -2518,9 +2519,9 @@ index: 1);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInConditionalAccessExpression3()
+        public async Task TestGenerateFieldInConditionalAccessExpression3()
         {
-            Test(
+            await TestAsync(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B . [|C|] ; } public class E { } } ",
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B . C ; } public class E { internal int C ; } } ",
 index: 1);
@@ -2528,9 +2529,9 @@ index: 1);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInConditionalAccessExpression4()
+        public async Task TestGenerateFieldInConditionalAccessExpression4()
         {
-            Test(
+            await TestAsync(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { var x = a ? . B . [|C|] ; } public class E { } } ",
 @"class C { public E B { get ; private set ; } void Main ( C a ) { var x = a ? . B . C ; } public class E { internal object C ; } } ",
 index: 1);
@@ -2538,9 +2539,9 @@ index: 1);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadonlyFieldInConditionalAccessExpression()
+        public async Task TestGenerateReadonlyFieldInConditionalAccessExpression()
         {
-            Test(
+            await TestAsync(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { C x = a ? . B . [|C|] ; } public class E { } } ",
 @"class C { public E B { get ; private set ; } void Main ( C a ) { C x = a ? . B . C ; } public class E { internal readonly C C ; } } ",
 index: 2);
@@ -2548,9 +2549,9 @@ index: 2);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadonlyFieldInConditionalAccessExpression2()
+        public async Task TestGenerateReadonlyFieldInConditionalAccessExpression2()
         {
-            Test(
+            await TestAsync(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int x = a ? . B . [|C|] ; } public class E { } } ",
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int x = a ? . B . C ; } public class E { internal readonly int C ; } } ",
 index: 2);
@@ -2558,9 +2559,9 @@ index: 2);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadonlyFieldInConditionalAccessExpression3()
+        public async Task TestGenerateReadonlyFieldInConditionalAccessExpression3()
         {
-            Test(
+            await TestAsync(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B . [|C|] ; } public class E { } } ",
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B . C ; } public class E { internal readonly int C ; } } ",
 index: 2);
@@ -2568,244 +2569,244 @@ index: 2);
 
         [WorkItem(1064748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadonlyFieldInConditionalAccessExpression4()
+        public async Task TestGenerateReadonlyFieldInConditionalAccessExpression4()
         {
-            Test(
+            await TestAsync(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { var x = a ? . B . [|C|] ; } public class E { } } ",
 @"class C { public E B { get ; private set ; } void Main ( C a ) { var x = a ? . B . C ; } public class E { internal readonly object C ; } } ",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInPropertyInitializers()
+        public async Task TestGenerateFieldInPropertyInitializers()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = [|y|] ; } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { private static int y ; public int MyProperty { get ; } = y ; } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadonlyFieldInPropertyInitializers()
+        public async Task TestGenerateReadonlyFieldInPropertyInitializers()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = [|y|] ; } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { private static readonly int y ; public int MyProperty { get ; } = y ; } ",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInPropertyInitializers()
+        public async Task TestGeneratePropertyInPropertyInitializers()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = [|y|] ; } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public static int y { get ; private set ; } public int MyProperty { get ; } = y ;  } ",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInExpressionBodyMember()
+        public async Task TestGenerateFieldInExpressionBodyMember()
         {
-            Test(
+            await TestAsync(
 @"class Program { public int Y => [|y|] ; } ",
 @"class Program { private int y ; public int Y => y ; } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadonlyFieldInExpressionBodyMember()
+        public async Task TestGenerateReadonlyFieldInExpressionBodyMember()
         {
-            Test(
+            await TestAsync(
 @"class Program { public int Y => [|y|] ; } ",
 @"class Program { private readonly int y ; public int Y => y ; } ",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInExpressionBodyMember()
+        public async Task TestGeneratePropertyInExpressionBodyMember()
         {
-            Test(
+            await TestAsync(
 @"class Program { public int Y => [|y|] ; } ",
 @"class Program { public int y { get; private set; } public int Y => y ; } ",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInExpressionBodyMember2()
+        public async Task TestGenerateFieldInExpressionBodyMember2()
         {
-            Test(
+            await TestAsync(
 @"class C { public static C operator -- ( C p ) => [|x|] ; } ",
 @"class C { private static C x ; public static C operator -- ( C p ) => x ; } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadOnlyFieldInExpressionBodyMember2()
+        public async Task TestGenerateReadOnlyFieldInExpressionBodyMember2()
         {
-            Test(
+            await TestAsync(
 @"class C { public static C operator -- ( C p ) => [|x|] ; } ",
 @"class C { private static readonly C x ; public static C operator -- ( C p ) => x ; } ",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInExpressionBodyMember2()
+        public async Task TestGeneratePropertyInExpressionBodyMember2()
         {
-            Test(
+            await TestAsync(
 @"class C { public static C operator -- ( C p ) => [|x|] ; } ",
 @"class C { public static C x { get ; private set ; } public static C operator -- ( C p ) => x ; } ",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInExpressionBodyMember3()
+        public async Task TestGenerateFieldInExpressionBodyMember3()
         {
-            Test(
+            await TestAsync(
 @"class C { public static C GetValue ( C p ) => [|x|] ; } ",
 @"class C { private static C x ; public static C GetValue ( C p ) => x ; } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadOnlyFieldInExpressionBodyMember3()
+        public async Task TestGenerateReadOnlyFieldInExpressionBodyMember3()
         {
-            Test(
+            await TestAsync(
 @"class C { public static C GetValue ( C p ) => [|x|] ; } ",
 @"class C { private static readonly C x ; public static C GetValue ( C p ) => x ; } ",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInExpressionBodyMember3()
+        public async Task TestGeneratePropertyInExpressionBodyMember3()
         {
-            Test(
+            await TestAsync(
 @"class C { public static C GetValue ( C p ) => [|x|] ; } ",
 @"class C { public static C x { get ; private set ; } public static C GetValue ( C p ) => x ; } ",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInDictionaryInitializer()
+        public async Task TestGenerateFieldInDictionaryInitializer()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ [|key|] ] = 0 } ; } } ",
 @"using System . Collections . Generic ; class Program { private static string key ; static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ key ] = 0 } ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInDictionaryInitializer()
+        public async Task TestGeneratePropertyInDictionaryInitializer()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = 0 , [ [|One|] ] = 1 , [ ""Two"" ] = 2 } ; } } ",
 @"using System . Collections . Generic ; class Program { public static string One { get ; private set ; } static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = 0 , [ One ] = 1 , [ ""Two"" ] = 2 } ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInDictionaryInitializer2()
+        public async Task TestGenerateFieldInDictionaryInitializer2()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = [|i|] } ; } } ",
 @"using System . Collections . Generic ; class Program { private static int i ; static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = i } ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadOnlyFieldInDictionaryInitializer()
+        public async Task TestGenerateReadOnlyFieldInDictionaryInitializer()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ [|key|] ] = 0 } ; } } ",
 @"using System . Collections . Generic ; class Program { private static readonly string key ; static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ key ] = 0 } ; } } ",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInDictionaryInitializer3()
+        public async Task TestGenerateFieldInDictionaryInitializer3()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = 0 , [ [|One|] ] = 1 , [ ""Two"" ] = 2 } ; } } ",
 @"using System . Collections . Generic ; class Program { private static string One ; static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = 0 , [ One ] = 1 , [ ""Two"" ] = 2 } ; } } ",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadOnlyFieldInDictionaryInitializer2()
+        public async Task TestGenerateReadOnlyFieldInDictionaryInitializer2()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = [|i|] } ; } } ",
 @"using System . Collections . Generic ; class Program { private static readonly int i ; static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = i } ; } } ",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInDictionaryInitializer2()
+        public async Task TestGeneratePropertyInDictionaryInitializer2()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ [|key|] ] = 0 } ; } } ",
 @"using System . Collections . Generic ; class Program { public static string key { get ; private set ; } static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ key ] = 0 } ; } } ",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadOnlyFieldInDictionaryInitializer3()
+        public async Task TestGenerateReadOnlyFieldInDictionaryInitializer3()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = 0 , [ [|One|] ] = 1 , [ ""Two"" ] = 2 } ; } } ",
 @"using System . Collections . Generic ; class Program { private static readonly string One ; static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = 0 , [ One ] = 1 , [ ""Two"" ] = 2 } ; } } ",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInDictionaryInitializer3()
+        public async Task TestGeneratePropertyInDictionaryInitializer3()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = [|i|] } ; } } ",
 @"using System . Collections . Generic ; class Program { public static int i { get ; private set ; } static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = i } ; } } ",
 index: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateLocalInDictionaryInitializer()
+        public async Task TestGenerateLocalInDictionaryInitializer()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ [|key|] ] = 0 } ; } } ",
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { string key = null ; var x = new Dictionary < string , int > { [ key ] = 0 } ; } } ",
 index: 3);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateLocalInDictionaryInitializer2()
+        public async Task TestGenerateLocalInDictionaryInitializer2()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = 0 , [ [|One|] ] = 1 , [ ""Two"" ] = 2 } ; } } ",
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { string One = null ; var x = new Dictionary < string , int > { [ ""Zero"" ] = 0 , [ One ] = 1 , [ ""Two"" ] = 2 } ; } } ",
 index: 3);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateLocalInDictionaryInitializer3()
+        public async Task TestGenerateLocalInDictionaryInitializer3()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = [|i|] } ; } } ",
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { int i = 0 ; var x = new Dictionary < string , int > { [ ""Zero"" ] = i } ; } } ",
 index: 3);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateVariableFromLambda()
+        public async Task TestGenerateVariableFromLambda()
         {
-            Test(
+            await TestAsync(
 @"using System ; class Program { static void Main ( string [ ] args ) { [|foo|] = ( ) => { return 0 ; } ; } } ",
 @"using System ; class Program { private static Func < int > foo ; static void Main ( string [ ] args ) { foo = ( ) => { return 0 ; } ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateVariableFromLambda2()
+        public async Task TestGenerateVariableFromLambda2()
         {
-            Test(
+            await TestAsync(
 @"using System ; class Program { static void Main ( string [ ] args ) { [|foo|] = ( ) => { return 0 ; } ; } } ",
 @"using System ; class Program { public static Func < int > foo { get ; private set ; } static void Main ( string [ ] args ) { foo = ( ) => { return 0 ; } ; } } ",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateVariableFromLambda3()
+        public async Task TestGenerateVariableFromLambda3()
         {
-            Test(
+            await TestAsync(
 @"using System ; class Program { static void Main ( string [ ] args ) { [|foo|] = ( ) => { return 0 ; } ; } } ",
 @"using System ; class Program { static void Main ( string [ ] args ) { Func < int > foo = ( ) => { return 0 ; } ; } } ",
 index: 2);

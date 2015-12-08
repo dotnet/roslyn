@@ -474,6 +474,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return isOwner;
             }
 
+            AttributeLocation allowedTargets = attributesOwner.AllowedAttributeLocations;
+
             AttributeLocation explicitTarget = targetOpt.GetAttributeLocation();
             if (explicitTarget == AttributeLocation.None)
             {
@@ -482,13 +484,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     //NOTE: ValueText so that we accept targets like "@return", to match dev10 (DevDiv #2591).
                     diagnostics.Add(ErrorCode.WRN_InvalidAttributeLocation,
-                        targetOpt.Identifier.GetLocation(), targetOpt.Identifier.ValueText);
+                        targetOpt.Identifier.GetLocation(), targetOpt.Identifier.ValueText, allowedTargets.ToDisplayString());
                 }
 
                 return false;
             }
-
-            AttributeLocation allowedTargets = attributesOwner.AllowedAttributeLocations;
+            
             if ((explicitTarget & allowedTargets) == 0)
             {
                 // error: invalid target for symbol

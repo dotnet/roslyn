@@ -1,10 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(542443)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestEvent1()
+        Public Async Function TestEvent1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -34,12 +36,12 @@ public class MainClass
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(542443)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestEvent2()
+        Public Async Function TestEvent2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -69,12 +71,12 @@ public class MainClass
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(542443)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestEvent3()
+        Public Async Function TestEvent3() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -104,12 +106,12 @@ public class MainClass
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(542443)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestEvent4()
+        Public Async Function TestEvent4() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -139,12 +141,12 @@ public class MainClass
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(529819)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestEventCascading1()
+        Public Async Function TestEventCascading1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -158,12 +160,12 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(529819)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestEventCascading2()
+        Public Async Function TestEventCascading2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -177,12 +179,12 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(553324)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestEventParameterCascading()
+        Public Async Function TestEventParameterCascading() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -198,12 +200,12 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(529804)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestCrossAssemblyEventImplementation1()
+        Public Async Function TestCrossAssemblyEventImplementation1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
@@ -231,12 +233,12 @@ class C : I
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(529804)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestCrossAssemblyEventImplementation2()
+        Public Async Function TestCrossAssemblyEventImplementation2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -264,7 +266,7 @@ End Interface
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
     End Class
 End Namespace

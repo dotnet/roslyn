@@ -2947,7 +2947,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         }
 
         [Fact]
-        private void ModuleName001()
+        public void ModuleName001()
         {
             var dir = Temp.CreateDirectory();
 
@@ -4152,7 +4152,8 @@ public class CS1698_a {}
 
 
         [WorkItem(530221, "DevDiv")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [WorkItem(5660, "https://github.com/dotnet/roslyn/issues/5660")]
+        [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
         public void Bug15538()
         {
             // Several Jenkins VMs are still running with local systems permissions.  This suite won't run properly
@@ -4356,7 +4357,7 @@ class myClass
         }
 
         [Fact]
-        private void ResponseFileSplitting()
+        public void ResponseFileSplitting()
         {
             string[] responseFile;
 

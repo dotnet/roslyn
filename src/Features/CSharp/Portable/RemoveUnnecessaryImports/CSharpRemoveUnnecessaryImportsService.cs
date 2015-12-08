@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     return null;
                 }
 
-                return document.WithSyntaxRoot(FormatResult(document, newRoot, cancellationToken));
+                return document.WithSyntaxRoot(await FormatResultAsync(document, newRoot, cancellationToken).ConfigureAwait(false));
             }
         }
 
@@ -80,11 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             return GetUnnecessaryImports(model, root, cancellationToken) as IEnumerable<UsingDirectiveSyntax>;
         }
 
-        private SyntaxNode FormatResult(Document document, CompilationUnitSyntax newRoot, CancellationToken cancellationToken)
+        private Task<SyntaxNode> FormatResultAsync(Document document, CompilationUnitSyntax newRoot, CancellationToken cancellationToken)
         {
             var spans = new List<TextSpan>();
             AddFormattingSpans(newRoot, spans, cancellationToken);
-            return Formatter.Format(newRoot, spans, document.Project.Solution.Workspace, document.Project.Solution.Workspace.Options, cancellationToken: cancellationToken);
+            return Formatter.FormatAsync(newRoot, spans, document.Project.Solution.Workspace, document.Project.Solution.Workspace.Options, cancellationToken: cancellationToken);
         }
 
         private void AddFormattingSpans(

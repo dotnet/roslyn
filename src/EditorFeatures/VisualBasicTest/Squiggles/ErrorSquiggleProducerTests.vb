@@ -16,52 +16,52 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
         Inherits AbstractSquiggleProducerTests
 
         Private Async Function ProduceSquiggles(ParamArray lines As String()) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(lines)
-                Return Await GetErrorSpans(workspace).ConfigureAwait(True)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(lines)
+                Return Await GetErrorSpans(workspace)
             End Using
         End Function
 
         Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), ParamArray lines As String()) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(lines)
-                Return Await GetErrorSpans(workspace, analyzerMap).ConfigureAwait(True)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(lines)
+                Return Await GetErrorSpans(workspace, analyzerMap)
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6932"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub ErrorTagGeneratedForSimpleError()
             ' Make sure we have errors from the tree
-            Dim spans = Await ProduceSquiggles("^").ConfigureAwait(True)
+            Dim spans = Await ProduceSquiggles("^")
             Assert.Equal(1, spans.Count())
 
             Dim firstSpan = spans.First()
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub ArgOutOfRangeExceptionBug_904382()
-            Dim spans = Await ProduceSquiggles("Class C1", "Sub Foo(", "End Class").ConfigureAwait(True)
+            Dim spans = Await ProduceSquiggles("Class C1", "Sub Foo(", "End Class")
 
             'If the following line does not throw an exception then the test passes.
             Dim count = spans.Count
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub ErrorDoesNotCrashPastEOF()
             Dim spans = Await ProduceSquiggles("Class C1",
                                          "    Sub Foo()",
                                          "        Dim x = <xml>",
                                          "    End Sub",
-                                         "End Class").ConfigureAwait(True)
+                                         "End Class")
             Assert.Equal(5, spans.Count())
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub SemanticError()
             Dim spans = Await ProduceSquiggles(
 "Class C1",
 "    Sub Foo(b as Bar)",
 "    End Sub",
-"End Class").ConfigureAwait(True)
+"End Class")
             Assert.Equal(1, spans.Count())
 
             Dim firstSpan = spans.First()
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             Assert.Contains("Bar", DirectCast(firstSpan.Tag.ToolTipContent, String), StringComparison.Ordinal)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub SuggestionTagsForUnnecessaryCode()
 
             Dim analyzerMap = New Dictionary(Of String, DiagnosticAnalyzer())
@@ -91,7 +91,7 @@ Class C1
     Sub Foo()
         Process.Start(GetType(Int32).ToString()) 'Int32 can be simplified.
     End Sub
-End Class").ConfigureAwait(True)).OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
+End Class")).OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
 
             Assert.Equal(2, spans.Length)
             Dim first = spans(0)

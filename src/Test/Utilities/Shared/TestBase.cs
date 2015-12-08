@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -53,7 +54,7 @@ namespace Roslyn.Test.Utilities
         private static MetadataReference[] s_lazyDefaultVbReferences;
         private static MetadataReference[] s_lazyLatestVbReferences;
 
-        public static MetadataReference[] DefaultVbReferences => s_lazyDefaultVbReferences ?? 
+        public static MetadataReference[] DefaultVbReferences => s_lazyDefaultVbReferences ??
             (s_lazyDefaultVbReferences = new[] { MscorlibRef, SystemRef, SystemCoreRef, MsvbRef });
 
         public static MetadataReference[] LatestVbReferences = s_lazyLatestVbReferences ??
@@ -539,10 +540,10 @@ namespace Roslyn.Test.Utilities
         #region Diagnostics
 
         internal static DiagnosticDescription Diagnostic(
-            object code, 
-            string squiggledText = null, 
+            object code,
+            string squiggledText = null,
             object[] arguments = null,
-            LinePosition? startLocation = null, 
+            LinePosition? startLocation = null,
             Func<SyntaxNode, bool> syntaxNodePredicate = null,
             bool argumentOrderDoesNotMatter = false)
         {
@@ -552,10 +553,10 @@ namespace Roslyn.Test.Utilities
                 code as string ?? (object)(int)code,
                 false,
                 squiggledText,
-                arguments, 
-                startLocation, 
-                syntaxNodePredicate, 
-                argumentOrderDoesNotMatter, 
+                arguments,
+                startLocation,
+                syntaxNodePredicate,
+                argumentOrderDoesNotMatter,
                 code.GetType());
         }
 
@@ -569,8 +570,8 @@ namespace Roslyn.Test.Utilities
         {
             return Diagnostic(
                 code,
-                NormalizeDiagnosticString(squiggledText.Value), 
-                arguments, 
+                NormalizeDiagnosticString(squiggledText.Value),
+                arguments,
                 startLocation,
                 syntaxNodePredicate,
                 argumentOrderDoesNotMatter);
@@ -582,10 +583,10 @@ namespace Roslyn.Test.Utilities
             {
                 return inputString.Replace("\n", "\r\n");
             }
-            
+
             return inputString;
         }
 
-#endregion
+        #endregion
     }
 }

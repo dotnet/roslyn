@@ -215,6 +215,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             {
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
+                    case VSConstants.VSStd2KCmdID.TYPECHAR:
+                        {
+                            var operations = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations != null)
+                            {
+                                char typedChar = (char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn);
+                                operations.TypeChar(typedChar);
+                                return VSConstants.S_OK;
+                            }
+                            else
+                            {
+                                _window.Operations.Delete();
+                            }
+                            break;
+                        }
+
                     case VSConstants.VSStd2KCmdID.RETURN:
                         if (_window.Operations.Return())
                         {
@@ -228,12 +244,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     //    break;
 
                     case VSConstants.VSStd2KCmdID.BACKSPACE:
-                        if (_window.Operations.Backspace())
-                        {
-                            return VSConstants.S_OK;
-                        }
-                        break;
-
+                        _window.Operations.Backspace();
+                        return VSConstants.S_OK;
 
                     case VSConstants.VSStd2KCmdID.UP:
 
@@ -294,7 +306,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                             }
                         }
                         break;
-
                 }
             }
             else if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
@@ -326,11 +337,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                         break;
 
                     case VSConstants.VSStd97CmdID.Delete:
-                        if (_window.Operations.Delete())
-                        {
-                            return VSConstants.S_OK;
-                        }
-                        break;
+                        _window.Operations.Delete();
+                        return VSConstants.S_OK;
 
                     case VSConstants.VSStd97CmdID.SelectAll:
                         _window.Operations.SelectAll();
@@ -424,16 +432,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             {
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
-                    case VSConstants.VSStd2KCmdID.TYPECHAR:
-                        _window.Operations.Delete();
-                        break;
-
                     case VSConstants.VSStd2KCmdID.RETURN:
                         if (_window.Operations.TrySubmitStandardInput())
                         {
                             return VSConstants.S_OK;
                         }
                         break;
+
                     case VSConstants.VSStd2KCmdID.SHOWCONTEXTMENU:
                         ShowContextMenu();
                         return VSConstants.S_OK;

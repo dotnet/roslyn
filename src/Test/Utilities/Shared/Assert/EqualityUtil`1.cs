@@ -21,8 +21,8 @@ namespace Roslyn.Test.Utilities
 
         public EqualityUtil(
             IEnumerable<EqualityUnit<T>> equalityUnits,
-            Func<T, T, bool> compEquality,
-            Func<T, T, bool> compInequality)
+            Func<T, T, bool> compEquality = null,
+            Func<T, T, bool> compInequality = null)
         {
             _equalityUnits = equalityUnits.ToList().AsReadOnly();
             _compareWithEqualityOperator = compEquality;
@@ -31,10 +31,18 @@ namespace Roslyn.Test.Utilities
 
         public void RunAll()
         {
-            EqualityOperator1();
-            EqualityOperator2();
-            InequalityOperator1();
-            InequalityOperator2();
+            if (_compareWithEqualityOperator != null)
+            {
+                EqualityOperator1();
+                EqualityOperator2();
+            }
+
+            if (_compareWithInequalityOperator != null)
+            {
+                InequalityOperator1();
+                InequalityOperator2();
+            }
+
             ImplementsIEquatable();
             ObjectEquals1();
             ObjectEquals2();

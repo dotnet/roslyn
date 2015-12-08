@@ -11,6 +11,8 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
+using Roslyn.Test.Utilities;
+using System.Collections;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {

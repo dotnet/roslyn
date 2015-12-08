@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class ImplementedByGraphQueryTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestImplementedBy1() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -43,8 +43,8 @@ class Foo2 : Base, IBlah
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ImplementedByGraphQuery(), GraphContextDirection.Target).ConfigureAwait(True)
+                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ImplementedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,

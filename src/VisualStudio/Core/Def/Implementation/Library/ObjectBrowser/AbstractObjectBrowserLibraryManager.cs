@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private ObjectListItem _activeListItem;
         private AbstractListItemFactory _listItemFactory;
-        private object classMemberGate = new object();
+        private object _classMemberGate = new object();
 
         protected AbstractObjectBrowserLibraryManager(string languageName, Guid libraryGuid, __SymbolToolLanguage preferredLanguage, IServiceProvider serviceProvider)
             : base(libraryGuid, serviceProvider)
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             get
             {
-                lock (classMemberGate)
+                lock (_classMemberGate)
                 {
                     return _classVersion;
                 }
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             get
             {
-                lock (classMemberGate)
+                lock (_classMemberGate)
                 {
                     return _membersVersion;
                 }
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         internal void UpdateClassAndMemberVersions()
         {
-            lock (classMemberGate)
+            lock (_classMemberGate)
             {
                 UpdateClassVersion();
                 UpdateMembersVersion();

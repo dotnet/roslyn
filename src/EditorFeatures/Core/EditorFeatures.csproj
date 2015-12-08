@@ -200,6 +200,7 @@
     <Compile Include="Commands\SortAndRemoveUnnecessaryImportsCommandArgs.cs" />
     <Compile Include="Commands\SortImportsCommandArgs.cs" />
     <Compile Include="Commands\SurroundWithCommandArgs.cs" />
+    <Compile Include="Commands\SyncClassViewCommandArgs.cs" />
     <Compile Include="Commands\TabKeyCommandArgs.cs" />
     <Compile Include="Commands\ToggleCompletionModeCommandArgs.cs" />
     <Compile Include="Commands\TypeCharCommandArgs.cs" />
@@ -283,6 +284,7 @@
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
+    <Compile Include="Implementation\Outlining\AbstractSyntaxOutliner.cs" />
     <Compile Include="Implementation\Outlining\InvalidOutliningRegionException.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleSuggestedAction.cs" />
@@ -366,7 +368,6 @@
     <Compile Include="Implementation\Diagnostics\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsClassificationTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSquiggleTaggerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
     <Compile Include="Implementation\DocumentationComments\AbstractDocumentationCommentCommandHandler.cs" />
     <Compile Include="Implementation\DocumentationComments\AbstractXmlTagCompletionCommandHandler.cs" />
     <Compile Include="Implementation\EditAndContinue\ActiveStatementTag.cs" />

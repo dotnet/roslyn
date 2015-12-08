@@ -18,5 +18,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// Line Cut; Cut all selected lines, or the current line if no selection, to the clipboard.   
         /// </summary>           
         void CutLine();
+
+        /// <summary>
+        /// Handles character typed in by user. 
+        /// </summary>
+        void TypeChar(char typedChar);
     }
 }

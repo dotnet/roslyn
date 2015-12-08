@@ -42,10 +42,11 @@
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
     <Compile Include="PEWriter\BlobUtilitiesTests.cs" />
     <Compile Include="PEWriter\BlobTests.cs" />
+    <Compile Include="PEWriter\UsedNamespaceOrTypeTests.cs" />
     <Compile Include="RealParserTests.cs" />
     <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="SourceFileResolverTest.cs" />
-    <Compile Include="Text\LargeEncodedTextTests.cs" />
+    <Compile Include="Text\LargeTextTests.cs" />
     <Compile Include="Text\SourceTextStreamTests.cs" />
     <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />
   </ItemGroup>
@@ -149,7 +150,7 @@
     </Compile>
     <Compile Include="StringTableTests.cs" />
     <Compile Include="StrongNameProviderTests.cs" />
-    <Compile Include="Text\EncodedStringTextTests.cs" />
+    <Compile Include="Text\StringTextDecodingTests.cs" />
     <Compile Include="Text\SourceTextTests.cs" />
     <Compile Include="Text\StringText_LineTest.cs" />
     <Compile Include="Text\StringTextTest.cs" />

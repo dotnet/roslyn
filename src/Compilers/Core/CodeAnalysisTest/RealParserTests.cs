@@ -367,6 +367,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "40497058210285131854513962138377228261454376934125320985913276672363" +
                 "28125001e-324",
                 0x0000000000000001);
+
+            CheckOneDouble("1.0e-99999999999999999999", 0.0);
+            CheckOneDouble("0e-99999999999999999999", 0.0);
+            CheckOneDouble("0e99999999999999999999", 0.0);
         }
 
         static void TestRoundTripDouble(ulong bits)

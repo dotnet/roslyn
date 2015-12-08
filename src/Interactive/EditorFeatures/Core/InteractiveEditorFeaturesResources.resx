@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ReferencesCommandDescription" xml:space="preserve">
+    <value>Print a list of referenced assemblies.</value>
+  </data>
+  <data name="ReferencesCommandEvaluatorError" xml:space="preserve">
+    <value>The references command is not supported in this Interactive Window implementation.</value>
+  </data>
   <data name="ResetCommandDescription" xml:space="preserve">
     <value>Reset the execution environment to the initial state, keep history.</value>
   </data>
@@ -125,5 +131,8 @@
   </data>
   <data name="ResettingExecutionEngine" xml:space="preserve">
     <value>Resetting execution engine.</value>
+  </data>
+  <data name="WindowSetAgainException" xml:space="preserve">
+    <value>The CurrentWindow property may only be assigned once.</value>
   </data>
 </root>

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             private void OnUIUpdatesPaused(object sender, EventArgs e)
             {
-                this._workQueue.AssertIsForeground();
+                _workQueue.AssertIsForeground();
                 _previousCachedTagTrees = CachedTagTrees;
 
                 RaisePaused();
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnUIUpdatesResumed(object sender, EventArgs e)
             {
-                this._workQueue.AssertIsForeground();
+                _workQueue.AssertIsForeground();
                 _previousCachedTagTrees = null;
 
                 RaiseResumed();
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var oldTagTrees = this.CachedTagTrees;
                 this.CachedTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
 
-                var snapshot = this._subjectBuffer.CurrentSnapshot;
+                var snapshot = _subjectBuffer.CurrentSnapshot;
                 var oldTagTree = GetTagTree(snapshot, oldTagTrees);
                 var newTagTree = GetTagTree(snapshot, this.CachedTagTrees);
 
@@ -96,14 +98,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
             {
-                this._workQueue.AssertIsForeground();
+                _workQueue.AssertIsForeground();
                 UpdateTagsForTextChange(e);
                 AccumulateTextChanges(e);
             }
 
             private void AccumulateTextChanges(TextContentChangedEventArgs contentChanged)
             {
-                this._workQueue.AssertIsForeground();
+                _workQueue.AssertIsForeground();
                 var contentChanges = contentChanged.Changes;
                 var count = contentChanges.Count;
 
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void UpdateTagsForTextChange(TextContentChangedEventArgs e)
             {
-                this._workQueue.AssertIsForeground();
+                _workQueue.AssertIsForeground();
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags))
                 {
@@ -267,17 +269,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private void RecomputeTagsForeground()
             {
-                this._workQueue.AssertIsForeground();
+                _workQueue.AssertIsForeground();
 
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, CancellationToken.None))
                 {
                     // Stop any existing work we're currently engaged in
-                    this._workQueue.CancelCurrentWork();
+                    _workQueue.CancelCurrentWork();
 
                     // Mark that we're not up to date. We'll remain in that state until the next 
                     // tag production stage finally completes.
                     this.UpToDate = false;
-                    var cancellationToken = this._workQueue.CancellationToken;
+                    var cancellationToken = _workQueue.CancellationToken;
 
                     var spansToTag = GetSpansAndDocumentsToTag();
 
@@ -289,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var oldTagTrees = this.CachedTagTrees;
                     var oldState = this.State;
 
-                    this._workQueue.EnqueueBackgroundTask(
+                    _workQueue.EnqueueBackgroundTask(
                         ct => this.RecomputeTagsAsync(oldState, caretPosition, textChangeRange, spansToTag, oldTagTrees, ct),
                         GetType().Name + ".RecomputeTags", cancellationToken);
                 }
@@ -297,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private List<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
             {
-                this._workQueue.AssertIsForeground();
+                _workQueue.AssertIsForeground();
 
                 // TODO: Update to tag spans from all related documents.
 
@@ -641,7 +643,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 Dictionary<ITextBuffer, NormalizedSnapshotSpanCollection> bufferToChanges,
                 object newState)
             {
-                this._workQueue.AssertIsForeground();
+                _workQueue.AssertIsForeground();
 
                 // Now that we're back on the UI thread, we can safely update our state with
                 // what we've computed.  There is no concern with race conditions now.  For 
@@ -686,7 +688,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             public TagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
-                this._workQueue.AssertIsForeground();
+                _workQueue.AssertIsForeground();
 
                 // If we're currently pausing updates to the UI, then just use the tags we had before we
                 // were paused so that nothing changes.  
@@ -701,7 +703,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             public TagSpanIntervalTree<TTag> GetAccurateTagIntervalTreeForBuffer(ITextBuffer buffer, CancellationToken cancellationToken)
             {
-                this._workQueue.AssertIsForeground();
+                _workQueue.AssertIsForeground();
 
                 if (!this.UpToDate)
                 {
@@ -715,7 +717,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // compute the results synchronously in this call.
 
                     // We can cancel any background computations currently happening
-                    this._workQueue.CancelCurrentWork();
+                    _workQueue.CancelCurrentWork();
 
                     var spansToTag = GetSpansAndDocumentsToTag();
 

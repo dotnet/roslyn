@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -10,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     public abstract class AbstractCSharpKeywordHighlighterTests
         : AbstractKeywordHighlighterTests
     {
-        protected override TestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options)
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string code, ParseOptions options)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromFile(code, (CSharpParseOptions)options);
+            return CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code, (CSharpParseOptions)options);
         }
 
         protected override IEnumerable<ParseOptions> GetOptions()
