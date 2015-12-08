@@ -107,5 +107,52 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.False(ranLocal);
             }
         }
+
+        public sealed class TryParseClientArgsTest : DesktopBuildClientTests
+        {
+            private bool _hasShared;
+            private string _keepAlive;
+            private string _errorMessage;
+            private string _pipeName;
+            private List<string> _parsedArgs;
+
+            private bool Parse(params string[] args)
+            {
+                return CommandLineParser.TryParseClientArgs(
+                    args,
+                    out _parsedArgs,
+                    out _hasShared,
+                    out _keepAlive,
+                    out _pipeName,
+                    out _errorMessage);
+            }
+
+            [Fact]
+            public void Shared()
+            {
+                Assert.True(Parse("/shared", "test.cs"));
+                Assert.True(_hasShared);
+                Assert.Null(_pipeName);
+                Assert.Equal(_parsedArgs, new[] { "test.cs" });
+            }
+
+            [Fact]
+            public void SharedWithPipe()
+            {
+                Assert.True(Parse("/shared:pipe", "test.cs"));
+                Assert.True(_hasShared);
+                Assert.Equal("pipe", _pipeName);
+                Assert.Equal(_parsedArgs, new[] { "test.cs" });
+            }
+
+            [Fact]
+            public void Basic()
+            {
+                Assert.True(Parse("test.cs"));
+                Assert.False(_hasShared);
+                Assert.Null(_pipeName);
+                Assert.Equal(_parsedArgs, new[] { "test.cs" });
+            }
+        }
     }
 }
