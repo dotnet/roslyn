@@ -23,49 +23,8 @@ namespace Microsoft.Cci
         { }
     }
 
-    internal sealed class PeWriter
-    {
-        private const string ResourceSectionName = ".rsrc";
-        private const string RelocationSectionName = ".reloc";
-
-        /// <summary>
-        /// True if we should attempt to generate a deterministic output (no timestamps or random data).
-        /// </summary>
-        private readonly bool _deterministic;
-        private readonly int _timeStamp;
-
-        private readonly string _pdbPathOpt;
-        private readonly bool _is32bit;
-        private readonly ModulePropertiesForSerialization _properties;
-
-        private readonly IEnumerable<IWin32Resource> _nativeResourcesOpt;
-        private readonly ResourceSection _nativeResourceSectionOpt;
-
-        private readonly BlobBuilder _win32ResourceWriter = new BlobBuilder(1024);
-        
-        private PeWriter(
-            ModulePropertiesForSerialization properties,
-            IEnumerable<IWin32Resource> nativeResourcesOpt,
-            ResourceSection nativeResourceSectionOpt,
-            string pdbPathOpt, 
-            bool deterministic)
-        {
-            _properties = properties;
-            _pdbPathOpt = pdbPathOpt;
-            _deterministic = deterministic;
-
-            _nativeResourcesOpt = nativeResourcesOpt;
-            _nativeResourceSectionOpt = nativeResourceSectionOpt;
-            _is32bit = !_properties.Requires64bits;
-
-            // In the PE File Header this is a "Time/Date Stamp" whose description is "Time and date
-            // the file was created in seconds since January 1st 1970 00:00:00 or 0"
-            // However, when we want to make it deterministic we fill it in (later) with bits from the hash of the full PE file.
-            _timeStamp = _deterministic ? 0 : (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-        }
-
-        private bool EmitPdb => _pdbPathOpt != null;
-
+    internal static class PeWriter
+    {        
         public static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
@@ -74,28 +33,31 @@ namespace Microsoft.Cci
             PdbWriter nativePdbWriterOpt,
             string pdbPathOpt,
             bool allowMissingMethodBodies,
-            bool deterministic,
+            bool isDeterministic,
             CancellationToken cancellationToken)
         {
             // If PDB writer is given, we have to have PDB path.
             Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
-            var peWriter = new PeWriter(context.Module.Properties, context.Module.Win32Resources, context.Module.Win32ResourceSection, pdbPathOpt, deterministic);
-            var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, getPortablePdbStreamOpt != null, cancellationToken);
+            var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, isDeterministic, getPortablePdbStreamOpt != null, cancellationToken);
 
-            return peWriter.WritePeToStream(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt);
-        }
+            var properties = context.Module.Properties;
+            var nativeResourcesOpt = context.Module.Win32Resources;
+            var nativeResourceSectionOpt = context.Module.Win32ResourceSection;
 
-        private bool WritePeToStream(MetadataWriter mdWriter, Func<Stream> getPeStream, Func<Stream> getPortablePdbStreamOpt, PdbWriter nativePdbWriterOpt)
-        {
+            // In the PE File Header this is a "Time/Date Stamp" whose description is "Time and date
+            // the file was created in seconds since January 1st 1970 00:00:00 or 0"
+            // However, when we want to make it deterministic we fill it in (later) with bits from the hash of the full PE file.
+            int timestamp = isDeterministic ? 0 : (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+
             // TODO: we can precalculate the exact size of IL stream
             var ilBuilder = new BlobBuilder(32 * 1024);
             var metadataBuilder = new BlobBuilder(16 * 1024);
             var mappedFieldDataBuilder = new BlobBuilder();
             var managedResourceBuilder = new BlobBuilder(1024);
             var textSectionBlob = new BlobBuilder();
-            var resourceSectionBlobOpt = (!IteratorHelper.EnumerableIsEmpty(_nativeResourcesOpt) || _nativeResourceSectionOpt != null) ? new BlobBuilder() : null;
-            var relocationSectionBlobOpt = _properties.RequiresStartupStub ? new BlobBuilder() : null;
+            var resourceSectionBlobOpt = (!IteratorHelper.EnumerableIsEmpty(nativeResourcesOpt) || nativeResourceSectionOpt != null) ? new BlobBuilder() : null;
+            var relocationSectionBlobOpt = properties.RequiresStartupStub ? new BlobBuilder() : null;
             var debugMetadataBuilderOpt = (getPortablePdbStreamOpt != null) ? new BlobBuilder(16 * 1024) : null;
 
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
@@ -103,13 +65,13 @@ namespace Microsoft.Cci
             // Since we are producing a full assembly, we should not have a module version ID
             // imposed ahead-of time. Instead we will compute a deterministic module version ID
             // based on the contents of the generated stream.
-            Debug.Assert(_properties.PersistentIdentifier == default(Guid));
+            Debug.Assert(properties.PersistentIdentifier == default(Guid));
 
             var peBuilder = new PEBuilder(
                 sectionCount: 1 + (resourceSectionBlobOpt != null ? 1 : 0) + (relocationSectionBlobOpt != null ? 1 : 0),
-                sectionAlignment: _properties.SectionAlignment,
-                fileAlignment: _properties.FileAlignment,
-                is32Bit: _is32bit);
+                sectionAlignment: properties.SectionAlignment,
+                fileAlignment: properties.FileAlignment,
+                is32Bit: !properties.Requires64bits);
 
             // We emit the .text section as the first section in the PE image.
             var textSectionLocation = peBuilder.NextSectionLocation;
@@ -128,10 +90,10 @@ namespace Microsoft.Cci
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceBuilder,
-                _properties.ImageCharacteristics,
-                _properties.Machine,
+                properties.ImageCharacteristics,
+                properties.Machine,
                 textSectionLocation.RelativeVirtualAddress,
-                _pdbPathOpt,
+                pdbPathOpt,
                 out moduleVersionIdOffsetInMetadataStream,
                 out pdbIdOffsetInPortablePdbStream,
                 out entryPointToken,
@@ -174,13 +136,13 @@ namespace Microsoft.Cci
             {
                 debugMetadataBuilderOpt.WriteContentTo(portablePdbStream);
 
-                if (_deterministic)
+                if (isDeterministic)
                 {
                     portablePdbContentId = ContentId.FromHash(CryptographicHashProvider.ComputeSha1(portablePdbStream));
                 }
                 else
                 {
-                    portablePdbContentId = new ContentId(Guid.NewGuid().ToByteArray(), BitConverter.GetBytes(_timeStamp));
+                    portablePdbContentId = new ContentId(Guid.NewGuid().ToByteArray(), BitConverter.GetBytes(timestamp));
                 }
 
                 // fill in the PDB id:
@@ -203,7 +165,7 @@ namespace Microsoft.Cci
             }
 
             BlobBuilder debugTableBuilderOpt;
-            if (EmitPdb || _deterministic)
+            if (pdbPathOpt != null || isDeterministic)
             {
                 debugTableBuilderOpt = new BlobBuilder();
                 textSection.WriteDebugTable(debugTableBuilderOpt, textSectionLocation, nativePdbContentId, portablePdbContentId);
@@ -222,8 +184,8 @@ namespace Microsoft.Cci
                 textSectionBlob,
                 textSectionLocation.RelativeVirtualAddress,
                 entryPointToken,
-                _properties.GetCorHeaderFlags(),
-                _properties.BaseAddress,
+                properties.GetCorHeaderFlags(),
+                properties.BaseAddress,
                 metadataBuilder,
                 ilBuilder,
                 mappedFieldDataBuilder,
@@ -231,21 +193,21 @@ namespace Microsoft.Cci
                 debugTableBuilderOpt,
                 out metadataPosition);
 
-            peBuilder.Machine = _properties.Machine;
-            peBuilder.TimeDateStamp = _timeStamp;
-            peBuilder.ImageCharacteristics = _properties.ImageCharacteristics;
-            peBuilder.MajorLinkerVersion = _properties.LinkerMajorVersion;
-            peBuilder.MinorLinkerVersion = _properties.LinkerMinorVersion;
+            peBuilder.Machine = properties.Machine;
+            peBuilder.TimeDateStamp = timestamp;
+            peBuilder.ImageCharacteristics = properties.ImageCharacteristics;
+            peBuilder.MajorLinkerVersion = properties.LinkerMajorVersion;
+            peBuilder.MinorLinkerVersion = properties.LinkerMinorVersion;
             peBuilder.AddressOfEntryPoint = entryPointAddress;
-            peBuilder.ImageBase = _properties.BaseAddress;
-            peBuilder.MajorSubsystemVersion = _properties.MajorSubsystemVersion;
-            peBuilder.MinorSubsystemVersion = _properties.MinorSubsystemVersion;
-            peBuilder.Subsystem = _properties.Subsystem;
-            peBuilder.DllCharacteristics = _properties.DllCharacteristics;
-            peBuilder.SizeOfStackReserve = _properties.SizeOfStackReserve;
-            peBuilder.SizeOfStackCommit = _properties.SizeOfStackCommit;
-            peBuilder.SizeOfHeapReserve = _properties.SizeOfHeapReserve;
-            peBuilder.SizeOfHeapCommit = _properties.SizeOfHeapCommit;
+            peBuilder.ImageBase = properties.BaseAddress;
+            peBuilder.MajorSubsystemVersion = properties.MajorSubsystemVersion;
+            peBuilder.MinorSubsystemVersion = properties.MinorSubsystemVersion;
+            peBuilder.Subsystem = properties.Subsystem;
+            peBuilder.DllCharacteristics = properties.DllCharacteristics;
+            peBuilder.SizeOfStackReserve = properties.SizeOfStackReserve;
+            peBuilder.SizeOfStackCommit = properties.SizeOfStackCommit;
+            peBuilder.SizeOfHeapReserve = properties.SizeOfHeapReserve;
+            peBuilder.SizeOfHeapCommit = properties.SizeOfHeapCommit;
 
             // .text
             peBuilder.AddSection(
@@ -261,12 +223,26 @@ namespace Microsoft.Cci
             // .rsrc
             if (resourceSectionBlobOpt != null)
             {
+                // Win32 resources are supplied to the compiler in one of two forms, .RES (the output of the resource compiler),
+                // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
+                // a set of objects implementing IWin32Resources. These are then ordered and the final image form is constructed
+                // and written to the resource section. Resources in .OBJ form are already very close to their final output
+                // form. Rather than reading them and parsing them into a set of objects similar to those produced by 
+                // processing a .RES file, we process them like the native linker would, copy the relevant sections from 
+                // the .OBJ into our output and apply some fixups.
                 var location = peBuilder.NextSectionLocation;
 
-                WriteResourceSection(resourceSectionBlobOpt, location.RelativeVirtualAddress);
+                if (nativeResourceSectionOpt != null)
+                {
+                    SerializeWin32Resources(resourceSectionBlobOpt, nativeResourceSectionOpt, location.RelativeVirtualAddress);
+                }
+                else 
+                {
+                    SerializeWin32Resources(resourceSectionBlobOpt, nativeResourcesOpt, location.RelativeVirtualAddress);
+                }
 
                 peBuilder.AddSection(
-                    ResourceSectionName,
+                    ".rsrc",
                     SectionCharacteristics.MemRead | SectionCharacteristics.ContainsInitializedData,
                     resourceSectionBlobOpt);
 
@@ -278,10 +254,10 @@ namespace Microsoft.Cci
             {
                 var location = peBuilder.NextSectionLocation;
 
-                WriteRelocSection(relocationSectionBlobOpt, entryPointAddress);
+                WriteRelocSection(relocationSectionBlobOpt, properties, entryPointAddress);
 
                 peBuilder.AddSection(
-                    RelocationSectionName,
+                    ".reloc",
                     SectionCharacteristics.MemRead | SectionCharacteristics.MemDiscardable | SectionCharacteristics.ContainsInitializedData,
                     relocationSectionBlobOpt);
 
@@ -292,7 +268,7 @@ namespace Microsoft.Cci
             peBuilder.Serialize(peBlob, out peHeaderTimestampPosition);
             peBlob.WriteContentTo(peStream);
 
-            if (_deterministic)
+            if (isDeterministic)
             {
                 var mvidPosition = textSectionLocation.PointerToRawData + metadataPosition + moduleVersionIdOffsetInMetadataStream;
                 WriteDeterministicGuidAndTimestamps(peStream, mvidPosition, peHeaderTimestampPosition);
@@ -501,30 +477,7 @@ namespace Microsoft.Cci
             return resources.OrderBy(CompareResources);
         }
 
-        //Win32 resources are supplied to the compiler in one of two forms, .RES (the output of the resource compiler),
-        //or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
-        //a set of objects implementing IWin32Resources. These are then ordered and the final image form is constructed
-        //and written to the resource section. Resources in .OBJ form are already very close to their final output
-        //form. Rather than reading them and parsing them into a set of objects similar to those produced by 
-        //processing a .RES file, we process them like the native linker would, copy the relevant sections from 
-        //the .OBJ into our output and apply some fixups.
-        private void SerializeWin32Resources(int resourcesRva)
-        {
-            if (_nativeResourceSectionOpt != null)
-            {
-                SerializeWin32Resources(_nativeResourceSectionOpt, resourcesRva);
-                return;
-            }
-
-            if (IteratorHelper.EnumerableIsEmpty(_nativeResourcesOpt))
-            {
-                return;
-            }
-
-            SerializeWin32Resources(_nativeResourcesOpt, resourcesRva);
-        }
-
-        private void SerializeWin32Resources(IEnumerable<IWin32Resource> theResources, int resourcesRva)
+        private static void SerializeWin32Resources(BlobBuilder builder, IEnumerable<IWin32Resource> theResources, int resourcesRva)
         {
             theResources = SortResources(theResources);
 
@@ -586,16 +539,13 @@ namespace Microsoft.Cci
             var dataWriter = new BlobBuilder();
 
             //'dataWriter' is where opaque resource data goes as well as strings that are used as type or name identifiers
-            this.WriteDirectory(typeDirectory, _win32ResourceWriter, 0, 0, sizeOfDirectoryTree, resourcesRva, dataWriter);
-            _win32ResourceWriter.LinkSuffix(dataWriter);
-            _win32ResourceWriter.WriteByte(0);
-            while ((_win32ResourceWriter.Count % 4) != 0)
-            {
-                _win32ResourceWriter.WriteByte(0);
-            }
+            WriteDirectory(typeDirectory, builder, 0, 0, sizeOfDirectoryTree, resourcesRva, dataWriter);
+            builder.LinkSuffix(dataWriter);
+            builder.WriteByte(0);
+            builder.Align(4);
         }
 
-        private void WriteDirectory(Directory directory, BlobBuilder writer, uint offset, uint level, uint sizeOfDirectoryTree, int virtualAddressBase, BlobBuilder dataWriter)
+        private static void WriteDirectory(Directory directory, BlobBuilder writer, uint offset, uint level, uint sizeOfDirectoryTree, int virtualAddressBase, BlobBuilder dataWriter)
         {
             writer.WriteUInt32(0); // Characteristics
             writer.WriteUInt32(0); // Timestamp
@@ -680,7 +630,7 @@ namespace Microsoft.Cci
                 Directory subDir = directory.Entries[i] as Directory;
                 if (subDir != null)
                 {
-                    this.WriteDirectory(subDir, writer, k, level + 1, sizeOfDirectoryTree, virtualAddressBase, dataWriter);
+                    WriteDirectory(subDir, writer, k, level + 1, sizeOfDirectoryTree, virtualAddressBase, dataWriter);
                     if (level == 0)
                     {
                         k += SizeOfDirectory(subDir);
@@ -709,9 +659,9 @@ namespace Microsoft.Cci
             return size;
         }
 
-        private void SerializeWin32Resources(ResourceSection resourceSections, int resourcesRva)
+        private static void SerializeWin32Resources(BlobBuilder builder, ResourceSection resourceSections, int resourcesRva)
         {
-            var sectionWriter = _win32ResourceWriter.ReserveBytes(resourceSections.SectionBytes.Length);
+            var sectionWriter = builder.ReserveBytes(resourceSections.SectionBytes.Length);
             sectionWriter.WriteBytes(resourceSections.SectionBytes);
 
             var readStream = new MemoryStream(resourceSections.SectionBytes);
@@ -724,46 +674,23 @@ namespace Microsoft.Cci
                 sectionWriter.WriteUInt32(reader.ReadUInt32() + (uint)resourcesRva);
             }
         }
-
-        //#define IMAGE_FILE_RELOCS_STRIPPED           0x0001  // Relocation info stripped from file.
-        //#define IMAGE_FILE_EXECUTABLE_IMAGE          0x0002  // File is executable  (i.e. no unresolved external references).
-        //#define IMAGE_FILE_LINE_NUMS_STRIPPED        0x0004  // Line numbers stripped from file.
-        //#define IMAGE_FILE_LOCAL_SYMS_STRIPPED       0x0008  // Local symbols stripped from file.
-        //#define IMAGE_FILE_AGGRESIVE_WS_TRIM         0x0010  // Aggressively trim working set
-        //#define IMAGE_FILE_LARGE_ADDRESS_AWARE       0x0020  // App can handle >2gb addresses
-        //#define IMAGE_FILE_BYTES_REVERSED_LO         0x0080  // Bytes of machine word are reversed.
-        //#define IMAGE_FILE_32BIT_MACHINE             0x0100  // 32 bit word machine.
-        //#define IMAGE_FILE_DEBUG_STRIPPED            0x0200  // Debugging info stripped from file in .DBG file
-        //#define IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP   0x0400  // If Image is on removable media, copy and run from the swap file.
-        //#define IMAGE_FILE_NET_RUN_FROM_SWAP         0x0800  // If Image is on Net, copy and run from the swap file.
-        //#define IMAGE_FILE_SYSTEM                    0x1000  // System File.
-        //#define IMAGE_FILE_DLL                       0x2000  // File is a DLL.
-        //#define IMAGE_FILE_UP_SYSTEM_ONLY            0x4000  // File should only be run on a UP machine
-        //#define IMAGE_FILE_BYTES_REVERSED_HI         0x8000  // Bytes of machine word are reversed.
         
-        private void WriteRelocSection(BlobBuilder builder, int entryPointAddress)
+        private static void WriteRelocSection(BlobBuilder builder, ModulePropertiesForSerialization properties, int entryPointAddress)
         {
             Debug.Assert(builder.Count == 0);
 
             builder.WriteUInt32((((uint)entryPointAddress + 2) / 0x1000) * 0x1000);
-            builder.WriteUInt32(_properties.Requires64bits && !_properties.RequiresAmdInstructionSet ? 14u : 12u);
+            builder.WriteUInt32(properties.Requires64bits && !properties.RequiresAmdInstructionSet ? 14u : 12u);
             uint offsetWithinPage = ((uint)entryPointAddress + 2) % 0x1000;
-            uint relocType = _properties.Requires64bits ? 10u : 3u;
+            uint relocType = properties.Requires64bits ? 10u : 3u;
             ushort s = (ushort)((relocType << 12) | offsetWithinPage);
             builder.WriteUInt16(s);
-            if (_properties.Requires64bits && !_properties.RequiresAmdInstructionSet)
+            if (properties.Requires64bits && !properties.RequiresAmdInstructionSet)
             {
                 builder.WriteUInt32(relocType << 12);
             }
 
             builder.WriteUInt16(0); // next chunk's RVA
-        }
-
-        private void WriteResourceSection(BlobBuilder builder, int rva)
-        {
-            this.SerializeWin32Resources(rva);
-            // TODO: avoid copy 
-            _win32ResourceWriter.WriteContentTo(builder);
         }
     }
 }
