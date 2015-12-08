@@ -606,25 +606,37 @@ class C
         {
             string source = @"
 using System;
+using System.Linq.Expressions;
 class p
 {
     static void Foo<T>(ref Func<T,T> a) { }
     static void Bar<T>(out Func<T, T> a) { a = null; }
 
+    static void Foo2<T>(ref Expression<Func<T,T>> a) { }
+    static void Bar2<T>(out Expression<Func<T, T>> a) { a = null; }
+
     static void Main()
     {
         Foo<string>(x => x);
         Bar<string>(x => x);
+        Foo2<string>(x => x);
+        Bar2<string>(x => x);
     }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (10,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Func<string, string>'
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (14,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Func<string, string>'
                 //         Foo<string>(x => x);
-                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Func<string, string>").WithLocation(10, 21),
-                // (11,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Func<string, string>'
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Func<string, string>").WithLocation(14, 21),
+                // (15,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Func<string, string>'
                 //         Bar<string>(x => x);
-                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Func<string, string>").WithLocation(11, 21));
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Func<string, string>").WithLocation(15, 21),
+                // (16,22): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Expression<Func<string, string>>'
+                //         Foo2<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Linq.Expressions.Expression<System.Func<string, string>>").WithLocation(16, 22),
+                // (17,22): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Expression<Func<string, string>>'
+                //         Bar2<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Linq.Expressions.Expression<System.Func<string, string>>").WithLocation(17, 22));
         }
 
 
