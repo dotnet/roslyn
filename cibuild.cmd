@@ -22,11 +22,7 @@ call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd
 
 REM Restore the NuGet packages 
 if "%BuildRestore%" == "true" (
-    nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/ToolsetPackages/project.json
-    nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/Toolset.sln
-    nuget.exe restore -nocache %RoslynRoot%build\ToolsetPackages\project.json
-    nuget.exe restore -nocache %RoslynRoot%Roslyn.sln
-    nuget.exe restore -nocache %RoslynRoot%src\Samples\Samples.sln
+    call "%RoslynRoot%\Restore.cmd"
 ) else (
     powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\restore.ps1 %NugetZipUrl%"
 )
