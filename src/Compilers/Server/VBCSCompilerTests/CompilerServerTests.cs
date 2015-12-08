@@ -19,6 +19,7 @@ using System.Xml;
 using System.Threading.Tasks;
 using MSBuildTask::Microsoft.CodeAnalysis.BuildTasks;
 using Microsoft.CodeAnalysis.CommandLine;
+using Moq;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -301,10 +302,12 @@ End Module")
         [Fact]
         public void FallbackToCsc()
         {
-            // Delete VBCSCompiler.exe so /shared is forced to fall back to csc.exe
-            File.Delete(_compilerServerExecutable);
-            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/shared /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
-            VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
+            // Verify csc will fall back to command line when server fails to process
+            using (var serverData = ServerUtil.CreateServerFailsConnection())
+            {
+                var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
+                VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
+            }
         }
 
         [Fact]

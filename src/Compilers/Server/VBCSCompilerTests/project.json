@@ -6,7 +6,7 @@
     "xunit.runner.console": "2.1.0"
   },
   "frameworks": {
-    "net45": { }
+    "net46": { }
   },
   "runtimes": {
     "win7": { }

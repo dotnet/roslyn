@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private readonly TempDirectory _tempDirectory;
             private readonly BuildPaths _buildPaths;
             private readonly List<ServerData> _serverDataList = new List<ServerData>();
+            private bool _allowServer = true;
+            private int _failedCreatedServerCount = 0;
 
             public ServerTests()
             {
@@ -83,6 +85,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             private bool TryCreateServer(string pipeName)
             {
+                if (!_allowServer)
+                {
+                    _failedCreatedServerCount++;
+                    return false;
+                }
+
                 var serverData = ServerUtil.CreateServer(pipeName);
                 _serverDataList.Add(serverData);
                 return true;
@@ -105,6 +113,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 Assert.Equal(1, _serverDataList.Count);
                 Assert.False(ranLocal);
+            }
+
+            [Fact]
+            public void FallbackToCsc()
+            {
+                _allowServer = false;
+                var ranLocal = false;
+                var client = CreateClient(compileFunc: delegate
+                {
+                    ranLocal = true;
+                    return 0;
+                });
+
+                var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths);
+                Assert.Equal(0, exitCode);
+                Assert.True(ranLocal);
+                Assert.Equal(1, _failedCreatedServerCount);
+                Assert.Equal(0, _serverDataList.Count);
             }
         }
 
