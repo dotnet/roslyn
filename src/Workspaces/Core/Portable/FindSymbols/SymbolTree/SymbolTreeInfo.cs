@@ -419,6 +419,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             cancellationToken.ThrowIfCancellationRequested();
 
             var node = _nodes[index];
+            if (node.IsRoot)
+            {
+                return;
+            }
 
             if (_nodes[node.ParentIndex].IsRoot)
             {

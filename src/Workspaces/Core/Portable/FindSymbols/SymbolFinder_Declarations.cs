@@ -98,6 +98,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(project));
             }
 
+            if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
+            {
+                return SpecializedTasks.EmptyEnumerable<ISymbol>();
+            }
+
             using (Logger.LogBlock(FunctionId.SymbolFinder_FindDeclarationsAsync, cancellationToken))
             {
                 return FindDeclarationsAsyncImpl(project, query, filter, includeDirectReferences, cancellationToken);
@@ -205,6 +210,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
             Solution solution, IAssemblySymbol assembly, string filePath, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
+            if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
+            {
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            }
+
             var result = new List<ISymbol>();
             await AddDeclarationsAsync(solution, assembly, filePath, query, filter, result, cancellationToken).ConfigureAwait(false);
             return result;
@@ -271,6 +281,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsyncImpl(
             Solution solution, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
+            if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
+            {
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            }
+
             var result = new List<ISymbol>();
             foreach (var projectId in solution.ProjectIds)
             {
@@ -347,6 +362,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(solution));
             }
 
+            if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
+            {
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            }
+
             using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Predicate_FindSourceDeclarationsAsync, cancellationToken))
             {
                 var result = new List<ISymbol>();
@@ -382,6 +402,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
+            }
+
+            if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
+            {
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
             }
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync, cancellationToken))

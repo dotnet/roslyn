@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public async Task<IEnumerable<SearchResult<ISymbol>>> FindDeclarationsAsync(string name, TSimpleNameSyntax nameNode, SymbolFilter filter)
             {
+                if (name != null && string.IsNullOrWhiteSpace(name))
+                {
+                    return SpecializedCollections.EmptyEnumerable<SearchResult<ISymbol>>();
+                }
+
                 var query = this.Exact ? new SearchQuery(name, ignoreCase: true) : new SearchQuery(GetInexactPredicate(name));
                 var symbols = await FindDeclarationsAsync(name, filter, query).ConfigureAwait(false);
 
