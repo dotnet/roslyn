@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxTreeExtensions
     {
+        public static bool IsInteractiveOrScript(this SyntaxTree syntaxTree)
+        {
+            return syntaxTree.Options.Kind != SourceCodeKind.Regular;
+        }
+
         /// <summary>
         /// Returns the identifier, keyword, contextual keyword or preprocessor keyword touching this
         /// position, or a token of Kind = None if the caret is not touching either.

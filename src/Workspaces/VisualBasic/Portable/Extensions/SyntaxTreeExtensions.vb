@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module SyntaxTreeExtensions
@@ -146,13 +147,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsInteractiveOrScript(syntaxTree As SyntaxTree) As Boolean
-            Return syntaxTree.Options.Kind <> SourceCodeKind.Regular
-        End Function
-
-        <Extension()>
         Public Function IsGlobalStatementContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
-            If Not IsInteractiveOrScript(syntaxTree) Then
+            If Not syntaxTree.IsInteractiveOrScript() Then
                 Return False
             End If
 
