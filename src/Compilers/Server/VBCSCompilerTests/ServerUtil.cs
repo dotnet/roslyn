@@ -55,39 +55,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
     }
 
-    internal sealed class ServerStatsListener : IDiagnosticListener
-    {
-        private int _connections;
-        private int _completedConnections;
-
-        internal ServerStats ServerStats => new ServerStats(_connections, _completedConnections);
-
-        public void Connection() 
-        {
-            _connections++;
-        }
-
-        public void ConnectionCompleted(int count)
-        {
-            _completedConnections += count;
-        }
-
-        public void DetectedBadConnection()
-        {
-
-        }
-
-        public void KeepAliveReached()
-        {
-
-        }
-
-        public void UpdateKeepAlive(TimeSpan timeSpan)
-        {
-
-        }
-    }
-
     internal static class ServerUtil
     {
         internal static string DefaultClientDirectory { get; } = Path.GetDirectoryName(typeof(DesktopBuildClientTests).Assembly.Location);
@@ -113,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var cts = new CancellationTokenSource();
             var thread = new Thread(_ =>
             {
-                var listener = new ServerStatsListener();
+                var listener = new TestableDiagnosticListener();
                 try
                 {
                     var clientConnectionHost = new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
@@ -127,7 +94,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
                 finally
                 {
-                    taskSource.SetResult(listener.ServerStats);
+                    var serverStats = new ServerStats(connections: listener.ConnectionCount, completedConnections: listener.CompletedCount);
+                    taskSource.SetResult(serverStats);
                 }
             });
 
