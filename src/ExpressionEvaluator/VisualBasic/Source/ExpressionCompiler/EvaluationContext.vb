@@ -397,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
-                        deterministic:=False,
+                        isDeterministic:=False,
                         cancellationToken:=Nothing)
 
                 If diagnostics.HasAnyErrors() Then
@@ -442,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
-                        deterministic:=False,
+                        isDeterministic:=False,
                         cancellationToken:=Nothing)
 
                 If diagnostics.HasAnyErrors() Then
@@ -487,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
                         allowMissingMethodBodies:=False,
-                        deterministic:=False,
+                        isDeterministic:=False,
                         cancellationToken:=Nothing)
 
                     If Not diagnostics.HasAnyErrors() Then
