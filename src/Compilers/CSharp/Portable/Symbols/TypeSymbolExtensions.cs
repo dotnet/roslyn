@@ -1085,6 +1085,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Return the nearest type parameter with the given name in
+        /// this symbol or any enclosing symbol.
+        /// </summary>
+        internal static TypeParameterSymbol FindEnclosingTypeParameter(this Symbol methodOrType, string name)
+        {
+            while (methodOrType != null)
+            {
+                switch (methodOrType.Kind)
+                {
+                    case SymbolKind.Method:
+                    case SymbolKind.NamedType:
+                    case SymbolKind.ErrorType:
+                    case SymbolKind.Field:
+                    case SymbolKind.Property:
+                    case SymbolKind.Event:
+                        break;
+                    default:
+                        return null;
+                }
+                foreach (var typeParameter in methodOrType.GetMemberTypeParameters())
+                {
+                    if (typeParameter.Name == name)
+                    {
+                        return typeParameter;
+                    }
+                }
+                methodOrType = methodOrType.ContainingSymbol;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Return true if the fully qualified name of the type's containing symbol
         /// matches the given name. This method avoids string concatenations
         /// in the common case where the type is a top-level type.

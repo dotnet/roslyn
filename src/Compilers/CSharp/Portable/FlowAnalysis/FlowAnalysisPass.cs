@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var trailingExpression = new BoundDefaultOperator(method.GetNonNullSyntaxNode(), submissionResultType);
                     var newStatements = block.Statements.Add(new BoundReturnStatement(trailingExpression.Syntax, trailingExpression));
-                    block = new BoundBlock(block.Syntax, ImmutableArray<LocalSymbol>.Empty, newStatements) { WasCompilerGenerated = true };
+                    block = new BoundBlock(block.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, newStatements) { WasCompilerGenerated = true };
 #if DEBUG
                     // It should not be necessary to repeat analysis after adding this node, because adding a trailing
                     // return in cases where one was missing should never produce different Diagnostics.
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddRange(statements, n - 1);
                 builder.Add(AppendImplicitReturn((BoundBlock)statements[n - 1], method, syntax));
 
-                return body.Update(body.Locals, builder.ToImmutableAndFree());
+                return body.Update(body.Locals, ImmutableArray<LocalFunctionSymbol>.Empty, builder.ToImmutableAndFree());
             }
             else
             {
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, null);
 
-            // Implicitly added return for async method does not need sequence points since lowering would add one.
+                // Implicitly added return for async method does not need sequence points since lowering would add one.
             if (syntax.IsKind(SyntaxKind.Block) && !method.IsAsync)
             {
                 var blockSyntax = (BlockSyntax)syntax;
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 { WasCompilerGenerated = true };
             }
 
-            return body.Update(body.Locals, body.Statements.Add(ret));
+            return body.Update(body.Locals, body.LocalFunctions, body.Statements.Add(ret));
         }
 
         private static bool Analyze(

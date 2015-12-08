@@ -1396,7 +1396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 this.RecordLabel(breakLabel);
             }
 
-            var result = node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, switchSections, breakLabel, node.StringEquality);
+            var result = node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, breakLabel, node.StringEquality);
 
             // implicit control flow
             EnsureOnlyEvalStack();

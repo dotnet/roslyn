@@ -1938,6 +1938,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable;
             }
 
+            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+            {
+                // Do not recurse into nested local functions; we don't want their returns.
+                return null;
+            }
+
             public override BoundNode VisitReturnStatement(BoundReturnStatement node)
             {
                 _returns.Add(node);

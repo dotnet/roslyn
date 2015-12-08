@@ -627,6 +627,7 @@
     <Compile Include="Symbols\Source\ImplicitNamedTypeSymbol.cs" />
     <Compile Include="Symbols\Source\IndexedTypeParameterSymbol.cs" />
     <Compile Include="Symbols\Source\LambdaSymbol.cs" />
+    <Compile Include="Symbols\Source\LocalFunctionSymbol.cs" />
     <Compile Include="Symbols\Source\ModifierUtils.cs" />
     <Compile Include="Symbols\Source\ParameterHelpers.cs" />
     <Compile Include="Symbols\Source\SourceAssemblySymbol.cs" />
@@ -662,6 +663,7 @@
     <Compile Include="Symbols\Source\SourcePropertyAccessorSymbol.cs" />
     <Compile Include="Symbols\Source\SourcePropertySymbol.cs" />
     <Compile Include="Symbols\Source\SourceSimpleParameterSymbol.cs" />
+    <Compile Include="Symbols\Source\SourceStrictComplexParameterSymbol.cs" />
     <Compile Include="Symbols\Source\SourceTypeParameterSymbol.cs" />
     <Compile Include="Symbols\Source\SourceUserDefinedConversionSymbol.cs" />
     <Compile Include="Symbols\Source\SourceUserDefinedOperatorSymbol.cs" />

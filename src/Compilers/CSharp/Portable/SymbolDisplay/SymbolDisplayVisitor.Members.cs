@@ -245,7 +245,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ITypeSymbol containingType;
                     bool includeType;
 
-                    if (symbol.MethodKind == MethodKind.ReducedExtension)
+                    if (symbol.MethodKind == MethodKind.LocalFunction)
+                    {
+                        includeType = false;
+                        containingType = null;
+                    }
+                    else if (symbol.MethodKind == MethodKind.ReducedExtension)
                     {
                         containingType = symbol.ReceiverType;
                         includeType = true;
@@ -280,6 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodKind.Ordinary:
                 case MethodKind.DelegateInvoke:
                 case MethodKind.ReducedExtension:
+                case MethodKind.LocalFunction:
                     //containing type will be the delegate type, name will be Invoke
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
                     break;

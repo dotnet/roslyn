@@ -1207,6 +1207,7 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase.Decimal = 0 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase.Hexadecimal = 1 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase.Octal = 2 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase
+Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase.Binary = 3 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralExpressionSyntax.Token() -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralExpressionSyntax.Update(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind, token As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralExpressionSyntax

@@ -1070,7 +1070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Case SymbolKind.NamedType
                                 '  check for being delegate 
                                 Dim typeSymbol = DirectCast(symbol, NamedTypeSymbol)
-                                Debug.Assert(typeSymbol.TypeKind = TypeKind.Delegate)
+                                Debug.Assert(typeSymbol.TypeKind = TYPEKIND.Delegate)
                                 If typeSymbol.DelegateInvokeMethod IsNot Nothing Then
                                     Return GetParameterSymbol(typeSymbol.DelegateInvokeMethod.Parameters, parameter)
                                 End If

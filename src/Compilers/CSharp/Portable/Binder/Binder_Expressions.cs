@@ -1193,7 +1193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(!parameter.ContainingSymbol.Equals(containingMethod));
 
                                 // Captured in a lambda.
-                                if (containingMethod.MethodKind == MethodKind.AnonymousFunction) // false in EE evaluation method
+                                if (containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction) // false in EE evaluation method
                                 {
                                     Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
                                 }

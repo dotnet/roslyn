@@ -80,7 +80,7 @@ set_build_info()
 
 restore_nuget()
 {
-    local package_name="nuget.35.zip"
+    local package_name="nuget.future.1.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
@@ -292,8 +292,8 @@ test_roslyn()
 }
 
 if [ "$CLEAN_RUN" == "true" ]; then
-    echo Clean out the enlistment
-    git clean -dxf . 
+echo Clean out the enlistment
+git clean -dxf . 
 fi
 
 set_build_info

@@ -1319,5 +1319,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitInStaticVariableInitializer = 8100,
         ERR_InvalidPathMap = 8101,
         ERR_PublicSignButNoKey = 8102,
+        ERR_ExpressionTreeContainsLocalFunction = 8103,
+        ERR_ReturnTypesDontMatch = 8104,
+        ERR_DynamicLocalFunctionParameter = 8105,
+        ERR_CantInferVoid = 8106
     }
 }

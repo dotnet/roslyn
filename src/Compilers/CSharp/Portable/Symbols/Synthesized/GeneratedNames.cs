@@ -140,6 +140,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaCacheField, methodOrdinal, generation, entityOrdinal: lambdaOrdinal, entityGeneration: lambdaGeneration);
         }
 
+        internal static string MakeLocalFunctionName(string methodName, string localFunctionName, int methodOrdinal, int methodGeneration, int lambdaOrdinal, int lambdaGeneration)
+        {
+            Debug.Assert(methodOrdinal >= -1);
+            Debug.Assert(methodGeneration >= 0);
+            Debug.Assert(lambdaOrdinal >= 0);
+            Debug.Assert(lambdaGeneration >= 0);
+
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LocalFunction, methodOrdinal, methodGeneration, methodName, localFunctionName, lambdaOrdinal, lambdaGeneration);
+        }
+
         private static string MakeMethodScopedSynthesizedName(
             GeneratedNameKind kind,
             int methodOrdinal,

@@ -165,6 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case EventDeclaration:
                         return ((EventDeclarationSyntax)parent).Type == node;
 
+                    case LocalFunctionStatement:
+                        return ((LocalFunctionStatementSyntax)parent).ReturnType == node;
+
                     case SimpleBaseType:
                         return true;
 

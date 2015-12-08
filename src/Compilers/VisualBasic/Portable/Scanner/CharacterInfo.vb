@@ -91,6 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const FULLWIDTH_QUOTATION_MARK As Char = ChrW(s_fullwidth + AscW(""""c))        REM ＂
 
         Friend Const FULLWIDTH_DIGIT_ZERO As Char = ChrW(s_fullwidth + AscW("0"c))             REM ０
+        Friend Const FULLWIDTH_DIGIT_ONE As Char = ChrW(s_fullwidth + AscW("1"c))              REM １
         Friend Const FULLWIDTH_DIGIT_SEVEN As Char = ChrW(s_fullwidth + AscW("7"c))            REM ７
         Friend Const FULLWIDTH_DIGIT_NINE As Char = ChrW(s_fullwidth + AscW("9"c))             REM ９
 
@@ -116,6 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const FULLWIDTH_COMMA As Char = ChrW(s_fullwidth + AscW(","c))                  REM ，
         Friend Const FULLWIDTH_PERCENT_SIGN As Char = ChrW(s_fullwidth + AscW("%"c))           REM ％
 
+        Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_B As Char = ChrW(s_fullwidth + AscW("B"c)) REM Ｂ
         Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_H As Char = ChrW(s_fullwidth + AscW("H"c)) REM Ｈ
         Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_O As Char = ChrW(s_fullwidth + AscW("O"c)) REM Ｏ
         Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_E As Char = ChrW(s_fullwidth + AscW("E"c)) REM Ｅ
@@ -125,6 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_P As Char = ChrW(s_fullwidth + AscW("P"c)) REM Ｐ
         Friend Const FULLWIDTH_LATIN_CAPITAL_LETTER_M As Char = ChrW(s_fullwidth + AscW("M"c)) REM Ｍ
 
+        Friend Const FULLWIDTH_LATIN_SMALL_LETTER_B As Char = ChrW(s_fullwidth + AscW("b"c))   REM ｂ
         Friend Const FULLWIDTH_LATIN_SMALL_LETTER_H As Char = ChrW(s_fullwidth + AscW("h"c))   REM ｈ
         Friend Const FULLWIDTH_LATIN_SMALL_LETTER_O As Char = ChrW(s_fullwidth + AscW("o"c))   REM ｏ
         Friend Const FULLWIDTH_LATIN_SMALL_LETTER_E As Char = ChrW(s_fullwidth + AscW("e"c))   REM ｅ
@@ -253,8 +256,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function BeginsBaseLiteral(c As Char) As Boolean
-            Return (c = "H"c Or c = "O"c Or c = "h"c Or c = "o"c) OrElse
-                    (IsFullWidth(c) AndAlso (c = FULLWIDTH_LATIN_CAPITAL_LETTER_H Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_O Or c = FULLWIDTH_LATIN_SMALL_LETTER_H Or c = FULLWIDTH_LATIN_SMALL_LETTER_O))
+            Return (c = "H"c Or c = "O"c Or c = "B"c Or c = "h"c Or c = "o"c Or c = "b"c) OrElse
+                    (IsFullWidth(c) AndAlso (c = FULLWIDTH_LATIN_CAPITAL_LETTER_H Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_O Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_B Or c = FULLWIDTH_LATIN_SMALL_LETTER_H Or c = FULLWIDTH_LATIN_SMALL_LETTER_O Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_B))
         End Function
 
         Private Shared ReadOnly s_isIDChar As Boolean() =
@@ -379,6 +382,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function BeginsExponent(c As Char) As Boolean
             Return c = "E"c Or c = "e"c Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_E Or c = FULLWIDTH_LATIN_SMALL_LETTER_E
+        End Function
+
+        Friend Shared Function IsBinaryDigit(c As Char) As Boolean
+            Return (c >= "0"c And c <= "1"c) Or
+                   (c >= FULLWIDTH_DIGIT_ZERO And c <= FULLWIDTH_DIGIT_ONE)
         End Function
 
         Friend Shared Function IsOctalDigit(c As Char) As Boolean
