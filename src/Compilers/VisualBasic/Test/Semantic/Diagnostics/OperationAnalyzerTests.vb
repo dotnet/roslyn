@@ -664,5 +664,34 @@ End Class
                                            Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(33, 42),
                                            Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "M0").WithLocation(12, 9)) ' The M0 diagnostic is an artifact of the VB compiler filling in default values in the high-level bound tree, and is questionable.
         End Sub
+
+        <Fact>
+        Public Sub NullArgumentVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M0(x As String, y As String)
+    End Sub
+
+    Public Sub M1()
+        M0("""", """")
+        M0(Nothing, """")
+        M0("""", Nothing)
+        M0(Nothing, Nothing)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New NullArgumentTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(7, 12),
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(8, 18),
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(9, 12),
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(9, 21))
+        End Sub
     End Class
 End Namespace

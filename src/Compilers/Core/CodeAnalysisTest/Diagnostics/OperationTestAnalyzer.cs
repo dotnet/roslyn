@@ -448,5 +448,43 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  },
                  OperationKind.LiteralExpression);
         }
+    }/// <summary>Analyzer used to test IArgument IOperations.</summary>
+    public class NullArgumentTestAnalyzer : DiagnosticAnalyzer
+    {
+        /// <summary>Diagnostic category "Reliability".</summary>
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor NullArgumentsDescriptor = new DiagnosticDescriptor(
+            "NullArgumentRule",
+            "Null Argument",
+            "Value of the argument is null",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(NullArgumentsDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var argument = (IArgument)operationContext.Operation;
+                     if (argument.Value.ConstantValue == null)
+                     {
+                         Report(operationContext, argument.Syntax, NullArgumentsDescriptor);
+                     }
+                 },
+                 OperationKind.Argument);
+        }
+
+        private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
+        }
     }
 }

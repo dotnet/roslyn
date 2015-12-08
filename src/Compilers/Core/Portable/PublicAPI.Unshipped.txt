@@ -633,6 +633,7 @@ Microsoft.CodeAnalysis.Semantics.OperationKind.EndStatement = 58 -> Microsoft.Co
 Microsoft.CodeAnalysis.Semantics.OperationKind.WithStatement = 59 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.ConditionalAccessExpression = 60 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.IncrementExpression = 61 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.Argument = 62 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OperationBlocks.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IOperation>

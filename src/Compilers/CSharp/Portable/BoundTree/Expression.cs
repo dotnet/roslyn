@@ -54,6 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operation != null)
                 {
                     this.nodes.Add(operation);
+                    if (operation is IInvocationExpression)
+                    {
+                        nodes.AddRange(((IInvocationExpression)operation).ArgumentsInSourceOrder);
+                    }
                 }
 
                 return base.Visit(node);
@@ -223,6 +227,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Parameter = parameter;
             }
 
+            OperationKind IOperation.Kind => OperationKind.Argument;
+
+            SyntaxNode IOperation.Syntax => this.Value.Syntax;
+
             public ArgumentKind ArgumentKind => ArgumentKind.Positional;
 
             public IParameterSymbol Parameter { get; }
@@ -242,6 +250,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.ArgumentKind = kind;
                 this.Parameter = parameter;
             }
+
+            OperationKind IOperation.Kind => OperationKind.Argument;
+
+            SyntaxNode IOperation.Syntax => this.Value.Syntax;
 
             public ArgumentKind ArgumentKind { get; }
 
@@ -312,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression initializer = this.InitializerExpressionOpt;
                 if (initializer != null)
                 {
-                    // ZZZ What's the representation in bound trees?
+                    return ((BoundObjectInitializerExpression)initializer).Initializers.CastArray<IMemberInitializer>();
                 }
 
                 return ImmutableArray.Create<IMemberInitializer>();

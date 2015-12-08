@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an argument in a method invocation.
     /// </summary>
-    public interface IArgument
+    public interface IArgument : IOperation
     {
         /// <summary>
         /// Kind of argument.

@@ -657,5 +657,33 @@ enum E
                 Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(24, 9)
                 );
         }
+
+        [Fact]
+        public void NullArgumentCSharp()
+        {
+            const string source = @"
+class C
+{
+    public void M1(string x, string y)
+    {}
+
+    public void M2()
+    {
+        M1("""", """");
+        M1(null, """");
+        M1("""", null);
+        M1(null, null);
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NullArgumentTestAnalyzer() }, null, null, false, 
+            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(10, 12),
+            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(11, 16),
+            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(12, 12),
+            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(12, 18)
+                );
+        }
     }
 }

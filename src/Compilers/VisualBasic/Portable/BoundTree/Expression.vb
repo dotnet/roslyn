@@ -10,31 +10,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IOperationSearchable
 
         Public Function Descendants() As IEnumerable(Of IOperation) Implements IOperationSearchable.Descendants
-            Dim _list = New List(Of BoundNode)
+            Dim _list = New List(Of IOperation)
             Dim collector = New Collector(_list)
             collector.Visit(Me)
             _list.RemoveAt(0)
-            Return _list.OfType(Of IOperation)()
+            Return _list
         End Function
 
         Public Function DescendantsAndSelf() As IEnumerable(Of IOperation) Implements IOperationSearchable.DescendantsAndSelf
-            Dim _list = New List(Of BoundNode)
+            Dim _list = New List(Of IOperation)
             Dim collector = New Collector(_list)
             collector.Visit(Me)
-            Return _list.OfType(Of IOperation)()
+            Return _list
         End Function
 
         Private Class Collector
             Inherits BoundTreeWalkerWithStackGuard
 
-            Private nodes As List(Of BoundNode)
+            Private nodes As List(Of IOperation)
 
-            Public Sub New(nodes As List(Of BoundNode))
+            Public Sub New(nodes As List(Of IOperation))
                 Me.nodes = nodes
             End Sub
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
-                Me.nodes.Add(node)
+                Dim operation = TryCast(node, IOperation)
+                If operation IsNot Nothing Then
+                    Me.nodes.Add(operation)
+                    If TypeOf operation Is IInvocationExpression Then
+                        Me.nodes.AddRange(CType(operation, IInvocationExpression).ArgumentsInSourceOrder)
+                    End If
+                End If
                 Return MyBase.Visit(node)
             End Function
 
@@ -389,6 +395,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Nothing
                 End Get
             End Property
+
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                Get
+                    Return OperationKind.Argument
+                End Get
+            End Property
+
+            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                Get
+                    Return Me.Value.Syntax
+                End Get
+            End Property
         End Class
 
         Private Class ByRefArgument
@@ -430,6 +448,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly Property Value As IExpression Implements IArgument.Value
                 Get
                     Return _argument.OriginalArgument
+                End Get
+            End Property
+
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                Get
+                    Return OperationKind.Argument
+                End Get
+            End Property
+
+            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                Get
+                    Return Me.Value.Syntax
                 End Get
             End Property
         End Class

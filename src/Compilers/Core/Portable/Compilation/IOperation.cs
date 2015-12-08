@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         // Newly added
 
         ConditionalAccessExpression,
-        IncrementExpression
+        IncrementExpression,
+
+        Argument
     }
 }
