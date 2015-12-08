@@ -1,15 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Runtime.CompilerServices
-Imports System.Text
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend MustInherit Class SyntaxList
@@ -132,37 +122,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode)
                 MyBase.New(errors, annotations)
-
-                MyBase._slotCount = 2
-
-                MyBase.AdjustFlagsAndWidth(child0)
-                Me._child0 = child0
-
-                MyBase.AdjustFlagsAndWidth(child1)
-                Me._child1 = child1
+                _slotCount = 2
+                AdjustFlagsAndWidth(child0) : _child0 = child0
+                AdjustFlagsAndWidth(child1) : _child1 = child1
             End Sub
 
             Friend Sub New(child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode)
                 MyBase.New()
-
-                MyBase._slotCount = 2
-
-                MyBase.AdjustFlagsAndWidth(child0)
-                Me._child0 = child0
-
-                MyBase.AdjustFlagsAndWidth(child1)
-                Me._child1 = child1
+                _slotCount = 2
+                AdjustFlagsAndWidth(child0) : _child0 = child0
+                AdjustFlagsAndWidth(child1) : _child1 = child1
             End Sub
 
             Friend Sub New(reader As ObjectReader)
                 MyBase.New(reader)
-
-                MyBase._slotCount = 2
-
-                Me._child0 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
-                MyBase.AdjustFlagsAndWidth(_child0)
-                Me._child1 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
-                MyBase.AdjustFlagsAndWidth(_child1)
+                _slotCount = 2
+                _child0 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode) : AdjustFlagsAndWidth(_child0)
+                _child1 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode) : AdjustFlagsAndWidth(_child1)
             End Sub
 
             Friend Overrides Function GetReader() As Func(Of ObjectReader, Object)
@@ -171,21 +147,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Friend Overrides Sub WriteTo(writer As ObjectWriter)
                 MyBase.WriteTo(writer)
-                writer.WriteValue(Me._child0)
-                writer.WriteValue(Me._child1)
+                writer.WriteValue(_child0)
+                writer.WriteValue(_child1)
             End Sub
 
             Friend Overrides Sub CopyTo(array As ArrayElement(Of VisualBasicSyntaxNode)(), offset As Integer)
-                array(offset).Value = Me._child0
-                array((offset + 1)).Value = Me._child1
+                array(offset).Value = _child0
+                array((offset + 1)).Value = _child1
             End Sub
 
             Friend Overrides Function GetSlot(index As Integer) As GreenNode
                 Select Case index
                     Case 0
-                        Return Me._child0
+                        Return _child0
                     Case 1
-                        Return Me._child1
+                        Return _child1
                 End Select
                 Return Nothing
             End Function
@@ -195,61 +171,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Function
 
             Friend Overrides Function SetDiagnostics(errors() As DiagnosticInfo) As GreenNode
-                Return New WithTwoChildren(errors, Me.GetAnnotations(), Me._child0, Me._child1)
+                Return New WithTwoChildren(errors, GetAnnotations(), _child0, _child1)
             End Function
 
             Friend Overrides Function SetAnnotations(annotations() As SyntaxAnnotation) As GreenNode
-                Return New WithTwoChildren(Me.GetDiagnostics(), annotations, Me._child0, Me._child1)
+                Return New WithTwoChildren(GetDiagnostics(), annotations, _child0, _child1)
             End Function
         End Class
 
         Friend NotInheritable Class WithThreeChildren
             Inherits SyntaxList
 
-            Private ReadOnly _child0 As VisualBasicSyntaxNode
-            Private ReadOnly _child1 As VisualBasicSyntaxNode
-            Private ReadOnly _child2 As VisualBasicSyntaxNode
+            Private ReadOnly _child0, _child1, _child2 As VisualBasicSyntaxNode
 
-            Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode, child2 As VisualBasicSyntaxNode)
+            Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(),
+                            child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode, child2 As VisualBasicSyntaxNode)
                 MyBase.New(errors, annotations)
-
-                MyBase._slotCount = 3
-
-                MyBase.AdjustFlagsAndWidth(child0)
-                Me._child0 = child0
-
-                MyBase.AdjustFlagsAndWidth(child1)
-                Me._child1 = child1
-
-                MyBase.AdjustFlagsAndWidth(child2)
-                Me._child2 = child2
+                _slotCount = 3
+                AdjustFlagsAndWidth(child0) : _child0 = child0
+                AdjustFlagsAndWidth(child1) : _child1 = child1
+                AdjustFlagsAndWidth(child2) : _child2 = child2
             End Sub
 
             Friend Sub New(child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode, child2 As VisualBasicSyntaxNode)
                 MyBase.New()
-
-                MyBase._slotCount = 3
-
-                MyBase.AdjustFlagsAndWidth(child0)
-                Me._child0 = child0
-
-                MyBase.AdjustFlagsAndWidth(child1)
-                Me._child1 = child1
-
-                MyBase.AdjustFlagsAndWidth(child2)
-                Me._child2 = child2
+                _slotCount = 3
+                AdjustFlagsAndWidth(child0) : _child0 = child0
+                AdjustFlagsAndWidth(child1) : _child1 = child1
+                AdjustFlagsAndWidth(child2) : _child2 = child2
             End Sub
 
             Friend Sub New(reader As ObjectReader)
                 MyBase.New(reader)
-                MyBase._slotCount = 3
-
-                Me._child0 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
-                MyBase.AdjustFlagsAndWidth(_child0)
-                Me._child1 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
-                MyBase.AdjustFlagsAndWidth(_child1)
-                Me._child2 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
-                MyBase.AdjustFlagsAndWidth(_child2)
+                _slotCount = 3
+                _child0 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode) : AdjustFlagsAndWidth(_child0)
+                _child1 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode) : AdjustFlagsAndWidth(_child1)
+                _child2 = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode) : AdjustFlagsAndWidth(_child2)
             End Sub
 
             Friend Overrides Function GetReader() As Func(Of ObjectReader, Object)
@@ -258,39 +215,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Friend Overrides Sub WriteTo(writer As ObjectWriter)
                 MyBase.WriteTo(writer)
-                writer.WriteValue(Me._child0)
-                writer.WriteValue(Me._child1)
-                writer.WriteValue(Me._child2)
+                writer.WriteValue(_child0)
+                writer.WriteValue(_child1)
+                writer.WriteValue(_child2)
             End Sub
 
             Friend Overrides Sub CopyTo(array As ArrayElement(Of VisualBasicSyntaxNode)(), offset As Integer)
-                array(offset).Value = Me._child0
-                array(offset + 1).Value = Me._child1
-                array(offset + 2).Value = Me._child2
+                array(offset).Value = _child0
+                array(offset + 1).Value = _child1
+                array(offset + 2).Value = _child2
             End Sub
 
             Friend Overrides Function GetSlot(index As Integer) As GreenNode
                 Select Case index
                     Case 0
-                        Return Me._child0
+                        Return _child0
                     Case 1
-                        Return Me._child1
+                        Return _child1
                     Case 2
-                        Return Me._child2
+                        Return _child2
                 End Select
                 Return Nothing
             End Function
 
             Friend Overrides Function CreateRed(parent As SyntaxNode, startLocation As Integer) As SyntaxNode
-                Return New VisualBasic.Syntax.SyntaxList.WithThreeChildren(Me, parent, startLocation)
+                Return New Syntax.SyntaxList.WithThreeChildren(Me, parent, startLocation)
             End Function
 
             Friend Overrides Function SetDiagnostics(errors() As DiagnosticInfo) As GreenNode
-                Return New WithThreeChildren(errors, Me.GetAnnotations(), Me._child0, Me._child1, Me._child2)
+                Return New WithThreeChildren(errors, GetAnnotations(), _child0, _child1, _child2)
             End Function
 
             Friend Overrides Function SetAnnotations(annotations() As SyntaxAnnotation) As GreenNode
-                Return New WithThreeChildren(Me.GetDiagnostics(), annotations, Me._child0, Me._child1, Me._child2)
+                Return New WithThreeChildren(GetDiagnostics(), annotations, _child0, _child1, _child2)
             End Function
         End Class
 
@@ -301,32 +258,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Protected Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), children As ArrayElement(Of VisualBasicSyntaxNode)())
                 MyBase.New(errors, annotations)
-                Me._children = children
+                _children = children
                 InitChildren()
             End Sub
 
             Friend Sub New(children As ArrayElement(Of VisualBasicSyntaxNode)())
                 MyBase.New()
-                Me._children = children
+                _children = children
                 InitChildren()
             End Sub
 
             Private Sub InitChildren()
                 Dim n = _children.Length
                 If (n < Byte.MaxValue) Then
-                    Me._slotCount = CByte(n)
+                    _slotCount = CByte(n)
                 Else
-                    Me._slotCount = Byte.MaxValue
+                    _slotCount = Byte.MaxValue
                 End If
 
                 For i = 0 To _children.Length - 1
                     Dim child = _children(i)
-                    MyBase.AdjustFlagsAndWidth(child)
+                    AdjustFlagsAndWidth(child)
                 Next i
             End Sub
 
             Protected Overrides Function GetSlotCount() As Integer
-                Return Me._children.Length
+                Return _children.Length
             End Function
 
             Protected Sub New(reader As ObjectReader)
@@ -334,9 +291,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Dim length = reader.ReadInt32()
 
-                Me._children = New ArrayElement(Of VisualBasicSyntaxNode)(length - 1) {}
+                _children = New ArrayElement(Of VisualBasicSyntaxNode)(length - 1) {}
                 For i = 0 To length - 1
-                    Me._children(i).Value = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
+                    _children(i).Value = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
                 Next
 
                 InitChildren()
@@ -347,46 +304,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ' PERF Write the array out manually.Profiling shows that this Is cheaper than converting to 
                 ' an array in order to use writer.WriteValue.
-                writer.WriteInt32(Me._children.Length)
+                writer.WriteInt32(_children.Length)
 
-                For i = 0 To Me._children.Length - 1
-                    writer.WriteValue(Me._children(i).Value)
+                For i = 0 To _children.Length - 1
+                    writer.WriteValue(_children(i).Value)
                 Next
             End Sub
 
             Friend Overrides Sub CopyTo(nodes As ArrayElement(Of VisualBasicSyntaxNode)(), offset As Integer)
-                Array.Copy(Me._children, 0, nodes, offset, Me._children.Length)
+                Array.Copy(_children, 0, nodes, offset, _children.Length)
             End Sub
 
             Friend Overrides Function GetSlot(index As Integer) As GreenNode
-                Return Me._children(index)
+                Return _children(index)
             End Function
 
 
             'TODO: weakening heuristic may need some tuning.
             Private Shared Function ShouldMakeWeakList(parent As SyntaxNode) As Boolean
-                Return parent IsNot Nothing AndAlso TypeOf parent Is VisualBasic.Syntax.MethodBlockBaseSyntax
+                Return parent IsNot Nothing AndAlso TypeOf parent Is Syntax.MethodBlockBaseSyntax
             End Function
 
             Friend Overrides Function CreateRed(parent As SyntaxNode, startLocation As Integer) As SyntaxNode
                 Dim isSeparated = SlotCount > 1 AndAlso HasNodeTokenPattern()
                 If ShouldMakeWeakList(parent) Then
                     If isSeparated Then
-                        Return New VisualBasic.Syntax.SyntaxList.WeakSeparatedWithManyChildren(Me, parent, startLocation)
+                        Return New Syntax.SyntaxList.WeakSeparatedWithManyChildren(Me, parent, startLocation)
                     End If
-                    Return New VisualBasic.Syntax.SyntaxList.WeakWithManyChildren(Me, parent, startLocation)
+                    Return New Syntax.SyntaxList.WeakWithManyChildren(Me, parent, startLocation)
                 Else
                     If isSeparated Then
-                        Return New VisualBasic.Syntax.SyntaxList.SeparatedWithManyChildren(Me, parent, startLocation)
+                        Return New Syntax.SyntaxList.SeparatedWithManyChildren(Me, parent, startLocation)
                     End If
-                    Return New VisualBasic.Syntax.SyntaxList.WithManyChildren(Me, parent, startLocation)
+                    Return New Syntax.SyntaxList.WithManyChildren(Me, parent, startLocation)
                 End If
             End Function
 
             Private Function HasNodeTokenPattern() As Boolean
                 For i = 0 To Me.SlotCount - 1
                     ' even slots must not be tokens and odd slots must be
-                    If Me.GetSlot(i).IsToken = ((i And 1) = 0) Then
+                    If GetSlot(i).IsToken = ((i And 1) = 0) Then
                         Return False
                     End If
                 Next
@@ -420,11 +377,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Function
 
             Friend Overrides Function SetDiagnostics(errors() As DiagnosticInfo) As GreenNode
-                Return New WithManyChildren(errors, Me.GetAnnotations(), Me._children)
+                Return New WithManyChildren(errors, Me.GetAnnotations(), _children)
             End Function
 
             Friend Overrides Function SetAnnotations(annotations() As SyntaxAnnotation) As GreenNode
-                Return New WithManyChildren(Me.GetDiagnostics(), annotations, Me._children)
+                Return New WithManyChildren(Me.GetDiagnostics(), annotations, _children)
             End Function
         End Class
 
@@ -470,11 +427,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Function
 
             Friend Overrides Function SetDiagnostics(errors() As DiagnosticInfo) As GreenNode
-                Return New WithLotsOfChildren(errors, Me.GetAnnotations(), Me._children, Me._childOffsets)
+                Return New WithLotsOfChildren(errors, Me.GetAnnotations(), _children, _childOffsets)
             End Function
 
             Friend Overrides Function SetAnnotations(annotations() As SyntaxAnnotation) As GreenNode
-                Return New WithLotsOfChildren(Me.GetDiagnostics(), annotations, Me._children, Me._childOffsets)
+                Return New WithLotsOfChildren(Me.GetDiagnostics(), annotations, _children, _childOffsets)
             End Function
 
             Private Shared Function CalculateOffsets(children As ArrayElement(Of VisualBasicSyntaxNode)()) As Integer()
@@ -500,42 +457,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Public Sub New(size As Integer)
-            Me._nodes = New ArrayElement(Of VisualBasicSyntaxNode)(size - 1) {}
+            _nodes = New ArrayElement(Of VisualBasicSyntaxNode)(size - 1) {}
         End Sub
 
         Public Function Add(item As VisualBasicSyntaxNode) As SyntaxListBuilder
             EnsureAdditionalCapacity(1)
-            Return Me.AddUnsafe(item)
+            Return AddUnsafe(item)
         End Function
 
         Private Function AddUnsafe(item As GreenNode) As SyntaxListBuilder
             Debug.Assert(item IsNot Nothing)
-            Me._nodes(Me._count).Value = DirectCast(item, VisualBasicSyntaxNode)
-            Me._count += 1
+            _nodes(_count).Value = DirectCast(item, VisualBasicSyntaxNode)
+            _count += 1
             Return Me
         End Function
 
         Public Function AddRange(Of TNode As VisualBasicSyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxListBuilder
-            Return Me.AddRange(Of TNode)(list, 0, list.Count)
+            Return AddRange(Of TNode)(list, 0, list.Count)
         End Function
 
         Public Function AddRange(Of TNode As VisualBasicSyntaxNode)(list As SyntaxList(Of TNode), offset As Integer, length As Integer) As SyntaxListBuilder
             EnsureAdditionalCapacity(length - offset)
 
-            Dim oldCount = Me._count
+            Dim oldCount = _count
 
             For i = offset To offset + length - 1
                 AddUnsafe(list.ItemUntyped(i))
             Next i
 
-            Me.Validate(oldCount, Me._count)
+            Validate(oldCount, _count)
             Return Me
         End Function
 
         Public Function Any(kind As SyntaxKind) As Boolean
             Dim i As Integer
-            For i = 0 To Me._count - 1
-                If (Me._nodes(i).Value.Kind = kind) Then
+            For i = 0 To _count - 1
+                If (_nodes(i).Value.Kind = kind) Then
                     Return True
                 End If
             Next i
@@ -543,17 +500,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Sub RemoveLast()
-            Me._count -= 1
-            Me._nodes(Me._count) = Nothing
+            _count -= 1
+            _nodes(_count) = Nothing
         End Sub
 
         Public Sub Clear()
-            Me._count = 0
+            _count = 0
         End Sub
 
         Private Sub EnsureAdditionalCapacity(additionalCount As Integer)
-            Dim currentSize As Integer = Me._nodes.Length
-            Dim requiredSize As Integer = Me._count + additionalCount
+            Dim currentSize As Integer = _nodes.Length
+            Dim requiredSize As Integer = _count + additionalCount
 
             If requiredSize <= currentSize Then
                 Return
@@ -565,18 +522,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Math.Max(requiredSize, currentSize * 2))) ' Guaranteed to at least double
             Debug.Assert(newSize >= requiredSize)
 
-            Array.Resize(Me._nodes, newSize)
+            Array.Resize(_nodes, newSize)
         End Sub
 
         Friend Function ToArray() As ArrayElement(Of VisualBasicSyntaxNode)()
-            Dim dst As ArrayElement(Of VisualBasicSyntaxNode)() = New ArrayElement(Of VisualBasicSyntaxNode)(Me._count - 1) {}
+            Dim dst As ArrayElement(Of VisualBasicSyntaxNode)() = New ArrayElement(Of VisualBasicSyntaxNode)(_count - 1) {}
 
             'TODO: workaround for range check hoisting bug
             ' <<< FOR LOOP
             Dim i As Integer = 0
             GoTo enter
             Do
-                dst(i) = Me._nodes(i)
+                dst(i) = _nodes(i)
                 i += 1
 enter:
             Loop While i < dst.Length
@@ -586,15 +543,15 @@ enter:
         End Function
 
         Friend Function ToListNode() As VisualBasicSyntaxNode
-            Select Case Me._count
+            Select Case _count
                 Case 0
                     Return Nothing
                 Case 1
-                    Return Me._nodes(0)
+                    Return _nodes(0)
                 Case 2
-                    Return SyntaxList.List(Me._nodes(0), Me._nodes(1))
+                    Return SyntaxList.List(_nodes(0), _nodes(1))
                 Case 3
-                    Return SyntaxList.List(Me._nodes(0), Me._nodes(1), Me._nodes(2))
+                    Return SyntaxList.List(_nodes(0), _nodes(1), _nodes(2))
             End Select
             Return SyntaxList.List(Me.ToArray)
         End Function
@@ -603,22 +560,22 @@ enter:
         Private Sub Validate(start As Integer, [end] As Integer)
             Dim i As Integer
             For i = start To [end] - 1
-                Debug.Assert(Me._nodes(i).Value IsNot Nothing)
+                Debug.Assert(_nodes(i).Value IsNot Nothing)
             Next i
         End Sub
 
         Public ReadOnly Property Count As Integer
             Get
-                Return Me._count
+                Return _count
             End Get
         End Property
 
         Default Public Property Item(index As Integer) As VisualBasicSyntaxNode
             Get
-                Return Me._nodes(index)
+                Return _nodes(index)
             End Get
             Set(value As VisualBasicSyntaxNode)
-                Me._nodes(index).Value = value
+                _nodes(index).Value = value
             End Set
         End Property
 
@@ -643,62 +600,62 @@ enter:
         End Sub
 
         Friend Sub New(builder As SyntaxListBuilder)
-            Me._builder = builder
+            _builder = builder
         End Sub
 
         Public ReadOnly Property IsNull As Boolean
             Get
-                Return (Me._builder Is Nothing)
+                Return (_builder Is Nothing)
             End Get
         End Property
 
         Public ReadOnly Property Count As Integer
             Get
-                Return Me._builder.Count
+                Return _builder.Count
             End Get
         End Property
 
         Default Public Property Item(index As Integer) As TNode
             Get
-                Return DirectCast(Me._builder.Item(index), TNode)
+                Return DirectCast(_builder.Item(index), TNode)
             End Get
             Set(value As TNode)
-                Me._builder.Item(index) = value
+                _builder.Item(index) = value
             End Set
         End Property
 
         Friend Sub RemoveLast()
-            Me._builder.RemoveLast()
+            _builder.RemoveLast()
         End Sub
 
         Public Sub Clear()
-            Me._builder.Clear()
+            _builder.Clear()
         End Sub
 
         Public Sub Add(node As TNode)
-            Me._builder.Add(node)
+            _builder.Add(node)
         End Sub
 
         Public Sub AddRange(nodes As SyntaxList(Of TNode))
-            Me._builder.AddRange(Of TNode)(nodes)
+            _builder.AddRange(Of TNode)(nodes)
         End Sub
 
         Public Sub AddRange(nodes As SyntaxList(Of TNode), offset As Integer, length As Integer)
-            Me._builder.AddRange(Of TNode)(nodes, offset, length)
+            _builder.AddRange(Of TNode)(nodes, offset, length)
         End Sub
 
         Public Function Any(kind As SyntaxKind) As Boolean
-            Return Me._builder.Any(kind)
+            Return _builder.Any(kind)
         End Function
 
         Public Function ToList() As SyntaxList(Of TNode)
-            Debug.Assert(Me._builder IsNot Nothing)
-            Return Me._builder.ToList(Of TNode)()
+            Debug.Assert(_builder IsNot Nothing)
+            Return _builder.ToList(Of TNode)()
         End Function
 
         Public Function ToList(Of TDerivedNode As TNode)() As SyntaxList(Of TDerivedNode)
-            Debug.Assert(Me._builder IsNot Nothing)
-            Return Me._builder.ToList(Of TDerivedNode)()
+            Debug.Assert(_builder IsNot Nothing)
+            Return _builder.ToList(Of TDerivedNode)()
         End Function
 
         Public Shared Widening Operator CType(builder As SyntaxListBuilder(Of TNode)) As SyntaxListBuilder
@@ -717,61 +674,61 @@ enter:
         End Sub
 
         Friend Sub New(builder As SyntaxListBuilder)
-            Me._builder = builder
+            _builder = builder
         End Sub
 
         Public ReadOnly Property IsNull As Boolean
             Get
-                Return (Me._builder Is Nothing)
+                Return (_builder Is Nothing)
             End Get
         End Property
 
         Public ReadOnly Property Count As Integer
             Get
-                Return Me._builder.Count
+                Return _builder.Count
             End Get
         End Property
 
         Default Public Property Item(index As Integer) As VisualBasicSyntaxNode
             Get
-                Return Me._builder.Item(index)
+                Return _builder.Item(index)
             End Get
             Set(value As VisualBasicSyntaxNode)
-                Me._builder.Item(index) = value
+                _builder.Item(index) = value
             End Set
         End Property
 
         Public Sub Clear()
-            Me._builder.Clear()
+            _builder.Clear()
         End Sub
 
         Public Sub Add(node As TNode)
-            Me._builder.Add(node)
+            _builder.Add(node)
         End Sub
 
         Friend Sub AddSeparator(separatorToken As SyntaxToken)
-            Me._builder.Add(separatorToken)
+            _builder.Add(separatorToken)
         End Sub
 
         Friend Sub AddRange(nodes As SeparatedSyntaxList(Of TNode), count As Integer)
             Dim list = nodes.GetWithSeparators
-            Me._builder.AddRange(list, Me.Count, Math.Min(count * 2, list.Count))
+            _builder.AddRange(list, Me.Count, Math.Min(count * 2, list.Count))
         End Sub
 
         Friend Sub RemoveLast()
-            Me._builder.RemoveLast()
+            _builder.RemoveLast()
         End Sub
 
         Public Function Any(kind As SyntaxKind) As Boolean
-            Return Me._builder.Any(kind)
+            Return _builder.Any(kind)
         End Function
 
         Public Function ToList() As SeparatedSyntaxList(Of TNode)
-            Return New SeparatedSyntaxList(Of TNode)(New SyntaxList(Of VisualBasicSyntaxNode)(Me._builder.ToListNode))
+            Return New SeparatedSyntaxList(Of TNode)(New SyntaxList(Of VisualBasicSyntaxNode)(_builder.ToListNode))
         End Function
 
         Public Function ToList(Of TDerivedNode As TNode)() As SeparatedSyntaxList(Of TDerivedNode)
-            Return New SeparatedSyntaxList(Of TDerivedNode)(New SyntaxList(Of VisualBasicSyntaxNode)(Me._builder.ToListNode))
+            Return New SeparatedSyntaxList(Of TDerivedNode)(New SyntaxList(Of VisualBasicSyntaxNode)(_builder.ToListNode))
         End Function
 
         Public Shared Widening Operator CType(builder As SeparatedSyntaxListBuilder(Of TNode)) As SyntaxListBuilder
@@ -785,24 +742,24 @@ enter:
         Private ReadOnly _node As GreenNode
 
         Friend Sub New(node As GreenNode)
-            Me._node = node
+            _node = node
         End Sub
 
         Friend ReadOnly Property Node As VisualBasicSyntaxNode
             Get
-                Return DirectCast(Me._node, VisualBasicSyntaxNode)
+                Return DirectCast(_node, VisualBasicSyntaxNode)
             End Get
         End Property
 
         Public ReadOnly Property Count As Integer
             Get
-                Return If((Me._node Is Nothing), 0, If(Me._node.IsList, Me._node.SlotCount, 1))
+                Return If((_node Is Nothing), 0, If(_node.IsList, _node.SlotCount, 1))
             End Get
         End Property
 
         Public ReadOnly Property Last As TNode
             Get
-                Dim node = Me._node
+                Dim node = _node
                 If node.IsList Then
                     Return DirectCast(node.GetSlot(node.SlotCount - 1), TNode)
                 End If
@@ -812,7 +769,7 @@ enter:
 
         Default Public ReadOnly Property Item(index As Integer) As TNode
             Get
-                Dim node = Me._node
+                Dim node = _node
                 If node.IsList Then
                     Return DirectCast(node.GetSlot(index), TNode)
                 End If
@@ -823,7 +780,7 @@ enter:
 
         Friend ReadOnly Property ItemUntyped(index As Integer) As GreenNode
             Get
-                Dim node = Me._node
+                Dim node = _node
                 If node.IsList Then
                     Return node.GetSlot(index)
                 End If
@@ -833,7 +790,7 @@ enter:
         End Property
 
         Public Function Any() As Boolean
-            Return Me._node IsNot Nothing
+            Return _node IsNot Nothing
         End Function
 
         Public Function Any(kind As SyntaxKind) As Boolean
@@ -869,15 +826,15 @@ enter:
         End Function
 
         Public Overloads Function Equals(other As SyntaxList(Of TNode)) As Boolean Implements IEquatable(Of SyntaxList(Of TNode)).Equals
-            Return Me._node Is other._node
+            Return _node Is other._node
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return If((Not Me._node Is Nothing), Me._node.GetHashCode, 0)
+            Return If((Not _node Is Nothing), _node.GetHashCode, 0)
         End Function
 
         Friend Function AsSeparatedList(Of TOther As VisualBasicSyntaxNode)() As SeparatedSyntaxList(Of TOther)
-            Return New SeparatedSyntaxList(Of TOther)(New SyntaxList(Of TOther)(Me._node))
+            Return New SeparatedSyntaxList(Of TOther)(New SyntaxList(Of TOther)(_node))
         End Function
 
         Public Shared Widening Operator CType(node As TNode) As SyntaxList(Of TNode)

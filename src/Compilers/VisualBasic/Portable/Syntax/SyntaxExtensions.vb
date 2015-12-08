@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns the TypeSyntax of the given NewExpressionSyntax if specified.
         ''' </summary>
-        <Extension()> _
+        <Extension()>
         Public Function Type(newExpressionSyntax As NewExpressionSyntax) As TypeSyntax
             Select Case newExpressionSyntax.Kind
                 Case SyntaxKind.ObjectCreationExpression
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns the TypeSyntax of the given AsClauseSyntax if specified.
         ''' </summary>
-        <Extension()> _
+        <Extension()>
         Public Function Type(asClauseSyntax As AsClauseSyntax) As TypeSyntax
             Select Case asClauseSyntax.Kind
                 Case SyntaxKind.SimpleAsClause
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns the AttributeBlockSyntax of the given AsClauseSyntax if specified.
         ''' </summary>
-        <Extension()> _
+        <Extension()>
         Public Function Attributes(asClauseSyntax As AsClauseSyntax) As SyntaxList(Of AttributeListSyntax)
             Select Case asClauseSyntax.Kind
                 Case SyntaxKind.SimpleAsClause
@@ -102,9 +102,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The given simple name updated with the given identifier.</returns>
         <Extension>
         Public Function WithIdentifier(simpleName As SimpleNameSyntax, identifier As SyntaxToken) As SimpleNameSyntax
-            Return If(simpleName.Kind = SyntaxKind.IdentifierName,
-                      DirectCast(DirectCast(simpleName, IdentifierNameSyntax).WithIdentifier(identifier), SimpleNameSyntax),
-                      DirectCast(DirectCast(simpleName, GenericNameSyntax).WithIdentifier(identifier), SimpleNameSyntax))
+            If simpleName.Kind = SyntaxKind.IdentifierName Then
+                Return DirectCast(simpleName, IdentifierNameSyntax).WithIdentifier(identifier)
+            Else
+                Return DirectCast(simpleName, GenericNameSyntax).WithIdentifier(identifier)
+            End If
         End Function
     End Module
 End Namespace

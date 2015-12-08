@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _node As CompilationUnitSyntax
 
             Public Sub New()
-                _node = Me.CloneNodeAsRoot(SyntaxFactory.ParseCompilationUnit(String.Empty))
+                _node = CloneNodeAsRoot(SyntaxFactory.ParseCompilationUnit(String.Empty))
             End Sub
 
             Public Overrides Function ToString() As String

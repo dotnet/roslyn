@@ -224,10 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Determines if possibleLambda is a lambda expression and position is in the interior.
         ''' </summary>
-        Friend Shared Function InLambdaInterior(
-            possibleLambda As SyntaxNode,
-            position As Integer
-        ) As Boolean
+        Friend Shared Function InLambdaInterior(possibleLambda As SyntaxNode, position As Integer) As Boolean
 
             Dim afterBegin As Boolean
             Dim beforeEnd As Boolean

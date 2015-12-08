@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows ReadOnly Property SyntaxTree As SyntaxTree
             Get
-                If Me._syntaxTree Is Nothing Then
+                If _syntaxTree Is Nothing Then
                     Dim stack = ArrayBuilder(Of SyntaxNode).GetInstance()
                     Dim tree As SyntaxTree = Nothing
 
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     stack.Free()
                 End If
 
-                Return Me._syntaxTree
+                Return _syntaxTree
             End Get
         End Property
 
@@ -110,12 +110,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns the <see cref="SyntaxKind"/> of the node.
         ''' </summary>
         Public Function Kind() As SyntaxKind
-            Return CType(Me.Green.RawKind, SyntaxKind)
+            Return CType(Green.RawKind, SyntaxKind)
         End Function
 
         Protected Overrides ReadOnly Property KindText As String
             Get
-                Return Me.Kind.ToString()
+                Return Kind.ToString()
             End Get
         End Property
 
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The string representation of this node, not including its leading and trailing trivia.</returns>
         ''' <remarks>The length of the returned string is always the same as Span.Length</remarks>
         Public NotOverridable Overrides Function ToString() As String
-            Return Me.Green.ToString()
+            Return Green.ToString()
         End Function
 
         ''' <summary>
@@ -153,14 +153,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The full string representation of this node including its leading and trailing trivia.</returns>
         ''' <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
         Public NotOverridable Overrides Function ToFullString() As String
-            Return Me.Green.ToFullString()
+            Return Green.ToFullString()
         End Function
 
         ''' <summary>
         ''' Writes the full text of this node to the specified TextWriter
         ''' </summary>
         Public Overrides Sub WriteTo(writer As IO.TextWriter)
-            Me.Green.WriteTo(writer)
+            Green.WriteTo(writer)
         End Sub
 
 #Region "Serialization"
@@ -170,8 +170,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Serialize this node to a byte stream.
         ''' </summary>
         Public Overrides Sub SerializeTo(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing)
-            Using writer = New ObjectWriter(stream, GetDefaultObjectWriterData(), binder:=s_binder, cancellationToken:=cancellationToken)
-                writer.WriteValue(Me.Green)
+            Using writer As New ObjectWriter(stream, GetDefaultObjectWriterData(), binder:=s_binder, cancellationToken:=cancellationToken)
+                writer.WriteValue(Green)
             End Using
         End Sub
 
@@ -205,28 +205,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If s_serializationData Is Nothing Then
                 Dim data = New Object() {
                     GetType(Object).GetTypeInfo().Assembly.FullName,
-                    GetType(Microsoft.CodeAnalysis.DiagnosticInfo).GetTypeInfo().Assembly.FullName,
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode).GetTypeInfo().Assembly.FullName,
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxToken.TriviaInfo),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SimpleIdentifierSyntax),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ComplexIdentifierSyntax),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList.WithTwoChildren),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList.WithThreeChildren),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList.WithManyChildren),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxList.WithLotsOfChildren),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Int32)),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Int16)),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Int64)),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of UInt32)),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of UInt16)),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of UInt64)),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Byte)),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of SByte)),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FloatingLiteralTokenSyntax(Of Single)),
-                    GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FloatingLiteralTokenSyntax(Of Double)),
-                    GetType(Microsoft.CodeAnalysis.DiagnosticInfo),
-                    GetType(Microsoft.CodeAnalysis.SyntaxAnnotation)
+                    GetType(DiagnosticInfo).GetTypeInfo().Assembly.FullName,
+                    GetType(VisualBasicSyntaxNode).GetTypeInfo().Assembly.FullName,
+                    GetType(InternalSyntax.SyntaxToken.TriviaInfo),
+                    GetType(InternalSyntax.SimpleIdentifierSyntax),
+                    GetType(InternalSyntax.ComplexIdentifierSyntax),
+                    GetType(InternalSyntax.SyntaxList),
+                    GetType(InternalSyntax.SyntaxList.WithTwoChildren),
+                    GetType(InternalSyntax.SyntaxList.WithThreeChildren),
+                    GetType(InternalSyntax.SyntaxList.WithManyChildren),
+                    GetType(InternalSyntax.SyntaxList.WithLotsOfChildren),
+                    GetType(InternalSyntax.IntegerLiteralTokenSyntax(Of Int32)),
+                    GetType(InternalSyntax.IntegerLiteralTokenSyntax(Of Int16)),
+                    GetType(InternalSyntax.IntegerLiteralTokenSyntax(Of Int64)),
+                    GetType(InternalSyntax.IntegerLiteralTokenSyntax(Of UInt32)),
+                    GetType(InternalSyntax.IntegerLiteralTokenSyntax(Of UInt16)),
+                    GetType(InternalSyntax.IntegerLiteralTokenSyntax(Of UInt64)),
+                    GetType(InternalSyntax.IntegerLiteralTokenSyntax(Of Byte)),
+                    GetType(InternalSyntax.IntegerLiteralTokenSyntax(Of SByte)),
+                    GetType(InternalSyntax.FloatingLiteralTokenSyntax(Of Single)),
+                    GetType(InternalSyntax.FloatingLiteralTokenSyntax(Of Double)),
+                    GetType(DiagnosticInfo),
+                    GetType(SyntaxAnnotation)
                 } _
                 .Concat(InternalSyntax.SyntaxFactory.GetNodeTypes()) _
                 .Concat(InternalSyntax.SyntaxFactory.GetWellKnownTrivia()) _
@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property IsDirective As Boolean
             Get
-                Return Me.Green.IsDirective
+                Return Green.IsDirective
             End Get
         End Property
 
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Public Shadows ReadOnly Property SpanStart As Integer
             Get
-                Return Position + Me.Green.GetLeadingTriviaWidth()
+                Return Position + Green.GetLeadingTriviaWidth()
             End Get
         End Property
 
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property HasErrors As Boolean
             Get
                 ' TODO (tomat): share impl with C#
-                Return Me.ContainsDiagnostics AndAlso Me.GetSyntaxErrors(Me.SyntaxTree).Any(Function(i) i.Severity = DiagnosticSeverity.Error)
+                Return ContainsDiagnostics AndAlso GetSyntaxErrors(SyntaxTree).Any(Function(i) i.Severity = DiagnosticSeverity.Error)
             End Get
         End Property
 
@@ -452,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              Optional includeSkipped As Boolean = False,
                                              Optional includeDirectives As Boolean = False,
                                              Optional includeDocumentationComments As Boolean = False) As SyntaxToken
-            Return CType(MyBase.GetLastToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments), SyntaxToken)
+            Return MyBase.GetLastToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments)
         End Function
 
         Public Function GetDirectives(Optional filter As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As IList(Of DirectiveTriviaSyntax)
@@ -577,7 +577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Core Overloads"
         Protected NotOverridable Overrides Function EquivalentToCore(other As SyntaxNode) As Boolean
-            Return Me.IsEquivalentTo(TryCast(other, VisualBasicSyntaxNode))
+            Return IsEquivalentTo(TryCast(other, VisualBasicSyntaxNode))
         End Function
 
         Protected NotOverridable Overrides Function FindTokenCore(position As Integer, findInsideTrivia As Boolean) As SyntaxToken
@@ -594,7 +594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides ReadOnly Property SyntaxTreeCore As SyntaxTree
             Get
-                Return Me.SyntaxTree
+                Return SyntaxTree
             End Get
         End Property
 
@@ -646,12 +646,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shadows Function GetLocation() As Location
             ' Note that we want to return 'no location' for all nodes from embedded syntax trees
-            If Me.SyntaxTree IsNot Nothing Then
-                Dim tree = Me.SyntaxTree
+            If SyntaxTree IsNot Nothing Then
+                Dim tree = SyntaxTree
                 If tree.IsEmbeddedSyntaxTree Then
-                    Return New EmbeddedTreeLocation(tree.GetEmbeddedKind, Me.Span)
+                    Return New EmbeddedTreeLocation(tree.GetEmbeddedKind, Span)
                 ElseIf tree.IsMyTemplate Then
-                    Return New MyTemplateLocation(tree, Me.Span)
+                    Return New MyTemplateLocation(tree, Span)
                 End If
             End If
             Return New SourceLocation(Me)

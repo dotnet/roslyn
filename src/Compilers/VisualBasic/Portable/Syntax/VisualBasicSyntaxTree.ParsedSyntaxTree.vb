@@ -124,33 +124,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
-                If Me._root Is root AndAlso Me._options Is options Then
+                If _root Is root AndAlso _options Is options Then
                     Return Me
                 End If
 
-                Return New ParsedSyntaxTree(
-                    Nothing,
-                    Me._encodingOpt,
-                    Me._checksumAlgorithm,
-                    Me._path,
-                    DirectCast(options, VisualBasicParseOptions),
-                    DirectCast(root, VisualBasicSyntaxNode),
-                    Me._isMyTemplate)
+                Return New ParsedSyntaxTree(Nothing, _encodingOpt, _checksumAlgorithm, _path,
+                                            DirectCast(options, VisualBasicParseOptions), DirectCast(root, VisualBasicSyntaxNode), _isMyTemplate)
             End Function
 
             Public Overrides Function WithFilePath(path As String) As SyntaxTree
-                If String.Equals(Me._path, path) Then
+                If String.Equals(_path, path) Then
                     Return Me
                 End If
 
-                Return New ParsedSyntaxTree(
-                    Me._lazyText,
-                    Me._encodingOpt,
-                    Me._checksumAlgorithm,
-                    path,
-                    Me._options,
-                    Me._root,
-                    Me._isMyTemplate)
+                Return New ParsedSyntaxTree(_lazyText, _encodingOpt, _checksumAlgorithm, path, _options, _root, _isMyTemplate)
             End Function
         End Class
     End Class

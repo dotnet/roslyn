@@ -1,15 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Runtime.CompilerServices
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     Friend Partial Class SyntaxList
@@ -27,9 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Friend Overrides Function GetNodeSlot(index As Integer) As SyntaxNode
                 Select Case index
                     Case 0
-                        Return GetRedElement(Me._child0, 0)
+                        Return GetRedElement(_child0, 0)
                     Case 1
-                        Return GetRedElementIfNotToken(Me._child1)
+                        Return GetRedElementIfNotToken(_child1)
                 End Select
                 Return Nothing
             End Function

@@ -414,16 +414,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function TypeBlock(ByVal blockKind As SyntaxKind, ByVal begin As TypeStatementSyntax, Optional ByVal [inherits] As SyntaxList(Of InheritsStatementSyntax) = Nothing, Optional ByVal [implements] As SyntaxList(Of ImplementsStatementSyntax) = Nothing, Optional ByVal members As SyntaxList(Of StatementSyntax) = Nothing, Optional ByVal [end] As EndBlockStatementSyntax = Nothing) As TypeBlockSyntax
             Select Case blockKind
                 Case SyntaxKind.ModuleBlock
-                    Return SyntaxFactory.ModuleBlock(DirectCast(begin, ModuleStatementSyntax), [inherits], [implements], members, [end])
+                    Return ModuleBlock(DirectCast(begin, ModuleStatementSyntax), [inherits], [implements], members, [end])
 
                 Case SyntaxKind.ClassBlock
-                    Return SyntaxFactory.ClassBlock(DirectCast(begin, ClassStatementSyntax), [inherits], [implements], members, [end])
+                    Return ClassBlock(DirectCast(begin, ClassStatementSyntax), [inherits], [implements], members, [end])
 
                 Case SyntaxKind.StructureBlock
-                    Return SyntaxFactory.StructureBlock(DirectCast(begin, StructureStatementSyntax), [inherits], [implements], members, [end])
+                    Return StructureBlock(DirectCast(begin, StructureStatementSyntax), [inherits], [implements], members, [end])
 
                 Case SyntaxKind.InterfaceBlock
-                    Return SyntaxFactory.InterfaceBlock(DirectCast(begin, InterfaceStatementSyntax), [inherits], [implements], members, [end])
+                    Return InterfaceBlock(DirectCast(begin, InterfaceStatementSyntax), [inherits], [implements], members, [end])
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(blockKind)
@@ -433,16 +433,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function TypeStatement(ByVal statementKind As SyntaxKind, Optional ByVal attributes As SyntaxList(Of AttributeListSyntax) = Nothing, Optional ByVal modifiers As SyntaxTokenList = Nothing, Optional ByVal keyword As SyntaxToken = Nothing, Optional ByVal identifier As SyntaxToken = Nothing, Optional ByVal typeParameterList As TypeParameterListSyntax = Nothing) As TypeStatementSyntax
             Select Case statementKind
                 Case SyntaxKind.ModuleStatement
-                    Return SyntaxFactory.ModuleStatement(attributes, modifiers, keyword, identifier, typeParameterList)
+                    Return ModuleStatement(attributes, modifiers, keyword, identifier, typeParameterList)
 
                 Case SyntaxKind.ClassStatement
-                    Return SyntaxFactory.ClassStatement(attributes, modifiers, keyword, identifier, typeParameterList)
+                    Return ClassStatement(attributes, modifiers, keyword, identifier, typeParameterList)
 
                 Case SyntaxKind.StructureStatement
-                    Return SyntaxFactory.StructureStatement(attributes, modifiers, keyword, identifier, typeParameterList)
+                    Return StructureStatement(attributes, modifiers, keyword, identifier, typeParameterList)
 
                 Case SyntaxKind.InterfaceStatement
-                    Return SyntaxFactory.InterfaceStatement(attributes, modifiers, keyword, identifier, typeParameterList)
+                    Return InterfaceStatement(attributes, modifiers, keyword, identifier, typeParameterList)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(statementKind)

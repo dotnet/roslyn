@@ -31,25 +31,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub New(tree As SyntaxTree, node As InternalSyntax.VisualBasicSyntaxNode, position As Integer, inDocumentationComment As Boolean)
             If node IsNot Nothing AndAlso node.ContainsDiagnostics Then
-                Me._tree = tree
-                Me._stack = New NodeIteration(8 - 1) {}
+                _tree = tree
+                _stack = New NodeIteration(8 - 1) {}
                 Me.Push(node, inDocumentationComment)
             Else
-                Me._tree = Nothing
-                Me._stack = Nothing
-                Me._count = 0
+                _tree = Nothing
+                _stack = Nothing
+                _count = 0
             End If
-            Me._current = Nothing
-            Me._position = position
+            _current = Nothing
+            _position = position
         End Sub
 
         Public Function MoveNext() As Boolean
             While _count > 0
 
-                Dim diagIndex = Me._stack(_count - 1).diagnosticIndex
-                Dim node = Me._stack(_count - 1).node
+                Dim diagIndex = _stack(_count - 1).diagnosticIndex
+                Dim node = _stack(_count - 1).node
                 Dim diags = node.GetDiagnostics
-                Dim inDocumentationComment = Me._stack(_count - 1).inDocumentationComment
+                Dim inDocumentationComment = _stack(_count - 1).inDocumentationComment
 
                 If diags IsNot Nothing AndAlso diagIndex < diags.Length - 1 Then
                     diagIndex += 1
@@ -59,17 +59,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     ' Tokens have already processed leading trivia, so only add leading trivia width for non-tokens [bug 4745]
-                    Dim position As Integer = Me._position
+                    Dim position As Integer = _position
                     If Not node.IsToken Then
                         position += node.GetLeadingTriviaWidth()
                     End If
 
-                    Me._current = New VBDiagnostic(di, Me._tree.GetLocation(New TextSpan(position, node.Width)))
-                    Me._stack(_count - 1).diagnosticIndex = diagIndex
+                    _current = New VBDiagnostic(di, _tree.GetLocation(New TextSpan(position, node.Width)))
+                    _stack(_count - 1).diagnosticIndex = diagIndex
                     Return True
                 End If
 
-                Dim slotIndex = Me._stack(_count - 1).slotIndex
+                Dim slotIndex = _stack(_count - 1).slotIndex
                 inDocumentationComment = inDocumentationComment OrElse node.RawKind = SyntaxKind.DocumentationCommentTrivia
 
 tryAgain:
@@ -83,20 +83,20 @@ tryAgain:
                     End If
 
                     If Not child.ContainsDiagnostics Then
-                        Me._position += child.FullWidth
+                        _position += child.FullWidth
                         GoTo tryAgain
                     End If
 
-                    Me._stack(_count - 1).slotIndex = slotIndex
+                    _stack(_count - 1).slotIndex = slotIndex
 
                     Push(child, inDocumentationComment)
 
                 Else
                     If node.SlotCount = 0 Then
-                        Me._position += node.Width
+                        _position += node.Width
                     End If
 
-                    Me.Pop()
+                    Pop()
 
                 End If
 
@@ -117,34 +117,34 @@ tryAgain:
         Private Sub PushToken(token As InternalSyntax.SyntaxToken, inDocumentationComment As Boolean)
             Dim trailing = token.GetTrailingTrivia
             If trailing IsNot Nothing Then
-                Me.Push(trailing, inDocumentationComment)
+                Push(trailing, inDocumentationComment)
             End If
 
             PushNode(token, inDocumentationComment)
 
             Dim leading = token.GetLeadingTrivia
             If leading IsNot Nothing Then
-                Me.Push(leading, inDocumentationComment)
+                Push(leading, inDocumentationComment)
             End If
         End Sub
 
         Private Sub PushNode(node As GreenNode, inDocumentationComment As Boolean)
-            If Me._count >= Me._stack.Length Then
-                Dim tmp As NodeIteration() = New NodeIteration((Me._stack.Length * 2) - 1) {}
-                Array.Copy(Me._stack, tmp, Me._stack.Length)
-                Me._stack = tmp
+            If _count >= _stack.Length Then
+                Dim tmp As NodeIteration() = New NodeIteration((_stack.Length * 2) - 1) {}
+                Array.Copy(_stack, tmp, _stack.Length)
+                _stack = tmp
             End If
-            Me._stack(Me._count) = New NodeIteration(node, inDocumentationComment)
-            Me._count += 1
+            _stack(_count) = New NodeIteration(node, inDocumentationComment)
+            _count += 1
         End Sub
 
         Private Sub Pop()
-            Me._count -= 1
+            _count -= 1
         End Sub
 
         Public ReadOnly Property Current As Diagnostic
             Get
-                Return Me._current
+                Return _current
             End Get
         End Property
 

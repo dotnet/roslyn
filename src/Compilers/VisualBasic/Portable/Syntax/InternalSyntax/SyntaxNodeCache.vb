@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Shared Function AllChildrenInCache(node As GreenNode) As Boolean
             For i As Integer = 0 To node.SlotCount - 1
-                If (Not ChildInCache(DirectCast(node.GetSlot(i), GreenNode))) Then
+                If (Not ChildInCache(node.GetSlot(i))) Then
                     Return False
                 End If
             Next
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared Function GetCacheHash(kind As Integer, flags As GreenNode.NodeFlags, child1 As GreenNode) As Integer
             Dim code As Integer = CInt(flags) Xor kind
             ' the only child is never null
-            code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1), code)
+            code = Hash.Combine(Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1), code)
 
             ' ensure nonnegative hash
             Return code And Int32.MaxValue
@@ -261,10 +261,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim code As Integer = CInt(flags) Xor kind
 
             If (child1 IsNot Nothing) Then
-                code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1), code)
+                code = Hash.Combine(Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1), code)
             End If
             If (child2 IsNot Nothing) Then
-                code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child2), code)
+                code = Hash.Combine(Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child2), code)
             End If
 
             ' ensure nonnegative hash
