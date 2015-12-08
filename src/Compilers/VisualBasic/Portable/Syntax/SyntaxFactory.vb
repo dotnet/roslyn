@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Determites if a submission is complete.
+        ''' Determines if a submission is complete.
         ''' Returns false if the syntax is valid but incomplete.
         ''' Returns true if the syntax is invalid or complete.
         ''' </summary>
@@ -551,9 +551,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim compilation As CompilationUnitSyntax = DirectCast(tree.GetRoot(), CompilationUnitSyntax)
-            If Not compilation.HasErrors Then
-                Return True
-            End If
 
             For Each err In compilation.GetDiagnostics()
                 Select Case DirectCast(err.Code, ERRID)
@@ -561,22 +558,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          ERRID.ERR_ExpectedEndRegion
                         Return False
                     Case ERRID.ERR_ExpectedEOS
+                        ' Invalid statements that should have been separated by a newline or a colon.
+                        ' For example: `If condition statement`
                         Return True
                 End Select
             Next
 
             Dim lastNode = compilation.ChildNodes().LastOrDefault()
             If lastNode Is Nothing Then
+                ' Invalid submission. The compilation does not have any children.
                 Return True
             End If
 
             Dim lastToken = lastNode.GetLastToken(includeZeroWidth:=True, includeSkipped:=True)
-            If lastToken.IsMissing Then
-                If lastToken.IsKind(SyntaxKind.IdentifierToken) Then
-                    ' Handle case of expressions such as `Dim x =`.
-                    ' The expression is incomplete only if ended with a line-continuation character `_`.
-                    Return Not lastToken.HasTrailingTrivia OrElse Not lastToken.TrailingTrivia.Last().IsKind(SyntaxKind.LineContinuationTrivia)
-                End If
+
+            If lastToken.HasTrailingTrivia AndAlso lastToken.TrailingTrivia.Last().IsKind(SyntaxKind.LineContinuationTrivia) Then
+                ' Even if the compilation is correct but has a line continuation trivia return statement as incomplete.
+                ' For example `Dim x = 12 _` has no compilation errors but should be treated as an incomplete statement.
+                Return False
+            ElseIf Not compilation.HasErrors Then
+                ' No errors returned. This is a valid and complete submission.
+                Return True
+            ElseIf lastToken.IsMissing Then
                 Return False
             End If
 
@@ -589,6 +592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             Next
 
+            ' By default mark the submissions as invalid.
             Return True
         End Function
     End Class
