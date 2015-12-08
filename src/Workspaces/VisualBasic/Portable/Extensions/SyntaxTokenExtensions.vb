@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            ' NB: Checks whether the caret is placed after a colon or and end of line.
+            ' NB: Checks whether the caret is placed after a colon or an end of line.
             ' Otherwise the typed expression would still be a part of the previous statement.
             If Not token.HasTrailingTrivia Then
                 Return False
