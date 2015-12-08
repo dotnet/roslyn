@@ -590,6 +590,82 @@ public class C
 
         [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        public async Task TestInterleavedDirectivesInner()
+        {
+            var code = @"
+#define CHK
+public class C 
+{
+    void Test()
+    {
+#if CHK
+$$#region test
+    var x = 5;
+#endregion
+#else
+    var y = 6;
+#endif
+    }
+}";
+            var expected = @"
+#define CHK
+public class C 
+{
+    void Test()
+    {
+#if CHK
+#region test
+    var x = 5;
+[|#endregion|]
+#else
+    var y = 6;
+#endif
+    }
+}";
+
+            await TestAsync(code, expected);
+        }
+
+        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        public async Task TestInterleavedDirectivesOuter()
+        {
+            var code = @"
+#define CHK
+public class C 
+{
+    void Test()
+    {
+#if$$ CHK
+#region test
+    var x = 5;
+#endregion
+#else
+    var y = 6;
+#endif
+    }
+}";
+            var expected = @"
+#define CHK
+public class C 
+{
+    void Test()
+    {
+#if CHK
+#region test
+    var x = 5;
+#endregion
+[|#else|]
+    var y = 6;
+#endif
+    }
+}";
+
+            await TestAsync(code, expected);
+        }
+
+        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
         public async Task TestUnmatchedDirective1()
         {
             var code = @"
