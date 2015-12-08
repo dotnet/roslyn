@@ -196,23 +196,13 @@ namespace Roslyn.Utilities
 
             // If we've matched all of the 'short' string in the prefix and suffix of 'longString'. then the edit
             // distance is just whatever operations we have to create the remaining longString substring.
+            //
+            // Note: we don't have to check if longLength is 0.  That's because longLength being zero would
+            // necessarily mean that shortLength is 0.
             if (shortLength == 0)
             {
                 return longLength;
             }
-
-#if false
-            // Note: this check is not necessary. Recall that shortLength is always less than 
-            // longLength.  So if longLength was 0 then shortLength would also be zero, and the
-            // above case would hit.
-            //
-            // I'm keeping this in just to help clarify this in case someone wonders why that
-            // check is missing.
-            if (longLength == 0)
-            {
-                return shortLength;
-            }
-#endif
 
             // The is the minimum number of edits we'd have to make.  i.e. if  'shortString' and 
             // 'longString' are the same length, then we might not need to make any edits.  However,
