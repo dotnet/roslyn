@@ -9,6 +9,68 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     // These analyzers are not intended for any actual use. They exist solely to test IOperation support.
 
+    /// <summary>Analyzer used to test for bad statements and expressions.</summary>
+    public class BadStuffTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor InvalidExpressionDescriptor = new DiagnosticDescriptor(
+            "InvalidExpression",
+            "Invalid Expression",
+            "Invalid expression found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor InvalidStatementDescriptor = new DiagnosticDescriptor(
+            "InvalidStatement",
+            "Invalid Statement",
+            "Invalid statement found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor IsInvalidDescriptor = new DiagnosticDescriptor(
+            "IsInvalid",
+            "Is Invalid",
+            "Operation found that is invalid.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(InvalidExpressionDescriptor, InvalidStatementDescriptor, IsInvalidDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(InvalidExpressionDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.InvalidExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(InvalidStatementDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.InvalidStatement);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     if (operationContext.Operation.IsInvalid)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(IsInvalidDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.InvocationExpression,
+                 OperationKind.InvalidExpression,
+                 OperationKind.InvalidStatement);
+        }
+    }
+
     /// <summary>Analyzer used to test for loop IOperations.</summary>
     public class BigForTestAnalyzer : DiagnosticAnalyzer
     {

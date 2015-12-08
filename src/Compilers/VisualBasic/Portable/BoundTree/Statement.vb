@@ -15,6 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
+            Get
+                Return Me.HasErrors
+            End Get
+        End Property
+
         Private ReadOnly Property ISyntax As SyntaxNode Implements IOperation.Syntax
             Get
                 Return Me.Syntax
@@ -455,6 +461,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public ReadOnly Property IsInvalid As Boolean Implements IExpression.IsInvalid
+                Get
+                    Return False
+                End Get
+            End Property
+
             Public ReadOnly Property ResultType As ITypeSymbol Implements IExpression.ResultType
                 Get
                     Return Me._capturedValue.ResultType
@@ -582,6 +594,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
+            Get
+                Return Me.HasErrors
+            End Get
+        End Property
+
         Private ReadOnly Property ISyntax As SyntaxNode Implements IOperation.Syntax
             Get
                 Return Me.Syntax
@@ -611,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundBadStatement
         Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
+            Return OperationKind.InvalidStatement
         End Function
     End Class
 
@@ -946,6 +964,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
                 Get
                     Return OperationKind.VariableDeclarationStatement
+                End Get
+            End Property
+
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return False
                 End Get
             End Property
 
