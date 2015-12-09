@@ -3,7 +3,7 @@
 REM Parse Arguments.
 
 set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.35.zip
+set NugetZipFileName=nuget.36.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 set BuildRestore=false
@@ -44,7 +44,7 @@ REM Restore the NuGet packages
 if "%BuildRestore%" == "true" (
     call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 ) else (
-    powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\restore.ps1 %NugetZipUrl%" || goto :BuildFailed
+    powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\restore.ps1 %NugetZipUrlRoot%/%NugetZipFileName%" || goto :BuildFailed
 )
 
 REM Set the build version only so the assembly version is set to the semantic version,
