@@ -652,6 +652,95 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
+        Public Overrides Function OperatorDeclaration(kind As OperatorKind,
+                                                      Optional parameters As IEnumerable(Of SyntaxNode) = Nothing,
+                                                      Optional returnType As SyntaxNode = Nothing,
+                                                      Optional accessibility As Accessibility = Accessibility.NotApplicable,
+                                                      Optional modifiers As DeclarationModifiers = Nothing,
+                                                      Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+
+            Dim statement As OperatorStatementSyntax
+            Dim asClause = If(returnType IsNot Nothing, SyntaxFactory.SimpleAsClause(DirectCast(returnType, TypeSyntax)), Nothing)
+            Dim parameterList = GetParameterList(parameters)
+            Dim operatorToken = SyntaxFactory.Token(GetTokenKind(kind))
+            Dim modifierList As SyntaxTokenList = GetModifierList(accessibility, modifiers And s_methodModifiers)
+
+            If kind = OperatorKind.ImplicitConversion OrElse kind = OperatorKind.ExplicitConversion Then
+                modifierList = modifierList.Add(SyntaxFactory.Token(
+                    If(kind = OperatorKind.ImplicitConversion, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword)))
+                statement = SyntaxFactory.OperatorStatement(
+                    attributeLists:=Nothing, modifiers:=modifierList, operatorToken:=operatorToken,
+                    parameterList:=parameterList, asClause:=asClause)
+            Else
+                statement = SyntaxFactory.OperatorStatement(
+                    attributeLists:=Nothing, modifiers:=modifierList,
+                    operatorToken:=operatorToken, parameterList:=parameterList,
+                    asClause:=asClause)
+            End If
+
+
+            If modifiers.IsAbstract Then
+                Return statement
+            Else
+                Return SyntaxFactory.OperatorBlock(
+                    operatorStatement:=statement,
+                    statements:=GetStatementList(statements),
+                    endOperatorStatement:=SyntaxFactory.EndOperatorStatement())
+            End If
+        End Function
+
+        Private Function GetTokenKind(kind As OperatorKind) As SyntaxKind
+            Select Case kind
+                Case OperatorKind.ImplicitConversion,
+                     OperatorKind.ExplicitConversion
+                    Return SyntaxKind.CTypeKeyword
+                Case OperatorKind.Addition
+                    Return SyntaxKind.PlusToken
+                Case OperatorKind.BitwiseAnd
+                    Return SyntaxKind.AndKeyword
+                Case OperatorKind.BitwiseOr
+                    Return SyntaxKind.OrKeyword
+                Case OperatorKind.Division
+                    Return SyntaxKind.SlashToken
+                Case OperatorKind.Equality
+                    Return SyntaxKind.EqualsToken
+                Case OperatorKind.ExclusiveOr
+                    Return SyntaxKind.XorKeyword
+                Case OperatorKind.False
+                    Return SyntaxKind.IsFalseKeyword
+                Case OperatorKind.GreaterThan
+                    Return SyntaxKind.GreaterThanToken
+                Case OperatorKind.GreaterThanOrEqual
+                    Return SyntaxKind.GreaterThanEqualsToken
+                Case OperatorKind.Inequality
+                    Return SyntaxKind.LessThanGreaterThanToken
+                Case OperatorKind.LeftShift
+                    Return SyntaxKind.LessThanLessThanToken
+                Case OperatorKind.LessThan
+                    Return SyntaxKind.LessThanToken
+                Case OperatorKind.LessThanOrEqual
+                    Return SyntaxKind.LessThanEqualsToken
+                Case OperatorKind.LogicalNot
+                    Return SyntaxKind.NotKeyword
+                Case OperatorKind.Modulus
+                    Return SyntaxKind.ModKeyword
+                Case OperatorKind.Multiply
+                    Return SyntaxKind.AsteriskToken
+                Case OperatorKind.RightShift
+                    Return SyntaxKind.GreaterThanGreaterThanToken
+                Case OperatorKind.Subtraction
+                    Return SyntaxKind.MinusToken
+                Case OperatorKind.True
+                    Return SyntaxKind.IsTrueKeyword
+                Case OperatorKind.UnaryNegation
+                    Return SyntaxKind.MinusToken
+                Case OperatorKind.UnaryPlus
+                    Return SyntaxKind.PlusToken
+                Case Else
+                    Throw New ArgumentException($"Operator {kind} cannot be generated in Visual Basic.")
+            End Select
+        End Function
+
         Private Function GetParameterList(parameters As IEnumerable(Of SyntaxNode)) As ParameterListSyntax
             Return If(parameters IsNot Nothing, SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters.Cast(Of ParameterSyntax)())), SyntaxFactory.ParameterList())
         End Function
@@ -3203,7 +3292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If accessor IsNot Nothing Then
                 accessor = DirectCast(Me.WithStatements(accessor, statements), AccessorBlockSyntax)
                 Return Me.WithAccessorBlock(declaration, kind, accessor)
-            ElseIf Me.CanHaveAccessors(declaration.Kind)
+            ElseIf Me.CanHaveAccessors(declaration.Kind) Then
                 accessor = Me.AccessorBlock(kind, statements, Me.ClearTrivia(Me.GetType(declaration)))
                 Return Me.WithAccessorBlock(declaration, kind, accessor)
             Else
@@ -3226,7 +3315,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim currentAccessor = Me.GetAccessorBlock(declaration, kind)
             If currentAccessor IsNot Nothing Then
                 Return Me.ReplaceNode(declaration, currentAccessor, accessor)
-            ElseIf accessor IsNot Nothing
+            ElseIf accessor IsNot Nothing Then
+
                 Select Case declaration.Kind
                     Case SyntaxKind.PropertyBlock
                         Dim pb = DirectCast(declaration, PropertyBlockSyntax)

@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
@@ -35,6 +36,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Property Clause As ImportsClauseSyntax
             Get
                 Return CType(_clause.GetSyntax(), ImportsClauseSyntax)
+            End Get
+        End Property
+
+        Friend ReadOnly Property IsXmlClause As Boolean
+            Get
+                Return Clause.IsKind(SyntaxKind.XmlNamespaceImportsClause)
             End Get
         End Property
 

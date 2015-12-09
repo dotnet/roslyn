@@ -171,7 +171,6 @@
     <Compile Include="NavigationBar\GenerateFinalizerItem.vb" />
     <Compile Include="NavigationBar\GenerateMethodItem.vb" />
     <Compile Include="NavigationBar\VisualBasicNavigationBarItemService.vb" />
-    <Compile Include="Outlining\BannerTextBuilder.vb" />
     <Compile Include="Outlining\Outliners\AccessorDeclarationOutliner.vb" />
     <Compile Include="Outlining\Outliners\CompilationUnitOutliner.vb" />
     <Compile Include="Outlining\Outliners\ConstructorDeclarationOutliner.vb" />

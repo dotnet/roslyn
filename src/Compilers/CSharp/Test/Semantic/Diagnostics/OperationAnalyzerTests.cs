@@ -109,6 +109,39 @@ class D
         }
 
         [Fact]
+        public void BadStuffCSharp()
+        {
+            const string source = @"
+class C
+{
+    public void M1(int z)
+    {
+        Framitz();
+        int x = Bexley();
+        int y = 10;
+        double d = 20;
+        M1(y + d);
+        goto;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new BadStuffTestAnalyzer() }, null, null, false,
+                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz()").WithLocation(6, 9),
+                Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz").WithLocation(6, 9),
+                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz").WithLocation(6, 9),
+                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley()").WithLocation(7, 17),
+                Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Bexley").WithLocation(7, 17),
+                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley").WithLocation(7, 17),
+                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "M1(y + d)").WithLocation(10, 9),
+                Diagnostic(BadStuffTestAnalyzer.InvalidStatementDescriptor.Id, "goto;").WithLocation(11, 9),
+                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "goto;").WithLocation(11, 9),
+                Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "").WithLocation(11, 13),
+                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "").WithLocation(11, 13)
+                );
+        }
+
+        [Fact]
         public void BigForCSharp()
         {
             const string source = @"
@@ -141,7 +174,7 @@ class C
         }
 
         [Fact]
-        public void SparseSwitchCSharp()
+        public void SwitchCSharp()
         {
             const string source = @"
 class C
@@ -167,14 +200,44 @@ class C
             default:
                 break;
         }
+
+        switch (x)
+        {
+            case 1:
+                break;
+            case 1000:
+                break;
+        }
+
+        switch (y) 
+        {
+            default:
+                break;
+        }
+
+        switch (y) {}
+
+        switch (x)
+        {
+            case :
+                break;
+            case 1000:
+                break;
+        }
+
     }
 }
 ";
             CreateCompilationWithMscorlib45(source)
-            .VerifyDiagnostics()
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SparseSwitchTestAnalyzer() }, null, null, false,
-                Diagnostic(SparseSwitchTestAnalyzer.SparseSwitchDescriptor.Id, "y").WithLocation(16, 17)
-                );
+            .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(40, 20),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, ":").WithLocation(44, 18))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SwitchTestAnalyzer() }, null, null, false,
+                Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "y").WithLocation(16, 17),
+                Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(26, 17),
+                Diagnostic(SwitchTestAnalyzer.NoDefaultSwitchDescriptor.Id, "x").WithLocation(26, 17),
+                Diagnostic(SwitchTestAnalyzer.OnlyDefaultSwitchDescriptor.Id, "y").WithLocation(34, 17),
+                Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "y").WithLocation(40, 17),
+                Diagnostic(SwitchTestAnalyzer.NoDefaultSwitchDescriptor.Id, "y").WithLocation(40, 17));
         }
 
         [Fact]

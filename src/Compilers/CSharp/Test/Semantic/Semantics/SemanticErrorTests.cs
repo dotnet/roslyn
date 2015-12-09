@@ -2239,6 +2239,28 @@ public class MyClass {
         }
 
         [Fact]
+        public void CS0118ERR_BadSKknown_02()
+        {
+            CreateCompilationWithMscorlib(@"
+using System;
+public class P {
+    public static void Main(string[] args) {
+#pragma warning disable 219
+        Action<args> a = null;
+        Action<a> b = null;
+    }
+}")
+                .VerifyDiagnostics(
+                    // (6,16): error CS0118: 'args' is a variable but is used like a type
+                    //         Action<args> a = null;
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "args").WithArguments("args", "variable", "type").WithLocation(6, 16),
+                    // (7,16): error CS0118: 'a' is a variable but is used like a type
+                    //         Action<a> b = null;
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "a").WithArguments("a", "variable", "type").WithLocation(7, 16));
+        }
+
+
+        [Fact]
         public void CS0118ERR_BadSKknown_CheckedUnchecked()
         {
             string source = @"
@@ -5958,6 +5980,25 @@ class MyClass
                 //    public int i;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("MyStruct.i", "0")
                 );
+        }
+
+        [Fact]
+        public void FieldAssignedInReferencedConstructor()
+        {
+            var text =
+@"struct S
+{
+    private readonly object _x;
+    S(object o)
+    {
+        _x = o;
+    }
+    S(object x, object y) : this(x ?? y)
+    {
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(); // No CS0171 for S._x
         }
 
         [Fact()]
@@ -13047,7 +13088,7 @@ class C : B
         }
 
         [Fact]
-        public void CS1510ERR_RefLvalueExpected()
+        public void CS1510ERR_RefLvalueExpected_01()
         {
             var text =
 @"class C
@@ -13060,6 +13101,147 @@ class C : B
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_RefLvalueExpected, Line = 5, Column = 15 });
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_02()
+        {
+            var text =
+@"class C
+{
+    void M()
+    {
+        var a = new System.Action<int>(ref x => x = 1);
+        var b = new System.Action<int, int>(ref (x,y) => x = 1);
+        var c = new System.Action<int>(ref delegate (int x) {x = 1;});
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (5,44): error CS1510: A ref or out argument must be an assignable variable
+                //         var a = new System.Action<int>(ref x => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(5, 44),
+                // (6,49): error CS1510: A ref or out argument must be an assignable variable
+                //         var b = new System.Action<int, int>(ref (x,y) => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(6, 49),
+                // (7,44): error CS1510: A ref or out argument must be an assignable variable
+                //         var c = new System.Action<int>(ref delegate (int x) {x = 1;});
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(7, 44));
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_03()
+        {
+            var text =
+@"class C
+{
+    void M()
+    {
+        var a = new System.Action<int>(out x => x = 1);
+        var b = new System.Action<int, int>(out (x,y) => x = 1);
+        var c = new System.Action<int>(out delegate (int x) {x = 1;});
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (5,44): error CS1510: A ref or out argument must be an assignable variable
+                //         var a = new System.Action<int>(out x => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(5, 44),
+                // (6,49): error CS1510: A ref or out argument must be an assignable variable
+                //         var b = new System.Action<int, int>(out (x,y) => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(6, 49),
+                // (7,44): error CS1510: A ref or out argument must be an assignable variable
+                //         var c = new System.Action<int>(out delegate (int x) {x = 1;});
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(7, 44));
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_04()
+        {
+            var text =
+@"class C
+{
+    void Foo<T>(ref System.Action<T> t) {}
+    void Foo<T1,T2>(ref System.Action<T1,T2> t) {}
+    void M()
+    {
+        Foo<int>(ref x => x = 1);
+        Foo<int, int>(ref (x,y) => x = 1);
+        Foo<int>(ref delegate (int x) {x = 1;});
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (7,22): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int>(ref x => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(7, 22),
+                // (8,27): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int, int>(ref (x,y) => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(8, 27),
+                // (9,22): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int>(ref delegate (int x) {x = 1;});
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_05()
+        {
+            var text =
+@"class C
+{
+    void Foo<T>(out System.Action<T> t) {t = null;}
+    void Foo<T1,T2>(out System.Action<T1,T2> t) {t = null;}
+    void M()
+    {
+        Foo<int>(out x => x = 1);
+        Foo<int, int>(out (x,y) => x = 1);
+        Foo<int>(out delegate (int x) {x = 1;});
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (7,22): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int>(out x => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(7, 22),
+                // (8,27): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int, int>(out (x,y) => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(8, 27),
+                // (9,22): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int>(out delegate (int x) {x = 1;});
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_Strict()
+        {
+            var text =
+@"class C
+{
+    void D(int i) {}
+    void M()
+    {
+        System.Action<int> del = D;
+
+        var a = new System.Action<int>(ref D);
+        var b = new System.Action<int>(out D);
+        var c = new System.Action<int>(ref del);
+        var d = new System.Action<int>(out del);
+    }
+}
+";
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+                // (8,44): error CS1657: Cannot pass 'D' as a ref or out argument because it is a 'method group'
+                //         var a = new System.Action<int>(ref D);
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "D").WithArguments("D", "method group").WithLocation(8, 44),
+                // (9,44): error CS1657: Cannot pass 'D' as a ref or out argument because it is a 'method group'
+                //         var b = new System.Action<int>(out D);
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "D").WithArguments("D", "method group").WithLocation(9, 44),
+                // (10,44): error CS0149: Method name expected
+                //         var c = new System.Action<int>(ref del);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "del").WithLocation(10, 44),
+                // (11,44): error CS0149: Method name expected
+                //         var d = new System.Action<int>(out del);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "del").WithLocation(11, 44));
         }
 
         [Fact]
@@ -19565,6 +19747,28 @@ ftftftft";
             var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
             this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
             this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(fullExpected);
+        }
+
+        [Fact]
+        public void CS0472WRN_NubExprIsConstBool_ConstructorInitializer()
+        {
+            var text =
+@"class A
+{
+    internal A(bool b)
+    {
+    }
+}
+class B : A
+{
+    B(int i) : base(i == null)
+    {
+    }
+}";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (9,21): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
+                //     B(int i) : base(i == null)
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i == null").WithArguments("false", "int", "int?").WithLocation(9, 21));
         }
 
         [Fact]
