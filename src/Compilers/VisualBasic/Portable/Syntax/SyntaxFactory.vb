@@ -533,6 +533,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' Determines if a syntax node is a part of a LINQ query.
+        ''' If so then a query is not terminated the syntax tree ends with an empty line.
+        ''' </summary>
+        ''' <returns>True if the token is part of a LINQ query and syntax tree ends with an empty line.</returns>
+        Private Shared Function IsPartOfUnterminatedLinqQuery(token As SyntaxToken, statementNode As SyntaxNode, endOfFileToken As SyntaxToken) As Boolean
+            Dim node = token.Parent
+            Do
+                If node.IsKind(SyntaxKind.QueryExpression) Then
+                    Return Not endOfFileToken.LeadingTrivia.Contains(Function(trivia) trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                End If
+
+                If node Is statementNode Then
+                    Exit Do
+                End If
+
+                node = node.Parent
+            Loop
+
+            Return False
+        End Function
+
+        ''' <summary>
         ''' Determines if a submission is complete.
         ''' Returns false if the syntax is valid but incomplete.
         ''' Returns true if the syntax is invalid or complete.
@@ -572,14 +594,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim lastToken = lastNode.GetLastToken(includeZeroWidth:=True, includeSkipped:=True)
 
-            If lastToken.HasTrailingTrivia AndAlso lastToken.TrailingTrivia.Last().IsKind(SyntaxKind.LineContinuationTrivia) Then
+            If IsPartOfUnterminatedLinqQuery(lastToken, lastNode, compilation.EndOfFileToken) OrElse
+                    (lastToken.HasTrailingTrivia AndAlso lastToken.TrailingTrivia.Last().IsKind(SyntaxKind.LineContinuationTrivia)) Then
                 ' Even if the compilation is correct but has a line continuation trivia return statement as incomplete.
                 ' For example `Dim x = 12 _` has no compilation errors but should be treated as an incomplete statement.
                 Return False
             ElseIf Not compilation.HasErrors Then
                 ' No errors returned. This is a valid and complete submission.
                 Return True
-            ElseIf lastToken.IsMissing Then
+            ElseIf lastNode.IsKind(SyntaxKind.IncompleteMember) OrElse lastToken.IsMissing Then
                 Return False
             End If
 

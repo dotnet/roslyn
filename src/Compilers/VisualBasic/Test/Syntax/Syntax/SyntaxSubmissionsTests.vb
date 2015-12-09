@@ -37,6 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             AssertInvalidCompleteSubmission("Dim x = 1 Dim y = 2")
             AssertValidCompleteSubmission("Dim x = 1: Dim y = 2")
             AssertIncompleteSubmission("Dim x =")
+            AssertIncompleteSubmission("Dim x = ""str"" & ")
             AssertIncompleteSubmission("Dim x = 12 _")
             AssertValidCompleteSubmission(
 "Dim x =
@@ -47,6 +48,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             AssertInvalidCompleteSubmission(
 "Dim x = _
     & ""hello""")
+
+            ' Annotations
+            AssertIncompleteSubmission("<AttributeUsage(AttributeTargets.All)>")
+            AssertIncompleteSubmission(
+"<AttributeUsage(AttributeTargets.All)>
+<AttributeUsage(AttributeTargets.All)>")
+            AssertIncompleteSubmission(
+"<AttributeUsage(
+    AttributeTargets.All)>")
+            AssertValidCompleteSubmission(
+"<AttributeUsage(
+    AttributeTargets.All)>
+Class C
+End Class")
 
             ' Xml literals
             AssertValidCompleteSubmission("Dim xml = <xml></xml>")
@@ -150,6 +165,27 @@ Next")
 "If holidays
     TakeABreak()
 End If")
+
+            ' LINQ queries
+            AssertIncompleteSubmission("Dim x = FROM x In {1, 2, 3}")
+            AssertIncompleteSubmission(
+"Dim x = FROM x In {1, 2, 3}
+         WHERE x > 1")
+            AssertIncompleteSubmission(
+"Dim x = FROM x In {1, 2, 3}
+         WHERE x > 1
+         SELECT x + 1")
+            AssertValidCompleteSubmission(
+"Dim x = FROM x In {1, 2, 3}
+         WHERE x > 1
+
+")
+            AssertValidCompleteSubmission(
+"Dim x = FROM x In {1, 2, 3}
+         WHERE x > 1
+         SELECT x + 1
+
+")
         End Sub
     End Class
 
