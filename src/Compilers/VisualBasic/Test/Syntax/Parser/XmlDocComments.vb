@@ -553,11 +553,11 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestDocumentationComment()
         Dim expected =
-            "''' <summary>" & vbCr & vbLf &
-            "''' This class provides extension methods for the <see cref=""TypeName""/> class." & vbCr & vbLf &
-            "''' </summary>" & vbCr & vbLf &
-            "''' <threadsafety static=""true"" instance=""false""/>" & vbCr & vbLf &
-            "''' <preliminary/>" & vbCr & vbLf
+            "''' <summary>" & Environment.NewLine &
+            "''' This class provides extension methods for the <see cref=""TypeName""/> class." & Environment.NewLine &
+            "''' </summary>" & Environment.NewLine &
+            "''' <threadsafety static=""true"" instance=""false""/>" & Environment.NewLine &
+            "''' <preliminary/>" & Environment.NewLine
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
@@ -581,9 +581,9 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlSummaryElement()
         Dim expected =
-            "''' <summary>" & vbCr & vbLf &
-            "''' This class provides extension methods." & vbCr & vbLf &
-            "''' </summary>" & vbCr & vbLf
+            "''' <summary>" & Environment.NewLine &
+            "''' This class provides extension methods." & Environment.NewLine &
+            "''' </summary>" & Environment.NewLine
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
@@ -599,9 +599,9 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlSeeElementAndXmlSeeAlsoElement()
         Dim expected =
-            "''' <summary>" & vbCr & vbLf &
-            "''' This class provides extension methods for the <see cref=""TypeName""/> class and the <seealso cref=""TypeName2""/> class." & vbCr & vbLf &
-            "''' </summary>" & vbCr & vbLf
+            "''' <summary>" & Environment.NewLine &
+            "''' This class provides extension methods for the <see cref=""TypeName""/> class and the <seealso cref=""TypeName2""/> class." & Environment.NewLine &
+            "''' </summary>" & Environment.NewLine
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
@@ -625,14 +625,14 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlNewLineElement()
         Dim expected =
-            "''' <summary>" & vbCr & vbLf &
-            "''' This is a summary." & vbCr & vbLf &
-            "''' </summary>" & vbCr & vbLf &
-            "''' " & vbCr & vbLf &
-            "''' " & vbCr & vbLf &
-            "''' <remarks>" & vbCr & vbLf &
-            "''' " & vbCr & vbLf &
-            "''' </remarks>" & vbCr & vbLf
+            "''' <summary>" & Environment.NewLine &
+            "''' This is a summary." & Environment.NewLine &
+            "''' </summary>" & Environment.NewLine &
+            "''' " & Environment.NewLine &
+            "''' " & Environment.NewLine &
+            "''' <remarks>" & Environment.NewLine &
+            "''' " & Environment.NewLine &
+            "''' </remarks>" & Environment.NewLine
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
@@ -652,11 +652,11 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlParamAndParamRefElement()
         Dim expected =
-            "''' <summary>" & vbCr & vbLf &
-            "''' <paramref name=""b""/>" & vbCr & vbLf &
-            "''' </summary>" & vbCr & vbLf &
-            "''' <param name=""a""></param>" & vbCr & vbLf &
-            "''' <param name=""b""></param>" & vbCr & vbLf
+            "''' <summary>" & Environment.NewLine &
+            "''' <paramref name=""b""/>" & Environment.NewLine &
+            "''' </summary>" & Environment.NewLine &
+            "''' <param name=""a""></param>" & Environment.NewLine &
+            "''' <param name=""b""></param>" & Environment.NewLine
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
@@ -676,12 +676,12 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlReturnsElement()
         Dim expected =
-            "''' <summary>" & vbCr & vbLf &
-            "''' " & vbCr & vbLf &
-            "''' </summary>" & vbCr & vbLf &
-            "''' <returns>" & vbCr & vbLf &
-            "''' Returns a value." & vbCr & vbLf &
-            "''' </returns>" & vbCr & vbLf
+            "''' <summary>" & Environment.NewLine &
+            "''' " & Environment.NewLine &
+            "''' </summary>" & Environment.NewLine &
+            "''' <returns>" & Environment.NewLine &
+            "''' Returns a value." & Environment.NewLine &
+            "''' </returns>" & Environment.NewLine
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
@@ -699,12 +699,12 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlRemarksElement()
         Dim expected =
-            "''' <summary>" & vbCr & vbLf &
-            "''' " & vbCr & vbLf &
-            "''' </summary>" & vbCr & vbLf &
-            "''' <remarks>" & vbCr & vbLf &
-            "''' Same as in class <see cref=""TypeName""/>." & vbCr & vbLf &
-            "''' </remarks>" & vbCr & vbLf
+            "''' <summary>" & Environment.NewLine &
+            "''' " & Environment.NewLine &
+            "''' </summary>" & Environment.NewLine &
+            "''' <remarks>" & Environment.NewLine &
+            "''' Same as in class <see cref=""TypeName""/>." & Environment.NewLine &
+            "''' </remarks>" & Environment.NewLine
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
@@ -726,10 +726,10 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlExceptionElement()
         Dim expected =
-            "''' <summary>" & vbCr & vbLf &
-            "''' " & vbCr & vbLf &
-            "''' </summary>" & vbCr & vbLf &
-            "''' <exception cref=""InvalidOperationException"">This exception will be thrown if the object is in an invalid state when calling this method.</exception>" & vbCr & vbLf
+            "''' <summary>" & Environment.NewLine &
+            "''' " & Environment.NewLine &
+            "''' </summary>" & Environment.NewLine &
+            "''' <exception cref=""InvalidOperationException"">This exception will be thrown if the object is in an invalid state when calling this method.</exception>" & Environment.NewLine
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
@@ -749,10 +749,10 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlPermissionElement()
         Dim expected =
-            "''' <summary>" & vbCr & vbLf &
-            "''' " & vbCr & vbLf &
-            "''' </summary>" & vbCr & vbLf &
-            "''' <permission cref=""MyPermission"">Needs MyPermission to execute.</permission>" & vbCr & vbLf
+            "''' <summary>" & Environment.NewLine &
+            "''' " & Environment.NewLine &
+            "''' </summary>" & Environment.NewLine &
+            "''' <permission cref=""MyPermission"">Needs MyPermission to execute.</permission>" & Environment.NewLine
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
