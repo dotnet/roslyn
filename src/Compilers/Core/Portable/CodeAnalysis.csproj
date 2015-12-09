@@ -190,7 +190,6 @@
     <Compile Include="InternalUtilities\ImmutableArrayInterop.cs" />
     <Compile Include="InternalUtilities\ReflectionUtilities.cs" />
     <Compile Include="InternalUtilities\SemaphoreSlimExtensions.cs" />
-    <Compile Include="InternalUtilities\SemaphoreSlimFactory.cs" />
     <Compile Include="CorLightup.cs" />
     <Compile Include="Desktop\AssemblyPortabilityPolicy.cs" />
     <Compile Include="Desktop\AssemblyVersion.cs" />
