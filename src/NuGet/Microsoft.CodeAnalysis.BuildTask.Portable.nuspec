@@ -34,8 +34,8 @@
         </dependencies>
     </metadata>
     <files>
-        <file src="BuildTaskCodeAnalysis/Microsoft.Build.Tasks.CodeAnalysis.dll" target="lib/dotnet" />
-        <file src="BuildTaskCodeAnalysis/Microsoft.CSharp.Core.targets" target="content" />
-        <file src="BuildTaskCodeAnalysis/Microsoft.VisualBasic.Core.targets" target="content" />
+        <file src="CodeAnalysisBuildTask/Microsoft.Build.Tasks.CodeAnalysis.dll" target="lib/dotnet" />
+        <file src="CodeAnalysisBuildTask/Microsoft.CSharp.Core.targets" target="content" />
+        <file src="CodeAnalysisBuildTask/Microsoft.VisualBasic.Core.targets" target="content" />
     </files>
 </package>
