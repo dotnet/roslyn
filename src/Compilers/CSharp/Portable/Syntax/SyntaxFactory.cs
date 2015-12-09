@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using System.Xml.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -693,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="content">A list of xml node syntax that will be the content within the summary element.</param>
         public static XmlElementSyntax XmlSummaryElement(SyntaxList<XmlNodeSyntax> content)
         {
-            return XmlMultiLineElement("summary", content);
+            return XmlMultiLineElement(DocumentationCommentXmlNames.SummaryElementName, content);
         }
 
         /// <summary>
@@ -702,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cref">A cref syntax node that points to the referenced item (e.g. a class, struct).</param>
         public static XmlEmptyElementSyntax XmlSeeElement(CrefSyntax cref)
         {
-            return XmlEmptyElement("see").AddAttributes(XmlCrefAttribute(cref));
+            return XmlEmptyElement(DocumentationCommentXmlNames.SeeElementName).AddAttributes(XmlCrefAttribute(cref));
         }
 
         /// <summary>
@@ -711,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cref">A cref syntax node that points to the referenced item (e.g. a class, struct).</param>
         public static XmlEmptyElementSyntax XmlSeeAlsoElement(CrefSyntax cref)
         {
-            return XmlEmptyElement("seealso").AddAttributes(XmlCrefAttribute(cref));
+            return XmlEmptyElement(DocumentationCommentXmlNames.SeeAlsoElementName).AddAttributes(XmlCrefAttribute(cref));
         }
 
         /// <summary>
@@ -721,8 +722,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="linkText">A list of xml node syntax that will be used as the link text for the referenced item.</param>
         public static XmlElementSyntax XmlSeeAlsoElement(Uri linkAddress, SyntaxList<XmlNodeSyntax> linkText)
         {
-            XmlElementSyntax element = XmlElement("seealso", linkText);
-            return element.WithStartTag(element.StartTag.AddAttributes(XmlTextAttribute("href", linkAddress.ToString())));
+            XmlElementSyntax element = XmlElement(DocumentationCommentXmlNames.SeeAlsoElementName, linkText);
+            return element.WithStartTag(element.StartTag.AddAttributes(XmlTextAttribute(DocumentationCommentXmlNames.CrefAttributeName, linkAddress.ToString())));
         }
 
         /// <summary>
@@ -740,9 +741,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="instance">Indicates whether members of instances of this type are safe for multi-threaded operations.</param>
         public static XmlEmptyElementSyntax XmlThreadSafetyElement(bool @static, bool instance)
         {
-            return XmlEmptyElement("threadsafety").AddAttributes(
-                XmlTextAttribute("static", @static.ToString().ToLowerInvariant()),
-                XmlTextAttribute("instance", instance.ToString().ToLowerInvariant()));
+            return XmlEmptyElement(DocumentationCommentXmlNames.ThreadSafetyElementName).AddAttributes(
+                XmlTextAttribute(DocumentationCommentXmlNames.StaticAttributeName, @static.ToString().ToLowerInvariant()),
+                XmlTextAttribute(DocumentationCommentXmlNames.InstanceAttributeName, instance.ToString().ToLowerInvariant()));
         }
 
         /// <summary>
@@ -752,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static XmlNameAttributeSyntax XmlNameAttribute(string parameterName)
         {
             return XmlNameAttribute(
-                XmlName("name"),
+                XmlName(DocumentationCommentXmlNames.NameAttributeName),
                 Token(SyntaxKind.DoubleQuoteToken),
                 parameterName,
                 Token(SyntaxKind.DoubleQuoteToken))
@@ -764,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static XmlEmptyElementSyntax XmlPreliminaryElement()
         {
-            return XmlEmptyElement("preliminary");
+            return XmlEmptyElement(DocumentationCommentXmlNames.PreliminaryElementName);
         }
 
         /// <summary>
@@ -785,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             cref = cref.ReplaceTokens(cref.DescendantTokens(), XmlReplaceBracketTokens);
             return XmlCrefAttribute(
-                XmlName("cref"),
+                XmlName(DocumentationCommentXmlNames.CrefAttributeName),
                 Token(quoteKind),
                 cref,
                 Token(quoteKind))
@@ -807,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="content">A list of xml node syntax that will be the content within the remarks element.</param>
         public static XmlElementSyntax XmlRemarksElement(SyntaxList<XmlNodeSyntax> content)
         {
-            return XmlMultiLineElement("remarks", content);
+            return XmlMultiLineElement(DocumentationCommentXmlNames.RemarksElementName, content);
         }
 
         /// <summary>
@@ -825,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="content">A list of xml node syntax that will be the content within the returns element.</param>
         public static XmlElementSyntax XmlReturnsElement(SyntaxList<XmlNodeSyntax> content)
         {
-            return XmlMultiLineElement("returns", content);
+            return XmlMultiLineElement(DocumentationCommentXmlNames.ReturnsElementName, content);
         }
 
         /// <summary>
@@ -843,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         public static XmlElementSyntax XmlValueElement(SyntaxList<XmlNodeSyntax> content)
         {
-            return XmlMultiLineElement("value", content);
+            return XmlMultiLineElement(DocumentationCommentXmlNames.ValueElementName, content);
         }
 
         /// <summary>
@@ -863,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="content">A list of syntax nodes that represents the content of the exception element.</param>
         public static XmlElementSyntax XmlExceptionElement(CrefSyntax cref, SyntaxList<XmlNodeSyntax> content)
         {
-            XmlElementSyntax element = XmlElement("exception", content);
+            XmlElementSyntax element = XmlElement(DocumentationCommentXmlNames.ExceptionElementName, content);
             return element.WithStartTag(element.StartTag.AddAttributes(XmlCrefAttribute(cref)));
         }
 
@@ -884,7 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="content">A list of syntax nodes that represents the content of the permission element.</param>
         public static XmlElementSyntax XmlPermissionElement(CrefSyntax cref, SyntaxList<XmlNodeSyntax> content)
         {
-            XmlElementSyntax element = XmlElement("permission", content);
+            XmlElementSyntax element = XmlElement(DocumentationCommentXmlNames.PermissionElementName, content);
             return element.WithStartTag(element.StartTag.AddAttributes(XmlCrefAttribute(cref)));
         }
 
@@ -903,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="content">A list of syntax nodes that represents the content of the example element.</param>
         public static XmlElementSyntax XmlExampleElement(SyntaxList<XmlNodeSyntax> content)
         {
-            XmlElementSyntax element = XmlElement("example", content);
+            XmlElementSyntax element = XmlElement(DocumentationCommentXmlNames.ExampleElementName, content);
             return element.WithStartTag(element.StartTag);
         }
 
@@ -922,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="content">A list of syntax nodes that represents the content of the para element.</param>
         public static XmlElementSyntax XmlParaElement(SyntaxList<XmlNodeSyntax> content)
         {
-            return XmlElement("para", content);
+            return XmlElement(DocumentationCommentXmlNames.ParaElementName, content);
         }
 
         /// <summary>
@@ -946,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the description and meaning of the parameter).</param>
         public static XmlElementSyntax XmlParamElement(string parameterName, SyntaxList<XmlNodeSyntax> content)
         {
-            XmlElementSyntax element = XmlElement("param", content);
+            XmlElementSyntax element = XmlElement(DocumentationCommentXmlNames.ParameterElementName, content);
             return element.WithStartTag(element.StartTag.AddAttributes(XmlNameAttribute(parameterName)));
         }
 
@@ -957,7 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="parameterName">The name of the referenced parameter.</param>
         public static XmlEmptyElementSyntax XmlParamRefElement(string parameterName)
         {
-            return XmlEmptyElement("paramref").AddAttributes(XmlNameAttribute(parameterName));
+            return XmlEmptyElement(DocumentationCommentXmlNames.ParameterReferenceElementName).AddAttributes(XmlNameAttribute(parameterName));
         }
 
         /// <summary>
@@ -976,8 +977,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="keyword">The language keyword to which the see element points to.</param>
         private static XmlEmptyElementSyntax XmlKeywordElement(string keyword)
         {
-            return XmlEmptyElement("see").AddAttributes(
-                XmlTextAttribute("langword", keyword));
+            return XmlEmptyElement(DocumentationCommentXmlNames.SeeElementName).AddAttributes(
+                XmlTextAttribute(DocumentationCommentXmlNames.KeywordElementName, keyword));
         }
 
         /// <summary>
@@ -995,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="content">A list of syntax nodes that represents the content of the placeholder element.</param>
         public static XmlElementSyntax XmlPlaceholderElement(SyntaxList<XmlNodeSyntax> content)
         {
-            return XmlElement("placeholder", content);
+            return XmlElement(DocumentationCommentXmlNames.PlaceholderElementName, content);
         }
 
         /// <summary>

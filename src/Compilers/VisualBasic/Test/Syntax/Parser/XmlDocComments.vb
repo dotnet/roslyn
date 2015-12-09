@@ -549,4 +549,223 @@ End Module
         </errors>)
     End Sub
 
+    <Fact>
+    <Trait("Feature", "Xml Documentation Comments")>
+    Public Sub TestDocumentationComment()
+        Dim expected =
+            "''' <summary>" & vbCr & vbLf &
+            "''' This class provides extension methods for the <see cref=""TypeName""/> class." & vbCr & vbLf &
+            "''' </summary>" & vbCr & vbLf &
+            "''' <threadsafety static=""true"" instance=""false""/>" & vbCr & vbLf &
+            "''' <preliminary/>" & vbCr & vbLf
+
+        Dim documentationComment As DocumentationCommentTriviaSyntax =
+            SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlText("This class provides extension methods for the "),
+                    SyntaxFactory.XmlSeeElement(
+                        SyntaxFactory.CrefReference(
+                            SyntaxFactory.ParseTypeName("TypeName"))),
+                    SyntaxFactory.XmlText(" class.")),
+                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlThreadSafetyElement(),
+                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlPreliminaryElement())
+
+        Dim actual = documentationComment.ToFullString()
+
+        Assert.Equal(Of String)(expected, actual)
+    End Sub
+
+    <Fact>
+    <Trait("Feature", "Xml Documentation Comments")>
+    Public Sub TestXmlSummaryElement()
+        Dim expected =
+            "''' <summary>" & vbCr & vbLf &
+            "''' This class provides extension methods." & vbCr & vbLf &
+            "''' </summary>" & vbCr & vbLf
+
+        Dim documentationComment As DocumentationCommentTriviaSyntax =
+            SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                SyntaxFactory.XmlText("This class provides extension methods.")))
+
+        Dim actual = documentationComment.ToFullString()
+
+        Assert.Equal(Of String)(expected, actual)
+    End Sub
+
+    <Fact>
+    <Trait("Feature", "Xml Documentation Comments")>
+    Public Sub TestXmlSeeElementAndXmlSeeAlsoElement()
+        Dim expected =
+            "''' <summary>" & vbCr & vbLf &
+            "''' This class provides extension methods for the <see cref=""TypeName""/> class and the <seealso cref=""TypeName2""/> class." & vbCr & vbLf &
+            "''' </summary>" & vbCr & vbLf
+
+        Dim documentationComment As DocumentationCommentTriviaSyntax =
+            SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlText("This class provides extension methods for the "),
+                    SyntaxFactory.XmlSeeElement(
+                        SyntaxFactory.CrefReference(
+                            SyntaxFactory.ParseTypeName("TypeName"))),
+                    SyntaxFactory.XmlText(" class and the "),
+                    SyntaxFactory.XmlSeeAlsoElement(
+                        SyntaxFactory.CrefReference(
+                            SyntaxFactory.ParseTypeName("TypeName2"))),
+                    SyntaxFactory.XmlText(" class.")))
+
+        Dim actual = documentationComment.ToFullString()
+
+        Assert.Equal(Of String)(expected, actual)
+    End Sub
+
+    <Fact>
+    <Trait("Feature", "Xml Documentation Comments")>
+    Public Sub TestXmlNewLineElement()
+        Dim expected =
+            "''' <summary>" & vbCr & vbLf &
+            "''' This is a summary." & vbCr & vbLf &
+            "''' </summary>" & vbCr & vbLf &
+            "''' " & vbCr & vbLf &
+            "''' " & vbCr & vbLf &
+            "''' <remarks>" & vbCr & vbLf &
+            "''' " & vbCr & vbLf &
+            "''' </remarks>" & vbCr & vbLf
+
+        Dim documentationComment As DocumentationCommentTriviaSyntax =
+            SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlText("This is a summary.")),
+                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlRemarksElement())
+
+        Dim actual = documentationComment.ToFullString()
+
+        Assert.Equal(Of String)(expected, actual)
+    End Sub
+
+    <Fact>
+    <Trait("Feature", "Xml Documentation Comments")>
+    Public Sub TestXmlParamAndParamRefElement()
+        Dim expected =
+            "''' <summary>" & vbCr & vbLf &
+            "''' <paramref name=""b""/>" & vbCr & vbLf &
+            "''' </summary>" & vbCr & vbLf &
+            "''' <param name=""a""></param>" & vbCr & vbLf &
+            "''' <param name=""b""></param>" & vbCr & vbLf
+
+        Dim documentationComment As DocumentationCommentTriviaSyntax =
+            SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlParamRefElement("b")),
+                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlParamElement("a"),
+                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlParamElement("b"))
+
+        Dim actual = documentationComment.ToFullString()
+
+        Assert.Equal(Of String)(expected, actual)
+    End Sub
+
+    <Fact>
+    <Trait("Feature", "Xml Documentation Comments")>
+    Public Sub TestXmlReturnsElement()
+        Dim expected =
+            "''' <summary>" & vbCr & vbLf &
+            "''' " & vbCr & vbLf &
+            "''' </summary>" & vbCr & vbLf &
+            "''' <returns>" & vbCr & vbLf &
+            "''' Returns a value." & vbCr & vbLf &
+            "''' </returns>" & vbCr & vbLf
+
+        Dim documentationComment As DocumentationCommentTriviaSyntax =
+            SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(),
+                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlReturnsElement(
+                    SyntaxFactory.XmlText("Returns a value.")))
+
+        Dim actual = documentationComment.ToFullString()
+
+        Assert.Equal(Of String)(expected, actual)
+    End Sub
+
+    <Fact>
+    <Trait("Feature", "Xml Documentation Comments")>
+    Public Sub TestXmlRemarksElement()
+        Dim expected =
+            "''' <summary>" & vbCr & vbLf &
+            "''' " & vbCr & vbLf &
+            "''' </summary>" & vbCr & vbLf &
+            "''' <remarks>" & vbCr & vbLf &
+            "''' Same as in class <see cref=""TypeName""/>." & vbCr & vbLf &
+            "''' </remarks>" & vbCr & vbLf
+
+        Dim documentationComment As DocumentationCommentTriviaSyntax =
+            SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(),
+                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlRemarksElement(
+                    SyntaxFactory.XmlText("Same as in class "),
+                    SyntaxFactory.XmlSeeElement(
+                        SyntaxFactory.CrefReference(
+                            SyntaxFactory.ParseTypeName("TypeName"))),
+                    SyntaxFactory.XmlText(".")))
+
+        Dim actual = documentationComment.ToFullString()
+
+        Assert.Equal(Of String)(expected, actual)
+    End Sub
+
+    <Fact>
+    <Trait("Feature", "Xml Documentation Comments")>
+    Public Sub TestXmlExceptionElement()
+        Dim expected =
+            "''' <summary>" & vbCr & vbLf &
+            "''' " & vbCr & vbLf &
+            "''' </summary>" & vbCr & vbLf &
+            "''' <exception cref=""InvalidOperationException"">This exception will be thrown if the object is in an invalid state when calling this method.</exception>" & vbCr & vbLf
+
+        Dim documentationComment As DocumentationCommentTriviaSyntax =
+            SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(),
+                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlExceptionElement(
+                    SyntaxFactory.CrefReference(
+                        SyntaxFactory.ParseTypeName("InvalidOperationException")),
+                    SyntaxFactory.XmlText("This exception will be thrown if the object is in an invalid state when calling this method.")))
+
+        Dim actual = documentationComment.ToFullString()
+
+        Assert.Equal(Of String)(expected, actual)
+    End Sub
+
+    <Fact>
+    <Trait("Feature", "Xml Documentation Comments")>
+    Public Sub TestXmlPermissionElement()
+        Dim expected =
+            "''' <summary>" & vbCr & vbLf &
+            "''' " & vbCr & vbLf &
+            "''' </summary>" & vbCr & vbLf &
+            "''' <permission cref=""MyPermission"">Needs MyPermission to execute.</permission>" & vbCr & vbLf
+
+        Dim documentationComment As DocumentationCommentTriviaSyntax =
+            SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(),
+                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlPermissionElement(
+                    SyntaxFactory.CrefReference(
+                        SyntaxFactory.ParseTypeName("MyPermission")),
+                    SyntaxFactory.XmlText("Needs MyPermission to execute.")))
+
+        Dim actual = documentationComment.ToFullString()
+
+        Assert.Equal(Of String)(expected, actual)
+    End Sub
+
 End Class
