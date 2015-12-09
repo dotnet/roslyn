@@ -15,31 +15,37 @@ namespace Roslyn.Test.Utilities
 
         public static SourceReferenceResolver Create(params KeyValuePair<string, string>[] sources)
         {
-            return TestSourceReferenceResolver.Create(sources.ToDictionary(p => p.Key, p => p.Value));
+            return new TestSourceReferenceResolver(sources.ToDictionary(p => p.Key, p => (object)p.Value));
+        }
+
+        public static SourceReferenceResolver Create(params KeyValuePair<string, object>[] sources)
+        {
+            return new TestSourceReferenceResolver(sources.ToDictionary(p => p.Key, p => p.Value));
         }
 
         public static SourceReferenceResolver Create(Dictionary<string, string> sources = null)
         {
-            return (sources == null || sources.Count == 0) ? Default : new TestSourceReferenceResolver(sources);
+            return new TestSourceReferenceResolver(sources.ToDictionary(p => p.Key, p => (object)p.Value));
         }
 
-        private readonly Dictionary<string, string> _sources;
+        private readonly Dictionary<string, object> _sources;
 
-        private TestSourceReferenceResolver(Dictionary<string, string> sources)
+        private TestSourceReferenceResolver(Dictionary<string, object> sources)
         {
             _sources = sources;
         }
 
         public override string NormalizePath(string path, string baseFilePath) => path;
 
-        public override string ResolveReference(string path, string baseFilePath) => 
+        public override string ResolveReference(string path, string baseFilePath) =>
             _sources?.ContainsKey(path) == true ? path : null;
 
         public override Stream OpenRead(string resolvedPath)
         {
             if (_sources != null && resolvedPath != null)
             {
-                return new MemoryStream(Encoding.UTF8.GetBytes(_sources[resolvedPath]));
+                var data = _sources[resolvedPath];
+                return new MemoryStream((data is string) ? Encoding.UTF8.GetBytes((string)data) : (byte[])data);
             }
             else
             {

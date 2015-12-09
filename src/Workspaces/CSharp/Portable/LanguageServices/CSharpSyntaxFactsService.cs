@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node)
         {
             return node.IsKind(SyntaxKind.MemberBindingExpression)
-                ? GetExpressionOfConditionalMemberAccessExpression(node.GetParentConditionalAccessExpression()) 
+                ? GetExpressionOfConditionalMemberAccessExpression(node.GetParentConditionalAccessExpression())
                 : (node as MemberAccessExpressionSyntax)?.Expression;
         }
 

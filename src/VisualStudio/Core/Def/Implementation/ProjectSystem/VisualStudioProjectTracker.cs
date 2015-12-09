@@ -215,9 +215,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
         {
-            foreach (var hostState in _workspaceHosts)
+            using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
-                hostState.StartPushingToWorkspaceAndNotifyOfOpenDocuments(projects);
+                foreach (var hostState in _workspaceHosts)
+                {
+                    hostState.StartPushingToWorkspaceAndNotifyOfOpenDocuments(projects);
+                }
             }
         }
 

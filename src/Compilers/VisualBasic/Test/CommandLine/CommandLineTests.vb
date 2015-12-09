@@ -377,6 +377,45 @@ a.vb
         End Sub
 
         <Fact>
+        Public Sub ParseInteractive()
+            Dim args As VisualBasicCommandLineArguments
+
+            args = DefaultParse({}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.False(args.InteractiveMode)
+
+            args = DefaultParse({"/i"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/i").WithLocation(1, 1),
+                               Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1)})
+            Assert.False(args.InteractiveMode)
+
+            args = InteractiveParse({}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.InteractiveMode)
+
+            args = InteractiveParse({"a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.False(args.InteractiveMode)
+
+            args = InteractiveParse({"/i", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.InteractiveMode)
+
+            args = InteractiveParse({"/i+", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.InteractiveMode)
+
+            args = InteractiveParse({"/i+ /i-", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.False(args.InteractiveMode)
+
+            For Each flag In {"i", "i+", "i-"}
+                args = InteractiveParse({"/" + flag + ":arg"}, _baseDirectory)
+                args.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("i").WithLocation(1, 1))
+            Next
+        End Sub
+
+        <Fact>
         Public Sub ResponseFiles2()
             Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
     /r:System
@@ -5298,7 +5337,8 @@ End Module
         End Sub
 
         <WorkItem(530221, "DevDiv")>
-        <Fact()>
+        <WorkItem(5664, "https://github.com/dotnet/roslyn/issues/5664")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub Bug15538()
             Dim folder = Temp.CreateDirectory()
             Dim source As String = folder.CreateFile("src.vb").WriteAllText("").Path
@@ -7395,6 +7435,25 @@ End Class
             parseCore("""a", New String() {"a"})
 
             parseCore("a""mid""b", New String() {"amidb"})
+        End Sub
+
+        <Fact>
+        Public Sub PublicSign()
+            Dim args As VisualBasicCommandLineArguments
+            Dim baseDir = "c:\test"
+            Dim parse = Function(x As String) FullParse(x, baseDir)
+
+            args = parse("/publicsign a.exe")
+            Assert.True(args.CompilationOptions.PublicSign)
+
+            args = parse("/publicsign+ a.exe")
+            Assert.True(args.CompilationOptions.PublicSign)
+
+            args = parse("/publicsign- a.exe")
+            Assert.False(args.CompilationOptions.PublicSign)
+
+            args = parse("a.exe")
+            Assert.False(args.CompilationOptions.PublicSign)
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly))>

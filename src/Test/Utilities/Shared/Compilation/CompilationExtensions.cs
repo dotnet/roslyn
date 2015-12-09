@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class CompilationExtensions
-    {        
+    {
         internal static ImmutableArray<byte> EmitToArray(
             this Compilation compilation,
             EmitOptions options = null,

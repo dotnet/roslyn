@@ -1,9 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestConstructorOnDynamicCall()
+        Public Async Function TestConstructorOnDynamicCall() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -25,11 +27,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
        </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestConstructorOnOverloadedDynamicDefinition()
+        Public Async Function TestConstructorOnOverloadedDynamicDefinition() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -51,11 +53,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
        </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestConstructorOnTypeName()
+        Public Async Function TestConstructorOnTypeName() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -77,11 +79,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestConstructorOnNonDynamicCall()
+        Public Async Function TestConstructorOnNonDynamicCall() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -103,11 +105,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestConstructorOverloadedOnNonDynamicDefinition()
+        Public Async Function TestConstructorOverloadedOnNonDynamicDefinition() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -129,11 +131,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestConstructorOverloadedOnDynamicTypeDeclaration()
+        Public Async Function TestConstructorOverloadedOnDynamicTypeDeclaration() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -155,8 +157,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
     End Class
 End Namespace
 

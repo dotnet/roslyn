@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
@@ -7,367 +8,366 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
     Public Class VisualBasicBraceMatcherTests
         Inherits AbstractBraceMatcherTests
 
-        Protected Overrides Function CreateWorkspaceFromCode(code As String) As TestWorkspace
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code)
+        Protected Overrides Function CreateWorkspaceFromCodeAsync(code As String) As Task(Of TestWorkspace)
+            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code)
         End Function
 
-        Private Sub TestInClass(code As String, expectedCode As String)
-            Test(
+        Private Async Function TestInClassAsync(code As String, expectedCode As String) As Task
+            Await TestAsync(
                 "Class C" & vbCrLf & code & vbCrLf & "End Class",
                 "Class C" & vbCrLf & expectedCode & vbCrLf & "End Class")
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestEmptyFile()
+        Public Async Function TestEmptyFile() As Task
             Dim code = "$$"
             Dim expected = ""
 
-            Test(code, expected)
-        End Sub
+            Await TestAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAtFirstPositionInFile()
+        Public Async Function TestAtFirstPositionInFile() As Task
             Dim code = "$$Class C" & vbCrLf & vbCrLf & "End Class"
             Dim expected = "Class C" & vbCrLf & vbCrLf & "End Class"
 
-            Test(code, expected)
-        End Sub
+            Await TestAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAtLastPositionInFile()
+        Public Async Function TestAtLastPositionInFile() As Task
             Dim code = "Class C" & vbCrLf & vbCrLf & "End Class$$"
             Dim expected = "Class C" & vbCrLf & vbCrLf & "End Class"
 
-            Test(code, expected)
-        End Sub
+            Await TestAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestCurlyBrace1()
+        Public Async Function TestCurlyBrace1() As Task
             Dim code = "Dim l As New List(Of Integer) From $${}"
             Dim expected = "Dim l As New List(Of Integer) From {[|}|]"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestCurlyBrace2()
+        Public Async Function TestCurlyBrace2() As Task
             Dim code = "Dim l As New List(Of Integer) From {$$}"
             Dim expected = "Dim l As New List(Of Integer) From {[|}|]"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestCurlyBrace3()
+        Public Async Function TestCurlyBrace3() As Task
             Dim code = "Dim l As New List(Of Integer) From {$$ }"
             Dim expected = "Dim l As New List(Of Integer) From { [|}|]"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestCurlyBrace4()
+        Public Async Function TestCurlyBrace4() As Task
             Dim code = "Dim l As New List(Of Integer) From { $$}"
             Dim expected = "Dim l As New List(Of Integer) From [|{|] }"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestCurlyBrace5()
+        Public Async Function TestCurlyBrace5() As Task
             Dim code = "Dim l As New List(Of Integer) From { }$$"
             Dim expected = "Dim l As New List(Of Integer) From [|{|] }"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestCurlyBrace6()
+        Public Async Function TestCurlyBrace6() As Task
             Dim code = "Dim l As New List(Of Integer) From {}$$"
             Dim expected = "Dim l As New List(Of Integer) From [|{|]}"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestNestedParen1()
+        Public Async Function TestNestedParen1() As Task
             Dim code = "Dim l As New List$$(Of Func(Of Integer))"
             Dim expected = "Dim l As New List(Of Func(Of Integer)[|)|]"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestNestedParen2()
+        Public Async Function TestNestedParen2() As Task
             Dim code = "Dim l As New List($$Of Func(Of Integer))"
             Dim expected = "Dim l As New List(Of Func(Of Integer)[|)|]"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestNestedParen3()
+        Public Async Function TestNestedParen3() As Task
             Dim code = "Dim l As New List(Of Func$$(Of Integer))"
             Dim expected = "Dim l As New List(Of Func(Of Integer[|)|])"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestNestedParen4()
+        Public Async Function TestNestedParen4() As Task
             Dim code = "Dim l As New List(Of Func($$Of Integer))"
             Dim expected = "Dim l As New List(Of Func(Of Integer[|)|])"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestNestedParen5()
+        Public Async Function TestNestedParen5() As Task
             Dim code = "Dim l As New List(Of Func(Of Integer$$))"
             Dim expected = "Dim l As New List(Of Func[|(|]Of Integer))"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestNestedParen6()
+        Public Async Function TestNestedParen6() As Task
             Dim code = "Dim l As New List(Of Func(Of Integer)$$)"
             Dim expected = "Dim l As New List(Of Func[|(|]Of Integer))"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestNestedParen7()
+        Public Async Function TestNestedParen7() As Task
             Dim code = "Dim l As New List(Of Func(Of Integer)$$ )"
             Dim expected = "Dim l As New List(Of Func[|(|]Of Integer) )"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestNestedParen8()
+        Public Async Function TestNestedParen8() As Task
             Dim code = "Dim l As New List(Of Func(Of Integer) $$)"
             Dim expected = "Dim l As New List[|(|]Of Func(Of Integer) )"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestNestedParen9()
+        Public Async Function TestNestedParen9() As Task
             Dim code = "Dim l As New List(Of Func(Of Integer) )$$"
             Dim expected = "Dim l As New List[|(|]Of Func(Of Integer) )"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestNestedParen10()
+        Public Async Function TestNestedParen10() As Task
             Dim code = "Dim l As New List(Of Func(Of Integer))$$"
             Dim expected = "Dim l As New List[|(|]Of Func(Of Integer))"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAngleBracket1()
+        Public Async Function TestAngleBracket1() As Task
             Dim code = "$$<Foo()> Dim i As Integer"
             Dim expected = "<Foo()[|>|] Dim i As Integer"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAngleBracket2()
+        Public Async Function TestAngleBracket2() As Task
             Dim code = "<$$Foo()> Dim i As Integer"
             Dim expected = "<Foo()[|>|] Dim i As Integer"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAngleBracket3()
+        Public Async Function TestAngleBracket3() As Task
             Dim code = "<Foo$$()> Dim i As Integer"
             Dim expected = "<Foo([|)|]> Dim i As Integer"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAngleBracket4()
+        Public Async Function TestAngleBracket4() As Task
             Dim code = "<Foo($$)> Dim i As Integer"
             Dim expected = "<Foo([|)|]> Dim i As Integer"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAngleBracket5()
+        Public Async Function TestAngleBracket5() As Task
             Dim code = "<Foo($$ )> Dim i As Integer"
             Dim expected = "<Foo( [|)|]> Dim i As Integer"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAngleBracket6()
+        Public Async Function TestAngleBracket6() As Task
             Dim code = "<Foo( $$)> Dim i As Integer"
             Dim expected = "<Foo[|(|] )> Dim i As Integer"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAngleBracket7()
+        Public Async Function TestAngleBracket7() As Task
             Dim code = "<Foo( )$$> Dim i As Integer"
             Dim expected = "<Foo[|(|] )> Dim i As Integer"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAngleBracket8()
+        Public Async Function TestAngleBracket8() As Task
             Dim code = "<Foo()$$> Dim i As Integer"
             Dim expected = "<Foo[|(|])> Dim i As Integer"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAngleBracket9()
+        Public Async Function TestAngleBracket9() As Task
             Dim code = "<Foo()$$ > Dim i As Integer"
             Dim expected = "<Foo[|(|]) > Dim i As Integer"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAngleBracket10()
+        Public Async Function TestAngleBracket10() As Task
             Dim code = "<Foo() $$> Dim i As Integer"
             Dim expected = "[|<|]Foo() > Dim i As Integer"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAngleBracket11()
+        Public Async Function TestAngleBracket11() As Task
             Dim code = "<Foo() >$$ Dim i As Integer"
             Dim expected = "[|<|]Foo() > Dim i As Integer"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestAngleBracket12()
+        Public Async Function TestAngleBracket12() As Task
             Dim code = "<Foo()>$$ Dim i As Integer"
             Dim expected = "[|<|]Foo()> Dim i As Integer"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestString1()
+        Public Async Function TestString1() As Task
             Dim code = "Dim s As String = $$""Foo"""
             Dim expected = "Dim s As String = ""Foo[|""|]"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestString2()
+        Public Async Function TestString2() As Task
             Dim code = "Dim s As String = ""$$Foo"""
             Dim expected = "Dim s As String = ""Foo[|""|]"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestString3()
+        Public Async Function TestString3() As Task
             Dim code = "Dim s As String = ""Foo$$"""
             Dim expected = "Dim s As String = [|""|]Foo"""
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestString4()
+        Public Async Function TestString4() As Task
             Dim code = "Dim s As String = ""Foo""$$"
             Dim expected = "Dim s As String = [|""|]Foo"""
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestString5()
+        Public Async Function TestString5() As Task
             Dim code = "Dim s As String = ""Foo$$"
             Dim expected = "Dim s As String = ""Foo"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestInterpolatedString1()
+        Public Async Function TestInterpolatedString1() As Task
             Dim code = "Dim s = $$[||]$""Foo"""
             Dim expected = "Dim s = $""Foo[|""|]"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestInterpolatedString2()
+        Public Async Function TestInterpolatedString2() As Task
             Dim code = "Dim s = $""$$Foo"""
             Dim expected = "Dim s = $""Foo[|""|]"
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestInterpolatedString3()
+        Public Async Function TestInterpolatedString3() As Task
             Dim code = "Dim s = $""Foo$$"""
             Dim expected = "Dim s = [|$""|]Foo"""
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestInterpolatedString4()
+        Public Async Function TestInterpolatedString4() As Task
             Dim code = "Dim s = $""Foo""$$"
             Dim expected = "Dim s = [|$""|]Foo"""
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestInterpolatedString5()
+        Public Async Function TestInterpolatedString5() As Task
             Dim code = "Dim s = $"" $${x} """
             Dim expected = "Dim s = $"" {x[|}|] """
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestInterpolatedString6()
+        Public Async Function TestInterpolatedString6() As Task
             Dim code = "Dim s = $"" {$$x} """
             Dim expected = "Dim s = $"" {x[|}|] """
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestInterpolatedString7()
+        Public Async Function TestInterpolatedString7() As Task
             Dim code = "Dim s = $"" {x$$} """
             Dim expected = "Dim s = $"" [|{|]x} """
 
-            TestInClass(code, expected)
-        End Sub
+            Await TestInClassAsync(code, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub TestInterpolatedString8()
+        Public Async Function TestInterpolatedString8() As Task
             Dim code = "Dim s = $"" {x}$$ """
             Dim expected = "Dim s = $"" [|{|]x} """
 
-            TestInClass(code, expected)
-        End Sub
-
+            Await TestInClassAsync(code, expected)
+        End Function
     End Class
 End Namespace

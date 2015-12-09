@@ -79,6 +79,8 @@
     <Compile Include="HistoryTests.cs" />
     <Compile Include="InteractiveWindowHistoryTests.cs" />
     <Compile Include="InteractiveWindowTests.cs" />
+    <Compile Include="InteractiveWindowTests_ClipboardTests.cs" />
+    <Compile Include="SortedSpansTests.cs" />
     <Compile Include="TestClipboard.cs" />
     <Compile Include="TestContentTypeDefinition.cs" />
     <Compile Include="TestInteractiveEngine.cs" />

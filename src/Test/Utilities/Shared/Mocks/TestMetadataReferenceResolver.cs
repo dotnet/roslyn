@@ -16,7 +16,7 @@ namespace Roslyn.Test.Utilities
 
         public TestMetadataReferenceResolver(
             RelativePathResolver pathResolver = null,
-            Dictionary<string, PortableExecutableReference> assemblyNames = null, 
+            Dictionary<string, PortableExecutableReference> assemblyNames = null,
             Dictionary<string, PortableExecutableReference> files = null)
         {
             _pathResolver = pathResolver;
@@ -33,6 +33,10 @@ namespace Roslyn.Test.Utilities
                 if (_pathResolver != null)
                 {
                     reference = _pathResolver.ResolvePath(reference, baseFilePath);
+                    if (reference == null)
+                    {
+                        return ImmutableArray<PortableExecutableReference>.Empty;
+                    }
                 }
 
                 map = _files;

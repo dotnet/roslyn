@@ -58,14 +58,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         private static readonly SymbolDisplayFormat s_externalNameFormat =
             new SymbolDisplayFormat(
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeName);
 
         private static readonly SymbolDisplayFormat s_externalFullNameFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeName);
 
         private static readonly SymbolDisplayFormat s_setTypeFormat =
             new SymbolDisplayFormat(
@@ -3026,6 +3028,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             if (typeSymbol == null)
             {
                 var parsedTypeName = SyntaxFactory.ParseTypeName(fullName);
+
+                // Check to see if the name we parsed has any skipped text. If it does, don't bother trying to
+                // speculatively bind it because we'll likely just get the wrong thing since we found a bunch
+                // of non-sensical tokens.
+
+                if (parsedTypeName.ContainsSkippedText)
+                {
+                    return null;
+                }
 
                 // If we couldn't get the name, we just grab the first tree in the compilation to
                 // speculatively bind at position zero. However, if there *aren't* any trees, we fork the

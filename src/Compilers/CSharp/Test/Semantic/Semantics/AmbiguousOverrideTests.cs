@@ -94,9 +94,9 @@ class EntryPoint
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (22,9): error CS0121: The call is ambiguous between the following methods or properties: 'Base<TLong, TInt>.Method(TLong, int)' and 'Base<TLong, TInt>.Method(long, TInt)'
+                // (22,9): error CS0121: The call is ambiguous between the following methods or properties: 'Base<TLong, TInt>.Method(long, TInt)' and 'Base<TLong, TInt>.Method(TLong, int)'
                 //         new Derived2().Method(1L, 2); //CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<TLong, TInt>.Method(TLong, int)", "Base<TLong, TInt>.Method(long, TInt)"));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<TLong, TInt>.Method(long, TInt)", "Base<TLong, TInt>.Method(TLong, int)"));
         }
 
         [Fact]
@@ -134,12 +134,13 @@ public class Derived2 : Derived<int>
             var comp = CreateCompilationWithMscorlib(text3, ref2, assemblyName: "Test3");
             var diagnostics = comp.GetDiagnostics();
 
-            var diagStrings = new string[] {
-"'Method' warning CS1957: Member 'Derived2.Method(long, int)' overrides 'Derived<int>.Method(long, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.",
-"'Method' error CS0462: The inherited members 'Derived<TInt>.Method(long, TInt)' and 'Derived<TInt>.Method(long, int)' have the same signature in type 'Derived2', so they cannot be overridden"
-           };
-
-            TestDiagnostics(diagnostics, diagStrings);
+            comp.VerifyDiagnostics(
+                // (4,26): error CS0462: The inherited members 'Derived<TInt>.Method(long, TInt)' and 'Derived<TInt>.Method(long, int)' have the same signature in type 'Derived2', so they cannot be overridden
+                //     public override void Method(long l, int i) { }  //CS0462 and CS1957
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Derived<TInt>.Method(long, TInt)", "Derived<TInt>.Method(long, int)", "Derived2").WithLocation(4, 26),
+                // (4,26): warning CS1957: Member 'Derived2.Method(long, int)' overrides 'Derived<int>.Method(long, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.
+                //     public override void Method(long l, TInt i) { }
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Derived<int>.Method(long, int)", "Derived2.Method(long, int)").WithLocation(4, 26));
         }
 
         [Fact]

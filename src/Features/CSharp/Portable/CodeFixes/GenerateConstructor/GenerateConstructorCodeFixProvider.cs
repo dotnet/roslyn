@@ -36,9 +36,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateConstructor
             return service.GenerateConstructorAsync(document, node, cancellationToken);
         }
 
-        protected override bool IsCandidate(SyntaxNode node)
+        protected override bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
         {
-            return node is SimpleNameSyntax || node is ObjectCreationExpressionSyntax || node is ConstructorInitializerSyntax || node is AttributeSyntax;
+            if (node is SimpleNameSyntax ||
+                node is ObjectCreationExpressionSyntax ||
+                node is ConstructorInitializerSyntax ||
+                node is AttributeSyntax)
+            {
+                return true;
+            }
+
+            return diagnostic.Id == CS7036 && node is ClassDeclarationSyntax;
         }
 
         protected override SyntaxNode GetTargetNode(SyntaxNode node)

@@ -16,6 +16,7 @@ namespace Roslyn.Test.Utilities
         public static class Features
         {
             public const string Adornments = "Adornments";
+            public const string AsyncLazy = nameof(AsyncLazy);
             public const string AutomaticEndConstructCorrection = "AutomaticEndConstructCorrection";
             public const string AutomaticCompletion = "AutomaticCompletion";
             public const string BraceHighlighting = "BraceHighlighting";
@@ -24,6 +25,7 @@ namespace Roslyn.Test.Utilities
             public const string CaseCorrection = "CaseCorrection";
             public const string ChangeSignature = "ChangeSignature";
             public const string Classification = "Classification";
+            public const string ClassView = "ClassView";
             public const string CodeActionsAddConstructorParameters = "CodeActions.AddConstructorParameters";
             public const string CodeActionsAddAsync = "CodeActions.AddAsync";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
@@ -57,6 +59,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsInsertMissingTokens = "CodeActions.InsertMissingTokens";
             public const string CodeActionsIntroduceVariable = "CodeActions.IntroduceVariable";
             public const string CodeActionsInvertIf = "CodeActions.InvertIf";
+            public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";
             public const string CodeActionsMoveToTopOfFile = "CodeActions.MoveToTopOfFile";

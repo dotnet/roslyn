@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private readonly AbstractDiagnosticsTaggerProvider<TTag> _owner;
             private readonly ITextBuffer _subjectBuffer;
 
-            private int refCount;
+            private int _refCount;
             private bool _disposed;
 
             private readonly Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>> _idToProviderAndTagger = new Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>>();
@@ -63,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     foreach (var updateArgs in _owner._diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken))
                     {
                         var diagnostics = _owner._diagnosticService.GetDiagnostics(updateArgs.Workspace, updateArgs.ProjectId, updateArgs.DocumentId, updateArgs.Id, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken);
-                        OnDiagnosticsUpdated(new DiagnosticsUpdatedArgs(updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics.AsImmutableOrEmpty()));
+                        OnDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsCreated(updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics.AsImmutableOrEmpty()));
                     }
                 }
             }
@@ -71,21 +74,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             public void OnTaggerCreated()
             {
                 this.AssertIsForeground();
-                Debug.Assert(refCount >= 0);
+                Debug.Assert(_refCount >= 0);
                 Debug.Assert(!_disposed);
 
-                refCount++;
+                _refCount++;
             }
 
             public void Dispose()
             {
                 this.AssertIsForeground();
-                Debug.Assert(refCount > 0);
+                Debug.Assert(_refCount > 0);
                 Debug.Assert(!_disposed);
 
-                refCount--;
+                _refCount--;
 
-                if (refCount == 0)
+                if (_refCount == 0)
                 {
                     _disposed = true;
 
@@ -99,16 +102,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     {
                         var tagger = kvp.Value.Item2;
 
-                        tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
-                        var disposable = tagger as IDisposable;
-                        if (disposable != null)
-                        {
-                            disposable.Dispose();
-                        }
+                        DisconnectFromTagger(tagger);
                     }
 
                     _idToProviderAndTagger.Clear();
                     _owner.RemoveTagger(this, _subjectBuffer);
+                }
+            }
+
+            private void DisconnectFromTagger(IAccurateTagger<TTag> tagger)
+            {
+                this.AssertIsForeground();
+
+                tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
+                var disposable = tagger as IDisposable;
+                if (disposable != null)
+                {
+                    disposable.Dispose();
                 }
             }
 
@@ -125,6 +135,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private void OnDiagnosticsUpdated(DiagnosticsUpdatedArgs e)
             {
+                // First see if this is a document/project removal.  If so, clear out any state we
+                // have associated with any analyzers we have for that document/project.
+                ProcessRemovedDiagnostics(e);
+
                 // Do some quick checks to avoid doing any further work for diagnostics  we don't
                 // care about.
                 var ourDocument = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
@@ -198,6 +212,50 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
             }
 
+            private void ProcessRemovedDiagnostics(DiagnosticsUpdatedArgs e)
+            {
+                if (e.Kind != DiagnosticsUpdatedKind.DiagnosticsRemoved)
+                {
+                    // Wasn't a removal.  We don't need to do anything here.
+                    return;
+                }
+
+                if (this.IsForeground())
+                {
+                    ProcessDocumentOrProjectRemovalOnForeground(e);
+                }
+                else
+                {
+                    RegisterNotification(() => ProcessDocumentOrProjectRemovalOnForeground(e));
+                }
+            }
+
+            private void ProcessDocumentOrProjectRemovalOnForeground(DiagnosticsUpdatedArgs e)
+            {
+                // See if we're being told about diagnostics going away because a document/project
+                // was removed.  If so, clear out any diagnostics we have associated with this
+                // diagnostic source ID and notify any listeners that 
+
+                this.AssertIsForeground();
+                if (_disposed)
+                {
+                    return;
+                }
+
+                var id = e.Id;
+                ValueTuple<TaggerProvider, IAccurateTagger<TTag>> providerAndTagger;
+                if (!_idToProviderAndTagger.TryGetValue(id, out providerAndTagger))
+                {
+                    // Wasn't a diagnostic source we care about.
+                    return;
+                }
+
+                _idToProviderAndTagger.Remove(id);
+                DisconnectFromTagger(providerAndTagger.Item2);
+
+                OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
+            }
+
             private void OnDiagnosticsUpdatedOnForeground(
                 DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
             {
@@ -247,12 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     return;
                 }
-
-                var tagsChanged = this.TagsChanged;
-                if (tagsChanged != null)
-                {
-                    tagsChanged(sender, args);
-                }
+                this.TagsChanged?.Invoke(sender, args);
             }
 
             public IEnumerable<ITagSpan<TTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancel)

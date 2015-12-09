@@ -3,25 +3,52 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal partial class DiagnosticAnalyzerService : IDiagnosticUpdateSource
     {
-        public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
+
+        // use eventMap and taskQueue to serialize events
+        private readonly EventMap _eventMap;
+        private readonly SimpleTaskQueue _eventQueue;
 
         private DiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService) : this()
         {
+            _eventMap = new EventMap();
+            _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
+
             registrationService.Register(this);
         }
 
-        internal void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs state)
+        public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated
         {
-            var handler = this.DiagnosticsUpdated;
-            if (handler != null)
+            add
             {
-                handler(sender, state);
+                _eventMap.AddEventHandler(DiagnosticsUpdatedEventName, value);
+            }
+
+            remove
+            {
+                _eventMap.RemoveEventHandler(DiagnosticsUpdatedEventName, value);
+            }
+        }
+
+        internal void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs args)
+        {
+            // raise serialized events
+            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
+            if (ev.HasHandlers)
+            {
+                var asyncToken = Listener.BeginAsyncOperation(nameof(RaiseDiagnosticsUpdated));
+                _eventQueue.ScheduleTask(() =>
+                {
+                    ev.RaiseEvent(handler => handler(sender, args));
+                }).CompletesAsyncOperation(asyncToken);
             }
         }
 

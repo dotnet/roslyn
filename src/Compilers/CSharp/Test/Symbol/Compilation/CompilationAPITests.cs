@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -324,6 +325,59 @@ namespace A.B {
             Assert.Equal(0, compCollection.ExternalReferences.Length);
             compCollection = compCollection.AddReferences(ref2, ref1, ref3).RemoveReferences(queue);
             Assert.Equal(0, compCollection.ExternalReferences.Length);
+        }
+
+        [Fact]
+        public void ReferenceDirectiveTests()
+        {
+            var t1 = Parse(@"
+#r ""a.dll"" 
+#r ""a.dll""
+", filename: "1.csx", options: TestOptions.Script);
+
+            var rd1 = t1.GetRoot().GetDirectives().Cast<ReferenceDirectiveTriviaSyntax>().ToArray();
+            Assert.Equal(2, rd1.Length);
+
+            var t2 = Parse(@"
+#r ""a.dll""
+#r ""b.dll""
+", options: TestOptions.Script);
+
+            var rd2 = t2.GetRoot().GetDirectives().Cast<ReferenceDirectiveTriviaSyntax>().ToArray();
+            Assert.Equal(2, rd2.Length);
+
+            var t3 = Parse(@"
+#r ""a.dll""
+", filename: "1.csx", options: TestOptions.Script);
+
+            var rd3 = t3.GetRoot().GetDirectives().Cast<ReferenceDirectiveTriviaSyntax>().ToArray();
+            Assert.Equal(1, rd3.Length);
+
+            var t4 = Parse(@"
+#r ""a.dll""
+", filename: "4.csx", options: TestOptions.Script);
+
+            var rd4 = t4.GetRoot().GetDirectives().Cast<ReferenceDirectiveTriviaSyntax>().ToArray();
+            Assert.Equal(1, rd4.Length);
+
+            var c = CreateCompilationWithMscorlib45(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
+                new TestMetadataReferenceResolver(files: new Dictionary<string, PortableExecutableReference>()
+                {
+                    { @"a.dll", TestReferences.NetFx.v4_0_30319.Microsoft_CSharp },
+                    { @"b.dll", TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic },
+                })));
+
+            c.VerifyDiagnostics();
+
+            // same containing script file name and directive string
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1[0]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1[1]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd2[0]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic, c.GetDirectiveReference(rd2[1]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd3[0]));
+
+            // different script name or directive string:
+            Assert.Null(c.GetDirectiveReference(rd4[0]));
         }
 
         [Fact, WorkItem(530131, "DevDiv")]

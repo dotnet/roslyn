@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private bool _containsNetModules;
 
+        internal IEnumerable<ModuleData> ModuleDatas => _fullNameToAssemblyDataMap.Values.Where(x => x.Kind == Kind.ModuleData).Select(x => x.ModuleData);
+
         public RuntimeAssemblyManager()
         {
             _fullNameToAssemblyDataMap = new Dictionary<string, AssemblyData>(StringComparer.OrdinalIgnoreCase);
@@ -135,8 +137,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return false;
             }
 
-            return _mainMvids.Count == 0 
-                || (assembly.ManifestModule != null && _mainMvids.Contains(assembly.ManifestModule.ModuleVersionId)) 
+            return _mainMvids.Count == 0
+                || (assembly.ManifestModule != null && _mainMvids.Contains(assembly.ManifestModule.ModuleVersionId))
                 || _loadedAssemblies.Contains(assembly);
         }
 
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                 }
                 else
-                { 
+                {
                     if (module.Kind == OutputKind.NetModule)
                     {
                         _containsNetModules = true;
@@ -430,8 +432,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public string DumpAssemblyData(out string dumpDirectory)
         {
-            var modules = _fullNameToAssemblyDataMap.Values.Where(x => x.Kind == Kind.ModuleData).Select(x => x.ModuleData);
-            return DumpAssemblyData(modules, out dumpDirectory);
+            return DumpAssemblyData(ModuleDatas, out dumpDirectory);
         }
 
         public static string DumpAssemblyData(IEnumerable<ModuleData> modules, out string dumpDirectory)
@@ -445,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // dumping lots of unnecessary data.
                 if (s_dumpCount > 10)
                 {
-                    break; 
+                    break;
                 }
 
                 if (module.InMemoryModule)
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             "Dumps");
                         try
                         {
-                             Directory.CreateDirectory(dumpDirectory);
+                            Directory.CreateDirectory(dumpDirectory);
                         }
                         catch
                         {
@@ -517,12 +518,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             StringBuilder errors = new StringBuilder();
             List<string> allOutput = new List<string>();
 
-// Disable all PEVerification due to https://github.com/dotnet/roslyn/issues/6190
-#if false
-
             foreach (var name in modulesToVerify)
             {
-                var module = _fullNameToModuleDataMap[name];
+                var assemblyData = _fullNameToAssemblyDataMap[name];
+                if (assemblyData.Kind != Kind.ModuleData)
+                {
+                    continue;
+                }
+
+                var module = assemblyData.ModuleData;
                 string[] output = CLRHelpers.PeVerify(module.Image);
                 if (output.Length > 0)
                 {
@@ -548,10 +552,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (throwOnError && errors.Length > 0)
             {
                 string dumpDir;
-                DumpAssemblyData(_fullNameToModuleDataMap.Values, out dumpDir);
+                DumpAssemblyData(ModuleDatas, out dumpDir);
                 throw new PeVerifyException(errors.ToString(), dumpDir);
             }
-#endif
             return allOutput.ToArray();
         }
     }

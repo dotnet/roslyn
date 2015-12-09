@@ -218,14 +218,14 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(code);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(); // no errors expected
         }
 
         [WorkItem(539538, "DevDiv")]
         [Fact]
         public void TestLambdaErrors03()
         {
-            TestErrors(@"
+            string source = @"
 using System;
 
 interface I : IComparable<IComparable<I>> { }
@@ -239,8 +239,11 @@ class C
         Foo(() => null);
     }
 }
-",
-"'Foo' error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(Func<IComparable<I>>)' and 'C.Foo(Func<I>)'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(Func<IComparable<I>>)' and 'C.Foo(Func<I>)'
+                //         Foo(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(System.Func<System.IComparable<I>>)", "C.Foo(System.Func<I>)").WithLocation(12, 9));
         }
 
         [WorkItem(539976, "DevDiv")]

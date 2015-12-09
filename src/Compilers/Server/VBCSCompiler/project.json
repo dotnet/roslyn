@@ -1,0 +1,17 @@
+{
+  "dependencies": { 
+    "System.Collections.Immutable": "1.1.37",
+    "System.Reflection.Metadata": "1.1.0",
+  },
+  "frameworks": {
+    "net45": { }
+  },
+  "runtimes": {
+    "win7": { },
+    "win7-anycpu": { },
+    "ubuntu.14.04": { },
+    "ubuntu.14.04-anycpu": { },
+    "osx.10.10": { },
+    "osx.10.10-anycpu": { }
+  }
+}

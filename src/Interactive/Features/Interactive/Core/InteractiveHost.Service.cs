@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _lastTask = Task.FromResult(initialState);
 
                 Console.OutputEncoding = Encoding.UTF8;
-              
+
                 // We want to be sure to delete the shadow-copied files when the process goes away. Frankly
                 // there's nothing we can do if the process is forcefully quit or goes down in a completely
                 // uncontrolled manner (like a stack overflow). When the process goes down in a controlled
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 string baseDirectory)
             {
                 var state = await ReportUnhandledExceptionIfAny(lastTask).ConfigureAwait(false);
-               
+
                 try
                 {
                     Directory.SetCurrentDirectory(baseDirectory);
@@ -439,6 +439,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                     {
                         // successful if compiled
                         success = true;
+
+                        // remove references and imports from the options, they have been applied and will be inherited from now on:
+                        state = state.WithOptions(state.ScriptOptions.RemoveImportsAndReferences());
 
                         var newScriptState = await ExecuteOnUIThread(script, state.ScriptStateOpt).ConfigureAwait(false);
                         if (newScriptState != null)
@@ -546,7 +549,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Debug.WriteLine(e);
             }
 
-#endregion
+            #endregion
 
             #region Operations
 
@@ -604,7 +607,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         {
                             var metadataResolver = CreateMetadataReferenceResolver(args.ReferencePaths, rspDirectory);
                             var sourceResolver = CreateSourceReferenceResolver(args.SourcePaths, rspDirectory);
-                            
+
                             var metadataReferences = new List<PortableExecutableReference>();
                             foreach (CommandLineReference cmdLineReference in args.MetadataReferences)
                             {
@@ -645,7 +648,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                                 var newScriptState = await ExecuteFileAsync(rspState, scriptPathOpt).ConfigureAwait(false);
                                 if (newScriptState != null)
                                 {
-                                    rspState = rspState.WithScriptState(newScriptState);
+                                    // remove references and imports from the options, they have been applied and will be inherited from now on:
+                                    rspState = rspState.
+                                        WithScriptState(newScriptState).
+                                        WithOptions(rspState.ScriptOptions.RemoveImportsAndReferences());
                                 }
                             }
 
@@ -818,6 +824,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                             script.ContinueAsync(stateOpt, CancellationToken.None);
 
                         return await task.ConfigureAwait(false);
+                    }
+                    catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
+                    {
+                        Console.Error.WriteLine(e.InnerException.Message);
+                        return null;
                     }
                     catch (Exception e)
                     {

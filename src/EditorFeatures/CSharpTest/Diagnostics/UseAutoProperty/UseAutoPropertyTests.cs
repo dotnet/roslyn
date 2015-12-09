@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -19,250 +20,302 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSingleGetterFromField()
+        public async Task TestSingleGetterFromField()
         {
-            Test(
+            await TestAsync(
 @"class Class { [|int i|]; int P { get { return i; } } }",
 @"class Class { int P { get; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestCSharp5_1()
+        public async Task TestCSharp5_1()
         {
-            Test(
+            await TestAsync(
 @"class Class { [|int i|]; public int P { get { return i; } } }",
 @"class Class { public int P { get; private set; } }",
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestCSharp5_2()
+        public async Task TestCSharp5_2()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|readonly int i|]; int P { get { return i; } } }",
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestInitializer()
+        public async Task TestInitializer()
         {
-            Test(
+            await TestAsync(
 @"class Class { [|int i = 1|]; int P { get { return i; } } }",
 @"class Class { int P { get; } = 1; }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestInitializer_CSharp5()
+        public async Task TestInitializer_CSharp5()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|int i = 1|]; int P { get { return i; } } }",
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSingleGetterFromProperty()
+        public async Task TestSingleGetterFromProperty()
         {
-            Test(
+            await TestAsync(
 @"class Class { int i; [|int P { get { return i; } }|] }",
 @"class Class { int P { get; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSingleSetter()
+        public async Task TestSingleSetter()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|int i|]; int P { set { i = value; } } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestGetterAndSetter()
+        public async Task TestGetterAndSetter()
         {
-            Test(
+            await TestAsync(
 @"class Class { [|int i|]; int P { get { return i; } set { i = value; } } }",
 @"class Class { int P { get; set; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSingleGetterWithThis()
+        public async Task TestSingleGetterWithThis()
         {
-            Test(
+            await TestAsync(
 @"class Class { [|int i|]; int P { get { return this.i; } } }",
 @"class Class { int P { get; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSingleSetterWithThis()
+        public async Task TestSingleSetterWithThis()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|int i|]; int P { set { this.i = value; } } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestGetterAndSetterWithThis()
+        public async Task TestGetterAndSetterWithThis()
         {
-            Test(
+            await TestAsync(
 @"class Class { [|int i|]; int P { get { return this.i; } set { this.i = value; } } }",
 @"class Class { int P { get; set; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestGetterWithMutipleStatements()
+        public async Task TestGetterWithMutipleStatements()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|int i|]; int P { get { ; return i; } } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSetterWithMutipleStatements()
+        public async Task TestSetterWithMutipleStatements()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|int i|]; int P { set { ; i = value; } } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSetterWithMultipleStatementsAndGetterWithSingleStatement()
+        public async Task TestSetterWithMultipleStatementsAndGetterWithSingleStatement()
         {
-            TestMissing(@"class Class { [|int i|]; int P { get { return i; } set { ; i = value; } } }");
+            await TestMissingAsync(@"class Class { [|int i|]; int P { get { return i; } set { ; i = value; } } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestGetterAndSetterUseDifferentFields()
+        public async Task TestGetterAndSetterUseDifferentFields()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|int i|]; int j; int P { get { return i; } set { j = value; } } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestFieldAndPropertyHaveDifferentStaticInstance()
+        public async Task TestFieldAndPropertyHaveDifferentStaticInstance()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|static int i|]; int P { get { return i; } } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestFieldUseInRefArgument1()
+        public async Task TestFieldUseInRefArgument1()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|int i|]; int P { get { return i; } } void M(ref int x) { M(ref i); } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestFieldUseInRefArgument2()
+        public async Task TestFieldUseInRefArgument2()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|int i|]; int P { get { return i; } } void M(ref int x) { M(ref this.i); } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestFieldUseInOutArgument()
+        public async Task TestFieldUseInOutArgument()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|int i|]; int P { get { return i; } } void M(out x) { M(out i); } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestNotWithVirtualProperty()
+        public async Task TestNotWithVirtualProperty()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|int i|]; public virtual int P { get { return i; } } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestNotWithConstField()
+        public async Task TestNotWithConstField()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|const int i|]; int P { get { return i; } } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestFieldWithMultipleDeclarators1()
+        public async Task TestFieldWithMultipleDeclarators1()
         {
-            Test(
+            await TestAsync(
 @"class Class { int [|i|], j, k; int P { get { return i; } } }",
 @"class Class { int j, k; int P { get; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestFieldWithMultipleDeclarators2()
+        public async Task TestFieldWithMultipleDeclarators2()
         {
-            Test(
+            await TestAsync(
 @"class Class { int i, [|j|], k; int P { get { return j; } } }",
 @"class Class { int i, k; int P { get; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestFieldWithMultipleDeclarators3()
+        public async Task TestFieldWithMultipleDeclarators3()
         {
-            Test(
+            await TestAsync(
 @"class Class { int i, j, [|k|]; int P { get { return k; } } }",
 @"class Class { int i, j; int P { get; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestFieldAndPropertyInDifferentParts()
+        public async Task TestFieldAndPropertyInDifferentParts()
         {
-            Test(
+            await TestAsync(
 @"partial class Class { [|int i|]; } partial class Class { int P { get { return i; } } }",
 @"partial class Class { } partial class Class { int P { get; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestNotWithFieldWithAttribute()
+        public async Task TestNotWithFieldWithAttribute()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Class { [|[A]int i|]; int P { get { return i; } } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestUpdateReferences()
+        public async Task TestUpdateReferences()
         {
-            Test(
+            await TestAsync(
 @"class Class { [|int i|]; int P { get { return i; } } public Class() { i = 1; } }",
 @"class Class { int P { get; } public Class() { P = 1; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestUpdateReferencesConflictResolution()
+        public async Task TestUpdateReferencesConflictResolution()
         {
-            Test(
+            await TestAsync(
 @"class Class { [|int i|]; int P { get { return i; } } public Class(int P) { i = 1; } }",
 @"class Class { int P { get; } public Class(int P) { this.P = 1; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestWriteInConstructor()
+        public async Task TestWriteInConstructor()
         {
-            Test(
+            await TestAsync(
 @"class Class { [|int i|]; int P { get { return i; } } public Class() { i = 1; } }",
 @"class Class { int P { get; } public Class() { P = 1; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestWriteInNotInConstructor1()
+        public async Task TestWriteInNotInConstructor1()
         {
-            Test(
+            await TestAsync(
 @"class Class { [|int i|]; int P { get { return i; } } public Foo() { i = 1; } }",
 @"class Class { int P { get; set; } public Foo() { P = 1; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestWriteInNotInConstructor2()
+        public async Task TestWriteInNotInConstructor2()
         {
-            Test(
+            await TestAsync(
 @"class Class { [|int i|]; public int P { get { return i; } } public Foo() { i = 1; } }",
 @"class Class { public int P { get; private set; } public Foo() { P = 1; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestAlreadyAutoPropertyWithGetterWithNoBody()
+        public async Task TestAlreadyAutoPropertyWithGetterWithNoBody()
         {
-            TestMissing(@"class Class { public int [|P|] { get; } }");
+            await TestMissingAsync(@"class Class { public int [|P|] { get; } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestAlreadyAutoPropertyWithGetterAndSetterWithNoBody()
+        public async Task TestAlreadyAutoPropertyWithGetterAndSetterWithNoBody()
         {
-            TestMissing(@"class Class { public int [|P|] { get; set; } }");
+            await TestMissingAsync(@"class Class { public int [|P|] { get; set; } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestSingleLine1()
+        {
+            await TestAsync(
+@"class Class
+{
+    [|int i|];
+    int P { get { return i; } }
+}",
+@"class Class
+{
+    int P { get; }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestSingleLine2()
+        {
+            await TestAsync(
+@"class Class
+{
+    [|int i|];
+    int P
+    {
+        get { return i; }
+    }
+}",
+@"class Class
+{
+    int P { get; }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestSingleLine3()
+        {
+            await TestAsync(
+@"class Class
+{
+    [|int i|];
+    int P
+    {
+        get { return i; }
+        set { i = value; }
+    }
+}",
+@"class Class
+{
+    int P { get; set; }
+}", compareTokens: false);
         }
     }
 }

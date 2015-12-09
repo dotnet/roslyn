@@ -1,128 +1,79 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class MethodDeclarationOutlinerTests :
-        AbstractOutlinerTests<MethodDeclarationSyntax>
+    public class MethodDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<MethodDeclarationSyntax>
     {
-        internal override IEnumerable<OutliningSpan> GetRegions(MethodDeclarationSyntax methodDecl)
+        internal override AbstractSyntaxOutliner CreateOutliner() => new MethodDeclarationOutliner();
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestMethod()
         {
-            var outliner = new MethodDeclarationOutliner();
-            return outliner.GetOutliningSpans(methodDecl, CancellationToken.None).WhereNotNull();
+            const string code = @"
+class C
+{
+    {|hint:$$public string Foo(){|collapse:
+    {
+    }|}|}
+}";
+
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestMethod()
+        public async Task TestMethodWithTrailingSpaces()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Foo()",
-                                        "  {",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    {|hint:$$public string Foo()    {|collapse:
+    {
+    }|}|}
+}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var methodDecl = typeDecl.DigToFirstNodeOfType<MethodDeclarationSyntax>();
-
-            var actualRegion = GetRegion(methodDecl);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(33, 43),
-                TextSpan.FromBounds(14, 43),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestMethodWithTrailingSpaces()
+        public async Task TestMethodWithLeadingComments()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Foo()    ",
-                                        "  {",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    {|span1:// Foo
+    // Bar|}
+    {|hint2:$$public string Foo(){|collapse2:
+    {
+    }|}|}
+}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var methodDecl = typeDecl.DigToFirstNodeOfType<MethodDeclarationSyntax>();
-
-            var actualRegion = GetRegion(methodDecl);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(37, 47),
-                TextSpan.FromBounds(14, 47),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestMethodWithLeadingComments()
+        public async Task TestMethodWithWithExpressionBodyAndComments()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  // Foo",
-                                        "  // Bar",
-                                        "  public string Foo()",
-                                        "  {",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    {|span:// Foo
+    // Bar|}
+    $$public string Foo() => ""Foo"";
+}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var methodDecl = typeDecl.DigToFirstNodeOfType<MethodDeclarationSyntax>();
-
-            var actualRegions = GetRegions(methodDecl).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(14, 30),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(53, 63),
-                TextSpan.FromBounds(34, 63),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestMethodWithWithExpressionBodyAndComments()
-        {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  // Foo",
-                                        "  // Bar",
-                                        "  public string Foo() => \"Foo\";",
-                                        "}");
-
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var methodDecl = typeDecl.DigToFirstNodeOfType<MethodDeclarationSyntax>();
-
-            var actualRegion = GetRegion(methodDecl);
-
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(14, 30),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span", "// Foo ...", autoCollapse: true));
         }
     }
 }

@@ -1,5 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
     Public Class NameExpansionTests
         Inherits AbstractExpansionTest
@@ -8,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 
         <WorkItem(604392)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Sub NoExpansionForPropertyNamesOfObjectInitializers()
+        Public Async Function TestNoExpansionForPropertyNamesOfObjectInitializers() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -47,12 +49,12 @@ class C
 }
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Sub CSharp_SimpleIdentifierAliasExpansion_AliasBinds()
+        Public Async Function TestCSharp_SimpleIdentifierAliasExpansion_AliasBinds() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -103,12 +105,12 @@ namespace LongNamespace
 }
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Sub CSharp_SimpleIdentifierAliasExpansion_AliasDoesNotBind()
+        Public Async Function TestCSharp_SimpleIdentifierAliasExpansion_AliasDoesNotBind() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -145,12 +147,125 @@ namespace NS
 }
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        Public Async Function TestCSharp_GenericNameExpansion_DontExpandAnonymousTypes() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType) { }
+
+    static void M()
+    {
+        {|Expand:Mumble|}(new { x = 42 });
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType) { }
+
+    static void M()
+    {
+        global::C.Mumble(new { x = 42 });
+    }
+}
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType, Action&lt;T, int&gt; lambda) { }
+
+    static void M()
+    {
+        Mumble(new { x = 42 }, {|Expand:a => a.x|});
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+using System;
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType, Action&lt;T, int&gt; lambda) { }
+
+    static void M()
+    {
+        Mumble(new { x = 42 }, a => a.x);
+    }
+}
+</code>
+
+            Await TestAsync(input, expected, expandParameter:=True)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType, Action&lt;T, int, int&gt; lambda) { }
+
+    static void M()
+    {
+        Mumble(new { x = 42 }, {|Expand:(a, y) => a.x|});
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+using System;
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType, Action&lt;T, int, int&gt; lambda) { }
+
+    static void M()
+    {
+        Mumble(new { x = 42 }, (a, y) => a.x);
+    }
+}
+</code>
+
+            Await TestAsync(input, expected, expandParameter:=True)
+        End Function
+
+#End Region
+
+#Region "Visual Basic tests"
 
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Sub VisualBasic_SimpleIdentifierAliasExpansion_AliasBinds()
+        Public Async Function TestVisualBasic_SimpleIdentifierAliasExpansion_AliasBinds() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -199,12 +314,12 @@ Namespace LongNamespace
 End Namespace
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/2805"), Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Sub VisualBasic_SimpleIdentifierAliasExpansion_AliasDoesNotBind()
+        Public Async Function TestVisualBasic_SimpleIdentifierAliasExpansion_AliasDoesNotBind() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -235,8 +350,9 @@ Namespace NS
 End Namespace
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
+
 #End Region
 
     End Class

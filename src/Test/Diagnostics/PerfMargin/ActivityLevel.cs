@@ -95,11 +95,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 
         private void ActivityLevelChanged()
         {
-            var handlers = this.IsActiveChanged;
-            if (handlers != null)
-            {
-                handlers(this, EventArgs.Empty);
-            }
+            this.IsActiveChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public IReadOnlyCollection<ActivityLevel> Children

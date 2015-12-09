@@ -91,6 +91,47 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
+        // This test should only run when the machine's default encoding is shift-JIS
+        [ConditionalFact(typeof(HasShiftJisDefaultEncoding))]
+        public void CompileShiftJisOnShiftJis()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("sjis.cs").WriteAllBytes(TestResources.General.ShiftJisSource);
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", src.Path });
+
+            Assert.Null(cmd.Arguments.Encoding);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+
+            var result = ProcessUtilities.Run(Path.Combine(dir.Path, "sjis.exe"), arguments: "", workingDirectory: dir.Path);
+            Assert.Equal(0, result.ExitCode);
+            Assert.Equal("星野 八郎太", File.ReadAllText(Path.Combine(dir.Path, "output.txt"), Encoding.GetEncoding(932)));
+        }
+
+        [Fact]
+        public void RunWithShiftJisFile()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("sjis.cs").WriteAllBytes(TestResources.General.ShiftJisSource);
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/codepage:932", src.Path });
+
+            Assert.Equal(932, cmd.Arguments.Encoding?.WindowsCodePage);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+
+            var result = ProcessUtilities.Run(Path.Combine(dir.Path, "sjis.exe"), arguments: "", workingDirectory: dir.Path);
+            Assert.Equal(0, result.ExitCode);
+            Assert.Equal("星野 八郎太", File.ReadAllText(Path.Combine(dir.Path, "output.txt"), Encoding.GetEncoding(932)));
+        }
+
         [Fact]
         [WorkItem(946954)]
         public void CompilerBinariesAreAnyCPU()
@@ -2906,7 +2947,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         }
 
         [Fact]
-        private void ModuleName001()
+        public void ModuleName001()
         {
             var dir = Temp.CreateDirectory();
 
@@ -3558,6 +3599,29 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Null(parsedArgs.CompilationOptions.DelaySign);
         }
 
+        [Fact]
+        public void PublicSign()
+        {
+            var parsedArgs = DefaultParse(new[] { "/publicsign", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.PublicSign);
+
+            parsedArgs = DefaultParse(new[] { "/publicsign+", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.PublicSign);
+
+            parsedArgs = DefaultParse(new[] { "/PUBLICsign-", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.CompilationOptions.PublicSign);
+
+            parsedArgs = DefaultParse(new[] { "/publicsign:-", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2007: Unrecognized option: '/publicsign:-'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/publicsign:-").WithLocation(1, 1));
+
+            Assert.False(parsedArgs.CompilationOptions.PublicSign);
+        }
+
         [WorkItem(546301, "DevDiv")]
         [Fact]
         public void SubsystemVersionTests()
@@ -4088,7 +4152,8 @@ public class CS1698_a {}
 
 
         [WorkItem(530221, "DevDiv")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [WorkItem(5660, "https://github.com/dotnet/roslyn/issues/5660")]
+        [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
         public void Bug15538()
         {
             // Several Jenkins VMs are still running with local systems permissions.  This suite won't run properly
@@ -4292,7 +4357,7 @@ class myClass
         }
 
         [Fact]
-        private void ResponseFileSplitting()
+        public void ResponseFileSplitting()
         {
             string[] responseFile;
 

@@ -1,11 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
@@ -167,12 +165,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 // Undo/redo on this action must always clear the state machine
                 UpdateWorkspaceForGlobalIdentifierRename(
-                    workspace, 
-                    finalSolution, 
-                    workspace.CurrentSolution, 
-                    _displayText, 
-                    changedDocuments, 
-                    renameTrackingSolutionSet.Symbol, 
+                    workspace,
+                    finalSolution,
+                    workspace.CurrentSolution,
+                    _displayText,
+                    changedDocuments,
+                    renameTrackingSolutionSet.Symbol,
                     newName,
                     trackingSessionId);
 

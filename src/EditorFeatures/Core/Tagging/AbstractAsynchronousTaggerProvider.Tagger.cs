@@ -1,9 +1,9 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -64,12 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void ReportChangedSpan(SnapshotSpan changeSpan)
             {
                 _batchChangeNotifier.AssertIsForeground();
-
-                var tagsChanged = TagsChanged;
-                if (tagsChanged != null)
-                {
-                    tagsChanged(this, new SnapshotSpanEventArgs(changeSpan));
-                }
+                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(changeSpan));
             }
 
             private void OnPaused(object sender, EventArgs e)
@@ -84,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnTagsChangedForBuffer(ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>> changes)
             {
-                this._tagSource.AssertIsForeground();
+                _tagSource.AssertIsForeground();
 
                 // Note: This operation is uncancellable. Once we've been notified here, our cached tags
                 // in the tag source are new. If we don't update the UI of the editor then we will end

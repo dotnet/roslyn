@@ -86,12 +86,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DiagnosticFormatter.Instance.Format(diagnostic.WithLocation(Location.None), EnsureEnglishUICulture.PreferredOrNull));
         }
 
+        [Obsolete("Use VerifyDiagnostics", true)]
         public static void TestDiagnostics(IEnumerable<Diagnostic> diagnostics, params string[] diagStrings)
         {
             AssertEx.SetEqual(diagStrings, diagnostics.Select(DumpDiagnostic));
         }
 
         // Do a full compilation and check all the errors.
+        [Obsolete("Use VerifyDiagnostics", true)]
         public void TestAllErrors(string code, params string[] errors)
         {
             var compilation = CreateCompilationWithMscorlib(code);
@@ -100,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         // Tests just the errors found while binding method M in class C.
+        [Obsolete("Use VerifyDiagnostics", true)]
         public void TestErrors(string code, params string[] errors)
         {
             var compilation = CreateCompilationWithMscorlib(code);
@@ -113,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertEx.SetEqual(errors, diagnostics.AsEnumerable().Select(DumpDiagnostic));
         }
 
+        [Obsolete("Use VerifyDiagnostics", true)]
         public void TestWarnings(string code, params string[] expectedWarnings)
         {
             var compilation = CreateCompilationWithMscorlib(code);

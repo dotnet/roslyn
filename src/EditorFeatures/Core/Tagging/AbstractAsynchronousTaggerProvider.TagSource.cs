@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -99,10 +101,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 DebugRecordInitialStackTrace();
 
-                this._workQueue = new AsynchronousSerialWorkQueue(asyncListener);
+                _workQueue = new AsynchronousSerialWorkQueue(asyncListener);
                 this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
-                _eventSource = CreateEventSource(); 
+                _eventSource = CreateEventSource();
 
                 Connect();
 
@@ -134,13 +136,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     return _accumulatedTextChanges_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     _accumulatedTextChanges_doNotAccessDirectly = value;
                 }
             }
@@ -149,13 +151,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     return _cachedTagTrees_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     _cachedTagTrees_doNotAccessDirectly = value;
                 }
             }
@@ -164,13 +166,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     return _state_doNotAccessDirecty;
                 }
 
                 set
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     _state_doNotAccessDirecty = value;
                 }
             }
@@ -179,20 +181,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     return _upToDate_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    this._workQueue.AssertIsForeground();
+                    _workQueue.AssertIsForeground();
                     _upToDate_doNotAccessDirectly = value;
                 }
             }
 
             public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
             {
-                _notificationService.RegisterNotification(action, delay, this._asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
+                _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
             }
 
             /// <summary>
@@ -202,14 +204,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 // First, cancel any previous requests (either still queued, or started).  We no longer
                 // want to continue it if new changes have come in.
-                this._workQueue.CancelCurrentWork();
+                _workQueue.CancelCurrentWork();
 
-                RegisterNotification(RecomputeTagsForeground, (int)e.Delay.ComputeTimeDelay(this._subjectBuffer).TotalMilliseconds, this._workQueue.CancellationToken);
+                RegisterNotification(RecomputeTagsForeground, (int)e.Delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds, _workQueue.CancellationToken);
             }
 
             private void Connect()
             {
-                this._workQueue.AssertIsForeground();
+                _workQueue.AssertIsForeground();
 
                 _eventSource.Changed += OnChanged;
                 _eventSource.UIUpdatesResumed += OnUIUpdatesResumed;
@@ -217,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
                 {
-                    this._subjectBuffer.Changed += OnSubjectBufferChanged;
+                    _subjectBuffer.Changed += OnSubjectBufferChanged;
                 }
 
                 if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
@@ -237,20 +239,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             public void Disconnect()
             {
-                this._workQueue.AssertIsForeground();
-                this._workQueue.CancelCurrentWork();
+                _workQueue.AssertIsForeground();
+                _workQueue.CancelCurrentWork();
 
                 // Tell the interaction object to stop issuing events.
                 _eventSource.Disconnect();
 
                 if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
                 {
-                    this._textViewOpt.Caret.PositionChanged -= OnCaretPositionChanged;
+                    _textViewOpt.Caret.PositionChanged -= OnCaretPositionChanged;
                 }
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
                 {
-                    this._subjectBuffer.Changed -= OnSubjectBufferChanged;
+                    _subjectBuffer.Changed -= OnSubjectBufferChanged;
                 }
 
                 _eventSource.UIUpdatesPaused -= OnUIUpdatesPaused;
@@ -273,29 +275,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void RaiseTagsChanged(ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>> collection)
             {
-                var tagsChangedForBuffer = TagsChangedForBuffer;
-                if (tagsChangedForBuffer != null)
-                {
-                    tagsChangedForBuffer(collection);
-                }
+                TagsChangedForBuffer?.Invoke(collection);
             }
 
             private void RaisePaused()
             {
-                var paused = this.Paused;
-                if (paused != null)
-                {
-                    paused(this, EventArgs.Empty);
-                }
+                this.Paused?.Invoke(this, EventArgs.Empty);
             }
 
             private void RaiseResumed()
             {
-                var resumed = this.Resumed;
-                if (resumed != null)
-                {
-                    resumed(this, EventArgs.Empty);
-                }
+                this.Resumed?.Invoke(this, EventArgs.Empty);
             }
 
             private static T NextOrDefault<T>(IEnumerator<T> enumerator)

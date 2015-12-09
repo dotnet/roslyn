@@ -1758,7 +1758,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Not a valid attribute location for this declaration</value>
   </data>
   <data name="WRN_InvalidAttributeLocation" xml:space="preserve">
-    <value>'{0}' is not a recognized attribute location. All attributes in this block will be ignored.</value>
+    <value>'{0}' is not a recognized attribute location. Valid attribute locations for this declaration are '{1}'. All attributes in this block will be ignored.</value>
   </data>
   <data name="WRN_InvalidAttributeLocation_Title" xml:space="preserve">
     <value>Not a recognized attribute location</value>
@@ -2636,7 +2636,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</value>
   </data>
   <data name="ERR_BadArgExtraRef" xml:space="preserve">
-    <value>Argument {0} should not be passed with the '{1}' keyword</value>
+    <value>Argument {0} may not be passed with the '{1}' keyword</value>
   </data>
   <data name="WRN_CmdOptionConflictsSource" xml:space="preserve">
     <value>Option '{0}' overrides attribute '{1}' given in a source file or added module</value>
@@ -4390,10 +4390,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                         - CODE GENERATION -
  /debug[+|-]                   Emit debugging information
- /debug:{full|pdbonly}         Specify debugging type ('full' is default, and 
+ /debug:{full|pdbonly|portable}
+                               Specify debugging type ('full' is default, and 
                                enables attaching a debugger to a running 
-                               program)
+                               program. 'portable' is a cross-platform format)
  /optimize[+|-]                Enable optimizations (Short form: /o)
+ /deterministic                Produce a deterministic assembly
+                               (including module version GUID and timestamp)
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors
@@ -4659,5 +4662,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InvalidPathMap" xml:space="preserve">
     <value>The pathmap option was incorrectly formatted.</value>
+  </data>
+  <data name="ERR_PublicSignButNoKey" xml:space="preserve">
+    <value>Public signing was specified and requires a public key, but no public key was specified.</value>
+  </data>
+  <data name="ERR_InvalidReal" xml:space="preserve">
+    <value>Invalid real literal.</value>
   </data>
 </root>

@@ -5,11 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 
@@ -95,10 +92,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             CompletionItem updatedBuilder = builder;
             CompletionItem updatedDefaultBuilder = GetDefaultBuilder(defaultTrackingSpanInSubjectBuffer);
 
-            if (completionService != null && 
-                workspace != null && 
+            if (completionService != null &&
+                workspace != null &&
                 workspace.Kind != WorkspaceKind.Interactive && // TODO (https://github.com/dotnet/roslyn/issues/5107): support in interactive
-                workspace.Options.GetOption(InternalFeatureOnOffOptions.Snippets) && 
+                workspace.Options.GetOption(InternalFeatureOnOffOptions.Snippets) &&
                 triggerInfo.TriggerReason != CompletionTriggerReason.Snippets)
             {
                 // In order to add snippet expansion notes to completion item descriptions, update

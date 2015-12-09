@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared;
@@ -27,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan> formattingSpans = null);
 
-        protected abstract AbstractFormattingResult Format(SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken);
+        protected abstract Task<AbstractFormattingResult> FormatAsync(SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken);
 
-        public IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        public async Task<IFormattingResult> FormatAsync(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
             CheckArguments(node, spans, options, rules);
 
@@ -43,13 +44,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             // check what kind of formatting strategy to use
             if (AllowDisjointSpanMerging(spansToFormat, options.GetOption(FormattingOptions.AllowDisjointSpanMerging)))
             {
-                return FormatMergedSpan(node, options, rules, spansToFormat, cancellationToken);
+                return await FormatMergedSpanAsync(node, options, rules, spansToFormat, cancellationToken).ConfigureAwait(false);
             }
 
-            return FormatIndividually(node, options, rules, spansToFormat, cancellationToken);
+            return await FormatIndividuallyAsync(node, options, rules, spansToFormat, cancellationToken).ConfigureAwait(false);
         }
 
-        private IFormattingResult FormatMergedSpan(
+        private async Task<IFormattingResult> FormatMergedSpanAsync(
             SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, IList<TextSpan> spansToFormat, CancellationToken cancellationToken)
         {
             var spanToFormat = TextSpan.FromBounds(spansToFormat[0].Start, spansToFormat[spansToFormat.Count - 1].End);
@@ -61,11 +62,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // more expensive case
-            var result = Format(node, options, rules, pair.Item1, pair.Item2, cancellationToken);
+            var result = await FormatAsync(node, options, rules, pair.Item1, pair.Item2, cancellationToken).ConfigureAwait(false);
             return CreateAggregatedFormattingResult(node, new List<AbstractFormattingResult>(1) { result }, SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, spanToFormat));
         }
 
-        private IFormattingResult FormatIndividually(
+        private async Task<IFormattingResult> FormatIndividuallyAsync(
             SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, IList<TextSpan> spansToFormat, CancellationToken cancellationToken)
         {
             List<AbstractFormattingResult> results = null;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 results = results ?? new List<AbstractFormattingResult>();
-                results.Add(Format(node, options, rules, pair.Item1, pair.Item2, cancellationToken));
+                results.Add(await FormatAsync(node, options, rules, pair.Item1, pair.Item2, cancellationToken).ConfigureAwait(false));
             }
 
             // quick simple case check

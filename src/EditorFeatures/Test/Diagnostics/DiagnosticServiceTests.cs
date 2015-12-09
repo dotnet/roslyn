@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var diagnostic = CreateDiagnosticData(workspace, project, document);
 
             source.RaiseUpdateEvent(
-                new DiagnosticsUpdatedArgs(id, workspace, workspace.CurrentSolution, project, document, ImmutableArray.Create(diagnostic)));
+                DiagnosticsUpdatedArgs.DiagnosticsCreated(id, workspace, workspace.CurrentSolution, project, document, ImmutableArray.Create(diagnostic)));
 
             set.WaitOne();
 
@@ -134,11 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             public void RaiseUpdateEvent(DiagnosticsUpdatedArgs args)
             {
-                var handler = DiagnosticsUpdated;
-                if (handler != null)
-                {
-                    handler(this, args);
-                }
+                DiagnosticsUpdated?.Invoke(this, args);
             }
         }
     }

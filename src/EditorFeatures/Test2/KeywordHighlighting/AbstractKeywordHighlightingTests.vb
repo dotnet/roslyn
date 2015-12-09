@@ -18,8 +18,8 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
     Public MustInherit Class AbstractKeywordHighlightingTests
-        Protected Sub VerifyHighlights(test As XElement, Optional optionIsEnabled As Boolean = True)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+        Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(test)
                 Dim testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim buffer = testDocument.TextBuffer
                 Dim snapshot = testDocument.InitialTextSnapshot
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
                 AssertEx.Equal(expectedTags, producedTags)
             End Using
-        End Sub
+        End Function
 
     End Class
 

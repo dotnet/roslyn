@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             }
         }
 
-        private static bool exceptionReported = false;
+        private static bool s_exceptionReported = false;
 
         private IList<OutliningSpan> GetMultiLineRegions(IOutliningService service, IList<OutliningSpan> regions, ITextSnapshot snapshot)
         {
@@ -161,9 +160,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                     var regionSpan = region.TextSpan.ToSpan();
                     if (!snapshotSpan.Contains(regionSpan))
                     {
-                        if (!exceptionReported)
+                        if (!s_exceptionReported)
                         {
-                            exceptionReported = true;
+                            s_exceptionReported = true;
                             try
                             {
                                 throw new InvalidOutliningRegionException(service, snapshot, snapshotSpan, regionSpan);

@@ -554,16 +554,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(updatedMethods.Count == 0);
 
             var updatedTrackingSpans = new List<KeyValuePair<ActiveStatementId, TextSpan>>();
+            BitVector editedActiveStatements = BitVector.Create(newActiveStatements.Length);
 
             for (int i = 0; i < script.Edits.Length; i++)
             {
                 var edit = script.Edits[i];
 
-                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, trackingService, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, updatedTrackingSpans, diagnostics);
+                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, trackingService, oldActiveStatements, ref editedActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, updatedTrackingSpans, diagnostics);
                 ReportSyntacticRudeEdits(diagnostics, script.Match, edit, editMap);
             }
 
-            UpdateUneditedSpans(diagnostics, script.Match, oldText, newText, documentId, trackingService, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedTrackingSpans);
+            UpdateUneditedSpans(diagnostics, script.Match, oldText, newText, documentId, trackingService, oldActiveStatements, editedActiveStatements, newActiveStatements, newExceptionRegions, updatedTrackingSpans);
 
             if (updatedTrackingSpans.Count > 0)
             {
@@ -579,6 +580,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DocumentId documentId,
             IActiveStatementTrackingService trackingService,
             ImmutableArray<ActiveStatementSpan> oldActiveStatements,
+            BitVector editedActiveStatements,
             [In, Out]LinePositionSpan[] newActiveStatements,
             [In, Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
             [In, Out]List<KeyValuePair<ActiveStatementId, TextSpan>> updatedTrackingSpans)
@@ -591,7 +593,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             for (int i = 0; i < newActiveStatements.Length; i++)
             {
-                if (newActiveStatements[i] == default(LinePositionSpan))
+                if (!editedActiveStatements[i])
                 {
                     Debug.Assert(newExceptionRegions[i].IsDefault);
 
@@ -840,6 +842,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DocumentId documentId,
             IActiveStatementTrackingService trackingService,
             ImmutableArray<ActiveStatementSpan> oldActiveStatements,
+            ref BitVector editedActiveStatements,
             [Out]LinePositionSpan[] newActiveStatements,
             [Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
             [Out]List<UpdatedMemberInfo> updatedMembers,
@@ -886,8 +889,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // TODO: VB field multi-initializers break this
                         // Debug.Assert(newActiveStatements[i] == default(LinePositionSpan));
 
-                        Debug.Assert(newSpan != default(TextSpan));
                         newActiveStatements[i] = newText.Lines.GetLinePositionSpan(newSpan);
+                        editedActiveStatements[i] = true;
                         newExceptionRegions[i] = ImmutableArray.Create<LinePositionSpan>();
                     }
                 }
@@ -906,6 +909,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         Debug.Assert(newActiveStatements[i] == default(LinePositionSpan) && newSpan != default(TextSpan));
                         newActiveStatements[i] = newText.Lines.GetLinePositionSpan(newSpan);
+                        editedActiveStatements[i] = true;
                         newExceptionRegions[i] = ImmutableArray.Create<LinePositionSpan>();
                     }
                 }
@@ -1084,6 +1088,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 Debug.Assert(newActiveStatements[ordinal] == default(LinePositionSpan) && newSpan != default(TextSpan));
                 newActiveStatements[ordinal] = newText.Lines.GetLinePositionSpan(newSpan);
+                editedActiveStatements[ordinal] = true;
 
                 // Update tracking span if we found a matching active statement whose span is different.
                 // It could have been deleted or moved out of the method/lambda body, in which case we set it to empty.
@@ -1348,8 +1353,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // It is allow to update a regular method to an async method or an iterator.
                 // The only restriction is a presence of an active statement in the method body
                 // since the debugger does not support remapping active statements to a different method.
-                if (oldStateMachineKind == StateMachineKind.None && newStateMachineKind != StateMachineKind.None )
-                {                    
+                if (oldStateMachineKind == StateMachineKind.None && newStateMachineKind != StateMachineKind.None)
+                {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
                         GetDiagnosticSpan(IsMethod(newBody) ? newBody : newBody.Parent, EditKind.Update)));
@@ -2689,10 +2694,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     // rude edit: Editing a field/property initializer of a partial type.
                     diagnostics.Add(new RudeEditDiagnostic(
-                                        RudeEditKind.PartialTypeInitializerUpdate, 
+                                        RudeEditKind.PartialTypeInitializerUpdate,
                                         newDeclaration.Span,
                                         newDeclaration,
-                                        new[] { GetTopLevelDisplayName(newDeclaration, EditKind.Update)}));
+                                        new[] { GetTopLevelDisplayName(newDeclaration, EditKind.Update) }));
                     return false;
                 }
 

@@ -1,609 +1,611 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     ' TODO: consider merging these tests with the keyword recommending tests in some way
     Public Class TypeContextTests
         Inherits AbstractContextTests
-        Protected Overrides Sub CheckResult(validLocation As Boolean, position As Integer, syntaxTree As SyntaxTree)
+        Protected Overrides Function CheckResultAsync(validLocation As Boolean, position As Integer, syntaxTree As SyntaxTree) As Task
             Dim token = syntaxTree.GetTargetToken(position, CancellationToken.None)
             Assert.Equal(validLocation, syntaxTree.IsTypeContext(position, token, CancellationToken.None))
-        End Sub
+            Return SpecializedTasks.EmptyTask
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub EmptyFile()
-            VerifyFalse("$$")
-        End Sub
+        Public Async Function TestEmptyFile() As Task
+            Await VerifyFalseAsync("$$")
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TypeConstraint1()
-            VerifyTrue("Class A(Of T As $$")
-        End Sub
+        Public Async Function TestTypeConstraint1() As Task
+            Await VerifyTrueAsync("Class A(Of T As $$")
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TypeConstraint2()
-            VerifyTrue("Class A(Of T As { II, $$")
-        End Sub
+        Public Async Function TestTypeConstraint2() As Task
+            Await VerifyTrueAsync("Class A(Of T As { II, $$")
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TypeConstraint3()
-            VerifyTrue("Class A(Of T As $$)")
-        End Sub
+        Public Async Function TestTypeConstraint3() As Task
+            Await VerifyTrueAsync("Class A(Of T As $$)")
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TypeConstraint4()
-            VerifyTrue("Class A(Of T As { II, $$})")
-        End Sub
+        Public Async Function TestTypeConstraint4() As Task
+            Await VerifyTrueAsync("Class A(Of T As { II, $$})")
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Implements1()
-            VerifyTrue(CreateContent("Class A",
+        Public Async Function TestImplements1() As Task
+            Await VerifyTrueAsync(CreateContent("Class A",
                                      "  Function Method() As A Implements $$"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Implements2()
-            VerifyTrue(CreateContent("Class A",
+        Public Async Function TestImplements2() As Task
+            Await VerifyTrueAsync(CreateContent("Class A",
                                      "  Function Method() As A Implements $$.Method"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Implements3()
-            VerifyTrue(CreateContent("Class A",
+        Public Async Function TestImplements3() As Task
+            Await VerifyTrueAsync(CreateContent("Class A",
                                      "  Function Method() As A Implements I.Method, $$.Method"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub As1()
-            VerifyTrue(CreateContent("Class A",
+        Public Async Function TestAs1() As Task
+            Await VerifyTrueAsync(CreateContent("Class A",
                                      "  Function Method() As $$"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub As2()
-            VerifyTrue(CreateContent("Class A",
+        Public Async Function TestAs2() As Task
+            Await VerifyTrueAsync(CreateContent("Class A",
                                      "  Function Method() As $$ Implements II.Method"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub As3()
-            VerifyTrue(CreateContent("Class A",
+        Public Async Function TestAs3() As Task
+            Await VerifyTrueAsync(CreateContent("Class A",
                                      "  Function Method(ByVal args As $$"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub AsNew()
-            VerifyTrue(AddInsideMethod("Dim d As New $$"))
-        End Sub
+        Public Async Function TestAsNew() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d As New $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub GetType1()
-            VerifyTrue(AddInsideMethod("Dim d = GetType($$"))
-        End Sub
+        Public Async Function TestGetType1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = GetType($$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TypeOfIs()
-            VerifyTrue(AddInsideMethod("Dim d = TypeOf d Is $$"))
-        End Sub
+        Public Async Function TestTypeOfIs() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = TypeOf d Is $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ObjectCreation()
-            VerifyTrue(AddInsideMethod("Dim d = New $$"))
-        End Sub
+        Public Async Function TestObjectCreation() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = New $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ArrayCreation()
-            VerifyTrue(AddInsideMethod("Dim d() = New $$() {"))
-        End Sub
+        Public Async Function TestArrayCreation() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d() = New $$() {"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Cast1()
-            VerifyTrue(AddInsideMethod("Dim d = CType(obj, $$"))
-        End Sub
+        Public Async Function TestCast1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = CType(obj, $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Cast2()
-            VerifyTrue(AddInsideMethod("Dim d = TryCast(obj, $$"))
-        End Sub
+        Public Async Function TestCast2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = TryCast(obj, $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Cast3()
-            VerifyTrue(AddInsideMethod("Dim d = DirectCast(obj, $$"))
-        End Sub
+        Public Async Function TestCast3() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = DirectCast(obj, $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ArrayType()
-            VerifyTrue(AddInsideMethod("Dim d() as $$("))
-        End Sub
+        Public Async Function TestArrayType() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d() as $$("))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub NullableType()
-            VerifyTrue(AddInsideMethod("Dim d as $$?"))
-        End Sub
+        Public Async Function TestNullableType() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d as $$?"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub BaseDeclarations1()
-            VerifyTrue(CreateContent("Class A",
+        Public Async Function TestBaseDeclarations1() As Task
+            Await VerifyTrueAsync(CreateContent("Class A",
                                      "    Inherits $$"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub BaseDeclarations2()
-            VerifyTrue(CreateContent("Class A",
+        Public Async Function TestBaseDeclarations2() As Task
+            Await VerifyTrueAsync(CreateContent("Class A",
                                      "    Implements $$"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TypeArgumentList1()
-            VerifyFalse(CreateContent("Class A(Of $$"))
-        End Sub
+        Public Async Function TestTypeArgumentList1() As Task
+            Await VerifyFalseAsync(CreateContent("Class A(Of $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TypeArgumentList2()
-            VerifyFalse(CreateContent("Class A(Of T, $$"))
-        End Sub
+        Public Async Function TestTypeArgumentList2() As Task
+            Await VerifyFalseAsync(CreateContent("Class A(Of T, $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TypeArgumentList3()
-            VerifyTrue(AddInsideMethod("Dim d as D(Of $$"))
-        End Sub
+        Public Async Function TestTypeArgumentList3() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d as D(Of $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TypeArgumentList4()
-            VerifyTrue(AddInsideMethod("Dim d as D(Of A, $$"))
-        End Sub
+        Public Async Function TestTypeArgumentList4() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d as D(Of A, $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub InferredFieldInitializer()
-            VerifyTrue(AddInsideMethod("Dim anonymousCust2 = New With {Key $$"))
-        End Sub
+        Public Async Function TestInferredFieldInitializer() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim anonymousCust2 = New With {Key $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub NamedFieldInitializer()
-            VerifyTrue(AddInsideMethod("Dim anonymousCust = New With {.Name = $$"))
-        End Sub
+        Public Async Function TestNamedFieldInitializer() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim anonymousCust = New With {.Name = $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Initializer()
-            VerifyTrue(AddInsideMethod("Dim a = $$"))
-        End Sub
+        Public Async Function TestInitializer() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim a = $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ReturnStatement()
-            VerifyTrue(AddInsideMethod("Return $$"))
-        End Sub
+        Public Async Function TestReturnStatement() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Return $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub IfStatement1()
-            VerifyTrue(AddInsideMethod("If $$"))
-        End Sub
+        Public Async Function TestIfStatement1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("If $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub IfStatement2()
-            VerifyTrue(AddInsideMethod(CreateContent("If Var1 Then",
+        Public Async Function TestIfStatement2() As Task
+            Await VerifyTrueAsync(AddInsideMethod(CreateContent("If Var1 Then",
                                                      "Else If $$")))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub CatchFilterClause()
-            VerifyTrue(AddInsideMethod(CreateContent("Try",
+        Public Async Function TestCatchFilterClause() As Task
+            Await VerifyTrueAsync(AddInsideMethod(CreateContent("Try",
                                                      "Catch ex As Exception when $$")))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ErrorStatement()
-            VerifyTrue(AddInsideMethod("Error $$"))
-        End Sub
+        Public Async Function TestErrorStatement() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Error $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub SelectStatement1()
-            VerifyTrue(AddInsideMethod("Select $$"))
-        End Sub
+        Public Async Function TestSelectStatement1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Select $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub SelectStatement2()
-            VerifyTrue(AddInsideMethod("Select Case $$"))
-        End Sub
+        Public Async Function TestSelectStatement2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Select Case $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub SimpleCaseClause1()
-            VerifyTrue(AddInsideMethod(CreateContent("Select T",
+        Public Async Function TestSimpleCaseClause1() As Task
+            Await VerifyTrueAsync(AddInsideMethod(CreateContent("Select T",
                                                      "Case $$")))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub SimpleCaseClause2()
-            VerifyTrue(AddInsideMethod(CreateContent("Select T",
+        Public Async Function TestSimpleCaseClause2() As Task
+            Await VerifyTrueAsync(AddInsideMethod(CreateContent("Select T",
                                                      "Case 1, $$")))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub RangeCaseClause1()
-            VerifyTrue(AddInsideMethod(CreateContent("Select T",
+        Public Async Function TestRangeCaseClause1() As Task
+            Await VerifyTrueAsync(AddInsideMethod(CreateContent("Select T",
                                                      "Case $$ To")))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub RangeCaseClause2()
-            VerifyTrue(AddInsideMethod(CreateContent("Select T",
+        Public Async Function TestRangeCaseClause2() As Task
+            Await VerifyTrueAsync(AddInsideMethod(CreateContent("Select T",
                                                      "Case 1 To $$")))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub RelationalCaseClause1()
-            VerifyTrue(AddInsideMethod(CreateContent("Select T",
+        Public Async Function TestRelationalCaseClause1() As Task
+            Await VerifyTrueAsync(AddInsideMethod(CreateContent("Select T",
                                                      "Case Is > $$")))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub RelationalCaseClause2()
-            VerifyTrue(AddInsideMethod(CreateContent("Select T",
+        Public Async Function TestRelationalCaseClause2() As Task
+            Await VerifyTrueAsync(AddInsideMethod(CreateContent("Select T",
                                                      "Case >= $$")))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub SyncLockStatement()
-            VerifyTrue(AddInsideMethod("SyncLock $$"))
-        End Sub
+        Public Async Function TestSyncLockStatement() As Task
+            Await VerifyTrueAsync(AddInsideMethod("SyncLock $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub WhileOrUntilClause1()
-            VerifyTrue(AddInsideMethod("Do While $$"))
-        End Sub
+        Public Async Function TestWhileOrUntilClause1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Do While $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub WhileOrUntilClause2()
-            VerifyTrue(AddInsideMethod("Do Until $$"))
-        End Sub
+        Public Async Function TestWhileOrUntilClause2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Do Until $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub WhileStatement()
-            VerifyTrue(AddInsideMethod("While $$"))
-        End Sub
+        Public Async Function TestWhileStatement() As Task
+            Await VerifyTrueAsync(AddInsideMethod("While $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ForStatement1()
-            VerifyTrue(AddInsideMethod("For i = $$"))
-        End Sub
+        Public Async Function TestForStatement1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("For i = $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ForStatement2()
-            VerifyTrue(AddInsideMethod("For i = 1 To $$"))
-        End Sub
+        Public Async Function TestForStatement2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("For i = 1 To $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ForStepClause()
-            VerifyTrue(AddInsideMethod("For i = 1 To 10 Step $$"))
-        End Sub
+        Public Async Function TestForStepClause() As Task
+            Await VerifyTrueAsync(AddInsideMethod("For i = 1 To 10 Step $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ForEachStatement()
-            VerifyTrue(AddInsideMethod("For Each I in $$"))
-        End Sub
+        Public Async Function TestForEachStatement() As Task
+            Await VerifyTrueAsync(AddInsideMethod("For Each I in $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub UsingStatement()
-            VerifyTrue(AddInsideMethod("Using $$"))
-        End Sub
+        Public Async Function TestUsingStatement() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Using $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ThrowStatement()
-            VerifyTrue(AddInsideMethod("Throw $$"))
-        End Sub
+        Public Async Function TestThrowStatement() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Throw $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub AssignmentStatement1()
-            VerifyTrue(AddInsideMethod("$$ = a"))
-        End Sub
+        Public Async Function TestAssignmentStatement1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("$$ = a"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub AssignmentStatement2()
-            VerifyTrue(AddInsideMethod("a = $$"))
-        End Sub
+        Public Async Function TestAssignmentStatement2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("a = $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub CallStatement1()
-            VerifyTrue(AddInsideMethod("Call $$"))
-        End Sub
+        Public Async Function TestCallStatement1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Call $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub CallStatement2()
-            VerifyTrue(AddInsideMethod("$$(1)"))
-        End Sub
+        Public Async Function TestCallStatement2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("$$(1)"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub AddRemoveHandlerStatement1()
-            VerifyTrue(AddInsideMethod("AddHandler $$"))
-        End Sub
+        Public Async Function TestAddRemoveHandlerStatement1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("AddHandler $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub AddRemoveHandlerStatement2()
-            VerifyTrue(AddInsideMethod("AddHandler T.Event, AddressOf $$"))
-        End Sub
+        Public Async Function TestAddRemoveHandlerStatement2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("AddHandler T.Event, AddressOf $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub AddRemoveHandlerStatement3()
-            VerifyTrue(AddInsideMethod("RemoveHandler $$"))
-        End Sub
+        Public Async Function TestAddRemoveHandlerStatement3() As Task
+            Await VerifyTrueAsync(AddInsideMethod("RemoveHandler $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub AddRemoveHandlerStatement4()
-            VerifyTrue(AddInsideMethod("RemoveHandler T.Event, AddressOf $$"))
-        End Sub
+        Public Async Function TestAddRemoveHandlerStatement4() As Task
+            Await VerifyTrueAsync(AddInsideMethod("RemoveHandler T.Event, AddressOf $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub WithStatement()
-            VerifyTrue(AddInsideMethod("With $$"))
-        End Sub
+        Public Async Function TestWithStatement() As Task
+            Await VerifyTrueAsync(AddInsideMethod("With $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ParenthesizedExpression()
-            VerifyTrue(AddInsideMethod("Dim a = ($$"))
-        End Sub
+        Public Async Function TestParenthesizedExpression() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim a = ($$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TypeOfIs2()
-            VerifyTrue(AddInsideMethod("Dim a = TypeOf $$"))
-        End Sub
+        Public Async Function TestTypeOfIs2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim a = TypeOf $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub MemberAccessExpression1()
-            VerifyTrue(AddInsideMethod("$$.Name"))
-        End Sub
+        Public Async Function TestMemberAccessExpression1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("$$.Name"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub MemberAccessExpression2()
-            VerifyTrue(AddInsideMethod("$$!Name"))
-        End Sub
+        Public Async Function TestMemberAccessExpression2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("$$!Name"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub InvocationExpression()
-            VerifyTrue(AddInsideMethod("$$(1)"))
-        End Sub
+        Public Async Function TestInvocationExpression() As Task
+            Await VerifyTrueAsync(AddInsideMethod("$$(1)"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TypeArgumentExpression()
-            VerifyTrue(AddInsideMethod("$$(Of Integer)"))
-        End Sub
+        Public Async Function TestTypeArgumentExpression() As Task
+            Await VerifyTrueAsync(AddInsideMethod("$$(Of Integer)"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Cast4()
-            VerifyTrue(AddInsideMethod("Dim d = CType($$"))
-        End Sub
+        Public Async Function TestCast4() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = CType($$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Cast5()
-            VerifyTrue(AddInsideMethod("Dim d = TryCast($$"))
-        End Sub
+        Public Async Function TestCast5() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = TryCast($$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Cast6()
-            VerifyTrue(AddInsideMethod("Dim d = DirectCast($$"))
-        End Sub
+        Public Async Function TestCast6() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = DirectCast($$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub BuiltInCase()
-            VerifyTrue(AddInsideMethod("Dim d = CInt($$"))
-        End Sub
+        Public Async Function TestBuiltInCase() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = CInt($$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub BinaryExpression1()
-            VerifyTrue(AddInsideMethod("Dim d = $$ + d"))
-        End Sub
+        Public Async Function TestBinaryExpression1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = $$ + d"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub BinaryExpression2()
-            VerifyTrue(AddInsideMethod("Dim d = d + $$"))
-        End Sub
+        Public Async Function TestBinaryExpression2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = d + $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub UnaryExpression()
-            VerifyTrue(AddInsideMethod("Dim d = +$$"))
-        End Sub
+        Public Async Function TestUnaryExpression() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = +$$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub BinaryConditionExpression1()
-            VerifyTrue(AddInsideMethod("Dim d = If($$,"))
-        End Sub
+        Public Async Function TestBinaryConditionExpression1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = If($$,"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub BinaryConditionExpression2()
-            VerifyTrue(AddInsideMethod("Dim d = If(a, $$"))
-        End Sub
+        Public Async Function TestBinaryConditionExpression2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = If(a, $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TernaryConditionExpression1()
-            VerifyTrue(AddInsideMethod("Dim d = If($$, a, b"))
-        End Sub
+        Public Async Function TestTernaryConditionExpression1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = If($$, a, b"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TernaryConditionExpression2()
-            VerifyTrue(AddInsideMethod("Dim d = If(a, $$, c"))
-        End Sub
+        Public Async Function TestTernaryConditionExpression2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = If(a, $$, c"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TernaryConditionExpression3()
-            VerifyTrue(AddInsideMethod("Dim d = If(a, b, $$"))
-        End Sub
+        Public Async Function TestTernaryConditionExpression3() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = If(a, b, $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub SingleArgument()
-            VerifyTrue(AddInsideMethod("D($$)"))
-        End Sub
+        Public Async Function TestSingleArgument() As Task
+            Await VerifyTrueAsync(AddInsideMethod("D($$)"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub NamedArgument()
-            VerifyTrue(AddInsideMethod("D(Name := $$)"))
-        End Sub
+        Public Async Function TestNamedArgument() As Task
+            Await VerifyTrueAsync(AddInsideMethod("D(Name := $$)"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub RangeArgument1()
-            VerifyTrue(AddInsideMethod("Dim a($$ To 10)"))
-        End Sub
+        Public Async Function TestRangeArgument1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim a($$ To 10)"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub RangeArgument2()
-            VerifyTrue(AddInsideMethod("Dim a(0 To $$)"))
-        End Sub
+        Public Async Function TestRangeArgument2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim a(0 To $$)"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub CollectionRangeVariable()
-            VerifyTrue(AddInsideMethod("Dim a = From var in $$"))
-        End Sub
+        Public Async Function TestCollectionRangeVariable() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim a = From var in $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ExpressionRangeVariable()
-            VerifyTrue(AddInsideMethod("Dim a = From var In collection Let b = $$"))
-        End Sub
+        Public Async Function TestExpressionRangeVariable() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim a = From var In collection Let b = $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub FunctionAggregation()
-            VerifyTrue(AddInsideMethod("Dim a = From c In col Aggregate o In c.o Into an = Any($$)"))
-        End Sub
+        Public Async Function TestFunctionAggregation() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim a = From c In col Aggregate o In c.o Into an = Any($$)"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub WhereQueryOperator()
-            VerifyTrue(AddInsideMethod("Dim a = From c In col Where $$"))
-        End Sub
+        Public Async Function TestWhereQueryOperator() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim a = From c In col Where $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub PartitionWhileQueryOperator1()
-            VerifyTrue(AddInsideMethod("Dim customerList = From c In cust Order By c.C Skip While $$"))
-        End Sub
+        Public Async Function TestPartitionWhileQueryOperator1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim customerList = From c In cust Order By c.C Skip While $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub PartitionWhileQueryOperator2()
-            VerifyTrue(AddInsideMethod("Dim customerList = From c In cust Order By c.C Take While  $$"))
-        End Sub
+        Public Async Function TestPartitionWhileQueryOperator2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim customerList = From c In cust Order By c.C Take While  $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub PartitionQueryOperator1()
-            VerifyTrue(AddInsideMethod("Dim a = From c In cust Skip $$"))
-        End Sub
+        Public Async Function TestPartitionQueryOperator1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim a = From c In cust Skip $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub PartitionQueryOperator2()
-            VerifyTrue(AddInsideMethod("Dim a = From c In cust Take $$"))
-        End Sub
+        Public Async Function TestPartitionQueryOperator2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim a = From c In cust Take $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub JoinCondition1()
-            VerifyTrue(AddInsideMethod("Dim p1 = From p In P Join d In Desc On $$"))
-        End Sub
+        Public Async Function TestJoinCondition1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim p1 = From p In P Join d In Desc On $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub JoinCondition2()
-            VerifyTrue(AddInsideMethod("Dim p1 = From p In P Join d In Desc On p.P Equals $$"))
-        End Sub
+        Public Async Function TestJoinCondition2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim p1 = From p In P Join d In Desc On p.P Equals $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Ordering()
-            VerifyTrue(AddInsideMethod("Dim a = From b In books Order By $$"))
-        End Sub
+        Public Async Function TestOrdering() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim a = From b In books Order By $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub XmlEmbeddedExpression()
-            VerifyTrue(AddInsideMethod("Dim book As XElement = <book isbn=<%= $$ %>></book>"))
-        End Sub
+        Public Async Function TestXmlEmbeddedExpression() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim book As XElement = <book isbn=<%= $$ %>></book>"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub NextStatement1()
-            VerifyFalse(AddInsideMethod(CreateContent("For i = 1 To 10",
+        Public Async Function TestNextStatement1() As Task
+            Await VerifyFalseAsync(AddInsideMethod(CreateContent("For i = 1 To 10",
                                                       "Next $$")))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub NextStatement2()
-            VerifyFalse(AddInsideMethod(CreateContent("For i = 1 To 10",
+        Public Async Function TestNextStatement2() As Task
+            Await VerifyFalseAsync(AddInsideMethod(CreateContent("For i = 1 To 10",
                                                       "Next i, $$")))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub EraseStatement1()
-            VerifyTrue(AddInsideMethod("Erase $$"))
-        End Sub
+        Public Async Function TestEraseStatement1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Erase $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub EraseStatement2()
-            VerifyTrue(AddInsideMethod("Erase i, $$"))
-        End Sub
+        Public Async Function TestEraseStatement2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Erase i, $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub CollectionInitializer1()
-            VerifyTrue(AddInsideMethod("Dim d = new List(Of Integer) from { $$"))
-        End Sub
+        Public Async Function TestCollectionInitializer1() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = new List(Of Integer) from { $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub CollectionInitializer2()
-            VerifyTrue(AddInsideMethod("Dim d = { $$"))
-        End Sub
+        Public Async Function TestCollectionInitializer2() As Task
+            Await VerifyTrueAsync(AddInsideMethod("Dim d = { $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub AliasImportsClause1()
-            VerifyTrue("Imports T = $$")
-        End Sub
+        Public Async Function TestAliasImportsClause1() As Task
+            Await VerifyTrueAsync("Imports T = $$")
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub AliasImportsClause2()
-            VerifyTrue("Imports $$ = S")
-        End Sub
+        Public Async Function TestAliasImportsClause2() As Task
+            Await VerifyTrueAsync("Imports $$ = S")
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub MembersImportsClause1()
-            VerifyTrue("Imports $$")
-        End Sub
+        Public Async Function TestMembersImportsClause1() As Task
+            Await VerifyTrueAsync("Imports $$")
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub MembersImportsClause2()
-            VerifyTrue("Imports System, $$")
-        End Sub
+        Public Async Function TestMembersImportsClause2() As Task
+            Await VerifyTrueAsync("Imports System, $$")
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Attributes1()
-            VerifyTrue(CreateContent("<$$>"))
-        End Sub
+        Public Async Function TestAttributes1() As Task
+            Await VerifyTrueAsync(CreateContent("<$$>"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Attributes2()
-            VerifyTrue(CreateContent("<$$>",
+        Public Async Function TestAttributes2() As Task
+            Await VerifyTrueAsync(CreateContent("<$$>",
                                      "Class Cl"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Attributes3()
-            VerifyTrue(CreateContent("Class Cl",
+        Public Async Function TestAttributes3() As Task
+            Await VerifyTrueAsync(CreateContent("Class Cl",
                                      "    <$$>",
                                      "    Function Method()"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub StringLiteral()
-            VerifyFalse(AddInsideMethod("Dim d = ""$$"""))
-        End Sub
+        Public Async Function TestStringLiteral() As Task
+            Await VerifyFalseAsync(AddInsideMethod("Dim d = ""$$"""))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Comment1()
-            VerifyFalse(AddInsideMethod("' $$"))
-        End Sub
+        Public Async Function TestComment1() As Task
+            Await VerifyFalseAsync(AddInsideMethod("' $$"))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub Comment2()
-            VerifyTrue(AddInsideMethod(CreateContent("'",
+        Public Async Function TestComment2() As Task
+            Await VerifyTrueAsync(AddInsideMethod(CreateContent("'",
                                                       "$$")))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub InactiveRegion()
-            VerifyFalse(AddInsideMethod(CreateContent("#IF False Then",
+        Public Async Function TestInactiveRegion() As Task
+            Await VerifyFalseAsync(AddInsideMethod(CreateContent("#IF False Then",
                                                       "$$")))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub EnumAs()
-            VerifyFalse(CreateContent("Enum Foo As $$"))
-        End Sub
+        Public Async Function TestEnumAs() As Task
+            Await VerifyFalseAsync(CreateContent("Enum Foo As $$"))
+        End Function
 
     End Class
 End Namespace

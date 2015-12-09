@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidAssemblyCulture, @"""\0""").WithLocation(1, 55));
         }
 
-        [Fact(Skip = "Issue #321")]
+        [Fact]
         public void CultureAttributeMismatch()
         {
             var neutral = CreateCompilationWithMscorlib(
@@ -280,7 +280,7 @@ public class en_US
 
             compilation = CreateCompilationWithMscorlib("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "20");
 
-            CompileAndVerify(compilation).VerifyDiagnostics(
+            CompileAndVerify(compilation, verify: false).VerifyDiagnostics(
     // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
@@ -329,19 +329,6 @@ public class en_US
             compilation = CreateCompilationWithMscorlib("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "40");
 
             CompileAndVerify(compilation,
-                // TODO: KevinH - I'm not sure why PeVerify started requiring this assembly after I refactored some test helpers.
-                //       I verified that the actual assemblies being compiled only differ by MVID before/after, so I don't think
-                //       it's a product issue.  I *think* that one of the CompileAndVerify calls above may have been writing the
-                //       neutral assembly to disk somewhere that Fusion could find and load it (perhaps RefEmit wrote it to disk?).
-                dependencies: new[]
-                {
-                    new ModuleData(
-                        neutral.Assembly.Identity,
-                        OutputKind.DynamicallyLinkedLibrary,
-                        neutral.EmitToArray(options: new EmitOptions(metadataOnly: true)),
-                        pdb: default(ImmutableArray<byte>),
-                        inMemoryModule: true)
-                },
                 sourceSymbolValidator: m =>
                 {
                     Assert.Equal(1, m.GetReferencedAssemblySymbols().Length);
@@ -354,7 +341,8 @@ public class en_US
                 {
                     Assert.Equal(2, ((PEModuleSymbol)m).GetReferencedAssemblySymbols().Length);
                     Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", m.GetReferencedAssemblySymbols()[1].ToTestDisplayString());
-                }).VerifyDiagnostics();
+                },
+                verify: false).VerifyDiagnostics();
 
             compilation = CreateCompilationWithMscorlib(
 @"
@@ -375,7 +363,7 @@ public class neutral
 
             compilation = CreateCompilationWithMscorlib("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "60");
 
-            CompileAndVerify(compilation).VerifyDiagnostics(
+            CompileAndVerify(compilation, verify: false).VerifyDiagnostics(
     // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
@@ -809,9 +797,7 @@ public class C {}
             {
                 var peReader = metadata.MetadataReader;
                 AssemblyDefinition row = peReader.GetAssemblyDefinition();
-
-                if (verifier != null)
-                    verifier(row);
+                verifier?.Invoke(row);
 
                 // Locale
                 // temp

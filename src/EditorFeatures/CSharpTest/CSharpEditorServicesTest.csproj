@@ -184,7 +184,9 @@
     <Compile Include="CodeActions\Preview\PreviewExceptionTests.cs" />
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
+    <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
     <Compile Include="Diagnostics\Suppression\RemoveSuppressionTests.cs" />
+    <Compile Include="Diagnostics\Suppression\SuppressionTest_FixMultipleTests.cs" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.cs" />
     <Compile Include="CommentSelection\CSharpCommentSelectionTests.cs" />
     <Compile Include="Completion\CompletionProviders\AbstractCSharpCompletionProviderTests.cs" />
@@ -208,7 +210,7 @@
     <Compile Include="Completion\CompletionProviders\XmlDocumentationCommentCompletionProviderTests.cs" />
     <Compile Include="Completion\LoadDirectiveCompletionProviderTests.cs" />
     <Compile Include="Completion\ReferenceDirectiveCompletionProviderTests.cs" />
-    <Compile Include="CSharpGoToAdjacentMemberTests.cs" />
+    <Compile Include="GoToAdjacentMember\CSharpGoToAdjacentMemberTests.cs" />
     <Compile Include="Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_ExtensionMethods.cs" />
@@ -308,8 +310,8 @@
     <Compile Include="Organizing\OrganizeModifiersTests.cs" />
     <Compile Include="Organizing\OrganizeTypeDeclarationTests.cs" />
     <Compile Include="Organizing\OrganizeUsingsTests.cs" />
-    <Compile Include="Outlining\AbstractOutlinerTests.cs" />
-    <Compile Include="Outlining\AbstractOutlinerTests`1.cs" />
+    <Compile Include="Outlining\AbstractCSharpSyntaxNodeOutlinerTests.cs" />
+    <Compile Include="Outlining\AbstractCSharpSyntaxTriviaOutlinerTests.cs" />
     <Compile Include="Outlining\AccessorDeclarationTests.cs" />
     <Compile Include="Outlining\AnonymousMethodExpressionTests.cs" />
     <Compile Include="Outlining\CommentTests.cs" />

@@ -221,7 +221,7 @@ abstract class Derived : Base
             Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "Override").ModifierFlags);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6651")]
         public void ModifierFlags_Constant()
         {
             var source = @"

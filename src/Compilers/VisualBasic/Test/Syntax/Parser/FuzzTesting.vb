@@ -918,7 +918,7 @@ End Enum
     End Sub
 
     <WorkItem(2867, "https://github.com/dotnet/roslyn/issues/2867")>
-    <Fact>
+    <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7159")>
     Public Sub TestBinary()
         ' use a fixed seed so the test Is reproducible
         Dim random = New System.Random(12345)

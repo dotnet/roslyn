@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                                       cancellationToken As CancellationToken) As IFormattingResult
             Dim root = trivia.GetStructure()
             Dim formatter = New VisualBasicStructuredTriviaFormatEngine(trivia, initialColumn, optionSet, formattingRules, root.GetFirstToken(includeZeroWidth:=True), root.GetLastToken(includeZeroWidth:=True))
-            Return formatter.Format(cancellationToken)
+            Return formatter.FormatAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken)
         End Function
 
         Private Sub New(trivia As SyntaxTrivia,

@@ -220,11 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         int IVsDropdownBarClient.OnComboGetFocus(int iCombo)
         {
-            var dropDownFocused = DropDownFocused;
-            if (dropDownFocused != null)
-            {
-                dropDownFocused(this, EventArgs.Empty);
-            }
+            DropDownFocused?.Invoke(this, EventArgs.Empty);
 
             return VSConstants.S_OK;
         }
@@ -245,11 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             if (selection >= 0)
             {
                 var item = GetItem(iCombo, selection);
-                var itemSelected = ItemSelected;
-                if (itemSelected != null)
-                {
-                    itemSelected(this, new NavigationBarItemSelectedEventArgs(item));
-                }
+                ItemSelected?.Invoke(this, new NavigationBarItemSelectedEventArgs(item));
             }
 
             return VSConstants.S_OK;
@@ -400,20 +392,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
-            var caretMoved = CaretMoved;
-            if (caretMoved != null)
-            {
-                caretMoved(this, e);
-            }
+            CaretMoved?.Invoke(this, e);
         }
 
         private void OnViewGotAggregateFocus(object sender, EventArgs e)
         {
-            var viewFocused = ViewFocused;
-            if (viewFocused != null)
-            {
-                viewFocused(this, e);
-            }
+            ViewFocused?.Invoke(this, e);
         }
 
         ITextView INavigationBarPresenter.TryGetCurrentView()

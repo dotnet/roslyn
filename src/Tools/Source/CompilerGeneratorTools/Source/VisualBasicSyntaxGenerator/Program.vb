@@ -134,7 +134,6 @@ Friend Module Program
 
             End Select
 
-            WriteLine("{0} node structures, {1} enumerations, {2} node kinds", definition.NodeStructures.Count, definition.Enumerations.Count, definition.NodeKinds.Count)
         End Using
 
     End Sub

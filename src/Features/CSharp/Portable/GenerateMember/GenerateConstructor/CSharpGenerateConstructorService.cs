@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -29,6 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
             return node is ConstructorInitializerSyntax;
         }
 
+        protected override bool IsClassDeclarationGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            return node is ClassDeclarationSyntax;
+        }
+
         protected override bool TryInitializeConstructorInitializerGeneration(
             SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken,
             out SyntaxToken token, out IList<ArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn)
@@ -52,6 +58,35 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
             arguments = null;
             typeToGenerateIn = null;
             return false;
+        }
+
+        protected override bool TryInitializeClassDeclarationGenerationState(
+            SemanticDocument document,
+            SyntaxNode node,
+            CancellationToken cancellationToken,
+            out SyntaxToken token,
+            out IMethodSymbol delegatedConstructor,
+            out INamedTypeSymbol typeToGenerateIn)
+        {
+            token = default(SyntaxToken);
+            typeToGenerateIn = null;
+            delegatedConstructor = null;
+
+            var semanticModel = document.SemanticModel;
+            var classDeclaration = (ClassDeclarationSyntax)node;
+            var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration, cancellationToken);
+
+            var baseType = classSymbol.BaseType;
+            var constructor = baseType.Constructors.FirstOrDefault(c => IsSymbolAccessible(c, document));
+            if (constructor == null)
+            {
+                return false;
+            }
+
+            typeToGenerateIn = classSymbol;
+            delegatedConstructor = constructor;
+            token = classDeclaration.Identifier;
+            return true;
         }
 
         protected override bool TryInitializeSimpleNameGenerationState(
@@ -181,10 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
 
         internal override IMethodSymbol GetDelegatingConstructor(
             State state,
-            SemanticDocument document, 
-            int argumentCount, 
-            INamedTypeSymbol namedType, 
-            ISet<IMethodSymbol> candidates, 
+            SemanticDocument document,
+            int argumentCount,
+            INamedTypeSymbol namedType,
+            ISet<IMethodSymbol> candidates,
             CancellationToken cancellationToken)
         {
             var oldToken = state.Token;

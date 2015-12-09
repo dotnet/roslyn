@@ -88,6 +88,24 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delete Character To Left.
+        /// </summary>
+        internal static string Backspace {
+            get {
+                return ResourceManager.GetString("Backspace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert New Line.
+        /// </summary>
+        internal static string BreakLine {
+            get {
+                return ResourceManager.GetString("BreakLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Clears the contents of the editor window, leaving history and execution context intact..
         /// </summary>
         internal static string ClearScreenCommandDescription {
@@ -111,6 +129,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string CommandNamePlaceholder {
             get {
                 return ResourceManager.GetString("CommandNamePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Script directives:.
+        /// </summary>
+        internal static string CSVBScriptDirectives {
+            get {
+                return ResourceManager.GetString("CSVBScriptDirectives", resourceCulture);
             }
         }
         
@@ -174,6 +201,42 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string CtrlKCtrlEnterHelp {
             get {
                 return ResourceManager.GetString("CtrlKCtrlEnterHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cut Selection.
+        /// </summary>
+        internal static string Cut {
+            get {
+                return ResourceManager.GetString("Cut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cut Line.
+        /// </summary>
+        internal static string CutLine {
+            get {
+                return ResourceManager.GetString("CutLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Text.
+        /// </summary>
+        internal static string Delete {
+            get {
+                return ResourceManager.GetString("Delete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete Line.
+        /// </summary>
+        internal static string DeleteLine {
+            get {
+                return ResourceManager.GetString("DeleteLine", resourceCulture);
             }
         }
         
@@ -250,6 +313,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Load specified script file and execute it, e.g. #load &quot;myScript.csx&quot;..
+        /// </summary>
+        internal static string LoadHelp {
+            get {
+                return ResourceManager.GetString("LoadHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The command of type &apos;{0}&apos; has no command names..
         /// </summary>
         internal static string MissingCommandName {
@@ -282,6 +354,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string Paste {
             get {
                 return ResourceManager.GetString("Paste", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add a metadata reference to specified assembly and all its dependencies, e.g. #r &quot;myLib.dll&quot;..
+        /// </summary>
+        internal static string RefHelp {
+            get {
+                return ResourceManager.GetString("RefHelp", resourceCulture);
             }
         }
         
@@ -336,6 +417,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string ShiftEnterHelp {
             get {
                 return ResourceManager.GetString("ShiftEnterHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert Text.
+        /// </summary>
+        internal static string TypeChar {
+            get {
+                return ResourceManager.GetString("TypeChar", resourceCulture);
             }
         }
         

@@ -345,12 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             AssertIsForeground();
             SetReferenceLocations(locations);
-
-            var sessionSpansUpdated = ReferenceLocationsChanged;
-            if (sessionSpansUpdated != null)
-            {
-                sessionSpansUpdated(this, locations);
-            }
+            ReferenceLocationsChanged?.Invoke(this, locations);
         }
 
         private void SetReferenceLocations(IEnumerable<InlineRenameLocation> locations)
@@ -485,12 +480,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void RaiseReplacementsComputed(IInlineRenameReplacementInfo resolution)
         {
             AssertIsForeground();
-
-            var conflictsComputed = ReplacementsComputed;
-            if (conflictsComputed != null)
-            {
-                conflictsComputed(this, resolution);
-            }
+            ReplacementsComputed?.Invoke(this, resolution);
         }
 
         private void LogRenameSession(RenameLogMessage.UserActionOutcome outcome, bool previewChanges)

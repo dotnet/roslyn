@@ -45,7 +45,7 @@
           Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).Portable.il')"
           Outputs="$(OutDir)%(Identity).dll">
     <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; &quot;$(ConcordDir)@(ConcordAssemblies).Portable.il&quot;" />
-    <Exec Command="$(FakeSignToolPath) &quot;$(OutDir)@(ConcordAssemblies).dll&quot;" />
+    <Exec Command="&quot;$(FakeSignToolPath)&quot; &quot;$(OutDir)@(ConcordAssemblies).dll&quot;" />
   </Target>
   <Target Name="CleanIlasmOutputs" AfterTargets="Clean">
     <Delete Files="@(ConcordAssemblies->'$(OutDir)NetFX20\%(Identity).dll')" />

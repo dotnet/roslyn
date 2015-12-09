@@ -1,137 +1,78 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
+Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports MaSOutliners = Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining.MetadataAsSource
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
     Public Class EventDeclarationOutlinerTests
-        Inherits AbstractOutlinerTests(Of EventStatementSyntax)
+        Inherits AbstractVisualBasicSyntaxNodeOutlinerTests(Of EventStatementSyntax)
 
-        Friend Overrides Function GetRegions(node As EventStatementSyntax) As IEnumerable(Of OutliningSpan)
-            Dim outliner = New MaSOutliners.EventDeclarationOutliner()
-            Return outliner.GetOutliningSpans(node, CancellationToken.None).WhereNotNull()
+        Protected Overrides ReadOnly Property WorkspaceKind As String
+            Get
+                Return CodeAnalysis.WorkspaceKind.MetadataAsSource
+            End Get
+        End Property
+
+        Friend Overrides Function CreateOutliner() As AbstractSyntaxOutliner
+            Return New MaSOutliners.EventDeclarationOutliner()
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub NoCommentsOrAttributes()
-            Dim code =
-<code><![CDATA[
+        Public Async Function NoCommentsOrAttributes() As Task
+            Dim code = "
 Class C
-    Event foo(x As Integer)
+    Event $$foo(x As Integer)
 End Class
-]]></code>
+"
 
-            Dim tree = ParseCode(code.Value)
-            Dim typeDecl = tree.DigToFirstTypeBlock()
-            Dim consDecl = typeDecl.DigToFirstNodeOfType(Of EventStatementSyntax)()
-
-            Assert.Empty(GetRegions(consDecl))
-        End Sub
+            Await VerifyNoRegionsAsync(code)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithAttributes()
-            Dim code =
-<code><![CDATA[
+        Public Async Function WithAttributes() As Task
+            Dim code = "
 Class C
-    <Foo>
-    Event foo(x As Integer)
+    {|hint:{|collapse:<Foo>
+    |}Event $$foo(x As Integer)|}
 End Class
-]]></code>
+"
 
-            Dim tree = ParseCode(code.Value)
-            Dim typeDecl = tree.DigToFirstTypeBlock()
-            Dim consDecl = typeDecl.DigToFirstNodeOfType(Of EventStatementSyntax)()
-
-            Dim actualRegion = GetRegion(consDecl)
-            Dim expectedRegion = New OutliningSpan(
-                TextSpan.FromBounds(13, 23),
-                TextSpan.FromBounds(13, 46),
-                VisualBasicOutliningHelpers.Ellipsis,
-                autoCollapse:=True)
-
-            AssertRegion(expectedRegion, actualRegion)
-        End Sub
+            Await VerifyRegionsAsync(code,
+                Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithCommentsAndAttributes()
-            Dim code =
-<code><![CDATA[
+        Public Async Function WithCommentsAndAttributes() As Task
+            Dim code = "
 Class C
-    ' Summary:
+    {|hint:{|collapse:' Summary:
     '     This is a summary.
     <Foo>
-    Event foo(x As Integer)
+    |}Event $$foo(x As Integer)|}
 End Class
-]]></code>
+"
 
-            Dim tree = ParseCode(code.Value)
-            Dim typeDecl = tree.DigToFirstTypeBlock()
-            Dim consDecl = typeDecl.DigToFirstNodeOfType(Of EventStatementSyntax)()
-
-            Dim actualRegion = GetRegion(consDecl)
-            Dim expectedRegion = New OutliningSpan(
-                TextSpan.FromBounds(13, 67),
-                TextSpan.FromBounds(13, 90),
-                VisualBasicOutliningHelpers.Ellipsis,
-                autoCollapse:=True)
-
-            AssertRegion(expectedRegion, actualRegion)
-        End Sub
+            Await VerifyRegionsAsync(code,
+                Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithCommentsAttributesAndModifiers()
-            Dim code =
-<code><![CDATA[
+        Public Async Function WithCommentsAttributesAndModifiers() As Task
+            Dim code = "
 Class C
-    ' Summary:
+    {|hint:{|collapse:' Summary:
     '     This is a summary.
     <Foo>
-    Private Event foo(x As Integer)
+    |}Private Event $$foo(x As Integer)|}
 End Class
-]]></code>
+"
 
-            Dim tree = ParseCode(code.Value)
-            Dim typeDecl = tree.DigToFirstTypeBlock()
-            Dim consDecl = typeDecl.DigToFirstNodeOfType(Of EventStatementSyntax)()
+            Await VerifyRegionsAsync(code,
+                Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+        End Function
 
-            Dim actualRegion = GetRegion(consDecl)
-            Dim expectedRegion = New OutliningSpan(
-                TextSpan.FromBounds(13, 67),
-                TextSpan.FromBounds(13, 98),
-                VisualBasicOutliningHelpers.Ellipsis,
-                autoCollapse:=True)
-
-            AssertRegion(expectedRegion, actualRegion)
-        End Sub
-
-        <WpfFact(Skip:="530915"), Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithCustomKeyword()
-            Dim code =
-<code><![CDATA[
-Class C
-    ' Summary:
-    '     This is a summary.
-    <Foo>
-    Custom Event foo(x As Integer)
-End Class
-]]></code>
-
-            Dim tree = ParseCode(code.Value)
-            Dim typeDecl = tree.DigToFirstTypeBlock()
-            Dim consDecl = typeDecl.DigToFirstNodeOfType(Of EventStatementSyntax)()
-
-            Dim actualRegion = GetRegion(consDecl)
-            Dim expectedRegion = New OutliningSpan(
-                TextSpan.FromBounds(13, 67),
-                TextSpan.FromBounds(13, 83),
-                VisualBasicOutliningHelpers.Ellipsis,
-                autoCollapse:=True)
-
-            AssertRegion(expectedRegion, actualRegion)
-        End Sub
     End Class
 End Namespace

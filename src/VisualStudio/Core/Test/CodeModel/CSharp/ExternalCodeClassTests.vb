@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
@@ -7,8 +8,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     Public Class ExternalCodeClassTests
         Inherits AbstractCodeClassTests
 
+#Region "Doc Comment"
+
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ExpectedClassMembers()
+        Public Async Function TestDocComment1() As Task
+            Dim code =
+<Code>
+/// &lt;summary&gt;This is my comment!&lt;/summary&gt;
+class C$$
+{
+}
+</Code>
+
+            Await TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "</doc>")
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestDocComment2() As Task
+            Dim code =
+<Code>
+/// &lt;summary&gt;This is my comment!&lt;/summary&gt;
+/// &lt;remarks /&gt;
+class C$$
+{
+}
+</Code>
+
+            Await TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "  <remarks />" & vbCrLf & "</doc>")
+        End Function
+
+#End Region
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestExpectedClassMembers() As Task
             Dim code =
 <Code>
 class C$$
@@ -29,7 +61,7 @@ class C$$
 }
 </Code>
 
-            TestElement(code,
+            Await TestElement(code,
                 Sub(codeElement)
                     Dim members = codeElement.Members
                     Assert.Equal(7, members.Count)
@@ -62,7 +94,7 @@ class C$$
                     Assert.Equal("C", member7.Name)
                     Assert.Equal(EnvDTE.vsCMElement.vsCMElementFunction, member7.Kind)
                 End Sub)
-        End Sub
+        End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get
