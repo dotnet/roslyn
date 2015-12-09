@@ -1710,6 +1710,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
             }
 
+            if (modifiers.IsSealed)
+            {
+                list = list.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
+            }
+
             if (modifiers.IsOverride)
             {
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword));
@@ -1738,11 +1743,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (modifiers.IsReadOnly)
             {
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
-            }
-
-            if (modifiers.IsSealed)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
             }
 
             if (modifiers.IsUnsafe)
