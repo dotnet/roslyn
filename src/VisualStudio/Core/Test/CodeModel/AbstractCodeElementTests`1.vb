@@ -477,11 +477,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Async Function TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object)) As Tasks.Task
+        Protected Overrides Async Function TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object)) As Tasks.Task
             Await TestElement(code,
                 Sub(codeElement)
                     Dim element = CType(codeElement, EnvDTE.CodeElement)
-                    Assert.True(element IsNot Nothing, "Could not cast " & GetType(TCodeElement).FullName & " to " & GetType(EnvDTE.CodeElement).FullName & ".")
+                    Assert.True(element IsNot Nothing, $"Could not cast {GetType(TCodeElement).FullName} to {GetType(EnvDTE.CodeElement).FullName}.")
 
                     Dim children = element.Children
                     Assert.Equal(expectedChildren.Length, children.Count)

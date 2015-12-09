@@ -583,12 +583,12 @@ End Class
 
         <WorkItem(150349)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_DontCrashForEventOutsideClass1() As Task
+        Public Async Function TestOverrideKind_SimpleEvent() As Task
             Dim code =
 <Code>
-Namespace N
+Class C
     Event $$E()
-End Namespace
+End Class
 </Code>
 
             Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
@@ -596,10 +596,10 @@ End Namespace
 
         <WorkItem(150349)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_DontCrashForEventOutsideClass2() As Task
+        Public Async Function TestOverrideKind_CustomEvent() As Task
             Dim code =
 <Code>
-Namespace N
+Class C
     Custom Event $$E As System.EventHandler
         AddHandler(value As System.EventHandler)
         End AddHandler
@@ -608,7 +608,7 @@ Namespace N
         RaiseEvent(sender As Object, e As System.EventArgs)
         End RaiseEvent
     End Event
-End Namespace
+End Class
 </Code>
 
             Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)

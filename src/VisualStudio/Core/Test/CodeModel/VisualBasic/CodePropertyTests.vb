@@ -470,19 +470,6 @@ End Class
             Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Function
 
-        <WorkItem(150349)>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_DontCrashForPropertyOutsideClass() As Task
-            Dim code =
-<Code>
-Namespace N
-    ReadOnly Property $$P As Integer = 42
-End Namespace
-</Code>
-
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
-        End Function
-
 #End Region
 
 #Region "Prototype tests"

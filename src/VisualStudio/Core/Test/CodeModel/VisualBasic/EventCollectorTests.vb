@@ -2282,8 +2282,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestAsync(code, changedCode,
-                 Unknown("N"))
+            Await TestAsync(code, changedCode)
         End Function
 
         <WorkItem(150349)>
@@ -2304,8 +2303,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestAsync(code, changedCode,
-                 Unknown("N"))
+            Await TestAsync(code, changedCode)
         End Function
 
         <WorkItem(150349)>
@@ -2326,8 +2324,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestAsync(code, changedCode,
-                 Unknown("N"))
+            Await TestAsync(code, changedCode)
         End Function
 
         <WorkItem(150349)>
@@ -2370,8 +2367,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestAsync(code, changedCode,
-                 Unknown("N"))
+            Await TestAsync(code, changedCode)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String

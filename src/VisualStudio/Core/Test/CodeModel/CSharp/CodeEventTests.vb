@@ -556,30 +556,59 @@ class C1 : I1
 
         <WorkItem(150349)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_DontCrashForEventOutsideClass1() As Task
+        Public Async Function TestOverrideKind_Abstract() As Task
             Dim code =
 <Code>
-namespace N
+class C
 {
-    event System.EventHandler $$E;
+    abstract class A
+    {
+        protected abstract event System.EventHandler $$E;
+    }
 }
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Function
 
         <WorkItem(150349)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_DontCrashForEventOutsideClass2() As Task
+        Public Async Function TestOverrideKind_Virtual() As Task
             Dim code =
 <Code>
-namespace N
+class C
 {
-    event System.EventHandler $$E
+    abstract class A
     {
-        add { }
-        remove { }
+        protected virtual event System.EventHandler $$E
+        {
+            add { }
+            remove { }
+        }
     }
+}
+}
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_None() As Task
+            Dim code =
+<Code>
+class C
+{
+    abstract class A
+    {
+        protected event System.EventHandler $$E
+        {
+            add { }
+            remove { }
+        }
+    }
+}
 }
 </Code>
 

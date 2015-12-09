@@ -757,6 +757,8 @@ class C
         Public Async Function TestIsDefault2() As Task
             Dim code =
 <Code>
+class C
+{
     public int $$P
     {
         get
@@ -766,6 +768,7 @@ class C
         set
         {
         }
+}
 </Code>
 
             Await TestIsDefault(code, False)
@@ -1036,20 +1039,6 @@ abstract class C
 </Code>
 
             Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
-        End Function
-
-        <WorkItem(150349)>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_DontCrashForPropertyOutsideClass() As Task
-            Dim code =
-<Code>
-namespace N
-{
-    int $$P { get { return 42; } }
-}
-</Code>
-
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
         End Function
 
 #End Region

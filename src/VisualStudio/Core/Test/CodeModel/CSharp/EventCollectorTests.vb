@@ -568,7 +568,7 @@ namespace N
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Async Function TestChangingClassClassToPartial() As Task
+        Public Async Function TestChangingClassClassToPartial1() As Task
             Dim code =
 <Code>
 namespace N
@@ -590,7 +590,32 @@ namespace N
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Remove("C", "N"),
+                 Remove("C", "N"))
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function TestChangingClassClassToPartial2() As Task
+            Dim code =
+<Code>
+namespace N
+{
+    parclass C
+    {
+    }
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+namespace N
+{
+    partial class C
+    {
+    }
+}
+</Code>
+
+            Await TestAsync(code, changedCode,
                  Add("C", "N"))
         End Function
 
@@ -877,6 +902,30 @@ class Program
 
         <WorkItem(150349)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontFireEventForMethodAddedInsideNamespace() As Task
+            Dim code =
+<Code>
+namespace N
+{
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+namespace N
+{
+    void M()
+    {
+    }
+}
+</Code>
+
+            Await TestAsync(code, changedCode)
+        End Function
+
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function DontCrashOnDuplicatedMethodsInNamespace() As Task
             Dim code =
 <Code>
@@ -902,8 +951,7 @@ namespace N
 }
 </Code>
 
-            Await TestAsync(code, changedCode,
-                 Unknown("N"))
+            Await TestAsync(code, changedCode)
         End Function
 
         <WorkItem(150349)>
@@ -926,8 +974,7 @@ namespace N
 }
 </Code>
 
-            Await TestAsync(code, changedCode,
-                 Unknown("N"))
+            Await TestAsync(code, changedCode)
         End Function
 
         <WorkItem(150349)>
@@ -950,8 +997,7 @@ namespace N
 }
 </Code>
 
-            Await TestAsync(code, changedCode,
-                 Unknown("N"))
+            Await TestAsync(code, changedCode)
         End Function
 
         <WorkItem(150349)>
@@ -987,8 +1033,7 @@ namespace N
 }
 </Code>
 
-            Await TestAsync(code, changedCode,
-                 Unknown("N"))
+            Await TestAsync(code, changedCode)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
