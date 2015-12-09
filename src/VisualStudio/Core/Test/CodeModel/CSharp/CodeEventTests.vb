@@ -552,6 +552,42 @@ class C1 : I1
 
 #End Region
 
+#Region "OverrideKind tests"
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_DontCrashForEventOutsideClass1() As Task
+            Dim code =
+<Code>
+namespace N
+{
+    event System.EventHandler $$E;
+}
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_DontCrashForEventOutsideClass2() As Task
+            Dim code =
+<Code>
+namespace N
+{
+    event System.EventHandler $$E
+    {
+        add { }
+        remove { }
+    }
+}
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+        End Function
+
+#End Region
+
 #Region "Type tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

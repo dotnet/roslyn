@@ -875,6 +875,122 @@ class Program
                  Remove("System.CLSCompliant", "bar"))
         End Function
 
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontCrashOnDuplicatedMethodsInNamespace() As Task
+            Dim code =
+<Code>
+namespace N
+{
+    void M()
+    {
+    }
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+namespace N
+{
+    void M()
+    {
+    }
+
+    void M()
+    {
+    }
+}
+</Code>
+
+            Await TestAsync(code, changedCode,
+                 Unknown("N"))
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontCrashOnDuplicatedPropertiesInNamespace() As Task
+            Dim code =
+<Code>
+namespace N
+{
+    int P { get { return 42; } }
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+namespace N
+{
+    int P { get { return 42; } }
+    int P { get { return 42; } }
+}
+</Code>
+
+            Await TestAsync(code, changedCode,
+                 Unknown("N"))
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontCrashOnDuplicatedEventsInNamespace1() As Task
+            Dim code =
+<Code>
+namespace N
+{
+    event System.EventHandler E;
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+namespace N
+{
+    event System.EventHandler E;
+    event System.EventHandler E;
+}
+</Code>
+
+            Await TestAsync(code, changedCode,
+                 Unknown("N"))
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontCrashOnDuplicatedEventsInNamespace2() As Task
+            Dim code =
+<Code>
+namespace N
+{
+    event System.EventHandler E
+    {
+        add { }
+        remove { }
+    }
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+namespace N
+{
+    event System.EventHandler E
+    {
+        add { }
+        remove { }
+    }
+
+    event System.EventHandler E
+    {
+        add { }
+        remove { }
+    }
+}
+</Code>
+
+            Await TestAsync(code, changedCode,
+                 Unknown("N"))
+        End Function
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.CSharp

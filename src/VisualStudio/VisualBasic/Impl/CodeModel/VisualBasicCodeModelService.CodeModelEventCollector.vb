@@ -307,7 +307,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         eventQueue)
                 End If
 
-                Debug.Fail(String.Format("Invalid node: {0}", oldNamespaceOrType.Kind))
                 Return False
             End Function
 

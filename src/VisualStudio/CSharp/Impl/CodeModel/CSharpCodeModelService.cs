@@ -2417,12 +2417,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             var result = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone;
 
-            if ((flags & ModifierFlags.Abstract) != 0 || containingType.Kind() == SyntaxKind.InterfaceDeclaration)
+            if ((flags & ModifierFlags.Abstract) != 0 || containingType?.Kind() == SyntaxKind.InterfaceDeclaration)
             {
                 result |= EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract;
             }
 
-            if ((flags & ModifierFlags.Virtual) != 0 || containingType.Kind() == SyntaxKind.InterfaceDeclaration)
+            if ((flags & ModifierFlags.Virtual) != 0 || containingType?.Kind() == SyntaxKind.InterfaceDeclaration)
             {
                 result |= EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual;
             }

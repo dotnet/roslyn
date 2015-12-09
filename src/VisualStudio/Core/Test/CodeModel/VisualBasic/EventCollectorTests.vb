@@ -2260,6 +2260,120 @@ End Class
 
 #End Region
 
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontCrashOnDuplicatedMethodsInNamespace() As Task
+            Dim code =
+<Code>
+Namespace N
+    Sub M()
+    End Sub
+End Namespace
+</Code>
+
+            Dim changedCode =
+<Code>
+Namespace N
+    Sub M()
+    End Sub
+
+    Sub M()
+    End Sub
+End Namespace
+</Code>
+
+            Await TestAsync(code, changedCode,
+                 Unknown("N"))
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontCrashOnDuplicatedPropertiesInNamespace() As Task
+            Dim code =
+<Code>
+Namespace N
+    ReadOnly Property P As Integer = 42
+End Namespace
+</Code>
+
+            Dim changedCode =
+<Code>
+Namespace N
+    ReadOnly Property P As Integer = 42
+    ReadOnly Property P As Integer = 42
+End Namespace
+</Code>
+
+            Await TestAsync(code, changedCode,
+                 Unknown("N"))
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontCrashOnDuplicatedEventsInNamespace1() As Task
+            Dim code =
+<Code>
+Namespace N
+    Event E()
+End Namespace
+</Code>
+
+            Dim changedCode =
+<Code>
+Namespace N
+    Event E()
+    Event E()
+End Namespace
+</Code>
+
+            Await TestAsync(code, changedCode,
+                 Unknown("N"))
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontCrashOnDuplicatedEventsInNamespace2() As Task
+            Dim code =
+<Code>
+Namespace N
+    Custom Event E As System.EventHandler
+        AddHandler(value As System.EventHandler)
+        End AddHandler
+        RemoveHandler(value As System.EventHandler)
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As System.EventArgs)
+        End RaiseEvent
+    End Event
+End Namespace
+</Code>
+
+            Dim changedCode =
+<Code>
+Namespace N
+    Custom Event E As System.EventHandler
+        AddHandler(value As System.EventHandler)
+        End AddHandler
+        RemoveHandler(value As System.EventHandler)
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As System.EventArgs)
+        End RaiseEvent
+    End Event
+
+    Custom Event E As System.EventHandler
+        AddHandler(value As System.EventHandler)
+        End AddHandler
+        RemoveHandler(value As System.EventHandler)
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As System.EventArgs)
+        End RaiseEvent
+    End Event
+End Namespace
+</Code>
+
+            Await TestAsync(code, changedCode,
+                 Unknown("N"))
+        End Function
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.VisualBasic
