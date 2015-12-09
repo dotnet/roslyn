@@ -220,6 +220,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="ExportContentTypeLanguageServiceAttribute.cs" />
+    <Compile Include="Extensibility\BraceMatching\AbstractDirectiveTriviaBraceMatcher.cs" />
     <Compile Include="Extensibility\BraceMatching\ExportBraceMatcherAttribute.cs" />
     <Compile Include="Extensibility\BraceMatching\IBraceMatcher.cs" />
     <Compile Include="Extensibility\Commands\ExportCommandHandlerAttribute.cs" />
