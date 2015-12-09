@@ -306,6 +306,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // generate nodes for symbols that share the same name, and all their descendants
         private static void GenerateNodes(string name, int parentIndex, IEnumerable<INamespaceOrTypeSymbol> symbolsWithSameName, List<Node> list)
         {
+            // Don't bother adding entries for names that can't even be referenced in code.
+            // Also, don't bother if all the symbols with this name are private.
+            if (!symbolsWithSameName.Any(s => s.CanBeReferencedByName) || 
+                symbolsWithSameName.All(s => s.DeclaredAccessibility == Accessibility.Private))
+            {
+                return;
+            }
+
             var node = new Node(name, parentIndex);
             var nodeIndex = list.Count;
             list.Add(node);
