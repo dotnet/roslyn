@@ -128,16 +128,33 @@ namespace Roslyn.Utilities
         }
 
         private const int MaxMatrixPoolDimension = 64;
-        private static readonly ObjectPool<int[,]> s_matrixPool = new ObjectPool<int[,]>(() => new int[64, 64]);
+        private static readonly ObjectPool<int[,]> s_matrixPool = new ObjectPool<int[,]>(() => InitializeMatrix(new int[64, 64]));
 
         private static int[,] GetMatrix(int width, int height)
         {
             if (width > MaxMatrixPoolDimension || height > MaxMatrixPoolDimension)
             {
-                return new int[width, height];
+                return InitializeMatrix(new int[width, height]);
             }
 
             return s_matrixPool.Allocate();
+        }
+
+        private static int[,] InitializeMatrix(int[,] matrix)
+        {
+            var width = matrix.GetLength(0);
+            for (int i = 0; i < width - 1; i++)
+            {
+                matrix[i + 1, 1] = i;
+            }
+
+            var height = matrix.GetLength(1);
+            for (int j = 0; j < height - 1; j++)
+            {
+                matrix[1, j + 1] = j;
+            }
+
+            return matrix;
         }
 
         private static void ReleaseMatrix(int[,] matrix)
@@ -163,39 +180,24 @@ namespace Roslyn.Utilities
             var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
             try
             {
-                var maxValue = sourceLength + targetLength + 1;
+                InitializeMaxValues(sourceLength, targetLength, matrix);
 
-                var DA = new Dictionary<char, int>();
-
-                var max = sourceLength + targetLength + 1;
-                matrix[0, 0] = max;
-                for (int i = 0; i <= sourceLength; i++)
-                {
-                    matrix[i + 1, 1] = i;
-                    matrix[i + 1, 0] = max;
-                }
-
-                for (int j = 1; j <= targetLength; j++)
-                {
-                    matrix[1, j + 1] = j;
-                    matrix[0, j + 1] = max;
-                }
-
+                var characterToLastSeenIndex_inSource = new Dictionary<char, int>();
                 for (int i = 1; i <= sourceLength; i++)
                 {
-                    var DB = 0;
+                    var lastMatchIndex_inTarget = 0;
                     var sourceChar = source[i - 1];
                     for (int j = 1; j <= targetLength; j++)
                     {
                         var targetChar = target[j - 1];
 
-                        var i1 = GetValue(DA, targetChar);
-                        var j1 = DB;
+                        var i1 = GetValue(characterToLastSeenIndex_inSource, targetChar);
+                        var j1 = lastMatchIndex_inTarget;
 
                         var matched = sourceChar == targetChar;
                         if (matched)
                         {
-                            DB = j;
+                            lastMatchIndex_inTarget = j;
                         }
 
                         matrix[i + 1, j + 1] = Min(
@@ -205,7 +207,7 @@ namespace Roslyn.Utilities
                             matrix[i1, j1] + (i - i1 - 1) + 1 + (j - j1 - 1));
                     }
 
-                    DA[sourceChar] = i;
+                    characterToLastSeenIndex_inSource[sourceChar] = i;
                 }
 
                 return matrix[sourceLength + 1, targetLength + 1];
@@ -213,6 +215,21 @@ namespace Roslyn.Utilities
             finally
             {
                 ReleaseMatrix(matrix);
+            }
+        }
+
+        private static void InitializeMaxValues(int sourceLength, int targetLength, int[,] matrix)
+        {
+            var max = sourceLength + targetLength + 1;
+            matrix[0, 0] = max;
+            for (int i = 0; i <= sourceLength; i++)
+            {
+                matrix[i + 1, 0] = max;
+            }
+
+            for (int j = 0; j <= targetLength; j++)
+            {
+                matrix[0, j + 1] = max;
             }
         }
 
