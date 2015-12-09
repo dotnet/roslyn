@@ -113,14 +113,33 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var taskSource = new TaskCompletionSource<ServerStats>();
             var cts = new CancellationTokenSource();
-
-            var thread = new Thread(_ =>
+            using (var mre = new ManualResetEvent(initialState: false))
             {
-                var connections = CreateServerFailsConnectionCore(pipeName, cts.Token).Result;
-                taskSource.SetResult(new ServerStats(connections: connections, completedConnections: 0));
-            });
+                var thread = new Thread(_ =>
+                {
+                    var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
+                    bool holdsMutex;
+                    using (var serverMutex = new Mutex(initiallyOwned: true,
+                                                       name: mutexName,
+                                                       createdNew: out holdsMutex))
+                    {
+                        mre.Set();
+                        if (!holdsMutex)
+                        {
+                            throw new InvalidOperationException("Mutex should be unique");
+                        }
 
-            thread.Start();
+                        var connections = CreateServerFailsConnectionCore(pipeName, cts.Token).Result;
+                        taskSource.SetResult(new ServerStats(connections: connections, completedConnections: 0));
+                    }
+                });
+
+                thread.Start();
+
+                // Can't exit until the mutex is acquired.  Otherwise the client can end up in a race 
+                // condition trying to start the server.
+                mre.WaitOne();
+            }
 
             return new ServerData(cts, taskSource.Task, pipeName);
         }
