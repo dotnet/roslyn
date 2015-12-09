@@ -37,19 +37,21 @@ namespace Roslyn.Utilities
             }
         }
 
-        private readonly string originalText;
+        private readonly string _source;
+        private char[] _sourceLowerCaseCharacters;
         // private readonly int threshold;
 
         // Cache the result of the last call to IsCloseMatch.  We'll often be called with the same
         // value multiple times in a row, so we can avoid expensive computation by returning the
         // same value immediately.
-        private CacheResult lastIsCloseMatchResult;
-        private readonly int defaultThreshold;
+        private CacheResult _lastIsCloseMatchResult;
+
+        private readonly int _defaultThreshold;
 
         public EditDistance(string text/*, int? threshold = null*/)
         {
-            this.originalText = text.ToLower();
-            // originalTextArray = ConvertToLowercaseArray(text);
+            this._source = text;
+            this._sourceLowerCaseCharacters = ConvertToLowercaseArray(text);
 
             // We only allow fairly close matches (in order to prevent too many
             // spurious hits).  A reasonable heuristic for this is the Log_2(length) (rounded 
@@ -60,11 +62,24 @@ namespace Roslyn.Utilities
             //         length 8-15: 3 edits allowed.
             //
             // and so forth.
-            this.defaultThreshold = Max(1, (int)Log(text.Length, 2));
+            this._defaultThreshold = Max(1, (int)Log(text.Length, 2));
+        }
+
+        private static char[] ConvertToLowercaseArray(string text)
+        {
+            var array = Pool<char>.GetArray(text.Length);
+            for (int i = 0; i < text.Length; i++)
+            {
+                array[i] = char.ToLower(text[i]);
+            }
+
+            return array;
         }
 
         public void Dispose()
         {
+            Pool<char>.ReleaseArray(this._sourceLowerCaseCharacters);
+            _sourceLowerCaseCharacters = null;
         }
 
         public static bool IsCloseMatch(string originalText, string candidateText, int? threshold = null)
@@ -101,68 +116,103 @@ namespace Roslyn.Utilities
 
         public int GetEditDistance(string target)
         {
-            return GetEditDistanceWorker(this.originalText, target);
+            var targetLowerCaseCharacters = ConvertToLowercaseArray(target);
+            try
+            {
+                return GetEditDistance(_sourceLowerCaseCharacters, targetLowerCaseCharacters, _source.Length, target.Length);
+            }
+            finally
+            {
+                Pool<char>.ReleaseArray(targetLowerCaseCharacters);
+            }
         }
 
-        private static int GetEditDistanceWorker(string source, string target)
+        private const int MaxMatrixPoolDimension = 64;
+        private static readonly ObjectPool<int[,]> s_matrixPool = new ObjectPool<int[,]>(() => new int[64, 64]);
+
+        private static int[,] GetMatrix(int width, int height)
         {
-            if (source.Length == 0)
+            if (width > MaxMatrixPoolDimension || height > MaxMatrixPoolDimension)
             {
-                return target.Length;
+                return new int[width, height];
             }
 
-            if (target.Length == 0)
+            return s_matrixPool.Allocate();
+        }
+
+        private static void ReleaseMatrix(int[,] matrix)
+        {
+            if (matrix.GetLength(0) <= MaxMatrixPoolDimension || matrix.GetLength(1) <= MaxMatrixPoolDimension)
             {
-                return source.Length;
+                s_matrixPool.Free(matrix);
+            }
+        }
+
+        private static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength)
+        {
+            if (sourceLength == 0)
+            {
+                return targetLength;
             }
 
-            target = target.ToLower();
-            var matrix = new int[source.Length + 2, target.Length + 2];
-            var maxValue = source.Length + target.Length + 1;
-
-            var DA = new Dictionary<char, int>();
-
-            var max = source.Length + target.Length + 1;
-            for (int i = 0; i <= source.Length; i++)
+            if (targetLength == 0)
             {
-                matrix[i + 1, 1] = i;
-                matrix[i + 1, 0] = max;
+                return sourceLength;
             }
 
-            for (int j = 1; j <= target.Length; j++)
+            var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
+            try
             {
-                matrix[1, j + 1] = j;
-                matrix[0, j + 1] = max;
-            }
+                var maxValue = sourceLength + targetLength + 1;
 
-            for (int i = 1; i <= source.Length; i++)
-            {
-                var DB = 0;
-                var sourceChar = source[i - 1];
-                for (int j = 1; j <= target.Length; j++)
+                var DA = new Dictionary<char, int>();
+
+                var max = sourceLength + targetLength + 1;
+                for (int i = 0; i <= sourceLength; i++)
                 {
-                    var targetChar = target[j - 1];
-
-                    var i1 = GetValue(DA, targetChar);
-                    var j1 = DB;
-
-                    var matched = sourceChar == targetChar;
-                    if (matched)
-                    {
-                        DB = j;
-                    }
-
-                    matrix[i + 1, j + 1] = Min(
-                        matrix[i, j] + (matched ? 0 : 1),
-                        matrix[i + 1, j] + 1,
-                        matrix[i, j + 1] + 1,
-                        matrix[i1, j1] + (i - i1 - 1) + 1 + (j - j1 - 1));
+                    matrix[i + 1, 1] = i;
+                    matrix[i + 1, 0] = max;
                 }
 
-                DA[sourceChar] = i;
-            }
+                for (int j = 1; j <= targetLength; j++)
+                {
+                    matrix[1, j + 1] = j;
+                    matrix[0, j + 1] = max;
+                }
 
-            return matrix[source.Length + 1, target.Length + 1];
+                for (int i = 1; i <= sourceLength; i++)
+                {
+                    var DB = 0;
+                    var sourceChar = source[i - 1];
+                    for (int j = 1; j <= targetLength; j++)
+                    {
+                        var targetChar = target[j - 1];
+
+                        var i1 = GetValue(DA, targetChar);
+                        var j1 = DB;
+
+                        var matched = sourceChar == targetChar;
+                        if (matched)
+                        {
+                            DB = j;
+                        }
+
+                        matrix[i + 1, j + 1] = Min(
+                            matrix[i, j] + (matched ? 0 : 1),
+                            matrix[i + 1, j] + 1,
+                            matrix[i, j + 1] + 1,
+                            matrix[i1, j1] + (i - i1 - 1) + 1 + (j - j1 - 1));
+                    }
+
+                    DA[sourceChar] = i;
+                }
+
+                return matrix[sourceLength + 1, targetLength + 1];
+            }
+            finally
+            {
+                ReleaseMatrix(matrix);
+            }
         }
 
         private static int GetValue(Dictionary<char, int> da, char c)
@@ -178,7 +228,7 @@ namespace Roslyn.Utilities
 
         public bool IsCloseMatch(string candidateText, int? threshold, out double matchCost)
         {
-            if (this.originalText.Length < 3)
+            if (this._source.Length < 3)
             {
                 // If we're comparing strings that are too short, we'll find 
                 // far too many spurious hits.  Don't even both in this case.
@@ -186,17 +236,24 @@ namespace Roslyn.Utilities
                 return false;
             }
 
-            candidateText = candidateText.ToLower();
-            threshold = threshold ?? this.defaultThreshold;
-            if (lastIsCloseMatchResult.CandidateText == candidateText && lastIsCloseMatchResult.Threshold == threshold)
+            threshold = threshold ?? this._defaultThreshold;
+            if (_lastIsCloseMatchResult.CandidateText == candidateText && _lastIsCloseMatchResult.Threshold == threshold)
             {
-                matchCost = lastIsCloseMatchResult.MatchCost;
-                return lastIsCloseMatchResult.IsCloseMatch;
+                matchCost = _lastIsCloseMatchResult.MatchCost;
+                return _lastIsCloseMatchResult.IsCloseMatch;
             }
 
-            var result = IsCloseMatchWorker(candidateText, threshold.Value, out matchCost);
-            lastIsCloseMatchResult = new CacheResult(candidateText, threshold.Value, result, matchCost);
-            return result;
+            var candidateCharArray = ConvertToLowercaseArray(candidateText);
+            try
+            {
+                var result = IsCloseMatchWorker(candidateText, threshold.Value, out matchCost);
+                _lastIsCloseMatchResult = new CacheResult(candidateText, threshold.Value, result, matchCost);
+                return result;
+            }
+            finally
+            {
+                Pool<char>.ReleaseArray(candidateCharArray);
+            }
         }
 
         private bool IsCloseMatchWorker(string candidateText, int threshold, out double matchCost)
@@ -206,7 +263,7 @@ namespace Roslyn.Utilities
             // If the two strings differ by more characters than the cost threshold, then there's 
             // no point in even computing the edit distance as it would necessarily take at least
             // that many additions/deletions.
-            if (Math.Abs(originalText.Length - candidateText.Length) <= threshold)
+            if (Math.Abs(_source.Length - candidateText.Length) <= threshold)
             {
                 matchCost = GetEditDistance(candidateText);
             }
@@ -217,7 +274,7 @@ namespace Roslyn.Utilities
                 // in the string we're currently looking at.  That's enough to consider it
                 // although we place it just at the threshold (i.e. it's worse than all
                 // other matches).
-                if (candidateText.IndexOf(originalText, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (candidateText.IndexOf(_source, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     matchCost = threshold;
                 }
@@ -228,7 +285,7 @@ namespace Roslyn.Utilities
                 return false;
             }
 
-            matchCost += Penalty(candidateText, this.originalText);
+            matchCost += Penalty(candidateText, this._source);
             return true;
         }
 
@@ -286,6 +343,36 @@ namespace Roslyn.Utilities
             // Matrix is -1 based, so we add 1 to both i and j to make it
             // possible to index into the actual storage.
             matrix[i + 1, j + 1] = val;
+        }
+
+        internal static class Pool<T>
+        {
+            private const int MaxPooledArraySize = 256;
+
+            // Keep around a few arrays of size 256 that we can use for operations without
+            // causing lots of garbage to be created.  If we do compare items larger than
+            // that, then we will just allocate and release those arrays on demand.
+            private static ObjectPool<T[]> s_pool = new ObjectPool<T[]>(() => new T[MaxPooledArraySize]);
+
+            public static T[] GetArray(int size)
+            {
+                if (size <= MaxPooledArraySize)
+                {
+                    var array = s_pool.Allocate();
+                    Array.Clear(array, 0, array.Length);
+                    return array;
+                }
+
+                return new T[size];
+            }
+
+            public static void ReleaseArray(T[] array)
+            {
+                if (array.Length <= MaxPooledArraySize)
+                {
+                    s_pool.Free(array);
+                }
+            }
         }
     }
 
@@ -868,36 +955,6 @@ namespace Roslyn.Utilities
             }
 
             return 0;
-        }
-
-        internal static class Pool<T>
-        {
-            private const int MaxPooledArraySize = 256;
-
-            // Keep around a few arrays of size 256 that we can use for operations without
-            // causing lots of garbage to be created.  If we do compare items larger than
-            // that, then we will just allocate and release those arrays on demand.
-            private static ObjectPool<T[]> s_pool = new ObjectPool<T[]>(() => new T[MaxPooledArraySize]);
-
-            public static T[] GetArray(int size)
-            {
-                if (size <= MaxPooledArraySize)
-                {
-                    var array = s_pool.Allocate();
-                    Array.Clear(array, 0, array.Length);
-                    return array;
-                }
-
-                return new T[size];
-            }
-
-            public static void ReleaseArray(T[] array)
-            {
-                if (array.Length <= MaxPooledArraySize)
-                {
-                    s_pool.Free(array);
-                }
-            }
         }
     }
 #endif
