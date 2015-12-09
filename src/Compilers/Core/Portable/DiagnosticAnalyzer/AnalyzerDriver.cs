@@ -443,6 +443,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ImmutableArray.CreateBuilder<Diagnostic>();
             for (var i = 0; i < diagnostics.Length; i++)
             {
+#if DEBUG
+                // We should have ignored diagnostics with invalid locations and reported analyzer exception diagnostic for the same.
+                DiagnosticAnalysisContextHelpers.VerifyDiagnosticLocationsInCompilation(diagnostics[i], compilation);
+#endif
+
                 var diagnostic = SuppressMessageAttributeState.ApplySourceSuppressions(diagnostics[i], compilation);
                 if (reportSuppressedDiagnostics || !diagnostic.IsSuppressed)
                 {

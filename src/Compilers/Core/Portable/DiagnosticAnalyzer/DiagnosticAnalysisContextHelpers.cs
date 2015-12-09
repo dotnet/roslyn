@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifySyntaxKinds(syntaxKinds);
         }
 
-        internal static void VerifyArguments(Diagnostic diagnostic, Func<Diagnostic, bool> isSupportedDiagnostic)
+        internal static void VerifyArguments(Diagnostic diagnostic, Compilation compilationOpt, Func<Diagnostic, bool> isSupportedDiagnostic)
         {
             if (diagnostic is DiagnosticWithInfo)
             {
@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (diagnostic == null)
             {
                 throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            if (compilationOpt != null)
+            {
+                VerifyDiagnosticLocationsInCompilation(diagnostic, compilationOpt);
             }
 
             if (!isSupportedDiagnostic(diagnostic))
@@ -50,6 +55,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // See https://github.com/dotnet/roslyn/issues/4376 for details.
                 throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticIdReported, diagnostic.Id), nameof(diagnostic));
             } 
+        }
+
+        internal static void VerifyDiagnosticLocationsInCompilation(Diagnostic diagnostic, Compilation compilation)
+        {
+            VerifyDiagnosticLocationInCompilation(diagnostic.Location, compilation);
+
+            if (diagnostic.AdditionalLocations != null)
+            {
+                foreach (var location in diagnostic.AdditionalLocations)
+                {
+                    VerifyDiagnosticLocationInCompilation(location, compilation);
+                }
+            }
+        }
+
+        private static void VerifyDiagnosticLocationInCompilation(Location location, Compilation compilation)
+        {
+            if (location.IsInSource && !compilation.ContainsSyntaxTree(location.SourceTree))
+            {
+                // Disallow diagnostics with source locations outside this compilation.
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, location.SourceTree.FilePath), "diagnostic");
+            }
         }
 
         private static void VerifyAction<TContext>(Action<TContext> action)

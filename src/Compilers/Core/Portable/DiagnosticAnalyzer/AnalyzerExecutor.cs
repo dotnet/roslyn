@@ -215,8 +215,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     ExecuteCompilationActionsCore(compilationActions, analyzer, analyzerStateOpt);
                     analysisStateOpt?.MarkEventComplete(compilationEvent, analyzer);
+                    }
                 }
-            }
             finally
             {
                 analyzerStateOpt?.ResetToReadyState();
@@ -267,8 +267,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     ExecuteSymbolActionsCore(symbolActions, analyzer, symbol, getTopMostNodeForAnalysis, analyzerStateOpt);
                     analysisStateOpt?.MarkSymbolComplete(symbol, analyzer);
+                    }
                 }
-            }
             finally
             {
                 analyzerStateOpt?.ResetToReadyState();
@@ -332,8 +332,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     ExecuteSemanticModelActionsCore(semanticModelActions, analyzer, semanticModel, analyzerStateOpt);
                     analysisStateOpt?.MarkEventComplete(compilationUnitCompletedEvent, analyzer);
+                    }
                 }
-            }
             finally
             {
                 analyzerStateOpt?.ResetToReadyState();
@@ -387,8 +387,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     ExecuteSyntaxTreeActionsCore(syntaxTreeActions, analyzer, tree, analyzerStateOpt);
                     analysisStateOpt?.MarkSyntaxAnalysisComplete(tree, analyzer);
+                    }
                 }
-            }
             finally
             {
                 analyzerStateOpt?.ResetToReadyState();
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer,
                         () => syntaxTreeAction.Action(new SyntaxTreeAnalysisContext(tree, _analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(syntaxTreeAction.Analyzer, d), _cancellationToken)));
+                            d => IsSupportedDiagnostic(syntaxTreeAction.Analyzer, d), _compilation, _cancellationToken)));
 
                     analyzerStateOpt?.ProcessedActions.Add(syntaxTreeAction);
                 }
@@ -442,6 +442,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteOperationAction(
             OperationAnalyzerAction operationAction,
             IOperation operation,
+            SemanticModel semanticModel,
             Action<Diagnostic> addDiagnostic,
             OperationAnalyzerStateData analyzerStateOpt)
         {
@@ -449,7 +450,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ShouldExecuteAction(analyzerStateOpt, operationAction))
             {
-                var operationContext = new OperationAnalysisContext(operation, _analyzerOptions, _addDiagnostic, d => IsSupportedDiagnostic(operationAction.Analyzer, d), _cancellationToken);
+                var operationContext = new OperationAnalysisContext(operation, _analyzerOptions, _addDiagnostic, d => IsSupportedDiagnostic(operationAction.Analyzer, d), semanticModel, _cancellationToken);
                 ExecuteAndCatchIfThrows(operationAction.Analyzer, () => operationAction.Action(operationContext));
 
                 analyzerStateOpt?.ProcessedActions.Add(operationAction);
@@ -637,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
                     var operationsToAnalyze = (IEnumerable<IOperation>)getNodesToAnalyze(executableBlocks);
-                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as OperationAnalyzerStateData);
+                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, semanticModel, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as OperationAnalyzerStateData);
                 }
             }
 
@@ -677,7 +678,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             ExecuteAndCatchIfThrows(
                                 operationBlockAction.Analyzer,
-                                () => operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken)));
+                                () => operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, semanticModel, _cancellationToken)));
                         }
                     }
                     
@@ -865,12 +866,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             OperationAnalyzerStateData analyzerStateOpt)
         {
             var addDiagnostic = GetAddDiagnostic(model.SyntaxTree, filterSpan, analyzer, isSyntaxDiagnostic: false);
-            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, addDiagnostic, analyzerStateOpt);
+            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, model, addDiagnostic, analyzerStateOpt);
         }
 
         private void ExecuteOperationActions(
             IEnumerable<IOperation> operationsToAnalyze,
             IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            SemanticModel model,
             Action<Diagnostic> addDiagnostic,
             OperationAnalyzerStateData analyzerStateOpt)
         {
@@ -880,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IOperation partiallyProcessedNode = analyzerStateOpt?.CurrentOperation;
             if (partiallyProcessedNode != null)
             {
-                ExecuteOperationActions(partiallyProcessedNode, operationActionsByKind, addDiagnostic, analyzerStateOpt);
+                ExecuteOperationActions(partiallyProcessedNode, operationActionsByKind, model, addDiagnostic, analyzerStateOpt);
             }
 
             foreach (var child in operationsToAnalyze)
@@ -889,7 +891,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     SetCurrentOperation(analyzerStateOpt, child);
 
-                    ExecuteOperationActions(child, operationActionsByKind, addDiagnostic, analyzerStateOpt);
+                    ExecuteOperationActions(child, operationActionsByKind, model, addDiagnostic, analyzerStateOpt);
                 }
             }
         }
@@ -897,6 +899,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteOperationActions(
             IOperation operation,
             IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            SemanticModel model,
             Action<Diagnostic> addDiagnostic,
             OperationAnalyzerStateData analyzerStateOpt)
         {
@@ -905,7 +908,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var action in actionsForKind)
                 {
-                    ExecuteOperationAction(action, operation, addDiagnostic, analyzerStateOpt);
+                    ExecuteOperationAction(action, operation, model, addDiagnostic, analyzerStateOpt);
                 }
             }
 
@@ -1197,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static bool TryStartSyntaxAnalysis(SyntaxTree tree, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out AnalyzerStateData analyzerStateOpt)
-        {
+            {
             Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
 
             analyzerStateOpt = null;
@@ -1229,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analysisStateOpt == null)
             {
                 return true;
-            }
+        }
 
             if (analysisStateOpt.TryStartAnalyzingDeclaration(syntaxReference, analyzer, out declarationAnalyzerStateOpt))
             {
