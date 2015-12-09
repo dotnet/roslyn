@@ -2599,6 +2599,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 _list = _list.Add(SyntaxFactory.Token(SyntaxKind.ShadowsKeyword))
             End If
 
+            If modifiers.IsSealed Then
+                If kind = DeclarationKind.Class Then
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.NotInheritableKeyword))
+                Else
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.NotOverridableKeyword))
+                End If
+            End If
+
             If modifiers.IsOverride Then
                 _list = _list.Add(SyntaxFactory.Token(SyntaxKind.OverridesKeyword))
             End If
@@ -2625,15 +2633,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             If modifiers.IsWriteOnly Then
                 _list = _list.Add(SyntaxFactory.Token(SyntaxKind.WriteOnlyKeyword))
-            End If
-
-            Dim isClass = kind = DeclarationKind.Class
-            If modifiers.IsSealed Then
-                If isClass Then
-                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.NotInheritableKeyword))
-                Else
-                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.NotOverridableKeyword))
-                End If
             End If
 
             If modifiers.IsUnsafe Then

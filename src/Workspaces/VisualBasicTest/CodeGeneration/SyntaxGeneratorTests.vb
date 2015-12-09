@@ -820,6 +820,11 @@ End Sub</x>.Value)
 <x>NotOverridable Sub m()
 End Sub</x>.Value)
 
+            VerifySyntax(Of MethodBlockSyntax)(
+                _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Sealed + DeclarationModifiers.Override),
+<x>NotOverridable Overrides Sub m()
+End Sub</x>.Value)
+
             VerifySyntax(Of ClassBlockSyntax)(
                 _g.ClassDeclaration("c", modifiers:=DeclarationModifiers.Sealed),
 <x>NotInheritable Class c
