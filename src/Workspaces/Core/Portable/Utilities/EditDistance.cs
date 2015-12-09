@@ -37,7 +37,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private readonly string _source;
+        private string _source;
         private char[] _sourceLowerCaseCharacters;
         // private readonly int threshold;
 
@@ -50,6 +50,11 @@ namespace Roslyn.Utilities
 
         public EditDistance(string text/*, int? threshold = null*/)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
             this._source = text;
             this._sourceLowerCaseCharacters = ConvertToLowercaseArray(text);
 
@@ -79,6 +84,7 @@ namespace Roslyn.Utilities
         public void Dispose()
         {
             Pool<char>.ReleaseArray(this._sourceLowerCaseCharacters);
+            _source = null;
             _sourceLowerCaseCharacters = null;
         }
 
@@ -116,6 +122,11 @@ namespace Roslyn.Utilities
 
         public int GetEditDistance(string target)
         {
+            if (this._source == null)
+            {
+                throw new ObjectDisposedException(nameof(EditDistance));
+            }
+
             var targetLowerCaseCharacters = ConvertToLowercaseArray(target);
             try
             {
@@ -400,43 +411,6 @@ namespace Roslyn.Utilities
 #if false
     internal class EditDistance : IDisposable
     {
-        private string originalText;
-        private char[] originalTextArray;
-        private int threshold;
-
-        // Cache the result of the last call to IsCloseMatch.  We'll often be called with the same
-        // value multiple times in a row, so we can avoid expensive computation by returning the
-        // same value immediately.
-        private ValueTuple<string, bool, double> lastIsCloseMatchResult;
-
-        public EditDistance(string text, int? threshold = null)
-        {
-            originalText = text;
-            originalTextArray = ConvertToLowercaseArray(text);
-
-            // We only allow fairly close matches (in order to prevent too many
-            // spurious hits).  A reasonable heuristic for this is the Log_2(length) (rounded 
-            // down).  
-            //
-            // Strings length 1-3 : 1 edit allowed.
-            //         length 4-7 : 2 edits allowed.
-            //         length 8-15: 3 edits allowed.
-            //
-            // and so forth.
-            this.threshold = threshold ?? Max(1, (int)Log(text.Length, 2));
-        }
-
-        private static char[] ConvertToLowercaseArray(string text)
-        {
-            var array = Pool<char>.GetArray(text.Length);
-            for (int i = 0; i < text.Length; i++)
-            {
-                array[i] = char.ToLower(text[i]);
-            }
-
-            return array;
-        }
-
         public void Dispose()
         {
             Pool<char>.ReleaseArray(originalTextArray);
