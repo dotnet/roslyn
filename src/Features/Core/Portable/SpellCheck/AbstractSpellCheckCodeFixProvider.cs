@@ -63,24 +63,25 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var onlyConsiderGenerics = IsGeneric(nameNode);
             var results = new MultiDictionary<double, string>();
 
-            int closeMatchThreshold = EditDistance.GetCloseMatchThreshold(nameText);
-
-            foreach (var item in completionList.Items)
+            using (var editDistance = new EditDistance(nameText))
             {
-                if (onlyConsiderGenerics && !IsGeneric(item))
+                foreach (var item in completionList.Items)
                 {
-                    continue;
-                }
+                    if (onlyConsiderGenerics && !IsGeneric(item))
+                    {
+                        continue;
+                    }
 
-                var candidateText = item.FilterText;
-                double matchCost;
-                if (!EditDistance.IsCloseMatch(nameText, candidateText, closeMatchThreshold, out matchCost))
-                {
-                    continue;
-                }
+                    var candidateText = item.FilterText;
+                    double matchCost;
+                    if (!editDistance.IsCloseMatch(candidateText, out matchCost))
+                    {
+                        continue;
+                    }
 
-                var insertionText = completionRules.GetTextChange(item).NewText;
-                results.Add(matchCost, insertionText);
+                    var insertionText = completionRules.GetTextChange(item).NewText;
+                    results.Add(matchCost, insertionText);
+                }
             }
 
             var matches = results.OrderBy(kvp => kvp.Key)

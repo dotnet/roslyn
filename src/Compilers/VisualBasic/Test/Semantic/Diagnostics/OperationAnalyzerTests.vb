@@ -101,6 +101,43 @@ End Structure
         End Sub
 
         <Fact>
+        Public Sub BadStuffVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M1(z as Integer)
+        Framitz()
+        Dim x As Integer = Bexley()
+        Dim y As Integer = 10
+        Dim d As Double() = Nothing
+        M1(d)
+        Goto
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyAnalyzerDiagnostics({New BadStuffTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz()").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz()").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Bexley()").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley()").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Bexley").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "M1(d)").WithLocation(7, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "M1(d)").WithLocation(7, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidStatementDescriptor.Id, "Goto").WithLocation(8, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Goto").WithLocation(8, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "").WithLocation(8, 13),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "").WithLocation(8, 13))
+        End Sub
+
+        <Fact>
         Public Sub BigForVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -126,7 +163,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub SparseSwitchVisualBasic()
+        Public Sub SwitchVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
@@ -171,12 +208,41 @@ Class C
                 Exit Select
         End Select
 
-         Select Case x
+        Select Case x
             Case 1
                 Exit Select
             Case > 100000
                 Exit Select
+        End Select   
+
+        Select Case x
+            Case Else
+                Exit Select
+        End Select     
+
+        Select Case x
         End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case
+                Exit Select
+        End Select   
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case =
+                Exit Select
+        End Select  
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case 2 to
+                Exit Select
+        End Select  
     End Sub
 End Class
 ]]>
@@ -184,11 +250,18 @@ End Class
                          </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New SparseSwitchTestAnalyzer}, Nothing, Nothing, False,
-                                           Diagnostic(SparseSwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(12, 21),
-                                           Diagnostic(SparseSwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(30, 21),
-                                           Diagnostic(SparseSwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(37, 21))
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(60, 17),
+                                   Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(68, 1),
+                                   Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(74, 22))
+            comp.VerifyAnalyzerDiagnostics({New SwitchTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(12, 21),
+                                           Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(30, 21),
+                                           Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(37, 21),
+                                           Diagnostic(SwitchTestAnalyzer.NoDefaultSwitchDescriptor.Id, "x").WithLocation(37, 21),
+                                           Diagnostic(SwitchTestAnalyzer.NoDefaultSwitchDescriptor.Id, "x").WithLocation(42, 21),
+                                           Diagnostic(SwitchTestAnalyzer.OnlyDefaultSwitchDescriptor.Id, "x").WithLocation(49, 21),
+                                           Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "x").WithLocation(54, 21),
+                                           Diagnostic(SwitchTestAnalyzer.NoDefaultSwitchDescriptor.Id, "x").WithLocation(54, 21))
         End Sub
 
         <Fact>

@@ -5,20 +5,33 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider
+    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
         private abstract class SymbolReference : IComparable<SymbolReference>, IEquatable<SymbolReference>
         {
-            public readonly INamespaceOrTypeSymbol Symbol;
+            public readonly SearchResult<INamespaceOrTypeSymbol> SearchResult;
 
-            protected SymbolReference(INamespaceOrTypeSymbol symbol)
+            protected SymbolReference(SearchResult<INamespaceOrTypeSymbol> searchResult)
             {
-                this.Symbol = symbol;
+                this.SearchResult = searchResult;
             }
 
             public int CompareTo(SymbolReference other)
             {
-                return INamespaceOrTypeSymbolExtensions.CompareNamespaceOrTypeSymbols(this.Symbol, other.Symbol);
+                // If references have different weights, order by the ones with lower weight (i.e.
+                // they are better matches).
+                if (this.SearchResult.Weight < other.SearchResult.Weight)
+                {
+                    return -1;
+                }
+
+                if (this.SearchResult.Weight > other.SearchResult.Weight)
+                {
+                    return 1;
+                }
+
+                // If the weight are the same, just order them based on their names.
+                return INamespaceOrTypeSymbolExtensions.CompareNamespaceOrTypeSymbols(this.SearchResult.Symbol, other.SearchResult.Symbol);
             }
 
             public override bool Equals(object obj)
@@ -28,12 +41,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public bool Equals(SymbolReference other)
             {
-                return object.Equals(this.Symbol, other?.Symbol);
+                return object.Equals(this.SearchResult.Symbol, other?.SearchResult.Symbol);
             }
 
             public override int GetHashCode()
             {
-                return this.Symbol.GetHashCode();
+                return this.SearchResult.Symbol.GetHashCode();
             }
 
             public abstract Solution UpdateSolution(Document newDocument);
@@ -43,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             private readonly ProjectId _projectId;
 
-            public ProjectSymbolReference(INamespaceOrTypeSymbol symbol, ProjectId projectId)
-                : base(symbol)
+            public ProjectSymbolReference(SearchResult<INamespaceOrTypeSymbol> searchResult, ProjectId projectId)
+                : base(searchResult)
             {
                 _projectId = projectId;
             }
@@ -71,8 +84,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             private readonly PortableExecutableReference _reference;
 
-            public MetadataSymbolReference(INamespaceOrTypeSymbol symbol, PortableExecutableReference reference)
-                : base(symbol)
+            public MetadataSymbolReference(SearchResult<INamespaceOrTypeSymbol> searchResult, PortableExecutableReference reference)
+                : base(searchResult)
             {
                 _reference = reference;
             }

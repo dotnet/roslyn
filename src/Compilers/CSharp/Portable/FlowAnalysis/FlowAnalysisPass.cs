@@ -19,12 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="block">the method's body</param>
         /// <param name="diagnostics">the receiver of the reported diagnostics</param>
         /// <param name="hasTrailingExpression">indicates whether this Script had a trailing expression</param>
+        /// <param name="originalBodyNested">the original method body is the last statement in the block</param>
         /// <returns>the rewritten block for the method (with a return statement possibly inserted)</returns>
         public static BoundBlock Rewrite(
             MethodSymbol method,
             BoundBlock block,
             DiagnosticBag diagnostics,
-            bool hasTrailingExpression)
+            bool hasTrailingExpression,
+            bool originalBodyNested)
         {
 #if DEBUG
             // We should only see a trailingExpression if we're in a Script initializer.
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we don't analyze synthesized void methods.
                 if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))
                 {
-                    block = AppendImplicitReturn(block, method, (CSharpSyntaxNode)(method as SourceMethodSymbol)?.BodySyntax);
+                    block = AppendImplicitReturn(block, method, (CSharpSyntaxNode)(method as SourceMethodSymbol)?.BodySyntax, originalBodyNested);
                 }
             }
             else if (Analyze(compilation, method, block, diagnostics))
@@ -78,6 +80,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return block;
         }
 
+        private static BoundBlock AppendImplicitReturn(BoundBlock body, MethodSymbol method, CSharpSyntaxNode syntax, bool originalBodyNested)
+        {
+            if (originalBodyNested)
+            {
+                var statements = body.Statements;
+                int n = statements.Length;
+
+                var builder = ArrayBuilder<BoundStatement>.GetInstance(n);
+                builder.AddRange(statements, n - 1);
+                builder.Add(AppendImplicitReturn((BoundBlock)statements[n - 1], method, syntax));
+
+                return body.Update(body.Locals, ImmutableArray<LocalFunctionSymbol>.Empty, builder.ToImmutableAndFree());
+            }
+            else
+            {
+                return AppendImplicitReturn(body, method, syntax);
+            }
+        }
+
         // insert the implicit "return" statement at the end of the method body
         // Normally, we wouldn't bother attaching syntax trees to compiler-generated nodes, but these
         // ones are going to have sequence points.
@@ -109,15 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 { WasCompilerGenerated = true };
             }
 
-            switch (body.Kind)
-            {
-                case BoundKind.Block:
-                    var block = (BoundBlock)body;
-                    return block.Update(block.Locals, block.LocalFunctions, block.Statements.Add(ret));
-
-                default:
-                    return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray.Create(ret, body));
-            }
+            return body.Update(body.Locals, body.LocalFunctions, body.Statements.Add(ret));
         }
 
         private static bool Analyze(
