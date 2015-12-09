@@ -55,15 +55,19 @@ namespace RunTests.Cache
         /// <returns></returns>
         private static TestResult Migrate(TestResult testResult)
         {
-            if (string.IsNullOrEmpty(testResult.ResultsFilePath))
-            {
-                return testResult;
-            }
-
             var resultsDir = Path.Combine(Path.GetDirectoryName(testResult.AssemblyPath), Constants.ResultsDirectoryName);
             FileUtil.EnsureDirectory(resultsDir);
             var resultsFilePath = Path.Combine(resultsDir, Path.GetFileName(testResult.ResultsFilePath));
-            File.Copy(testResult.ResultsFilePath, resultsFilePath, overwrite: true);
+
+            try
+            {
+                File.Copy(testResult.ResultsFilePath, resultsFilePath, overwrite: true);
+            }
+            catch (FileNotFoundException)
+            {
+                // if the file isn't present (e.g., if xunit crashed and the potentially malformed result file was
+                // deleted) then `File.Copy()` will throw
+            }
 
             return new TestResult(
                 exitCode: testResult.ExitCode,

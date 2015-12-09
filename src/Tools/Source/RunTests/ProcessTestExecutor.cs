@@ -90,7 +90,6 @@ namespace RunTests
                     {
                         // Delete the output file.
                         File.Delete(resultsFilePath);
-                        resultsFilePath = null;
                     }
                 }
 

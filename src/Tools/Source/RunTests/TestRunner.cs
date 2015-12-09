@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -121,9 +122,18 @@ namespace RunTests
             }
 
             // If the results are html, use Process.Start to open in the browser.
-            if (_options.UseHtml && !string.IsNullOrEmpty(testResult.ResultsFilePath))
+            if (_options.UseHtml)
             {
-                Process.Start(testResult.ResultsFilePath);
+                try
+                {
+                    Process.Start(testResult.ResultsFilePath);
+                }
+                catch (Win32Exception e) when ((uint)e.ErrorCode == 0x80004005)
+                {
+                    // if the file isn't present (e.g., if xunit crashed and the potentially malformed result file was
+                    // deleted) then `Process.Start()` will throw:
+                    //     System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
+                }
             }
         }
     }
