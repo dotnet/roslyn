@@ -119,7 +119,9 @@ namespace Roslyn.Utilities
             var targetLowerCaseCharacters = ConvertToLowercaseArray(target);
             try
             {
-                return GetEditDistance(_sourceLowerCaseCharacters, targetLowerCaseCharacters, _source.Length, target.Length);
+                return _source.Length <= target.Length
+                    ? GetEditDistance(_sourceLowerCaseCharacters, targetLowerCaseCharacters, _source.Length, target.Length)
+                    : GetEditDistance(targetLowerCaseCharacters, _sourceLowerCaseCharacters, target.Length, _source.Length);
             }
             finally
             {
@@ -167,6 +169,7 @@ namespace Roslyn.Utilities
 
         private static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength)
         {
+            Debug.Assert(sourceLength <= targetLength);
             if (sourceLength == 0)
             {
                 return targetLength;
