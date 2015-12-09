@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
 
     <ExportBraceMatcher(LanguageNames.VisualBasic)>
-    Friend Class DirectiveTriviaBraceMatcher
+    Friend Class VisualBasicDirectiveTriviaBraceMatcher
         Inherits AbstractDirectiveTriviaBraceMatcher(Of DirectiveTriviaSyntax,
              IfDirectiveTriviaSyntax, IfDirectiveTriviaSyntax,
              ElseDirectiveTriviaSyntax, EndIfDirectiveTriviaSyntax,

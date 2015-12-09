@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
 {
     [ExportBraceMatcher(LanguageNames.CSharp)]
-    internal class DirectiveTriviaMatcher : AbstractDirectiveTriviaBraceMatcher<DirectiveTriviaSyntax,
+    internal class CSharpDirectiveTriviaBraceMatcher : AbstractDirectiveTriviaBraceMatcher<DirectiveTriviaSyntax,
         IfDirectiveTriviaSyntax, ElifDirectiveTriviaSyntax,
         ElseDirectiveTriviaSyntax, EndIfDirectiveTriviaSyntax,
         RegionDirectiveTriviaSyntax, EndRegionDirectiveTriviaSyntax>

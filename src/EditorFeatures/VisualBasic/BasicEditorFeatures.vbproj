@@ -80,7 +80,7 @@
     <Compile Include="BraceMatching\LessThanGreaterThanBraceMatcher.vb" />
     <Compile Include="BraceMatching\OpenCloseBraceBraceMatcher.vb" />
     <Compile Include="BraceMatching\OpenCloseParenBraceMatcher.vb" />
-    <Compile Include="BraceMatching\DirectiveTriviaBraceMatcher.vb" />
+    <Compile Include="BraceMatching\VisualBasicDirectiveTriviaBraceMatcher.vb" />
     <Compile Include="BraceMatching\StringLiteralBraceMatcher.vb" />
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.vb" />
