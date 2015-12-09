@@ -814,7 +814,7 @@ End Sub</x>.Value)
         End Sub
 
         <Fact>
-        Public Sub TestDeclarationModifiers()
+        Public Sub TestSealedDeclarationModifier()
             VerifySyntax(Of MethodBlockSyntax)(
                 _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Sealed),
 <x>NotOverridable Sub m()

@@ -2627,9 +2627,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 _list = _list.Add(SyntaxFactory.Token(SyntaxKind.WriteOnlyKeyword))
             End If
 
-            Dim isType = kind = DeclarationKind.Class Or kind = DeclarationKind.Struct Or kind = DeclarationKind.Interface Or kind = DeclarationKind.Enum
+            Dim isClass = kind = DeclarationKind.Class
             If modifiers.IsSealed Then
-                If isType Then
+                If isClass Then
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.NotInheritableKeyword))
                 Else
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.NotOverridableKeyword))
