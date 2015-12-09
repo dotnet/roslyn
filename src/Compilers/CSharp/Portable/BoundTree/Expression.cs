@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         SyntaxNode IOperation.Syntax => this.Syntax;
         
         protected virtual OperationKind ExpressionKind => OperationKind.None;
-        // protected abstract OperationKind ExpressionKind { get; }
     }
 
     internal abstract partial class BoundNode : IOperationSearchable
@@ -236,19 +235,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Parameter = parameter;
             }
 
-            OperationKind IOperation.Kind => OperationKind.Argument;
-
-            SyntaxNode IOperation.Syntax => this.Value.Syntax;
-
             public ArgumentKind ArgumentKind => ArgumentKind.Positional;
 
             public IParameterSymbol Parameter { get; }
 
             public IExpression Value { get; }
 
-            public IExpression InConversion => null;
+            IExpression IArgument.InConversion => null;
 
-            public IExpression OutConversion => null;
+            IExpression IArgument.OutConversion => null;
+
+            bool IOperation.IsInvalid => this.Parameter == null || this.Value.IsInvalid;
+
+            OperationKind IOperation.Kind => OperationKind.Argument;
+
+            SyntaxNode IOperation.Syntax => this.Value.Syntax;
         }
 
         class Argument : IArgument
@@ -260,19 +261,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Parameter = parameter;
             }
 
-            OperationKind IOperation.Kind => OperationKind.Argument;
-
-            SyntaxNode IOperation.Syntax => this.Value.Syntax;
-
             public ArgumentKind ArgumentKind { get; }
 
             public IParameterSymbol Parameter { get; }
             
             public IExpression Value { get; }
 
-            public IExpression InConversion => null;
+            IExpression IArgument.InConversion => null;
 
-            public IExpression OutConversion => null;
+            IExpression IArgument.OutConversion => null;
+
+            bool IOperation.IsInvalid => this.Parameter == null || this.Value.IsInvalid;
+
+            OperationKind IOperation.Kind => OperationKind.Argument;
+
+            SyntaxNode IOperation.Syntax => this.Value.Syntax;
         }
     }
 
@@ -368,50 +371,46 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class FieldInitializer : IFieldInitializer
         {
-            private IFieldSymbol _field;
-            private SyntaxNode _syntax;
-            private IExpression _value;
-
             public FieldInitializer(SyntaxNode syntax, IFieldSymbol field, IExpression value)
             {
-                _syntax = syntax;
-                _field = field;
-                _value = value;
+                this.Syntax = syntax;
+                this.Field = field;
+                this.Value = value;
             }
 
-            IFieldSymbol IFieldInitializer.Field => _field;
+            public IFieldSymbol Field { get; }
 
             MemberInitializerKind IMemberInitializer.MemberInitializerKind => MemberInitializerKind.Field;
 
-            IExpression IMemberInitializer.Value => _value;
+            public IExpression Value { get; }
 
             OperationKind IOperation.Kind => OperationKind.FieldInitializer;
 
-            SyntaxNode IOperation.Syntax => _syntax;
+            public SyntaxNode Syntax { get; }
+
+            bool IOperation.IsInvalid => this.Value.IsInvalid || this.Field == null;
         }
 
         private class PropertyInitializer : IPropertyInitializer
         {
-            private IMethodSymbol _setter;
-            private SyntaxNode _syntax;
-            private IExpression _value;
-
             public PropertyInitializer(SyntaxNode syntax, IMethodSymbol setter, IExpression value)
             {
-                _syntax = syntax;
-                _setter = setter;
-                _value = value;
+                this.Syntax = syntax;
+                this.Setter = setter;
+                this.Value = value;
             }
 
-            OperationKind IOperation.Kind => OperationKind.PropertyInitializer;
+            public IMethodSymbol Setter { get; }
+
+            public IExpression Value { get; }
 
             MemberInitializerKind IMemberInitializer.MemberInitializerKind => MemberInitializerKind.Property;
 
-            IMethodSymbol IPropertyInitializer.Setter => _setter;
+            OperationKind IOperation.Kind => OperationKind.PropertyInitializer;
 
-            SyntaxNode IOperation.Syntax => _syntax;
+            public SyntaxNode Syntax { get; }
 
-            IExpression IMemberInitializer.Value => _value;
+            bool IOperation.IsInvalid => this.Value.IsInvalid || this.Setter == null;
         }
     }
 

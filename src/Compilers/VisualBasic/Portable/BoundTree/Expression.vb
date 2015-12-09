@@ -92,8 +92,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        'Protected MustOverride Function ExpressionKind() As OperationKind
-
         Protected Overridable Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -409,6 +407,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return Me.Parameter Is Nothing OrElse Me.Value.IsInvalid
+                End Get
+            End Property
+
             Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
                 Get
                     Return OperationKind.Argument
@@ -461,6 +465,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly Property Value As IExpression Implements IArgument.Value
                 Get
                     Return _argument.OriginalArgument
+                End Get
+            End Property
+
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return Me.Parameter Is Nothing OrElse Me.Value.IsInvalid
                 End Get
             End Property
 
@@ -1059,6 +1069,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return Me.Value.IsInvalid OrElse Me.Field Is Nothing
+                End Get
+            End Property
+
             Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
                 Get
                     Return _syntax
@@ -1100,6 +1116,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly Property Setter As IMethodSymbol Implements IPropertyInitializer.Setter
                 Get
                     Return _setter
+                End Get
+            End Property
+
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return Me.Value.IsInvalid OrElse Me.Setter Is Nothing
                 End Get
             End Property
 

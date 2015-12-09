@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Semantics
        
         static bool IsInvalidInitializer(IArrayInitializer initializer)
         {
-            switch (initializer.ArrayClass)
+            switch (initializer.ArrayInitializerKind)
             {
                 case ArrayInitializerKind.Dimension:
                     foreach (IArrayInitializer element in ((IDimensionArrayInitializer)initializer).ElementValues)
