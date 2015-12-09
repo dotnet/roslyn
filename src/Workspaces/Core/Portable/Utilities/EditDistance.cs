@@ -180,15 +180,40 @@ namespace Roslyn.Utilities
 
         private static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength)
         {
+            // Note: sourceLength and targetLength values will mutate and represent the lengths 
+            // of the portions of the arrays we want to compare.
+            //
+            // Also note: sourceLength will always be smaller or equal to targetLength.
             Debug.Assert(sourceLength <= targetLength);
+
+            // First:
+            // Determine the common prefix/suffix portions of the strings.  We don't even need to 
+            // consider them as they won't add anything to the edit cost.
+            while (sourceLength > 0 && source[sourceLength - 1] == target[targetLength - 1])
+            {
+                sourceLength--;
+                targetLength--;
+            }
+
+            var startIndex = 0;
+            while (startIndex < sourceLength && source[startIndex] == target[startIndex])
+            {
+                startIndex++;
+                sourceLength--;
+                targetLength--;
+            }
+
+            // 'sourceLength' and 'targetLength' are now the lengths of the substrings of our strings that we
+            // want to compare. 'startIndex' is the starting point of the substrings in both array.
+            //
+            // If we've matched all of the 'source' string in the prefix and suffix of 'target'. then the edit
+            // distance is just whatever operations we have to create the remaining target substring.
+            //
+            // Note: we don't have to check if targetLength is 0.  That's because targetLength being zero would
+            // necessarily mean that sourceLength is 0.
             if (sourceLength == 0)
             {
                 return targetLength;
-            }
-
-            if (targetLength == 0)
-            {
-                return sourceLength;
             }
 
             var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
@@ -200,10 +225,11 @@ namespace Roslyn.Utilities
                 for (int i = 1; i <= sourceLength; i++)
                 {
                     var lastMatchIndex_inTarget = 0;
-                    var sourceChar = source[i - 1];
+                    var sourceChar = source[startIndex + (i - 1)];
+
                     for (int j = 1; j <= targetLength; j++)
                     {
-                        var targetChar = target[j - 1];
+                        var targetChar = target[startIndex + (j - 1)];
 
                         var i1 = GetValue(characterToLastSeenIndex_inSource, targetChar);
                         var j1 = lastMatchIndex_inTarget;
@@ -411,39 +437,6 @@ namespace Roslyn.Utilities
 #if false
     internal class EditDistance : IDisposable
     {
-        public void Dispose()
-        {
-            Pool<char>.ReleaseArray(originalTextArray);
-            originalText = null;
-            originalTextArray = null;
-        }
-
-        public static int GetEditDistance(string s, string t, int? threshold = null)
-        {
-            using (var editDistance = new EditDistance(s, threshold))
-            {
-                return editDistance.GetEditDistance(t);
-            }
-        }
-
-        public int GetEditDistance(string other)
-        {
-            var otherCharacterArray = ConvertToLowercaseArray(other);
-
-            try
-            {
-                // Swap the strings so the first is always the shortest.  This helps ensure some
-                // nice invariants in the code that walks both strings below.
-                return originalText.Length <= other.Length
-                    ? GetEditDistance(originalTextArray, otherCharacterArray, originalText.Length, other.Length, threshold)
-                    : GetEditDistance(otherCharacterArray, originalTextArray, other.Length, originalText.Length, threshold);
-            }
-            finally
-            {
-                Pool<char>.ReleaseArray(otherCharacterArray);
-            }
-        }
-
         private static int GetEditDistance(
             char[] shortString, char[] longString,
             int shortLength, int longLength,
@@ -860,97 +853,5 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static bool IsCloseMatch(string originalText, string candidateText)
-        {
-            double dummy;
-            return IsCloseMatch(originalText, candidateText, out dummy);
-        }
-
-        /// <summary>
-        /// Returns true if 'value1' and 'value2' are likely a misspelling of each other.
-        /// Returns false otherwise.  If it is a likely misspelling a matchCost is provided
-        /// to help rank the match.  Lower costs mean it was a better match.
-        /// </summary>
-        public static bool IsCloseMatch(string originalText, string candidateText, out double matchCost)
-        {
-            using (var editDistance = new EditDistance(originalText))
-            {
-                return editDistance.IsCloseMatch(candidateText, out matchCost);
-            }
-        }
-
-        public bool IsCloseMatch(string candidateText, out double matchCost)
-        {
-            if (this.originalText.Length < 3)
-            {
-                // If we're comparing strings that are too short, we'll find 
-                // far too many spurious hits.  Don't even both in this case.
-                matchCost = double.MaxValue;
-                return false;
-            }
-
-            if (lastIsCloseMatchResult.Item1 == candidateText)
-            {
-                matchCost = lastIsCloseMatchResult.Item3;
-                return lastIsCloseMatchResult.Item2;
-            }
-
-            var result = IsCloseMatchWorker(candidateText, out matchCost);
-            lastIsCloseMatchResult = ValueTuple.Create(candidateText, result, matchCost);
-            return result;
-        }
-
-        private bool IsCloseMatchWorker(string candidateText, out double matchCost)
-        {
-            matchCost = double.MaxValue;
-
-            // If the two strings differ by more characters than the cost threshold, then there's 
-            // no point in even computing the edit distance as it would necessarily take at least
-            // that many additions/deletions.
-            if (Math.Abs(originalText.Length - candidateText.Length) <= threshold)
-            {
-                matchCost = GetEditDistance(candidateText);
-            }
-
-            if (matchCost > threshold)
-            {
-                // it had a high cost.  However, the string the user typed was contained
-                // in the string we're currently looking at.  That's enough to consider it
-                // although we place it just at the threshold (i.e. it's worse than all
-                // other matches).
-                if (candidateText.IndexOf(originalText, StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    matchCost = threshold;
-                }
-            }
-
-            if (matchCost > threshold)
-            {
-                return false;
-            }
-
-            matchCost += Penalty(candidateText, this.originalText);
-            return true;
-        }
-
-        private static double Penalty(string candidateText, string originalText)
-        {
-            int lengthDifference = Math.Abs(originalText.Length - candidateText.Length);
-            if (lengthDifference != 0)
-            {
-                // For all items of the same edit cost, we penalize those that are 
-                // much longer than the original text versus those that are only 
-                // a little longer.
-                //
-                // Note: even with this penalty, all matches of cost 'X' will all still
-                // cost less than matches of cost 'X + 1'.  i.e. the penalty is in the 
-                // range [0, 1) and only serves to order matches of the same cost.
-                double penalty = 1.0 - (1.0 / lengthDifference);
-                return penalty;
-            }
-
-            return 0;
-        }
-    }
 #endif
 }
