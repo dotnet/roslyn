@@ -1,11 +1,295 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using static System.Math;
 
 namespace Roslyn.Utilities
 {
+    // Implementation of the Damerau-Levenshtein edit distance algorithm from:
+    // An Extension of the String-to-String Correction Problem:
+    // Published in Journal of the ACM (JACM)
+    // Volume 22 Issue 2, April 1975.
+    //
+    // Important, unlike many edit distance algorithms out there, this one implements a true metric
+    // that satisfies the triangle inequality.  (Unlike the "Optimal String Alignment" or "Restricted
+    // string edit distance" solutions which do not).  This means this edit distance can be used in
+    // other domains that require the triangle inequality.
+    //
+    // Specifically, this implementation satisfies the following inequality: D(x, y) + D(y, z) >= D(x, z)
+    // (where D is the edit distance).
+    internal class EditDistance : IDisposable
+    {
+        private struct CacheResult
+        {
+            public readonly string CandidateText;
+            public readonly int Threshold;
+            public readonly bool IsCloseMatch;
+            public readonly double MatchCost;
+
+            public CacheResult(string candidate, int threshold, bool isCloseMatch, double matchCost)
+            {
+                CandidateText = candidate;
+                Threshold = threshold;
+                IsCloseMatch = isCloseMatch;
+                MatchCost = matchCost;
+            }
+        }
+
+        private readonly string originalText;
+        // private readonly int threshold;
+
+        // Cache the result of the last call to IsCloseMatch.  We'll often be called with the same
+        // value multiple times in a row, so we can avoid expensive computation by returning the
+        // same value immediately.
+        private CacheResult lastIsCloseMatchResult;
+        private readonly int defaultThreshold;
+
+        public EditDistance(string text/*, int? threshold = null*/)
+        {
+            this.originalText = text.ToLower();
+            // originalTextArray = ConvertToLowercaseArray(text);
+
+            // We only allow fairly close matches (in order to prevent too many
+            // spurious hits).  A reasonable heuristic for this is the Log_2(length) (rounded 
+            // down).  
+            //
+            // Strings length 1-3 : 1 edit allowed.
+            //         length 4-7 : 2 edits allowed.
+            //         length 8-15: 3 edits allowed.
+            //
+            // and so forth.
+            this.defaultThreshold = Max(1, (int)Log(text.Length, 2));
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public static bool IsCloseMatch(string originalText, string candidateText, int? threshold = null)
+        {
+            double dummy;
+            return IsCloseMatch(originalText, candidateText, threshold, out dummy);
+        }
+
+        public static bool IsCloseMatch(string originalText, string candidateText, out double matchCost)
+        {
+            return IsCloseMatch(originalText, candidateText, threshold: null, matchCost: out matchCost);
+        }
+
+        /// <summary>
+        /// Returns true if 'value1' and 'value2' are likely a misspelling of each other.
+        /// Returns false otherwise.  If it is a likely misspelling a matchCost is provided
+        /// to help rank the match.  Lower costs mean it was a better match.
+        /// </summary>
+        public static bool IsCloseMatch(string originalText, string candidateText, int? threshold, out double matchCost)
+        {
+            using (var editDistance = new EditDistance(originalText))
+            {
+                return editDistance.IsCloseMatch(candidateText, threshold, out matchCost);
+            }
+        }
+
+        public static int GetEditDistance(string s, string t)
+        {
+            using (var editDistance = new EditDistance(s))
+            {
+                return editDistance.GetEditDistance(t);
+            }
+        }
+
+        public int GetEditDistance(string target)
+        {
+            return GetEditDistanceWorker(this.originalText, target);
+        }
+
+        private static int GetEditDistanceWorker(string source, string target)
+        {
+            if (source.Length == 0)
+            {
+                return target.Length;
+            }
+
+            if (target.Length == 0)
+            {
+                return source.Length;
+            }
+
+            target = target.ToLower();
+            var matrix = new int[source.Length + 2, target.Length + 2];
+            var maxValue = source.Length + target.Length + 1;
+
+            var DA = new Dictionary<char, int>();
+
+            var max = source.Length + target.Length + 1;
+            for (int i = 0; i <= source.Length; i++)
+            {
+                matrix[i + 1, 1] = i;
+                matrix[i + 1, 0] = max;
+            }
+
+            for (int j = 1; j <= target.Length; j++)
+            {
+                matrix[1, j + 1] = j;
+                matrix[0, j + 1] = max;
+            }
+
+            for (int i = 1; i <= source.Length; i++)
+            {
+                var DB = 0;
+                var sourceChar = source[i - 1];
+                for (int j = 1; j <= target.Length; j++)
+                {
+                    var targetChar = target[j - 1];
+
+                    var i1 = GetValue(DA, targetChar);
+                    var j1 = DB;
+
+                    var matched = sourceChar == targetChar;
+                    if (matched)
+                    {
+                        DB = j;
+                    }
+
+                    matrix[i + 1, j + 1] = Min(
+                        matrix[i, j] + (matched ? 0 : 1),
+                        matrix[i + 1, j] + 1,
+                        matrix[i, j + 1] + 1,
+                        matrix[i1, j1] + (i - i1 - 1) + 1 + (j - j1 - 1));
+                }
+
+                DA[sourceChar] = i;
+            }
+
+            return matrix[source.Length + 1, target.Length + 1];
+        }
+
+        private static int GetValue(Dictionary<char, int> da, char c)
+        {
+            int value;
+            return da.TryGetValue(c, out value) ? value : 0;
+        }
+
+        public bool IsCloseMatch(string candidateText, out double matchCost)
+        {
+            return IsCloseMatch(candidateText, threshold: null, matchCost: out matchCost);
+        }
+
+        public bool IsCloseMatch(string candidateText, int? threshold, out double matchCost)
+        {
+            if (this.originalText.Length < 3)
+            {
+                // If we're comparing strings that are too short, we'll find 
+                // far too many spurious hits.  Don't even both in this case.
+                matchCost = double.MaxValue;
+                return false;
+            }
+
+            candidateText = candidateText.ToLower();
+            threshold = threshold ?? this.defaultThreshold;
+            if (lastIsCloseMatchResult.CandidateText == candidateText && lastIsCloseMatchResult.Threshold == threshold)
+            {
+                matchCost = lastIsCloseMatchResult.MatchCost;
+                return lastIsCloseMatchResult.IsCloseMatch;
+            }
+
+            var result = IsCloseMatchWorker(candidateText, threshold.Value, out matchCost);
+            lastIsCloseMatchResult = new CacheResult(candidateText, threshold.Value, result, matchCost);
+            return result;
+        }
+
+        private bool IsCloseMatchWorker(string candidateText, int threshold, out double matchCost)
+        {
+            matchCost = double.MaxValue;
+
+            // If the two strings differ by more characters than the cost threshold, then there's 
+            // no point in even computing the edit distance as it would necessarily take at least
+            // that many additions/deletions.
+            if (Math.Abs(originalText.Length - candidateText.Length) <= threshold)
+            {
+                matchCost = GetEditDistance(candidateText);
+            }
+
+            if (matchCost > threshold)
+            {
+                // it had a high cost.  However, the string the user typed was contained
+                // in the string we're currently looking at.  That's enough to consider it
+                // although we place it just at the threshold (i.e. it's worse than all
+                // other matches).
+                if (candidateText.IndexOf(originalText, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    matchCost = threshold;
+                }
+            }
+
+            if (matchCost > threshold)
+            {
+                return false;
+            }
+
+            matchCost += Penalty(candidateText, this.originalText);
+            return true;
+        }
+
+        private static double Penalty(string candidateText, string originalText)
+        {
+            int lengthDifference = Math.Abs(originalText.Length - candidateText.Length);
+            if (lengthDifference != 0)
+            {
+                // For all items of the same edit cost, we penalize those that are 
+                // much longer than the original text versus those that are only 
+                // a little longer.
+                //
+                // Note: even with this penalty, all matches of cost 'X' will all still
+                // cost less than matches of cost 'X + 1'.  i.e. the penalty is in the 
+                // range [0, 1) and only serves to order matches of the same cost.
+                //
+                // Here's the relation of the first few values of length diff and penalty:
+                // LengthDiff   -> Penalty
+                // 1            -> .5
+                // 2            -> .66
+                // 3            -> .75
+                // 4            -> .8
+                // And so on and so forth.
+                double penalty = 1.0 - (1.0 / (lengthDifference + 1));
+                return penalty;
+            }
+
+            return 0;
+        }
+
+        private static int Min(int v1, int v2, int v3, int v4)
+        {
+            var min = v1;
+            if (v2 < min)
+            {
+                min = v2;
+            }
+
+            if (v3 < min)
+            {
+                min = v3;
+            }
+
+            if (v4 < min)
+            {
+                min = v4;
+            }
+
+            Debug.Assert(min >= 0);
+            return min;
+        }
+
+        private static void SetValue(int[,] matrix, int i, int j, int val)
+        {
+            // Matrix is -1 based, so we add 1 to both i and j to make it
+            // possible to index into the actual storage.
+            matrix[i + 1, j + 1] = val;
+        }
+    }
+
+#if false
     internal class EditDistance : IDisposable
     {
         private string originalText;
@@ -616,4 +900,5 @@ namespace Roslyn.Utilities
             }
         }
     }
+#endif
 }

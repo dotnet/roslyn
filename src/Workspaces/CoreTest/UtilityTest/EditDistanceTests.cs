@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         private static int GetEditDistance(string s, string t)
         {
-            return EditDistance.GetEditDistance(s, t, int.MaxValue);
+            return EditDistance.GetEditDistance(s, t);
         }
 
         [Fact]
@@ -58,10 +58,39 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(GetEditDistance("XlmReade", "XmlReader"), 2);
         }
 
+        public void EditDistance5()
+        {
+            Assert.Equal(GetEditDistance("Zeil", "trials"), 4);
+        }
+
         [Fact]
-        public void MoreEditDistance()
+        public void EditDistance6()
         {
             Assert.Equal(GetEditDistance("barking", "corkliness"), 6);
+        }
+
+        [Fact]
+        public void EditDistance7()
+        {
+            Assert.Equal(GetEditDistance("kitten", "sitting"), 3);
+        }
+
+        [Fact]
+        public void EditDistance8()
+        {
+            Assert.Equal(GetEditDistance("sunday", "saturday"), 3);
+        }
+
+        [Fact]
+        public void EditDistance9()
+        {
+            Assert.Equal(GetEditDistance("meilenstein", "levenshtein"), 4);
+        }
+
+        [Fact]
+        public void EditDistance10()
+        {
+            Assert.Equal(GetEditDistance("rosettacode", "raisethysword"), 8);
         }
 
         [Fact]
@@ -88,6 +117,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(EditDistance.IsCloseMatch("variabledeclaratorsyntax", "ilineseparatorservice"));
 
             Assert.False(EditDistance.IsCloseMatch("expressionsyntax", "awaitexpressioninfo"));
+        }
+
+        [Fact]
+        public void TestMetric()
+        {
+            // LD(CA,ABC) = 2 because CA → AC → ABC
+            Assert.Equal(GetEditDistance("CA", "ABC"), 2);
         }
     }
 }
