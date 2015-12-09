@@ -741,7 +741,6 @@ End Class
                 Assert.Equal("", result.Output);
                 Assert.Equal("", result.Errors);
                 Assert.Equal(0, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
 
                 using (var hello1_file = GetResultFile(rootDirectory, "hello1.exe"))
                 {
@@ -759,7 +758,6 @@ End Module
                     Assert.Equal("", result.Output);
                     Assert.Equal("", result.Errors);
                     Assert.Equal(0, result.ExitCode);
-                    await Verify(serverData, connections: 2, completed: 2).ConfigureAwait(true);
 
                     // Run hello1.exe.
                     var runningResult = RunCompilerOutput(hello1_file);
@@ -781,7 +779,6 @@ End Module
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
-                        await Verify(serverData, connections: 3, completed: 3).ConfigureAwait(true);
 
                         // Run hello2.exe.
                         runningResult = RunCompilerOutput(hello2_file);
@@ -806,7 +803,6 @@ End Class
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
-                        await Verify(serverData, connections: 4, completed: 4).ConfigureAwait(true);
 
                         using (var hello3_file = GetResultFile(rootDirectory, "hello3.exe"))
                         {
@@ -824,7 +820,6 @@ End Module
                             Assert.Equal("", result.Output);
                             Assert.Equal("", result.Errors);
                             Assert.Equal(0, result.ExitCode);
-                            await Verify(serverData, connections: 5, completed: 5).ConfigureAwait(true);
 
                             // Run hello3.exe. Should work.
                             runningResult = RunCompilerOutput(hello3_file);
@@ -836,6 +831,8 @@ End Module
                         }
                     }
                 }
+
+                await Verify(serverData, connections: 5, completed: 5).ConfigureAwait(true);
             }
 
             GC.KeepAlive(rootDirectory);
@@ -866,7 +863,6 @@ public class Library
                 Assert.Equal("", result.Output);
                 Assert.Equal("", result.Errors);
                 Assert.Equal(0, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
 
                 using (var hello1_file = GetResultFile(rootDirectory, "hello1.exe"))
                 {
@@ -883,7 +879,6 @@ class Hello
                     Assert.Equal("", result.Output);
                     Assert.Equal("", result.Errors);
                     Assert.Equal(0, result.ExitCode);
-                    await Verify(serverData, connections: 2, completed: 2).ConfigureAwait(true);
 
                     // Run hello1.exe.
                     var runningResult = RunCompilerOutput(hello1_file);
@@ -906,7 +901,6 @@ class Hello
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
-                        await Verify(serverData, connections: 3, completed: 3).ConfigureAwait(true);
 
                         // Run hello2.exe.
                         runningResult = RunCompilerOutput(hello2exe);
@@ -930,7 +924,6 @@ public class Library
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
-                        await Verify(serverData, connections: 4, completed: 4).ConfigureAwait(true);
 
                         using (var hello3_file = GetResultFile(rootDirectory, "hello3.exe"))
                         {
@@ -947,7 +940,6 @@ class Hello
                             Assert.Equal("", result.Output);
                             Assert.Equal("", result.Errors);
                             Assert.Equal(0, result.ExitCode);
-                            await Verify(serverData, connections: 5, completed: 5).ConfigureAwait(true);
 
                             // Run hello3.exe. Should work.
                             runningResult = RunCompilerOutput(hello3_file);
@@ -959,6 +951,8 @@ class Hello
                         }
                     }
                 }
+
+                await Verify(serverData, connections: 5, completed: 5).ConfigureAwait(true);
             }
 
             GC.KeepAlive(rootDirectory);
