@@ -4,10 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
-using System.IO;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -537,6 +538,121 @@ namespace Microsoft.CodeAnalysis
                 foreach (var tree in context.Compilation.SyntaxTrees)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, tree.GetRoot().GetLocation()));
+                }
+            }
+        }
+
+        /// <summary>
+        /// This analyzer is intended to be used only when concurrent execution is enabled for analyzers.
+        /// This analyzer will deadlock if the driver runs analyzers on a single thread OR takes a lock around callbacks into this analyzer to prevent concurrent analyzer execution
+        /// Former indicates a bug in the test using this analyzer and the latter indicates a bug in the analyzer driver.
+        /// </summary>
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class ConcurrentAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly ImmutableHashSet<string> _symbolNames;
+            private int _token;
+
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ConcurrentAnalyzerId",
+                "Title",
+                "ConcurrentAnalyzerMessage for symbol '{0}'",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public ConcurrentAnalyzer(IEnumerable<string> symbolNames)
+            {
+                Assert.True(Environment.ProcessorCount > 1, "This analyzer is intended to be used only in a concurrent environment.");
+                _symbolNames = symbolNames.ToImmutableHashSet();
+                _token = 0;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationStartAction(this.OnCompilationStart);
+
+                // Enable concurrent action callbacks on analyzer.
+                context.EnableConcurrentExecution();
+            }
+
+            private void OnCompilationStart(CompilationStartAnalysisContext context)
+            {
+                Assert.True(context.Compilation.Options.ConcurrentBuild, "This analyzer is intended to be used only when concurrent build is enabled.");
+
+                var pendingSymbols = new ConcurrentSet<INamedTypeSymbol>();
+                foreach (var type in context.Compilation.GlobalNamespace.GetTypeMembers())
+                {
+                    if (_symbolNames.Contains(type.Name))
+                    {
+                        pendingSymbols.Add(type);
+                    }
+                }
+
+                context.RegisterSymbolAction(symbolContext =>
+                {
+                    if (!pendingSymbols.Remove((INamedTypeSymbol)symbolContext.Symbol))
+                    {
+                        return;
+                    }
+
+                    var myToken = Interlocked.Increment(ref _token);
+                    if (myToken == 1)
+                    {
+                        // Wait for all symbol callbacks to execute.
+                        // This analyzer will deadlock if the driver doesn't attempt concurrent callbacks.
+                        while (pendingSymbols.Any())
+                        {
+                            Thread.Sleep(10);
+                        }
+                    }
+
+                    // ok, now report diagnostic on the symbol.
+                    var diagnostic = Diagnostic.Create(Descriptor, symbolContext.Symbol.Locations[0], symbolContext.Symbol.Name);
+                    symbolContext.ReportDiagnostic(diagnostic);
+                }, SymbolKind.NamedType);
+            }
+        }
+
+        /// <summary>
+        /// This analyzer will report diagnostics only if it receives any concurrent action callbacks, which would be a
+        /// bug in the analyzer driver as this analyzer doesn't invoke <see cref="AnalysisContext.RegisterConcurrentExecution"/>.
+        /// </summary>
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class NonConcurrentAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "NonConcurrentAnalyzerId",
+                "Title",
+                "Analyzer driver made concurrent action callbacks, when analyzer didn't register for concurrent execution",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+            private const int registeredActionCounts = 1000;
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                SemaphoreSlim gate = new SemaphoreSlim(initialCount: registeredActionCounts);
+                for (var i = 0; i < registeredActionCounts; i++)
+                {
+                    context.RegisterSymbolAction(symbolContext =>
+                    {
+                        using (gate.DisposableWait(symbolContext.CancellationToken))
+                        {
+                            ReportDiagnosticIfActionInvokedConcurrently(gate, symbolContext);
+                        }
+                    }, SymbolKind.NamedType);
+                }
+            }
+
+            private void ReportDiagnosticIfActionInvokedConcurrently(SemaphoreSlim gate, SymbolAnalysisContext symbolContext)
+            {
+                if (gate.CurrentCount != registeredActionCounts - 1)
+                {
+                    var diagnostic = Diagnostic.Create(Descriptor, symbolContext.Symbol.Locations[0]);
+                    symbolContext.ReportDiagnostic(diagnostic);
                 }
             }
         }

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal partial class AnalysisState
     {
-        private readonly SemaphoreSlim _gate;
+        private readonly object _gate;
 
         /// <summary>
         /// Per-analyzer analysis state map.
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            _gate = new SemaphoreSlim(initialCount: 1);
+            _gate = new object();
             _analyzerStateMap = CreateAnalyzerStateMap(analyzers, out _analyzerStates);
             _pendingSourceEvents = new Dictionary<SyntaxTree, HashSet<CompilationEvent>>();
             _pendingNonSourceEvents = new HashSet<CompilationEvent>();
@@ -100,13 +100,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             await EnsureAnalyzerActionCountsInitializedAsync(driver, cancellationToken).ConfigureAwait(false);
 
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            lock (_gate)
             {
-                await OnCompilationEventsGenerated_NoLockAsync(compilationEvents, driver, cancellationToken).ConfigureAwait(false);
+                OnCompilationEventsGenerated_NoLock(compilationEvents, driver, cancellationToken);
             }
         }
 
-        private async Task OnCompilationEventsGenerated_NoLockAsync(ImmutableArray<CompilationEvent> compilationEvents, AnalyzerDriver driver, CancellationToken cancellationToken)
+        private void OnCompilationEventsGenerated_NoLock(ImmutableArray<CompilationEvent> compilationEvents, AnalyzerDriver driver, CancellationToken cancellationToken)
         {
             Debug.Assert(_lazyAnalyzerActionCountsMap != null);
 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (HasActionsForEvent(compilationEvent, actionCounts))
                     {
                         _pooledEventsWithAnyActionsSet.Add(compilationEvent);
-                        await analyzerState.OnCompilationEventGeneratedAsync(compilationEvent, actionCounts, cancellationToken).ConfigureAwait(false);
+                        analyzerState.OnCompilationEventGenerated(compilationEvent, actionCounts);
                     }
                 }
             }
@@ -284,12 +284,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task OnSymbolDeclaredEventProcessedAsync(SymbolDeclaredCompilationEvent symbolDeclaredEvent, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        private void OnSymbolDeclaredEventProcessed(SymbolDeclaredCompilationEvent symbolDeclaredEvent, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             foreach (var analyzer in analyzers)
             {
                 var analyzerState = GetAnalyzerState(analyzer);
-                await analyzerState.OnSymbolDeclaredEventProcessedAsync(symbolDeclaredEvent, cancellationToken).ConfigureAwait(false);
+                analyzerState.OnSymbolDeclaredEventProcessed(symbolDeclaredEvent);
             }
         }
 
@@ -297,27 +297,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Invoke this method at completion of event processing for the given analysis scope.
         /// It updates the analysis state of this event for each analyzer and if the event has been fully processed for all analyzers, then removes it from our event cache.
         /// </summary>
-        public async Task OnCompilationEventProcessedAsync(CompilationEvent compilationEvent, AnalysisScope analysisScope, CancellationToken cancellationToken)
+        public void OnCompilationEventProcessed(CompilationEvent compilationEvent, AnalysisScope analysisScope)
         {
             // Analyze if the symbol and all its declaring syntax references are analyzed.
             var symbolDeclaredEvent = compilationEvent as SymbolDeclaredCompilationEvent;
             if (symbolDeclaredEvent != null)
             {
-                await OnSymbolDeclaredEventProcessedAsync(symbolDeclaredEvent, analysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                OnSymbolDeclaredEventProcessed(symbolDeclaredEvent, analysisScope.Analyzers);
             }
 
             // Check if event is fully analyzed for all analyzers.
             foreach (var analyzerState in _analyzerStates)
             {
-                var eventAnalyzed = await analyzerState.IsEventAnalyzedAsync(compilationEvent, cancellationToken).ConfigureAwait(false);
-                if (!eventAnalyzed)
+                if (!analyzerState.IsEventAnalyzed(compilationEvent))
                 {
                     return;
                 }
             }
 
             // Remove the event from event map.
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            lock (_gate)
             {
                 UpdateEventsMap_NoLock(compilationEvent, add: false);
             }
@@ -331,9 +330,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Gets pending events for given set of analyzers for the given syntax tree.
         /// </summary>
-        public async Task<ImmutableArray<CompilationEvent>> GetPendingEventsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree tree, CancellationToken cancellationToken)
+        public ImmutableArray<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree tree)
         {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            lock (_gate)
             {
                 return GetPendingEvents_NoLock(analyzers, tree);
             }
@@ -390,10 +389,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers"></param>
         /// <param name="includeSourceEvents">Indicates if source events (symbol declared, compilation unit completed event) should be included.</param>
         /// <param name="includeNonSourceEvents">Indicates if compilation wide events (compilation started and completed event) should be included.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        public async Task<ImmutableArray<CompilationEvent>> GetPendingEventsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, bool includeSourceEvents, bool includeNonSourceEvents, CancellationToken cancellationToken)
+        public ImmutableArray<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, bool includeSourceEvents, bool includeNonSourceEvents)
         {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            lock (_gate)
             {
                 return GetPendingEvents_NoLock(analyzers, includeSourceEvents, includeNonSourceEvents);
             }
@@ -453,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns true if we have any pending syntax analysis for given analysis scope.
         /// </summary>
-        public async Task<bool> HasPendingSyntaxAnalysisAsync(AnalysisScope analysisScope, CancellationToken cancellationToken)
+        public bool HasPendingSyntaxAnalysis(AnalysisScope analysisScope)
         {
             if (analysisScope.IsTreeAnalysis && !analysisScope.IsSyntaxOnlyTreeAnalysis)
             {
@@ -463,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var analyzer in analysisScope.Analyzers)
             {
                 var analyzerState = GetAnalyzerState(analyzer);
-                if (await analyzerState.HasPendingSyntaxAnalysisAsync(analysisScope.FilterTreeOpt, cancellationToken).ConfigureAwait(false))
+                if (analyzerState.HasPendingSyntaxAnalysis(analysisScope.FilterTreeOpt))
                 {
                     return true;
                 }
@@ -475,11 +473,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns true if we have any pending symbol analysis for given analysis scope.
         /// </summary>
-        public async Task<bool> HasPendingSymbolAnalysisAsync(AnalysisScope analysisScope, CancellationToken cancellationToken)
+        public bool HasPendingSymbolAnalysis(AnalysisScope analysisScope)
         {
             Debug.Assert(analysisScope.FilterTreeOpt != null);
 
-            var symbolDeclaredEvents = await GetPendingSymbolDeclaredEventsAsync(analysisScope.FilterTreeOpt, cancellationToken).ConfigureAwait(false);
+            var symbolDeclaredEvents = GetPendingSymbolDeclaredEvents(analysisScope.FilterTreeOpt);
             foreach (var symbolDeclaredEvent in symbolDeclaredEvents)
             {
                 if (analysisScope.ShouldAnalyze(symbolDeclaredEvent.Symbol))
@@ -487,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     foreach (var analyzer in analysisScope.Analyzers)
                     {
                         var analyzerState = GetAnalyzerState(analyzer);
-                        if (await analyzerState.HasPendingSymbolAnalysisAsync(symbolDeclaredEvent.Symbol, cancellationToken).ConfigureAwait(false))
+                        if (analyzerState.HasPendingSymbolAnalysis(symbolDeclaredEvent.Symbol))
                         {
                             return true;
                         }
@@ -498,11 +496,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        private async Task<ImmutableArray<SymbolDeclaredCompilationEvent>> GetPendingSymbolDeclaredEventsAsync(SyntaxTree tree, CancellationToken cancellationToken)
+        private ImmutableArray<SymbolDeclaredCompilationEvent> GetPendingSymbolDeclaredEvents(SyntaxTree tree)
         {
             Debug.Assert(tree != null);
 
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            lock (_gate)
             {
                 HashSet<CompilationEvent> compilationEvents;
                 if (!_pendingSourceEvents.TryGetValue(tree, out compilationEvents))
@@ -518,63 +516,62 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Attempts to start processing a compilation event for the given analyzer.
         /// </summary>
         /// <returns>
-        /// Returns null if the event has already been processed for the analyzer OR is currently being processed by another task.
-        /// Otherwise, returns a non-null state representing partial analysis state for the given event for the given analyzer.
+        /// Returns false if the event has already been processed for the analyzer OR is currently being processed by another task.
+        /// If true, then it returns a non-null <paramref name="state"/> representing partial analysis state for the given event for the given analyzer.
         /// </returns>
-        public Task<AnalyzerStateData> TryStartProcessingEventAsync(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public bool TryStartProcessingEvent(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer, out AnalyzerStateData state)
         {
-            return GetAnalyzerState(analyzer).TryStartProcessingEventAsync(compilationEvent, cancellationToken);
+            return GetAnalyzerState(analyzer).TryStartProcessingEvent(compilationEvent, out state);
         }
 
         /// <summary>
         /// Marks the given event as fully analyzed for the given analyzer.
         /// </summary>
-        public Task MarkEventCompleteAsync(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public void MarkEventComplete(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer)
         {
-            return GetAnalyzerState(analyzer).MarkEventCompleteAsync(compilationEvent, cancellationToken);
+            GetAnalyzerState(analyzer).MarkEventComplete(compilationEvent);
         }
 
         /// <summary>
         /// Attempts to start processing a symbol for the given analyzer's symbol actions.
         /// </summary>
         /// <returns>
-        /// Returns null if the symbol has already been processed for the analyzer OR is currently being processed by another task.
-        /// Otherwise, returns a non-null state representing partial analysis state for the given symbol for the given analyzer.
+        /// Returns false if the symbol has already been processed for the analyzer OR is currently being processed by another task.
+        /// If true, then it returns a non-null <paramref name="state"/> representing partial analysis state for the given symbol for the given analyzer.
         /// </returns>
-        public Task<AnalyzerStateData> TryStartAnalyzingSymbolAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public bool TryStartAnalyzingSymbol(ISymbol symbol, DiagnosticAnalyzer analyzer, out AnalyzerStateData state)
         {
-            return GetAnalyzerState(analyzer).TryStartAnalyzingSymbolAsync(symbol, cancellationToken);
+            return GetAnalyzerState(analyzer).TryStartAnalyzingSymbol(symbol, out state);
         }
 
         /// <summary>
         /// Marks the given symbol as fully analyzed for the given analyzer.
         /// </summary>
-        public Task MarkSymbolCompleteAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public void MarkSymbolComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
         {
-            return GetAnalyzerState(analyzer).MarkSymbolCompleteAsync(symbol, cancellationToken);
+            GetAnalyzerState(analyzer).MarkSymbolComplete(symbol);
         }
 
         /// <summary>
         /// Attempts to start processing a symbol declaration for the given analyzer's syntax node and code block actions.
         /// </summary>
         /// <returns>
-        /// Returns null if the declaration has already been processed for the analyzer OR is currently being processed by another task.
-        /// Otherwise, returns a non-null state representing partial analysis state for the given declaration for the given analyzer.
+        /// Returns false if the declaration has already been processed for the analyzer OR is currently being processed by another task.
+        /// If true, then it returns a non-null <paramref name="state"/> representing partial analysis state for the given declaration for the given analyzer.
         /// </returns>
-        public Task<DeclarationAnalyzerStateData> TryStartAnalyzingDeclarationAsync(SyntaxReference decl, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public bool TryStartAnalyzingDeclaration(SyntaxReference decl, DiagnosticAnalyzer analyzer, out DeclarationAnalyzerStateData state)
         {
-            return GetAnalyzerState(analyzer).TryStartAnalyzingDeclarationAsync(decl, cancellationToken);
+            return GetAnalyzerState(analyzer).TryStartAnalyzingDeclaration(decl, out state);
         }
 
         /// <summary>
-        /// Returns true if the given symbol declaration is fully analyzed.
+        /// True if the given symbol declaration is fully analyzed.
         /// </summary>
-        public async Task<bool> IsDeclarationCompleteAsync(SyntaxNode decl, CancellationToken cancellationToken)
+        public bool IsDeclarationComplete(SyntaxNode decl)
         {
             foreach (var analyzerState in _analyzerStates)
             {
-                var declarationComplete = await analyzerState.IsDeclarationCompleteAsync(decl, cancellationToken).ConfigureAwait(false);
-                if (!declarationComplete)
+                if (!analyzerState.IsDeclarationComplete(decl))
                 {
                     return false;
                 }
@@ -586,19 +583,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Marks the given symbol declaration as fully analyzed for the given analyzer.
         /// </summary>
-        public Task MarkDeclarationCompleteAsync(SyntaxReference decl, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public void MarkDeclarationComplete(SyntaxReference decl, DiagnosticAnalyzer analyzer)
         {
-            return GetAnalyzerState(analyzer).MarkDeclarationCompleteAsync(decl, cancellationToken);
+            GetAnalyzerState(analyzer).MarkDeclarationComplete(decl);
         }
 
         /// <summary>
         /// Marks all the symbol declarations for the given symbol as fully analyzed for all the given analyzers.
         /// </summary>
-        public async Task MarkDeclarationsCompleteAsync(ImmutableArray<SyntaxReference> declarations, IEnumerable<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        public void MarkDeclarationsComplete(ImmutableArray<SyntaxReference> declarations, IEnumerable<DiagnosticAnalyzer> analyzers)
         {
             foreach (var analyzer in analyzers)
             {
-                await GetAnalyzerState(analyzer).MarkDeclarationsCompleteAsync(declarations, cancellationToken).ConfigureAwait(false);
+                GetAnalyzerState(analyzer).MarkDeclarationsComplete(declarations);
             }
         }
 
@@ -606,20 +603,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Attempts to start processing a syntax tree for the given analyzer's syntax tree actions.
         /// </summary>
         /// <returns>
-        /// Returns null if the tree has already been processed for the analyzer OR is currently being processed by another task.
-        /// Otherwise, returns a non-null state representing partial syntax analysis state for the given tree for the given analyzer.
+        /// Returns false if the tree has already been processed for the analyzer OR is currently being processed by another task.
+        /// If true, then it returns a non-null <paramref name="state"/> representing partial syntax analysis state for the given tree for the given analyzer.
         /// </returns>
-        public Task<AnalyzerStateData> TryStartSyntaxAnalysisAsync(SyntaxTree tree, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public bool TryStartSyntaxAnalysis(SyntaxTree tree, DiagnosticAnalyzer analyzer, out AnalyzerStateData state)
         {
-            return GetAnalyzerState(analyzer).TryStartSyntaxAnalysisAsync(tree, cancellationToken);
+            return GetAnalyzerState(analyzer).TryStartSyntaxAnalysis(tree, out state);
         }
 
         /// <summary>
         /// Marks the given tree as fully syntactically analyzed for the given analyzer.
         /// </summary>
-        public Task MarkSyntaxAnalysisCompleteAsync(SyntaxTree tree, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public void MarkSyntaxAnalysisComplete(SyntaxTree tree, DiagnosticAnalyzer analyzer)
         {
-            return GetAnalyzerState(analyzer).MarkSyntaxAnalysisCompleteAsync(tree, cancellationToken);
+            GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(tree);
         }
     }
 }

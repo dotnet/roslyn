@@ -22,7 +22,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private readonly IReadOnlyList<Node> _nodes;
 
-        private static readonly StringComparer s_nodeSortComparer = CaseInsensitiveComparison.Comparer;
+        // We first sort in a case insensitive manner.  But, within items that match insensitively, 
+        // we then sort in a case sensitive manner.  This helps for searching as we'll walk all 
+        // the items of a specific casing at once.  This way features can cache values for that
+        // casing and reuse them.  i.e. if we didn't do this we might get "Prop, prop, Prop, prop"
+        // which might cause other features to continually recalculate if that string matches what
+        // they're searching for.  However, with this sort of comparison we now get 
+        // "prop, prop, Prop, Prop".  Features can take advantage of that by caching their previous
+        // result and reusing it when they see they're getting the same string again.
+        private static readonly Comparison<string> s_nodeSortComparer = (s1, s2) =>
+        {
+            var diff = CaseInsensitiveComparison.Comparer.Compare(s1, s2);
+            return diff != 0
+                ? diff
+                : StringComparer.Ordinal.Compare(s1, s2);
+        };
+
+        private static readonly StringComparer s_nodeEquals = CaseInsensitiveComparison.Comparer;
 
         private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes)
         {
@@ -40,6 +56,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return FindNodes(name, GetComparer(ignoreCase)).Any();
         }
 
+        public IEnumerable<ISymbol> Find(IAssemblySymbol assembly, Func<string, bool> predicate, CancellationToken cancellationToken)
+        {
+            for (int i = 0, n = _nodes.Count; i < n; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var node = _nodes[i];
+                if (predicate(node.Name))
+                {
+                    foreach (var symbol in Bind(i, assembly.GlobalNamespace, cancellationToken))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        yield return symbol;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Get all symbols that have a name matching the specified name.
         /// </summary>
@@ -53,8 +86,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             foreach (var node in FindNodes(name, comparer))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 foreach (var symbol in Bind(node, assembly.GlobalNamespace, cancellationToken))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     yield return symbol;
                 }
             }
@@ -82,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 int position = startingPosition;
-                while (position > 0 && s_nodeSortComparer.Equals(_nodes[position - 1].Name, name))
+                while (position > 0 && s_nodeEquals.Equals(_nodes[position - 1].Name, name))
                 {
                     position--;
 
@@ -93,7 +128,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 position = startingPosition;
-                while (position + 1 < _nodes.Count && s_nodeSortComparer.Equals(_nodes[position + 1].Name, name))
+                while (position + 1 < _nodes.Count && s_nodeEquals.Equals(_nodes[position + 1].Name, name))
                 {
                     position++;
                     if (comparer.Equals(_nodes[position].Name, name))
@@ -116,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 int mid = min + ((max - min) >> 1);
 
-                var comparison = s_nodeSortComparer.Compare(_nodes[mid].Name, name);
+                var comparison =  s_nodeSortComparer(_nodes[mid].Name, name);
                 if (comparison < 0)
                 {
                     min = mid + 1;
@@ -152,44 +187,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Get all symbols that have a matching name as determined by the predicate.
-        /// </summary>
-        public IEnumerable<ISymbol> Search(
-            IAssemblySymbol assembly,
-            Func<string, bool> predicate,
-            CancellationToken cancellationToken)
-        {
-            string lastName = null;
-            bool lastGood = false;
-
-            for (int i = 0; i < _nodes.Count; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var node = _nodes[i];
-                var isSameName = node.Name == (object)lastName;
-                if ((isSameName && lastGood) // check for same string instance to avoid invoking predicate when we already know the outcome (assumes no side effects of predicate.)
-                    || (!string.IsNullOrEmpty(node.Name) // don't consider unnamed things like the global namespace itself.
-                          && predicate(node.Name)))
-                {
-                    lastGood = true;
-
-                    // yield all symbols for this node
-                    foreach (var symbol in Bind(i, assembly.GlobalNamespace, cancellationToken))
-                    {
-                        yield return symbol;
-                    }
-                }
-                else
-                {
-                    lastGood = false;
-                }
-
-                lastName = node.Name;
-            }
         }
 
         #region Construction
@@ -266,7 +263,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static int CompareNodes(Node x, Node y, IReadOnlyList<Node> nodeList)
         {
-            var comp = s_nodeSortComparer.Compare(x.Name, y.Name);
+            var comp = s_nodeSortComparer(x.Name, y.Name);
             if (comp == 0)
             {
                 if (x.ParentIndex != y.ParentIndex)
@@ -384,6 +381,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             cancellationToken.ThrowIfCancellationRequested();
 
             var node = _nodes[index];
+            if (node.IsRoot)
+            {
+                return;
+            }
 
             if (_nodes[node.ParentIndex].IsRoot)
             {

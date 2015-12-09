@@ -68,11 +68,15 @@
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.CompilationData.cs" />
     <Compile Include="DiagnosticAnalyzer\SuppressMessageInfo.cs" />
     <Compile Include="Diagnostic\SuppressionInfo.cs" />
+    <Compile Include="InternalUtilities\SetWithInsertionOrder.cs" />
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
+    <Compile Include="Text\LargeTextWriter.cs" />
+    <Compile Include="Text\SourceTextWriter.cs" />
+    <Compile Include="Text\StringTextWriter.cs" />
     <Compile Include="UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -186,7 +190,6 @@
     <Compile Include="InternalUtilities\ImmutableArrayInterop.cs" />
     <Compile Include="InternalUtilities\ReflectionUtilities.cs" />
     <Compile Include="InternalUtilities\SemaphoreSlimExtensions.cs" />
-    <Compile Include="InternalUtilities\SemaphoreSlimFactory.cs" />
     <Compile Include="CorLightup.cs" />
     <Compile Include="Desktop\AssemblyPortabilityPolicy.cs" />
     <Compile Include="Desktop\AssemblyVersion.cs" />
@@ -671,7 +674,7 @@
     <Compile Include="Syntax\TranslationSyntaxReference.cs" />
     <Compile Include="Text\ChangedText.cs" />
     <Compile Include="Text\CompositeText.cs" />
-    <Compile Include="Text\LargeEncodedText.cs" />
+    <Compile Include="Text\LargeText.cs" />
     <Compile Include="Text\LinePosition.cs" />
     <Compile Include="Text\LinePositionSpan.cs" />
     <Compile Include="Text\SourceHashAlgorithm.cs" />

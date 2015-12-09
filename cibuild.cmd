@@ -93,13 +93,14 @@ REM Ensure caller sees successful exit.
 exit /b 0
 
 :Usage
-@echo Usage: cibuild.cmd [/debug^|/release] [/test32^|/test64^|/perf]
+@echo Usage: cibuild.cmd [/debug^|/release] [/test32^|/test64^|/perf] [/restore]
 @echo   /debug   Perform debug build.  This is the default.
 @echo   /release Perform release build.
 @echo   /test32  Run unit tests in the 32-bit runner.  This is the default.
 @echo   /test64  Run units tests in the 64-bit runner.
 @echo   /perf    Submit a job to the performance test system. Usually combined
 @echo            with /release. May not be combined with /test32 or /test64.
+@echo   /restore Perform actual nuget restore instead of using zip drops.
 @echo.
 @goto :eof
 

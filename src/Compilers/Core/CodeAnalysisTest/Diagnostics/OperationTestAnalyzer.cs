@@ -9,6 +9,68 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     // These analyzers are not intended for any actual use. They exist solely to test IOperation support.
 
+    /// <summary>Analyzer used to test for bad statements and expressions.</summary>
+    public class BadStuffTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor InvalidExpressionDescriptor = new DiagnosticDescriptor(
+            "InvalidExpression",
+            "Invalid Expression",
+            "Invalid expression found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor InvalidStatementDescriptor = new DiagnosticDescriptor(
+            "InvalidStatement",
+            "Invalid Statement",
+            "Invalid statement found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor IsInvalidDescriptor = new DiagnosticDescriptor(
+            "IsInvalid",
+            "Is Invalid",
+            "Operation found that is invalid.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(InvalidExpressionDescriptor, InvalidStatementDescriptor, IsInvalidDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(InvalidExpressionDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.InvalidExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(InvalidStatementDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.InvalidStatement);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     if (operationContext.Operation.IsInvalid)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(IsInvalidDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.InvocationExpression,
+                 OperationKind.InvalidExpression,
+                 OperationKind.InvalidStatement);
+        }
+    }
+
     /// <summary>Analyzer used to test for loop IOperations.</summary>
     public class BigForTestAnalyzer : DiagnosticAnalyzer
     {
@@ -166,7 +228,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     }
 
     /// <summary>Analyzer used to test switch IOperations.</summary>
-    public class SparseSwitchTestAnalyzer : DiagnosticAnalyzer
+    public class SwitchTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Reliability".</summary>
         private const string ReliabilityCategory = "Reliability";
@@ -179,10 +241,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor NoDefaultSwitchDescriptor = new DiagnosticDescriptor(
+            "NoDefaultSwitchRule",
+            "No default switch",
+            "Switch has no default case",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor OnlyDefaultSwitchDescriptor = new DiagnosticDescriptor(
+            "OnlyDefaultSwitchRule",
+            "Only default switch",
+            "Switch only has a default case",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(SparseSwitchDescriptor); }
+            get { return ImmutableArray.Create(SparseSwitchDescriptor, 
+                                                NoDefaultSwitchDescriptor,
+                                                OnlyDefaultSwitchDescriptor); }
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -194,6 +274,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      long minCaseValue = long.MaxValue;
                      long maxCaseValue = long.MinValue;
                      long caseValueCount = 0;
+                     bool hasDefault = false;
+                     bool hasNonDefault = false;
                      foreach (ICase switchCase in switchOperation.Cases)
                      {
                          foreach (ICaseClause clause in switchCase.Clauses)
@@ -202,9 +284,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                              {
                                  case CaseKind.SingleValue:
                                      {
+                                         hasNonDefault = true;
                                          ISingleValueCaseClause singleValueClause = (ISingleValueCaseClause)clause;
                                          IExpression singleValueExpression = singleValueClause.Value;
-                                         if (singleValueExpression.ConstantValue != null &&
+                                         if (singleValueExpression?.ConstantValue != null &&
                                              singleValueExpression.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
                                              int singleValue = (int)singleValueExpression.ConstantValue;
@@ -219,12 +302,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                      }
                                  case CaseKind.Range:
                                      {
+                                         hasNonDefault = true;
                                          IRangeCaseClause rangeClause = (IRangeCaseClause)clause;
                                          IExpression rangeMinExpression = rangeClause.MinimumValue;
                                          IExpression rangeMaxExpression = rangeClause.MaximumValue;
-                                         if (rangeMinExpression.ConstantValue != null &&
+                                         if (rangeMinExpression?.ConstantValue != null &&
                                              rangeMinExpression.ResultType.SpecialType == SpecialType.System_Int32 &&
-                                             rangeMaxExpression.ConstantValue != null &&
+                                             rangeMaxExpression?.ConstantValue != null &&
                                              rangeMaxExpression.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
                                              int rangeMinValue = (int)rangeMinExpression.ConstantValue;
@@ -240,9 +324,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                      }
                                  case CaseKind.Relational:
                                      {
+                                         hasNonDefault = true;
                                          IRelationalCaseClause relationalClause = (IRelationalCaseClause)clause;
                                          IExpression relationalValueExpression = relationalClause.Value;
-                                         if (relationalValueExpression.ConstantValue != null &&
+                                         if (relationalValueExpression?.ConstantValue != null &&
                                              relationalValueExpression.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
                                              int rangeMinValue = int.MaxValue;
@@ -285,6 +370,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                      }
                                  case CaseKind.Default:
                                      {
+                                         hasDefault = true;
                                          break;
                                      }
                              }
@@ -292,9 +378,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
 
                      long span = maxCaseValue - minCaseValue + 1;
-                     if (caseValueCount == 0 || span / caseValueCount > 100)
+                     if (caseValueCount == 0 && !hasDefault || 
+                         caseValueCount != 0 && span / caseValueCount > 100)
                      {
                          Report(operationContext, switchOperation.Value.Syntax, SparseSwitchDescriptor);
+                     }
+                     if (!hasDefault)
+                     {
+                         Report(operationContext, switchOperation.Value.Syntax, NoDefaultSwitchDescriptor);
+                     }
+                     if (hasDefault && !hasNonDefault)
+                     {
+                         Report(operationContext, switchOperation.Value.Syntax, OnlyDefaultSwitchDescriptor);
                      }
                  },
                  OperationKind.SwitchStatement);

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Roslyn.Utilities;
@@ -37,6 +38,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // execute the compilation actions before the compilation end actions.
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>> _compilationActionsMap;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>> _compilationEndActionsMap;
+
+        /// <summary>
+        /// Map from non-concurrent analyzers to the gate guarding callback into the analyzer. 
+        /// </summary>
+        private ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim> _analyzerGateMap = ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
 
         /// <summary>
         /// Driver task which initializes all analyzers.
@@ -95,16 +101,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.DiagnosticQueue = diagnosticQueue;
 
                 // Compute the set of effective actions based on suppression, and running the initial analyzers
-                var analyzerActionsTask = GetAnalyzerActionsAsync(analyzers, analyzerManager, analyzerExecutor);
-                _initializeTask = analyzerActionsTask.ContinueWith(t =>
+                _initializeTask = Task.Run(async () =>
                 {
-                    this.analyzerActions = t.Result;
+                    this.analyzerActions = await GetAnalyzerActionsAsync(analyzers, analyzerManager, analyzerExecutor).ConfigureAwait(false);
+                    this._analyzerGateMap = await GetAnalyzerGateMapAsync(analyzers, analyzerManager, analyzerExecutor).ConfigureAwait(false);
+
                     _symbolActionsByKind = MakeSymbolActionsByKind();
                     _semanticModelActionsMap = MakeSemanticModelActionsByAnalyzer();
                     _syntaxTreeActionsMap = MakeSyntaxTreeActionsByAnalyzer();
                     _compilationActionsMap = MakeCompilationActionsByAnalyzer(this.analyzerActions.CompilationActions);
                     _compilationEndActionsMap = MakeCompilationActionsByAnalyzer(this.analyzerActions.CompilationEndActions);
-                }, cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+                }, cancellationToken);
 
                 // create the primary driver task.
                 cancellationToken.ThrowIfCancellationRequested();
@@ -158,9 +165,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 newOnAnalyzerException = (ex, analyzer, diagnostic) => addDiagnostic(diagnostic);
             }
 
-            // Assume all analyzers are non-thread safe.
-            var singleThreadedAnalyzerToGateMap = ImmutableDictionary.CreateRange(analyzers.Select(a => KeyValuePair.Create(a, new SemaphoreSlim(initialCount: 1))));
-
             if (analysisOptions.LogAnalyzerExecutionTime)
             {
                 // If we are reporting detailed analyzer performance numbers, then do a dummy invocation of Compilation.GetTypeByMetadataName API upfront.
@@ -168,11 +172,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var unused = compilation.GetTypeByMetadataName("System.Object");
             }
 
-            Func<DiagnosticAnalyzer, SemaphoreSlim> getAnalyzerGate = analyzer => singleThreadedAnalyzerToGateMap[analyzer];
             var analyzerExecutor = AnalyzerExecutor.Create(compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addDiagnostic, newOnAnalyzerException, IsCompilerAnalyzer,
-                analyzerManager, getAnalyzerGate, analysisOptions.LogAnalyzerExecutionTime, addLocalDiagnosticOpt, addNonLocalDiagnosticOpt, cancellationToken);
+                analyzerManager, GetAnalyzerGate, analysisOptions.LogAnalyzerExecutionTime, addLocalDiagnosticOpt, addNonLocalDiagnosticOpt, cancellationToken);
 
             Initialize(analyzerExecutor, diagnosticQueue, cancellationToken);
+        }
+
+        private SemaphoreSlim GetAnalyzerGate(DiagnosticAnalyzer analyzer)
+        {
+            SemaphoreSlim gate;
+            if (_analyzerGateMap.TryGetValue(analyzer, out gate))
+            {
+                // Non-concurrent analyzer, needs all the callbacks guarded by a gate.
+                Debug.Assert(gate != null);
+                return gate;
+            }
+
+            // Concurrent analyzer.
+            return null;
         }
 
         /// <summary>
@@ -286,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             analyzerExecutor.OnAnalyzerException(innerException, analyzer, diagnostic);
         }
 
-        private async Task ExecuteSyntaxTreeActionsAsync(AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private void ExecuteSyntaxTreeActions(AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
             if (analysisScope.IsTreeAnalysis && !analysisScope.IsSyntaxOnlyTreeAnalysis)
             {
@@ -304,11 +321,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (_syntaxTreeActionsMap.TryGetValue(analyzer, out syntaxTreeActions))
                     {
                         // Execute actions for a given analyzer sequentially.
-                        await analyzerExecutor.ExecuteSyntaxTreeActionsAsync(syntaxTreeActions, analyzer, tree, analysisScope, analysisStateOpt).ConfigureAwait(false);
+                        analyzerExecutor.ExecuteSyntaxTreeActions(syntaxTreeActions, analyzer, tree, analysisScope, analysisStateOpt);
                     }
-                    else if (analysisStateOpt != null)
+                    else
                     {
-                        await analysisStateOpt.MarkSyntaxAnalysisCompleteAsync(tree, analyzer, cancellationToken).ConfigureAwait(false);
+                        analysisStateOpt?.MarkSyntaxAnalysisComplete(tree, analyzer);
                     }
                 }
             }
@@ -396,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (reportSuppressedDiagnostics || !d.IsSuppressed)
                 {
                     allDiagnostics.Add(d);
-                }
+                }                
             }
 
             return allDiagnostics.ToReadOnlyAndFree();
@@ -535,13 +552,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var workerTasks = new Task<CompilationCompletedEvent>[workerCount];
                     for (int i = 0; i < workerCount; i++)
                     {
-                        workerTasks[i] = ProcessCompilationEventsCoreAsync(analysisScope, analysisStateOpt, prePopulatedEventQueue, cancellationToken);
+                        // Create separate worker tasks to process all compilation events - we do not want to process any events on the main thread.
+                        workerTasks[i] = Task.Run(async () => await ProcessCompilationEventsCoreAsync(analysisScope, analysisStateOpt, prePopulatedEventQueue, cancellationToken).ConfigureAwait(false));
                     }
 
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Kick off tasks to execute syntax tree actions.
-                    var syntaxTreeActionsTask = ExecuteSyntaxTreeActionsAsync(analysisScope, analysisStateOpt, cancellationToken);
+                    var syntaxTreeActionsTask = Task.Run(() => ExecuteSyntaxTreeActions(analysisScope, analysisStateOpt, cancellationToken));
 
                     // Wait for all worker threads to complete processing events.
                     await Task.WhenAll(workerTasks.Concat(syntaxTreeActionsTask)).ConfigureAwait(false);
@@ -559,13 +577,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     completedEvent = await ProcessCompilationEventsCoreAsync(analysisScope, analysisStateOpt, prePopulatedEventQueue, cancellationToken).ConfigureAwait(false);
 
-                    await ExecuteSyntaxTreeActionsAsync(analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+                    ExecuteSyntaxTreeActions(analysisScope, analysisStateOpt, cancellationToken);
                 }
 
                 // Finally process the compilation completed event, if any.
                 if (completedEvent != null)
                 {
-                    await ProcessEventAsync(completedEvent, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+                    ProcessEvent(completedEvent, analysisScope, analysisStateOpt, cancellationToken);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -622,7 +640,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    await ProcessEventAsync(e, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+                    ProcessEvent(e, analysisScope, analysisStateOpt, cancellationToken);
                 }
 
                 return completedEvent;
@@ -633,52 +651,48 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task ProcessEventAsync(CompilationEvent e, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private void ProcessEvent(CompilationEvent e, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
-            await ProcessEventCoreAsync(e, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false);
-
-            if (analysisStateOpt != null)
-            {
-                await analysisStateOpt.OnCompilationEventProcessedAsync(e, analysisScope, cancellationToken).ConfigureAwait(false);
-            }
+            ProcessEventCore(e, analysisScope, analysisStateOpt, cancellationToken);
+            analysisStateOpt?.OnCompilationEventProcessed(e, analysisScope);
         }
 
-        private async Task ProcessEventCoreAsync(CompilationEvent e, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private void ProcessEventCore(CompilationEvent e, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var symbolEvent = e as SymbolDeclaredCompilationEvent;
             if (symbolEvent != null)
             {
-                await ProcessSymbolDeclaredAsync(symbolEvent, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+                ProcessSymbolDeclared(symbolEvent, analysisScope, analysisStateOpt, cancellationToken);
                 return;
             }
 
             var completedEvent = e as CompilationUnitCompletedEvent;
             if (completedEvent != null)
             {
-                await ProcessCompilationUnitCompletedAsync(completedEvent, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+                ProcessCompilationUnitCompleted(completedEvent, analysisScope, analysisStateOpt, cancellationToken);
                 return;
             }
 
             var endEvent = e as CompilationCompletedEvent;
             if (endEvent != null)
             {
-                await ProcessCompilationCompletedAsync(endEvent, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+                ProcessCompilationCompleted(endEvent, analysisScope, analysisStateOpt, cancellationToken);
                 return;
             }
 
             var startedEvent = e as CompilationStartedEvent;
             if (startedEvent != null)
             {
-                await ProcessCompilationStartedAsync(startedEvent, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+                ProcessCompilationStarted(startedEvent, analysisScope, analysisStateOpt, cancellationToken);
                 return;
             }
 
             throw new InvalidOperationException("Unexpected compilation event of type " + e.GetType().Name);
         }
 
-        private async Task ProcessSymbolDeclaredAsync(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private void ProcessSymbolDeclared(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
             try
             {
@@ -687,12 +701,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var references = symbolEvent.DeclaringSyntaxReferences;
                 if (!AnalysisScope.ShouldSkipSymbolAnalysis(symbolEvent))
                 {
-                    await ExecuteSymbolActionsAsync(symbolEvent, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+                    ExecuteSymbolActions(symbolEvent, analysisScope, analysisStateOpt, cancellationToken);
                 }
 
                 if (!AnalysisScope.ShouldSkipDeclarationAnalysis(symbol))
                 {
-                    await ExecuteDeclaringReferenceActionsAsync(symbolEvent, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+                    ExecuteDeclaringReferenceActions(symbolEvent, analysisScope, analysisStateOpt, cancellationToken);
                 }
             }
             finally
@@ -701,7 +715,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task ExecuteSymbolActionsAsync(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private void ExecuteSymbolActions(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
             var symbol = symbolEvent.Symbol;
             if (!analysisScope.ShouldAnalyze(symbol))
@@ -715,11 +729,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ImmutableArray<ImmutableArray<SymbolAnalyzerAction>> actionsByKind;
                 if (_symbolActionsByKind.TryGetValue(analyzer, out actionsByKind) && (int)symbol.Kind < actionsByKind.Length)
                 {
-                    await analyzerExecutor.ExecuteSymbolActionsAsync(actionsByKind[(int)symbol.Kind], analyzer, symbol, GetTopmostNodeForAnalysis, analysisScope, analysisStateOpt).ConfigureAwait(false);
+                    analyzerExecutor.ExecuteSymbolActions(actionsByKind[(int)symbol.Kind], analyzer, symbol, GetTopmostNodeForAnalysis, analysisScope, analysisStateOpt);
                 }
-                else if (analysisStateOpt != null)
+                else
                 {
-                    await analysisStateOpt.MarkSymbolCompleteAsync(symbol, analyzer, cancellationToken).ConfigureAwait(false);
+                    analysisStateOpt?.MarkSymbolComplete(symbol, analyzer);
                 }
             }
         }
@@ -730,9 +744,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return model.GetTopmostNodeForDiagnosticAnalysis(symbol, syntaxReference.GetSyntax());
         }
 
-        protected abstract Task ExecuteDeclaringReferenceActionsAsync(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken);
+        protected abstract void ExecuteDeclaringReferenceActions(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken);
 
-        private async Task ProcessCompilationUnitCompletedAsync(CompilationUnitCompletedEvent completedEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private void ProcessCompilationUnitCompleted(CompilationUnitCompletedEvent completedEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
             // When the compiler is finished with a compilation unit, we can run user diagnostics which
             // might want to ask the compiler for all the diagnostics in the source file, for example
@@ -755,11 +769,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (_semanticModelActionsMap.TryGetValue(analyzer, out semanticModelActions))
                     {
                         // Execute actions for a given analyzer sequentially.
-                        await analyzerExecutor.ExecuteSemanticModelActionsAsync(semanticModelActions, analyzer, semanticModel, completedEvent, analysisScope, analysisStateOpt).ConfigureAwait(false);
+                        analyzerExecutor.ExecuteSemanticModelActions(semanticModelActions, analyzer, semanticModel, completedEvent, analysisScope, analysisStateOpt);
                     }
-                    else if (analysisStateOpt != null)
+                    else
                     {
-                        await analysisStateOpt.MarkEventCompleteAsync(completedEvent, analyzer, cancellationToken).ConfigureAwait(false);
+                        analysisStateOpt?.MarkEventComplete(completedEvent, analyzer);
                     }
                 }
             }
@@ -769,17 +783,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private Task ProcessCompilationStartedAsync(CompilationStartedEvent startedEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private void ProcessCompilationStarted(CompilationStartedEvent startedEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
-            return ExecuteCompilationActionsAsync(_compilationActionsMap, startedEvent, analysisScope, analysisStateOpt, cancellationToken);
+            ExecuteCompilationActions(_compilationActionsMap, startedEvent, analysisScope, analysisStateOpt, cancellationToken);
         }
 
-        private Task ProcessCompilationCompletedAsync(CompilationCompletedEvent endEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private void ProcessCompilationCompleted(CompilationCompletedEvent endEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
-            return ExecuteCompilationActionsAsync(_compilationEndActionsMap, endEvent, analysisScope, analysisStateOpt, cancellationToken);
+            ExecuteCompilationActions(_compilationEndActionsMap, endEvent, analysisScope, analysisStateOpt, cancellationToken);
         }
 
-        private async Task ExecuteCompilationActionsAsync(
+        private void ExecuteCompilationActions(
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>> compilationActionsMap,
             CompilationEvent compilationEvent,
             AnalysisScope analysisScope,
@@ -795,11 +809,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ImmutableArray<CompilationAnalyzerAction> compilationActions;
                     if (compilationActionsMap.TryGetValue(analyzer, out compilationActions))
                     {
-                        await analyzerExecutor.ExecuteCompilationActionsAsync(compilationActions, analyzer, compilationEvent, analysisScope, analysisStateOpt).ConfigureAwait(false);
+                        analyzerExecutor.ExecuteCompilationActions(compilationActions, analyzer, compilationEvent, analysisScope, analysisStateOpt);
                     }
-                    else if (analysisStateOpt != null)
+                    else
                     {
-                        await analysisStateOpt.MarkEventCompleteAsync(compilationEvent, analyzer, cancellationToken).ConfigureAwait(false);
+                        analysisStateOpt?.MarkEventComplete(compilationEvent, analyzer);
                     }
                 }
             }
@@ -850,28 +864,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return compilation.Options.FilterDiagnostic(diagnostic);
         }
 
-        private static Task<AnalyzerActions> GetAnalyzerActionsAsync(
+        private static async Task<AnalyzerActions> GetAnalyzerActionsAsync(
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor)
         {
-            return Task.Run(async () =>
+            var allAnalyzerActions = new AnalyzerActions();
+            foreach (var analyzer in analyzers)
             {
-                AnalyzerActions allAnalyzerActions = new AnalyzerActions();
-                foreach (var analyzer in analyzers)
+                if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor))
                 {
-                    if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor))
+                    var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+                    if (analyzerActions != null)
                     {
-                        var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-                        if (analyzerActions != null)
-                        {
-                            allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
-                        }
+                        allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
                     }
                 }
+            }
 
-                return allAnalyzerActions;
-            }, analyzerExecutor.CancellationToken);
+            return allAnalyzerActions;
+        }
+
+        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>> GetAnalyzerGateMapAsync(
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AnalyzerManager analyzerManager,
+            AnalyzerExecutor analyzerExecutor)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, SemaphoreSlim>();
+            foreach (var analyzer in analyzers)
+            {
+                var isConcurrent = await analyzerManager.IsConcurrentAnalyzerAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+                if (!isConcurrent)
+                {
+                    // Non-concurrent analyzers need their action callbacks from the analyzer driver to be guarded by a gate.
+                    var gate = new SemaphoreSlim(initialCount: 1);
+                    builder.Add(analyzer, gate);
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         internal async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -996,14 +1027,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             if (analyzerAndActions.Any())
                             {
                                 actionsByKind = AnalyzerExecutor.GetOperationActionsByKind(analyzerAndActions);
-                            }
+                        }
                             else
                             {
                                 actionsByKind = ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>.Empty;
                             }
 
                             builder.Add(analyzerAndActions.Key, actionsByKind);
-                        }
+                    }
 
                         analyzerActionsByKind = builder.ToImmutable();
                     }
@@ -1124,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return ShouldExecuteBlockActions(this.OperationBlockStartActionsByAnalyzer, this.OperationBlockActionsByAnalyzer, analysisScope, symbol);
         }
 
-        protected override async Task ExecuteDeclaringReferenceActionsAsync(
+        protected override void ExecuteDeclaringReferenceActions(
             SymbolDeclaredCompilationEvent symbolEvent,
             AnalysisScope analysisScope,
             AnalysisState analysisStateOpt,
@@ -1144,18 +1175,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     if (analysisScope.FilterTreeOpt == null || analysisScope.FilterTreeOpt == decl.SyntaxTree)
                     {
-                        await ExecuteDeclaringReferenceActionsAsync(decl, symbolEvent, analysisScope, analysisStateOpt, executeSyntaxNodeActions, executeOperationActions, executeCodeBlockActions, executeOperationBlockActions, cancellationToken).ConfigureAwait(false);
+                        ExecuteDeclaringReferenceActions(decl, symbolEvent, analysisScope, analysisStateOpt, executeSyntaxNodeActions, executeOperationActions, executeCodeBlockActions, executeOperationBlockActions, cancellationToken);
                     }
                 }
             }
             else if (analysisStateOpt != null)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await analysisStateOpt.MarkDeclarationsCompleteAsync(symbolEvent.DeclaringSyntaxReferences, analysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                analysisStateOpt.MarkDeclarationsComplete(symbolEvent.DeclaringSyntaxReferences, analysisScope.Analyzers);
 
                 foreach (var decl in symbolEvent.DeclaringSyntaxReferences)
                 {
-                    await ClearCachedAnalysisDataIfAnalyzedAsync(decl, decl.GetSyntax(), symbolEvent.Compilation, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+                    ClearCachedAnalysisDataIfAnalyzed(decl, decl.GetSyntax(), symbolEvent.Compilation, analysisStateOpt);
                 }
             }
         }
@@ -1195,13 +1226,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return data;
         }
 
-        private async Task ClearCachedAnalysisDataIfAnalyzedAsync(SyntaxReference declaration, SyntaxNode node, Compilation compilation, AnalysisState analysisState, CancellationToken cancellationToken)
+        private void ClearCachedAnalysisDataIfAnalyzed(SyntaxReference declaration, SyntaxNode node, Compilation compilation, AnalysisState analysisState)
         {
             Debug.Assert(analysisState != null);
 
             CompilationData compilationData;
             if (!s_compilationDataCache.TryGetValue(compilation, out compilationData) ||
-                !(await analysisState.IsDeclarationCompleteAsync(node, cancellationToken).ConfigureAwait(false)))
+                !analysisState.IsDeclarationComplete(node))
             {
                 return;
             }
@@ -1259,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             semanticModel.ComputeDeclarationsInNode(topmostNodeForAnalysis, getSymbol, builder, cancellationToken, levelsToCompute);
         }
 
-        private async Task ExecuteDeclaringReferenceActionsAsync(
+        private void ExecuteDeclaringReferenceActions(
             SyntaxReference decl,
             SymbolDeclaredCompilationEvent symbolEvent,
             AnalysisScope analysisScope,
@@ -1300,8 +1331,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind;
                     if (this.NodeActionsByAnalyzerAndKind.TryGetValue(analyzer, out nodeActionsByKind))
                     {
-                        await analyzerExecutor.ExecuteSyntaxNodeActionsAsync(nodesToAnalyze, nodeActionsByKind,
-                            analyzer, semanticModel, _getKind, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan, decl, analysisScope, analysisStateOpt).ConfigureAwait(false);
+                        analyzerExecutor.ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind,
+                            analyzer, semanticModel, _getKind, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan, decl, analysisScope, analysisStateOpt);
                     }
                 }
             }
@@ -1339,8 +1370,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                             ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind;
                                             if (this.OperationActionsByAnalyzerAndKind.TryGetValue(analyzer, out operationActionsByKind))
                                             {
-                                                await analyzerExecutor.ExecuteOperationActionsAsync(operationsToAnalyze, operationActionsByKind,
-                                                    analyzer, semanticModel, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan, decl, analysisScope, analysisStateOpt).ConfigureAwait(false);
+                                                analyzerExecutor.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind,
+                                                    analyzer, semanticModel, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan, decl, analysisScope, analysisStateOpt);
                                             }
                                         }
                                     }
@@ -1349,28 +1380,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                     {
                                         foreach (var analyzerActions in codeBlockActions)
                                         {
-                                            await analyzerExecutor.ExecuteOperationBlockActionsAsync(
+                                            analyzerExecutor.ExecuteOperationBlockActions(
                                                 analyzerActions.OperationBlockStartActions, analyzerActions.OperationBlockActions,
                                                 analyzerActions.OpererationBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
-                                                operationBlocksToAnalyze, operationsToAnalyze, semanticModel, decl, analysisScope, analysisStateOpt).ConfigureAwait(false);
+                                                operationBlocksToAnalyze, operationsToAnalyze, semanticModel, decl, analysisScope, analysisStateOpt);
                                         }
                                     }
                                 }
                             }
 
-                            break;
-                        }
+                        break;
                     }
+                }
                 }
 
                 if (executableCodeBlocks.Any() && shouldExecuteCodeBlockActions)
                 {
                     foreach (var analyzerActions in codeBlockActions)
                     {
-                        await analyzerExecutor.ExecuteCodeBlockActionsAsync(
+                        analyzerExecutor.ExecuteCodeBlockActions(
                             analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
                             analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
-                            executableCodeBlocks, semanticModel, _getKind, decl, analysisScope, analysisStateOpt).ConfigureAwait(false);
+                            executableCodeBlocks, semanticModel, _getKind, decl, analysisScope, analysisStateOpt);
                     }
                 }
             }
@@ -1380,12 +1411,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var analyzer in analysisScope.Analyzers)
                 {
-                    await analysisStateOpt.MarkDeclarationCompleteAsync(decl, analyzer, cancellationToken).ConfigureAwait(false);
+                    analysisStateOpt.MarkDeclarationComplete(decl, analyzer);
                 }
 
                 if (cacheAnalysisData)
                 {
-                    await ClearCachedAnalysisDataIfAnalyzedAsync(decl, declarationAnalysisData.DeclaringReferenceSyntax, symbolEvent.Compilation, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+                    ClearCachedAnalysisDataIfAnalyzed(decl, declarationAnalysisData.DeclaringReferenceSyntax, symbolEvent.Compilation, analysisStateOpt);
                 }
             }
         }

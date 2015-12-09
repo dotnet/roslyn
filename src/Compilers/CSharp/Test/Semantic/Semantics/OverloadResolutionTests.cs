@@ -611,6 +611,44 @@ class C
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "z == string.Empty").WithArguments("==", "double", "string").WithLocation(45, 34));
         }
 
+        [Fact]
+        public void TestRefOutAnonymousDelegate()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+class p
+{
+    static void Foo<T>(ref Func<T,T> a) { }
+    static void Bar<T>(out Func<T, T> a) { a = null; }
+
+    static void Foo2<T>(ref Expression<Func<T,T>> a) { }
+    static void Bar2<T>(out Expression<Func<T, T>> a) { a = null; }
+
+    static void Main()
+    {
+        Foo<string>(x => x);
+        Bar<string>(x => x);
+        Foo2<string>(x => x);
+        Bar2<string>(x => x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (14,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Func<string, string>'
+                //         Foo<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Func<string, string>").WithLocation(14, 21),
+                // (15,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Func<string, string>'
+                //         Bar<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Func<string, string>").WithLocation(15, 21),
+                // (16,22): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Expression<Func<string, string>>'
+                //         Foo2<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Linq.Expressions.Expression<System.Func<string, string>>").WithLocation(16, 22),
+                // (17,22): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Expression<Func<string, string>>'
+                //         Bar2<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Linq.Expressions.Expression<System.Func<string, string>>").WithLocation(17, 22));
+        }
+
 
         [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TestOverloadResolutionTiebreaker()
@@ -638,7 +676,7 @@ class C
         }
 
         [Fact]
-        private void TestConstraintViolationApplicabilityErrors()
+        public void TestConstraintViolationApplicabilityErrors()
         {
             // The rules for constraint satisfaction during overload resolution are a bit odd. If a constraint
             // *on a formal parameter type* is not met then the candidate is not applicable. But if a constraint
@@ -745,7 +783,7 @@ class C
         }
         [Fact]
 
-        private void TestBug9583()
+        public void TestBug9583()
         {
             var source =
 @"
@@ -786,7 +824,7 @@ class C
         }
         [Fact]
 
-        private void TestBug6156()
+        public void TestBug6156()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -834,7 +872,7 @@ class Out2 : Ref2
 
 
 
-        private void TestGenericMethods()
+        public void TestGenericMethods()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -858,7 +896,7 @@ class C
         [Fact]
 
 
-        private void TestDelegateBetterness()
+        public void TestDelegateBetterness()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -920,7 +958,7 @@ class C
         }
         [Fact]
 
-        private void TestTieBreakers()
+        public void TestTieBreakers()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -1192,7 +1230,7 @@ class Test2
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
 
-        private void TestBaseAccessForAbstractMembers()
+        public void TestBaseAccessForAbstractMembers()
         {
             // Tests:
             // Override virtual member with abstract member – override this abstract member in further derived class
@@ -1247,7 +1285,7 @@ class Base4<U, V> : Base3<U, V>
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
 
-        private void TestBaseAccessForAbstractMembers1()
+        public void TestBaseAccessForAbstractMembers1()
         {
             // Tests:
             // Override virtual member with abstract member – override this abstract member in further derived class
@@ -1274,7 +1312,7 @@ class Base2<A, B> : Base<A, B>
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
 
-        private void TestBaseAccessForAbstractMembers2()
+        public void TestBaseAccessForAbstractMembers2()
         {
             var source = @"
 namespace A

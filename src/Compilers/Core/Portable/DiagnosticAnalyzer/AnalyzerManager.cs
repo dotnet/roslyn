@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Func<Compilation, Task<HostCompilationStartAnalysisScope>> getTask = comp =>
             {
-                return Task.Run(async() =>
+                return Task.Run(() =>
                 {
                     var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
-                    await analyzerExecutor.ExecuteCompilationStartActionsAsync(sessionScope.CompilationStartActions, compilationAnalysisScope).ConfigureAwait(false);
+                    analyzerExecutor.ExecuteCompilationStartActions(sessionScope.CompilationStartActions, compilationAnalysisScope);
                     return compilationAnalysisScope;
                 }, analyzerExecutor.CancellationToken);
             };
@@ -100,10 +100,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Func<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> getTask = a =>
             {
-                return Task.Run(async() =>
+                return Task.Run(() =>
                 {
                     var sessionScope = new HostSessionStartAnalysisScope();
-                    await analyzerExecutor.ExecuteInitializeMethodAsync(a, sessionScope).ConfigureAwait(false);
+                    analyzerExecutor.ExecuteInitializeMethod(a, sessionScope);
                     return sessionScope;
                 }, analyzerExecutor.CancellationToken);
             };
@@ -149,6 +149,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Returns true if the given analyzer has enabled concurrent execution by invoking <see cref="AnalysisContext.EnableConcurrentExecution"/>.
+        /// </summary>
+        public async Task<bool> IsConcurrentAnalyzerAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        {
+            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            return sessionScope.IsConcurrentAnalyzer(analyzer);
+        }
+
+        /// <summary>
         /// Return <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetSupportedDiagnosticDescriptors(
@@ -160,14 +169,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
 
                 // Catch Exception from analyzer.SupportedDiagnostics
-                analyzerExecutor.ExecuteAndCatchIfThrowsAsync(analyzer, () =>
+                analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () =>
                     {
                         var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
                         if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
                         {
                             supportedDiagnostics = supportedDiagnosticsLocal;
                         }
-                    }).Wait(analyzerExecutor.CancellationToken);
+                    });
 
                 EventHandler<Exception> handler = null;
                 Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;

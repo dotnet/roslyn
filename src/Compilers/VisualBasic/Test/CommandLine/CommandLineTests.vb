@@ -377,6 +377,45 @@ a.vb
         End Sub
 
         <Fact>
+        Public Sub ParseInteractive()
+            Dim args As VisualBasicCommandLineArguments
+
+            args = DefaultParse({}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.False(args.InteractiveMode)
+
+            args = DefaultParse({"/i"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/i").WithLocation(1, 1),
+                               Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1)})
+            Assert.False(args.InteractiveMode)
+
+            args = InteractiveParse({}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.InteractiveMode)
+
+            args = InteractiveParse({"a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.False(args.InteractiveMode)
+
+            args = InteractiveParse({"/i", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.InteractiveMode)
+
+            args = InteractiveParse({"/i+", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.InteractiveMode)
+
+            args = InteractiveParse({"/i+ /i-", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.False(args.InteractiveMode)
+
+            For Each flag In {"i", "i+", "i-"}
+                args = InteractiveParse({"/" + flag + ":arg"}, _baseDirectory)
+                args.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("i").WithLocation(1, 1))
+            Next
+        End Sub
+
+        <Fact>
         Public Sub ResponseFiles2()
             Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
     /r:System

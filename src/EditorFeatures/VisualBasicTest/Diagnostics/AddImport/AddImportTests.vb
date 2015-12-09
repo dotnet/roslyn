@@ -159,9 +159,16 @@ NewLines("Imports System.Collections.Generic \n Class Foo \n Function F() As Lis
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        Public Async Function TestGenericWithWrongArgs() As Task
+        Public Async Function TestGenericWithWrongArgs1() As Task
             Await TestMissingAsync(
-NewLines("Class Foo \n Function F() As [|List(Of Integer, String)|] \n End Function \n End Class"))
+NewLines("Class Foo \n Function F() As [|List(Of Integer, String, Boolean)|] \n End Function \n End Class"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Async Function TestGenericWithWrongArgs2() As Task
+            Await TestAsync(
+NewLines("Class Foo \n Function F() As [|List(Of Integer, String)|] \n End Function \n End Class"),
+NewLines("Imports System.Collections.Generic \n Class Foo \n Function F() As SortedList(Of Integer, String) \n End Function \n End Class"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -1090,7 +1097,30 @@ NewLines("Imports System.Linq \n Imports System.Runtime.CompilerServices \n Impo
         <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddUsingWithOtherExtensionsInScope3() As Task
             Await TestAsync(
-NewLines("Imports System.Runtime.CompilerServices \n Imports X \n Module Program \n Sub Main(args As String()) \n Dim a = 0 \n Dim i = [|a.All|](0) \n End Sub \n End Module \n Namespace X \n Module E \n <Extension> \n Public Function All(a As Integer) As Integer \n Return a \n End Function \n End Module \n End Namespace \n Namespace Y \n Module E \n <Extension> \n Public Function All(a As Integer, v As Integer) As Integer \n Return a \n End Function \n End Module \n End Namespace"),
+"Imports System.Runtime.CompilerServices 
+Imports X 
+Module Program 
+    Sub Main(args As String()) 
+        Dim a = 0
+        Dim i = [|a.All|](0)
+    End Sub
+End Module 
+Namespace X 
+    Module E 
+        <Extension> 
+        Public Function All(a As Integer) As Integer 
+            Return a 
+        End Function 
+    End Module 
+End Namespace 
+Namespace Y 
+    Module E 
+        <Extension> 
+        Public Function All(a As Integer, v As Integer) As Integer 
+            Return a 
+        End Function 
+    End Module 
+End Namespace",
 NewLines("Imports System.Runtime.CompilerServices \n Imports X \n Imports Y \n Module Program \n Sub Main(args As String()) \n Dim a = 0 \n Dim i = a.All(0) \n End Sub \n End Module \n Namespace X \n Module E \n <Extension> \n Public Function All(a As Integer) As Integer \n Return a \n End Function \n End Module \n End Namespace \n Namespace Y \n Module E \n <Extension> \n Public Function All(a As Integer, v As Integer) As Integer \n Return a \n End Function \n End Module \n End Namespace"))
         End Function
 

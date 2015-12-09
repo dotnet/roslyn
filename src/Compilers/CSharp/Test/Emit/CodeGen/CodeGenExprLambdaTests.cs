@@ -534,7 +534,7 @@ class Program : TestBase
         [WorkItem(544027, "DevDiv")]
         [Fact]
 
-        private void AnonymousCreation()
+        public void AnonymousCreation()
         {
             var source =
 @"using System;
@@ -557,7 +557,7 @@ class Program : TestBase
         [WorkItem(544028, "DevDiv")]
         [Fact]
 
-        private void ArrayIndex()
+        public void ArrayIndex()
         {
             var source =
 @"using System;
@@ -584,7 +584,7 @@ class Program : TestBase
         [WorkItem(544029, "DevDiv")]
         [Fact]
 
-        private void ArrayCreation()
+        public void ArrayCreation()
         {
             var source =
 @"using System;
@@ -610,7 +610,7 @@ class Program : TestBase
         [WorkItem(544030, "DevDiv")]
         [Fact]
 
-        private void ArrayInitialization()
+        public void ArrayInitialization()
         {
             var source =
 @"using System;
@@ -633,7 +633,7 @@ class Program : TestBase
         [WorkItem(544112, "DevDiv")]
         [Fact]
 
-        private void CS0838ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer()
+        public void CS0838ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer()
         {
             var source =
 @"using System;
@@ -654,7 +654,7 @@ class Program
         [WorkItem(544031, "DevDiv")]
         [Fact]
 
-        private void ArrayLength()
+        public void ArrayLength()
         {
             var source =
 @"using System;
@@ -680,7 +680,7 @@ class Program : TestBase
         [WorkItem(544032, "DevDiv")]
         [Fact]
 
-        private void AsOperator()
+        public void AsOperator()
         {
             var source =
 @"using System;
@@ -703,7 +703,7 @@ class Program : TestBase
         [WorkItem(544034, "DevDiv")]
         [Fact]
 
-        private void BaseReference()
+        public void BaseReference()
         {
             var source =
 @"using System;
@@ -734,7 +734,7 @@ class Program : Program0
         }
         [Fact(Skip = "BadTestCode")]
 
-        private void AsyncLambda()
+        public void AsyncLambda()
         {
             var source =
 @"using System;
@@ -758,7 +758,7 @@ class Program : TestBase
         [WorkItem(544035, "DevDiv")]
         [Fact]
 
-        private void Multiply()
+        public void Multiply()
         {
             var source =
 @"using System;
@@ -811,7 +811,7 @@ class Program : TestBase
         [WorkItem(544036, "DevDiv")]
         [Fact]
 
-        private void Subtract()
+        public void Subtract()
         {
             var source =
 @"using System;
@@ -867,7 +867,7 @@ class Program : TestBase
         [WorkItem(544037, "DevDiv")]
         [Fact]
 
-        private void Divide()
+        public void Divide()
         {
             var source =
 @"using System;
@@ -920,7 +920,7 @@ class Program : TestBase
         [WorkItem(544038, "DevDiv")]
         [Fact]
 
-        private void Remainder()
+        public void Remainder()
         {
             var source =
 @"using System;
@@ -973,7 +973,7 @@ class Program : TestBase
         [WorkItem(544041, "DevDiv")]
         [Fact]
 
-        private void And()
+        public void And()
         {
             var source =
 @"using System;
@@ -1026,7 +1026,7 @@ class Program : TestBase
         [WorkItem(544042, "DevDiv")]
         [Fact]
 
-        private void ExclusiveOr()
+        public void ExclusiveOr()
         {
             var source =
 @"using System;
@@ -1079,7 +1079,7 @@ class Program : TestBase
         [WorkItem(544043, "DevDiv")]
         [Fact]
 
-        private void BitwiseOr()
+        public void BitwiseOr()
         {
             var source =
 @"using System;
@@ -1132,7 +1132,7 @@ class Program : TestBase
         [WorkItem(544039, "DevDiv"), WorkItem(544040, "DevDiv")]
         [Fact]
 
-        private void MoreBinaryOperators()
+        public void MoreBinaryOperators()
         {
             var source =
 @"using System;
@@ -1179,7 +1179,7 @@ class Program : TestBase
         [WorkItem(544059, "DevDiv")]
         [Fact]
 
-        private void UnaryOperators()
+        public void UnaryOperators()
         {
             var source =
 @"using System;
@@ -1228,7 +1228,7 @@ class Program : TestBase
         }
         [Fact]
 
-        private void GrabBag01()
+        public void GrabBag01()
         {
             var source =
 @"using System;
@@ -1292,7 +1292,7 @@ class Program : TestBase
         [WorkItem(546147, "DevDiv")]
         [Fact]
 
-        private void DelegateInvoke()
+        public void DelegateInvoke()
         {
             var source =
 @"using System;
@@ -1316,7 +1316,7 @@ class P
         }
         [Fact]
 
-        private void GrabBag02()
+        public void GrabBag02()
         {
             var source =
 @"using System;
@@ -1416,7 +1416,7 @@ class Program : TestBase
         }
         [Fact]
 
-        private void UnsafeExprTree()
+        public void UnsafeExprTree()
         {
             var source =
 @"using System;
@@ -1446,7 +1446,7 @@ class Program
         [WorkItem(544044, "DevDiv")]
         [Fact]
 
-        private void CollectionInitialization()
+        public void CollectionInitialization()
         {
             var source =
 @"using System;
@@ -1469,7 +1469,7 @@ class Program : TestBase
         [WorkItem(544390, "DevDiv")]
         [Fact]
 
-        private void ObjectInitialization()
+        public void ObjectInitialization()
         {
             var source =
 @"using System;
@@ -1537,7 +1537,7 @@ MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberAssign
         }
         [Fact]
 
-        private void Lambda()
+        public void Lambda()
         {
             var source =
 @"using System;
@@ -1568,7 +1568,7 @@ partial class Program
         [WorkItem(544218, "DevDiv")]
         [Fact]
 
-        private void Linq()
+        public void Linq()
         {
             var source =
 @"using System;
@@ -1593,7 +1593,7 @@ class A
         }
         [Fact]
 
-        private void Enum()
+        public void Enum()
         {
             var source =
 @"using System;
@@ -4776,6 +4776,48 @@ namespace ConsoleApplication1
 
 }";
             string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Constant(No Type:ConsoleApplication1.YesNo) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(7241, "https://github.com/dotnet/roslyn/issues/7241")]
+        public void EnumEquality005()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication1
+{
+    enum YesNo
+    {
+        Yes,
+        No
+    }
+
+    class MyType
+    {
+        public string Name { get; set; }
+        public YesNo? YesNo { get; set; }
+
+        public int? Age { get; set; }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            Expression<Func<MyType, bool>> expr = (MyType x) => x.YesNo == (YesNo?)null;
+            Console.WriteLine(expr.Dump());
+        }
+    }
+
+}";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Convert(Constant(null Type:System.Object) Lifted LiftedToNull Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
             CompileAndVerify(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },

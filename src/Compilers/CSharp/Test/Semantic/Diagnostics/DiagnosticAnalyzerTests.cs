@@ -4,11 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.Serialization;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -285,7 +286,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
         }
         [Fact]
 
-        private void TestGetEffectiveDiagnostics()
+        public void TestGetEffectiveDiagnostics()
         {
             var noneDiagDescriptor = new DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
             var infoDiagDescriptor = new DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault: true);
@@ -424,7 +425,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
         }
         [Fact]
 
-        private void TestDisabledDiagnostics()
+        public void TestDisabledDiagnostics()
         {
             var disabledDiagDescriptor = new DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
             var enabledDiagDescriptor = new DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
@@ -505,7 +506,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
         }
 
         [Fact]
-        private void TestDisabledAnalyzers()
+        public void TestDisabledAnalyzers()
         {
             var fullyDisabledAnalyzer = new FullyDisabledAnalyzer();
             var partiallyDisabledAnalyzer = new PartiallyDisabledAnalyzer();
@@ -530,7 +531,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
         }
 
         [Fact, WorkItem(1008059)]
-        private void TestCodeBlockAnalyzersForNoExecutableCode()
+        public void TestCodeBlockAnalyzersForNoExecutableCode()
         {
             string noExecutableCodeSource = @"
 public abstract class C
@@ -547,7 +548,7 @@ public abstract class C
         }
 
         [Fact, WorkItem(1008059)]
-        private void TestCodeBlockAnalyzersForBaseConstructorInitializer()
+        public void TestCodeBlockAnalyzersForBaseConstructorInitializer()
         {
             string baseCtorSource = @"
 public class B
@@ -570,7 +571,7 @@ public class C : B
         }
 
         [Fact, WorkItem(1067286)]
-        private void TestCodeBlockAnalyzersForExpressionBody()
+        public void TestCodeBlockAnalyzersForExpressionBody()
         {
             string source = @"
 public class B
@@ -593,7 +594,7 @@ public class B
         }
 
         [Fact, WorkItem(592)]
-        private void TestSyntaxNodeAnalyzersForExpressionBody()
+        public void TestSyntaxNodeAnalyzersForExpressionBody()
         {
             string source = @"
 public class B
@@ -613,7 +614,7 @@ public class B
         }
 
         [Fact, WorkItem(592)]
-        private void TestMethodSymbolAnalyzersForExpressionBody()
+        public void TestMethodSymbolAnalyzersForExpressionBody()
         {
             string source = @"
 public class B
@@ -658,7 +659,7 @@ public class B
         }
 
         [Fact]
-        private void TestNoDuplicateCallbacksForFieldDeclaration()
+        public void TestNoDuplicateCallbacksForFieldDeclaration()
         {
             string source = @"
 public class B
@@ -674,7 +675,7 @@ public class B
         }
 
         [Fact, WorkItem(565)]
-        private void TestCallbacksForFieldDeclarationWithMultipleVariables()
+        public void TestCallbacksForFieldDeclarationWithMultipleVariables()
         {
             string source = @"
 public class B
@@ -694,7 +695,7 @@ public class B
         }
 
         [Fact, WorkItem(1096600)]
-        private void TestDescriptorForConfigurableCompilerDiagnostics()
+        public void TestDescriptorForConfigurableCompilerDiagnostics()
         {
             // Verify that all configurable compiler diagnostics, i.e. all non-error diagnostics,
             // have a non-null and non-empty Title and Category.
@@ -1159,6 +1160,78 @@ class D
                     expected: new[] {
                         Diagnostic(CSharpCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, "new C()").WithLocation(5, 18)
                     });
+        }
+
+        private static Compilation GetCompilationWithConcurrentBuildEnabled(string source)
+        {
+            var compilation = CreateCompilationWithMscorlib45(source);
+
+            // NOTE: We set the concurrentBuild option to true after creating the compilation as CreateCompilationWithMscorlib
+            //       always sets concurrentBuild to false if debugger is attached, even if we had passed options with concurrentBuild = true to that API.
+            //       We want the tests using GetCompilationWithConcurrentBuildEnabled to have identical behavior with and without debugger being attached.
+            var options = compilation.Options.WithConcurrentBuild(true);
+            return compilation.WithOptions(options);
+        }
+
+        [Fact, WorkItem(6737, "https://github.com/dotnet/roslyn/issues/6737")]
+        public void TestNonConcurrentAnalyzer()
+        {
+            var builder = new StringBuilder();
+            var typeCount = 100;
+            for (int i = 1; i <= typeCount; i++)
+            {
+                var typeName = $"C{i}";
+                builder.Append($"\r\nclass {typeName} {{ }}");
+            }
+
+            var source = builder.ToString();
+            var analyzers = new DiagnosticAnalyzer[] { new NonConcurrentAnalyzer() };
+
+            // Verify no diagnostics.
+            var compilation = GetCompilationWithConcurrentBuildEnabled(source);
+            compilation.VerifyDiagnostics();
+            compilation.VerifyAnalyzerDiagnostics(analyzers);
+        }
+
+        [Fact, WorkItem(6737, "https://github.com/dotnet/roslyn/issues/6737")]
+        public void TestConcurrentAnalyzer()
+        {
+            if (Environment.ProcessorCount <= 1)
+            {
+                // Don't test for non-concurrent environment.
+                return;
+            }
+
+            var builder = new StringBuilder();
+            var typeCount = 100;
+            var typeNames = new string[typeCount];
+            for (int i = 1; i <= typeCount; i++)
+            {
+                var typeName = $"C{i}";
+                typeNames[i - 1] = typeName;
+                builder.Append($"\r\nclass {typeName} {{ }}");
+            }
+
+            var source = builder.ToString();
+            var compilation = GetCompilationWithConcurrentBuildEnabled(source);
+            compilation.VerifyDiagnostics();
+
+            // Verify analyzer diagnostics for Concurrent analyzer only.
+            var analyzers = new DiagnosticAnalyzer[] { new ConcurrentAnalyzer(typeNames) };
+            var expected = new DiagnosticDescription[typeCount];
+            for (int i = 0; i < typeCount; i++)
+            {
+                var typeName = $"C{i + 1}";
+                expected[i] = Diagnostic(ConcurrentAnalyzer.Descriptor.Id, typeName)
+                    .WithArguments(typeName)
+                    .WithLocation(i + 2, 7);
+            }
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
+
+            // Verify analyzer diagnostics for Concurrent and NonConcurrent analyzer together (latter reports diagnostics only for error cases).
+            analyzers = new DiagnosticAnalyzer[] { new ConcurrentAnalyzer(typeNames), new NonConcurrentAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
         }
     }
 }

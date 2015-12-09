@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Test.Utilities;
@@ -74,10 +71,18 @@ index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public async Task TestGenericWithWrongArgs()
+        public async Task TestGenericWithWrongArgs1()
         {
             await TestMissingAsync(
-@"class Class { [|List<int,string>|] Method() { Foo(); } }");
+@"class Class { [|List<int,string,bool>|] Method() { Foo(); } }");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestGenericWithWrongArgs2()
+        {
+            await TestAsync(
+@"class Class { [|List<int,string>|] Method() { Foo(); } }",
+@"using System.Collections.Generic; class Class { SortedList<int,string> Method() { Foo(); } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
@@ -881,64 +886,6 @@ systemSpecialCase: true);
 @"using System.Threading.Tasks; using Task = System.AccessViolationException; class X { Task<X> x; }");
         }
 
-        [WorkItem(860648)]
-        [WorkItem(902014)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public async Task TestIncompleteSimpleLambdaExpression()
-        {
-            await TestAsync(
-@"using System.Linq;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        [|args[0].Any(x => IBindCtx|]
-        string a;
-    }
-}",
-@"using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        args[0].Any(x => IBindCtx
-        string a;
-    }
-}");
-        }
-
-        [WorkItem(860648)]
-        [WorkItem(902014)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public async Task TestIncompleteParenthesizedLambdaExpression()
-        {
-            await TestAsync(
-@"using System;
-
-class Test
-{
-    void Foo()
-    {
-        Action a = () => [|{ IBindCtx };|]
-        string a;        
-    }
-}",
-@"using System;
-using System.Runtime.InteropServices.ComTypes;
-
-class Test
-{
-    void Foo()
-    {
-        Action a = () => { IBindCtx };
-        string a;        
-    }
-}");
-        }
-
         [WorkItem(913300)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestNoDuplicateReport()
@@ -1491,114 +1438,6 @@ class Test
         {
             await TestMissingAsync(
 @"using B = [|Byte|];");
-        }
-
-        [WorkItem(1033612)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public async Task TestAddInsideLambda()
-        {
-            var initialText =
-@"using System;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { List<int>[|.|]}
-}";
-
-            var expectedText =
-@"using System;
-using System.Collections.Generic;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { List<int>.}
-}";
-            await TestAsync(initialText, expectedText);
-        }
-
-        [WorkItem(1033612)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public async Task TestAddInsideLambda2()
-        {
-            var initialText =
-@"using System;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { [|List<int>|]}
-}";
-
-            var expectedText =
-@"using System;
-using System.Collections.Generic;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { List<int>}
-}";
-            await TestAsync(initialText, expectedText);
-        }
-
-        [WorkItem(1033612)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public async Task TestAddInsideLambda3()
-        {
-            var initialText =
-@"using System;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { 
-        var a = 3;
-        List<int>[|.|]
-        return a;
-        };
-}";
-
-            var expectedText =
-@"using System;
-using System.Collections.Generic;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { 
-        var a = 3;
-        List<int>.
-        return a;
-        };
-}";
-            await TestAsync(initialText, expectedText);
-        }
-
-        [WorkItem(1033612)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public async Task TestAddInsideLambda4()
-        {
-            var initialText =
-@"using System;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { 
-        var a = 3;
-        [|List<int>|]
-        return a;
-        };
-}";
-
-            var expectedText =
-@"using System;
-using System.Collections.Generic;
-
-static void Main(string[] args)
-{
-    Func<int> f = () => { 
-        var a = 3;
-        List<int>
-        return a;
-        };
-}";
-            await TestAsync(initialText, expectedText);
         }
 
         [WorkItem(1064748)]
@@ -2169,6 +2008,172 @@ namespace A.C
                 await TestAsync(
     @"using System . Linq ; class C { C ( ) { """" . Select ( ( ) => { new [|Byte|] ( ) } ",
     @"using System ; using System . Linq ; class C { C ( ) { """" . Select ( ( ) => { new Byte ( ) } ");
+            }
+
+            [WorkItem(1033612)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestAddInsideLambda()
+            {
+                var initialText =
+    @"using System;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { [|List<int>|]. }
+}";
+
+                var expectedText =
+    @"using System;
+using System.Collections.Generic;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { List<int>.}
+}";
+                await TestAsync(initialText, expectedText);
+            }
+
+            [WorkItem(1033612)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestAddInsideLambda2()
+            {
+                var initialText =
+    @"using System;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { [|List<int>|] }
+}";
+
+                var expectedText =
+    @"using System;
+using System.Collections.Generic;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { List<int>}
+}";
+                await TestAsync(initialText, expectedText);
+            }
+
+            [WorkItem(1033612)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestAddInsideLambda3()
+            {
+                var initialText =
+    @"using System;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { 
+        var a = 3;
+        [|List<int>|].
+        return a;
+        };
+}";
+
+                var expectedText =
+    @"using System;
+using System.Collections.Generic;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { 
+        var a = 3;
+        List<int>.
+        return a;
+        };
+}";
+                await TestAsync(initialText, expectedText);
+            }
+
+            [WorkItem(1033612)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestAddInsideLambda4()
+            {
+                var initialText =
+    @"using System;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { 
+        var a = 3;
+        [|List<int>|]
+        return a;
+        };
+}";
+
+                var expectedText =
+    @"using System;
+using System.Collections.Generic;
+
+static void Main(string[] args)
+{
+    Func<int> f = () => { 
+        var a = 3;
+        List<int>
+        return a;
+        };
+}";
+                await TestAsync(initialText, expectedText);
+            }
+
+            [WorkItem(860648)]
+            [WorkItem(902014)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestIncompleteParenthesizedLambdaExpression()
+            {
+                await TestAsync(
+    @"using System;
+
+class Test
+{
+    void Foo()
+    {
+        Action a = () => { [|IBindCtx|] };
+        string a;        
+    }
+}",
+    @"using System;
+using System.Runtime.InteropServices.ComTypes;
+
+class Test
+{
+    void Foo()
+    {
+        Action a = () => { IBindCtx };
+        string a;        
+    }
+}");
+            }
+
+            [WorkItem(860648)]
+            [WorkItem(902014)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestIncompleteSimpleLambdaExpression()
+            {
+                await TestAsync(
+    @"using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        args[0].Any(x => [|IBindCtx|]
+        string a;
+    }
+}",
+    @"using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        args[0].Any(x => IBindCtx
+        string a;
+    }
+}");
             }
         }
     }
