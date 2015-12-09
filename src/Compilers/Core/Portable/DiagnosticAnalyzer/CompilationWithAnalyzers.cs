@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Pool of event queues to serve each diagnostics request.
         /// </summary>
         private static readonly ObjectPool<AsyncQueue<CompilationEvent>> s_eventQueuePool = new ObjectPool<AsyncQueue<CompilationEvent>>(() => new AsyncQueue<CompilationEvent>());
-        private static readonly AsyncQueue<CompilationEvent> s_EmptyEventQueue = new AsyncQueue<CompilationEvent>();
+        private static readonly Task<AsyncQueue<CompilationEvent>> s_EmptyEventQueueTask = Task.FromResult(new AsyncQueue<CompilationEvent>());
 
 
         /// <summary>
@@ -362,11 +362,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             };
 
-            Func<AsyncQueue<CompilationEvent>> getEventQueue = () =>
-                GetPendingEvents(analyzers, includeSourceEvents, includeNonSourceEvents);
+            Func<Task<AsyncQueue<CompilationEvent>>> getEventQueueTask = () =>
+                GetPendingEventsAsync(analyzers, includeSourceEvents, includeNonSourceEvents, cancellationToken);
 
             // Compute the analyzer diagnostics for the given analysis scope.
-            await ComputeAnalyzerDiagnosticsAsync(analysisScope, generateCompilationEvents, getEventQueue, newTaskToken: 0, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await ComputeAnalyzerDiagnosticsAsync(analysisScope, generateCompilationEvents, getEventQueueTask, newTaskToken: 0, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // Return computed analyzer diagnostics for the given analysis scope.
             var analyzerDiagnostics = _analysisResult.GetDiagnostics(analysisScope, getLocalDiagnostics: includeSourceEvents, getNonLocalDiagnostics: includeNonSourceEvents);
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var analysisScope = new AnalysisScope(analyzers, tree, filterSpan: null, syntaxAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
                 Action generateCompilationEvents = null;
-                Func<AsyncQueue<CompilationEvent>> getEventQueue = () => s_EmptyEventQueue;
+                Func<Task<AsyncQueue<CompilationEvent>>> getEventQueue = () => s_EmptyEventQueueTask;
 
                 // Compute the analyzer diagnostics for the given analysis scope.
                 await ComputeAnalyzerDiagnosticsAsync(analysisScope, generateCompilationEvents, getEventQueue, taskToken, cancellationToken).ConfigureAwait(false);
@@ -487,14 +487,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Action generateCompilationEvents = () =>
                     AnalyzerDriver.GetOrCreateCachedSemanticModel(model.SyntaxTree, _compilation, cancellationToken);
 
-                Func<AsyncQueue<CompilationEvent>> getEventQueue = () => GetPendingEvents(analyzers, model.SyntaxTree);
+                Func<Task<AsyncQueue<CompilationEvent>>> getEventQueueTask = () => GetPendingEventsAsync(analyzers, model.SyntaxTree, cancellationToken);
 
                 // Compute the analyzer diagnostics for the given analysis scope.
                 // We need to loop till symbol analysis is complete for any partial symbols being processed for other tree diagnostic requests.
                 do
                 {
-                    await ComputeAnalyzerDiagnosticsAsync(analysisScope, generateCompilationEvents, getEventQueue, taskToken, cancellationToken).ConfigureAwait(false);
-                } while (_analysisOptions.ConcurrentAnalysis && _analysisState.HasPendingSymbolAnalysis(analysisScope));
+                    await ComputeAnalyzerDiagnosticsAsync(analysisScope, generateCompilationEvents, getEventQueueTask, taskToken, cancellationToken).ConfigureAwait(false);
+                } while (_analysisOptions.ConcurrentAnalysis &&
+                    (await _analysisState.HasPendingSymbolAnalysisAsync(analysisScope, cancellationToken).ConfigureAwait(false)));
 
                 // Return computed analyzer diagnostics for the given analysis scope.
                 return _analysisResult.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: false);
@@ -505,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task ComputeAnalyzerDiagnosticsAsync(AnalysisScope analysisScope, Action generateCompilationEventsOpt, Func<AsyncQueue<CompilationEvent>> getEventQueue, int newTaskToken, CancellationToken cancellationToken)
+        private async Task ComputeAnalyzerDiagnosticsAsync(AnalysisScope analysisScope, Action generateCompilationEventsOpt, Func<Task<AsyncQueue<CompilationEvent>>> getEventQueueTask, int newTaskToken, CancellationToken cancellationToken)
         {
             try
             {
@@ -552,11 +553,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 AsyncQueue<CompilationEvent> eventQueue = null;
                                                 try
                                                 {
-                                                // Get event queue with pending events to analyze.
-                                                eventQueue = getEventQueue();
+                                                    // Get event queue with pending events to analyze.
+                                                    eventQueue = await getEventQueueTask().ConfigureAwait(false);
 
-                                                // Execute analyzer driver on the given analysis scope with the given event queue.
-                                                await ComputeAnalyzerDiagnosticsCoreAsync(driver, eventQueue, analysisScope, cancellationToken: linkedCts.Token).ConfigureAwait(false);
+                                                    // Execute analyzer driver on the given analysis scope with the given event queue.
+                                                    await ComputeAnalyzerDiagnosticsCoreAsync(driver, eventQueue, analysisScope, cancellationToken: linkedCts.Token).ConfigureAwait(false);
                                                 }
                                                 finally
                                                 {
@@ -568,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 throw ExceptionUtilities.Unreachable;
                                             }
                                         },
-                                            linkedCts.Token),
+                                        linkedCts.Token),
                                         cts);
 
                                     // Wait for higher priority tree document tasks to complete.
@@ -671,7 +672,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 Debug.Assert(!driver.WhenInitializedTask.IsCanceled);
 
-                if (eventQueue.Count > 0 || _analysisState.HasPendingSyntaxAnalysis(analysisScope))
+                if (eventQueue.Count > 0 || (await _analysisState.HasPendingSyntaxAnalysisAsync(analysisScope, cancellationToken).ConfigureAwait(false)))
                 {
                     try
                     {
@@ -891,13 +892,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
-        private AsyncQueue<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree tree)
+        private async Task<AsyncQueue<CompilationEvent>> GetPendingEventsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree tree, CancellationToken cancellationToken)
         {
             var eventQueue = s_eventQueuePool.Allocate();
             Debug.Assert(!eventQueue.IsCompleted);
             Debug.Assert(eventQueue.Count == 0);
 
-            foreach (var compilationEvent in _analysisState.GetPendingEvents(analyzers, tree))
+            var pendingEvents = await _analysisState.GetPendingEventsAsync(analyzers, tree, cancellationToken).ConfigureAwait(false);
+            foreach (var compilationEvent in pendingEvents)
             {
                 eventQueue.Enqueue(compilationEvent);
             }
@@ -905,7 +907,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return eventQueue;
         }
 
-        private AsyncQueue<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, bool includeSourceEvents, bool includeNonSourceEvents)
+        private async Task<AsyncQueue<CompilationEvent>> GetPendingEventsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, bool includeSourceEvents, bool includeNonSourceEvents, CancellationToken cancellationToken)
         {
             Debug.Assert(includeSourceEvents || includeNonSourceEvents);
 
@@ -913,7 +915,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!eventQueue.IsCompleted);
             Debug.Assert(eventQueue.Count == 0);
 
-            foreach (var compilationEvent in _analysisState.GetPendingEvents(analyzers, includeSourceEvents, includeNonSourceEvents))
+            var pendingEvents = await _analysisState.GetPendingEventsAsync(analyzers, includeSourceEvents, includeNonSourceEvents, cancellationToken).ConfigureAwait(false);
+            foreach (var compilationEvent in pendingEvents)
             {
                 eventQueue.Enqueue(compilationEvent);
             }
@@ -923,7 +926,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void FreeEventQueue(AsyncQueue<CompilationEvent> eventQueue)
         {
-            if (eventQueue == null || ReferenceEquals(eventQueue, s_EmptyEventQueue))
+            if (eventQueue == null || ReferenceEquals(eventQueue, s_EmptyEventQueueTask.Result))
             {
                 return;
             }
