@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         ImmutableArray<IMemberInitializer> MemberInitializers { get; }
     }
 
-    public interface IMemberInitializer
+    public interface IMemberInitializer : IOperation
     {
         MemberInitializerKind MemberInitializerKind { get; }
         IExpression Value { get; }

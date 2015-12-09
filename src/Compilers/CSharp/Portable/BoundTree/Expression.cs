@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -54,12 +55,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operation != null)
                 {
                     this.nodes.Add(operation);
-                    if (operation is IInvocationExpression)
+                    switch (operation.Kind)
                     {
-                        nodes.AddRange(((IInvocationExpression)operation).ArgumentsInSourceOrder);
+                        case OperationKind.InvocationExpression:
+                            nodes.AddRange(((IInvocationExpression)operation).ArgumentsInSourceOrder);
+                            break;
+                        case OperationKind.ObjectCreationExpression:
+                            var objCreationExp = (IObjectCreationExpression)operation;
+                            nodes.AddRange(objCreationExp.ConstructorArguments);
+                            nodes.AddRange(objCreationExp.MemberInitializers);
+                            break;
                     }
                 }
-
                 return base.Visit(node);
             }
         }
@@ -324,14 +331,86 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression initializer = this.InitializerExpressionOpt;
                 if (initializer != null)
                 {
-                    return ((BoundObjectInitializerExpression)initializer).Initializers.CastArray<IMemberInitializer>();
-                }
+                    var objInitializerExp = initializer as BoundObjectInitializerExpression;
+                    if (objInitializerExp != null)
+                    {
+                        var builder = ArrayBuilder<IMemberInitializer>.GetInstance(objInitializerExp.Initializers.Length);
+                        foreach (var memberAssignment in objInitializerExp.Initializers)
+                        {
+                            var assignment = memberAssignment as BoundAssignmentOperator;
+                            var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.ExpressionSymbol;
 
+                            if (leftSymbol == null)
+                            {
+                                continue;
+                            }
+
+                            switch (leftSymbol.Kind)
+                            {
+                                case SymbolKind.Field:
+                                    builder.Add(new FieldInitializer(assignment.Syntax, (IFieldSymbol)leftSymbol, assignment.Right));
+                                    break;
+                                case SymbolKind.Property:
+                                    builder.Add(new PropertyInitializer(assignment.Syntax, ((IPropertySymbol)leftSymbol).SetMethod, assignment.Right));
+                                    break;
+                            }
+                        }
+                        return builder.ToImmutableAndFree();
+                    }
+                }
                 return ImmutableArray.Create<IMemberInitializer>();
             }
         }
 
         protected override OperationKind ExpressionKind => OperationKind.ObjectCreationExpression;
+
+        private class FieldInitializer : IFieldInitializer
+        {
+            private IFieldSymbol _field;
+            private SyntaxNode _syntax;
+            private IExpression _value;
+
+            public FieldInitializer(SyntaxNode syntax, IFieldSymbol field, IExpression value)
+            {
+                _syntax = syntax;
+                _field = field;
+                _value = value;
+            }
+
+            IFieldSymbol IFieldInitializer.Field => _field;
+
+            MemberInitializerKind IMemberInitializer.MemberInitializerKind => MemberInitializerKind.Field;
+
+            IExpression IMemberInitializer.Value => _value;
+
+            OperationKind IOperation.Kind => OperationKind.FieldInitializer;
+
+            SyntaxNode IOperation.Syntax => _syntax;
+        }
+
+        private class PropertyInitializer : IPropertyInitializer
+        {
+            private IMethodSymbol _setter;
+            private SyntaxNode _syntax;
+            private IExpression _value;
+
+            public PropertyInitializer(SyntaxNode syntax, IMethodSymbol setter, IExpression value)
+            {
+                _syntax = syntax;
+                _setter = setter;
+                _value = value;
+            }
+
+            OperationKind IOperation.Kind => OperationKind.PropertyInitializer;
+
+            MemberInitializerKind IMemberInitializer.MemberInitializerKind => MemberInitializerKind.Property;
+
+            IMethodSymbol IPropertyInitializer.Setter => _setter;
+
+            SyntaxNode IOperation.Syntax => _syntax;
+
+            IExpression IMemberInitializer.Value => _value;
+        }
     }
 
     partial class UnboundLambda

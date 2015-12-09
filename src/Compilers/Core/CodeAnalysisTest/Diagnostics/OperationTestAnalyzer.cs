@@ -448,7 +448,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  },
                  OperationKind.LiteralExpression);
         }
-    }/// <summary>Analyzer used to test IArgument IOperations.</summary>
+    }
+    
+    /// <summary>Analyzer used to test IArgument IOperations.</summary>
     public class NullArgumentTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Reliability".</summary>
@@ -480,6 +482,60 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
                  },
                  OperationKind.Argument);
+        }
+
+        private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
+        }
+    }
+
+    /// <summary>Analyzer used to test IMemberInitializer IOperations.</summary>
+    public class MemberInitializerTestAnalyzer : DiagnosticAnalyzer
+    {
+        /// <summary>Diagnostic category "Reliability".</summary>
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor DoNotUseFieldInitiliazerDescriptor = new DiagnosticDescriptor(
+            "DoNotUseFieldInitializer",
+            "Do Not Use Field Initializer",
+            "a filed initializer is used for object creation",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor DoNotUsePropertyInitializerDescriptor = new DiagnosticDescriptor(
+            "DoNotUsePropertyInitializer",
+            "Do Not Use Property Initializer",
+            "A property initializer is used for object creation",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(DoNotUseFieldInitiliazerDescriptor, DoNotUsePropertyInitializerDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var initializer = (IMemberInitializer)operationContext.Operation;
+                     switch (initializer.MemberInitializerKind)
+                     {
+                         case MemberInitializerKind.Field:
+                             Report(operationContext, initializer.Syntax, DoNotUseFieldInitiliazerDescriptor);
+                             break;
+                         case MemberInitializerKind.Property:
+                             Report(operationContext, initializer.Syntax, DoNotUsePropertyInitializerDescriptor);
+                             break;
+                     }
+                 },
+                 OperationKind.FieldInitializer,
+                 OperationKind.PropertyInitializer);
         }
 
         private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)

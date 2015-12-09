@@ -98,6 +98,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         ConditionalAccessExpression,
         IncrementExpression,
 
-        Argument
+        Argument,
+        FieldInitializer,
+        PropertyInitializer
     }
 }

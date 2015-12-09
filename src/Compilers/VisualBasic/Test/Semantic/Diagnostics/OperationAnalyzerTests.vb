@@ -670,6 +670,12 @@ End Class
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
+Class Foo
+    Public Sub New(X As String)
+
+    End Sub
+End Class
+
 Class C
     Public Sub M0(x As String, y As String)
     End Sub
@@ -680,6 +686,11 @@ Class C
         M0("""", Nothing)
         M0(Nothing, Nothing)
     End Sub
+
+    Public Sub M2()
+        Dim f1 = New Foo("""")
+        Dim f2 = New Foo(Nothing)
+    End Sub
 End Class
 ]]>
                              </file>
@@ -688,10 +699,50 @@ End Class
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New NullArgumentTestAnalyzer}, Nothing, Nothing, False,
-                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(7, 12),
-                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(8, 18),
-                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(9, 12),
-                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(9, 21))
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(13, 12),
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(14, 18),
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(15, 12),
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(15, 21),
+                                           Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(20, 26))
+        End Sub
+
+        <Fact>
+        Public Sub MemberInitializerVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class Bar
+    Public Field As Boolean
+End Class
+
+Class Foo
+    Public Field As Integer
+    Public Property Prop1 As String
+    Public Property Prop2 As Bar
+End Class
+
+Class C
+    Public Sub M1()
+        Dim f1 = New Foo()
+        Dim f2 = New Foo() With {.Field = 10}
+        Dim f3 = New Foo With {.Prop1 = Nothing}
+        Dim f4 = New Foo With {.Field = 10, .Prop1 = Nothing}
+        Dim f5 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New MemberInitializerTestAnalyzer}, Nothing, Nothing, False,
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, ".Field = 10").WithLocation(14, 34),
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, ".Prop1 = Nothing").WithLocation(15, 32),
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, ".Field = 10").WithLocation(16, 32),
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, ".Prop1 = Nothing").WithLocation(16, 45),
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, ".Prop2 = New Bar() With {.Field = True}").WithLocation(17, 32),
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, ".Field = True").WithLocation(17, 57))
         End Sub
     End Class
 End Namespace

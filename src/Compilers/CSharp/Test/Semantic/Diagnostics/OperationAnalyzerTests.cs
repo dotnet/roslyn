@@ -662,6 +662,12 @@ enum E
         public void NullArgumentCSharp()
         {
             const string source = @"
+class Foo
+{
+    public Foo(string x)
+    {}
+}
+
 class C
 {
     public void M1(string x, string y)
@@ -674,16 +680,62 @@ class C
         M1("""", null);
         M1(null, null);
     }
+
+    public void M3()
+    {
+        var f1 = new Foo("""");
+        var f2 = new Foo(null);
+    }
 }
 ";
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NullArgumentTestAnalyzer() }, null, null, false, 
-            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(10, 12),
-            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(11, 16),
-            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(12, 12),
-            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(12, 18)
+                Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(16, 12),
+                Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(17, 16),
+                Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(18, 12),
+                Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(18, 18),
+                Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(24, 26)
                 );
+        }
+
+        [Fact]
+        public void MemberInitializerCSharp()
+        {
+            const string source = @"
+struct Bar
+{
+    public bool Field;
+}
+
+class Foo
+{
+    public int Field;
+    public string Property1 { set; get; }
+    public Bar Property2 { set; get; }
+}
+
+class C
+{
+    public void M1()
+    {
+        var x1 = new Foo();
+        var x2 = new Foo() { Field = 2};
+        var x3 = new Foo() { Property1 = """"};
+        var x4 = new Foo() { Property1 = """", Field = 2};
+        var x5 = new Foo() { Property2 = new Bar { Field = true } };
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberInitializerTestAnalyzer() }, null, null, false, 
+            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, "Field = 2").WithLocation(19, 30),
+            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, @"Property1 = """"").WithLocation(20, 30),
+            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, @"Property1 = """"").WithLocation(21, 30),
+            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, "Field = 2").WithLocation(21, 46),
+            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, "Property2 = new Bar { Field = true }").WithLocation(22, 30),
+            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, "Field = true").WithLocation(22, 52));
         }
     }
 }

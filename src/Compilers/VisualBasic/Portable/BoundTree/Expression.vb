@@ -37,9 +37,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim operation = TryCast(node, IOperation)
                 If operation IsNot Nothing Then
                     Me.nodes.Add(operation)
-                    If TypeOf operation Is IInvocationExpression Then
-                        Me.nodes.AddRange(CType(operation, IInvocationExpression).ArgumentsInSourceOrder)
-                    End If
+                    Select Case operation.Kind
+                        Case OperationKind.InvocationExpression
+                            Me.nodes.AddRange(CType(operation, IInvocationExpression).ArgumentsInSourceOrder)
+                            Exit Select
+                        Case OperationKind.ObjectCreationExpression
+                            Dim objCreationExp = CType(operation, IObjectCreationExpression)
+                            Me.nodes.AddRange(objCreationExp.ConstructorArguments)
+                            Me.nodes.AddRange(objCreationExp.MemberInitializers)
+                            Exit Select
+                    End Select
                 End If
                 Return MyBase.Visit(node)
             End Function
@@ -987,9 +994,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IMemberInitializers As ImmutableArray(Of IMemberInitializer) Implements IObjectCreationExpression.MemberInitializers
             Get
-                Dim initializer As BoundObjectInitializerExpressionBase = Me.InitializerOpt
-                If initializer IsNot Nothing Then
-                    ' ZZZ What's the representation in bound trees?
+                Dim objInitializerExp As BoundObjectInitializerExpressionBase = Me.InitializerOpt
+                If objInitializerExp IsNot Nothing Then
+                    Dim builder = ArrayBuilder(Of IMemberInitializer).GetInstance(objInitializerExp.Initializers.Length)
+                    For Each memberAssignment In objInitializerExp.Initializers
+                        Dim assignment = TryCast(memberAssignment, BoundAssignmentOperator)
+                        Dim left = assignment?.Left
+                        If left IsNot Nothing Then
+                            Select Case left.Kind
+                                Case BoundKind.FieldAccess
+                                    builder.Add(New FieldInitializer(assignment.Syntax, CType(left, BoundFieldAccess).FieldSymbol, assignment.Right))
+                                    Exit Select
+                                Case BoundKind.PropertyAccess
+                                    builder.Add(New PropertyInitializer(assignment.Syntax, CType(left, BoundPropertyAccess).PropertySymbol.SetMethod, assignment.Right))
+                                    Exit Select
+                            End Select
+                        End If
+                    Next
+                    Return builder.ToImmutableAndFree()
                 End If
 
                 Return ImmutableArray.Create(Of IMemberInitializer)()
@@ -999,6 +1021,95 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ObjectCreationExpression
         End Function
+
+        Private Class FieldInitializer
+            Implements IFieldInitializer
+
+            Private _field As IFieldSymbol
+            Private _syntax As SyntaxNode
+            Private _value As IExpression
+
+            Public Sub New(syntax As SyntaxNode, field As IFieldSymbol, value As IExpression)
+                _field = field
+                _syntax = syntax
+                _value = value
+            End Sub
+
+            Public ReadOnly Property Field As IFieldSymbol Implements IFieldInitializer.Field
+                Get
+                    Return _field
+                End Get
+            End Property
+
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                Get
+                    Return OperationKind.FieldInitializer
+                End Get
+            End Property
+
+            Public ReadOnly Property MemberInitializerKind As MemberInitializerKind Implements IMemberInitializer.MemberInitializerKind
+                Get
+                    Return MemberInitializerKind.Field
+                End Get
+            End Property
+
+            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                Get
+                    Return _syntax
+                End Get
+            End Property
+
+            Public ReadOnly Property Value As IExpression Implements IMemberInitializer.Value
+                Get
+                    Return _value
+                End Get
+            End Property
+        End Class
+
+        Private Class PropertyInitializer
+            Implements IPropertyInitializer
+
+            Private _setter As IMethodSymbol
+            Private _syntax As SyntaxNode
+            Private _value As IExpression
+
+            Public Sub New(syntax As SyntaxNode, setter As IMethodSymbol, value As IExpression)
+                _setter = setter
+                _syntax = syntax
+                _value = value
+            End Sub
+
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                Get
+                    Return OperationKind.PropertyInitializer
+                End Get
+            End Property
+
+            Public ReadOnly Property MemberInitializerKind As MemberInitializerKind Implements IMemberInitializer.MemberInitializerKind
+                Get
+                    Return MemberInitializerKind.Property
+                End Get
+            End Property
+
+            Public ReadOnly Property Setter As IMethodSymbol Implements IPropertyInitializer.Setter
+                Get
+                    Return _setter
+                End Get
+            End Property
+
+            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                Get
+                    Return _syntax
+                End Get
+            End Property
+
+            Public ReadOnly Property Value As IExpression Implements IMemberInitializer.Value
+                Get
+                    Return _value
+                End Get
+            End Property
+        End Class
+
     End Class
 
     Partial Class BoundNewT
