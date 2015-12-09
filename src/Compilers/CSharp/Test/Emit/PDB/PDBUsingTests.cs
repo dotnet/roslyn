@@ -2135,6 +2135,55 @@ class C
         }
 
         [Fact]
+        public void UnusedImports_Nonexisting()
+        {
+            var source = @"
+extern alias A;
+using B;
+using X = C.D;
+using Y = A::E;
+using Z = F<int>;
+
+class C
+{
+    static void Main() 
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0246: The type or namespace name 'F<int>' could not be found (are you missing a using directive or an assembly reference?)
+                // using Z = F<int>;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F<int>").WithArguments("F<int>"),
+                // (5,14): error CS0234: The type or namespace name 'E' does not exist in the namespace 'A' (are you missing an assembly reference?)
+                // using Y = A::E;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "E").WithArguments("E", "A"),
+                // (4,13): error CS0426: The type name 'D' does not exist in the type 'C'
+                // using X = C.D;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "D").WithArguments("D", "C"),
+                // (2,14): error CS0430: The extern alias 'A' was not specified in a /reference option
+                // extern alias A;
+                Diagnostic(ErrorCode.ERR_BadExternAlias, "A").WithArguments("A"),
+                // (3,7): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // using B;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B"),
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using B;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using B;"),
+                // (4,1): hidden CS8019: Unnecessary using directive.
+                // using X = C.D;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = C.D;"),
+                // (6,1): hidden CS8019: Unnecessary using directive.
+                // using Z = F<int>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Z = F<int>;"),
+                // (5,1): hidden CS8019: Unnecessary using directive.
+                // using Y = A::E;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = A::E;"));
+        }
+
+        [Fact]
         public void EmittingPdbVsNot()
         {
             string source = @"

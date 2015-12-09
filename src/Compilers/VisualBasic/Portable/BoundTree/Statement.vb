@@ -92,7 +92,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IClauses As ImmutableArray(Of ICaseClause) Implements ICase.Clauses
             Get
-                If Me.CaseStatement.CaseClauses.IsEmpty Then
+                ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses, 
+                ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
+                If Me.CaseStatement.CaseClauses.IsEmpty AndAlso Me.CaseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
                     Return ImmutableArray.Create(CaseElseClause)
                 End If
 
@@ -108,7 +110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Class CaseElse
             Implements ICaseClause
-
             Private ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseKind
                 Get
                     Return CaseKind.Default
@@ -171,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides ReadOnly Property ICaseClass As CaseKind
             Get
-                Return If(Me.IValue IsNot Nothing, CaseKind.SingleValue, CaseKind.Default)
+                Return CaseKind.SingleValue
             End Get
         End Property
     End Class

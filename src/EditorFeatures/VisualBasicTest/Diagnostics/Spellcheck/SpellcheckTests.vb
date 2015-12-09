@@ -312,7 +312,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestActionCountAsync(text.ConvertTestSourceTag(), 3)
+            Await TestActionCountAsync(text.ConvertTestSourceTag(), 2)
             Await TestAsync(text, expected, index:=0)
         End Function
 
@@ -433,7 +433,7 @@ End Module</File>
 ' Import System.Collections to ensure we get BC32045
 Imports System.Collections
 
-Interface IOrderable(Of T)
+Interface Enumerable(Of T)
 End Interface
 
 Class C
@@ -446,12 +446,12 @@ End Class</File>
 ' Import System.Collections to ensure we get BC32045
 Imports System.Collections
 
-Interface IOrderable(Of T)
+Interface Enumerable(Of T)
 End Interface
 
 Class C
     Sub Main(args As String())
-        Dim x as IOrderable(Of Integer)
+        Dim x as Enumerable(Of Integer)
     End Sub
 End Class</File>
 
