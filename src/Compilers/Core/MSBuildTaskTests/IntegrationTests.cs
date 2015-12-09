@@ -54,42 +54,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             _buildTaskDll = typeof(ManagedCompiler).Assembly.Location;
         }
 
-        public override void Dispose()
-        {
-            // Bug 7107: this unit test can spawn off multiple VBCSCompiler processes that need to be 
-            // cleaned up.  This is spawned as a grand child process of the unit test process and there
-            // is no reasonable way to determine its ID.  Hence to avoid hundreds of zombie processs
-            // on the machine we kill all VBCSCompiler processes created after this test started running.
-            //
-            // This is absolutely a hack.  Bug 7107 tracks doing this correctly by moving the server in 
-            // process for the unit tests.  
-            foreach (var process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension("VBCSCompiler")))
-            {
-                if (_existingServerList.Any(p => p.Id == process.Id))
-                {
-                    continue;
-                }
-
-                Kill(process);
-            }
-
-            base.Dispose();
-        }
-
-        private static void Kill(Process process)
-        {
-            try
-            {
-                process.Kill();
-                process.WaitForExit();
-            }
-            catch (Exception)
-            {
-                // Happens when process is killed before the Kill command is executed.  That's fine.  We
-                // just want to make sure the process is gone.
-            }
-        }
-
         private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>> vars)
         {
             vars = vars ?? new KeyValuePair<string, string>[] { };
@@ -453,7 +417,7 @@ End Class
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1445")]
         public void SimpleMSBuild()
         {
-            string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
+            string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
             var result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
 
             using (var resultFile = GetResultFile(_tempDirectory, @"bin\debug\helloproj.exe"))
@@ -891,7 +855,7 @@ End Class
         [Fact]
         public void ReportAnalyzerMSBuild()
         {
-            string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
+            string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
             var result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
                 new Dictionary<string, string>
                 { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(IntegrationTests).Assembly.Location) } });
@@ -1067,7 +1031,7 @@ namespace Class____foo____Library1
 }
 ");
 
-            var result = RunCommandLineCompiler(s_msbuildExecutable, "", testDir.Path);
+            var result = RunCommandLineCompiler(s_msbuildExecutable, "/p:UseSharedCompilation=false", testDir.Path);
             Assert.Equal(0, result.ExitCode);
             Assert.Equal("", result.Errors);
         }
