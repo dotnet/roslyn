@@ -168,6 +168,7 @@ namespace Roslyn.Utilities
                 var DA = new Dictionary<char, int>();
 
                 var max = sourceLength + targetLength + 1;
+                matrix[0, 0] = max;
                 for (int i = 0; i <= sourceLength; i++)
                 {
                     matrix[i + 1, 1] = i;
