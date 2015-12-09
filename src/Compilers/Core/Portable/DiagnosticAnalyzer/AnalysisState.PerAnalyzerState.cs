@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Roslyn.Utilities;
 
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private class PerAnalyzerState
         {
-            private readonly object _gate = new object();
+            private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
             private readonly Dictionary<CompilationEvent, AnalyzerStateData> _pendingEvents = new Dictionary<CompilationEvent, AnalyzerStateData>();
             private readonly Dictionary<ISymbol, AnalyzerStateData> _pendingSymbols = new Dictionary<ISymbol, AnalyzerStateData>();
             private readonly Dictionary<SyntaxNode, DeclarationAnalyzerStateData> _pendingDeclarations = new Dictionary<SyntaxNode, DeclarationAnalyzerStateData>();
@@ -33,35 +35,51 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public IEnumerable<CompilationEvent> PendingEvents_NoLock => _pendingEvents.Keys;
 
-            public bool HasPendingSyntaxAnalysis(SyntaxTree treeOpt)
+            public async Task<bool> HasPendingSyntaxAnalysisAsync(SyntaxTree treeOpt, CancellationToken cancellationToken)
             {
-                lock (_gate)
+                try
                 {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     return _lazyPendingSyntaxAnalysisTrees != null &&
                         (treeOpt != null ? _lazyPendingSyntaxAnalysisTrees.ContainsKey(treeOpt) : _lazyPendingSyntaxAnalysisTrees.Count > 0);
                 }
+                finally
+                {
+                    _gate.Release();
+                }
             }
 
-            public bool HasPendingSymbolAnalysis(ISymbol symbol)
+            public async Task<bool> HasPendingSymbolAnalysisAsync(ISymbol symbol, CancellationToken cancellationToken)
             {
-                lock (_gate)
+                try
                 {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     return _pendingSymbols.ContainsKey(symbol);
                 }
-            }
-
-            private bool TryStartProcessingEntity<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData> pendingEntities, ObjectPool<TAnalyzerStateData> pool, out TAnalyzerStateData newState)
-                where TAnalyzerStateData : AnalyzerStateData, new()
-            {
-                lock (_gate)
+                finally
                 {
-                    return TryStartProcessingEntity_NoLock(analysisEntity, pendingEntities, pool, out newState);
+                    _gate.Release();
                 }
             }
 
-            private static bool TryStartProcessingEntity_NoLock<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData> pendingEntities, ObjectPool<TAnalyzerStateData> pool, out TAnalyzerStateData state)
+            private async Task<TAnalyzerStateData> TryStartProcessingEntityAsync<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData> pendingEntities, ObjectPool<TAnalyzerStateData> pool, CancellationToken cancellationToken)
+                where TAnalyzerStateData : AnalyzerStateData, new()
+            {
+                try
+                {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    return TryStartProcessingEntity_NoLock(analysisEntity, pendingEntities, pool);
+                }
+                finally
+                {
+                    _gate.Release();
+                }
+            }
+
+            private static TAnalyzerStateData TryStartProcessingEntity_NoLock<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData> pendingEntities, ObjectPool<TAnalyzerStateData> pool)
                 where TAnalyzerStateData : AnalyzerStateData
             {
+                TAnalyzerStateData state;
                 if (pendingEntities.TryGetValue(analysisEntity, out state) &&
                     (state == null || state.StateKind == StateKind.ReadyToProcess))
                 {
@@ -73,19 +91,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     state.SetStateKind(StateKind.InProcess);
                     Debug.Assert(state.StateKind == StateKind.InProcess);
                     pendingEntities[analysisEntity] = state;
-                    return true;
+                    return state;
                 }
 
-                state = null;
-                return false;
+                return null;
             }
 
-            private void MarkEntityProcessed<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData> pendingEntities, ObjectPool<TAnalyzerStateData> pool)
+            private async Task MarkEntityProcessedAsync<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData> pendingEntities, ObjectPool<TAnalyzerStateData> pool, CancellationToken cancellationToken)
                 where TAnalyzerStateData : AnalyzerStateData
             {
-                lock (_gate)
+                try
                 {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     MarkEntityProcessed_NoLock(analysisEntity, pendingEntities, pool);
+                }
+                finally
+                {
+                    _gate.Release();
                 }
             }
 
@@ -104,12 +126,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            private bool IsEntityFullyProcessed<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData> pendingEntities)
+            private async Task<bool> IsEntityFullyProcessedAsync<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData> pendingEntities, CancellationToken cancellationToken)
                 where TAnalyzerStateData : AnalyzerStateData
             {
-                lock (_gate)
+                try
                 {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     return IsEntityFullyProcessed_NoLock(analysisEntity, pendingEntities);
+                }
+                finally
+                {
+                    _gate.Release();
                 }
             }
 
@@ -119,132 +146,157 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return !pendingEntities.ContainsKey(analysisEntity);
             }
 
-            public bool TryStartProcessingEvent(CompilationEvent compilationEvent, out AnalyzerStateData state)
+            public Task<AnalyzerStateData> TryStartProcessingEventAsync(CompilationEvent compilationEvent, CancellationToken cancellationToken)
             {
-                return TryStartProcessingEntity(compilationEvent, _pendingEvents, _analyzerStateDataPool, out state);
+                return TryStartProcessingEntityAsync(compilationEvent, _pendingEvents, _analyzerStateDataPool, cancellationToken);
             }
 
-            public void MarkEventComplete(CompilationEvent compilationEvent)
+            public Task MarkEventCompleteAsync(CompilationEvent compilationEvent, CancellationToken cancellationToken)
             {
-                MarkEntityProcessed(compilationEvent, _pendingEvents, _analyzerStateDataPool);
+                return MarkEntityProcessedAsync(compilationEvent, _pendingEvents, _analyzerStateDataPool, cancellationToken);
             }
 
-            public bool TryStartAnalyzingSymbol(ISymbol symbol, out AnalyzerStateData state)
+            public Task<AnalyzerStateData> TryStartAnalyzingSymbolAsync(ISymbol symbol, CancellationToken cancellationToken)
             {
-                return TryStartProcessingEntity(symbol, _pendingSymbols, _analyzerStateDataPool, out state);
+                return TryStartProcessingEntityAsync(symbol, _pendingSymbols, _analyzerStateDataPool, cancellationToken);
             }
 
-            public void MarkSymbolComplete(ISymbol symbol)
+            public Task MarkSymbolCompleteAsync(ISymbol symbol, CancellationToken cancellationToken)
             {
-                MarkEntityProcessed(symbol, _pendingSymbols, _analyzerStateDataPool);
+                return MarkEntityProcessedAsync(symbol, _pendingSymbols, _analyzerStateDataPool, cancellationToken);
             }
 
-            public bool TryStartAnalyzingDeclaration(SyntaxReference decl, out DeclarationAnalyzerStateData state)
+            public Task<DeclarationAnalyzerStateData> TryStartAnalyzingDeclarationAsync(SyntaxReference decl, CancellationToken cancellationToken)
             {
-                return TryStartProcessingEntity(decl.GetSyntax(), _pendingDeclarations, _declarationAnalyzerStateDataPool, out state);
+                return TryStartProcessingEntityAsync(decl.GetSyntax(), _pendingDeclarations, _declarationAnalyzerStateDataPool, cancellationToken);
             }
 
-            public bool IsDeclarationComplete(SyntaxNode decl)
+            public Task<bool> IsDeclarationCompleteAsync(SyntaxNode decl, CancellationToken cancellationToken)
             {
-                return IsEntityFullyProcessed(decl, _pendingDeclarations);
+                return IsEntityFullyProcessedAsync(decl, _pendingDeclarations, cancellationToken);
             }
 
-            public void MarkDeclarationComplete(SyntaxReference decl)
+            public Task MarkDeclarationCompleteAsync(SyntaxReference decl, CancellationToken cancellationToken)
             {
-                MarkEntityProcessed(decl.GetSyntax(), _pendingDeclarations, _declarationAnalyzerStateDataPool);
+                return MarkEntityProcessedAsync(decl.GetSyntax(), _pendingDeclarations, _declarationAnalyzerStateDataPool, cancellationToken);
             }
 
-            public bool TryStartSyntaxAnalysis(SyntaxTree tree, out AnalyzerStateData state)
+            public Task<AnalyzerStateData> TryStartSyntaxAnalysisAsync(SyntaxTree tree, CancellationToken cancellationToken)
             {
                 Debug.Assert(_lazyPendingSyntaxAnalysisTrees != null);
-                return TryStartProcessingEntity(tree, _lazyPendingSyntaxAnalysisTrees, _analyzerStateDataPool, out state);
+                return TryStartProcessingEntityAsync(tree, _lazyPendingSyntaxAnalysisTrees, _analyzerStateDataPool, cancellationToken);
             }
 
-            public void MarkSyntaxAnalysisComplete(SyntaxTree tree)
+            public async Task MarkSyntaxAnalysisCompleteAsync(SyntaxTree tree, CancellationToken cancellationToken)
             {
                 if (_lazyPendingSyntaxAnalysisTrees != null)
                 {
-                    MarkEntityProcessed(tree, _lazyPendingSyntaxAnalysisTrees, _analyzerStateDataPool);
+                    await MarkEntityProcessedAsync(tree, _lazyPendingSyntaxAnalysisTrees, _analyzerStateDataPool, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            public void MarkDeclarationsComplete(ImmutableArray<SyntaxReference> declarations)
+            public async Task MarkDeclarationsCompleteAsync(ImmutableArray<SyntaxReference> declarations, CancellationToken cancellationToken)
             {
-                lock (_gate)
+                try
                 {
-                    foreach (var syntaxRef in declarations)
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    MarkDeclarationsComplete_NoLock(declarations);
+                }
+                finally
+                {
+                    _gate.Release();
+                }
+            }
+
+            private void MarkDeclarationsComplete_NoLock(ImmutableArray<SyntaxReference> declarations)
+            {
+                foreach (var syntaxRef in declarations)
+                {
+                    MarkEntityProcessed_NoLock(syntaxRef.GetSyntax(), _pendingDeclarations, _declarationAnalyzerStateDataPool);
+                }
+            }
+
+            public async Task OnCompilationEventGeneratedAsync(CompilationEvent compilationEvent, AnalyzerActionCounts actionCounts, CancellationToken cancellationToken)
+            {
+                try
+                {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    OnCompilationEventGenerated_NoLock(compilationEvent, actionCounts);
+                }
+                finally
+                {
+                    _gate.Release();
+                }
+            }
+
+            private void OnCompilationEventGenerated_NoLock(CompilationEvent compilationEvent, AnalyzerActionCounts actionCounts)
+            {
+                var symbolEvent = compilationEvent as SymbolDeclaredCompilationEvent;
+                if (symbolEvent != null)
+                {
+                    var needsAnalysis = false;
+                    var symbol = symbolEvent.Symbol;
+                    if (!AnalysisScope.ShouldSkipSymbolAnalysis(symbolEvent) && actionCounts.SymbolActionsCount > 0)
                     {
-                        MarkEntityProcessed_NoLock(syntaxRef.GetSyntax(), _pendingDeclarations, _declarationAnalyzerStateDataPool);
+                        needsAnalysis = true;
+                        _pendingSymbols[symbol] = null;
                     }
-                }
-            }
 
-            public void OnCompilationEventGenerated(CompilationEvent compilationEvent, AnalyzerActionCounts actionCounts)
-            {
-                lock (_gate)
-                {
-                    var symbolEvent = compilationEvent as SymbolDeclaredCompilationEvent;
-                    if (symbolEvent != null)
+                    if (!AnalysisScope.ShouldSkipDeclarationAnalysis(symbol) &&
+                        (actionCounts.SyntaxNodeActionsCount > 0 ||
+                        actionCounts.CodeBlockActionsCount > 0 ||
+                        actionCounts.CodeBlockStartActionsCount > 0))
                     {
-                        var needsAnalysis = false;
-                        var symbol = symbolEvent.Symbol;
-                        if (!AnalysisScope.ShouldSkipSymbolAnalysis(symbolEvent) && actionCounts.SymbolActionsCount > 0)
+                        foreach (var syntaxRef in symbolEvent.DeclaringSyntaxReferences)
                         {
                             needsAnalysis = true;
-                            _pendingSymbols[symbol] = null;
-                        }
-
-                        if (!AnalysisScope.ShouldSkipDeclarationAnalysis(symbol) &&
-                            (actionCounts.SyntaxNodeActionsCount > 0 ||
-                            actionCounts.CodeBlockActionsCount > 0 ||
-                            actionCounts.CodeBlockStartActionsCount > 0))
-                        {
-                            foreach (var syntaxRef in symbolEvent.DeclaringSyntaxReferences)
-                            {
-                                needsAnalysis = true;
-                                _pendingDeclarations[syntaxRef.GetSyntax()] = null;
-                            }
-                        }
-
-                        if (!needsAnalysis)
-                        {
-                            return;
+                            _pendingDeclarations[syntaxRef.GetSyntax()] = null;
                         }
                     }
-                    else if (compilationEvent is CompilationStartedEvent)
+
+                    if (!needsAnalysis)
                     {
-                        if (actionCounts.SyntaxTreeActionsCount > 0)
+                        return;
+                    }
+                }
+                else if (compilationEvent is CompilationStartedEvent)
+                {
+                    if (actionCounts.SyntaxTreeActionsCount > 0)
+                    {
+                        var trees = compilationEvent.Compilation.SyntaxTrees;
+                        var map = new Dictionary<SyntaxTree, AnalyzerStateData>(trees.Count());
+                        foreach (var tree in trees)
                         {
-                            var trees = compilationEvent.Compilation.SyntaxTrees;
-                            var map = new Dictionary<SyntaxTree, AnalyzerStateData>(trees.Count());
-                            foreach (var tree in trees)
-                            {
-                                map[tree] = null;
-                            }
-
-                            _lazyPendingSyntaxAnalysisTrees = map;
+                            map[tree] = null;
                         }
 
-                        if (actionCounts.CompilationActionsCount == 0)
-                        {
-                            return;
-                        }
+                        _lazyPendingSyntaxAnalysisTrees = map;
                     }
 
-                    _pendingEvents[compilationEvent] = null;
+                    if (actionCounts.CompilationActionsCount == 0)
+                    {
+                        return;
+                    }
                 }
+
+                _pendingEvents[compilationEvent] = null;
             }
 
-            public bool IsEventAnalyzed(CompilationEvent compilationEvent)
+            public Task<bool> IsEventAnalyzedAsync(CompilationEvent compilationEvent, CancellationToken cancellationToken)
             {
-                return IsEntityFullyProcessed(compilationEvent, _pendingEvents);
+                return IsEntityFullyProcessedAsync(compilationEvent, _pendingEvents, cancellationToken);
             }
 
-            public void OnSymbolDeclaredEventProcessed(SymbolDeclaredCompilationEvent symbolDeclaredEvent)
+            public async Task OnSymbolDeclaredEventProcessedAsync(SymbolDeclaredCompilationEvent symbolDeclaredEvent, CancellationToken cancellationToken)
             {
-                lock (_gate)
+                try
                 {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     OnSymbolDeclaredEventProcessed_NoLock(symbolDeclaredEvent);
+                }
+                finally
+                {
+                    _gate.Release();
                 }
             }
 
