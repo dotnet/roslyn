@@ -118,12 +118,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs">
       <Link>InternalUtilities\ReferenceEqualityComparer.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs">
-      <Link>InternalUtilities\SemaphoreSlimExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimFactory.cs">
-      <Link>InternalUtilities\SemaphoreSlimFactory.cs</Link>
-    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs">  
+      <Link>InternalUtilities\SemaphoreSlimExtensions.cs</Link>  
+    </Compile>  
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs">
       <Link>InternalUtilities\SpecializedCollections.cs</Link>
     </Compile>
@@ -796,6 +793,7 @@
     <Compile Include="Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="Utilities\AnnotationTable.cs" />
     <Compile Include="Utilities\AsyncLazy`1.cs" />
+    <Compile Include="Utilities\SemaphoreSlimFactory.cs" />
     <Compile Include="Utilities\BidirectionalMap.cs" />
     <Compile Include="Utilities\CancellableLazy.cs" />
     <Compile Include="Utilities\CancellableLazy`1.cs" />

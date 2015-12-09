@@ -15,8 +15,9 @@ using Roslyn.Utilities;
 using AnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.AnalyzerStateData;
 using SyntaxNodeAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.SyntaxNodeAnalyzerStateData;
 using OperationAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.OperationAnalyzerStateData;
+using CodeBlockAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.CodeBlockAnalyzerStateData;
 using DeclarationAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.DeclarationAnalyzerStateData;
-using System.Threading.Tasks;
+
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
         private readonly AnalyzerManager _analyzerManager;
         private readonly Func<DiagnosticAnalyzer, bool> _isCompilerAnalyzer;
-        private readonly Func<DiagnosticAnalyzer, SemaphoreSlim> _getAnalyzerGateOpt;
+        private readonly Func<DiagnosticAnalyzer, object> _getAnalyzerGateOpt;
         private readonly ConcurrentDictionary<DiagnosticAnalyzer, TimeSpan> _analyzerExecutionTimeMapOpt;
 
         private readonly CancellationToken _cancellationToken;
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
-            Func<DiagnosticAnalyzer, SemaphoreSlim> getAnalyzerGate,
+            Func<DiagnosticAnalyzer, object> getAnalyzerGate,
             bool logExecutionTime = false,
             Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticOpt = null,
             Action<Diagnostic, DiagnosticAnalyzer> addNonLocalDiagnosticOpt = null,
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
-            Func<DiagnosticAnalyzer, SemaphoreSlim> getAnalyzerGateOpt,
+            Func<DiagnosticAnalyzer, object> getAnalyzerGateOpt,
             ConcurrentDictionary<DiagnosticAnalyzer, TimeSpan> analyzerExecutionTimeMapOpt,
             Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticOpt,
             Action<Diagnostic, DiagnosticAnalyzer> addNonLocalDiagnosticOpt,
@@ -165,13 +166,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="sessionScope">Session scope to store register session wide analyzer actions.</param>
         /// <remarks>
         /// Note that this API doesn't execute any <see cref="CompilationStartAnalyzerAction"/> registered by the Initialize invocation.
-        /// Use <see cref="ExecuteCompilationStartActionsAsync(ImmutableArray{CompilationStartAnalyzerAction}, HostCompilationStartAnalysisScope)"/> API
+        /// Use <see cref="ExecuteCompilationStartActions(ImmutableArray{CompilationStartAnalyzerAction}, HostCompilationStartAnalysisScope)"/> API
         /// to get execute these actions to get the per-compilation analyzer actions.
         /// </remarks>
-        public async Task ExecuteInitializeMethodAsync(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope sessionScope)
+        public void ExecuteInitializeMethod(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope sessionScope)
         {
             // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
-            await ExecuteAndCatchIfThrowsAsync(analyzer, () => analyzer.Initialize(new AnalyzerAnalysisContext(analyzer, sessionScope))).ConfigureAwait(false);
+            ExecuteAndCatchIfThrows(analyzer, () => analyzer.Initialize(new AnalyzerAnalysisContext(analyzer, sessionScope)));
         }
 
         /// <summary>
@@ -179,13 +180,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="actions"><see cref="AnalyzerActions"/> whose compilation start actions are to be executed.</param>
         /// <param name="compilationScope">Compilation scope to store the analyzer actions.</param>
-        public async Task ExecuteCompilationStartActionsAsync(ImmutableArray<CompilationStartAnalyzerAction> actions, HostCompilationStartAnalysisScope compilationScope)
+        public void ExecuteCompilationStartActions(ImmutableArray<CompilationStartAnalyzerAction> actions, HostCompilationStartAnalysisScope compilationScope)
         {
             foreach (var startAction in actions)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                await ExecuteAndCatchIfThrowsAsync(startAction.Analyzer,
-                    () => startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope, _compilation, _analyzerOptions, _cancellationToken))).ConfigureAwait(false);
+                ExecuteAndCatchIfThrows(startAction.Analyzer,
+                    () => startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope, _compilation, _analyzerOptions, _cancellationToken)));
             }
         }
 
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="compilationEvent">Compilation event.</param>
         /// <param name="analysisScope">Scope for analyzer execution.</param>
         /// <param name="analysisStateOpt">An optional object to track analysis state.</param>
-        public async Task ExecuteCompilationActionsAsync(
+        public void ExecuteCompilationActions(
             ImmutableArray<CompilationAnalyzerAction> compilationActions,
             DiagnosticAnalyzer analyzer,
             CompilationEvent compilationEvent,
@@ -210,24 +211,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
-                analyzerStateOpt = await TryStartProcessingEventAsync(compilationEvent, analyzer, analysisScope, analysisStateOpt, _cancellationToken).ConfigureAwait(false);
-                if (analysisStateOpt == null || analyzerStateOpt != null)
+                if (TryStartProcessingEvent(compilationEvent, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
                 {
-                    await ExecuteCompilationActionsCoreAsync(compilationActions, analyzer, analyzerStateOpt).ConfigureAwait(false);
-
-                    if (analysisStateOpt != null)
-                    {
-                        await analysisStateOpt.MarkEventCompleteAsync(compilationEvent, analyzer, _cancellationToken).ConfigureAwait(false);
+                    ExecuteCompilationActionsCore(compilationActions, analyzer, analyzerStateOpt);
+                    analysisStateOpt?.MarkEventComplete(compilationEvent, analyzer);
                     }
                 }
-            }
             finally
             {
                 analyzerStateOpt?.ResetToReadyState();
             }
         }
 
-        private async Task ExecuteCompilationActionsCoreAsync(ImmutableArray<CompilationAnalyzerAction> compilationActions, DiagnosticAnalyzer analyzer, AnalyzerStateData analyzerStateOpt)
+        private void ExecuteCompilationActionsCore(ImmutableArray<CompilationAnalyzerAction> compilationActions, DiagnosticAnalyzer analyzer, AnalyzerStateData analyzerStateOpt)
         {
             var addDiagnostic = GetAddCompilationDiagnostic(analyzer);
 
@@ -237,9 +233,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (ShouldExecuteAction(analyzerStateOpt, endAction))
                 {
-                    await ExecuteAndCatchIfThrowsAsync(endAction.Analyzer,
+                    ExecuteAndCatchIfThrows(endAction.Analyzer,
                         () => endAction.Action(new CompilationAnalysisContext(_compilation, _analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(endAction.Analyzer, d), _cancellationToken))).ConfigureAwait(false);
+                            d => IsSupportedDiagnostic(endAction.Analyzer, d), _cancellationToken)));
 
                     analyzerStateOpt?.ProcessedActions.Add(endAction);
                 }
@@ -255,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="getTopMostNodeForAnalysis">Delegate to get topmost declaration node for a symbol declaration reference.</param>
         /// <param name="analysisScope">Scope for analyzer execution.</param>
         /// <param name="analysisStateOpt">An optional object to track analysis state.</param>
-        public async Task ExecuteSymbolActionsAsync(
+        public void ExecuteSymbolActions(
             ImmutableArray<SymbolAnalyzerAction> symbolActions,
             DiagnosticAnalyzer analyzer,
             ISymbol symbol,
@@ -267,24 +263,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
-                analyzerStateOpt = await TryStartAnalyzingSymbolAsync(symbol, analyzer, analysisScope, analysisStateOpt, _cancellationToken).ConfigureAwait(false);
-                if (analysisStateOpt == null || analyzerStateOpt != null)
+                if (TryStartAnalyzingSymbol(symbol, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
                 {
-                    await ExecuteSymbolActionsCoreAsync(symbolActions, analyzer, symbol, getTopMostNodeForAnalysis, analyzerStateOpt).ConfigureAwait(false);
-
-                    if (analysisStateOpt != null)
-                    {
-                        await analysisStateOpt.MarkSymbolCompleteAsync(symbol, analyzer, _cancellationToken).ConfigureAwait(false);
+                    ExecuteSymbolActionsCore(symbolActions, analyzer, symbol, getTopMostNodeForAnalysis, analyzerStateOpt);
+                    analysisStateOpt?.MarkSymbolComplete(symbol, analyzer);
                     }
                 }
-            }
             finally
             {
                 analyzerStateOpt?.ResetToReadyState();
             }
         }
 
-        private async Task ExecuteSymbolActionsCoreAsync(
+        private void ExecuteSymbolActionsCore(
             ImmutableArray<SymbolAnalyzerAction> symbolActions,
             DiagnosticAnalyzer analyzer,
             ISymbol symbol,
@@ -306,9 +297,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        await ExecuteAndCatchIfThrowsAsync(symbolAction.Analyzer,
+                        ExecuteAndCatchIfThrows(symbolAction.Analyzer,
                         () => action(new SymbolAnalysisContext(symbol, _compilation, _analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(symbolAction.Analyzer, d), _cancellationToken))).ConfigureAwait(false);
+                            d => IsSupportedDiagnostic(symbolAction.Analyzer, d), _cancellationToken)));
 
                         analyzerStateOpt?.ProcessedActions.Add(symbolAction);
                     }
@@ -325,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="compilationUnitCompletedEvent">Compilation event for semantic model analysis.</param>
         /// <param name="analysisScope">Scope for analyzer execution.</param>
         /// <param name="analysisStateOpt">An optional object to track analysis state.</param>
-        public async Task ExecuteSemanticModelActionsAsync(
+        public void ExecuteSemanticModelActions(
             ImmutableArray<SemanticModelAnalyzerAction> semanticModelActions,
             DiagnosticAnalyzer analyzer,
             SemanticModel semanticModel,
@@ -337,24 +328,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
-                analyzerStateOpt = await TryStartProcessingEventAsync(compilationUnitCompletedEvent, analyzer, analysisScope, analysisStateOpt, _cancellationToken).ConfigureAwait(false);
-                if (analysisStateOpt == null || analyzerStateOpt != null)
+                if (TryStartProcessingEvent(compilationUnitCompletedEvent, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
                 {
-                    await ExecuteSemanticModelActionsCoreAsync(semanticModelActions, analyzer, semanticModel, analyzerStateOpt).ConfigureAwait(false);
-
-                    if (analysisStateOpt != null)
-                    {
-                        await analysisStateOpt.MarkEventCompleteAsync(compilationUnitCompletedEvent, analyzer, _cancellationToken).ConfigureAwait(false);
+                    ExecuteSemanticModelActionsCore(semanticModelActions, analyzer, semanticModel, analyzerStateOpt);
+                    analysisStateOpt?.MarkEventComplete(compilationUnitCompletedEvent, analyzer);
                     }
                 }
-            }
             finally
             {
                 analyzerStateOpt?.ResetToReadyState();
             }
         }
 
-        private async Task ExecuteSemanticModelActionsCoreAsync(
+        private void ExecuteSemanticModelActionsCore(
             ImmutableArray<SemanticModelAnalyzerAction> semanticModelActions,
             DiagnosticAnalyzer analyzer,
             SemanticModel semanticModel,
@@ -369,9 +355,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     // Catch Exception from action.
-                    await ExecuteAndCatchIfThrowsAsync(semanticModelAction.Analyzer,
+                    ExecuteAndCatchIfThrows(semanticModelAction.Analyzer,
                         () => semanticModelAction.Action(new SemanticModelAnalysisContext(semanticModel, _analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(semanticModelAction.Analyzer, d), _cancellationToken))).ConfigureAwait(false);
+                            d => IsSupportedDiagnostic(semanticModelAction.Analyzer, d), _cancellationToken)));
 
                     analyzerStateOpt?.ProcessedActions.Add(semanticModelAction);
                 }
@@ -386,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="tree">Syntax tree to analyze.</param>
         /// <param name="analysisScope">Scope for analyzer execution.</param>
         /// <param name="analysisStateOpt">An optional object to track analysis state.</param>
-        public async Task ExecuteSyntaxTreeActionsAsync(
+        public void ExecuteSyntaxTreeActions(
             ImmutableArray<SyntaxTreeAnalyzerAction> syntaxTreeActions,
             DiagnosticAnalyzer analyzer,
             SyntaxTree tree,
@@ -397,24 +383,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
-                analyzerStateOpt = await TryStartSyntaxAnalysis(tree, analyzer, analysisScope, analysisStateOpt, _cancellationToken).ConfigureAwait(false);
-                if (analysisStateOpt == null || analyzerStateOpt != null)
+                if (TryStartSyntaxAnalysis(tree, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
                 {
-                    await ExecuteSyntaxTreeActionsCoreAsync(syntaxTreeActions, analyzer, tree, analyzerStateOpt).ConfigureAwait(false);
-
-                    if (analysisStateOpt != null)
-                    {
-                        await analysisStateOpt.MarkSyntaxAnalysisCompleteAsync(tree, analyzer, _cancellationToken).ConfigureAwait(false);
+                    ExecuteSyntaxTreeActionsCore(syntaxTreeActions, analyzer, tree, analyzerStateOpt);
+                    analysisStateOpt?.MarkSyntaxAnalysisComplete(tree, analyzer);
                     }
                 }
-            }
             finally
             {
                 analyzerStateOpt?.ResetToReadyState();
             }
         }
 
-        private async Task ExecuteSyntaxTreeActionsCoreAsync(
+        private void ExecuteSyntaxTreeActionsCore(
             ImmutableArray<SyntaxTreeAnalyzerAction> syntaxTreeActions,
             DiagnosticAnalyzer analyzer,
             SyntaxTree tree,
@@ -429,16 +410,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     // Catch Exception from action.
-                    await ExecuteAndCatchIfThrowsAsync(syntaxTreeAction.Analyzer,
+                    ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer,
                         () => syntaxTreeAction.Action(new SyntaxTreeAnalysisContext(tree, _analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(syntaxTreeAction.Analyzer, d), _cancellationToken))).ConfigureAwait(false);
+                            d => IsSupportedDiagnostic(syntaxTreeAction.Analyzer, d), _compilation, _cancellationToken)));
 
                     analyzerStateOpt?.ProcessedActions.Add(syntaxTreeAction);
                 }
             }
         }
 
-        private async Task ExecuteSyntaxNodeActionAsync<TLanguageKindEnum>(
+        private void ExecuteSyntaxNodeAction<TLanguageKindEnum>(
             SyntaxNodeAnalyzerAction<TLanguageKindEnum> syntaxNodeAction,
             SyntaxNode node,
             SemanticModel semanticModel,
@@ -452,15 +433,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, semanticModel, _analyzerOptions, addDiagnostic,
                     d => IsSupportedDiagnostic(syntaxNodeAction.Analyzer, d), _cancellationToken);
-                await ExecuteAndCatchIfThrowsAsync(syntaxNodeAction.Analyzer, () => syntaxNodeAction.Action(syntaxNodeContext)).ConfigureAwait(false);
+                ExecuteAndCatchIfThrows(syntaxNodeAction.Analyzer, () => syntaxNodeAction.Action(syntaxNodeContext));
 
                 analyzerStateOpt?.ProcessedActions.Add(syntaxNodeAction);
             }
         }
 
-        private async Task ExecuteOperationActionAsync(
+        private void ExecuteOperationAction(
             OperationAnalyzerAction operationAction,
             IOperation operation,
+            SemanticModel semanticModel,
             Action<Diagnostic> addDiagnostic,
             OperationAnalyzerStateData analyzerStateOpt)
         {
@@ -468,14 +450,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ShouldExecuteAction(analyzerStateOpt, operationAction))
             {
-                var operationContext = new OperationAnalysisContext(operation, _analyzerOptions, _addDiagnostic, d => IsSupportedDiagnostic(operationAction.Analyzer, d), _cancellationToken);
-                await ExecuteAndCatchIfThrowsAsync(operationAction.Analyzer, () => operationAction.Action(operationContext)).ConfigureAwait(false);
+                var operationContext = new OperationAnalysisContext(operation, _analyzerOptions, _addDiagnostic, d => IsSupportedDiagnostic(operationAction.Analyzer, d), semanticModel, _cancellationToken);
+                ExecuteAndCatchIfThrows(operationAction.Analyzer, () => operationAction.Action(operationContext));
 
                 analyzerStateOpt?.ProcessedActions.Add(operationAction);
             }
         }
 
-        public async Task ExecuteCodeBlockActionsAsync<TLanguageKindEnum>(
+        public void ExecuteCodeBlockActions<TLanguageKindEnum>(
             IEnumerable<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartActions,
             IEnumerable<CodeBlockAnalyzerAction> codeBlockActions,
             IEnumerable<CodeBlockAnalyzerAction> codeBlockEndActions,
@@ -494,12 +476,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
-                analyzerStateOpt = await TryStartAnalyzingSyntaxReferenceAsync(declaration, analyzer, analysisScope, analysisStateOpt, _cancellationToken).ConfigureAwait(false);
-                if (analysisStateOpt == null || analyzerStateOpt != null)
+                if (TryStartAnalyzingSyntaxRefence(declaration, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
                 {
-                    await ExecuteBlockActionsCoreAsync<CodeBlockStartAnalyzerAction<TLanguageKindEnum>, CodeBlockAnalyzerAction, SyntaxNodeAnalyzerAction<TLanguageKindEnum>, SyntaxNodeAnalyzerStateData, SyntaxNode, TLanguageKindEnum>(
+                    ExecuteBlockActionsCore<CodeBlockStartAnalyzerAction<TLanguageKindEnum>, CodeBlockAnalyzerAction, SyntaxNodeAnalyzerAction<TLanguageKindEnum>, SyntaxNodeAnalyzerStateData, SyntaxNode, TLanguageKindEnum>(
                         codeBlockStartActions, codeBlockActions, codeBlockEndActions, analyzer,
-                        declaredNode, declaredSymbol, executableCodeBlocks, (codeBlocks) => codeBlocks.SelectMany(cb => cb.DescendantNodesAndSelf()), semanticModel, getKind, analyzerStateOpt?.CodeBlockAnalysisState).ConfigureAwait(false);
+                        declaredNode, declaredSymbol, executableCodeBlocks, (codeBlocks) => codeBlocks.SelectMany(cb => cb.DescendantNodesAndSelf()), semanticModel, getKind, analyzerStateOpt?.CodeBlockAnalysisState);
                 }
             }
             finally
@@ -508,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public async Task ExecuteOperationBlockActionsAsync(
+        public void ExecuteOperationBlockActions(
             IEnumerable<OperationBlockStartAnalyzerAction> operationBlockStartActions,
             IEnumerable<OperationBlockAnalyzerAction> operationBlockActions,
             IEnumerable<OperationBlockAnalyzerAction> operationBlockEndActions,
@@ -526,12 +507,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
-                analyzerStateOpt = await TryStartAnalyzingSyntaxReferenceAsync(declaration, analyzer, analysisScope, analysisStateOpt, _cancellationToken).ConfigureAwait(false);
-                if (analysisStateOpt == null || analysisStateOpt != null)
+                if (TryStartAnalyzingSyntaxRefence(declaration, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
                 {
-                    await ExecuteBlockActionsCoreAsync<OperationBlockStartAnalyzerAction, OperationBlockAnalyzerAction, OperationAnalyzerAction, OperationAnalyzerStateData, IOperation, int>(
+                    ExecuteBlockActionsCore<OperationBlockStartAnalyzerAction, OperationBlockAnalyzerAction, OperationAnalyzerAction, OperationAnalyzerStateData, IOperation, int>(
                         operationBlockStartActions, operationBlockActions, operationBlockEndActions, analyzer,
-                        declaredNode, declaredSymbol, operationBlocks, (blocks) => operations, semanticModel, null, analyzerStateOpt?.OperationBlockAnalysisState).ConfigureAwait(false);
+                        declaredNode, declaredSymbol, operationBlocks, (blocks) => operations, semanticModel, null, analyzerStateOpt?.OperationBlockAnalysisState);
                 }
             }
             finally
@@ -540,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task ExecuteBlockActionsCoreAsync<TBlockStartAction, TBlockAction, TNodeAction, TNodeStateData, TNode, TLanguageKindEnum>(
+        private void ExecuteBlockActionsCore<TBlockStartAction, TBlockAction, TNodeAction, TNodeStateData, TNode, TLanguageKindEnum>(
            IEnumerable<TBlockStartAction> startActions,
            IEnumerable<TBlockAction> actions,
            IEnumerable<TBlockAction> endActions,
@@ -603,7 +583,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             var codeBlockEndActions = blockEndActions as PooledHashSet<CodeBlockAnalyzerAction>;
                             // Catch Exception from the start action.
-                            await ExecuteAndCatchIfThrowsAsync(startAction.Analyzer, () =>
+                            ExecuteAndCatchIfThrows(startAction.Analyzer, () =>
                             {
                                 var codeBlockScope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>();
                                 var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(startAction.Analyzer,
@@ -611,7 +591,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 codeBlockStartAction.Action(blockStartContext);
                                 codeBlockEndActions.AddAll(codeBlockScope.CodeBlockEndActions);
                                 syntaxNodeActions.AddRange(codeBlockScope.SyntaxNodeActions);
-                            }).ConfigureAwait(false);
+                            });
                         }
                         else
                         {
@@ -620,7 +600,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             {
                                 var operationBlockEndActions = blockEndActions as PooledHashSet<OperationBlockAnalyzerAction>;
                                 // Catch Exception from the start action.
-                                await ExecuteAndCatchIfThrowsAsync(startAction.Analyzer, () =>
+                                ExecuteAndCatchIfThrows(startAction.Analyzer, () =>
                                 {
                                     var operationBlockScope = new HostOperationBlockStartAnalysisScope();
                                     var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(startAction.Analyzer,
@@ -628,7 +608,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                     operationBlockStartAction.Action(operationStartContext);
                                     operationBlockEndActions.AddAll(operationBlockScope.OperationBlockEndActions);
                                     operationActions.AddRange(operationBlockScope.OperationActions);
-                                }).ConfigureAwait(false);
+                                });
                             }
                         }
 
@@ -652,23 +632,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var executableNodeActionsByKind = GetNodeActionsByKind(syntaxNodeActions);
                     var syntaxNodesToAnalyze = (IEnumerable<SyntaxNode>)getNodesToAnalyze(executableBlocks);
-                    await ExecuteSyntaxNodeActionsAsync(syntaxNodesToAnalyze, executableNodeActionsByKind, semanticModel, getKind, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as SyntaxNodeAnalyzerStateData).ConfigureAwait(false);
+                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, semanticModel, getKind, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as SyntaxNodeAnalyzerStateData);
                 }
                 else if (operationActions != null)
                 {
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
                     var operationsToAnalyze = (IEnumerable<IOperation>)getNodesToAnalyze(executableBlocks);
-                    await ExecuteOperationActionsAsync(operationsToAnalyze, operationActionsByKind, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as OperationAnalyzerStateData).ConfigureAwait(false);
+                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, semanticModel, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as OperationAnalyzerStateData);
                 }
             }
 
             executableNodeActions.Free();
 
-            await ExecuteBlockActionsAsync(blockActions, declaredNode, declaredSymbol, semanticModel, operationBlocks, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
-            await ExecuteBlockActionsAsync(blockEndActions, declaredNode, declaredSymbol, semanticModel, operationBlocks, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+            ExecuteBlockActions(blockActions, declaredNode, declaredSymbol, semanticModel, operationBlocks, addDiagnostic, analyzerStateOpt);
+            ExecuteBlockActions(blockEndActions, declaredNode, declaredSymbol, semanticModel, operationBlocks, addDiagnostic, analyzerStateOpt);
         }
 
-        private async Task ExecuteBlockActionsAsync<TBlockAction, TNodeStateData>(
+        private void ExecuteBlockActions<TBlockAction, TNodeStateData>(
             PooledHashSet<TBlockAction> blockActions,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
@@ -687,18 +667,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Func<Diagnostic, bool> isSupportedDiagnostic = d => IsSupportedDiagnostic(blockAction.Analyzer, d);
                     if (codeBlockAction != null)
                     {
-                        await ExecuteAndCatchIfThrowsAsync(
+                        ExecuteAndCatchIfThrows(
                             codeBlockAction.Analyzer,
-                            () => codeBlockAction.Action(new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken))).ConfigureAwait(false);
+                            () => codeBlockAction.Action(new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken)));
                     }
                     else
                     {
                         var operationBlockAction = blockAction as OperationBlockAnalyzerAction;
                         if (operationBlockAction != null)
                         {
-                            await ExecuteAndCatchIfThrowsAsync(
+                            ExecuteAndCatchIfThrows(
                                 operationBlockAction.Analyzer,
-                                () => operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken))).ConfigureAwait(false);
+                                () => operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, semanticModel, _cancellationToken)));
                         }
                     }
                     
@@ -736,7 +716,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return map;
         }
 
-        public async Task ExecuteSyntaxNodeActionsAsync<TLanguageKindEnum>(
+        public void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
            IEnumerable<SyntaxNode> nodesToAnalyze,
            IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
            DiagnosticAnalyzer analyzer,
@@ -752,10 +732,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
-                analyzerStateOpt = await TryStartAnalyzingSyntaxReferenceAsync(declaration, analyzer, analysisScope, analysisStateOpt, _cancellationToken).ConfigureAwait(false);
-                if (analysisStateOpt == null || analyzerStateOpt != null)
+                if (TryStartAnalyzingSyntaxRefence(declaration, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
                 {
-                    await ExecuteSyntaxNodeActionsCoreAsync(nodesToAnalyze, nodeActionsByKind, analyzer, model, getKind, filterSpan, analyzerStateOpt).ConfigureAwait(false);
+                    ExecuteSyntaxNodeActionsCore(nodesToAnalyze, nodeActionsByKind, analyzer, model, getKind, filterSpan, analyzerStateOpt);
                 }
             }
             finally
@@ -764,7 +743,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task ExecuteSyntaxNodeActionsCoreAsync<TLanguageKindEnum>(
+        private void ExecuteSyntaxNodeActionsCore<TLanguageKindEnum>(
             IEnumerable<SyntaxNode> nodesToAnalyze,
             IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             DiagnosticAnalyzer analyzer,
@@ -775,10 +754,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             where TLanguageKindEnum : struct
         {
             var addDiagnostic = GetAddDiagnostic(model.SyntaxTree, filterSpan, analyzer, isSyntaxDiagnostic: false);
-            await ExecuteSyntaxNodeActionsAsync(nodesToAnalyze, nodeActionsByKind, model, getKind, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+            ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, model, getKind, addDiagnostic, analyzerStateOpt);
         }
 
-        private async Task ExecuteSyntaxNodeActionsAsync<TLanguageKindEnum>(
+        private void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
             IEnumerable<SyntaxNode> nodesToAnalyze,
             IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             SemanticModel model,
@@ -793,7 +772,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SyntaxNode partiallyProcessedNode = analyzerStateOpt?.CurrentNode;
             if (partiallyProcessedNode != null)
             {
-                await ExecuteSyntaxNodeActionsAsync(partiallyProcessedNode, nodeActionsByKind, model, getKind, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+                ExecuteSyntaxNodeActions(partiallyProcessedNode, nodeActionsByKind, model, getKind, addDiagnostic, analyzerStateOpt);
             }
 
             foreach (var child in nodesToAnalyze)
@@ -802,12 +781,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     SetCurrentNode(analyzerStateOpt, child);
 
-                    await ExecuteSyntaxNodeActionsAsync(child, nodeActionsByKind, model, getKind, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+                    ExecuteSyntaxNodeActions(child, nodeActionsByKind, model, getKind, addDiagnostic, analyzerStateOpt);
                 }
             }
         }
 
-        private async Task ExecuteSyntaxNodeActionsAsync<TLanguageKindEnum>(
+        private void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
             SyntaxNode node,
             IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             SemanticModel model,
@@ -821,7 +800,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var action in actionsForKind)
                 {
-                    await ExecuteSyntaxNodeActionAsync(action, node, model, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+                    ExecuteSyntaxNodeAction(action, node, model, addDiagnostic, analyzerStateOpt);
                 }
             }
 
@@ -853,7 +832,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return map;
         }
 
-        public async Task ExecuteOperationActionsAsync(
+        public void ExecuteOperationActions(
             IEnumerable<IOperation> operationsToAnalyze,
             IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
             DiagnosticAnalyzer analyzer,
@@ -867,10 +846,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
-                analyzerStateOpt = await TryStartAnalyzingOperationReferenceAsync(declaration, analyzer, analysisScope, analysisStateOpt, _cancellationToken).ConfigureAwait(false);
-                if (analysisStateOpt == null || analyzerStateOpt != null)
+                if (TryStartAnalyzingOperationReference(declaration, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
                 {
-                    await ExecuteOperationActionsCoreAsync(operationsToAnalyze, operationActionsByKind, analyzer, model, filterSpan, analyzerStateOpt).ConfigureAwait(false);
+                    ExecuteOperationActionsCore(operationsToAnalyze, operationActionsByKind, analyzer, model, filterSpan, analyzerStateOpt);
                 }
             }
             finally
@@ -879,7 +857,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task ExecuteOperationActionsCoreAsync(
+        private void ExecuteOperationActionsCore(
             IEnumerable<IOperation> operationsToAnalyze,
             IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
             DiagnosticAnalyzer analyzer,
@@ -888,12 +866,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             OperationAnalyzerStateData analyzerStateOpt)
         {
             var addDiagnostic = GetAddDiagnostic(model.SyntaxTree, filterSpan, analyzer, isSyntaxDiagnostic: false);
-            await ExecuteOperationActionsAsync(operationsToAnalyze, operationActionsByKind, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, model, addDiagnostic, analyzerStateOpt);
         }
 
-        private async Task ExecuteOperationActionsAsync(
+        private void ExecuteOperationActions(
             IEnumerable<IOperation> operationsToAnalyze,
             IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            SemanticModel model,
             Action<Diagnostic> addDiagnostic,
             OperationAnalyzerStateData analyzerStateOpt)
         {
@@ -903,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IOperation partiallyProcessedNode = analyzerStateOpt?.CurrentOperation;
             if (partiallyProcessedNode != null)
             {
-                await ExecuteOperationActionsAsync(partiallyProcessedNode, operationActionsByKind, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+                ExecuteOperationActions(partiallyProcessedNode, operationActionsByKind, model, addDiagnostic, analyzerStateOpt);
             }
 
             foreach (var child in operationsToAnalyze)
@@ -912,14 +891,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     SetCurrentOperation(analyzerStateOpt, child);
 
-                    await ExecuteOperationActionsAsync(child, operationActionsByKind, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+                    ExecuteOperationActions(child, operationActionsByKind, model, addDiagnostic, analyzerStateOpt);
                 }
             }
         }
 
-        private async Task ExecuteOperationActionsAsync(
+        private void ExecuteOperationActions(
             IOperation operation,
             IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            SemanticModel model,
             Action<Diagnostic> addDiagnostic,
             OperationAnalyzerStateData analyzerStateOpt)
         {
@@ -928,7 +908,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var action in actionsForKind)
                 {
-                    await ExecuteOperationActionAsync(action, operation, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+                    ExecuteOperationAction(action, operation, model, addDiagnostic, analyzerStateOpt);
                 }
             }
 
@@ -954,12 +934,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal async Task ExecuteAndCatchIfThrowsAsync(DiagnosticAnalyzer analyzer, Action analyze)
+        internal void ExecuteAndCatchIfThrows(DiagnosticAnalyzer analyzer, Action analyze)
         {
-            SemaphoreSlim gate = _getAnalyzerGateOpt?.Invoke(analyzer);
+            object gate = _getAnalyzerGateOpt?.Invoke(analyzer);
             if (gate != null)
             {
-                using (await gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
+                lock (gate)
                 {
                     ExecuteAndCatchIfThrows_NoLock(analyzer, analyze);
                 }
@@ -1210,66 +1190,58 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static async Task<AnalyzerStateData> TryStartProcessingEventAsync(CompilationEvent nonSymbolCompilationEvent, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private static bool TryStartProcessingEvent(CompilationEvent nonSymbolCompilationEvent, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out AnalyzerStateData analyzerStateOpt)
         {
             Debug.Assert(!(nonSymbolCompilationEvent is SymbolDeclaredCompilationEvent));
             Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
 
-            if (analysisStateOpt == null)
-            {
-                return null;
-            }
-
-            return await analysisStateOpt.TryStartProcessingEventAsync(nonSymbolCompilationEvent, analyzer, cancellationToken).ConfigureAwait(false);
+            analyzerStateOpt = null;
+            return analysisStateOpt == null || analysisStateOpt.TryStartProcessingEvent(nonSymbolCompilationEvent, analyzer, out analyzerStateOpt);
         }
 
-        private static async Task<AnalyzerStateData> TryStartSyntaxAnalysis(SyntaxTree tree, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private static bool TryStartSyntaxAnalysis(SyntaxTree tree, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out AnalyzerStateData analyzerStateOpt)
+            {
+            Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
+
+            analyzerStateOpt = null;
+            return analysisStateOpt == null || analysisStateOpt.TryStartSyntaxAnalysis(tree, analyzer, out analyzerStateOpt);
+        }
+
+        private static bool TryStartAnalyzingSymbol(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out AnalyzerStateData analyzerStateOpt)
         {
             Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
 
-            if (analysisStateOpt == null)
-            {
-                return null;
-            }
-
-            return await analysisStateOpt.TryStartSyntaxAnalysisAsync(tree, analyzer, cancellationToken).ConfigureAwait(false);
+            analyzerStateOpt = null;
+            return analysisStateOpt == null || analysisStateOpt.TryStartAnalyzingSymbol(symbol, analyzer, out analyzerStateOpt);
         }
 
-        private static async Task<AnalyzerStateData> TryStartAnalyzingSymbolAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private static bool TryStartAnalyzingSyntaxRefence(SyntaxReference syntaxReference, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out DeclarationAnalyzerStateData analyzerStateOpt)
         {
             Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
 
-            if (analysisStateOpt == null)
-            {
-                return null;
-            }
-
-            return await analysisStateOpt.TryStartAnalyzingSymbolAsync(symbol, analyzer, cancellationToken).ConfigureAwait(false);
+            analyzerStateOpt = null;
+            return analysisStateOpt == null || analysisStateOpt.TryStartAnalyzingDeclaration(syntaxReference, analyzer, out analyzerStateOpt);
         }
 
-        private static async Task<DeclarationAnalyzerStateData> TryStartAnalyzingSyntaxReferenceAsync(SyntaxReference syntaxReference, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private static bool TryStartAnalyzingOperationReference(SyntaxReference syntaxReference, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out OperationAnalyzerStateData analyzerStateOpt)
         {
             Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
 
+            analyzerStateOpt = null;
+            DeclarationAnalyzerStateData declarationAnalyzerStateOpt;
             if (analysisStateOpt == null)
             {
-                return null;
-            }
-
-            return await analysisStateOpt.TryStartAnalyzingDeclarationAsync(syntaxReference, analyzer, cancellationToken).ConfigureAwait(false);
+                return true;
         }
 
-        private static async Task<OperationAnalyzerStateData> TryStartAnalyzingOperationReferenceAsync(SyntaxReference syntaxReference, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
-        {
-            Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
-
-            if (analysisStateOpt == null)
+            if (analysisStateOpt.TryStartAnalyzingDeclaration(syntaxReference, analyzer, out declarationAnalyzerStateOpt))
             {
-                return null;
+                analyzerStateOpt = declarationAnalyzerStateOpt.OperationBlockAnalysisState.ExecutableNodesAnalysisState;
+                return true;
             }
 
-            var declarationAnalyzerStateOpt = await analysisStateOpt.TryStartAnalyzingDeclarationAsync(syntaxReference, analyzer, cancellationToken).ConfigureAwait(false);
-            return declarationAnalyzerStateOpt?.OperationBlockAnalysisState.ExecutableNodesAnalysisState;
+            analyzerStateOpt = null;
+            return false;
         }
 
         internal TimeSpan ResetAnalyzerExecutionTime(DiagnosticAnalyzer analyzer)
