@@ -37,27 +37,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public async Task<bool> HasPendingSyntaxAnalysisAsync(SyntaxTree treeOpt, CancellationToken cancellationToken)
             {
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                try
                 {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     return _lazyPendingSyntaxAnalysisTrees != null &&
                         (treeOpt != null ? _lazyPendingSyntaxAnalysisTrees.ContainsKey(treeOpt) : _lazyPendingSyntaxAnalysisTrees.Count > 0);
+                }
+                finally
+                {
+                    _gate.Release();
                 }
             }
 
             public async Task<bool> HasPendingSymbolAnalysisAsync(ISymbol symbol, CancellationToken cancellationToken)
             {
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                try
                 {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     return _pendingSymbols.ContainsKey(symbol);
+                }
+                finally
+                {
+                    _gate.Release();
                 }
             }
 
             private async Task<TAnalyzerStateData> TryStartProcessingEntityAsync<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData> pendingEntities, ObjectPool<TAnalyzerStateData> pool, CancellationToken cancellationToken)
                 where TAnalyzerStateData : AnalyzerStateData, new()
             {
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                try
                 {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     return TryStartProcessingEntity_NoLock(analysisEntity, pendingEntities, pool);
+                }
+                finally
+                {
+                    _gate.Release();
                 }
             }
 
@@ -85,9 +100,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private async Task MarkEntityProcessedAsync<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData> pendingEntities, ObjectPool<TAnalyzerStateData> pool, CancellationToken cancellationToken)
                 where TAnalyzerStateData : AnalyzerStateData
             {
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                try
                 {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     MarkEntityProcessed_NoLock(analysisEntity, pendingEntities, pool);
+                }
+                finally
+                {
+                    _gate.Release();
                 }
             }
 
@@ -109,9 +129,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private async Task<bool> IsEntityFullyProcessedAsync<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData> pendingEntities, CancellationToken cancellationToken)
                 where TAnalyzerStateData : AnalyzerStateData
             {
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                try
                 {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     return IsEntityFullyProcessed_NoLock(analysisEntity, pendingEntities);
+                }
+                finally
+                {
+                    _gate.Release();
                 }
             }
 
@@ -172,69 +197,89 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public async Task MarkDeclarationsCompleteAsync(ImmutableArray<SyntaxReference> declarations, CancellationToken cancellationToken)
             {
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                try
                 {
-                    foreach (var syntaxRef in declarations)
-                    {
-                        MarkEntityProcessed_NoLock(syntaxRef.GetSyntax(), _pendingDeclarations, _declarationAnalyzerStateDataPool);
-                    }
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    MarkDeclarationsComplete_NoLock(declarations);
+                }
+                finally
+                {
+                    _gate.Release();
+                }
+            }
+
+            private void MarkDeclarationsComplete_NoLock(ImmutableArray<SyntaxReference> declarations)
+            {
+                foreach (var syntaxRef in declarations)
+                {
+                    MarkEntityProcessed_NoLock(syntaxRef.GetSyntax(), _pendingDeclarations, _declarationAnalyzerStateDataPool);
                 }
             }
 
             public async Task OnCompilationEventGeneratedAsync(CompilationEvent compilationEvent, AnalyzerActionCounts actionCounts, CancellationToken cancellationToken)
             {
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                try
                 {
-                    var symbolEvent = compilationEvent as SymbolDeclaredCompilationEvent;
-                    if (symbolEvent != null)
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    OnCompilationEventGenerated_NoLock(compilationEvent, actionCounts);
+                }
+                finally
+                {
+                    _gate.Release();
+                }
+            }
+
+            private void OnCompilationEventGenerated_NoLock(CompilationEvent compilationEvent, AnalyzerActionCounts actionCounts)
+            {
+                var symbolEvent = compilationEvent as SymbolDeclaredCompilationEvent;
+                if (symbolEvent != null)
+                {
+                    var needsAnalysis = false;
+                    var symbol = symbolEvent.Symbol;
+                    if (!AnalysisScope.ShouldSkipSymbolAnalysis(symbolEvent) && actionCounts.SymbolActionsCount > 0)
                     {
-                        var needsAnalysis = false;
-                        var symbol = symbolEvent.Symbol;
-                        if (!AnalysisScope.ShouldSkipSymbolAnalysis(symbolEvent) && actionCounts.SymbolActionsCount > 0)
+                        needsAnalysis = true;
+                        _pendingSymbols[symbol] = null;
+                    }
+
+                    if (!AnalysisScope.ShouldSkipDeclarationAnalysis(symbol) &&
+                        (actionCounts.SyntaxNodeActionsCount > 0 ||
+                        actionCounts.CodeBlockActionsCount > 0 ||
+                        actionCounts.CodeBlockStartActionsCount > 0))
+                    {
+                        foreach (var syntaxRef in symbolEvent.DeclaringSyntaxReferences)
                         {
                             needsAnalysis = true;
-                            _pendingSymbols[symbol] = null;
-                        }
-
-                        if (!AnalysisScope.ShouldSkipDeclarationAnalysis(symbol) &&
-                            (actionCounts.SyntaxNodeActionsCount > 0 ||
-                            actionCounts.CodeBlockActionsCount > 0 ||
-                            actionCounts.CodeBlockStartActionsCount > 0))
-                        {
-                            foreach (var syntaxRef in symbolEvent.DeclaringSyntaxReferences)
-                            {
-                                needsAnalysis = true;
-                                _pendingDeclarations[syntaxRef.GetSyntax()] = null;
-                            }
-                        }
-
-                        if (!needsAnalysis)
-                        {
-                            return;
+                            _pendingDeclarations[syntaxRef.GetSyntax()] = null;
                         }
                     }
-                    else if (compilationEvent is CompilationStartedEvent)
+
+                    if (!needsAnalysis)
                     {
-                        if (actionCounts.SyntaxTreeActionsCount > 0)
+                        return;
+                    }
+                }
+                else if (compilationEvent is CompilationStartedEvent)
+                {
+                    if (actionCounts.SyntaxTreeActionsCount > 0)
+                    {
+                        var trees = compilationEvent.Compilation.SyntaxTrees;
+                        var map = new Dictionary<SyntaxTree, AnalyzerStateData>(trees.Count());
+                        foreach (var tree in trees)
                         {
-                            var trees = compilationEvent.Compilation.SyntaxTrees;
-                            var map = new Dictionary<SyntaxTree, AnalyzerStateData>(trees.Count());
-                            foreach (var tree in trees)
-                            {
-                                map[tree] = null;
-                            }
-
-                            _lazyPendingSyntaxAnalysisTrees = map;
+                            map[tree] = null;
                         }
 
-                        if (actionCounts.CompilationActionsCount == 0)
-                        {
-                            return;
-                        }
+                        _lazyPendingSyntaxAnalysisTrees = map;
                     }
 
-                    _pendingEvents[compilationEvent] = null;
+                    if (actionCounts.CompilationActionsCount == 0)
+                    {
+                        return;
+                    }
                 }
+
+                _pendingEvents[compilationEvent] = null;
             }
 
             public Task<bool> IsEventAnalyzedAsync(CompilationEvent compilationEvent, CancellationToken cancellationToken)
@@ -244,9 +289,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public async Task OnSymbolDeclaredEventProcessedAsync(SymbolDeclaredCompilationEvent symbolDeclaredEvent, CancellationToken cancellationToken)
             {
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                try
                 {
+                    await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     OnSymbolDeclaredEventProcessed_NoLock(symbolDeclaredEvent);
+                }
+                finally
+                {
+                    _gate.Release();
                 }
             }
 

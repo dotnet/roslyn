@@ -100,9 +100,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             await EnsureAnalyzerActionCountsInitializedAsync(driver, cancellationToken).ConfigureAwait(false);
 
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            try
             {
+                await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                 await OnCompilationEventsGenerated_NoLockAsync(compilationEvents, driver, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                _gate.Release();
             }
         }
 
@@ -317,9 +322,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Remove the event from event map.
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            try
             {
+                await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                 UpdateEventsMap_NoLock(compilationEvent, add: false);
+            }
+            finally
+            {
+                _gate.Release();
             }
 
             if (symbolDeclaredEvent != null)
@@ -333,9 +343,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<ImmutableArray<CompilationEvent>> GetPendingEventsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            try
             {
+                await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                 return GetPendingEvents_NoLock(analyzers, tree);
+            }
+            finally
+            {
+                _gate.Release();
             }
         }
 
@@ -393,9 +408,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task<ImmutableArray<CompilationEvent>> GetPendingEventsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, bool includeSourceEvents, bool includeNonSourceEvents, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            try
             {
+                await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                 return GetPendingEvents_NoLock(analyzers, includeSourceEvents, includeNonSourceEvents);
+            }
+            finally
+            {
+                _gate.Release();
             }
         }
 
@@ -502,16 +522,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(tree != null);
 
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            try
             {
-                HashSet<CompilationEvent> compilationEvents;
-                if (!_pendingSourceEvents.TryGetValue(tree, out compilationEvents))
-                {
-                    return ImmutableArray<SymbolDeclaredCompilationEvent>.Empty;
-                }
-
-                return compilationEvents.OfType<SymbolDeclaredCompilationEvent>().ToImmutableArray();
+                await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                return GetPendingSymbolDeclaredEvents_NoLock(tree);
             }
+            finally
+            {
+                _gate.Release();
+            }
+        }
+
+        private ImmutableArray<SymbolDeclaredCompilationEvent> GetPendingSymbolDeclaredEvents_NoLock(SyntaxTree tree)
+        {
+            HashSet<CompilationEvent> compilationEvents;
+            if (!_pendingSourceEvents.TryGetValue(tree, out compilationEvents))
+            {
+                return ImmutableArray<SymbolDeclaredCompilationEvent>.Empty;
+            }
+
+            return compilationEvents.OfType<SymbolDeclaredCompilationEvent>().ToImmutableArray();
         }
 
         /// <summary>
