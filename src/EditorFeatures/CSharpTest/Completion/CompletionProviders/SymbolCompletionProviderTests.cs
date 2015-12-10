@@ -8480,5 +8480,77 @@ class Class1
 }";
             VerifyItemExists(markup, "ToString", matchPriority: (int)MatchPriority.Prefer);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void TargetTypeInCollectionInitializer1()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int z;
+        string q;
+        List<int> x = new List<int>() { $$  }
+    }
+}";
+            VerifyItemExists(markup, "z", matchPriority: (int)MatchPriority.Prefer);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void TargetTypeInCollectionInitializer2()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int z;
+        string q;
+        List<int> x = new List<int>() { 1, $$  }
+    }
+}";
+            VerifyItemExists(markup, "z", matchPriority: (int)MatchPriority.Prefer);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void TargeTypeInObjectInitializer1()
+        {
+            var markup = @"
+class C
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+
+    void foo()
+    {
+        int i;
+        var c = new C() { X = $$ }
+    }
+}";
+            VerifyItemExists(markup, "i", matchPriority: (int)MatchPriority.Prefer);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void TargeTypeInObjectInitializer2()
+        {
+            var markup = @"
+class C
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+
+    void foo()
+    {
+        int i;
+        var c = new C() { X = 1, Y = $$ }
+    }
+}";
+            VerifyItemExists(markup, "i", matchPriority: (int)MatchPriority.Prefer);
+        }
     }
 }

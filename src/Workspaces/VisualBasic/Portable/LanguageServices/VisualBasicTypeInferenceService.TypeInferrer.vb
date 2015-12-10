@@ -136,6 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(caseStatement As CaseStatementSyntax) InferTypeInCaseStatement(caseStatement),
                     Function(castExpression As CastExpressionSyntax) InferTypeInCastExpression(castExpression),
                     Function(catchFilterClause As CatchFilterClauseSyntax) InferTypeInCatchFilterClause(catchFilterClause, previousToken:=token),
+                    Function(collectionInitializer As CollectionInitializerSyntax) InferTypeInCollectionInitializerExpression(collectionInitializer, previousToken:=token),
                     Function(conditionalExpression As BinaryConditionalExpressionSyntax) InferTypeInBinaryConditionalExpression(conditionalExpression, previousToken:=token),
                     Function(conditionalExpression As TernaryConditionalExpressionSyntax) InferTypeInTernaryConditionalExpression(conditionalExpression, previousToken:=token),
                     Function(doStatement As DoStatementSyntax) InferTypeInDoStatement(token),
