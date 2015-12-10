@@ -128,7 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // When starting a diff, the RDT doesn't call OnBeforeDocumentWindowShow, but it does call 
             // OnAfterAttributeChangeEx for the temporary buffer. The native IDE used this even to 
             // add misc files, so we'll do the same.
-            if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_DocDataReloaded) != 0)
+            if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_DocDataReloaded) != 0 ||
+                (grfAttribs & (uint)__VSRDTATTRIB3.RDTA_DocumentInitialized) != 0)
             {
                 var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
 
