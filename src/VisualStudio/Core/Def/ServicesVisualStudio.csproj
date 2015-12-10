@@ -51,6 +51,7 @@
     <Compile Include="Implementation\Library\FindResults\TreeItems\MetadataDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\SourceDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\ILibraryService.cs" />
+    <Compile Include="Implementation\Library\ObjectBrowser\ObjectBrowserTaskExtensions.cs" />
     <Compile Include="Implementation\Library\VsNavInfo\NavInfoNodeEnum.cs" />
     <Compile Include="Implementation\Library\VsNavInfo\Extensions.cs" />
     <Compile Include="Implementation\Library\VsNavInfo\NavInfo.cs" />
