@@ -149,7 +149,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
                 Try
                     result = state.FileCodeModelObject.CodeElementFromPosition(cursorPosition, candidateScope)
-                Catch
+                Catch ex As COMException
                     ' Loop around and try the next candidate scope
                     result = Nothing
                 End Try
