@@ -1,5 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports EnvDTE80
+
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractCodeEventTests
         Inherits AbstractCodeElementTests(Of EnvDTE80.CodeEvent)
@@ -50,6 +52,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Protected Overrides Function GetNameSetter(codeElement As EnvDTE80.CodeEvent) As Action(Of String)
             Return Sub(name) codeElement.Name = name
+        End Function
+
+        Protected Overrides Function GetOverrideKind(codeElement As CodeEvent) As vsCMOverrideKind
+            Return codeElement.OverrideKind
         End Function
 
         Protected Overrides Function GetParent(codeElement As EnvDTE80.CodeEvent) As Object

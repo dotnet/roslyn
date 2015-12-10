@@ -432,25 +432,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                    TypeOf container Is EnumBlockSyntax
         End Function
 
-        Private Shared Iterator Function GetChildMemberNodes(container As SyntaxNode) As IEnumerable(Of SyntaxNode)
+        Private Shared Function IsNamespaceOrTypeDeclaration(node As SyntaxNode) As Boolean
+            Return node.Kind() = SyntaxKind.NamespaceBlock OrElse
+                   TypeOf node Is TypeBlockSyntax OrElse
+                   TypeOf node Is EnumBlockSyntax OrElse
+                   TypeOf node Is DelegateStatementSyntax
+        End Function
+
+        Private Shared Iterator Function GetChildMemberNodes(container As SyntaxNode) As IEnumerable(Of DeclarationStatementSyntax)
             If TypeOf container Is CompilationUnitSyntax Then
                 For Each member In DirectCast(container, CompilationUnitSyntax).Members
-                    Yield member
+                    If IsNamespaceOrTypeDeclaration(member) Then
+                        Yield DirectCast(member, DeclarationStatementSyntax)
+                    End If
                 Next
             ElseIf TypeOf container Is NamespaceBlockSyntax Then
-
                 For Each member In DirectCast(container, NamespaceBlockSyntax).Members
-                    Yield member
+                    If IsNamespaceOrTypeDeclaration(member) Then
+                        Yield DirectCast(member, DeclarationStatementSyntax)
+                    End If
                 Next
             ElseIf TypeOf container Is TypeBlockSyntax Then
-
                 For Each member In DirectCast(container, TypeBlockSyntax).Members
-                    Yield member
+                    If member.Kind() <> SyntaxKind.NamespaceBlock AndAlso TypeOf member Is DeclarationStatementSyntax Then
+                        Yield DirectCast(member, DeclarationStatementSyntax)
+                    End If
                 Next
             ElseIf TypeOf container Is EnumBlockSyntax Then
-
                 For Each member In DirectCast(container, EnumBlockSyntax).Members
-                    Yield member
+                    If member.Kind() = SyntaxKind.EnumMemberDeclaration Then
+                        Yield DirectCast(member, DeclarationStatementSyntax)
+                    End If
                 Next
             End If
         End Function
@@ -458,7 +470,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private Shared Function NodeIsSupported(test As Boolean, node As SyntaxNode) As Boolean
             Return Not test OrElse IsNameableNode(node)
         End Function
-
 
         ''' <summary>
         ''' Retrieves the members of a specified <paramref name="container"/> node. The members that are
