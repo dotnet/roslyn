@@ -642,18 +642,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a token with kind XmlTextLiteralNewLineToken.
-        /// </summary>
-        /// <param name="leading">A list of trivia immediately preceding the token.</param>
-        /// <param name="text">The raw text of the literal.</param>
-        /// <param name="value">The xml text new line value.</param>
-        /// <param name="trailing">A list of trivia immediately following the token.</param>
-        public static SyntaxToken XmlTextNewLine(SyntaxTriviaList leading, string text, string value, SyntaxTriviaList trailing)
-        {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlTextNewLine((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
-        }
-
-        /// <summary>
         /// Creates a token with kind XmlEntityLiteralToken.
         /// </summary>
         /// <param name="leading">A list of trivia immediately preceding the token.</param>
@@ -1140,6 +1128,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Creates a token with kind XmlTextLiteralNewLineToken.
+        /// </summary>
+        /// <param name="leading">A list of trivia immediately preceding the token.</param>
+        /// <param name="text">The raw text of the literal.</param>
+        /// <param name="value">The xml text new line value.</param>
+        /// <param name="trailing">A list of trivia immediately following the token.</param>
+        public static SyntaxToken XmlTextNewLine(SyntaxTriviaList leading, string text, string value, SyntaxTriviaList trailing)
+        {
+            return new SyntaxToken(
+                InternalSyntax.SyntaxFactory.XmlTextNewLine(
+                    (InternalSyntax.CSharpSyntaxNode)leading.Node,
+                    text,
+                    value,
+                    (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+        }
+
+        /// <summary>
         /// Creates the syntax representation of an xml newline token for xml documentation comments.
         /// </summary>
         /// <param name="text">The raw text within the new line.</param>
@@ -1149,10 +1154,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SyntaxToken XmlTextNewLine(string text, bool continueXmlDocumentationComment)
         {
             var value = Environment.NewLine;
-            var token = new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlTextNewLine((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            var token = new SyntaxToken(
+                InternalSyntax.SyntaxFactory.XmlTextNewLine(
+                    (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, 
+                    text, 
+                    value, 
+                    (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
 
             if (continueXmlDocumentationComment)
-                token = token.WithTrailingTrivia(DocumentationCommentExterior("/// "));
+                token = token.WithTrailingTrivia(token.TrailingTrivia.Add(DocumentationCommentExterior("/// ")));
 
             return token;
         }

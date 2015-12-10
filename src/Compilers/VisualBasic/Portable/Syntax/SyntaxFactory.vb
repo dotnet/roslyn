@@ -839,9 +839,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' of the new token.</param>
         Public Shared Function XmlTextNewLine(continueXmlDocumentationComment As Boolean) As SyntaxToken
             Dim token As SyntaxToken = XmlTextNewLine(
+                Environment.NewLine,
+                Environment.NewLine,
                 TriviaList(),
-                Environment.NewLine,
-                Environment.NewLine,
                 TriviaList())
 
             If continueXmlDocumentationComment Then
@@ -851,15 +851,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return token
         End Function
 
+
         ''' <summary>
         ''' Creates a token with kind XmlTextLiteralNewLineToken.
         ''' </summary>
-        ''' <param name="leading">A list of trivia immediately preceding the token.</param>
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The xml text new line value.</param>
+        ''' <param name="leading">A list of trivia immediately preceding the token.</param>
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
-        Public Shared Function XmlTextNewLine(leading As SyntaxTriviaList, text As String, value As String, trailing As SyntaxTriviaList) As SyntaxToken
-            Return New SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.DocumentationCommentLineBreakToken(text, value, DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)))
+        Public Shared Function XmlTextNewLine(text As String, value As String, leading As SyntaxTriviaList, trailing As SyntaxTriviaList) As SyntaxToken
+            Return New SyntaxToken(
+                InternalSyntax.SyntaxFactory.DocumentationCommentLineBreakToken(
+                    text,
+                    value,
+                    DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode),
+                    DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of an xml newline token for xml documentation comments.
+        ''' </summary>
+        ''' <param name="text">The raw text within the new line.</param>
+        ''' <param name="continueXmlDocumentationComment">
+        ''' If set to true, a documentation comment exterior token will be added to the trailing trivia
+        ''' of the new token.</param>
+        Public Shared Function XmlTextNewLine(text As String, continueXmlDocumentationComment As Boolean) As SyntaxToken
+            Dim value = Environment.NewLine
+            Dim token = New SyntaxToken(
+                InternalSyntax.SyntaxFactory.DocumentationCommentLineBreakToken(
+                    text,
+                    value,
+                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode),
+                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)))
+
+            If continueXmlDocumentationComment Then
+                token = token.WithTrailingTrivia(token.TrailingTrivia.Add(DocumentationCommentExteriorTrivia("''' ")))
+            End If
+
+            Return token
         End Function
 
         ''' <summary>
