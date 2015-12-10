@@ -57,21 +57,26 @@ namespace Roslyn.Utilities
             _source = text;
             _sourceLowerCaseCharacters = ConvertToLowercaseArray(text);
 
+            _defaultThreshold = GetThreshold(_source);
+        }
+
+        internal static int GetThreshold(string value)
+        {
             // We only allow fairly close matches (in order to prevent too many
-            // spurious hits).  A reasonable heuristic for this is the Log_2(length) (rounded 
-            // down).  
+            // spurious hits).
             //
-            // Strings length 1-3 : 1 edit allowed.
-            //         length 4-7 : 2 edits allowed.
+            // Strings length 1-4 : 1 edit allowed.
+            //         length 5-7 : 2 edits allowed.
             //         length 8-15: 3 edits allowed.
+            //         length 16-31: 4 edits allowed.
             //
             // and so forth.
-            _defaultThreshold = Max(1, (int)Log(_source.Length, 2));
+            return value.Length <= 4 ? 1 : (int)Log(value.Length, 2);
         }
 
         private static char[] ConvertToLowercaseArray(string text)
         {
-            var array = Pool<char>.GetArray(text.Length);
+            var array = ArrayPool<char>.GetArray(text.Length);
             for (int i = 0; i < text.Length; i++)
             {
                 array[i] = char.ToLower(text[i]);
@@ -82,7 +87,7 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            Pool<char>.ReleaseArray(this._sourceLowerCaseCharacters);
+            ArrayPool<char>.ReleaseArray(this._sourceLowerCaseCharacters);
             _source = null;
             _sourceLowerCaseCharacters = null;
         }
@@ -138,7 +143,7 @@ namespace Roslyn.Utilities
             }
             finally
             {
-                Pool<char>.ReleaseArray(targetLowerCaseCharacters);
+                ArrayPool<char>.ReleaseArray(targetLowerCaseCharacters);
             }
         }
 
@@ -180,7 +185,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength)
+        public static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength)
         {
             return sourceLength <= targetLength
                 ? GetEditDistanceWorker(source, target, sourceLength, targetLength)
@@ -319,7 +324,7 @@ namespace Roslyn.Utilities
             }
             finally
             {
-                Pool<char>.ReleaseArray(candidateCharArray);
+                ArrayPool<char>.ReleaseArray(candidateCharArray);
             }
         }
 
@@ -411,37 +416,38 @@ namespace Roslyn.Utilities
             // possible to index into the actual storage.
             matrix[i + 1, j + 1] = val;
         }
+    }
 
-        internal static class Pool<T>
+    internal static class ArrayPool<T>
+    {
+        private const int MaxPooledArraySize = 256;
+
+        // Keep around a few arrays of size 256 that we can use for operations without
+        // causing lots of garbage to be created.  If we do compare items larger than
+        // that, then we will just allocate and release those arrays on demand.
+        private static ObjectPool<T[]> s_pool = new ObjectPool<T[]>(() => new T[MaxPooledArraySize]);
+
+        public static T[] GetArray(int size)
         {
-            private const int MaxPooledArraySize = 256;
-
-            // Keep around a few arrays of size 256 that we can use for operations without
-            // causing lots of garbage to be created.  If we do compare items larger than
-            // that, then we will just allocate and release those arrays on demand.
-            private static ObjectPool<T[]> s_pool = new ObjectPool<T[]>(() => new T[MaxPooledArraySize]);
-
-            public static T[] GetArray(int size)
+            if (size <= MaxPooledArraySize)
             {
-                if (size <= MaxPooledArraySize)
-                {
-                    var array = s_pool.Allocate();
-                    Array.Clear(array, 0, array.Length);
-                    return array;
-                }
-
-                return new T[size];
+                var array = s_pool.Allocate();
+                Array.Clear(array, 0, array.Length);
+                return array;
             }
 
-            public static void ReleaseArray(T[] array)
+            return new T[size];
+        }
+
+        public static void ReleaseArray(T[] array)
+        {
+            if (array.Length <= MaxPooledArraySize)
             {
-                if (array.Length <= MaxPooledArraySize)
-                {
-                    s_pool.Free(array);
-                }
+                s_pool.Free(array);
             }
         }
     }
+
 
 #if false
     internal class EditDistance : IDisposable
