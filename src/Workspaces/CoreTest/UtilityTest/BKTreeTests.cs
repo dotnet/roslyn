@@ -11,7 +11,23 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
     public class BKTreeTests
     {
         [Fact]
-        public void Test1()
+        public void SimpleTests()
+        {
+            string[] testValues = { "cook", "book", "books", "cake", "what", "water", "Cape", "Boon", "Cook", "Cart" };
+            var tree = BKTree.Create(testValues);
+
+            var results1 = tree.Find("wat", threshold: 1);
+            Assert.Single(results1, "what");
+
+            var results2 = tree.Find("wat", threshold: 2);
+            Assert.True(results2.SetEquals(Expected("cart", "what", "water")));
+
+            var results3 = tree.Find("caqe", threshold: 1);
+            Assert.True(results3.SetEquals(Expected("cake", "cape")));
+        }
+
+        [Fact]
+        public void PermutationTests()
         {
             string[] testValues = { "cook", "book", "books", "cake", "what", "water", "Cape", "Boon", "Cook", "Cart" };
             var tree = BKTree.Create(testValues);
@@ -29,16 +45,64 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
                 // But we may also find additional items along with it.
                 var items = tree.Find(value, threshold: 1);
                 Assert.Contains(value.ToLower(), items);
+
+                // We better not be finding all items.
+                Assert.NotEqual(testValues.Length, items.Count);
             }
 
-            var results1 = tree.Find("wat", threshold: 1);
-            Assert.Single(results1, "what");
+            foreach (var value in testValues)
+            {
+                // If we delete each individual character in each search string, we should still
+                // find the value in the tree.
+                for (var i = 0; i < value.Length; i++)
+                {
+                    var items = tree.Find(Delete(value, i));
+                    Assert.Contains(value.ToLower(), items);
 
-            var results2 = tree.Find("wat", threshold: 2);
-            Assert.True(results2.SetEquals(Expected("cart", "what", "water")));
+                    // We better not be finding all items.
+                    Assert.NotEqual(testValues.Length, items.Count);
+                }
+            }
 
-            var results3 = tree.Find("caqe", threshold: 1);
-            Assert.True(results3.SetEquals(Expected("cake", "cape")));
+            foreach (var value in testValues)
+            {
+                // If we add a random character at any location in a string, we should still 
+                // be able to find it.
+                for (var i = 0; i <= value.Length; i++)
+                {
+                    var items = tree.Find(Insert(value, i, 'Z'));
+                    Assert.Contains(value.ToLower(), items);
+                    
+                    // We better not be finding all items.
+                    Assert.NotEqual(testValues.Length, items.Count);
+                }
+            }
+
+            foreach (var value in testValues)
+            {
+                // If we transpose any characters in a string, we should still 
+                // be able to find it.
+                for (var i = 0; i < value.Length - 1; i++)
+                {
+                    var items = tree.Find(Transpose(value, i));
+                    Assert.Contains(value.ToLower(), items);
+                }
+            }
+        }
+
+        private string Transpose(string value, int i)
+        {
+            return value.Substring(0, i) + value[i + 1] + value[i] + value.Substring(i + 2);
+        }
+
+        private string Insert(string value, int i, char v)
+        {
+            return value.Substring(0, i) + v + value.Substring(i);
+        }
+
+        private string Delete(string value, int i)
+        {
+            return value.Substring(0, i) + value.Substring(i + 1);
         }
 
         [Fact]
@@ -47,17 +111,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             string[] testValues = { "Leeds", "York", "Bristol", "Leicester", "Hull", "Durham" };
             var tree = BKTree.Create(testValues);
 
-            var results1 = tree.Find("hill");
-            Assert.True(results1.SetEquals(Expected("hull")));
+            var results = tree.Find("hill");
+            Assert.True(results.SetEquals(Expected("hull")));
 
-            var results2 = tree.Find("liecester");
-            Assert.True(results2.SetEquals(Expected("leicester")));
+            results = tree.Find("liecester");
+            Assert.True(results.SetEquals(Expected("leicester")));
 
-            var results3 = tree.Find("leicestre");
-            Assert.True(results3.SetEquals(Expected("leicester")));
+            results = tree.Find("leicestre");
+            Assert.True(results.SetEquals(Expected("leicester")));
 
-            var results4 = tree.Find("lecester");
-            Assert.True(results4.SetEquals(Expected("leicester")));
+            results = tree.Find("lecester");
+            Assert.True(results.SetEquals(Expected("leicester")));
         }
 
         private IEnumerable<string> Expected(params string[] values)

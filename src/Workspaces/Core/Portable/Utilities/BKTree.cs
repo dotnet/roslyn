@@ -111,11 +111,11 @@ namespace Roslyn.Utilities
             }
         }
 
-        public IEnumerable<string> Find(string value, int? threshold = null)
+        public IList<string> Find(string value, int? threshold = null)
         {
             if (nodes.Length == 0)
             {
-                return SpecializedCollections.EmptyEnumerable<string>();
+                return SpecializedCollections.EmptyList<string>();
             }
 
             var lowerCaseCharacters = ArrayPool<char>.GetArray(value.Length);
