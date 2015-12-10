@@ -12,41 +12,6 @@ namespace Roslyn.Utilities
 {
     internal partial class BKTree
     {
-        private struct Node
-        {
-            // The string this node corresponds to.  Stored in char[] format so we can easily compute
-            // edit distances on it.
-            public readonly char[] LowerCaseCharacters;
-
-            // How many children this node has.
-            public readonly int ChildCount;
-
-            // Where the children can be found in "editDistanceArray".
-            public readonly int FirstChildIndexInEditDistanceArray;
-
-            public Node(char[] lowerCaseCharacters, int childCount, int firstChildIndexInEditDistanceArray)
-            {
-                LowerCaseCharacters = lowerCaseCharacters;
-                ChildCount = childCount;
-                FirstChildIndexInEditDistanceArray = firstChildIndexInEditDistanceArray;
-            }
-        }
-
-        private struct EditDistanceAndChildIndex
-        {
-            // The edit distance between this child and its parent.
-            public readonly int EditDistance;
-
-            // Where the child node can be found on "nodeArray"
-            public readonly int ChildNodeIndexInNodeArray;
-
-            public EditDistanceAndChildIndex(int editDistance, int childNodeIndexInNodeArray)
-            {
-                EditDistance = editDistance;
-                ChildNodeIndexInNodeArray = childNodeIndexInNodeArray;
-            }
-        }
-
         // We have two completely flat arrays of structs (except for the char[] values the nodes
         // point to).  These arrays fully represent the BK tree.  The structure is as follows:
         //
