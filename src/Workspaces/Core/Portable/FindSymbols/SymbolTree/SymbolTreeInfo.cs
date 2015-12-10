@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static IEnumerable<ISymbol> GetMembers(ISymbol symbol)
+        private static Func<ISymbol, IEnumerable<ISymbol>> GetMembers = symbol =>
         {
             var nt = symbol as INamedTypeSymbol;
             if (nt != null)
@@ -335,7 +335,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return SpecializedCollections.EmptyEnumerable<ISymbol>();
-        }
+        };
+
         #endregion
 
         #region Binding 
