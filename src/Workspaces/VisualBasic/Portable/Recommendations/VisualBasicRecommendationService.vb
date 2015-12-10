@@ -77,8 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             context As VisualBasicSyntaxContext,
             cancellationToken As CancellationToken
         ) As IEnumerable(Of ISymbol)
-            Dim symbols = context.SemanticModel.LookupSymbols(context.TargetToken.Span.End)
-            Return symbols
+            Return context.SemanticModel.LookupSymbols(context.TargetToken.Span.End)
         End Function
 
         Private Function GetUnqualifiedSymbolsForQueryIntoContext(

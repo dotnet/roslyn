@@ -57,31 +57,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsGlobalStatementContext(token As SyntaxToken, position As Integer) As Boolean
-            If Not token.IsLastTokenOfStatement() Then
-                Return False
-            End If
-
-            ' NB: Checks whether the caret is placed after a colon or an end of line.
-            ' Otherwise the typed expression would still be a part of the previous statement.
-            If Not token.HasTrailingTrivia Then
-                Return False
-            End If
-
-            For Each trivia In token.TrailingTrivia
-                If trivia.Span.Start > position Then
-                    Return False
-                ElseIf trivia.IsKind(SyntaxKind.ColonTrivia) Then
-                    Return True
-                ElseIf trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
-                    Return True
-                End If
-            Next
-
-            Return False
-        End Function
-
-        <Extension()>
         Public Function FirstAncestorOrSelf(token As SyntaxToken, predicate As Func(Of SyntaxNode, Boolean)) As SyntaxNode
             Return token.Parent.FirstAncestorOrSelf(predicate)
         End Function

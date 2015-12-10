@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxTreeExtensions
     {
-        public static bool IsInteractiveOrScript(this SyntaxTree syntaxTree)
+        public static bool IsScript(this SyntaxTree syntaxTree)
         {
             return syntaxTree.Options.Kind != SourceCodeKind.Regular;
         }

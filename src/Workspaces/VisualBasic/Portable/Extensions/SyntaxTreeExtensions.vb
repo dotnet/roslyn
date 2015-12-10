@@ -146,20 +146,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return trivia.IsKind(SyntaxKind.SkippedTokensTrivia)
         End Function
 
-        <Extension()>
-        Public Function IsGlobalStatementContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
-            If Not syntaxTree.IsInteractiveOrScript() Then
+        Private Function IsGlobalStatementContext(token As SyntaxToken, position As Integer) As Boolean
+            If Not token.IsLastTokenOfStatement() Then
                 Return False
             End If
 
-            Dim token As SyntaxToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position)
+            ' NB: Checks whether the caret is placed after a colon or an end of line.
+            ' Otherwise the typed expression would still be a part of the previous statement.
+            If Not token.HasTrailingTrivia OrElse token.HasAncestor(Of IncompleteMemberSyntax) Then
+                Return False
+            End If
+
+            For Each trivia In token.TrailingTrivia
+                If trivia.Span.Start > position Then
+                    Return False
+                ElseIf trivia.IsKind(SyntaxKind.ColonTrivia) Then
+                    Return True
+                ElseIf trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
+
+        <Extension()>
+        Public Function IsGlobalStatementContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            If Not syntaxTree.IsScript() Then
+                Return False
+            End If
+
+            Dim token As SyntaxToken = syntaxTree.FindTokenOnLeftOfPosition(
+                position, cancellationToken, includeDirectives:=True).GetPreviousTokenIfTouchingWord(position)
 
             If token.IsKind(SyntaxKind.None) Then
                 Dim compilationUnit = TryCast(syntaxTree.GetRoot(cancellationToken), CompilationUnitSyntax)
                 Return compilationUnit Is Nothing OrElse compilationUnit.Imports.Count = 0
             End If
 
-            Return token.IsGlobalStatementContext(position)
+            Return IsGlobalStatementContext(token, position)
         End Function
 
         ''' <summary>

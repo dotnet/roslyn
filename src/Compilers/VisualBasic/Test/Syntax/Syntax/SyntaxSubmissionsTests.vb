@@ -29,6 +29,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestCompleteSubmission()
+            Assert.Throws(Of ArgumentNullException)(Function() SyntaxFactory.IsCompleteSubmission(
+                Nothing))
+            Assert.Throws(Of ArgumentException)(Function() SyntaxFactory.IsCompleteSubmission(
+                SyntaxFactory.ParseSyntaxTree("Dim x = 12", options:=TestOptions.Regular)))
+
             ' Basic submissions
             AssertValidCompleteSubmission("")
             AssertValidCompleteSubmission("'comment")
@@ -186,6 +191,9 @@ End If")
          SELECT x + 1
 
 ")
+
+            ' String interpolation
+            AssertValidCompleteSubmission("Dim s = $""{name}""")
         End Sub
     End Class
 

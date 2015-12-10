@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var syntaxTree = context.SyntaxTree;
 
             // namespaces are illegal in interactive code:
-            if (syntaxTree.IsInteractiveOrScript())
+            if (syntaxTree.IsScript())
             {
                 return false;
             }
