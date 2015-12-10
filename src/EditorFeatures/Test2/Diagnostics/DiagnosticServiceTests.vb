@@ -513,6 +513,40 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         <WpfFact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub TestOperationAnalyzers()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document FilePath="Test.cs">
+                                   class Foo { void M() { int x = 0; } }
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                For Each actionKind As OperationAnalyzer.ActionKind In [Enum].GetValues(GetType(OperationAnalyzer.ActionKind))
+                    Dim project = workspace.CurrentSolution.Projects.Single
+                    Dim analyzer = New OperationAnalyzer(actionKind)
+                    Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                    project = project.AddAnalyzerReference(analyzerReference)
+
+                    Dim descriptorsMap = DiagnosticService.GetDiagnosticDescriptors(project)
+                    Assert.Equal(1, descriptorsMap.Count)
+
+                    Dim document = project.Documents.Single()
+                    Dim diagnostics = diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                    Assert.Equal(1, diagnostics.Count())
+                    Dim diagnostic = diagnostics.First()
+                    Assert.Equal(OperationAnalyzer.Descriptor.Id, diagnostic.Id)
+                    Dim expectedMessage = String.Format(OperationAnalyzer.Descriptor.MessageFormat.ToString(), actionKind)
+                    Assert.Equal(diagnostic.Message, expectedMessage)
+                Next actionKind
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestStatelessCodeBlockEndedAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">

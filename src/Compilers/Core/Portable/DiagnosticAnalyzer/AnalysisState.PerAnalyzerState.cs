@@ -195,9 +195,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
 
                         if (!AnalysisScope.ShouldSkipDeclarationAnalysis(symbol) &&
-                            (actionCounts.SyntaxNodeActionsCount > 0 ||
-                            actionCounts.CodeBlockActionsCount > 0 ||
-                            actionCounts.CodeBlockStartActionsCount > 0))
+                            actionCounts.HasAnyExecutableCodeActions)
                         {
                             foreach (var syntaxRef in symbolEvent.DeclaringSyntaxReferences)
                             {

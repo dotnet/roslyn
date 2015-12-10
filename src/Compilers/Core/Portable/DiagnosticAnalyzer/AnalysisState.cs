@@ -273,10 +273,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             else if (compilationEvent is SymbolDeclaredCompilationEvent)
             {
-                return actionCounts.CodeBlockActionsCount > 0 ||
-                    actionCounts.CodeBlockStartActionsCount > 0 ||
-                    actionCounts.SymbolActionsCount > 0 ||
-                    actionCounts.SyntaxNodeActionsCount > 0;
+                return actionCounts.SymbolActionsCount > 0 || actionCounts.HasAnyExecutableCodeActions;
             }
             else
             {

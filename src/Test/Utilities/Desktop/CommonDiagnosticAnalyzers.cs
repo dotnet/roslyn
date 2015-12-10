@@ -656,5 +656,57 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class OperationAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly ActionKind _actionKind;
+
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title1",
+                "{0} diagnostic",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public enum ActionKind
+            {
+                Operation,
+                OperationBlock,
+                OperationBlockEnd
+            }
+
+            public OperationAnalyzer(ActionKind actionKind)
+            {
+                _actionKind = actionKind;
+            }
+
+            private void ReportDiagnostic(Action<Diagnostic> addDiagnostic, Location location)
+            {
+                var diagnostic = Diagnostic.Create(Descriptor, location, _actionKind);
+                addDiagnostic(diagnostic);
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_actionKind == ActionKind.OperationBlockEnd)
+                {
+                    context.RegisterOperationBlockStartAction(oc =>
+                    {
+                        oc.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
+                    });
+                }
+                else if (_actionKind == ActionKind.Operation)
+                {
+                    context.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, c.Operation.Syntax.GetLocation()), Semantics.OperationKind.VariableDeclarationStatement);
+                }
+                else
+                {
+                    context.RegisterOperationBlockAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
+                }
+            }
+        }
     }
 }
