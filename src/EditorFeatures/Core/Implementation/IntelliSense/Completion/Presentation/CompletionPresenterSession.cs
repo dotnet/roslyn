@@ -155,6 +155,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return;
             }
 
+            CompletionLog.Log("CompletionPresenterSession: dismissing editor session");
+
             _editorSessionOpt.Dismiss();
             _editorSessionOpt = null;
         }

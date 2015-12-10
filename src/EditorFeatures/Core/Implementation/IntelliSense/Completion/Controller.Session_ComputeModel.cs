@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 AssertIsForeground();
 
+                CompletionLog.Log("Controller: start model computation");
+
                 // If we've already computed a model then we can just ignore this request and not
                 // generate any tasks.
                 if (this.Computation.InitialUnfilteredModel != null)
