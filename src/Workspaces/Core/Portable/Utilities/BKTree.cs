@@ -83,11 +83,6 @@ namespace Roslyn.Utilities
                 result.Add(new string(currentNode.LowerCaseCharacters));
             }
 
-            if (currentNode.ChildCount == 0)
-            {
-                return;
-            }
-
             var min = editDistance - threshold;
             var max = editDistance + threshold;
 
