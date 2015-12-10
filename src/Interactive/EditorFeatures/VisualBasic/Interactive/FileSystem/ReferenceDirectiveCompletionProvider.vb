@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 Imports Microsoft.VisualStudio.InteractiveWindow
 Imports Microsoft.VisualStudio.Text.Editor
 
-Namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
 
     <ExportCompletionProvider("ReferenceDirectiveCompletionProvider", LanguageNames.VisualBasic)>
     <TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)>

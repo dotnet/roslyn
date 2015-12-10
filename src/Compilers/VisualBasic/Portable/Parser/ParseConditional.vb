@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseRegionDirective(hashToken As PunctuationSyntax) As RegionDirectiveTriviaSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso DirectCast(CurrentToken, IdentifierTokenSyntax).PossibleKeywordKind = SyntaxKind.RegionKeyword,
-                         $"{NameOf(ParseRegionDirective)} called with wrong token.")
+                         NameOf(ParseRegionDirective) & " called with wrong token.")
 
             Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
             GetNextToken()
@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseExternalSourceDirective(hashToken As PunctuationSyntax) As ExternalSourceDirectiveTriviaSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso DirectCast(CurrentToken, IdentifierTokenSyntax).PossibleKeywordKind = SyntaxKind.ExternalSourceKeyword,
-                         $"{NameOf(ParseExternalSourceDirective)} called with wrong token")
+                         NameOf(ParseExternalSourceDirective) & " called with wrong token")
 
             Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
             Dim externalSourceKeyword = _scanner.MakeKeyword(identifier)
@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseExternalChecksumDirective(hashToken As PunctuationSyntax) As ExternalChecksumDirectiveTriviaSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso DirectCast(CurrentToken, IdentifierTokenSyntax).PossibleKeywordKind = SyntaxKind.ExternalChecksumKeyword,
-                          $"{NameOf(ParseExternalChecksumDirective)} called with wrong token")
+                          NameOf(ParseExternalChecksumDirective) & " called with wrong token")
 
             Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
             Dim externalChecksumKeyword = _scanner.MakeKeyword(identifier)
@@ -380,12 +380,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseWarningDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken,
-                         $"{NameOf(ParseWarningDirective)} called with token that is not an {NameOf(SyntaxKind.IdentifierToken)}")
+                         NameOf(ParseWarningDirective) & " called with token that is not an {NameOf(SyntaxKind.IdentifierToken)}")
             Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
 
             Debug.Assert((identifier.PossibleKeywordKind = SyntaxKind.EnableKeyword) OrElse
                          (identifier.PossibleKeywordKind = SyntaxKind.DisableKeyword),
-                         $"{NameOf(ParseWarningDirective)} called with token that is neither {NameOf(SyntaxKind.EnableKeyword)} nor {NameOf(SyntaxKind.DisableKeyword)}")
+                         NameOf(ParseWarningDirective) & " called with token that is neither {NameOf(SyntaxKind.EnableKeyword)} nor {NameOf(SyntaxKind.DisableKeyword)}")
             Dim enableOrDisableKeyword = _scanner.MakeKeyword(identifier)
 
             GetNextToken()
@@ -444,7 +444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseReferenceDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso DirectCast(CurrentToken, IdentifierTokenSyntax).PossibleKeywordKind = SyntaxKind.ReferenceKeyword,
-                         $"{NameOf(ParseReferenceDirective)} called with wrong token.")
+                         NameOf(ParseReferenceDirective) & " called with wrong token.")
 
             Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
             GetNextToken()

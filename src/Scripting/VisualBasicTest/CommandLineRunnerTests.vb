@@ -94,6 +94,21 @@ Type ""#help"" for more information.
 > ? New C1().Foo()
 ""Bar""
 >", runner.Console.Out.ToString())
+
+            runner = CreateRunner(args:={}, input:="? New C1().Foo()")
+
+            runner.RunInteractive()
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+"Microsoft (R) Visual Basic Interactive Compiler version " + CompilerVersion + "
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> ? New C1().Foo()
+«Red»
+(1) : error BC30002: Type 'C1' is not defined.
+«Gray»
+>", runner.Console.Out.ToString())
         End Sub
 
     End Class
