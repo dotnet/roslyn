@@ -62,16 +62,7 @@ namespace Roslyn.Utilities
 
         internal static int GetThreshold(string value)
         {
-            // We only allow fairly close matches (in order to prevent too many
-            // spurious hits).
-            //
-            // Strings length 1-4 : 1 edit allowed.
-            //         length 5-7 : 2 edits allowed.
-            //         length 8-15: 3 edits allowed.
-            //         length 16-31: 4 edits allowed.
-            //
-            // and so forth.
-            return value.Length <= 4 ? 1 : (int)Log(value.Length, 2);
+            return value.Length <= 4 ? 1 : 2;
         }
 
         private static char[] ConvertToLowercaseArray(string text)
