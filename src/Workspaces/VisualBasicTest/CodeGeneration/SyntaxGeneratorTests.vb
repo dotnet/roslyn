@@ -810,6 +810,26 @@ End Function</x>.Value)
                 _g.MethodDeclaration("m", accessibility:=Accessibility.Private, modifiers:=DeclarationModifiers.Partial),
 <x>Private Partial Sub m()
 End Sub</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestSealedDeclarationModifier()
+            VerifySyntax(Of MethodBlockSyntax)(
+                _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Sealed),
+<x>NotOverridable Sub m()
+End Sub</x>.Value)
+
+            VerifySyntax(Of MethodBlockSyntax)(
+                _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Sealed + DeclarationModifiers.Override),
+<x>NotOverridable Overrides Sub m()
+End Sub</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                _g.ClassDeclaration("c", modifiers:=DeclarationModifiers.Sealed),
+<x>NotInheritable Class c
+End Class</x>.Value)
+
         End Sub
 
         <Fact>

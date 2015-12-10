@@ -887,6 +887,33 @@ public class B
                      .WithLocation(1, 1));
         }
 
+        [Fact, WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
+        public void TestReportingDiagnosticWithInvalidLocation()
+        {
+            var source1 = @"class C1 { void M() { int i = 0; i++; } }";
+            var source2 = @"class C2 { void M() { int i = 0; i++; } }";
+            var compilation = CreateCompilationWithMscorlib45(source1);
+            var anotherCompilation = CreateCompilationWithMscorlib45(source2);
+            var treeInAnotherCompilation = anotherCompilation.SyntaxTrees.Single();
+            
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, treeInAnotherCompilation.FilePath), "diagnostic").Message;
+
+            compilation.VerifyDiagnostics();
+
+            foreach (AnalyzerWithInvalidDiagnosticLocation.ActionKind actionKind in Enum.GetValues(typeof(AnalyzerWithInvalidDiagnosticLocation.ActionKind)))
+            {
+                var analyzer = new AnalyzerWithInvalidDiagnosticLocation(treeInAnotherCompilation, actionKind);
+                var analyzers = new DiagnosticAnalyzer[] { analyzer };
+                compilation
+                    .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                        expected:
+                        Diagnostic("AD0001")
+                            .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticLocation", "System.ArgumentException", message)
+                            .WithLocation(1, 1)
+                    );
+            }
+        }
+
         [Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")]
         public void TestReportingNotConfigurableDiagnostic()
         {
