@@ -11,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
         Protected Overrides Sub CollectOutliningSpans(compilationUnit As CompilationUnitSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
             Dim regions As New List(Of OutliningSpan)
 
-            VisualBasicOutliningHelpers.CollectCommentsRegions(compilationUnit, spans)
-            spans.Add(VisualBasicOutliningHelpers.CreateRegion(compilationUnit.Imports, "Imports ...", autoCollapse:=True))
-            VisualBasicOutliningHelpers.CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)
+            CollectCommentsRegions(compilationUnit, spans)
+            spans.Add(CreateRegion(compilationUnit.Imports, bannerText:="Imports" & SpaceEllipsis, autoCollapse:=True))
+            CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)
         End Sub
 
         Protected Overrides Function SupportedInWorkspaceKind(kind As String) As Boolean

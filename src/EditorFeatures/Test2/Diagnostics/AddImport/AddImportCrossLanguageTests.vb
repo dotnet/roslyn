@@ -310,7 +310,7 @@ End Namespace
 using System.Collections.Generic;
 namespace CSAssembly1
 {
-    public class Class1
+    public class Assembly1Class
     {
     }
 }
@@ -323,7 +323,7 @@ namespace CSAssembly2
 {
     public class Class2
     {
-        $$Class1 c;
+        $$Assembly1Class c;
     }
 }
                         </Document>

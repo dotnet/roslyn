@@ -20,7 +20,7 @@ Class Foo
 End Class
 </code>
 
-            Await TestCodeElements(code, "MS", "My", "Microsoft", "System", "Foo")
+            Await TestChildren(code, "MS", "My", "Microsoft", "System", "Foo")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -31,7 +31,7 @@ Module Foo
 End Module
 </code>
 
-            Await TestCodeElements(code, "MS", "My", "Microsoft", "System", "Foo")
+            Await TestChildren(code, "MS", "My", "Microsoft", "System", "Foo")
         End Function
 
 #End Region

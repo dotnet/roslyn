@@ -15,6 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
+            Get
+                Return Me.HasErrors
+            End Get
+        End Property
+
         Private ReadOnly Property ISyntax As SyntaxNode Implements IOperation.Syntax
             Get
                 Return Me.Syntax
@@ -86,7 +92,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IClauses As ImmutableArray(Of ICaseClause) Implements ICase.Clauses
             Get
-                If Me.CaseStatement.CaseClauses.IsEmpty Then
+                ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses, 
+                ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
+                If Me.CaseStatement.CaseClauses.IsEmpty AndAlso Me.CaseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
                     Return ImmutableArray.Create(CaseElseClause)
                 End If
 
@@ -102,7 +110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Class CaseElse
             Implements ICaseClause
-
             Private ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseKind
                 Get
                     Return CaseKind.Default
@@ -165,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides ReadOnly Property ICaseClass As CaseKind
             Get
-                Return If(Me.IValue IsNot Nothing, CaseKind.SingleValue, CaseKind.Default)
+                Return CaseKind.SingleValue
             End Get
         End Property
     End Class
@@ -455,6 +462,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public ReadOnly Property IsInvalid As Boolean Implements IExpression.IsInvalid
+                Get
+                    Return False
+                End Get
+            End Property
+
             Public ReadOnly Property ResultType As ITypeSymbol Implements IExpression.ResultType
                 Get
                     Return Me._capturedValue.ResultType
@@ -582,6 +595,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
+            Get
+                Return Me.HasErrors
+            End Get
+        End Property
+
         Private ReadOnly Property ISyntax As SyntaxNode Implements IOperation.Syntax
             Get
                 Return Me.Syntax
@@ -611,7 +630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundBadStatement
         Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
+            Return OperationKind.InvalidStatement
         End Function
     End Class
 
@@ -946,6 +965,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
                 Get
                     Return OperationKind.VariableDeclarationStatement
+                End Get
+            End Property
+
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return False
                 End Get
             End Property
 

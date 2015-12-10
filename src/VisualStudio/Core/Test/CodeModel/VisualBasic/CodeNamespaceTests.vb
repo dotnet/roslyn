@@ -451,6 +451,24 @@ End Namespace
                          IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
         End Function
 
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function NoChildrenForInvalidMembers() As Task
+            Dim code =
+<Code>
+Namespace N$$
+    Sub M()
+    End Sub
+    Function M() As Integer
+    End Function
+    Property P As Integer
+    Event E()
+End Sub
+</Code>
+
+            Await TestChildren(code, NoElements)
+        End Function
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.VisualBasic

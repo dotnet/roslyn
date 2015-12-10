@@ -552,6 +552,71 @@ class C1 : I1
 
 #End Region
 
+#Region "OverrideKind tests"
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_Abstract() As Task
+            Dim code =
+<Code>
+class C
+{
+    abstract class A
+    {
+        protected abstract event System.EventHandler $$E;
+    }
+}
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_Virtual() As Task
+            Dim code =
+<Code>
+class C
+{
+    abstract class A
+    {
+        protected virtual event System.EventHandler $$E
+        {
+            add { }
+            remove { }
+        }
+    }
+}
+}
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestOverrideKind_None() As Task
+            Dim code =
+<Code>
+class C
+{
+    abstract class A
+    {
+        protected event System.EventHandler $$E
+        {
+            add { }
+            remove { }
+        }
+    }
+}
+}
+</Code>
+
+            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+        End Function
+
+#End Region
+
 #Region "Type tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

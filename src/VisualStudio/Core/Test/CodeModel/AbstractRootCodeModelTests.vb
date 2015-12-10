@@ -1,10 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractRootCodeModelTests
         Inherits AbstractCodeModelObjectTests(Of EnvDTE80.CodeModel2)
 
-        Protected Async Function TestRootCodeModel(workspaceDefinition As XElement, action As Action(Of EnvDTE80.CodeModel2)) As Threading.Tasks.Task
+        Protected Async Function TestRootCodeModel(workspaceDefinition As XElement, action As Action(Of EnvDTE80.CodeModel2)) As Task
             Using state = Await CreateCodeModelTestStateAsync(workspaceDefinition)
                 Dim rootCodeModel = TryCast(state.RootCodeModel, EnvDTE80.CodeModel2)
                 Assert.NotNull(rootCodeModel)
@@ -13,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End Using
         End Function
 
-        Protected Async Function TestRootCodeModelWithCodeFile(code As XElement, action As Action(Of EnvDTE80.CodeModel2)) As Threading.Tasks.Task
+        Protected Async Function TestRootCodeModelWithCodeFile(code As XElement, action As Action(Of EnvDTE80.CodeModel2)) As Task
             Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
                 Dim rootCodeModel = TryCast(state.RootCodeModel, EnvDTE80.CodeModel2)
                 Assert.NotNull(rootCodeModel)
@@ -22,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End Using
         End Function
 
-        Protected Async Function TestCodeElements(code As XElement, ParamArray expectedChildren() As Action(Of Object)) As Threading.Tasks.Task
+        Protected Overrides Async Function TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object)) As Task
             Await TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Dim codeElements = rootCodeModel.CodeElements
@@ -34,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Async Function TestCodeElements(code As XElement, ParamArray names() As String) As Threading.Tasks.Task
+        Protected Overloads Async Function TestChildren(code As XElement, ParamArray names() As String) As Task
             Await TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Assert.Equal(names.Length, rootCodeModel.CodeElements.Count)
@@ -47,11 +49,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Async Function TestCreateCodeTypeRef(type As Object, data As CodeTypeRefData) As Threading.Tasks.Task
+        Protected Async Function TestCreateCodeTypeRef(type As Object, data As CodeTypeRefData) As Task
             Await TestCreateCodeTypeRef(<code></code>, type, data)
         End Function
 
-        Protected Async Function TestCreateCodeTypeRef(code As XElement, type As Object, data As CodeTypeRefData) As Threading.Tasks.Task
+        Protected Async Function TestCreateCodeTypeRef(code As XElement, type As Object, data As CodeTypeRefData) As Task
             Await TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Dim codeTypeRef = rootCodeModel.CreateCodeTypeRef(type)
@@ -60,11 +62,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Async Function TestCreateCodeTypeRefThrows(Of TException As Exception)(type As Object) As Threading.Tasks.Task
+        Protected Async Function TestCreateCodeTypeRefThrows(Of TException As Exception)(type As Object) As Task
             Await TestCreateCodeTypeRef(Of TException)(<code></code>, type)
         End Function
 
-        Protected Async Function TestCreateCodeTypeRef(Of TException As Exception)(code As XElement, type As Object) As Threading.Tasks.Task
+        Protected Async Function TestCreateCodeTypeRef(Of TException As Exception)(code As XElement, type As Object) As Task
             Await TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Assert.Throws(Of TException)(
@@ -74,7 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Async Function TestCodeTypeFromFullName(workspaceDefinition As XElement, fullName As String, action As Action(Of EnvDTE.CodeType)) As Threading.Tasks.Task
+        Protected Async Function TestCodeTypeFromFullName(workspaceDefinition As XElement, fullName As String, action As Action(Of EnvDTE.CodeType)) As Task
             Await TestRootCodeModel(workspaceDefinition,
                 Sub(rootCodeModel)
                     action(rootCodeModel.CodeTypeFromFullName(fullName))

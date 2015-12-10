@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Test.Utilities;
@@ -74,10 +71,18 @@ index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public async Task TestGenericWithWrongArgs()
+        public async Task TestGenericWithWrongArgs1()
         {
             await TestMissingAsync(
-@"class Class { [|List<int,string>|] Method() { Foo(); } }");
+@"class Class { [|List<int,string,bool>|] Method() { Foo(); } }");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestGenericWithWrongArgs2()
+        {
+            await TestAsync(
+@"class Class { [|List<int,string>|] Method() { Foo(); } }",
+@"using System.Collections.Generic; class Class { SortedList<int,string> Method() { Foo(); } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]

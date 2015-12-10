@@ -101,7 +101,7 @@ namespace RunTests
         private void PrintFailedTestResult(TestResult testResult)
         {
             // Save out the error output for easy artifact inspecting
-            var resultsDir = Path.GetDirectoryName(testResult.ResultsFilePath);
+            var resultsDir = testResult.ResultDir;
             var outputLogPath = Path.Combine(resultsDir, $"{testResult.AssemblyName}.out.log");
             File.WriteAllText(outputLogPath, testResult.StandardOutput);
 
