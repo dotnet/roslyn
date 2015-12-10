@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Called when a connection to the server occurs.
         /// </summary>
-        void Connection();
+        void ConnectionReceived();
 
         /// <summary>
         /// Called when one or more connections have completed processing.  The number of connections
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// Called when a bad client connection was detected and the server will be shutting down as a 
         /// result.
         /// </summary>
-        void DetectedBadConnection();
+        void ConnectionRudelyEnded();
 
         /// <summary>
         /// Called when the server is shutting down because the keep alive timeout was reached.
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
         }
 
-        public void Connection()
+        public void ConnectionReceived()
         {
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
         }
 
-        public void DetectedBadConnection()
+        public void ConnectionRudelyEnded()
         {
         }
 

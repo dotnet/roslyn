@@ -75,14 +75,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         private static string GetMSBuildDirectory()
         {
-            var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false);
-
-            if (key != null)
+            using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false))
             {
-                var toolsPath = key.GetValue("MSBuildToolsPath");
-                if (toolsPath != null)
+                if (key != null)
                 {
-                    return toolsPath.ToString();
+                    var toolsPath = key.GetValue("MSBuildToolsPath");
+                    if (toolsPath != null)
+                    {
+                        return toolsPath.ToString();
+                    }
                 }
             }
 

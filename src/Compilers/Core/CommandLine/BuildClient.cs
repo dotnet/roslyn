@@ -60,14 +60,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             bool hasShared;
             string keepAlive;
             string errorMessage;
-            string pipeName;
+            string sessionKey;
             List<string> parsedArgs;
             if (!CommandLineParser.TryParseClientArgs(
                     args,
                     out parsedArgs,
                     out hasShared,
                     out keepAlive,
-                    out pipeName,
+                    out sessionKey,
                     out errorMessage))
             {
                 Console.Out.WriteLine(errorMessage);
@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 var libDirectory = Environment.GetEnvironmentVariable("LIB");
                 try
                 {
-                    pipeName = pipeName ?? GetPipeName(buildPaths);
+                    sessionKey = sessionKey ?? GetSessionKey(buildPaths);
                     var buildResponseTask = RunServerCompilation(
                         parsedArgs,
                         buildPaths,
-                        pipeName,
+                        sessionKey,
                         keepAlive,
                         libDirectory,
                         CancellationToken.None);
@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         protected abstract int RunLocalCompilation(List<string> arguments, string clientDir, string sdkDir);
 
-        protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string pipeName, string keepAlive, string libDirectory, CancellationToken cancellationToken);
+        protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string sessionName, string keepAlive, string libDirectory, CancellationToken cancellationToken);
 
-        protected abstract string GetPipeName(BuildPaths buildPaths);
+        protected abstract string GetSessionKey(BuildPaths buildPaths);
 
         protected virtual int HandleResponse(BuildResponse response, List<string> arguments, BuildPaths buildPaths)
         {

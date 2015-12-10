@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // If there is a connection event that has highest priority. 
                 if (listenTask.IsCompleted && !cancellationToken.IsCancellationRequested)
                 {
-                    _diagnosticListener.Connection();
+                    _diagnosticListener.ConnectionReceived();
                     var connectionTask = HandleClientConnection(listenTask, cancellationToken);
                     connectionList.Add(connectionTask);
                     listenTask = null;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     // the shutdown process.  We have to assume that the client disconnected via
                     // Ctrl+C and wants the server process to terminate.  It's possible a compilation
                     // is running out of control and the client wants their machine back.  
-                    _diagnosticListener.DetectedBadConnection();
+                    _diagnosticListener.ConnectionRudelyEnded();
                     listenCancellationTokenSource.Cancel();
                     break;
                 }

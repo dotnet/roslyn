@@ -405,8 +405,8 @@ namespace Microsoft.CodeAnalysis
         /// Only defined if errors were encountered.
         /// The error message for the encountered error.
         /// </param>
-        /// <param name="pipeName">
-        /// Only specified if <paramref name="containsShared"/> is true and the pipe name
+        /// <param name="sessionKey">
+        /// Only specified if <paramref name="containsShared"/> is true and the session key
         /// was provided.  Can be null
         /// </param>
         internal static bool TryParseClientArgs(
@@ -414,31 +414,27 @@ namespace Microsoft.CodeAnalysis
             out List<string> parsedArgs,
             out bool containsShared,
             out string keepAliveValue,
-            out string pipeName,
+            out string sessionKey,
             out string errorMessage)
         {
-            const string keepAlive = "/keepalive";
-            const string shared = "/shared";
             containsShared = false;
             keepAliveValue = null;
             errorMessage = null;
             parsedArgs = null;
-            pipeName = null;
+            sessionKey = null;
             var newArgs = new List<string>();
             foreach (var arg in args)
             {
-                var prefixLength = keepAlive.Length;
-                if (arg.StartsWith(keepAlive, StringComparison.OrdinalIgnoreCase))
+                bool hasValue;
+                string value;
+                if (IsClientArgsOption(arg, "/keepalive", out hasValue, out value))
                 {
-                    if (arg.Length < prefixLength + 2 ||
-                        arg[prefixLength] != ':' &&
-                        arg[prefixLength] != '=')
+                    if (string.IsNullOrEmpty(value))
                     {
                         errorMessage = CodeAnalysisResources.MissingKeepAlive;
                         return false;
                     }
 
-                    var value = arg.Substring(prefixLength + 1).Trim('"');
                     int intValue;
                     if (int.TryParse(value, out intValue))
                     {
@@ -457,11 +453,17 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (arg.StartsWith(shared, StringComparison.OrdinalIgnoreCase))
+                if (IsClientArgsOption(arg, "/shared", out hasValue, out value))
                 {
-                    if (arg.Length > shared.Length && arg[shared.Length] == ':')
+                    if (hasValue)
                     {
-                        pipeName = arg.Substring(shared.Length + 1).Trim('"');
+                        if (string.IsNullOrEmpty(value))
+                        {
+                            errorMessage = CodeAnalysisResources.SharedArgumentMissing;
+                            return false;
+                        }
+
+                        sessionKey = value;
                     }
 
                     containsShared = true;
@@ -481,6 +483,30 @@ namespace Microsoft.CodeAnalysis
                 parsedArgs = newArgs;
                 return true;
             }
+        }
+
+        internal static bool IsClientArgsOption(string arg, string optionName, out bool hasValue, out string optionValue)
+        {
+            hasValue = false;
+            optionValue = null;
+
+            if (!arg.StartsWith(optionName, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (arg.Length > optionName.Length && !(arg[optionName.Length] == ':' || arg[optionName.Length] == '='))
+            {
+                return false;
+            }
+
+            if (arg.Length > optionName.Length)
+            {
+                hasValue = true;
+                optionValue = arg.Substring(optionName.Length + 1).Trim('"');
+            }
+
+            return true;
         }
 
         internal static string MismatchedVersionErrorText => CodeAnalysisResources.MismatchedVersion;

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public bool HasDetectedBadConnection;
         public bool HitKeepAliveTimeout;
 
-        public void Connection()
+        public void ConnectionReceived()
         {
             ConnectionCount++;
         }
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             KeepAlive = timeSpan;
         }
 
-        public void DetectedBadConnection()
+        public void ConnectionRudelyEnded()
         {
             HasDetectedBadConnection = true;
         }

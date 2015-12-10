@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return _compileFunc(clientDir, sdkDir, arguments.ToArray(), CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault());
         }
 
-        protected override string GetPipeName(BuildPaths buildPaths)
+        protected override string GetSessionKey(BuildPaths buildPaths)
         {
             return string.Empty;
         }

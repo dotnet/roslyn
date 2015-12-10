@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
             var compilerServerHost = new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
             var clientConnectionHost = new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
-            var listener = new EmptyDiagnosticListener();
-            return Run(serverMutexName, clientConnectionHost, listener, keepAliveTimeout);
+            return Run(serverMutexName, clientConnectionHost, keepAliveTimeout);
         }
 
         private static TimeSpan? GetKeepAliveTimeout()
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             IClientConnectionHost connectionHost, 
             IDiagnosticListener listener,
             TimeSpan? keepAliveTimeout, 
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAliveTimeout?.TotalMilliseconds ?? 0);
             FatalError.Handler = FailFast.OnFatalException;

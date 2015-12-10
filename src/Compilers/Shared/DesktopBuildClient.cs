@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
         protected override Task<BuildResponse> RunServerCompilation(
             List<string> arguments, 
             BuildPaths buildPaths, 
-            string pipeName,
+            string sessionKey,
             string keepAlive, 
             string libDirectory, 
             CancellationToken cancellationToken)
         {
-            return RunServerCompilationCore(_language, arguments, buildPaths, pipeName, keepAlive, libDirectory, TryCreateServer, cancellationToken);
+            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TryCreateServer, cancellationToken);
         }
 
         public static Task<BuildResponse> RunServerCompilation(
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// retrieves the name of the pipe for client/server communication on
         /// that instance of the compiler.
         /// </summary>
-        protected override string GetPipeName(BuildPaths buildPaths)
+        protected override string GetSessionKey(BuildPaths buildPaths)
         {
             return GetPipeNameFromFileInfo(buildPaths.ClientDirectory);
         }

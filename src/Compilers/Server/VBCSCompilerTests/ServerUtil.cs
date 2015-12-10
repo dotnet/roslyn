@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             ICompilerServerHost compilerServerHost = null)
         {
             pipeName = pipeName ?? Guid.NewGuid().ToString();
-            compilerServerHost = compilerServerHost ?? new DesktopCompilerServerHost(ServerUtil.DefaultClientDirectory, ServerUtil.DefaultSdkDirectory);
+            compilerServerHost = compilerServerHost ?? new DesktopCompilerServerHost(DefaultClientDirectory, DefaultSdkDirectory);
 
             var taskSource = new TaskCompletionSource<ServerStats>();
             var cts = new CancellationTokenSource();
@@ -151,10 +151,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    var pipeStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-                    await pipeStream.WaitForConnectionAsync(cancellationToken);
-                    connections++;
-                    pipeStream.Close();
+                    using (var pipeStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous))
+                    {
+                        await pipeStream.WaitForConnectionAsync(cancellationToken);
+                        connections++;
+                    }
                 }
             }
             catch (Exception)

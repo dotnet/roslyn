@@ -16,7 +16,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    public class DesktopBuildClientTests : TestBase
+    public abstract class DesktopBuildClientTests : TestBase
     {
         private sealed class TestableDesktopBuildClient : DesktopBuildClient
         {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 _createServerFunc = createServerFunc;
             }
 
-            protected override string GetPipeName(BuildPaths buildPaths)
+            protected override string GetSessionKey(BuildPaths buildPaths)
             {
                 return _pipeName;
             }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private bool _hasShared;
             private string _keepAlive;
             private string _errorMessage;
-            private string _pipeName;
+            private string _sessionKey;
             private List<string> _parsedArgs;
 
             private bool Parse(params string[] args)
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     out _parsedArgs,
                     out _hasShared,
                     out _keepAlive,
-                    out _pipeName,
+                    out _sessionKey,
                     out _errorMessage);
             }
 
@@ -158,17 +158,43 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 Assert.True(Parse("/shared", "test.cs"));
                 Assert.True(_hasShared);
-                Assert.Null(_pipeName);
-                Assert.Equal(_parsedArgs, new[] { "test.cs" });
+                Assert.Null(_sessionKey);
+                Assert.Equal(new[] { "test.cs" }, _parsedArgs);
             }
 
             [Fact]
-            public void SharedWithPipe()
+            public void SharedWithSessionKey()
             {
                 Assert.True(Parse("/shared:pipe", "test.cs"));
                 Assert.True(_hasShared);
-                Assert.Equal("pipe", _pipeName);
-                Assert.Equal(_parsedArgs, new[] { "test.cs" });
+                Assert.Equal("pipe", _sessionKey);
+                Assert.Equal(new[] { "test.cs" }, _parsedArgs);
+
+                Assert.True(Parse("/shared:1:2", "test.cs"));
+                Assert.True(_hasShared);
+                Assert.Equal("1:2", _sessionKey);
+                Assert.Equal(new[] { "test.cs" }, _parsedArgs);
+
+                Assert.True(Parse("/shared=1:2", "test.cs"));
+                Assert.True(_hasShared);
+                Assert.Equal("1:2", _sessionKey);
+                Assert.Equal(new[] { "test.cs" }, _parsedArgs);
+            }
+
+            [Fact]
+            public void SharedWithEmptySessionKey()
+            {
+                Assert.False(Parse("/shared:", "test.cs"));
+                Assert.False(_hasShared);
+                Assert.Equal(CodeAnalysisResources.SharedArgumentMissing, _errorMessage);
+            }
+
+            [Fact]
+            public void SharedPrefix()
+            {
+                Assert.True(Parse("/sharedstart", "test.cs"));
+                Assert.False(_hasShared);
+                Assert.Equal(new[] { "/sharedstart", "test.cs" }, _parsedArgs);
             }
 
             [Fact]
@@ -176,8 +202,54 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 Assert.True(Parse("test.cs"));
                 Assert.False(_hasShared);
-                Assert.Null(_pipeName);
-                Assert.Equal(_parsedArgs, new[] { "test.cs" });
+                Assert.Null(_sessionKey);
+                Assert.Equal(new[] { "test.cs" }, _parsedArgs);
+
+                Assert.True(Parse("/keepalive:100", "/shared", "test.cs"));
+                Assert.True(_hasShared);
+                Assert.Null(_sessionKey);
+                Assert.Equal("100", _keepAlive);
+                Assert.Equal(new[] { "test.cs" }, _parsedArgs);
+            }
+
+            [Fact]
+            public void KeepAliveBad()
+            {
+                Assert.False(Parse("/keepalive", "test.cs"));
+                Assert.Equal(CodeAnalysisResources.MissingKeepAlive, _errorMessage);
+
+                Assert.False(Parse("/keepalive:", "test.cs"));
+                Assert.Equal(CodeAnalysisResources.MissingKeepAlive, _errorMessage);
+
+                Assert.False(Parse("/keepalive:-100", "test.cs"));
+                Assert.Equal(CodeAnalysisResources.KeepAliveIsTooSmall, _errorMessage);
+
+                Assert.False(Parse("/keepalive:100", "test.cs"));
+                Assert.Equal(CodeAnalysisResources.KeepAliveWithoutShared, _errorMessage);
+            }
+
+            [Fact]
+            public void KeepAlivePrefix()
+            {
+                Assert.True(Parse("/keepalivestart", "test.cs"));
+                Assert.Null(_keepAlive);
+                Assert.Equal(new[] { "/keepalivestart", "test.cs" }, _parsedArgs);
+            }
+
+            [Fact]
+            public void KeepAlive()
+            {
+                Assert.True(Parse("/keepalive:100", "/shared", "test.cs"));
+                Assert.Equal("100", _keepAlive);
+                Assert.Equal(new[] { "test.cs" }, _parsedArgs);
+                Assert.True(_hasShared);
+                Assert.Null(_sessionKey);
+
+                Assert.True(Parse("/keepalive=100", "/shared", "test.cs"));
+                Assert.Equal("100", _keepAlive);
+                Assert.Equal(new[] { "test.cs" }, _parsedArgs);
+                Assert.True(_hasShared);
+                Assert.Null(_sessionKey);
             }
         }
     }
