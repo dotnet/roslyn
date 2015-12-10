@@ -1,5 +1,34 @@
 Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter
+Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter.New() -> Void
+Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter
+Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter
+Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.New(pFormatter As Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter) -> Void
 Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter.FormatRefKind(parameter As System.Reflection.ParameterInfo) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter.IsHiddenMember(member As System.Reflection.MemberInfo) -> Boolean
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter.TryFormatCompositeObject(obj As Object, ByRef value As String, ByRef suppressMembers As Boolean) -> Boolean
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(c As Char, quote As Boolean, includeCodePoints As Boolean = False, useHexadecimalNumbers As Boolean = False) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Boolean) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Byte, useHexadecimalNumbers As Boolean = False) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Date) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Decimal) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Double) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Integer, useHexadecimalNumbers As Boolean = False) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Long, useHexadecimalNumbers As Boolean = False) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As SByte, useHexadecimalNumbers As Boolean = False) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Short, useHexadecimalNumbers As Boolean = False) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Single) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As String, quote As Boolean, useHexadecimalNumbers As Boolean = False) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As UInteger, useHexadecimalNumbers As Boolean = False) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As ULong, useHexadecimalNumbers As Boolean = False) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As UShort, useHexadecimalNumbers As Boolean = False) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.NullLiteral() -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.ArrayClosing() -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.ArrayOpening() -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.FormatTypeName(type As System.Type, useHexadecimalArrayBounds As Boolean) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.GenericParameterClosing() -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.GenericParameterOpening() -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.GetPrimitiveTypeName(type As Microsoft.CodeAnalysis.SpecialType) -> String
 Shared Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript.Create(Of T)(code As String, options As Microsoft.CodeAnalysis.Scripting.ScriptOptions = Nothing, globalsType As System.Type = Nothing, assemblyLoader As Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader = Nothing) -> Microsoft.CodeAnalysis.Scripting.Script(Of T)
 Shared Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript.Create(code As String, options As Microsoft.CodeAnalysis.Scripting.ScriptOptions = Nothing, globalsType As System.Type = Nothing, assemblyLoader As Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader = Nothing) -> Microsoft.CodeAnalysis.Scripting.Script(Of Object)
 Shared Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript.EvaluateAsync(Of T)(code As String, options As Microsoft.CodeAnalysis.Scripting.ScriptOptions = Nothing, globals As Object = Nothing, cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Threading.Tasks.Task(Of T)

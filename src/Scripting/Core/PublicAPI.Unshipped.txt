@@ -4,7 +4,12 @@ Microsoft.CodeAnalysis.Scripting.CompilationErrorException.Diagnostics.get -> Sy
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Args.get -> System.Collections.Generic.IList<string>
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.CommandLineScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.ObjectFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Print(object value) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatPrimitive(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options options) -> string
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options.Options(bool useHexadecimalNumbers, bool includeCodePoints, bool omitStringQuotes) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy.FullPath.get -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy.OriginalPath.get -> string
@@ -16,9 +21,15 @@ Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.RegisterDepen
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.Args.get -> System.Collections.Generic.IList<string>
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.InteractiveScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.ObjectFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter
+Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.ObjectFormatter.set -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.Print(object value) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.ReferencePaths.get -> System.Collections.Generic.IList<string>
 Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveScriptGlobals.SourcePaths.get -> System.Collections.Generic.IList<string>
+Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
+Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat.Hidden = 2 -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
+Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat.SeparateLines = 1 -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
+Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat.SingleLine = 0 -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy.DocumentationFile.get -> Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy.Metadata.get -> Microsoft.CodeAnalysis.Metadata
@@ -32,7 +43,6 @@ Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.MetadataShad
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.NeedsShadowCopy(string fullPath) -> bool
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.SuppressShadowCopy(string originalPath) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter
-Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatObject(object obj) -> string
 Microsoft.CodeAnalysis.Scripting.Script
 Microsoft.CodeAnalysis.Scripting.Script.Code.get -> string
 Microsoft.CodeAnalysis.Scripting.Script.Compile(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
@@ -103,7 +113,40 @@ Microsoft.CodeAnalysis.Scripting.ScriptVariable.Name.get -> string
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Type.get -> System.Type
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.get -> object
 Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.set -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.FormatRefKind(System.Reflection.ParameterInfo parameter) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.IsHiddenMember(System.Reflection.MemberInfo member) -> bool
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.PrimitiveFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.TryFormatCompositeObject(object obj, out string value, out bool suppressMembers) -> bool
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.TypeNameFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(System.DateTime value) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(bool value) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(byte value, bool useHexadecimalNumbers = false) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(char value, bool quote, bool includeCodePoints = false, bool useHexadecimalNumbers = false) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(decimal value) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(double value) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(float value) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(int value, bool useHexadecimalNumbers = false) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(long value, bool useHexadecimalNumbers = false) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(sbyte value, bool useHexadecimalNumbers = false) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(short value, bool useHexadecimalNumbers = false) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(string value, bool quote, bool useHexadecimalNumbers = false) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(uint value, bool useHexadecimalNumbers = false) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(ulong value, bool useHexadecimalNumbers = false) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(ushort value, bool useHexadecimalNumbers = false) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.NullLiteral.get -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.ArrayClosing.get -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.ArrayOpening.get -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.GenericParameterClosing.get -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.GenericParameterOpening.get -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.GetPrimitiveTypeName(Microsoft.CodeAnalysis.SpecialType type) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.PrimitiveFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatObject(object obj) -> string
+abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatRaisedException(System.Exception e) -> string
 abstract Microsoft.CodeAnalysis.Scripting.Script.ReturnType.get -> System.Type
+override Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.FormatObject(object obj) -> string
+override Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.FormatRaisedException(System.Exception e) -> string
 override Microsoft.CodeAnalysis.Scripting.Script<T>.ReturnType.get -> System.Type
 override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.Equals(object other) -> bool
 override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.GetHashCode() -> int
@@ -112,6 +155,14 @@ override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.ResolveMissingA
 override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.ResolveReference(string reference, string baseFilePath, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.PortableExecutableReference>
 override Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.GetHashCode() -> int
+readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options.IncludeCharacterCodePoints -> bool
+readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options.OmitStringQuotes -> bool
+readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options.UseHexadecimalNumbers -> bool
 static Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver
 static Microsoft.CodeAnalysis.Scripting.ScriptOptions.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 static Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.MemberDisplayFormat.get -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.PrimitiveOptions.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatArrayTypeName(System.Type arrayType, System.Array arrayOpt, bool useHexadecimalArrayBounds) -> string
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatTypeArguments(System.Type[] typeArguments, bool useHexadecimalArrayBounds) -> string
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatTypeName(System.Type type, bool useHexadecimalArrayBounds) -> string
