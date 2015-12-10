@@ -39,24 +39,23 @@ namespace Roslyn.Utilities
 
         private string _source;
         private char[] _sourceLowerCaseCharacters;
-        // private readonly int threshold;
+        private readonly int _defaultThreshold;
 
         // Cache the result of the last call to IsCloseMatch.  We'll often be called with the same
         // value multiple times in a row, so we can avoid expensive computation by returning the
         // same value immediately.
         private CacheResult _lastIsCloseMatchResult;
 
-        private readonly int _defaultThreshold;
 
-        public EditDistance(string text/*, int? threshold = null*/)
+        public EditDistance(string text)
         {
             if (text == null)
             {
                 throw new ArgumentNullException(nameof(text));
             }
 
-            this._source = text;
-            this._sourceLowerCaseCharacters = ConvertToLowercaseArray(text);
+            _source = text;
+            _sourceLowerCaseCharacters = ConvertToLowercaseArray(text);
 
             // We only allow fairly close matches (in order to prevent too many
             // spurious hits).  A reasonable heuristic for this is the Log_2(length) (rounded 
@@ -67,7 +66,7 @@ namespace Roslyn.Utilities
             //         length 8-15: 3 edits allowed.
             //
             // and so forth.
-            this._defaultThreshold = Max(1, (int)Log(text.Length, 2));
+            _defaultThreshold = Max(1, (int)Log(_source.Length, 2));
         }
 
         private static char[] ConvertToLowercaseArray(string text)
@@ -120,9 +119,14 @@ namespace Roslyn.Utilities
             }
         }
 
+        public static int GetEditDistance(char[] s, char[] t)
+        {
+            return GetEditDistance(s, t, s.Length, t.Length);
+        }
+
         public int GetEditDistance(string target)
         {
-            if (this._source == null)
+            if (this._sourceLowerCaseCharacters == null)
             {
                 throw new ObjectDisposedException(nameof(EditDistance));
             }
@@ -130,9 +134,7 @@ namespace Roslyn.Utilities
             var targetLowerCaseCharacters = ConvertToLowercaseArray(target);
             try
             {
-                return _source.Length <= target.Length
-                    ? GetEditDistance(_sourceLowerCaseCharacters, targetLowerCaseCharacters, _source.Length, target.Length)
-                    : GetEditDistance(targetLowerCaseCharacters, _sourceLowerCaseCharacters, target.Length, _source.Length);
+                return GetEditDistance(_sourceLowerCaseCharacters, targetLowerCaseCharacters, _source.Length, target.Length);
             }
             finally
             {
@@ -179,6 +181,13 @@ namespace Roslyn.Utilities
         }
 
         private static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength)
+        {
+            return sourceLength <= targetLength
+                ? GetEditDistanceWorker(source, target, sourceLength, targetLength)
+                : GetEditDistanceWorker(target, source, targetLength, sourceLength);
+        }
+
+        private static int GetEditDistanceWorker(char[] source, char[] target, int sourceLength, int targetLength)
         {
             // Note: sourceLength and targetLength values will mutate and represent the lengths 
             // of the portions of the arrays we want to compare.
@@ -286,7 +295,7 @@ namespace Roslyn.Utilities
 
         public bool IsCloseMatch(string candidateText, int? threshold, out double matchCost)
         {
-            if (this._source.Length < 3)
+            if (_source.Length < 3)
             {
                 // If we're comparing strings that are too short, we'll find 
                 // far too many spurious hits.  Don't even both in this case.
