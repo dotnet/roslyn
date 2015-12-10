@@ -10,7 +10,7 @@ using static Roslyn.Utilities.PortableShim;
 
 namespace Roslyn.Utilities
 {
-    internal class BKTree
+    internal partial class BKTree
     {
         // Root node is at index 0.
         private readonly Node[] nodes;
@@ -48,67 +48,7 @@ namespace Roslyn.Utilities
 
         public static BKTree Create(IEnumerable<string> values)
         {
-            return Create(values.Select(v => v.ToLower()).Distinct().Select(v => v.ToCharArray()).ToArray());
-        }
-
-        private static BKTree Create(char[][] values)
-        {
-            var nodes = new List<Node>();
-            foreach (var value in values)
-            {
-                if (value.Length > 0)
-                {
-                    Add(nodes, value);
-                }
-            }
-
-            return new BKTree(nodes.ToArray());
-        }
-
-        private static void Add(List<Node> nodes, char[] lowerCaseCharacters)
-        {
-            if (nodes.Count == 0)
-            {
-                nodes.Add(new Node(lowerCaseCharacters));
-                return;
-            }
-
-            var currentNodeIndex = 0;
-            while (true)
-            {
-                var currentNode = nodes[currentNodeIndex];
-
-                var editDistance = EditDistance.GetEditDistance(currentNode.LowerCaseCharacters, lowerCaseCharacters);
-                if (editDistance == 0)
-                {
-                    // Already in the graph.  Can happen because we added something that is the same
-                    // as an existing item, but only differs in case.
-                    return;
-                }
-
-                if (currentNode.AllChildren == null)
-                {
-                    currentNode.AllChildren = new Dictionary<int, int>();
-                    nodes[currentNodeIndex] = currentNode;
-                    // Fall through. to actually add the child to this node.
-                }
-                else
-                {
-                    int childNodeIndex;
-                    if (currentNode.AllChildren.TryGetValue(editDistance, out childNodeIndex))
-                    {
-                        // Edit distances collide.  Move to this child and add this word to it.
-                        currentNodeIndex = childNodeIndex;
-                        continue;
-                    }
-
-                    // Fall through. to actually add the child to this node.
-                }
-
-                currentNode.AllChildren.Add(editDistance, nodes.Count);
-                nodes.Add(new Node(lowerCaseCharacters));
-                return;
-            }
+            return new Builder(values).Create();
         }
 
         public IList<string> Find(string value, int? threshold = null)
