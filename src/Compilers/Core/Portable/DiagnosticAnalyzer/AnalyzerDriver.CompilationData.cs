@@ -20,16 +20,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// </summary>
             private readonly Dictionary<SyntaxTree, SemanticModel> _semanticModelsMap;
 
-            /// <summary>
-            /// Cached syntax references for a symbol for the lifetime of symbol declared event.
-            /// PERF: This cache reduces allocations for computing declaring syntax references for a symbol.
-            /// </summary>
-            private readonly Dictionary<ISymbol, ImmutableArray<SyntaxReference>> _symbolDeclarationsMap;
-
             public CompilationData(Compilation comp)
             {
                 _semanticModelsMap = new Dictionary<SyntaxTree, SemanticModel>();
-                _symbolDeclarationsMap = new Dictionary<ISymbol, ImmutableArray<SyntaxReference>>();
                 this.SuppressMessageAttributeState = new SuppressMessageAttributeState(comp);
                 this.DeclarationAnalysisDataMap = new Dictionary<SyntaxReference, DeclarationAnalysisData>();
             }
@@ -47,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return model;
                     }
                 }
-
-
+                
                 model = compilation.GetSemanticModel(tree);
 
                 // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
@@ -67,36 +59,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 lock (_semanticModelsMap)
                 {
                     return _semanticModelsMap.Remove(tree);
-                }
-            }
-
-            public bool TryGetCachedDeclaringReferences(ISymbol symbol, out ImmutableArray<SyntaxReference> declaringReferences)
-            {
-                lock (_symbolDeclarationsMap)
-                {
-                    if (!_symbolDeclarationsMap.TryGetValue(symbol, out declaringReferences))
-                    {
-                        declaringReferences = default(ImmutableArray<SyntaxReference>);
-                        return false;
-                    }
-
-                    return true;
-                }
-            }
-
-            public void CacheDeclaringReferences(ISymbol symbol, ImmutableArray<SyntaxReference> declaringReferences)
-            {
-                lock (_symbolDeclarationsMap)
-                {
-                    _symbolDeclarationsMap[symbol] = declaringReferences;
-                }
-            }
-
-            public bool RemoveCachedDeclaringReferences(ISymbol symbol)
-            {
-                lock (_symbolDeclarationsMap)
-                {
-                    return _symbolDeclarationsMap.Remove(symbol);
                 }
             }
         }
@@ -165,25 +127,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CompilationData compilationData;
             return s_compilationDataCache.TryGetValue(compilation, out compilationData) &&
                 compilationData.RemoveCachedSemanticModel(tree);
-        }
-
-        public static bool TryGetCachedDeclaringReferences(ISymbol symbol, Compilation compilation, out ImmutableArray<SyntaxReference> declaringReferences)
-        {
-            var compilationData = GetOrCreateCachedCompilationData(compilation);
-            return compilationData.TryGetCachedDeclaringReferences(symbol, out declaringReferences);
-        }
-
-        public static void CacheDeclaringReferences(ISymbol symbol, Compilation compilation, ImmutableArray<SyntaxReference> declaringReferences)
-        {
-            var compilationData = GetOrCreateCachedCompilationData(compilation);
-            compilationData.CacheDeclaringReferences(symbol, declaringReferences);
-        }
-
-        public static bool RemoveCachedDeclaringReferences(ISymbol symbol, Compilation compilation)
-        {
-            CompilationData compilationData;
-            return s_compilationDataCache.TryGetValue(compilation, out compilationData) &&
-                compilationData.RemoveCachedDeclaringReferences(symbol);
         }
     }
 }
