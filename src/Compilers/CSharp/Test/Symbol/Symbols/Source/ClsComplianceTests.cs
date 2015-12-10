@@ -2967,9 +2967,12 @@ public class Test { }
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
+                // (6,2): error CS0246: The type or namespace name 'MissingAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [Missing]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("MissingAttribute").WithLocation(6, 2),
                 // (6,2): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 // [Missing]
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing"));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(6, 2));
         }
 
         [Fact]
