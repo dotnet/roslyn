@@ -155,6 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var project = document.Project;
 
                 // Get the symbol back from the originating workspace
+
                 var symbolMappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
                 var mappingResult = await symbolMappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
                 if (mappingResult != null)
@@ -168,40 +169,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 if (sourceDefinition != null)
                 {
                     var originatingProject = solution.GetProject(sourceDefinition.ContainingAssembly, cancellationToken);
-
                     project = originatingProject ?? project;
                 }
+
+                var results = new ArrayBuilder<Location>();
 
                 string filePath;
                 int lineNumber;
                 int charOffset;
-
                 var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-
-                var results = new ArrayBuilder<Location>();
-                if (symbolNavigationService.WouldNavigateToSymbol(symbol, solution, out filePath, out lineNumber, out charOffset))
-                {
-                    results.Add(new Location(symbol.ToDisplayString(), filePath, lineNumber, charOffset));
-                }
-                else
+                //if (symbolNavigationService.WouldNavigateToSymbol(symbol, solution, out filePath, out lineNumber, out charOffset))
+                //{
+                //    results.Add(new Location(symbol.ToDisplayString(), filePath, lineNumber, charOffset));
+                //}
+                //else
                 {
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var symbolKey = SymbolKey.Create(symbol, compilation, cancellationToken);
 
-                    var firstLocation = symbol.Locations.FirstOrDefault();
-                    if (firstLocation != null)
+                    var sourceLocations = symbol.Locations.Where(l => l.IsInSource).ToList();
+
+                    if (!sourceLocations.Any())
                     {
-                        if (firstLocation.IsInSource || _metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
-                        {
-                            var fileLineSpan = firstLocation.GetLineSpan();
-                            results.Add(new Location(symbol.ToDisplayString(), fileLineSpan.Path, fileLineSpan.StartLinePosition.Line, fileLineSpan.StartLinePosition.Character));
-                        }
+                        // It's a symbol from metadata, so we want to go produce it from metadata
+                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, cancellationToken).ConfigureAwait(false);
+                        var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
+                        results.Add(new Location(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start.Line, identifierSpan.Start.Character));
+                    }
+
+                    foreach (var declaration in sourceLocations)
+                    {
+                        var declarationLocation = declaration.GetLineSpan();
+                        results.Add(new Location(symbol.ToDisplayString(), declarationLocation.Path, declarationLocation.Span.Start.Line, declarationLocation.Span.Start.Character));
                     }
                 }
 
                 return new Context(results.ToImmutable());
             }
         }
+
         private struct Location
         {
             public string DisplayName { get; }
@@ -227,7 +232,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _locations = locations;
             }
 
-
             int IVsCodeDefViewContext.GetCount(out uint pcItems)
             {
                 pcItems = (uint)_locations.Length;
@@ -236,25 +240,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             int IVsCodeDefViewContext.GetSymbolName(uint iItem, out string pbstrSymbolName)
             {
-                pbstrSymbolName = _locations[(int)iItem].DisplayName;
+                var index = (int)iItem;
+                if (index < 0 || index >= _locations.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(iItem));
+                }
+
+                pbstrSymbolName = _locations[index].DisplayName;
                 return VSConstants.S_OK;
             }
 
             int IVsCodeDefViewContext.GetFileName(uint iItem, out string pbstrFilename)
             {
-                pbstrFilename = _locations[(int)iItem].FilePath;
+                var index = (int)iItem;
+                if (index < 0 || index >= _locations.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(iItem));
+                }
+
+                pbstrFilename = _locations[index].FilePath;
                 return VSConstants.S_OK;
             }
 
             int IVsCodeDefViewContext.GetLine(uint iItem, out uint piLine)
             {
-                piLine = (uint)_locations[(int)iItem].Line;
+                var index = (int)iItem;
+                if (index < 0 || index >= _locations.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(iItem));
+                }
+
+                piLine = (uint)_locations[index].Line;
                 return VSConstants.S_OK;
             }
 
             int IVsCodeDefViewContext.GetCol(uint iItem, out uint piCol)
             {
-                piCol = (uint)_locations[(int)iItem].Character;
+                var index = (int)iItem;
+                if (index < 0 || index >= _locations.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(iItem));
+                }
+
+                piCol = (uint)_locations[index].Character;
                 return VSConstants.S_OK;
             }
         }
