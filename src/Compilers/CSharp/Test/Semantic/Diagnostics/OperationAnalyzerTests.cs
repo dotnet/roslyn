@@ -266,6 +266,31 @@ class C
         M0(1);
         M0(1, 2, 4, 3);
     }
+
+    public void M3(int x = 0, string y = null)
+    {
+    }
+
+    public void M4()
+    {
+        M3(0, null);
+        M3(0);
+        M3(y: null);
+        M3(x: 0);
+        M3();
+    }
+
+    public void M5(int x = 0, params int[] b)
+    {
+    }
+
+    public void M6()
+    {
+        M5(1,2,3,4,5);
+        M5(1);
+        M5(b: new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11});
+        M5(x: 1);
+    }
 }
 ";
             CreateCompilationWithMscorlib45(source)
@@ -277,7 +302,13 @@ class C
                 Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "4").WithLocation(17, 33),
                 Diagnostic(InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)").WithLocation(19, 9),
                 Diagnostic(InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)").WithLocation(20, 9),
-                Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "3").WithLocation(22, 21)
+                Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "3").WithLocation(22, 21),
+                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(0)").WithArguments("y").WithLocation(32, 9),
+                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(y: null)").WithArguments("x").WithLocation(33, 9),
+                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(x: 0)").WithArguments("y").WithLocation(34, 9),
+                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3()").WithArguments("x").WithLocation(35, 9),
+                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3()").WithArguments("y").WithLocation(35, 9),
+                Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M5(b: new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})").WithArguments("x").WithLocation(46, 9)
                 );
         }
 

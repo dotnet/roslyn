@@ -437,11 +437,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             ReliabilityCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
-        
+
+        public static readonly DiagnosticDescriptor UseDefaultArgumentDescriptor = new DiagnosticDescriptor(
+            "UseDefaultArgument",
+            "Use default argument",
+            "Invocation uses default argument {0}",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(BigParamarrayArgumentsDescriptor, OutOfNumericalOrderArgumentsDescriptor); }
+            get { return ImmutableArray.Create(BigParamarrayArgumentsDescriptor, 
+                OutOfNumericalOrderArgumentsDescriptor, 
+                UseDefaultArgumentDescriptor); }
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -453,6 +463,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      long priorArgumentValue = long.MinValue;
                      foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
                      {
+                         if (argument.ArgumentKind == ArgumentKind.DefaultValue)
+                         {
+                             operationContext.ReportDiagnostic(Diagnostic.Create(UseDefaultArgumentDescriptor, invocation.Syntax.GetLocation(), argument.Parameter.Name));
+                         }
+
                          TestAscendingArgument(operationContext, argument.Value, ref priorArgumentValue);
                          
                          if (argument.ArgumentKind == ArgumentKind.ParamArray)

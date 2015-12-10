@@ -39,13 +39,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.nodes.Add(operation)
                     Select Case operation.Kind
                         Case OperationKind.InvocationExpression
-                            Me.nodes.AddRange(CType(operation, IInvocationExpression).ArgumentsInSourceOrder)
-                            Exit Select
+                            Me.nodes.AddRange(DirectCast(operation, IInvocationExpression).ArgumentsInSourceOrder)
                         Case OperationKind.ObjectCreationExpression
-                            Dim objCreationExp = CType(operation, IObjectCreationExpression)
+                            Dim objCreationExp = DirectCast(operation, IObjectCreationExpression)
                             Me.nodes.AddRange(objCreationExp.ConstructorArguments)
                             Me.nodes.AddRange(objCreationExp.MemberInitializers)
-                            Exit Select
                     End Select
                 End If
                 Return MyBase.Visit(node)
@@ -1019,11 +1017,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If left IsNot Nothing Then
                             Select Case left.Kind
                                 Case BoundKind.FieldAccess
-                                    builder.Add(New FieldInitializer(assignment.Syntax, CType(left, BoundFieldAccess).FieldSymbol, assignment.Right))
-                                    Exit Select
+                                    builder.Add(New FieldInitializer(assignment.Syntax, DirectCast(left, BoundFieldAccess).FieldSymbol, assignment.Right))
                                 Case BoundKind.PropertyAccess
-                                    builder.Add(New PropertyInitializer(assignment.Syntax, CType(left, BoundPropertyAccess).PropertySymbol.SetMethod, assignment.Right))
-                                    Exit Select
+                                    builder.Add(New PropertyInitializer(assignment.Syntax, DirectCast(left, BoundPropertyAccess).PropertySymbol.SetMethod, assignment.Right))
                             End Select
                         End If
                     Next

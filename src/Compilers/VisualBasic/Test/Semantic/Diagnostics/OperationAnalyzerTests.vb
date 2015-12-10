@@ -287,6 +287,16 @@ Class C
         M0(1)
         M0(1, 2, 4, 3)
     End Sub
+
+    Public Sub M3(Optional a As Integer = Nothing, Optional b As Integer = 0)
+    End Sub
+
+    Public Sub M4()
+        M3(Nothing, 0)
+        M3(Nothing,)
+        M3(,0)
+        M3(,)
+    End Sub
 End Class
 ]]>
                              </file>

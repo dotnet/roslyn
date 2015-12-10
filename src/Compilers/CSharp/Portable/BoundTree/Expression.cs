@@ -119,17 +119,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentIndex = argumentsToParameters.IndexOf(parameterIndex);
                 }
 
-                if (argumentIndex == -1)
+                // No argument has been supplied for the parameter at `parameterIndex`:
+                // 1. `argumentIndex == -1' when when the arguments are specified out of parameter order, and no argument is provided for parameter correspoding to `parameters[parameterIndex]`.
+                // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
+                if (argumentIndex == -1 || argumentIndex >= boundArguments.Length)
                 {
-                    // No argument has been supplied for the parameter.
                     Symbols.ParameterSymbol parameter = parameters[parameterIndex];
+                    // corresponding parameter is optional with default value.
                     if (parameter.HasExplicitDefaultValue)
                     {
                         arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, null)));
                     }
                     else
                     {
-                        arguments.Add(null);
+                        // if corresponding parameter is Param array, then this means 0 element is provided and an Argument of kind == ParamArray will be added, 
+                        // otherwise it is an eror and null is added.
+                        arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters));
                     }
                 }
                 else
@@ -343,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         foreach (var memberAssignment in objInitializerExp.Initializers)
                         {
                             var assignment = memberAssignment as BoundAssignmentOperator;
-                            var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.ExpressionSymbol;
+                            var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
 
                             if (leftSymbol == null)
                             {
