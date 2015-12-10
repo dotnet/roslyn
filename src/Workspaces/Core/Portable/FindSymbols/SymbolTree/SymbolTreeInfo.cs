@@ -322,19 +322,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static Func<ISymbol, IEnumerable<ISymbol>> GetMembers = symbol =>
         {
-            var nt = symbol as INamedTypeSymbol;
-            if (nt != null)
-            {
-                return nt.GetMembers().Where(UseSymbol);
-            }
-
-            var ns = symbol as INamespaceSymbol;
-            if (ns != null)
-            {
-                return ns.GetMembers().Where(UseSymbol);
-            }
-
-            return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            var nt = symbol as INamespaceOrTypeSymbol;
+            return nt != null 
+                ? nt.GetMembers().Where(UseSymbol)
+                : SpecializedCollections.EmptyEnumerable<ISymbol>();
         };
 
         #endregion
