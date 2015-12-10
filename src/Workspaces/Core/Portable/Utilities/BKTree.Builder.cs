@@ -11,112 +11,236 @@ namespace Roslyn.Utilities
     {
         private class Builder
         {
-            private readonly char[][] values;
+            private const int CompactEdgeAllocationSize = 4;
+
+            private readonly char[][] _values;
+
+            // Note: while building a BKTree we have to store children with parents, keyed by the
+            // edit distance between the two.  Naive implementations might store a list or dictionary
+            // of children along with each node.  However, this would be very inefficient and would
+            // put an enormous amount of memory pressure on the system.
+            //
+            // Imperical data for a nice large assembly like mscorlib gives us the following 
+            // information:
+            // 
+            //      Nodes length: 9662
+            // 
+            // If we stored a list or dictionary with each node, that would be 10s of thousands of
+            // objects created that would then just have to be GCed.  That's a lot of garbage pressure
+            // we'd like to avoid.
+            //
+            // Now if we look at all those nodes, we can see the following information about how many
+            // children each has.
+            //
+            //      Edge counts:
+            //      0   5560
+            //      1   1884
+            //      2   887
+            //      3   527
+            //      4   322
+            //      5   200
+            //      6   114
+            //      7   69
+            //      8   47
+            //      9   20
+            //      10  8
+            //      11  10
+            //      12  7
+            //      13  4
+            //      15  1
+            //      16  1
+            //      54  1
+            //
+            //
+            // i.e. The number of nodes with edge-counts less than or equal to four is: 5560+1884+887+527+322=9180.
+            // This is 95% of the total number of edges we are adding.  
+            //
+            // So, to optimize things, we pre-alloc a single array with space for 4 edges for each 
+            // node we're going to add.  Each node then gets that much space to store edge information.
+            // If it needs more than that space, then we have a fall-over dictionary that it can store 
+            // information in.
+            // 
+            // Once building is complete, the GC only needs to deallocate this single array and the
+            // spillover dictionaries.
+            //
+            // This approach produces 1/20th the amount of garbage while building the tree.
+            //
+            // Each node at index i has its edges in this array in the range [4*i, 4*i + 4);
+            private readonly Edge[] _compactEdges;
+
+            // If a node needs more than 4 children while building, then we spill over into this 
+            // dictionary instead. 
+            private readonly Dictionary<int, Dictionary<int, int>> _spilloverEdges;
+            private readonly BuilderNode[] _builderNodes;
 
             public Builder(IEnumerable<string> values)
             {
-                this.values = values.Select(v => v.ToLower()).Distinct().Select(v => v.ToCharArray()).ToArray();
+                _values = values.Select(v => v.ToLower())
+                                .Distinct()
+                                .Select(v => v.ToCharArray())
+                                .Where(a => a.Length > 0).ToArray();
+
+                // We will have one node for each string value that we are adding.
+                _builderNodes = new BuilderNode[_values.Length];
+                _compactEdges = new Edge[_values.Length * CompactEdgeAllocationSize];
+                _spilloverEdges = new Dictionary<int, Dictionary<int, int>>();
             }
 
             internal BKTree Create()
             {
-                var builderNodes = new List<BuilderNode>(values.Length);
-                foreach (var value in values)
+                for (var i = 0; i < _values.Length; i++)
                 {
-                    if (value.Length > 0)
-                    {
-                        Add(builderNodes, value);
-                    }
+                    Add(_values[i], insertionIndex: i);
                 }
 
-                var nodes = new Node[builderNodes.Count];
-                var edges = new List<Edge>(builderNodes.Count);
+                var nodes = new Node[_builderNodes.Length];
 
-                BuildArrays(builderNodes, nodes, edges);
+                // There will be one less edge in the graph than nodes.  Each node (except for the
+                // root) will have a single edge pointing to it.
+                var edges = new Edge[_builderNodes.Length - 1];
 
-                return new BKTree(nodes, edges.ToArray());
+                BuildArrays(nodes, edges);
+
+                return new BKTree(nodes, edges);
             }
 
-            private void BuildArrays(
-                List<BuilderNode> builderNodes, Node[] nodes, List<Edge> edges)
+            private void BuildArrays(Node[] nodes, Edge[] edges)
             {
                 var currentEdgeIndex = 0;
-                for (var i =0; i < builderNodes.Count; i++)
+                for (var i = 0; i < _builderNodes.Length; i++)
                 {
-                    var builderNode = builderNodes[i];
-                    var edgeCount = builderNode.AllChildren == null ? 0 : builderNode.AllChildren.Count;
+                    var builderNode = _builderNodes[i];
+                    var edgeCount = builderNode.EdgeCount;
 
                     nodes[i] = new Node(
                         builderNode.LowerCaseCharacters, edgeCount, currentEdgeIndex);
 
-                    currentEdgeIndex += edgeCount;
-
-                    if (builderNode.AllChildren != null)
+                    if (edgeCount > 0)
                     {
-                        foreach (var kvp in builderNode.AllChildren)
+                        if (edgeCount <= CompactEdgeAllocationSize)
                         {
-                            edges.Add(new Edge(kvp.Key, kvp.Value));
+                            // When tehre are less than 4 elements, we can just do an easy array 
+                            // copy from our array into the final destination.
+                            Array.Copy(_compactEdges, i * CompactEdgeAllocationSize, edges, currentEdgeIndex, edgeCount);
+                            currentEdgeIndex += edgeCount;
+                        }
+                        else
+                        {
+                            // When there are more than 4 elements, then we have to manually 
+                            // copy over the spilled items ourselves.
+                            var spilledEdges = _spilloverEdges[i];
+                            Debug.Assert(spilledEdges.Count == edgeCount);
+
+                            foreach (var kvp in spilledEdges)
+                            {
+                                edges[currentEdgeIndex] = new Edge(kvp.Key, kvp.Value);
+                                currentEdgeIndex++;
+                            }
                         }
                     }
                 }
+
+                Debug.Assert(currentEdgeIndex == edges.Length);
             }
 
-            private static void Add(List<BuilderNode> nodes, char[] lowerCaseCharacters)
+            private void Add(char[] lowerCaseCharacters, int insertionIndex)
             {
-                if (nodes.Count == 0)
+                if (insertionIndex == 0)
                 {
-                    nodes.Add(new BuilderNode(lowerCaseCharacters));
+                    _builderNodes[insertionIndex] = new BuilderNode(lowerCaseCharacters);
                     return;
                 }
 
                 var currentNodeIndex = 0;
                 while (true)
                 {
-                    var currentNode = nodes[currentNodeIndex];
+                    var currentNode = _builderNodes[currentNodeIndex];
 
                     var editDistance = EditDistance.GetEditDistance(currentNode.LowerCaseCharacters, lowerCaseCharacters);
                     // This shoudl never happen.  We dedupe all items before proceeding to the 'Add' step.
                     Debug.Assert(editDistance != 0);
 
-                    if (currentNode.AllChildren == null)
+                    int childNodeIndex;
+                    if (TryGetChildIndex(currentNode, currentNodeIndex, editDistance, out childNodeIndex))
                     {
-                        currentNode.AllChildren = new Dictionary<int, int>();
-                        nodes[currentNodeIndex] = currentNode;
-                        // Fall through. to actually add the child to this node.
+                        // Edit distances collide.  Move to this child and add this word to it.
+                        currentNodeIndex = childNodeIndex;
+                        continue;
+                    }
+
+                    // Node doesn't have an edge with this edit distance. Three cases to handle:
+                    // 1) there are less than 4 edges.  We simply place the edge into the correct
+                    //    location in compactEdges
+                    // 2) there are 4 edges.  We need to copy these edges into the spillover 
+                    //    dictionary and then add the new edge into that.
+                    // 3) there are more than 4 edges.  Just put the new edge in the spillover 
+                    //    dictionary.
+
+                    if (currentNode.EdgeCount < CompactEdgeAllocationSize)
+                    {
+                        _compactEdges[currentNodeIndex * CompactEdgeAllocationSize + currentNode.EdgeCount] =
+                            new Edge(editDistance, insertionIndex);
                     }
                     else
                     {
-                        int childNodeIndex;
-                        if (currentNode.AllChildren.TryGetValue(editDistance, out childNodeIndex))
+                        if (currentNode.EdgeCount == CompactEdgeAllocationSize)
                         {
-                            // Edit distances collide.  Move to this child and add this word to it.
-                            currentNodeIndex = childNodeIndex;
-                            continue;
+                            var spillover = new Dictionary<int, int>();
+                            _spilloverEdges[currentNodeIndex] = spillover;
+
+                            var start = currentNodeIndex * CompactEdgeAllocationSize;
+                            var end = start + CompactEdgeAllocationSize;
+                            for (var i = start; i < end; i++)
+                            {
+                                var edge = _compactEdges[i];
+                                spillover.Add(edge.EditDistance, edge.ChildNodeIndex);
+                            }
                         }
 
-                        // Fall through. to actually add the child to this node.
+                        _spilloverEdges[currentNodeIndex].Add(editDistance, insertionIndex);
                     }
 
-                    currentNode.AllChildren.Add(editDistance, nodes.Count);
-                    nodes.Add(new BuilderNode(lowerCaseCharacters));
+                    _builderNodes[currentNodeIndex].EdgeCount++;
+                    _builderNodes[insertionIndex] = new BuilderNode(lowerCaseCharacters);
                     return;
                 }
+            }
+
+            private bool TryGetChildIndex(BuilderNode currentNode, int currentNodeIndex, int editDistance, out int childIndex)
+            {
+                if (currentNode.EdgeCount > CompactEdgeAllocationSize)
+                {
+                    // Can't use the compact array.  Have to use the spillover dictionary instead.
+                    var dictionary = _spilloverEdges[currentNodeIndex];
+                    Debug.Assert(dictionary.Count == currentNode.EdgeCount);
+                    return dictionary.TryGetValue(editDistance, out childIndex);
+                }
+
+                // linearly scan the children we have to see if there is one with this edit distance.
+                var start = currentNodeIndex * CompactEdgeAllocationSize;
+                var end = start + currentNode.EdgeCount;
+
+                for (var i = start; i < end; i++)
+                {
+                    if (_compactEdges[i].EditDistance == editDistance)
+                    {
+                        childIndex = _compactEdges[i].ChildNodeIndex;
+                        return true;
+                    }
+                }
+
+                childIndex = -1;
+                return false;
             }
 
             private struct BuilderNode
             {
                 public readonly char[] LowerCaseCharacters;
-
-                // Maps from our edit distance to our single child with that edit distance (when we have 
-                // multiple children).  Null if we have zero or one child.
-                public Dictionary<int, int> AllChildren;
-
-                public bool HasChildren => /*!this.SingleChild.IsNull ||*/ this.AllChildren != null;
+                public int EdgeCount;
 
                 public BuilderNode(char[] lowerCaseCharacters) : this()
                 {
                     this.LowerCaseCharacters = lowerCaseCharacters;
-                    // SingleChild = EditDistanceAndChildIndex.Null;
                 }
             }
         }

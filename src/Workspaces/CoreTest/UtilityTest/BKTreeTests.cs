@@ -30,6 +30,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         public void PermutationTests()
         {
             string[] testValues = { "cook", "book", "books", "cake", "what", "water", "Cape", "Boon", "Cook", "Cart" };
+            TestTreeInvariants(testValues);
+        }
+
+        private void TestTreeInvariants(string[] testValues)
+        {
             var tree = BKTree.Create(testValues);
 
             foreach (var value in testValues)
@@ -72,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
                 {
                     var items = tree.Find(Insert(value, i, 'Z'));
                     Assert.Contains(value.ToLower(), items);
-                    
+
                     // We better not be finding all items.
                     Assert.NotEqual(testValues.Length, items.Count);
                 }
@@ -122,6 +127,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
 
             results = tree.Find("lecester");
             Assert.True(results.SetEquals(Expected("leicester")));
+        }
+
+        [Fact]
+        public void TestSpillover()
+        {
+            // We'll have one root node for "Four" and all the othe ritems will 
+            string[] testValues = {
+                /*root:*/ "Four",
+                /*d=1*/ "Fou", "For", "Fur", "Our", "FourA", "FouAr", "FoAur", "FAour", "AFour", "Tour",
+                /*d=2*/ "Fo", "Fu", "Fr", "or", "ur", "ou", "FourAb", "FouAbr", "FoAbur", "FAbour", "AbFour", "oFour", "Fuor", "Foru", "ours",
+                /*d=3*/ "F", "o", "u", "r", "Fob", "Fox", "bur", "urn", "hur", "foraa", "found"
+            };
+            TestTreeInvariants(testValues);
         }
 
         private IEnumerable<string> Expected(params string[] values)
