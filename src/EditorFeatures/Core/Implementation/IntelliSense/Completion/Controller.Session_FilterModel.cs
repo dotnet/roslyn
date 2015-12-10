@@ -183,12 +183,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         model.DismissIfEmpty &&
                         filterReason != CompletionFilterReason.BackspaceOrDelete)
                     {
+                        CompletionLog.Log("Model Filtering: filtered to 0 items and dismissing");
                         return null;
                     }
 
                     // If we are going to filter everything out, then just preserve the existing
                     // model, but switch over to soft selection.  Also, nothing is unique at that
                     // point.
+                    CompletionLog.Log("Model Filtering: filtered to 0 items and switching to soft selection");
+
                     return model.WithHardSelection(false)
                             .WithIsUnique(false);
                 }
@@ -206,6 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             .WithHardSelection(hardSelection)
                             .WithIsUnique(isUnique.HasValue && isUnique.Value);
 
+                CompletionLog.Log("Model Filtering: filtered to a non-empty list");
                 return result;
             }
 

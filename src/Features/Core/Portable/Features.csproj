@@ -152,6 +152,7 @@
     <Compile Include="Completion\CompletionItemRules.cs" />
     <Compile Include="Completion\CompletionList.cs" />
     <Compile Include="Completion\CompletionListContext.cs" />
+    <Compile Include="Completion\CompletionLog.cs" />
     <Compile Include="Completion\CompletionOptions.cs" />
     <Compile Include="Completion\CompletionOptionsProvider.cs" />
     <Compile Include="Completion\CompletionService.cs" />

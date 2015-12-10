@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // If we still don't have any items, then we're definitely done.
             if (!nonExclusiveLists.Any(g => g.List.Items.Any()))
             {
+                CompletionLog.Log("ModelComputation: no items computed");
                 return null;
             }
 
@@ -164,6 +165,9 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 return null;
             }
+
+            var usedProviderNames = string.Join(", ", allProvidersAndLists.Where(p => p.List.Items.Any()).Select(p => p.Provider.ToString()));
+            CompletionLog.Log($"ModelComputation: items provided by {usedProviderNames}");
 
             // Providers are ordered, but we processed them in our own order.  Ensure that the
             // groups are properly ordered based on the original providers.

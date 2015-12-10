@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return;
             }
 
+            CompletionLog.Log("CompletionPresenterSession: presenting items to editor");
+
             _completionSet.SetTrackingSpan(triggerSpan);
 
             _ignoreSelectionStatusChangedEvent = true;
