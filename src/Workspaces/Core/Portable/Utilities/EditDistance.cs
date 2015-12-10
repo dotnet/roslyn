@@ -179,7 +179,7 @@ namespace Roslyn.Utilities
 
         private static void ReleaseMatrix(int[,] matrix)
         {
-            if (matrix.GetLength(0) <= MaxMatrixPoolDimension || matrix.GetLength(1) <= MaxMatrixPoolDimension)
+            if (matrix.GetLength(0) <= MaxMatrixPoolDimension && matrix.GetLength(1) <= MaxMatrixPoolDimension)
             {
                 s_matrixPool.Free(matrix);
             }
