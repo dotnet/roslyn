@@ -67,10 +67,6 @@ namespace Roslyn.Utilities
             //
             // Each node at index i has its edges in this array in the range [4*i, 4*i + 4);
             private readonly Edge[] _compactEdges;
-
-            // If a node needs more than 4 children while building, then we spill over into this 
-            // dictionary instead. 
-            private readonly Dictionary<int, Dictionary<int, int>> _spilloverEdges;
             private readonly BuilderNode[] _builderNodes;
 
             public Builder(IEnumerable<string> values)
@@ -83,7 +79,6 @@ namespace Roslyn.Utilities
                 // We will have one node for each string value that we are adding.
                 _builderNodes = new BuilderNode[_values.Length];
                 _compactEdges = new Edge[_values.Length * CompactEdgeAllocationSize];
-                _spilloverEdges = new Dictionary<int, Dictionary<int, int>>();
             }
 
             internal BKTree Create()
@@ -128,7 +123,7 @@ namespace Roslyn.Utilities
                         {
                             // When there are more than 4 elements, then we have to manually 
                             // copy over the spilled items ourselves.
-                            var spilledEdges = _spilloverEdges[i];
+                            var spilledEdges = builderNode.SpilloverEdges;
                             Debug.Assert(spilledEdges.Count == edgeCount);
 
                             foreach (var kvp in spilledEdges)
@@ -185,19 +180,19 @@ namespace Roslyn.Utilities
                     {
                         if (currentNode.EdgeCount == CompactEdgeAllocationSize)
                         {
-                            var spillover = new Dictionary<int, int>();
-                            _spilloverEdges[currentNodeIndex] = spillover;
+                            var spilloverEdges = new Dictionary<int, int>();
+                            _builderNodes[currentNodeIndex].SpilloverEdges = spilloverEdges;
 
                             var start = currentNodeIndex * CompactEdgeAllocationSize;
                             var end = start + CompactEdgeAllocationSize;
                             for (var i = start; i < end; i++)
                             {
                                 var edge = _compactEdges[i];
-                                spillover.Add(edge.EditDistance, edge.ChildNodeIndex);
+                                spilloverEdges.Add(edge.EditDistance, edge.ChildNodeIndex);
                             }
                         }
 
-                        _spilloverEdges[currentNodeIndex].Add(editDistance, insertionIndex);
+                        _builderNodes[currentNodeIndex].SpilloverEdges.Add(editDistance, insertionIndex);
                     }
 
                     _builderNodes[currentNodeIndex].EdgeCount++;
@@ -208,12 +203,11 @@ namespace Roslyn.Utilities
 
             private bool TryGetChildIndex(BuilderNode currentNode, int currentNodeIndex, int editDistance, out int childIndex)
             {
-                if (currentNode.EdgeCount > CompactEdgeAllocationSize)
+                if (currentNode.SpilloverEdges != null)
                 {
                     // Can't use the compact array.  Have to use the spillover dictionary instead.
-                    var dictionary = _spilloverEdges[currentNodeIndex];
-                    Debug.Assert(dictionary.Count == currentNode.EdgeCount);
-                    return dictionary.TryGetValue(editDistance, out childIndex);
+                    Debug.Assert(currentNode.SpilloverEdges.Count == currentNode.EdgeCount);
+                    return currentNode.SpilloverEdges.TryGetValue(editDistance, out childIndex);
                 }
 
                 // linearly scan the children we have to see if there is one with this edit distance.
@@ -237,6 +231,7 @@ namespace Roslyn.Utilities
             {
                 public readonly char[] LowerCaseCharacters;
                 public int EdgeCount;
+                public Dictionary<int, int> SpilloverEdges;
 
                 public BuilderNode(char[] lowerCaseCharacters) : this()
                 {
