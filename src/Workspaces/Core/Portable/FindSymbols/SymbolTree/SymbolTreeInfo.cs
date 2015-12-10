@@ -293,76 +293,48 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             list.Add(node);
 
             // Add all child members
-            // Use GetMemberNames, because we only want the names for the symbols that INamedTypeSymbol.MemberNames returns
-            var memberNames = GetMemberNames(globalNamespace).Distinct();
             var memberLookup = GetMembers(globalNamespace).ToLookup(c => c.Name);
 
-            foreach (var memberName in memberNames)
+            foreach (var grouping in memberLookup)
             {
-                GenerateNodes(memberName, 0 /*index of root node*/, memberLookup[memberName], list);
+                GenerateNodes(grouping.Key, 0 /*index of root node*/, grouping, list);
             }
         }
 
-        private static readonly Func<ISymbol, bool> IgnoreSymbol = 
-            s => !s.CanBeReferencedByName || s.DeclaredAccessibility == Accessibility.Private;
+        private static readonly Func<ISymbol, bool> UseSymbol = 
+            s => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
 
         // generate nodes for symbols that share the same name, and all their descendants
-        private static void GenerateNodes(string name, int parentIndex, IEnumerable<INamespaceOrTypeSymbol> symbolsWithSameName, List<Node> list)
+        private static void GenerateNodes(string name, int parentIndex, IEnumerable<ISymbol> symbolsWithSameName, List<Node> list)
         {
-            // Don't bother adding entries for names that can't even be referenced in code.
-            // Also, don't bother if all the symbols with this name are private.
-            if (symbolsWithSameName.All(IgnoreSymbol))
-            {
-                return;
-            }
-
             var node = new Node(name, parentIndex);
             var nodeIndex = list.Count;
             list.Add(node);
 
             // Add all child members
-            // Use GetMemberNames, because we only want the names for the symbols that INamedTypeSymbol.MemberNames returns
-            var memberNames = symbolsWithSameName.SelectMany(c => GetMemberNames(c)).Distinct();
-            var memberLookup = symbolsWithSameName.SelectMany(c => GetMembers(c)).ToLookup(c => c.Name);
+            var membersByName = symbolsWithSameName.SelectMany(GetMembers).ToLookup(s => s.Name);
 
-            foreach (var memberName in memberNames)
+            foreach (var grouping in membersByName)
             {
-                GenerateNodes(memberName, nodeIndex, memberLookup[memberName], list);
+                GenerateNodes(grouping.Key, nodeIndex, grouping, list);
             }
         }
 
-        private static IEnumerable<string> GetMemberNames(ISymbol symbol)
-        {
-            var namedType = symbol as INamedTypeSymbol;
-            if (namedType != null)
-            {
-                return namedType.MemberNames.Concat(namedType.GetTypeMembers().Select(t => t.Name));
-            }
-
-            var ns = symbol as INamespaceSymbol;
-            if (ns != null)
-            {
-                return ns.GetMembers().Select(m => m.Name);
-            }
-
-            return SpecializedCollections.EmptyEnumerable<string>();
-        }
-
-        private static IEnumerable<INamespaceOrTypeSymbol> GetMembers(ISymbol symbol)
+        private static IEnumerable<ISymbol> GetMembers(ISymbol symbol)
         {
             var nt = symbol as INamedTypeSymbol;
             if (nt != null)
             {
-                return nt.GetTypeMembers();
+                return nt.GetMembers().Where(UseSymbol);
             }
 
             var ns = symbol as INamespaceSymbol;
             if (ns != null)
             {
-                return ns.GetMembers();
+                return ns.GetMembers().Where(UseSymbol);
             }
 
-            return SpecializedCollections.EmptyEnumerable<INamespaceOrTypeSymbol>();
+            return SpecializedCollections.EmptyEnumerable<ISymbol>();
         }
         #endregion
 
