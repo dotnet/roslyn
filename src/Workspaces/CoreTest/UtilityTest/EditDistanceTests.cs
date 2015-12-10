@@ -9,7 +9,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         private static int GetEditDistance(string s, string t)
         {
-            return EditDistance.GetEditDistance(s, t);
+            // We want the full edit distance, without bailing out early because we crossed the
+            // threshold.
+            return EditDistance.GetEditDistance(s, t, useThreshold: false);
         }
 
         [Fact]

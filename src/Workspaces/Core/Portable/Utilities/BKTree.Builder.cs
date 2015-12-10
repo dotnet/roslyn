@@ -151,7 +151,12 @@ namespace Roslyn.Utilities
                 {
                     var currentNode = _builderNodes[currentNodeIndex];
 
-                    var editDistance = EditDistance.GetEditDistance(currentNode.LowerCaseCharacters, lowerCaseCharacters);
+                    // Determine the edit distance between these two words.  Note: we do not use
+                    // a threshold here as we need the actual edit distance so we can actually
+                    // determine what edge to make or walk.
+                    var editDistance = EditDistance.GetEditDistance(
+                        currentNode.LowerCaseCharacters, lowerCaseCharacters, useThreshold: false);
+
                     // This shoudl never happen.  We dedupe all items before proceeding to the 'Add' step.
                     Debug.Assert(editDistance != 0);
 

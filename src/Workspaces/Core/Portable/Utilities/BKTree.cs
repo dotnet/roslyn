@@ -72,9 +72,13 @@ namespace Roslyn.Utilities
 
         private void Lookup(Node currentNode, char[] queryCharacters, int queryLength, int threshold, List<string> result)
         {
+            // We always want to compute the real edit distance (ignoring any thresholds).  This is
+            // because we need that edit distance to appropriately determine which edges to walk 
+            // in the tree.
             var editDistance = EditDistance.GetEditDistance(
                 currentNode.LowerCaseCharacters, queryCharacters,
-                currentNode.LowerCaseCharacters.Length, queryLength);
+                currentNode.LowerCaseCharacters.Length, queryLength,
+                useThreshold: false);
 
             if (editDistance <= threshold)
             {

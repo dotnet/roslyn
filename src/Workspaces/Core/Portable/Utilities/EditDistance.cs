@@ -24,14 +24,12 @@ namespace Roslyn.Utilities
         private struct CacheResult
         {
             public readonly string CandidateText;
-            public readonly int Threshold;
             public readonly bool IsCloseMatch;
             public readonly double MatchCost;
 
-            public CacheResult(string candidate, int threshold, bool isCloseMatch, double matchCost)
+            public CacheResult(string candidate, bool isCloseMatch, double matchCost)
             {
                 CandidateText = candidate;
-                Threshold = threshold;
                 IsCloseMatch = isCloseMatch;
                 MatchCost = matchCost;
             }
@@ -39,7 +37,7 @@ namespace Roslyn.Utilities
 
         private string _source;
         private char[] _sourceLowerCaseCharacters;
-        private readonly int _defaultThreshold;
+        private readonly int _threshold;
 
         // Cache the result of the last call to IsCloseMatch.  We'll often be called with the same
         // value multiple times in a row, so we can avoid expensive computation by returning the
@@ -57,7 +55,7 @@ namespace Roslyn.Utilities
             _source = text;
             _sourceLowerCaseCharacters = ConvertToLowercaseArray(text);
 
-            _defaultThreshold = GetThreshold(_source);
+            _threshold = GetThreshold(_source);
         }
 
         internal static int GetThreshold(string value)
@@ -83,15 +81,10 @@ namespace Roslyn.Utilities
             _sourceLowerCaseCharacters = null;
         }
 
-        public static bool IsCloseMatch(string originalText, string candidateText, int? threshold = null)
+        public static bool IsCloseMatch(string originalText, string candidateText)
         {
             double dummy;
-            return IsCloseMatch(originalText, candidateText, threshold, out dummy);
-        }
-
-        public static bool IsCloseMatch(string originalText, string candidateText, out double matchCost)
-        {
-            return IsCloseMatch(originalText, candidateText, threshold: null, matchCost: out matchCost);
+            return IsCloseMatch(originalText, candidateText, out dummy);
         }
 
         /// <summary>
@@ -99,28 +92,28 @@ namespace Roslyn.Utilities
         /// Returns false otherwise.  If it is a likely misspelling a matchCost is provided
         /// to help rank the match.  Lower costs mean it was a better match.
         /// </summary>
-        public static bool IsCloseMatch(string originalText, string candidateText, int? threshold, out double matchCost)
+        public static bool IsCloseMatch(string originalText, string candidateText, out double matchCost)
         {
             using (var editDistance = new EditDistance(originalText))
             {
-                return editDistance.IsCloseMatch(candidateText, threshold, out matchCost);
+                return editDistance.IsCloseMatch(candidateText, out matchCost);
             }
         }
 
-        public static int GetEditDistance(string s, string t)
+        public static int GetEditDistance(string s, string t, bool useThreshold)
         {
             using (var editDistance = new EditDistance(s))
             {
-                return editDistance.GetEditDistance(t);
+                return editDistance.GetEditDistance(t, useThreshold);
             }
         }
 
-        public static int GetEditDistance(char[] s, char[] t)
+        public static int GetEditDistance(char[] s, char[] t, bool useThreshold)
         {
-            return GetEditDistance(s, t, s.Length, t.Length);
+            return GetEditDistance(s, t, s.Length, t.Length, useThreshold);
         }
 
-        public int GetEditDistance(string target)
+        public int GetEditDistance(string target, bool useThreshold)
         {
             if (this._sourceLowerCaseCharacters == null)
             {
@@ -130,7 +123,7 @@ namespace Roslyn.Utilities
             var targetLowerCaseCharacters = ConvertToLowercaseArray(target);
             try
             {
-                return GetEditDistance(_sourceLowerCaseCharacters, targetLowerCaseCharacters, _source.Length, target.Length);
+                return GetEditDistance(_sourceLowerCaseCharacters, targetLowerCaseCharacters, _source.Length, target.Length, useThreshold);
             }
             finally
             {
@@ -176,14 +169,14 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength)
+        public static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength, bool useThreshold)
         {
             return sourceLength <= targetLength
-                ? GetEditDistanceWorker(source, target, sourceLength, targetLength)
-                : GetEditDistanceWorker(target, source, targetLength, sourceLength);
+                ? GetEditDistanceWorker(source, target, sourceLength, targetLength, useThreshold)
+                : GetEditDistanceWorker(target, source, targetLength, sourceLength, useThreshold);
         }
 
-        private static int GetEditDistanceWorker(char[] source, char[] target, int sourceLength, int targetLength)
+        private static int GetEditDistanceWorker(char[] source, char[] target, int sourceLength, int targetLength, bool useThreshold)
         {
             // Note: sourceLength and targetLength values will mutate and represent the lengths 
             // of the portions of the arrays we want to compare.
@@ -286,11 +279,6 @@ namespace Roslyn.Utilities
 
         public bool IsCloseMatch(string candidateText, out double matchCost)
         {
-            return IsCloseMatch(candidateText, threshold: null, matchCost: out matchCost);
-        }
-
-        public bool IsCloseMatch(string candidateText, int? threshold, out double matchCost)
-        {
             if (_source.Length < 3)
             {
                 // If we're comparing strings that are too short, we'll find 
@@ -298,9 +286,8 @@ namespace Roslyn.Utilities
                 matchCost = double.MaxValue;
                 return false;
             }
-
-            threshold = threshold ?? this._defaultThreshold;
-            if (_lastIsCloseMatchResult.CandidateText == candidateText && _lastIsCloseMatchResult.Threshold == threshold)
+            
+            if (_lastIsCloseMatchResult.CandidateText == candidateText)
             {
                 matchCost = _lastIsCloseMatchResult.MatchCost;
                 return _lastIsCloseMatchResult.IsCloseMatch;
@@ -309,8 +296,8 @@ namespace Roslyn.Utilities
             var candidateCharArray = ConvertToLowercaseArray(candidateText);
             try
             {
-                var result = IsCloseMatchWorker(candidateText, threshold.Value, out matchCost);
-                _lastIsCloseMatchResult = new CacheResult(candidateText, threshold.Value, result, matchCost);
+                var result = IsCloseMatchWorker(candidateText, out matchCost);
+                _lastIsCloseMatchResult = new CacheResult(candidateText, result, matchCost);
                 return result;
             }
             finally
@@ -319,19 +306,19 @@ namespace Roslyn.Utilities
             }
         }
 
-        private bool IsCloseMatchWorker(string candidateText, int threshold, out double matchCost)
+        private bool IsCloseMatchWorker(string candidateText, out double matchCost)
         {
             matchCost = double.MaxValue;
 
             // If the two strings differ by more characters than the cost threshold, then there's 
             // no point in even computing the edit distance as it would necessarily take at least
             // that many additions/deletions.
-            if (Math.Abs(_source.Length - candidateText.Length) <= threshold)
+            if (Math.Abs(_source.Length - candidateText.Length) <= _threshold)
             {
-                matchCost = GetEditDistance(candidateText);
+                matchCost = GetEditDistance(candidateText, useThreshold: true);
             }
 
-            if (matchCost > threshold)
+            if (matchCost > _threshold)
             {
                 // it had a high cost.  However, the string the user typed was contained
                 // in the string we're currently looking at.  That's enough to consider it
@@ -339,14 +326,15 @@ namespace Roslyn.Utilities
                 // other matches).
                 if (candidateText.IndexOf(_source, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    matchCost = threshold;
+                    matchCost = _threshold;
+                }
+                else
+                {
+                    return false;
                 }
             }
 
-            if (matchCost > threshold)
-            {
-                return false;
-            }
+            Debug.Assert(matchCost <= _threshold);
 
             matchCost += Penalty(candidateText, this._source);
             return true;
