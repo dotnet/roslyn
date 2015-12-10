@@ -27,6 +27,18 @@ namespace Roslyn.Utilities
                 EdgeCount = edgeCount;
                 FirstEdgeIndex = firstEdgeIndex;
             }
+
+            internal void WriteTo(ObjectWriter writer)
+            {
+                writer.WriteValue(LowerCaseCharacters);
+                writer.WriteInt32(EdgeCount);
+                writer.WriteInt32(FirstEdgeIndex);
+            }
+
+            internal static Node ReadFrom(ObjectReader reader)
+            {
+                return new Node((char[])reader.ReadValue(), reader.ReadInt32(), reader.ReadInt32());
+            }
         }
     }
 }

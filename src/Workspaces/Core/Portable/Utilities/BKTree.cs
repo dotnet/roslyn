@@ -12,6 +12,10 @@ namespace Roslyn.Utilities
 {
     internal partial class BKTree
     {
+        public static readonly BKTree Empty = new BKTree(
+            SpecializedCollections.EmptyArray<Node>(),
+            SpecializedCollections.EmptyArray<Edge>());
+
         // We have two completely flat arrays of structs (except for the char[] values the nodes
         // point to).  These arrays fully represent the BK tree.  The structure is as follows:
         //

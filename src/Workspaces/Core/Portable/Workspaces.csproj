@@ -418,6 +418,7 @@
     <Compile Include="Simplification\SimplifyTypeNameCodeAction.cs" />
     <Compile Include="Utilities\BKTree.Edge.cs" />
     <Compile Include="Utilities\BKTree.Node.cs" />
+    <Compile Include="Utilities\BKTree.Serialization.cs" />
     <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />

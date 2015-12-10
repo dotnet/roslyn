@@ -21,6 +21,17 @@ namespace Roslyn.Utilities
                 EditDistance = editDistance;
                 ChildNodeIndex = childNodeIndex;
             }
+
+            internal void WriteTo(ObjectWriter writer)
+            {
+                writer.WriteInt32(EditDistance);
+                writer.WriteInt32(ChildNodeIndex);
+            }
+
+            internal static Edge ReadFrom(ObjectReader reader)
+            {
+                return new Edge(reader.ReadInt32(), reader.ReadInt32());
+            }
         }
     }
 }
