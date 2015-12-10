@@ -15,24 +15,23 @@ namespace Roslyn.Utilities
         // We have two completely flat arrays of structs (except for the char[] values the nodes
         // point to).  These arrays fully represent the BK tree.  The structure is as follows:
         //
-        // The root node is in nodeArray[0].
+        // The root node is in _nodes[0].
         //
-        // It lists the count of children it has.  These children are in editDistanceArray 
-        // in the range [0*, childCount).  Each item in editDistance array is information about
-        // a child of the root.  Specifically the edit distance between the root and it, and
-        // what location in nodeArray the child is at.
+        // It lists the count of edges it has.  These edges are in _edges in the range 
+        // [0*, childCount).  Each edge has the index of the child node it points to, and the
+        // edit distance between the parent and the child.
         //
-        // * of course '0' is only for the root case.  All nodes state where in editDistanceArray
-        // their child range starts.  So the children for any node are in editDistanceArray from
-        // [node.FirstChildIndex, node.FirstChildIndex + node.ChildCount)
+        // * of course '0' is only for the root case.  All nodes state where in _edges
+        // their child edgs range starts.  So the children for any node are in _edges from
+        // [node.FirstEdgeIndex, node.FirstEdgeIndex + node.EdgeCount)
 
-        private readonly Node[] nodeArray;
-        private readonly EditDistanceAndChildIndex[] editDistanceArray;
+        private readonly Node[] _nodes;
+        private readonly Edge[] _edges;
 
-        private BKTree(Node[] nodeArray, EditDistanceAndChildIndex[] editDistanceArray)
+        private BKTree(Node[] nodes, Edge[] edges)
         {
-            this.nodeArray = nodeArray;
-            this.editDistanceArray = editDistanceArray;
+            _nodes = nodes;
+            _edges = edges;
         }
 
         public static BKTree Create(params string[] values)
@@ -47,7 +46,7 @@ namespace Roslyn.Utilities
 
         public IList<string> Find(string value, int? threshold = null)
         {
-            if (nodeArray.Length == 0)
+            if (_nodes.Length == 0)
             {
                 return SpecializedCollections.EmptyList<string>();
             }
@@ -62,7 +61,7 @@ namespace Roslyn.Utilities
 
                 threshold = threshold ?? EditDistance.GetThreshold(value);
                 var result = new List<string>();
-                Lookup(nodeArray[0], lowerCaseCharacters, value.Length, threshold.Value, result);
+                Lookup(_nodes[0], lowerCaseCharacters, value.Length, threshold.Value, result);
                 return result;
             }
             finally
@@ -86,14 +85,14 @@ namespace Roslyn.Utilities
             var min = editDistance - threshold;
             var max = editDistance + threshold;
 
-            var firstChild = currentNode.FirstChildIndexInEditDistanceArray;
-            var lastChild = firstChild + currentNode.ChildCount;
-            for (var i = firstChild; i < lastChild; i++)
+            var firstEdgeIndex = currentNode.FirstEdgeIndex;
+            var lastEdgeIndex = firstEdgeIndex + currentNode.EdgeCount;
+            for (var i = firstEdgeIndex; i < lastEdgeIndex; i++)
             {
-                var childEditDistance = editDistanceArray[i].EditDistance;
+                var childEditDistance = _edges[i].EditDistance;
                 if (min <= childEditDistance && childEditDistance <= max)
                 {
-                    Lookup(this.nodeArray[editDistanceArray[i].ChildNodeIndexInNodeArray],
+                    Lookup(this._nodes[_edges[i].ChildNodeIndex],
                         queryCharacters, queryLength, threshold, result);
                 }
             }
@@ -102,12 +101,12 @@ namespace Roslyn.Utilities
         internal void DumpStats()
         {
             var sb = new StringBuilder();
-            sb.AppendLine("Nodes length: " + nodeArray.Length);
+            sb.AppendLine("Nodes length: " + _nodes.Length);
             var childCountHistogram = new Dictionary<int, int>();
 
-            foreach (var node in nodeArray)
+            foreach (var node in _nodes)
             {
-                var childCount = node.ChildCount;
+                var childCount = node.EdgeCount;
                 int existing;
                 childCountHistogram.TryGetValue(childCount, out existing);
 
@@ -125,29 +124,29 @@ namespace Roslyn.Utilities
             var densities = new int[11];
             var empyCount = 0;
 
-            foreach (var node in nodeArray)
+            foreach (var node in _nodes)
             {
-                if (node.ChildCount == 0)
+                if (node.EdgeCount == 0)
                 {
                     empyCount++;
                     continue;
                 }
 
                 var maxEditDistance = -1;
-                var firstChild = node.FirstChildIndexInEditDistanceArray;
-                var lastChild = firstChild + node.ChildCount;
+                var firstChild = node.FirstEdgeIndex;
+                var lastChild = firstChild + node.EdgeCount;
                 for (var i = firstChild; i < lastChild; i++)
                 {
-                    maxEditDistance = Max(maxEditDistance, editDistanceArray[i].EditDistance);
+                    maxEditDistance = Max(maxEditDistance, _edges[i].EditDistance);
                 }
 
-                var editDistanceCount = node.ChildCount;
+                var editDistanceCount = node.EdgeCount;
 
                 var bucket = 10 * editDistanceCount / maxEditDistance;
                 densities[bucket]++;
             }
 
-            var nonEmptyCount = nodeArray.Length - empyCount;
+            var nonEmptyCount = _nodes.Length - empyCount;
             sb.AppendLine();
             sb.AppendLine("NoChildren: " + empyCount);
             sb.AppendLine("AnyChildren: " + nonEmptyCount);

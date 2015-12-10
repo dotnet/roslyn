@@ -14,17 +14,18 @@ namespace Roslyn.Utilities
             // edit distances on it.
             public readonly char[] LowerCaseCharacters;
 
-            // How many children this node has.
-            public readonly int ChildCount;
+            // How many children/edges this node has.
+            public readonly int EdgeCount;
 
-            // Where the children can be found in "editDistanceArray".
-            public readonly int FirstChildIndexInEditDistanceArray;
+            // Where the first edge can be found in "_edges".  The edges are in the range:
+            // _edges[FirstEdgeIndex, FirstEdgeIndex + EdgeCount)
+            public readonly int FirstEdgeIndex;
 
-            public Node(char[] lowerCaseCharacters, int childCount, int firstChildIndexInEditDistanceArray)
+            public Node(char[] lowerCaseCharacters, int edgeCount, int firstEdgeIndex)
             {
                 LowerCaseCharacters = lowerCaseCharacters;
-                ChildCount = childCount;
-                FirstChildIndexInEditDistanceArray = firstChildIndexInEditDistanceArray;
+                EdgeCount = edgeCount;
+                FirstEdgeIndex = firstEdgeIndex;
             }
         }
     }

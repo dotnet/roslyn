@@ -29,32 +29,33 @@ namespace Roslyn.Utilities
                     }
                 }
 
-                var nodeArray = new Node[builderNodes.Count];
-                var editDistanceList = new List<EditDistanceAndChildIndex>(builderNodes.Count);
+                var nodes = new Node[builderNodes.Count];
+                var edges = new List<Edge>(builderNodes.Count);
 
-                BuildArrays(builderNodes, nodeArray, editDistanceList);
+                BuildArrays(builderNodes, nodes, edges);
 
-                return new BKTree(nodeArray, editDistanceList.ToArray());
+                return new BKTree(nodes, edges.ToArray());
             }
 
-            private void BuildArrays(List<BuilderNode> builderNodes, Node[] nodeArray, List<EditDistanceAndChildIndex> editDistanceList)
+            private void BuildArrays(
+                List<BuilderNode> builderNodes, Node[] nodes, List<Edge> edges)
             {
-                var currentIndexInEditDistanceList = 0;
+                var currentEdgeIndex = 0;
                 for (var i =0; i < builderNodes.Count; i++)
                 {
                     var builderNode = builderNodes[i];
-                    var childCount = builderNode.AllChildren == null ? 0 : builderNode.AllChildren.Count;
+                    var edgeCount = builderNode.AllChildren == null ? 0 : builderNode.AllChildren.Count;
 
-                    nodeArray[i] = new Node(
-                        builderNode.LowerCaseCharacters, childCount, currentIndexInEditDistanceList);
+                    nodes[i] = new Node(
+                        builderNode.LowerCaseCharacters, edgeCount, currentEdgeIndex);
 
-                    currentIndexInEditDistanceList += childCount;
+                    currentEdgeIndex += edgeCount;
 
                     if (builderNode.AllChildren != null)
                     {
                         foreach (var kvp in builderNode.AllChildren)
                         {
-                            editDistanceList.Add(new EditDistanceAndChildIndex(kvp.Key, kvp.Value));
+                            edges.Add(new Edge(kvp.Key, kvp.Value));
                         }
                     }
                 }
@@ -105,10 +106,6 @@ namespace Roslyn.Utilities
             private struct BuilderNode
             {
                 public readonly char[] LowerCaseCharacters;
-
-                // The edit distance and node index of our child if we only have one. Both values will 
-                // be -1 if we have no children or if we have multiple children.
-                //public EditDistanceAndChildIndex SingleChild;
 
                 // Maps from our edit distance to our single child with that edit distance (when we have 
                 // multiple children).  Null if we have zero or one child.

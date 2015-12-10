@@ -416,7 +416,7 @@
     <Compile Include="Shared\Utilities\XmlFragmentParser.cs" />
     <Compile Include="Simplification\SimplificationOptionProvider.cs" />
     <Compile Include="Simplification\SimplifyTypeNameCodeAction.cs" />
-    <Compile Include="Utilities\BKTree.EditDistanceAndChildIndex.cs" />
+    <Compile Include="Utilities\BKTree.Edge.cs" />
     <Compile Include="Utilities\BKTree.Node.cs" />
     <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
