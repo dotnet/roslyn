@@ -1,5 +1,5 @@
 @echo off
-@setlocal
+@setlocal 
 
 set NuGetExe="%~dp0NuGet.exe"
 
