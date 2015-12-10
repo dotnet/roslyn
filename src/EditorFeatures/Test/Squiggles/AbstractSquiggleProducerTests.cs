@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 {
     public static class SquiggleUtilities
     {
-        internal static async Task<List<ITagSpan<IErrorTag>>> GetErrorSpans(
+        internal static async Task<Tuple<ImmutableArray<DiagnosticData>, List<ITagSpan<IErrorTag>>>> GetDiagnosticsAndErrorSpans(
             TestWorkspace workspace,
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
         {
@@ -29,10 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 {
                     await wrapper.WaitForTags();
 
+                    var analyzerDiagnostics = await wrapper.AnalyzerService.GetDiagnosticsAsync(workspace.CurrentSolution);
+
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
-                    return spans;
+                    return Tuple.Create(analyzerDiagnostics,spans);
                 }
             }
         }
@@ -40,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
     public abstract class AbstractSquiggleProducerTests
     {
-        protected static async Task<IEnumerable<ITagSpan<IErrorTag>>> GetErrorSpans(
+        internal static async Task<Tuple<ImmutableArray<DiagnosticData>, List<ITagSpan<IErrorTag>>>> GetDiagnosticsAndErrorSpans(
             TestWorkspace workspace,
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
         {
-            return await SquiggleUtilities.GetErrorSpans(workspace, analyzerMap);
+            return await SquiggleUtilities.GetDiagnosticsAndErrorSpans(workspace, analyzerMap);
         }
 
         internal static async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
