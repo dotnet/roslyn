@@ -454,10 +454,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 referenceKeyword = AddError(referenceKeyword, ERRID.ERR_ReferenceDirectiveOnlyAllowedInScripts)
             End If
 
-            Dim title As StringLiteralTokenSyntax = Nothing
-            VerifyExpectedToken(SyntaxKind.StringLiteralToken, title)
+            Dim file As StringLiteralTokenSyntax = Nothing
+            VerifyExpectedToken(SyntaxKind.StringLiteralToken, file)
 
-            Return SyntaxFactory.ReferenceDirectiveTrivia(hashToken, referenceKeyword, title)
+            Return SyntaxFactory.ReferenceDirectiveTrivia(hashToken, referenceKeyword, file)
         End Function
 
         Private Shared Function ParseBadDirective(hashToken As PunctuationSyntax) As BadDirectiveTriviaSyntax
