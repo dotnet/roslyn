@@ -71,10 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 ValueTuple.Create(FeatureAttribute.DiagnosticService, _asyncListener),
                 ValueTuple.Create(FeatureAttribute.ErrorSquiggles, _asyncListener));
 
-            if (analyzerMap != null)
-            {
-                _analyzerService = CreateDiagnosticAnalyzerService(analyzerMap, new AggregateAsynchronousOperationListener(_listeners, FeatureAttribute.DiagnosticService));
-            }
+            _analyzerService = CreateDiagnosticAnalyzerService(analyzerMap, new AggregateAsynchronousOperationListener(_listeners, FeatureAttribute.DiagnosticService));
 
             if (updateSource == null)
             {
