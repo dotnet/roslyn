@@ -367,35 +367,46 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
 
-        private static bool IsContainerNode(SyntaxNode container)
-        {
-            return container is CompilationUnitSyntax
-                || container is NamespaceDeclarationSyntax
-                || container is TypeDeclarationSyntax
-                || container is EnumDeclarationSyntax;
-        }
+        private static bool IsContainerNode(SyntaxNode container) =>
+            container is CompilationUnitSyntax ||
+            container is NamespaceDeclarationSyntax ||
+            container is BaseTypeDeclarationSyntax;
 
-        private static IEnumerable<SyntaxNode> GetChildMemberNodes(SyntaxNode container)
+        private static bool IsNamespaceOrTypeDeclaration(SyntaxNode node) =>
+            node.Kind() == SyntaxKind.NamespaceDeclaration ||
+            node is BaseTypeDeclarationSyntax ||
+            node is DelegateDeclarationSyntax;
+
+        private static IEnumerable<MemberDeclarationSyntax> GetChildMemberNodes(SyntaxNode container)
         {
             if (container is CompilationUnitSyntax)
             {
                 foreach (var member in ((CompilationUnitSyntax)container).Members)
                 {
-                    yield return member;
+                    if (IsNamespaceOrTypeDeclaration(member))
+                    {
+                        yield return member;
+                    }
                 }
             }
             else if (container is NamespaceDeclarationSyntax)
             {
                 foreach (var member in ((NamespaceDeclarationSyntax)container).Members)
                 {
-                    yield return member;
+                    if (IsNamespaceOrTypeDeclaration(member))
+                    {
+                        yield return member;
+                    }
                 }
             }
             else if (container is TypeDeclarationSyntax)
             {
                 foreach (var member in ((TypeDeclarationSyntax)container).Members)
                 {
-                    yield return member;
+                    if (member.Kind() != SyntaxKind.NamespaceDeclaration)
+                    {
+                        yield return member;
+                    }
                 }
             }
             else if (container is EnumDeclarationSyntax)
@@ -2417,12 +2428,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             var result = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone;
 
-            if ((flags & ModifierFlags.Abstract) != 0 || containingType.Kind() == SyntaxKind.InterfaceDeclaration)
+            if ((flags & ModifierFlags.Abstract) != 0 || containingType?.Kind() == SyntaxKind.InterfaceDeclaration)
             {
                 result |= EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract;
             }
 
-            if ((flags & ModifierFlags.Virtual) != 0 || containingType.Kind() == SyntaxKind.InterfaceDeclaration)
+            if ((flags & ModifierFlags.Virtual) != 0 || containingType?.Kind() == SyntaxKind.InterfaceDeclaration)
             {
                 result |= EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual;
             }
