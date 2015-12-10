@@ -147,23 +147,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(_initializeTask == null);
 
             var diagnosticQueue = DiagnosticQueue.Create(categorizeDiagnostics);
-            var addDiagnostic = GetDiagnosticSink(diagnosticQueue.Enqueue, compilation);
-            var addLocalDiagnosticOpt = categorizeDiagnostics ? GetDiagnosticSink(diagnosticQueue.EnqueueLocal, compilation) : null;
-            var addNonLocalDiagnosticOpt = categorizeDiagnostics ? GetDiagnosticSink(diagnosticQueue.EnqueueNonLocal, compilation) : null;
 
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> newOnAnalyzerException;
-            if (analysisOptions.OnAnalyzerException != null)
+            Action<Diagnostic> addNotCategorizedDiagnosticOpt = null;
+            Action<Diagnostic, DiagnosticAnalyzer, bool> addCategorizedLocalDiagnosticOpt = null;
+            Action<Diagnostic, DiagnosticAnalyzer> addCategorizedNonLocalDiagnosticOpt = null;
+            if (categorizeDiagnostics)
             {
-                // Wrap onAnalyzerException to pass in filtered diagnostic.
-                var comp = compilation;
-                newOnAnalyzerException = (ex, analyzer, diagnostic) =>
-                    analysisOptions.OnAnalyzerException(ex, analyzer, GetFilteredDiagnostic(diagnostic, comp));
+                addCategorizedLocalDiagnosticOpt = GetDiagnosticSink(diagnosticQueue.EnqueueLocal, compilation);
+                addCategorizedNonLocalDiagnosticOpt = GetDiagnosticSink(diagnosticQueue.EnqueueNonLocal, compilation);
             }
             else
             {
-                // Add exception diagnostic to regular diagnostic bag.
-                newOnAnalyzerException = (ex, analyzer, diagnostic) => addDiagnostic(diagnostic);
+                addNotCategorizedDiagnosticOpt = GetDiagnosticSink(diagnosticQueue.Enqueue, compilation);
             }
+
+            // Wrap onAnalyzerException to pass in filtered diagnostic.
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> newOnAnalyzerException = (ex, analyzer, diagnostic) =>
+            {
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation);
+                if (filteredDiagnostic != null)
+                {
+                    if (analysisOptions.OnAnalyzerException != null)
+                    {
+                        analysisOptions.OnAnalyzerException(ex, analyzer, filteredDiagnostic);
+                    }
+                    else if (categorizeDiagnostics)
+                    {
+                        addCategorizedNonLocalDiagnosticOpt(filteredDiagnostic, analyzer);
+                    }
+                    else
+                    {
+                        addNotCategorizedDiagnosticOpt(filteredDiagnostic);
+                    }
+                }
+            };
 
             if (analysisOptions.LogAnalyzerExecutionTime)
             {
@@ -172,8 +189,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var unused = compilation.GetTypeByMetadataName("System.Object");
             }
 
-            var analyzerExecutor = AnalyzerExecutor.Create(compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addDiagnostic, newOnAnalyzerException, IsCompilerAnalyzer,
-                analyzerManager, GetAnalyzerGate, analysisOptions.LogAnalyzerExecutionTime, addLocalDiagnosticOpt, addNonLocalDiagnosticOpt, cancellationToken);
+            var analyzerExecutor = AnalyzerExecutor.Create(compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addNotCategorizedDiagnosticOpt, newOnAnalyzerException, IsCompilerAnalyzer,
+                analyzerManager, GetAnalyzerGate, analysisOptions.LogAnalyzerExecutionTime, addCategorizedLocalDiagnosticOpt, addCategorizedNonLocalDiagnosticOpt, cancellationToken);
 
             Initialize(analyzerExecutor, diagnosticQueue, cancellationToken);
         }
