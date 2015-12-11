@@ -49,9 +49,25 @@ namespace N$$
 </Code>
 
             Await TestChildren(code,
-                         IsElement("C1", EnvDTE.vsCMElement.vsCMElementClass),
-                         IsElement("C2", EnvDTE.vsCMElement.vsCMElementClass),
-                         IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
+                IsElement("C1", EnvDTE.vsCMElement.vsCMElementClass),
+                IsElement("C2", EnvDTE.vsCMElement.vsCMElementClass),
+                IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function NoChildrenForInvalidMembers() As Task
+            Dim code =
+<Code>
+namespace N$$
+{
+    void M() { }
+    int P { get { return 42; } }
+    event System.EventHandler E;
+}
+</Code>
+
+            Await TestChildren(code, NoElements)
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

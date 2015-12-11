@@ -1,5 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Partial Public MustInherit Class AbstractCodeModelObjectTests(Of TCodeModelObject As Class)
 
@@ -101,6 +103,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                        Assert.NotNull(fcm)
                    End Sub
         End Function
+
+        Protected MustOverride Function TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object)) As Task
 
         Protected Function IsElement(name As String, Optional kind? As EnvDTE.vsCMElement = Nothing) As Action(Of Object)
             Return _

@@ -100,6 +100,21 @@ class FooAttribute : System.Attribute
             End Using
         End Function
 
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function NoChildrenForInvalidMembers() As Task
+            Dim code =
+<Code>
+void M() { }
+int P { get { return 42; } }
+event System.EventHandler E;
+class C { }
+</Code>
+
+            Await TestChildren(code,
+                IsElement("C"))
+        End Function
+
 #Region "AddAttribute tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -926,7 +941,7 @@ class $$C
 /// &lt;summary&gt;
 ///
 /// &lt;/summary&gt;
-Class $$C
+class $$C
 {
 }
 </Code>
