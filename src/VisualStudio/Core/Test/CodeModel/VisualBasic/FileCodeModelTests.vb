@@ -215,6 +215,11 @@ End Class
         End Function
 
         Private Async Function TestAddAttributeWithBatchModeAsync(code As XElement, expectedCode As XElement, testOperation As Action(Of EnvDTE.FileCodeModel, Boolean), batch As Boolean) As Task
+            Roslyn.Test.Utilities.WpfTestCase.RequireWpfFact($"Test calls TestAddAttributeWithBatchModeAsync which means we're creating new CodeModel elements.")
+
+            ' NOTE: this method is the same as MyBase.TestOperation, but tells the lambda whether we are batching or not.
+            ' This is because the tests have different behavior up until EndBatch is called.
+
             Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
