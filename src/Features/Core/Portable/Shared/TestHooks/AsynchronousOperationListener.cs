@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         {
             TrackActiveTokens = Debugger.IsAttached;
 
-            // TODO: debugging only		
+            // TODO: debugging only
             TrackActiveTokens = true;
         }
 
