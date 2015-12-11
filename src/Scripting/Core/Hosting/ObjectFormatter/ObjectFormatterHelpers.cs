@@ -265,22 +265,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return null;
         }
 
-        internal static bool IsTaskAwaiter(Type type)
-        {
-            if (type == typeof(TaskAwaiter) || type == typeof(ConfiguredTaskAwaitable))
-            {
-                return true;
-            }
-
-            if (type?.GetTypeInfo().IsGenericType == true)
-            {
-                var genericDef = type.GetTypeInfo().GetGenericTypeDefinition();
-                return genericDef == typeof(TaskAwaiter<>) || type == typeof(ConfiguredTaskAwaitable<>);
-            }
-
-            return false;
-        }
-
         internal static SpecialType GetPrimitiveSpecialType(Type type)
         {
             Debug.Assert(type != null);

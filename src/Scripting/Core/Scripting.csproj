@@ -81,7 +81,12 @@
     <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.BuilderOptions.cs" />
     <Compile Include="Hosting\ObjectFormatter\CommonPrimitiveFormatter.Options.cs" />
     <Compile Include="Hosting\ObjectFormatter\CommonPrimitiveFormatter.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatter.Options.cs" />
     <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatter.cs" />
+    <Compile Include="Hosting\CommonStackTraceRewriter.cs" />
+    <Compile Include="Hosting\StackFrame.cs" />
+    <Compile Include="Hosting\StackTraceRewriter.cs" />
+    <Compile Include="Hosting\PrintOptions.cs" />
     <Compile Include="Hosting\ObjectFormatter\ObjectFormatter.cs" />
     <Compile Include="Hosting\ObjectFormatter\ObjectFormatterHelpers.cs" />
     <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.Builder.cs" />

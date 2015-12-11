@@ -10,36 +10,42 @@ using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    using static ObjectFormatterHelpers;
-
-    // TODO (acasey): input validation
-
     /// <summary>
     /// Object pretty printer.
     /// </summary>
     public abstract partial class CommonObjectFormatter : ObjectFormatter
     {
-        public override string FormatObject(object obj)
+        public override string FormatObject(object obj, PrintOptions options)
         {
-            var formatter = new Visitor(this, InternalBuilderOptions, PrimitiveOptions, MemberDisplayFormat);
+            var formatter = new Visitor(this, GetInternalBuilderOptions(options), GetPrimitiveOptions(options), GetTypeNameOptions(options), options.MemberDisplayFormat);
             return formatter.FormatObject(obj);
         }
 
-        internal virtual BuilderOptions InternalBuilderOptions =>
-            new BuilderOptions(
-                indentation: "  ",
-                newLine: Environment.NewLine,
-                ellipsis: "...",
-                lineLengthLimit: int.MaxValue,
-                totalLengthLimit: 1024);
-
-        protected virtual CommonPrimitiveFormatter.Options PrimitiveOptions => default(CommonPrimitiveFormatter.Options);
-        protected virtual MemberDisplayFormat MemberDisplayFormat => default(MemberDisplayFormat);
+        protected virtual StackTraceRewriter StackTraceRewriter { get; } = new CommonStackTraceRewriter();
 
         protected abstract CommonTypeNameFormatter TypeNameFormatter { get; }
         protected abstract CommonPrimitiveFormatter PrimitiveFormatter { get; }
 
         protected abstract bool TryFormatCompositeObject(object obj, out string value, out bool suppressMembers);
+
+        internal virtual BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
+            new BuilderOptions(
+                indentation: "  ",
+                newLine: Environment.NewLine,
+                ellipsis: "...",
+                maximumLineLength: int.MaxValue,
+                maximumOutputLength: printOptions.MaximumOutputLength);
+
+        protected virtual CommonPrimitiveFormatter.Options GetPrimitiveOptions(PrintOptions printOptions) =>
+            new CommonPrimitiveFormatter.Options(
+                useHexadecimalNumbers: printOptions.NumberRadix == NumberRadix.Hexadecimal,
+                includeCodePoints: printOptions.EscapeNonPrintableCharacters, // TODO (acasey): not quite the same
+                omitStringQuotes: false);
+
+        protected virtual CommonTypeNameFormatter.Options GetTypeNameOptions(PrintOptions printOptions) =>
+            new CommonTypeNameFormatter.Options(
+                useHexadecimalArrayBounds: printOptions.NumberRadix == NumberRadix.Hexadecimal,
+                showNamespaces: false);
 
         public override string FormatRaisedException(Exception e)
         {
@@ -54,29 +60,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             builder.AppendLine(e.Message);
 
             var trace = new StackTrace(e, needFileInfo: true);
-            foreach (var frame in trace.GetFrames())
+            foreach (var frame in StackTraceRewriter.Rewrite(trace.GetFrames().Where(f => f.HasMethod()).Select(f => new StackFrame(f))))
             {
-                if (!frame.HasMethod())
-                {
-                    continue;
-                }
-
-                var method = frame.GetMethod();
-                var type = method.DeclaringType;
-
-                // TODO (https://github.com/dotnet/roslyn/issues/5250): look for other types indicating that we're in Roslyn code
-                if (type == typeof(CommandLineRunner))
-                {
-                    break;
-                }
-
-                // TODO: we don't want to include awaiter helpers, shouldn't they be marked by DebuggerHidden in FX?
-                if (IsTaskAwaiter(type) || IsTaskAwaiter(type.DeclaringType))
-                {
-                    continue;
-                }
-
-                string methodDisplay = FormatMethodSignature(method, PrimitiveOptions.UseHexadecimalNumbers);
+                var method = frame.Method;
+                var methodDisplay = FormatMethodSignature(method);
 
                 if (methodDisplay == null)
                 {
@@ -86,9 +73,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 builder.Append("  + ");
                 builder.Append(methodDisplay);
 
-                if (frame.HasSource())
+                var fileName = frame.FileName;
+                if (fileName != null)
                 {
-                    builder.Append(string.Format(CultureInfo.CurrentUICulture, ScriptingResources.AtFileLine, frame.GetFileName(), frame.GetFileLineNumber()));
+                    builder.Append(string.Format(CultureInfo.CurrentUICulture, ScriptingResources.AtFileLine, fileName, frame.FileLineNumber));
                 }
 
                 builder.AppendLine();
@@ -101,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// Returns a method signature display string. Used to display stack frames.
         /// </summary>
         /// <returns>Null if the method is a compiler generated method that shouldn't be displayed to the user.</returns>
-        internal virtual string FormatMethodSignature(MethodBase method, bool useHexadecimalArrayBounds)
+        internal virtual string FormatMethodSignature(MethodBase method)
         {
             var declaringType = method.DeclaringType;
 
@@ -113,13 +101,15 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return null;
             }
 
+            var options = new CommonTypeNameFormatter.Options(useHexadecimalArrayBounds: false, showNamespaces: true);
+
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
 
-            builder.Append(TypeNameFormatter.FormatTypeName(declaringType, useHexadecimalArrayBounds));
+            builder.Append(TypeNameFormatter.FormatTypeName(declaringType, options));
             builder.Append('.');
             builder.Append(method.Name);
-            builder.Append(TypeNameFormatter.FormatTypeArguments(method.GetGenericArguments(), useHexadecimalArrayBounds));
+            builder.Append(TypeNameFormatter.FormatTypeArguments(method.GetGenericArguments(), options));
 
             builder.Append('(');
 
@@ -136,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
 
                 builder.Append(FormatRefKind(parameter));
-                builder.Append(TypeNameFormatter.FormatTypeName(parameter.ParameterType, useHexadecimalArrayBounds));
+                builder.Append(TypeNameFormatter.FormatTypeName(parameter.ParameterType, options));
             }
 
             builder.Append(')');

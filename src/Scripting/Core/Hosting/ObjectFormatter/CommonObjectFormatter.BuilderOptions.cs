@@ -18,26 +18,26 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             public readonly string NewLine;
             public readonly string Ellipsis;
 
-            public readonly int LineLengthLimit;
-            public readonly int TotalLengthLimit;
+            public readonly int MaximumLineLength;
+            public readonly int MaximumOutputLength;
 
-            public BuilderOptions(string indentation, string newLine, string ellipsis, int lineLengthLimit, int totalLengthLimit)
+            public BuilderOptions(string indentation, string newLine, string ellipsis, int maximumLineLength, int maximumOutputLength)
             {
                 Indentation = indentation;
                 NewLine = newLine;
                 Ellipsis = ellipsis;
-                LineLengthLimit = lineLengthLimit;
-                TotalLengthLimit = totalLengthLimit;
+                MaximumLineLength = maximumLineLength;
+                MaximumOutputLength = maximumOutputLength;
             }
 
-            public BuilderOptions WithTotalLengthLimit(int totalLengthLimit)
+            public BuilderOptions WithMaximumOutputLength(int maximumOutputLength)
             {
                 return new BuilderOptions(
                     Indentation,
                     NewLine,
                     Ellipsis,
-                    LineLengthLimit,
-                    totalLengthLimit);
+                    MaximumLineLength,
+                    maximumOutputLength);
             }
 
             public BuilderOptions SubtractEllipsisLength()
@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     Indentation,
                     NewLine,
                     Ellipsis,
-                    Math.Max(0, LineLengthLimit - Ellipsis.Length - 1),
-                    Math.Max(0, TotalLengthLimit - Ellipsis.Length - 1));
+                    Math.Max(0, MaximumLineLength - Ellipsis.Length - 1),
+                    Math.Max(0, MaximumOutputLength - Ellipsis.Length - 1));
             }
         }
     }

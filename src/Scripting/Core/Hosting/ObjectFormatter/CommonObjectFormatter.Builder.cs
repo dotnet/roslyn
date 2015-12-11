@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 _insertEllipsis = insertEllipsis;
                 _options = insertEllipsis ? options.SubtractEllipsisLength() : options;
 
-                _currentLimit = Math.Min(_options.LineLengthLimit, _options.TotalLengthLimit);
+                _currentLimit = Math.Min(_options.MaximumLineLength, _options.MaximumOutputLength);
             }
 
             public bool LimitReached
             {
-                get { return _sb.Length == _options.TotalLengthLimit; }
+                get { return _sb.Length == _options.MaximumOutputLength; }
             }
 
             public int Remaining
             {
-                get { return _options.TotalLengthLimit - _sb.Length; }
+                get { return _options.MaximumOutputLength - _sb.Length; }
             }
 
             // can be negative (the min value is -Ellipsis.Length - 1)
@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 // remove line length limit so that we can insert a new line even 
                 // if the previous one hit maxed out the line limit:
-                _currentLimit = _options.TotalLengthLimit;
+                _currentLimit = _options.MaximumOutputLength;
 
                 Append(_options.NewLine);
 
                 // recalc limit for the next line:
-                _currentLimit = (int)Math.Min((long)_sb.Length + _options.LineLengthLimit, _options.TotalLengthLimit);
+                _currentLimit = (int)Math.Min((long)_sb.Length + _options.MaximumLineLength, _options.MaximumOutputLength);
             }
 
             private void AppendEllipsis()

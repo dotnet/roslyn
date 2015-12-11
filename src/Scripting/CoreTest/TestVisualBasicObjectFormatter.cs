@@ -7,30 +7,26 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
     public sealed class TestVisualBasicObjectFormatter : VisualBasicObjectFormatter
     {
-        public static readonly CommonObjectFormatter SeparateLines = new TestVisualBasicObjectFormatter(MemberDisplayFormat.SeparateLines);
-        public static readonly CommonObjectFormatter SingleLine = new TestVisualBasicObjectFormatter(MemberDisplayFormat.SingleLine);
-        public static readonly CommonObjectFormatter Hidden = new TestVisualBasicObjectFormatter(MemberDisplayFormat.Hidden);
+        private readonly bool _omitStringQuotes;
+        private readonly int _maximumLineLength;
 
         public TestVisualBasicObjectFormatter(
-            MemberDisplayFormat memberDisplayFormat = default(MemberDisplayFormat),
-            bool useHexadecimalNumbers = false,
             bool omitStringQuotes = false,
-            int lineLengthLimit = int.MaxValue,
-            int totalLengthLimit = int.MaxValue)
+            int maximumLineLength = int.MaxValue)
         {
-            MemberDisplayFormat = memberDisplayFormat;
-            PrimitiveOptions = new CommonPrimitiveFormatter.Options(useHexadecimalNumbers, includeCodePoints: false, omitStringQuotes: omitStringQuotes);
-            InternalBuilderOptions = new BuilderOptions(
+            _omitStringQuotes = omitStringQuotes;
+            _maximumLineLength = maximumLineLength;
+        }
+
+        internal override BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
+            new BuilderOptions(
                 indentation: "  ",
                 newLine: Environment.NewLine,
                 ellipsis: "...",
-                lineLengthLimit: lineLengthLimit,
-                totalLengthLimit: totalLengthLimit);
-        }
+                maximumLineLength: _maximumLineLength,
+                maximumOutputLength: printOptions.MaximumOutputLength);
 
-        protected override MemberDisplayFormat MemberDisplayFormat { get; }
-        protected override CommonPrimitiveFormatter.Options PrimitiveOptions { get; }
-
-        internal override BuilderOptions InternalBuilderOptions { get; }
+        protected override CommonPrimitiveFormatter.Options GetPrimitiveOptions(PrintOptions printOptions) =>
+            new CommonPrimitiveFormatter.Options(printOptions.NumberRadix == NumberRadix.Hexadecimal, printOptions.EscapeNonPrintableCharacters, _omitStringQuotes);
     }
 }

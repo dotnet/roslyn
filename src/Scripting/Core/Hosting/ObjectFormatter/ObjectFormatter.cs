@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// </summary>
     public abstract class ObjectFormatter
     {
-        public abstract string FormatObject(object obj);
+        public abstract string FormatObject(object obj, PrintOptions options);
 
         public abstract string FormatRaisedException(Exception e);
     }

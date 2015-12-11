@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             private readonly BuilderOptions _builderOptions;
             private CommonPrimitiveFormatter.Options _primitiveOptions;
+            private CommonTypeNameFormatter.Options _typeNameOptions;
             private MemberDisplayFormat _memberDisplayFormat;
 
             private HashSet<object> _lazyVisitedObjects;
@@ -43,17 +44,19 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 CommonObjectFormatter formatter, 
                 BuilderOptions builderOptions,
                 CommonPrimitiveFormatter.Options primitiveOptions,
+                CommonTypeNameFormatter.Options typeNameOptions,
                 MemberDisplayFormat memberDisplayFormat)
             {
                 _formatter = formatter;
                 _builderOptions = builderOptions;
                 _primitiveOptions = primitiveOptions;
+                _typeNameOptions = typeNameOptions;
                 _memberDisplayFormat = memberDisplayFormat;
             }
 
             private Builder MakeMemberBuilder(int limit)
             {
-                return new Builder(_builderOptions.WithTotalLengthLimit(Math.Min(_builderOptions.LineLengthLimit, limit)), insertEllipsis: false);
+                return new Builder(_builderOptions.WithMaximumOutputLength(Math.Min(_builderOptions.MaximumLineLength, limit)), insertEllipsis: false);
             }
 
             public string FormatObject(object obj)
@@ -124,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 {
                     if (isRoot)
                     {
-                        result.Append(_formatter.TypeNameFormatter.FormatTypeName(type, _primitiveOptions.UseHexadecimalNumbers));
+                        result.Append(_formatter.TypeNameFormatter.FormatTypeName(type, _typeNameOptions));
                         result.Append(' ');
                     }
 
@@ -177,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 {
                     if (isRoot)
                     {
-                        result.Append(_formatter.TypeNameFormatter.FormatTypeName(type, _primitiveOptions.UseHexadecimalNumbers));
+                        result.Append(_formatter.TypeNameFormatter.FormatTypeName(type, _typeNameOptions));
                         result.Append('(');
                     }
 
@@ -197,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
                 else
                 {
-                    result.Append(_formatter.TypeNameFormatter.FormatTypeName(type, _primitiveOptions.UseHexadecimalNumbers));
+                    result.Append(_formatter.TypeNameFormatter.FormatTypeName(type, _typeNameOptions));
                 }
 
                 if (memberFormat == MemberDisplayFormat.Hidden)
@@ -518,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             private void FormatException(Builder result, Exception exception)
             {
                 result.Append("!<");
-                result.Append(_formatter.TypeNameFormatter.FormatTypeName(exception.GetType(), _primitiveOptions.UseHexadecimalNumbers));
+                result.Append(_formatter.TypeNameFormatter.FormatTypeName(exception.GetType(), _typeNameOptions));
                 result.Append('>');
             }
 
@@ -545,11 +548,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 Array array = collection as Array;
                 if (array != null)
                 {
-                    result.Append(_formatter.TypeNameFormatter.FormatArrayTypeName(array.GetType(), array, _primitiveOptions.UseHexadecimalNumbers));
+                    result.Append(_formatter.TypeNameFormatter.FormatArrayTypeName(array.GetType(), array, _typeNameOptions));
                     return;
                 }
 
-                result.Append(_formatter.TypeNameFormatter.FormatTypeName(collection.GetType(), _primitiveOptions.UseHexadecimalNumbers));
+                result.Append(_formatter.TypeNameFormatter.FormatTypeName(collection.GetType(), _typeNameOptions));
                 try
                 {
                     result.Append('(');
@@ -754,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return null;
                 }
 
-                var builder = new Builder(_builderOptions.WithTotalLengthLimit(lengthLimit), insertEllipsis: false);
+                var builder = new Builder(_builderOptions.WithMaximumOutputLength(lengthLimit), insertEllipsis: false);
                 return FormatWithEmbeddedExpressions(builder, format, obj).ToString();
             }
 

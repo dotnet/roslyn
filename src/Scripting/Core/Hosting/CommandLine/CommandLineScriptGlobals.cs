@@ -18,20 +18,21 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     public class CommandLineScriptGlobals
     {
         private readonly TextWriter _outputWriter;
+        private readonly ObjectFormatter _objectFormatter;
 
         /// <summary>
         /// Arguments given to the script.
         /// </summary>
         public IList<string> Args { get; }
 
-        public ObjectFormatter ObjectFormatter { get; }
+        public PrintOptions PrintOptions { get; }
 
         /// <summary>
         /// Pretty-prints an object.
         /// </summary>
         public void Print(object value)
         {
-            _outputWriter.WriteLine(ObjectFormatter.FormatObject(value));
+            _outputWriter.WriteLine(_objectFormatter.FormatObject(value, PrintOptions));
         }
 
         public CommandLineScriptGlobals(TextWriter outputWriter, ObjectFormatter objectFormatter)
@@ -46,8 +47,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 throw new ArgumentNullException(nameof(objectFormatter));
             }
 
+            PrintOptions = new PrintOptions();
+
             _outputWriter = outputWriter;
-            ObjectFormatter = objectFormatter;
+            _objectFormatter = objectFormatter;
 
             Args = new List<string>();
         }

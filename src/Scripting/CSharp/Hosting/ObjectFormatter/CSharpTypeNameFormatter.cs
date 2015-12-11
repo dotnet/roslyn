@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
             }
         }
 
-        public override string FormatTypeName(Type type, bool useHexadecimalArrayBounds)
+        public override string FormatTypeName(Type type, Options options)
         {
             string stateMachineName;
             if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(type.Name, GeneratedNameKind.StateMachineType, out stateMachineName))
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
                 return stateMachineName;
             }
 
-            return base.FormatTypeName(type, useHexadecimalArrayBounds);
+            return base.FormatTypeName(type, options);
         }
     }
 }

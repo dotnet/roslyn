@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     public class InteractiveScriptGlobals
     {
         private readonly TextWriter _outputWriter;
+        private readonly ObjectFormatter _objectFormatter;
 
         /// <summary>
         /// Arguments given to the script.
@@ -31,13 +32,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         public void Print(object value)
         {
-            _outputWriter.WriteLine(ObjectFormatter.FormatObject(value));
+            _outputWriter.WriteLine(_objectFormatter.FormatObject(value, PrintOptions));
         }
 
         public IList<string> ReferencePaths { get; }
         public IList<string> SourcePaths { get; }
 
-        public ObjectFormatter ObjectFormatter { get; set; }
+        public PrintOptions PrintOptions { get; }
 
         public InteractiveScriptGlobals(TextWriter outputWriter, ObjectFormatter objectFormatter)
         {
@@ -58,8 +59,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             SourcePaths = new SearchPaths();
             Args = new List<string>();
 
-            ObjectFormatter = objectFormatter;
+            PrintOptions = new PrintOptions();
+
             _outputWriter = outputWriter;
+            _objectFormatter = objectFormatter;
         }
     }
 }

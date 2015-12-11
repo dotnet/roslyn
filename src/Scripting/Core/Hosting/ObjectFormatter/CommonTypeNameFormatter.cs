@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     using static ObjectFormatterHelpers;
     using TypeInfo = System.Reflection.TypeInfo;
 
-    public abstract class CommonTypeNameFormatter
+    public abstract partial class CommonTypeNameFormatter
     {
         protected abstract string GetPrimitiveTypeName(SpecialType type);
 
@@ -24,39 +24,66 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         protected abstract CommonPrimitiveFormatter PrimitiveFormatter { get; }
 
         // TODO (tomat): Use DebuggerDisplay.Type if specified?
-        public virtual string FormatTypeName(Type type, bool useHexadecimalArrayBounds)
+        public virtual string FormatTypeName(Type type, Options options)
         {
             if (type == null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            string result = GetPrimitiveTypeName(GetPrimitiveSpecialType(type));
-            if (result != null)
+            string primitiveTypeName = GetPrimitiveTypeName(GetPrimitiveSpecialType(type));
+            if (primitiveTypeName != null)
             {
-                return result;
+                return primitiveTypeName;
+            }
+
+            if (type.IsGenericParameter)
+            {
+                return type.Name;
             }
 
             if (type.IsArray)
             {
-                return FormatArrayTypeName(type, arrayOpt: null, useHexadecimalArrayBounds: useHexadecimalArrayBounds);
+                return FormatArrayTypeName(type, arrayOpt: null, options: options);
             }
 
             var typeInfo = type.GetTypeInfo();
             if (typeInfo.IsGenericType)
             {
-                return FormatGenericTypeName(typeInfo, useHexadecimalArrayBounds);
+                return FormatGenericTypeName(typeInfo, options);
             }
 
-            if (typeInfo.DeclaringType != null)
-            {
-                return typeInfo.Name.Replace('+', '.');
-            }
-
-            return typeInfo.Name;
+            return FormatNonGenericTypeName(typeInfo, options);
         }
 
-        public virtual string FormatTypeArguments(Type[] typeArguments, bool useHexadecimalArrayBounds)
+        private static string FormatNonGenericTypeName(TypeInfo typeInfo, Options options)
+        {
+            if (options.ShowNamespaces)
+            {
+                return typeInfo.FullName.Replace('+', '.');
+            }
+
+            if (typeInfo.DeclaringType == null)
+            {
+                return typeInfo.Name;
+            }
+
+            var stack = ArrayBuilder<string>.GetInstance();
+
+            do
+            {
+                stack.Push(typeInfo.Name);
+                typeInfo = typeInfo.DeclaringType?.GetTypeInfo();
+            } while (typeInfo != null);
+
+            stack.ReverseContents();
+            var typeName = string.Join(".", stack);
+            stack.Free();
+
+            return typeName;
+        }
+
+        public virtual string FormatTypeArguments(Type[] typeArguments, Options options)
         {
             if (typeArguments == null)
             {
@@ -85,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     builder.Append(", ");
                 }
 
-                builder.Append(FormatTypeName(typeArgument, useHexadecimalArrayBounds));
+                builder.Append(FormatTypeName(typeArgument, options));
             }
 
             builder.Append(GenericParameterClosing);
@@ -96,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// <summary>
         /// Formats an array type name (vector or multidimensional).
         /// </summary>
-        public virtual string FormatArrayTypeName(Type arrayType, Array arrayOpt, bool useHexadecimalArrayBounds)
+        public virtual string FormatArrayTypeName(Type arrayType, Array arrayOpt, Options options)
         {
             if (arrayType == null)
             {
@@ -112,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 elementType = elementType.GetElementType();
             }
 
-            sb.Append(FormatTypeName(elementType, useHexadecimalArrayBounds));
+            sb.Append(FormatTypeName(elementType, options));
 
             // print all components of a jagged array:
             Type type = arrayType;
@@ -146,13 +173,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                         if (anyNonzeroLowerBound)
                         {
-                            AppendArrayBound(sb, lowerBound, useHexadecimalArrayBounds);
+                            AppendArrayBound(sb, lowerBound, options.UseHexadecimalArrayBounds);
                             sb.Append("..");
-                            AppendArrayBound(sb, length + lowerBound, useHexadecimalArrayBounds);
+                            AppendArrayBound(sb, length + lowerBound, options.UseHexadecimalArrayBounds);
                         }
                         else
                         {
-                            AppendArrayBound(sb, length, useHexadecimalArrayBounds);
+                            AppendArrayBound(sb, length, options.UseHexadecimalArrayBounds);
                         }
                     }
 
@@ -191,13 +218,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             sb.Append(']');
         }
 
-        private string FormatGenericTypeName(TypeInfo typeInfo, bool useHexadecimalArrayBounds)
+        private string FormatGenericTypeName(TypeInfo typeInfo, Options options)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
 
-            // TODO (https://github.com/dotnet/roslyn/issues/5250): shouldn't need parameters, but StackTrace gives us unconstructed symbols.
             // consolidated generic arguments (includes arguments of all declaring types):
+            // TODO (DevDiv #173210): shouldn't need parameters, but StackTrace gives us unconstructed symbols.
             Type[] genericArguments = typeInfo.IsGenericTypeDefinition ? typeInfo.GenericTypeParameters : typeInfo.GenericTypeArguments;
 
             if (typeInfo.DeclaringType != null)
@@ -210,10 +237,19 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
                 while (typeInfo != null);
 
+                if (options.ShowNamespaces)
+                {
+                    var @namespace = nestedTypes.Last().Namespace;
+                    if (@namespace.Length > 0)
+                    {
+                        builder.Append(@namespace + ".");
+                    }
+                }
+
                 int typeArgumentIndex = 0;
                 for (int i = nestedTypes.Count - 1; i >= 0; i--)
                 {
-                    AppendTypeInstantiation(builder, nestedTypes[i], genericArguments, ref typeArgumentIndex, useHexadecimalArrayBounds);
+                    AppendTypeInstantiation(builder, nestedTypes[i], genericArguments, ref typeArgumentIndex, options);
                     if (i > 0)
                     {
                         builder.Append('.');
@@ -225,13 +261,18 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             else
             {
                 int typeArgumentIndex = 0;
-                AppendTypeInstantiation(builder, typeInfo, genericArguments, ref typeArgumentIndex, useHexadecimalArrayBounds);
+                AppendTypeInstantiation(builder, typeInfo, genericArguments, ref typeArgumentIndex, options);
             }
 
             return pooledBuilder.ToStringAndFree();
         }
 
-        private void AppendTypeInstantiation(StringBuilder builder, TypeInfo typeInfo, Type[] genericArguments, ref int genericArgIndex, bool useHexadecimalArrayBounds)
+        private void AppendTypeInstantiation(
+            StringBuilder builder, 
+            TypeInfo typeInfo, 
+            Type[] genericArguments, 
+            ref int genericArgIndex, 
+            Options options)
         {
             // generic arguments of all the outer types and the current type;
             int currentArgCount = (typeInfo.IsGenericTypeDefinition ? typeInfo.GenericTypeParameters.Length : typeInfo.GenericTypeArguments.Length) - genericArgIndex;
@@ -258,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     {
                         builder.Append(", ");
                     }
-                    builder.Append(FormatTypeName(genericArguments[genericArgIndex++], useHexadecimalArrayBounds));
+                    builder.Append(FormatTypeName(genericArguments[genericArgIndex++], options));
                 }
 
                 builder.Append(GenericParameterClosing);
