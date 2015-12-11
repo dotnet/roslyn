@@ -81,8 +81,7 @@ namespace Roslyn.Utilities
             // in the tree.
             var editDistance = EditDistance.GetEditDistance(
                 currentNode.LowerCaseCharacters, queryCharacters,
-                currentNode.LowerCaseCharacters.Length, queryLength,
-                useThreshold: false);
+                currentNode.LowerCaseCharacters.Length, queryLength);
 
             if (editDistance <= threshold)
             {

@@ -155,7 +155,7 @@ namespace Roslyn.Utilities
                     // a threshold here as we need the actual edit distance so we can actually
                     // determine what edge to make or walk.
                     var editDistance = EditDistance.GetEditDistance(
-                        currentNode.LowerCaseCharacters, lowerCaseCharacters, useThreshold: false);
+                        currentNode.LowerCaseCharacters, lowerCaseCharacters);
 
                     // This shoudl never happen.  We dedupe all items before proceeding to the 'Add' step.
                     Debug.Assert(editDistance != 0);

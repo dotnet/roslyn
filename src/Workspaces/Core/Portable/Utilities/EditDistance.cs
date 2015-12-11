@@ -100,20 +100,25 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static int GetEditDistance(string s, string t, bool useThreshold)
+        public static int GetEditDistance(string s, string t)
         {
             using (var editDistance = new EditDistance(s))
             {
-                return editDistance.GetEditDistance(t, useThreshold);
+                return editDistance.GetEditDistance(t);
             }
         }
 
-        public static int GetEditDistance(char[] s, char[] t, bool useThreshold)
+        public static int GetEditDistance(char[] s, char[] t)
         {
-            return GetEditDistance(s, t, s.Length, t.Length, useThreshold);
+            return GetEditDistance(s, t, s.Length, t.Length);
         }
 
-        public int GetEditDistance(string target, bool useThreshold)
+        public int GetEditDistance(string target)
+        {
+            return GetEditDistance(target, useThreshold: false);
+        }
+
+        private int GetEditDistance(string target, bool useThreshold)
         {
             if (this._sourceLowerCaseCharacters == null)
             {
@@ -123,7 +128,7 @@ namespace Roslyn.Utilities
             var targetLowerCaseCharacters = ConvertToLowercaseArray(target);
             try
             {
-                return GetEditDistance(_sourceLowerCaseCharacters, targetLowerCaseCharacters, _source.Length, target.Length, useThreshold);
+                return GetEditDistance(_sourceLowerCaseCharacters, targetLowerCaseCharacters, _source.Length, target.Length);
             }
             finally
             {
@@ -169,7 +174,12 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength, bool useThreshold)
+        public static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength)
+        {
+            return GetEditDistance(source, target, sourceLength, targetLength, useThreshold: false);
+        }
+
+        private static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength, bool useThreshold)
         {
             return sourceLength <= targetLength
                 ? GetEditDistanceWorker(source, target, sourceLength, targetLength, useThreshold)
