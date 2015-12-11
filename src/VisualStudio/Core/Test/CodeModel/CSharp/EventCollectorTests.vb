@@ -568,7 +568,7 @@ namespace N
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
-        Public Async Function TestChangingClassClassToPartial() As Task
+        Public Async Function TestChangingClassClassToPartial1() As Task
             Dim code =
 <Code>
 namespace N
@@ -590,7 +590,32 @@ namespace N
 </Code>
 
             Await TestAsync(code, changedCode,
-                 Remove("C", "N"),
+                 Remove("C", "N"))
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function TestChangingClassClassToPartial2() As Task
+            Dim code =
+<Code>
+namespace N
+{
+    parclass C
+    {
+    }
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+namespace N
+{
+    partial class C
+    {
+    }
+}
+</Code>
+
+            Await TestAsync(code, changedCode,
                  Add("C", "N"))
         End Function
 
@@ -873,6 +898,142 @@ class Program
 
             Await TestAsync(code, changedCode,
                  Remove("System.CLSCompliant", "bar"))
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontFireEventForMethodAddedInsideNamespace() As Task
+            Dim code =
+<Code>
+namespace N
+{
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+namespace N
+{
+    void M()
+    {
+    }
+}
+</Code>
+
+            Await TestAsync(code, changedCode)
+        End Function
+
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontCrashOnDuplicatedMethodsInNamespace() As Task
+            Dim code =
+<Code>
+namespace N
+{
+    void M()
+    {
+    }
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+namespace N
+{
+    void M()
+    {
+    }
+
+    void M()
+    {
+    }
+}
+</Code>
+
+            Await TestAsync(code, changedCode)
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontCrashOnDuplicatedPropertiesInNamespace() As Task
+            Dim code =
+<Code>
+namespace N
+{
+    int P { get { return 42; } }
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+namespace N
+{
+    int P { get { return 42; } }
+    int P { get { return 42; } }
+}
+</Code>
+
+            Await TestAsync(code, changedCode)
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontCrashOnDuplicatedEventsInNamespace1() As Task
+            Dim code =
+<Code>
+namespace N
+{
+    event System.EventHandler E;
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+namespace N
+{
+    event System.EventHandler E;
+    event System.EventHandler E;
+}
+</Code>
+
+            Await TestAsync(code, changedCode)
+        End Function
+
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Async Function DontCrashOnDuplicatedEventsInNamespace2() As Task
+            Dim code =
+<Code>
+namespace N
+{
+    event System.EventHandler E
+    {
+        add { }
+        remove { }
+    }
+}
+</Code>
+
+            Dim changedCode =
+<Code>
+namespace N
+{
+    event System.EventHandler E
+    {
+        add { }
+        remove { }
+    }
+
+    event System.EventHandler E
+    {
+        add { }
+        remove { }
+    }
+}
+</Code>
+
+            Await TestAsync(code, changedCode)
         End Function
 
         Protected Overrides ReadOnly Property LanguageName As String

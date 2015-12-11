@@ -21,14 +21,17 @@ namespace RunTests
         /// Path to the results file.  Can be null in the case xunit error'd and did not create one. 
         /// </summary>
         internal string ResultsFilePath { get; }
+
+        internal string ResultDir { get; }
         internal bool Succeeded => ExitCode == 0;
 
-        internal TestResult(int exitCode, string assemblyPath, string resultsFilePath, string commandLine, TimeSpan elapsed, string standardOutput, string errorOutput)
+        internal TestResult(int exitCode, string assemblyPath, string resultDir, string resultsFilePath, string commandLine, TimeSpan elapsed, string standardOutput, string errorOutput)
         {
             ExitCode = exitCode;
             AssemblyName = Path.GetFileName(assemblyPath);
             AssemblyPath = assemblyPath;
             CommandLine = commandLine;
+            ResultDir = resultDir;
             ResultsFilePath = resultsFilePath;
             Elapsed = elapsed;
             StandardOutput = standardOutput;

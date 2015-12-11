@@ -642,6 +642,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public int SymbolActionsCount { get { return _symbolActions.Length; } }
         public int SyntaxNodeActionsCount { get { return _syntaxNodeActions.Length; } }
         public int OperationActionsCount { get { return this._operationActions.Length; } }
+        public int OperationBlockStartActionsCount { get { return _operationBlockStartActions.Length; } }
+        public int OperationBlockEndActionsCount { get { return _operationBlockEndActions.Length; } }
+        public int OperationBlockActionsCount { get { return _operationBlockActions.Length; } }
         public int CodeBlockStartActionsCount { get { return _codeBlockStartActions.Length; } }
         public int CodeBlockEndActionsCount { get { return _codeBlockEndActions.Length; } }
         public int CodeBlockActionsCount { get { return _codeBlockActions.Length; } }

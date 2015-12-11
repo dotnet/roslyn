@@ -757,6 +757,8 @@ class C
         Public Async Function TestIsDefault2() As Task
             Dim code =
 <Code>
+class C
+{
     public int $$P
     {
         get
@@ -766,6 +768,7 @@ class C
         set
         {
         }
+}
 </Code>
 
             Await TestIsDefault(code, False)
