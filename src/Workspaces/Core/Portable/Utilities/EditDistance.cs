@@ -100,17 +100,17 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static int GetEditDistance(string s, string t)
+        public static int GetEditDistance(string source, string target)
         {
-            using (var editDistance = new EditDistance(s))
+            using (var editDistance = new EditDistance(source))
             {
-                return editDistance.GetEditDistance(t);
+                return editDistance.GetEditDistance(target);
             }
         }
 
-        public static int GetEditDistance(char[] s, char[] t)
+        public static int GetEditDistance(char[] source, char[] target)
         {
-            return GetEditDistance(new ArraySlice<char>(s), new ArraySlice<char>(t));
+            return GetEditDistance(new ArraySlice<char>(source), new ArraySlice<char>(target));
         }
 
         public int GetEditDistance(string target)
