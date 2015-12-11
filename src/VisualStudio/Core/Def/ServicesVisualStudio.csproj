@@ -103,6 +103,7 @@
     <Compile Include="Implementation\TableDataSource\VisualStudioTodoListTable.cs" />
     <Compile Include="Implementation\Utilities\BrowserHelper.cs" />
     <Compile Include="Implementation\Utilities\HyperlinkStyleHelper.cs" />
+    <Compile Include="Implementation\Venus\VenusTaskExtensions.cs" />
     <Compile Include="Implementation\Versions\SemanticVersionTrackingService.cs" />
     <Compile Include="Implementation\ContainedLanguageRefactorNotifyService.cs" />
     <Compile Include="Implementation\VirtualMemoryNotificationListener.cs" />
