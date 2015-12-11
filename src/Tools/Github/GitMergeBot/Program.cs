@@ -1,4 +1,6 @@
-﻿using Octokit;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Octokit;
 using System;
 using System.Threading.Tasks;
 
@@ -7,8 +9,6 @@ namespace ConsoleApplication2
 
     class Program
     {
-
-
         /// <returns> The SHA at the tip of `branchName` in the repository `user/repo` </returns>
         static async Task<string> GetShaFromBranch(GitHubClient github, string user, string repo, string branchName) 
         {
