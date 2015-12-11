@@ -2407,5 +2407,27 @@ End Class
                 Await state.AssertSelectedCompletionItem("azc", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
+
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionSetterValuey() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+Class Program
+    Private Async As Integer
+    Public Property NewProperty() As Integer
+        Get
+            Return Async
+        End Get
+        Set(ByVal value As Integer)
+            Async = $$
+        End Set
+    End Property
+End Class]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("value", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
     End Class
 End Namespace

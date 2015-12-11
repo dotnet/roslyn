@@ -51,26 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
             }
 
-            public override bool? IsBetterPreselectedMatch(CompletionItem item, CompletionItem other, string textTypedSoFar)
-            {
-                var symbolItem = item as SymbolCompletionItem;
-                var otherSymbolItem = other as SymbolCompletionItem;
-
-                // Locals are most preferable
-                if (symbolItem.Symbols.First().IsKind(SymbolKind.Local) && !otherSymbolItem.Symbols.First().IsKind(SymbolKind.Local))
-                {
-                    return true;
-                }
-
-                // Types are least preferable
-                if (otherSymbolItem.Symbols.First() is ITypeSymbol)
-                {
-                    return symbolItem.Symbols.First().MatchesKind(SymbolKind.Event, SymbolKind.Field, SymbolKind.Local, SymbolKind.Method,
-                                                                  SymbolKind.Parameter, SymbolKind.Property, SymbolKind.RangeVariable);
-                }
-
-                return null;
-            }
+            
         }
     }
 }
