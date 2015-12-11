@@ -1518,10 +1518,28 @@ System.Console.WriteLine();",
             Window.Operations.SelectAll();
             Window.Operations.SelectAll();
             Window.Operations.CopyInputs();
-            VerifyClipboardData("111\r\n\r\n222\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par \\par 222}",
-                "[{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4},{\"content\":\"222\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4}]",
-                expectedToBeLineCopy: true);
+            VerifyClipboardData("111\r\n222",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par 222}",
+                "[{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"222\",\"kind\":2}]");
+
+
+            _testClipboard.Clear();
+            Window.Operations.ClearView();
+
+            Window.InsertCode("111");
+            Window.Operations.BreakLine();
+            Window.InsertCode("222");
+            
+            // Make a selection as follows:
+            // |> 111
+            // > 222|
+            Window.Operations.SelectAll();
+            Window.Operations.SelectAll();
+            Window.Operations.CopyInputs();
+
+            VerifyClipboardData("111\r\n222",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par 222}",
+                "[{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"222\",\"kind\":2}]");
 
             _testClipboard.Clear();
             Window.TextView.Selection.Clear();
@@ -1540,13 +1558,12 @@ System.Console.WriteLine();",
             selection.Select(anchor, active);
             Window.Operations.CopyInputs();
 
-            VerifyClipboardData("111\r\n\r\n222\r\n",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par \\par 222}",
-                "[{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4},{\"content\":\"222\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4}]",
-                 expectedToBeLineCopy: true);
+            VerifyClipboardData("1\r\n2\r\n",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 1\\par 2}",
+                "[{\"content\":\"1\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4},{\"content\":\"2\",\"kind\":2},{\"content\":\"\\u000d\\u000a\",\"kind\":4}]",
+                 expectedToBeBoxCopy: true);
 
             _testClipboard.Clear();
-            Window.TextView.Selection.Clear();
             Window.Operations.ClearView();
 
             await Submit(
@@ -1559,7 +1576,7 @@ System.Console.WriteLine();",
             // > 111
             // 1|11
             // > 22|2
-            MoveCaretToNextPosition(1);
+            MoveCaretToPreviousPosition(1);
             anchor = caret.Position.VirtualBufferPosition;
             MoveCaretToPreviousPosition(7);
             active = caret.Position.VirtualBufferPosition;
@@ -1567,16 +1584,11 @@ System.Console.WriteLine();",
             selection.Select(anchor, active);
             Window.Operations.CopyInputs();
 
-            VerifyClipboardData("222",
-                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 222}",
-                "[{\"content\":\"222\",\"kind\":2}]",
-                expectedToBeLineCopy: true);
+            VerifyClipboardData("22",
+                "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 22}",
+                "[{\"content\":\"22\",\"kind\":2}]");
 
             _testClipboard.Clear();
-            Window.TextView.Selection.Clear();
-
-            _testClipboard.Clear();
-            Window.TextView.Selection.Clear();
             Window.Operations.ClearView();
 
             await Submit(

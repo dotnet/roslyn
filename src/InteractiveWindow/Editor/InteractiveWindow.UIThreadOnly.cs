@@ -2793,32 +2793,33 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>Implements <see cref="IInteractiveWindowOperations2.CopyInputs"/>.</summary>
             public void CopyInputs()
             {
+                var selection = TextView.Selection;
                 NormalizedSnapshotSpanCollection spans;
-                if (TextView.Selection.IsEmpty)
+                if (selection.IsEmpty)
                 {
                     spans = GetSpansFromCurrentLine();
                 }
                 else
                 {
-                    spans = GetSpansFromSelectedLines();
+                    spans = selection.SelectedSpans;
                 }
 
-                Debug.Assert(spans.Count == 1);
-
                 var inputSpans = new List<SnapshotSpan>();
-                // For each selected source buffer span, if the span is in input buffer, 
-                // the lambda function generates the corresponding snapshot span in the source buffer snapshot, otherwise it returns null.
-                GetValuesFromSpan<SnapshotSpan>(inputSpans, 
-                    spans.First(), 
-                    (kind, snapshot, s) =>  kind == ReplSpanKind.Input ? new SnapshotSpan(snapshot, s) : (SnapshotSpan?)null);
-
+                foreach (var span in spans)
+                {
+                    // For each selected source buffer span, if the span is in input buffer, 
+                    // the lambda function generates the corresponding snapshot span in the source buffer snapshot, otherwise it returns null.
+                    GetValuesFromSpan<SnapshotSpan>(inputSpans,
+                        span,
+                        (kind, snapshot, s) => kind == ReplSpanKind.Input ? new SnapshotSpan(snapshot, s) : (SnapshotSpan?)null);
+                }
                 var projectionInputSpans = new List<SnapshotSpan>();
                 foreach (var inputSpan in inputSpans)
                 {
                     projectionInputSpans.AddRange(TextView.BufferGraph.MapUpToSnapshot(inputSpan, SpanTrackingMode.EdgeInclusive, _projectionBuffer.CurrentSnapshot));
                 }
                 var projectSpans = new NormalizedSnapshotSpanCollection(projectionInputSpans);
-                CopySpans(projectSpans, lineCutCopyTag: true, boxCutCopyTag: false);
+                CopySpans(projectSpans, lineCutCopyTag: selection.IsEmpty, boxCutCopyTag: !selection.IsEmpty && selection.Mode == TextSelectionMode.Box);
             }
 
             private void CopySelection()
@@ -2876,18 +2877,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 var data = new DataObject();
 
-                var text = GetText(spans);
+                var text = GetText(spans, boxCutCopyTag);
                 data.SetData(DataFormats.Text, text);
                 data.SetData(DataFormats.StringFormat, text);
                 data.SetData(DataFormats.UnicodeText, text);
 
-                var blocks = GetTextBlocks(spans);
+                var blocks = GetTextBlocks(spans, boxCutCopyTag);
                 data.SetData(ClipboardFormat, blocks);
 
                 string rtf = null;
                 try
                 {
-                    rtf = GenerateRtf(spans);
+                    rtf = GenerateRtf(spans, boxCutCopyTag);
                 }
                 catch (OperationCanceledException)
                 {
@@ -2913,7 +2914,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 _window.InteractiveWindowClipboard.SetDataObject(data, true);
             }
 
-            private string GenerateRtf(NormalizedSnapshotSpanCollection spans)
+            private string GenerateRtf(NormalizedSnapshotSpanCollection spans, bool isBoxSelection)
             {
                 // This behavior is consistent with VS editor. 
                 // Don't generate RTF for large spans (since it is expensive and probably not wanted).
@@ -2922,7 +2923,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     using (var dialog = _waitIndicator.StartWait(InteractiveWindowResources.WaitTitle, InteractiveWindowResources.WaitMessage, allowCancel: true))
                     {
-                        return _rtfBuilderService.GenerateRtf(spans, dialog.CancellationToken);
+                        return isBoxSelection
+                            ? _rtfBuilderService.GenerateRtf(spans, dialog.CancellationToken)
+                            : _rtfBuilderService.GenerateRtf(spans, string.Empty, dialog.CancellationToken);
                     }
                 }
                 else
@@ -2933,20 +2936,27 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             /// <summary>
             /// Get the text of the given spans.
-            /// If there are multiple spans, then return the concatenation of the text of each span plus a newline character,
-            /// otherwise, simply return the text of the only span.
+            /// If there are multiple spans, then returns either concatenation of text from each span or concatenation of text plus a newline character,
+            /// depends on whether the multiple spans is because box selection. Otherwise, simply returns the text of the only span.
             /// </summary>
-            private string GetText(NormalizedSnapshotSpanCollection spans)
+            private string GetText(NormalizedSnapshotSpanCollection spans, bool isBoxSelection)
             {
                 Debug.Assert(spans.Count > 0);
 
                 if (spans.Count > 1)
                 {
+                    var newline = EditorOperations.Options.GetNewLineCharacter();
                     var builder = new StringBuilder();
-                    builder.Append(string.Join(EditorOperations.Options.GetNewLineCharacter(), spans.Select((span) => span.GetText()).ToArray()));
+                    foreach (var span in spans)
+                    {
+                        builder.Append(span.GetText());
 
-                    // Append one last newline character
-                    builder.Append(EditorOperations.Options.GetNewLineCharacter());
+                        // If spans are got from box selection, add a newline after each span.
+                        if (isBoxSelection)
+                        {
+                            builder.Append(newline);
+                        }
+                    }
                     return builder.ToString();
                 }
                 else
@@ -2958,15 +2968,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>
             /// Get the text of the given spans as a serialized BufferBlock[].
             /// </summary>
-            private string GetTextBlocks(NormalizedSnapshotSpanCollection spans)
+            private string GetTextBlocks(NormalizedSnapshotSpanCollection spans, bool isBoxSelection)
             {
-                // Since spans is got from selection, only box selection has more than one 
-                // SnapshotSpan in spans. If this is the case, we use 'LineBreak' block to separate different lines of box selection.
-                var AddNewLineBlock = spans.Count > 1;
                 var blocks = new List<BufferBlock>();
                 foreach (var span in spans)
                 {
-                    // the lambda function generates a BufferBlock for each selected source buffer span
+                    // The lambda function generates a BufferBlock for each selected source buffer span
                     GetValuesFromSpan<BufferBlock>(blocks, span, (kind, snapshot, s) =>
                                                                     {
                                                                         if (kind == ReplSpanKind.LineBreak)
@@ -2975,7 +2982,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                                                                         }
                                                                         return new BufferBlock(kind, snapshot.GetText(s));
                                                                     });
-                    if (AddNewLineBlock)
+                    // If spans are got from box selection, we use 'LineBreak' block to separate different lines of box selection.
+                    if (isBoxSelection)
                     {
                         blocks.Add(new BufferBlock(ReplSpanKind.LineBreak, EditorOperations.Options.GetNewLineCharacter()));
                     }
