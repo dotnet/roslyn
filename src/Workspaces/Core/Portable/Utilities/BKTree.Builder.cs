@@ -20,14 +20,14 @@ namespace Roslyn.Utilities
             // of children along with each node.  However, this would be very inefficient and would
             // put an enormous amount of memory pressure on the system.
             //
-            // Imperical data for a nice large assembly like mscorlib gives us the following 
+            // Emperical data for a nice large assembly like mscorlib gives us the following 
             // information:
             // 
-            //      Nodes length: 9662
+            //      Unique-Words (ignoring case): 9662
             // 
-            // If we stored a list or dictionary with each node, that would be 10s of thousands of
-            // objects created that would then just have to be GCed.  That's a lot of garbage pressure
-            // we'd like to avoid.
+            // For each unique word we need a node in the BKTree. If we stored a list or dictionary 
+            // with each node, that would be 10s of thousands of objects created that would then 
+            // just have to be GCed.  That's a lot of garbage pressure we'd like to avoid.
             //
             // Now if we look at all those nodes, we can see the following information about how many
             // children each has.
@@ -53,7 +53,9 @@ namespace Roslyn.Utilities
             //
             //
             // i.e. The number of nodes with edge-counts less than or equal to four is: 5560+1884+887+527+322=9180.
-            // This is 95% of the total number of edges we are adding.  
+            // This is 95% of the total number of edges we are adding.  Looking at many other dlls
+            // we found that this ratio stays true across the board.  i.e. with all dlls, 95% of nodes
+            // have 4 or less edges.
             //
             // So, to optimize things, we pre-alloc a single array with space for 4 edges for each 
             // node we're going to add.  Each node then gets that much space to store edge information.
@@ -154,11 +156,14 @@ namespace Roslyn.Utilities
                     // Determine the edit distance between these two words.  Note: we do not use
                     // a threshold here as we need the actual edit distance so we can actually
                     // determine what edge to make or walk.
-                    var editDistance = EditDistance.GetEditDistance(
-                        currentNode.LowerCaseCharacters, lowerCaseCharacters);
+                    var editDistance = EditDistance.GetEditDistance(currentNode.LowerCaseCharacters, lowerCaseCharacters);
 
-                    // This shoudl never happen.  We dedupe all items before proceeding to the 'Add' step.
-                    Debug.Assert(editDistance != 0);
+                    if (editDistance == 0)
+                    {
+                        // This shoudl never happen.  We dedupe all items before proceeding to the 'Add' step.
+                        // So the edit distance should always be non-zero.
+                        throw new InvalidOperationException();
+                    }
 
                     int childNodeIndex;
                     if (TryGetChildIndex(currentNode, currentNodeIndex, editDistance, out childNodeIndex))
@@ -168,42 +173,50 @@ namespace Roslyn.Utilities
                         continue;
                     }
 
-                    // Node doesn't have an edge with this edit distance. Three cases to handle:
-                    // 1) there are less than 4 edges.  We simply place the edge into the correct
-                    //    location in compactEdges
-                    // 2) there are 4 edges.  We need to copy these edges into the spillover 
-                    //    dictionary and then add the new edge into that.
-                    // 3) there are more than 4 edges.  Just put the new edge in the spillover 
-                    //    dictionary.
-
-                    if (currentNode.EdgeCount < CompactEdgeAllocationSize)
-                    {
-                        _compactEdges[currentNodeIndex * CompactEdgeAllocationSize + currentNode.EdgeCount] =
-                            new Edge(editDistance, insertionIndex);
-                    }
-                    else
-                    {
-                        if (currentNode.EdgeCount == CompactEdgeAllocationSize)
-                        {
-                            var spilloverEdges = new Dictionary<int, int>();
-                            _builderNodes[currentNodeIndex].SpilloverEdges = spilloverEdges;
-
-                            var start = currentNodeIndex * CompactEdgeAllocationSize;
-                            var end = start + CompactEdgeAllocationSize;
-                            for (var i = start; i < end; i++)
-                            {
-                                var edge = _compactEdges[i];
-                                spilloverEdges.Add(edge.EditDistance, edge.ChildNodeIndex);
-                            }
-                        }
-
-                        _builderNodes[currentNodeIndex].SpilloverEdges.Add(editDistance, insertionIndex);
-                    }
-
-                    _builderNodes[currentNodeIndex].EdgeCount++;
-                    _builderNodes[insertionIndex] = new BuilderNode(lowerCaseCharacters);
+                    // found the node we want to add the child node to.
+                    AddChildNode(lowerCaseCharacters, insertionIndex, currentNode.EdgeCount, currentNodeIndex, editDistance);
                     return;
                 }
+            }
+
+            private void AddChildNode(
+                char[] lowerCaseCharacters, int insertionIndex, int currentNodeEdgeCount, int currentNodeIndex, int editDistance)
+            {
+                // Node doesn't have an edge with this edit distance. Three cases to handle:
+                // 1) there are less than 4 edges.  We simply place the edge into the correct
+                //    location in compactEdges
+                // 2) there are 4 edges.  We need to copy these edges into the spillover 
+                //    dictionary and then add the new edge into that.
+                // 3) there are more than 4 edges.  Just put the new edge in the spillover 
+                //    dictionary.
+
+                if (currentNodeEdgeCount < CompactEdgeAllocationSize)
+                {
+                    _compactEdges[currentNodeIndex * CompactEdgeAllocationSize + currentNodeEdgeCount] =
+                        new Edge(editDistance, insertionIndex);
+                }
+                else
+                {
+                    if (currentNodeEdgeCount == CompactEdgeAllocationSize)
+                    {
+                        var spilloverEdges = new Dictionary<int, int>();
+                        _builderNodes[currentNodeIndex].SpilloverEdges = spilloverEdges;
+
+                        var start = currentNodeIndex * CompactEdgeAllocationSize;
+                        var end = start + CompactEdgeAllocationSize;
+                        for (var i = start; i < end; i++)
+                        {
+                            var edge = _compactEdges[i];
+                            spilloverEdges.Add(edge.EditDistance, edge.ChildNodeIndex);
+                        }
+                    }
+
+                    _builderNodes[currentNodeIndex].SpilloverEdges.Add(editDistance, insertionIndex);
+                }
+
+                _builderNodes[currentNodeIndex].EdgeCount++;
+                _builderNodes[insertionIndex] = new BuilderNode(lowerCaseCharacters);
+                return;
             }
 
             private bool TryGetChildIndex(BuilderNode currentNode, int currentNodeIndex, int editDistance, out int childIndex)

@@ -132,7 +132,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         [Fact]
         public void TestSpillover()
         {
-            // We'll have one root node for "Four" and all the othe ritems will 
             string[] testValues = {
                 /*root:*/ "Four",
                 /*d=1*/ "Fou", "For", "Fur", "Our", "FourA", "FouAr", "FoAur", "FAour", "AFour", "Tour",

@@ -26,7 +26,7 @@ namespace Roslyn.Utilities
         // edit distance between the parent and the child.
         //
         // * of course '0' is only for the root case.  All nodes state where in _edges
-        // their child edgs range starts.  So the children for any node are in _edges from
+        // their child edges range starts.  So the children for any node are in _edges from
         // [node.FirstEdgeIndex, node.FirstEdgeIndex + node.EdgeCount)
 
         private readonly Node[] _nodes;

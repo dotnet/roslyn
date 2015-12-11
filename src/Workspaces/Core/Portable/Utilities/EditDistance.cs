@@ -300,7 +300,7 @@ namespace Roslyn.Utilities
             if (_source.Length < 3)
             {
                 // If we're comparing strings that are too short, we'll find 
-                // far too many spurious hits.  Don't even both in this case.
+                // far too many spurious hits.  Don't even bother in this case.
                 matchCost = double.MaxValue;
                 return false;
             }
