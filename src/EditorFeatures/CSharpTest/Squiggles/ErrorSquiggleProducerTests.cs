@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 
             using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml))
             {
-                var spans = await GetErrorSpans(workspace);
+                var spans = (await GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
                 Assert.Equal(1, spans.Count());
                 Assert.Equal(PredefinedErrorTypeNames.SyntaxError, spans.First().Tag.ErrorType);
@@ -110,7 +110,7 @@ class Program
                 };
 
                 var spans =
-                    (await GetErrorSpans(workspace, analyzerMap))
+                    (await GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
                         .OrderBy(s => s.Span.Span.Start).ToImmutableArray();
 
                 Assert.Equal(3, spans.Length);
@@ -293,7 +293,7 @@ class Program
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(content))
             {
-                return await GetErrorSpans(workspace);
+                return (await GetDiagnosticsAndErrorSpans(workspace)).Item2;
             }
         }
     }

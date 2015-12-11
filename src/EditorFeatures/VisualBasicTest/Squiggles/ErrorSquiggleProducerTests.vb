@@ -17,13 +17,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
 
         Private Async Function ProduceSquiggles(ParamArray lines As String()) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(lines)
-                Return Await GetErrorSpans(workspace)
+                Return (Await GetDiagnosticsAndErrorSpans(workspace)).Item2
             End Using
         End Function
 
         Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), ParamArray lines As String()) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(lines)
-                Return Await GetErrorSpans(workspace, analyzerMap)
+                Return (Await GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
             End Using
         End Function
 
