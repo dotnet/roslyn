@@ -11,37 +11,109 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    // Search query parameters.
-    internal struct SearchQuery
+    internal enum SearchKind
     {
-        // The predicate for matching names.  Never null.
-        public readonly Func<string, bool> Predicate;
+        /// <summary>
+        /// Search term must be matched exactly (including casing).
+        /// </summary>
+        Exact,
 
+        /// <summary>
+        /// Search term must be matched exactly (not including casing).
+        /// </summary>
+        ExactIgnoreCase,
+
+        /// <summary>
+        /// Search term can match in a fuzzy (i.e. misspellings) manner.
+        /// </summary>
+        Fuzzy,
+
+        /// <summary>
+        /// Search term is matched in a custom manner (i.e. with a user provided predicate).
+        /// </summary>
+        Custom
+    }
+
+    // Search query parameters.
+    internal class SearchQuery
+    {
         // The name being searched for may be null in some cases.  But can be used for faster 
         // index based searching if it is provided.
         public readonly string Name;
-        public readonly bool IgnoreCase;
 
-        public SearchQuery(string name, bool ignoreCase): 
-            this(n => ignoreCase ? CaseInsensitiveComparison.Comparer.Equals(name, n) : StringComparer.Ordinal.Equals(name, n))
+        // The kind of search this is.  Can be used for faster index based searching if it
+        // has the values "Exact, ExactIgnoreCase, Fuzzy".
+        public readonly SearchKind Kind;
+
+        // The predicate to fall back on if faster index searching is not possible.
+        private readonly Func<string, bool> _predicate;
+
+        private SearchQuery(string name, SearchKind kind)
         {
             if (name == null)
             {
                 throw new ArgumentNullException(nameof(name));
             }
 
-            this.Name = name;
-            this.IgnoreCase = ignoreCase;
+            Name = name;
+            Kind = kind;
+
+            switch (kind)
+            {
+                case SearchKind.Exact:
+                    _predicate = s => StringComparer.Ordinal.Equals(name, s);
+                    break;
+                case SearchKind.ExactIgnoreCase:
+                    _predicate = s => CaseInsensitiveComparison.Comparer.Equals(name, s);
+                    break;
+                case SearchKind.Fuzzy:
+                    // Create the edit distance object outside of the lambda  That way we only create it
+                    // once and it can cache all the information it needs while it does the IsCloseMatch
+                    // check against all the possible candidates.
+                    var editDistance = new EditDistance(name);
+                    _predicate = editDistance.IsCloseMatch;
+                    break;
+            }
         }
 
-        public SearchQuery(Func<string, bool> predicate) : this()
+        private SearchQuery(Func<string, bool> predicate)
         {
             if (predicate == null)
             {
                 throw new ArgumentNullException(nameof(predicate));
             }
 
-            this.Predicate = predicate;
+            _predicate = predicate;
+        }
+
+        public static SearchQuery Create(string name, bool ignoreCase)
+        {
+            return new SearchQuery(name, ignoreCase ? SearchKind.ExactIgnoreCase : SearchKind.Exact);
+        }
+
+        //public static SearchQuery Exact(string name)
+        //{
+        //    return new SearchQuery(name, SearchKind.Exact);
+        //}
+
+        //public static SearchQuery ExactIgnoreCase(string name)
+        //{
+        //    return new SearchQuery(name, SearchKind.ExactIgnoreCase);
+        //}
+
+        public static SearchQuery CreateFuzzy(string name)
+        {
+            return new SearchQuery(name, SearchKind.Fuzzy);
+        }
+
+        public static SearchQuery CreateCustom(Func<string, bool> predicate)
+        {
+            return new SearchQuery(predicate);
+        }
+
+        public Func<string, bool> GetPredicate()
+        {
+            return _predicate;
         }
     }
 
@@ -62,7 +134,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
-            return FindDeclarationsAsync(project, new SearchQuery(name, ignoreCase), includeDirectReferences: true, cancellationToken: cancellationToken);
+            return FindDeclarationsAsync(project, SearchQuery.Create(name, ignoreCase), includeDirectReferences: true, cancellationToken: cancellationToken);
         }
 
         internal static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
@@ -87,7 +159,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
-            return FindDeclarationsAsync(project, new SearchQuery(name, ignoreCase), filter, includeDirectReferences: true, cancellationToken: cancellationToken);
+            return FindDeclarationsAsync(project, SearchQuery.Create(name, ignoreCase), filter, includeDirectReferences: true, cancellationToken: cancellationToken);
         }
 
         internal static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
@@ -132,7 +204,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     else
                     {
                         await AddDeclarationsAsync(
-                            project.Solution, assembly, GetMetadataReferenceFilePath(compilation.GetMetadataReference(assembly)), 
+                            project.Solution, assembly, GetMetadataReferenceFilePath(compilation.GetMetadataReference(assembly)),
                             query, criteria, list, cancellationToken).ConfigureAwait(false);
                     }
                 }
@@ -169,9 +241,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project, SearchQuery query, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
         {
             await AddDeclarationsAsync(
-                project, query, filter, list, 
-                startingCompilation: null, 
-                startingAssembly: null, 
+                project, query, filter, list,
+                startingCompilation: null,
+                startingAssembly: null,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
@@ -187,7 +259,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_AddDeclarationsAsync, cancellationToken))
             using (var set = SharedPools.Default<HashSet<ISymbol>>().GetPooledObject())
             {
-                if (!await project.ContainsSymbolsWithNameAsync(query.Predicate, filter, cancellationToken).ConfigureAwait(false))
+                if (!await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false))
                 {
                     return;
                 }
@@ -197,12 +269,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     // Return symbols from skeleton assembly in this case so that symbols have the same language as startingCompilation.
                     list.AddRange(
-                        FilterByCriteria(compilation.GetSymbolsWithName(query.Predicate, filter, cancellationToken), filter)
+                        FilterByCriteria(compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken), filter)
                             .Select(s => s.GetSymbolKey().Resolve(startingCompilation, cancellationToken: cancellationToken).Symbol).WhereNotNull());
                 }
                 else
                 {
-                    list.AddRange(FilterByCriteria(compilation.GetSymbolsWithName(query.Predicate, filter, cancellationToken), filter));
+                    list.AddRange(FilterByCriteria(compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken), filter));
                 }
             }
         }
@@ -229,17 +301,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // If the query has a specific string provided, then call into the SymbolTreeInfo
                 // helpers optimized for lookup based on an exact name.
-                if (query.Name != null)
+                switch (query.Kind)
                 {
-                    if (info.HasSymbols(query.Name, query.IgnoreCase))
-                    {
-                        list.AddRange(FilterByCriteria(info.Find(assembly, query.Name, query.IgnoreCase, cancellationToken), filter));
-                    }
-                }
-                else
-                {
-                    // Otherwise, we'll have to do a slow linear search over all possible symbols.
-                    list.AddRange(FilterByCriteria(info.Find(assembly, query.Predicate, cancellationToken), filter));
+                    case SearchKind.Exact:
+                        list.AddRange(FilterByCriteria(info.Find(assembly, query.Name, ignoreCase: false, cancellationToken: cancellationToken), filter));
+                        return;
+                    case SearchKind.ExactIgnoreCase:
+                        list.AddRange(FilterByCriteria(info.Find(assembly, query.Name, ignoreCase: true, cancellationToken: cancellationToken), filter));
+                        return;
+                    case SearchKind.Fuzzy:
+                        list.AddRange(FilterByCriteria(info.FuzzyFind(assembly, query.Name, cancellationToken), filter));
+                        return;
+                    case SearchKind.Custom:
+                        // Otherwise, we'll have to do a slow linear search over all possible symbols.
+                        list.AddRange(FilterByCriteria(info.Find(assembly, query.GetPredicate(), cancellationToken), filter));
+                        return;
                 }
             }
         }
@@ -274,7 +350,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Name_FindSourceDeclarationsAsync, cancellationToken))
             {
-                return FindSourceDeclarationsAsyncImpl(solution, new SearchQuery(name, ignoreCase), filter, cancellationToken);
+                return FindSourceDeclarationsAsyncImpl(solution, SearchQuery.Create(name, ignoreCase), filter, cancellationToken);
             }
         }
 
@@ -327,7 +403,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Name_FindSourceDeclarationsAsync, cancellationToken))
             {
-                return FindSourceDeclarationsAsyncImpl(project, new SearchQuery(name, ignoreCase), filter, cancellationToken);
+                return FindSourceDeclarationsAsyncImpl(project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken);
             }
         }
 
@@ -352,7 +428,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Solution solution, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return FindSourceDeclarationsAsync(solution, new SearchQuery(predicate), filter, cancellationToken);
+            return FindSourceDeclarationsAsync(solution, SearchQuery.CreateCustom(predicate), filter, cancellationToken);
         }
 
         internal static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Solution solution, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
@@ -384,7 +460,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Find the symbols for declarations made in source with a matching name.
         /// </summary>
-        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, Func<string,bool> predicate, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, Func<string, bool> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
             return FindSourceDeclarationsAsync(project, predicate, SymbolFilter.All, cancellationToken);
         }
@@ -394,7 +470,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return FindSourceDeclarationsAsync(project, new SearchQuery(predicate), filter, cancellationToken);
+            return FindSourceDeclarationsAsync(project, SearchQuery.CreateCustom(predicate), filter, cancellationToken);
         }
 
         internal static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(Project project, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
@@ -412,14 +488,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync, cancellationToken))
             {
                 var result = new List<ISymbol>();
-                if (!await project.ContainsSymbolsWithNameAsync(query.Predicate, filter, cancellationToken).ConfigureAwait(false))
+                if (!await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false))
                 {
                     return result;
                 }
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                result.AddRange(FilterByCriteria(compilation.GetSymbolsWithName(query.Predicate, filter, cancellationToken), filter));
+                result.AddRange(FilterByCriteria(compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken), filter));
                 return result;
             }
         }

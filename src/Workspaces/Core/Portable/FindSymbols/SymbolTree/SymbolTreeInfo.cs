@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private readonly IReadOnlyList<Node> _nodes;
 
+        /// <summary>
+        /// The tree we use for fuzzy match queries.
+        /// </summary>
+        private readonly BKTree _bkTree;
+
         // We first sort in a case insensitive manner.  But, within items that match insensitively, 
         // we then sort in a case sensitive manner.  This helps for searching as we'll walk all 
         // the items of a specific casing at once.  This way features can cache values for that
@@ -40,37 +45,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static readonly StringComparer s_nodeEquals = CaseInsensitiveComparison.Comparer;
 
-        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes)
+        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, BKTree bkTree)
         {
             _version = version;
             _nodes = orderedNodes;
+            _bkTree = bkTree;
         }
 
-        public int Count
-        {
-            get { return _nodes.Count; }
-        }
+        public int Count => _nodes.Count;
 
         public bool HasSymbols(string name, bool ignoreCase)
         {
             return FindNodes(name, GetComparer(ignoreCase)).Any();
         }
 
-        public IEnumerable<ISymbol> Find(IAssemblySymbol assembly, Func<string, bool> predicate, CancellationToken cancellationToken)
+        /// <summary>
+        /// Finds symbols in this assembly that match the provided name in a fuzzy manner.
+        /// </summary>
+        public IEnumerable<ISymbol> FuzzyFind(IAssemblySymbol assembly, string name, CancellationToken cancellationToken)
         {
-            for (int i = 0, n = _nodes.Count; i < n; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var node = _nodes[i];
-                if (predicate(node.Name))
-                {
-                    foreach (var symbol in Bind(i, assembly.GlobalNamespace, cancellationToken))
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        yield return symbol;
-                    }
-                }
-            }
+            var potentialNames = _bkTree.Find(name);
+            return potentialNames.SelectMany(n => Find(assembly, n, ignoreCase: true, cancellationToken: cancellationToken));
         }
 
         /// <summary>
@@ -91,6 +86,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     yield return symbol;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Slow, linear scan of all the symbols in this assembly to look for matches.
+        /// </summary>
+        public IEnumerable<ISymbol> Find(IAssemblySymbol assembly, Func<string, bool> predicate, CancellationToken cancellationToken)
+        {
+            for (int i = 0, n = _nodes.Count; i < n; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var node = _nodes[i];
+                if (predicate(node.Name))
+                {
+                    foreach (var symbol in Bind(i, assembly.GlobalNamespace, cancellationToken))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        yield return symbol;
+                    }
                 }
             }
         }
@@ -221,7 +236,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var list = new List<Node>();
             GenerateNodes(assembly.GlobalNamespace, list);
 
-            return new SymbolTreeInfo(version, SortNodes(list));
+            var bkTree = BKTree.Create(list.Select(n => n.Name));
+
+            return new SymbolTreeInfo(version, SortNodes(list), bkTree);
         }
 
         private static Node[] SortNodes(List<Node> nodes)

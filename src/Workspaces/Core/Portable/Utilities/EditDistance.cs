@@ -277,6 +277,12 @@ namespace Roslyn.Utilities
             return da.TryGetValue(c, out value) ? value : 0;
         }
 
+        public bool IsCloseMatch(string candidateText)
+        {
+            double matchCost;
+            return IsCloseMatch(candidateText, out matchCost);
+        }
+
         public bool IsCloseMatch(string candidateText, out double matchCost)
         {
             if (_source.Length < 3)

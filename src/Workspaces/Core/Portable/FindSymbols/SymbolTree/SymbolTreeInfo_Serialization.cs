@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
-        private const string SerializationFormat = "3";
+        private const string SerializationFormat = "5";
 
         /// <summary>
         /// this is for a metadata reference in a solution
@@ -93,6 +93,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 writer.WriteString(node.Name);
                 writer.WriteInt32(node.ParentIndex);
             }
+
+            _bkTree.WriteTo(writer);
         }
 
         internal static SymbolTreeInfo ReadFrom(ObjectReader reader)
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var count = reader.ReadInt32();
                 if (count == 0)
                 {
-                    return new SymbolTreeInfo(version, ImmutableArray<Node>.Empty);
+                    return new SymbolTreeInfo(version, ImmutableArray<Node>.Empty, BKTree.Empty);
                 }
 
                 var nodes = new Node[count];
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     nodes[i] = new Node(name, parentIndex);
                 }
 
-                return new SymbolTreeInfo(version, nodes);
+                return new SymbolTreeInfo(version, nodes, BKTree.ReadFrom(reader));
             }
             catch (Exception)
             {
