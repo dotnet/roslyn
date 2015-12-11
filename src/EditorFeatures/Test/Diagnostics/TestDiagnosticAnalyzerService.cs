@@ -13,12 +13,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
 
-        internal TestDiagnosticAnalyzerService(string language, DiagnosticAnalyzer analyzer, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
+        internal TestDiagnosticAnalyzerService(
+            string language,
+            DiagnosticAnalyzer analyzer,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
             : this(CreateHostAnalyzerManager(language, analyzer, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, onAnalyzerException)
         {
         }
 
-        internal TestDiagnosticAnalyzerService(string language, ImmutableArray<DiagnosticAnalyzer> analyzers, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
+        internal TestDiagnosticAnalyzerService(
+            string language,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
             : this(CreateHostAnalyzerManager(language, analyzers, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, onAnalyzerException)
         {
         }
@@ -27,13 +35,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
-            IDiagnosticUpdateSourceRegistrationService registrationService = null,
-            IAsynchronousOperationListener listener = null)
+            IDiagnosticUpdateSourceRegistrationService registrationService = null)
             : this(CreateHostAnalyzerManager(analyzersMap, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, onAnalyzerException, registrationService, listener)
         {
         }
 
-        internal TestDiagnosticAnalyzerService(ImmutableArray<AnalyzerReference> hostAnalyzerReferences, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
+        internal TestDiagnosticAnalyzerService(
+            ImmutableArray<AnalyzerReference> hostAnalyzerReferences,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
             : this(CreateHostAnalyzerManager(hostAnalyzerReferences, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, onAnalyzerException)
         {
         }
@@ -42,14 +52,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             HostAnalyzerManager hostAnalyzerManager,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
-            IDiagnosticUpdateSourceRegistrationService registrationService = null,
-            IAsynchronousOperationListener listener = null)
+            IDiagnosticUpdateSourceRegistrationService registrationService = null)
             : base(hostAnalyzerManager, hostDiagnosticUpdateSource, registrationService ?? new MockDiagnosticUpdateSourceRegistrationService(), listener)
         {
             _onAnalyzerException = onAnalyzerException;
         }
 
-        internal TestDiagnosticAnalyzerService(AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
+        internal TestDiagnosticAnalyzerService(
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
            : base(SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(), null, hostDiagnosticUpdateSource, new MockDiagnosticUpdateSourceRegistrationService())
         {
             _onAnalyzerException = onAnalyzerException;

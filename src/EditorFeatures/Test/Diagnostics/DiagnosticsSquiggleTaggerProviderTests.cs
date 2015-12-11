@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap, IAsynchronousOperationListener listener)
         {
             return analyzerMap == null || analyzerMap.Count == 0
-                ? new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap(), listener: listener)
-                : new TestDiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray()), listener: listener);
+                ? new MyDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap(), listener: listener)
+                : new MyDiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray()), listener: listener);
         }
 
         private DiagnosticTaggerWrapper(
@@ -133,6 +133,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             await _asyncListener.CreateWaitTask();
+        }
+
+        private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService
+        {
+            internal MyDiagnosticAnalyzerService(
+                ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
+                IAsynchronousOperationListener listener)
+                : base(new HostAnalyzerManager(ImmutableArray.Create<AnalyzerReference>(new TestAnalyzerReferenceByLanguage(analyzersMap)), hostDiagnosticUpdateSource: null),
+                      hostDiagnosticUpdateSource: null,
+                      registrationService: new MockDiagnosticUpdateSourceRegistrationService(),
+                      listener: listener)
+            {
+            }
         }
     }
 
