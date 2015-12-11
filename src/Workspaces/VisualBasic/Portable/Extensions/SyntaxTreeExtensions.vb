@@ -36,8 +36,12 @@ recurse:
                         nodeOrToken = child
                         GoTo recurse
                     Else
-                        Dim triviaList = child.GetLeadingTrivia().Concat(child.GetTrailingTrivia()).Reverse()
-                        For Each trivia In triviaList
+                        For Each trivia In child.GetTrailingTrivia.Reverse
+                            If (trivia.SpanStart < position) AndAlso (position <= child.FullSpan.End) Then
+                                Return trivia
+                            End If
+                        Next
+                        For Each trivia In child.GetLeadingTrivia.Reverse
                             If (trivia.SpanStart < position) AndAlso (position <= child.FullSpan.End) Then
                                 Return trivia
                             End If
