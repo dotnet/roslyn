@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Utilities
 {
@@ -16,6 +17,10 @@ namespace Roslyn.Utilities
         public int Length => _length;
 
         public ArraySlice(T[] array) : this(array, 0, array.Length)
+        {
+        }
+
+        public ArraySlice(T[] array, TextSpan span) : this(array, span.Start, span.Length)
         {
         }
 

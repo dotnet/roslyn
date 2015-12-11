@@ -13,6 +13,7 @@ namespace Roslyn.Utilities
     internal partial class BKTree
     {
         public static readonly BKTree Empty = new BKTree(
+            SpecializedCollections.EmptyArray<char>(),
             SpecializedCollections.EmptyArray<Node>(),
             SpecializedCollections.EmptyArray<Edge>());
 
@@ -28,12 +29,13 @@ namespace Roslyn.Utilities
         // * of course '0' is only for the root case.  All nodes state where in _edges
         // their child edges range starts.  So the children for any node are in _edges from
         // [node.FirstEdgeIndex, node.FirstEdgeIndex + node.EdgeCount)
-
+        private readonly char[] _allLowerCaseCharacters;
         private readonly Node[] _nodes;
         private readonly Edge[] _edges;
 
-        private BKTree(Node[] nodes, Edge[] edges)
+        private BKTree(char[] allLowerCaseCharacters, Node[] nodes, Edge[] edges)
         {
+            _allLowerCaseCharacters = allLowerCaseCharacters;
             _nodes = nodes;
             _edges = edges;
         }
@@ -79,13 +81,15 @@ namespace Roslyn.Utilities
             // We always want to compute the real edit distance (ignoring any thresholds).  This is
             // because we need that edit distance to appropriately determine which edges to walk 
             // in the tree.
+            var characterSpan = currentNode.CharacterSpan;
             var editDistance = EditDistance.GetEditDistance(
-                new ArraySlice<char>(currentNode.LowerCaseCharacters), new ArraySlice<char>(queryCharacters, 0, queryLength));
+                new ArraySlice<char>(_allLowerCaseCharacters, characterSpan), 
+                new ArraySlice<char>(queryCharacters, 0, queryLength));
 
             if (editDistance <= threshold)
             {
                 // Found a match.
-                result.Add(new string(currentNode.LowerCaseCharacters));
+                result.Add(new string(_allLowerCaseCharacters, characterSpan.Start, characterSpan.Length));
             }
 
             var min = editDistance - threshold;

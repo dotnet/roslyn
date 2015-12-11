@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Utilities
 {
@@ -13,7 +16,8 @@ namespace Roslyn.Utilities
         {
             private const int CompactEdgeAllocationSize = 4;
 
-            private readonly char[][] _values;
+            private readonly char[] _allLowerCaseCharacters;
+            private readonly TextSpan[] _characterSpans;
 
             // Note: while building a BKTree we have to store children with parents, keyed by the
             // edit distance between the two.  Naive implementations might store a list or dictionary
@@ -73,21 +77,35 @@ namespace Roslyn.Utilities
 
             public Builder(IEnumerable<string> values)
             {
-                _values = values.Select(v => v.ToLower())
-                                .Distinct()
-                                .Select(v => v.ToCharArray())
-                                .Where(a => a.Length > 0).ToArray();
+                var distinctValues = values.Where(v => v.Length > 0).Distinct(CaseInsensitiveComparison.Comparer).ToArray();
+                var charCount = Enumerable.Sum<string>(values,(Func<string, int>)(v => (int)v.Length));
+
+                _allLowerCaseCharacters = new char[charCount];
+                _characterSpans = new TextSpan[distinctValues.Length];
+
+                var characterIndex = 0;
+                for (int i = 0; i < distinctValues.Length; i++)
+                {
+                    var value = distinctValues[i];
+                    _characterSpans[i] = new TextSpan(characterIndex, value.Length);
+
+                    foreach (var ch in value)
+                    {
+                        _allLowerCaseCharacters[characterIndex] = char.ToLower(ch);
+                        characterIndex++;
+                    }
+                }
 
                 // We will have one node for each string value that we are adding.
-                _builderNodes = new BuilderNode[_values.Length];
-                _compactEdges = new Edge[_values.Length * CompactEdgeAllocationSize];
+                _builderNodes = new BuilderNode[distinctValues.Length];
+                _compactEdges = new Edge[distinctValues.Length * CompactEdgeAllocationSize];
             }
 
             internal BKTree Create()
             {
-                for (var i = 0; i < _values.Length; i++)
+                for (var i = 0; i < _characterSpans.Length; i++)
                 {
-                    Add(_values[i], insertionIndex: i);
+                    Add(_characterSpans[i], insertionIndex: i);
                 }
 
                 var nodes = new Node[_builderNodes.Length];
@@ -98,7 +116,7 @@ namespace Roslyn.Utilities
 
                 BuildArrays(nodes, edges);
 
-                return new BKTree(nodes, edges);
+                return new BKTree(_allLowerCaseCharacters, nodes, edges);
             }
 
             private void BuildArrays(Node[] nodes, Edge[] edges)
@@ -109,8 +127,7 @@ namespace Roslyn.Utilities
                     var builderNode = _builderNodes[i];
                     var edgeCount = builderNode.EdgeCount;
 
-                    nodes[i] = new Node(
-                        builderNode.LowerCaseCharacters, edgeCount, currentEdgeIndex);
+                    nodes[i] = new Node(builderNode.CharacterSpan, edgeCount, currentEdgeIndex);
 
                     if (edgeCount > 0)
                     {
@@ -140,11 +157,11 @@ namespace Roslyn.Utilities
                 Debug.Assert(currentEdgeIndex == edges.Length);
             }
 
-            private void Add(char[] lowerCaseCharacters, int insertionIndex)
+            private void Add(TextSpan characterSpan, int insertionIndex)
             {
                 if (insertionIndex == 0)
                 {
-                    _builderNodes[insertionIndex] = new BuilderNode(lowerCaseCharacters);
+                    _builderNodes[insertionIndex] = new BuilderNode(characterSpan);
                     return;
                 }
 
@@ -156,7 +173,9 @@ namespace Roslyn.Utilities
                     // Determine the edit distance between these two words.  Note: we do not use
                     // a threshold here as we need the actual edit distance so we can actually
                     // determine what edge to make or walk.
-                    var editDistance = EditDistance.GetEditDistance(currentNode.LowerCaseCharacters, lowerCaseCharacters);
+                    var editDistance = EditDistance.GetEditDistance(
+                        new ArraySlice<char>(_allLowerCaseCharacters, currentNode.CharacterSpan),
+                        new ArraySlice<char>(_allLowerCaseCharacters, characterSpan));
 
                     if (editDistance == 0)
                     {
@@ -174,13 +193,13 @@ namespace Roslyn.Utilities
                     }
 
                     // found the node we want to add the child node to.
-                    AddChildNode(lowerCaseCharacters, insertionIndex, currentNode.EdgeCount, currentNodeIndex, editDistance);
+                    AddChildNode(characterSpan, insertionIndex, currentNode.EdgeCount, currentNodeIndex, editDistance);
                     return;
                 }
             }
 
             private void AddChildNode(
-                char[] lowerCaseCharacters, int insertionIndex, int currentNodeEdgeCount, int currentNodeIndex, int editDistance)
+                TextSpan characterSpan, int insertionIndex, int currentNodeEdgeCount, int currentNodeIndex, int editDistance)
             {
                 // Node doesn't have an edge with this edit distance. Three cases to handle:
                 // 1) there are less than 4 edges.  We simply place the edge into the correct
@@ -215,7 +234,7 @@ namespace Roslyn.Utilities
                 }
 
                 _builderNodes[currentNodeIndex].EdgeCount++;
-                _builderNodes[insertionIndex] = new BuilderNode(lowerCaseCharacters);
+                _builderNodes[insertionIndex] = new BuilderNode(characterSpan);
                 return;
             }
 
@@ -247,13 +266,13 @@ namespace Roslyn.Utilities
 
             private struct BuilderNode
             {
-                public readonly char[] LowerCaseCharacters;
+                public readonly TextSpan CharacterSpan;
                 public int EdgeCount;
                 public Dictionary<int, int> SpilloverEdges;
 
-                public BuilderNode(char[] lowerCaseCharacters) : this()
+                public BuilderNode(TextSpan characterSpan) : this()
                 {
-                    this.LowerCaseCharacters = lowerCaseCharacters;
+                    this.CharacterSpan = characterSpan;
                 }
             }
         }

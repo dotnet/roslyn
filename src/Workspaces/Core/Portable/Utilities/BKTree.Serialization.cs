@@ -10,6 +10,8 @@ namespace Roslyn.Utilities
     {
         internal void WriteTo(ObjectWriter writer)
         {
+            writer.WriteValue(_allLowerCaseCharacters);
+
             writer.WriteInt32(this._nodes.Length);
             foreach (var node in _nodes)
             {
@@ -25,6 +27,7 @@ namespace Roslyn.Utilities
 
         internal static BKTree ReadFrom(ObjectReader reader)
         {
+            var allLowerCaseCharacters = (char[])reader.ReadValue();
             var nodes = new Node[reader.ReadInt32()];
             for (var i = 0; i < nodes.Length; i++)
             {
@@ -37,7 +40,7 @@ namespace Roslyn.Utilities
                 edges[i] = Edge.ReadFrom(reader);
             }
 
-            return new BKTree(nodes, edges);
+            return new BKTree(allLowerCaseCharacters, nodes, edges);
         }
     }
 }
