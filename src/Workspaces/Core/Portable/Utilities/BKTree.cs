@@ -50,7 +50,19 @@ namespace Roslyn.Utilities
             return new Builder(values).Create();
         }
 
-        public IList<string> Find(string value, int? threshold = null)
+        public IList<string> Find(string value)
+        {
+            var result = Find(value, threshold: null);
+            var editDistance = new EditDistance(value);
+            return result.Where(editDistance.IsCloseMatch).ToArray();
+        }
+
+        internal IList<string> Find_ForTestingOnly(string value, int? threshold = null)
+        {
+            return Find(value, threshold);
+        }
+
+        private IList<string> Find(string value, int? threshold = null)
         {
             if (_nodes.Length == 0)
             {
@@ -83,7 +95,7 @@ namespace Roslyn.Utilities
             // in the tree.
             var characterSpan = currentNode.CharacterSpan;
             var editDistance = EditDistance.GetEditDistance(
-                new ArraySlice<char>(_allLowerCaseCharacters, characterSpan), 
+                new ArraySlice<char>(_allLowerCaseCharacters, characterSpan),
                 new ArraySlice<char>(queryCharacters, 0, queryLength));
 
             if (editDistance <= threshold)
