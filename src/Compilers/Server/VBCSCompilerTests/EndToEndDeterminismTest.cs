@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 var errorsFile = srcFile + ".errors";
 
                 // Compile
-                var result = ProcessUtilities.Run("cmd", $"/C {CompilerServerUnitTests.s_csharpCompilerExecutableSrc} { finalFlags } { srcFile } /out:{ outFile } > { errorsFile }");
+                var result = ProcessUtilities.Run("cmd", $"/C {CompilerServerUnitTests.CSharpCompilerClientExecutable} { finalFlags } { srcFile } /out:{ outFile } > { errorsFile }");
                 if (result.ExitCode != 0)
                 {
                     var errors = File.ReadAllText(errorsFile);

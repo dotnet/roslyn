@@ -1870,11 +1870,11 @@ class Program
             string expectedOutput = "";
             string expectedIL1 = @"{
   // Code size       22 (0x16)
-  .maxstack  1
+  .maxstack  2
   .locals init (bool? V_0)
-  IL_0000:  call       ""bool? Program.N()""
-  IL_0005:  stloc.0
-  IL_0006:  call       ""bool Program.B()""
+  IL_0000:  call       ""bool Program.B()""
+  IL_0005:  call       ""bool? Program.N()""
+  IL_000a:  stloc.0
   IL_000b:  brtrue.s   IL_0014
   IL_000d:  ldc.i4.0
   IL_000e:  newobj     ""bool?..ctor(bool)""
@@ -1884,11 +1884,11 @@ class Program
 }";
             string expectedIL2 = @"{
   // Code size       22 (0x16)
-  .maxstack  2
+  .maxstack  1
   .locals init (bool? V_0)
-  IL_0000:  call       ""bool Program.B()""
-  IL_0005:  call       ""bool? Program.N()""
-  IL_000a:  stloc.0
+  IL_0000:  call       ""bool? Program.N()""
+  IL_0005:  stloc.0
+  IL_0006:  call       ""bool Program.B()""
   IL_000b:  brtrue.s   IL_0014
   IL_000d:  ldc.i4.0
   IL_000e:  newobj     ""bool?..ctor(bool)""
@@ -1898,11 +1898,11 @@ class Program
 }";
             string expectedIL3 = @"{
   // Code size       22 (0x16)
-  .maxstack  1
+  .maxstack  2
   .locals init (bool? V_0)
-  IL_0000:  call       ""bool? Program.N()""
-  IL_0005:  stloc.0
-  IL_0006:  call       ""bool Program.B()""
+  IL_0000:  call       ""bool Program.B()""
+  IL_0005:  call       ""bool? Program.N()""
+  IL_000a:  stloc.0
   IL_000b:  brtrue.s   IL_000f
   IL_000d:  ldloc.0
   IL_000e:  ret
@@ -1912,11 +1912,11 @@ class Program
 }";
             string expectedIL4 = @"{
   // Code size       22 (0x16)
-  .maxstack  2
+  .maxstack  1
   .locals init (bool? V_0)
-  IL_0000:  call       ""bool Program.B()""
-  IL_0005:  call       ""bool? Program.N()""
-  IL_000a:  stloc.0
+  IL_0000:  call       ""bool? Program.N()""
+  IL_0005:  stloc.0
+  IL_0006:  call       ""bool Program.B()""
   IL_000b:  brtrue.s   IL_000f
   IL_000d:  ldloc.0
   IL_000e:  ret

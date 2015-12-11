@@ -16,36 +16,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerApiTest : TestBase
     {
-        private sealed class TestableDiagnosticListener : IDiagnosticListener
-        {
-            public int ProcessedCount;
-            public DateTime? LastProcessedTime;
-            public TimeSpan? KeepAlive;
-            public bool HasDetectedBadConnection;
-            public bool HitKeepAliveTimeout;
-
-            public void ConnectionProcessed(int count)
-            {
-                ProcessedCount += count;
-                LastProcessedTime = DateTime.Now;
-            }
-
-            public void UpdateKeepAlive(TimeSpan timeSpan)
-            {
-                KeepAlive = timeSpan;
-            }
-
-            public void DetectedBadConnection()
-            {
-                HasDetectedBadConnection = true;
-            }
-
-            public void KeepAliveReached()
-            {
-                HitKeepAliveTimeout = true;
-            }
-        }
-
         private static readonly BuildRequest s_emptyCSharpBuildRequest = new BuildRequest(
             1,
             RequestLanguage.CSharpCompile,
@@ -214,7 +184,7 @@ class Hello
             var dispatcher = new ServerDispatcher(host, listener);
             dispatcher.ListenAndDispatchConnections(keepAlive);
 
-            Assert.Equal(1, listener.ProcessedCount);
+            Assert.Equal(1, listener.CompletedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
             Assert.True(listener.HitKeepAliveTimeout);
         }
@@ -240,7 +210,7 @@ class Hello
             var dispatcher = new ServerDispatcher(host, listener);
             dispatcher.ListenAndDispatchConnections(keepAlive);
 
-            Assert.Equal(count, listener.ProcessedCount);
+            Assert.Equal(count, listener.CompletedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
             Assert.True(listener.HitKeepAliveTimeout);
         }
@@ -287,7 +257,7 @@ class Hello
             }
 
             await dispatcherTask.ConfigureAwait(true);
-            Assert.Equal(totalCount, listener.ProcessedCount);
+            Assert.Equal(totalCount, listener.CompletedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
             Assert.True(listener.HitKeepAliveTimeout);
         }
