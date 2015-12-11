@@ -937,6 +937,7 @@ End Class
                 Dim buffer = state.Workspace.Documents.Single().TextBuffer
                 buffer.Replace(New Text.Span(0, 1), "c")
 
+                WpfTestCase.RequireWpfFact("Test requires FileCodeModel.EndBatch")
                 fileCodeModel.EndBatch()
 
                 Assert.Contains("Class C", buffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
