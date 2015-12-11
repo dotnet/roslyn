@@ -21657,6 +21657,200 @@ namespace CSSample
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "d3").WithArguments("CSSample.Program.d3", "null"));
         }
 
+        [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]
+        public void DelegateCreationWithRefOut()
+        {
+            var source = @"
+using System;
+public class Program
+{
+    static Func<T, T> Foo<T>(Func<T, T> t) { return t; }
+    static Func<string, string> Bar = Foo<string>(x => x);
+    static Func<string, string> BarP => Foo<string>(x => x);
+    static T Id<T>(T id) => id;
+
+    static void Test(Func<string, string> Baz)
+    {
+        var k = Bar;
+        var z1 = new Func<string, string>(ref Bar); // compat
+        var z2 = new Func<string, string>(ref Baz); // compat
+        var z3 = new Func<string, string>(ref k); // compat
+        var z4 = new Func<string, string>(ref x => x);
+        var z5 = new Func<string, string>(ref Foo<string>(x => x));
+        var z6 = new Func<string, string>(ref BarP); 
+        var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
+        var z8 = new Func<string, string>(ref Program.BarP); 
+        var z9 = new Func<string, string>(ref Program.Foo<string>(x => x));
+        var z10 = new Func<string, string>(ref Id); // compat
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (16,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z4 = new Func<string, string>(ref x => x);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x").WithLocation(16, 47),
+                // (17,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z5 = new Func<string, string>(ref Foo<string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Foo<string>(x => x)").WithLocation(17, 47),
+                // (18,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         var z6 = new Func<string, string>(ref BarP); 
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(18, 43),
+                // (19,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
+                // (20,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         var z8 = new Func<string, string>(ref Program.BarP); 
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref Program.BarP").WithArguments("Program.BarP").WithLocation(20, 43),
+                // (21,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z9 = new Func<string, string>(ref Program.Foo<string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Foo<string>(x => x)").WithLocation(21, 47));
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+                // (13,47): error CS0149: Method name expected
+                //         var z1 = new Func<string, string>(ref Bar); // compat
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Bar").WithLocation(13, 47),
+                // (14,47): error CS0149: Method name expected
+                //         var z2 = new Func<string, string>(ref Baz); // compat
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz").WithLocation(14, 47),
+                // (15,47): error CS0149: Method name expected
+                //         var z3 = new Func<string, string>(ref k); // compat
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "k").WithLocation(15, 47),
+                // (16,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z4 = new Func<string, string>(ref x => x);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x").WithLocation(16, 47),
+                // (17,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z5 = new Func<string, string>(ref Foo<string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Foo<string>(x => x)").WithLocation(17, 47),
+                // (18,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         var z6 = new Func<string, string>(ref BarP); 
+                Diagnostic(ErrorCode.ERR_RefProperty, "BarP").WithArguments("Program.BarP").WithLocation(18, 47),
+                // (19,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
+                // (20,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         var z8 = new Func<string, string>(ref Program.BarP); 
+                Diagnostic(ErrorCode.ERR_RefProperty, "Program.BarP").WithArguments("Program.BarP").WithLocation(20, 47),
+                // (21,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z9 = new Func<string, string>(ref Program.Foo<string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Foo<string>(x => x)").WithLocation(21, 47),
+                // (22,48): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
+                //         var z10 = new Func<string, string>(ref Id); // compat
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(22, 48));
+        }
+
+        [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]
+        public void DelegateCreationWithRefOut_Parens()
+        {
+            // these are allowed in compat mode without the parenthesis
+            // with parenthesis, it behaves like strict mode
+            var source = @"
+using System;
+public class Program
+{
+    static Func<T, T> Foo<T>(Func<T, T> t) { return t; }
+    static Func<string, string> Bar = Foo<string>(x => x);
+
+    static T Id<T>(T id) => id;
+
+    static void Test(Func<string, string> Baz)
+    {
+        var k = Bar;
+        var z1 = new Func<string, string>(ref (Bar)); 
+        var z2 = new Func<string, string>(ref (Baz)); 
+        var z3 = new Func<string, string>(ref (k)); 
+        var z10 = new Func<string, string>(ref (Id)); 
+        // these all are still valid for compat mode, no errors should be reported for compat mode
+        var z4 = new Func<string, string>(ref Bar); 
+        var z5 = new Func<string, string>(ref Baz); 
+        var z6 = new Func<string, string>(ref k); 
+        var z7 = new Func<string, string>(ref Id); 
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (13,48): error CS0149: Method name expected
+                //         var z1 = new Func<string, string>(ref (Bar)); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Bar").WithLocation(13, 48),
+                // (14,48): error CS0149: Method name expected
+                //         var z2 = new Func<string, string>(ref (Baz)); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz").WithLocation(14, 48),
+                // (15,48): error CS0149: Method name expected
+                //         var z3 = new Func<string, string>(ref (k)); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "k").WithLocation(15, 48),
+                // (16,49): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
+                //         var z10 = new Func<string, string>(ref (Id)); 
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(16, 49));
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+                // (13,48): error CS0149: Method name expected
+                //         var z1 = new Func<string, string>(ref (Bar)); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Bar").WithLocation(13, 48),
+                // (14,48): error CS0149: Method name expected
+                //         var z2 = new Func<string, string>(ref (Baz)); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz").WithLocation(14, 48),
+                // (15,48): error CS0149: Method name expected
+                //         var z3 = new Func<string, string>(ref (k)); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "k").WithLocation(15, 48),
+                // (16,49): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
+                //         var z10 = new Func<string, string>(ref (Id)); 
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(16, 49),
+                // (18,47): error CS0149: Method name expected
+                //         var z4 = new Func<string, string>(ref Bar); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Bar").WithLocation(18, 47),
+                // (19,47): error CS0149: Method name expected
+                //         var z5 = new Func<string, string>(ref Baz); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz").WithLocation(19, 47),
+                // (20,47): error CS0149: Method name expected
+                //         var z6 = new Func<string, string>(ref k); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "k").WithLocation(20, 47),
+                // (21,47): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
+                //         var z7 = new Func<string, string>(ref Id); 
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(21, 47));
+        }
+
+        [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]
+        public void DelegateCreationWithRefOut_MultipleArgs()
+        {
+            var source = @"
+using System;
+public class Program
+{
+    static Func<string, string> BarP => null;
+    static void Test(Func<string, string> Baz)
+    {
+        var a = new Func<string, string>(ref Baz, Baz.Invoke);
+        var b = new Func<string, string>(Baz, ref Baz.Invoke);
+        var c = new Func<string, string>(ref Baz, ref Baz.Invoke);
+        var d = new Func<string, string>(ref BarP, BarP.Invoke);
+        var e = new Func<string, string>(BarP, ref BarP.Invoke);
+        var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (8,46): error CS0149: Method name expected
+                //         var a = new Func<string, string>(ref Baz, Baz.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz, Baz.Invoke").WithLocation(8, 46),
+                // (9,42): error CS0149: Method name expected
+                //         var b = new Func<string, string>(Baz, ref Baz.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz, ref Baz.Invoke").WithLocation(9, 42),
+                // (10,46): error CS0149: Method name expected
+                //         var c = new Func<string, string>(ref Baz, ref Baz.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz, ref Baz.Invoke").WithLocation(10, 46),
+                // (11,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         var d = new Func<string, string>(ref BarP, BarP.Invoke);
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(11, 42),
+                // (11,46): error CS0149: Method name expected
+                //         var d = new Func<string, string>(ref BarP, BarP.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, BarP.Invoke").WithLocation(11, 46),
+                // (12,42): error CS0149: Method name expected
+                //         var e = new Func<string, string>(BarP, ref BarP.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(12, 42),
+                // (13,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(13, 42),
+                // (13,46): error CS0149: Method name expected
+                //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(13, 46));
+        }
+
         [WorkItem(538430, "DevDiv")]
         [Fact]
         public void NestedGenericAccessibility()
