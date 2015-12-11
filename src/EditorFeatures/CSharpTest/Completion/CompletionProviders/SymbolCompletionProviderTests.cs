@@ -8467,7 +8467,7 @@ class Class2
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CompoundNameTargetTypePreselection()
+        public async Task CompoundNameTargetTypePreselection()
         {
             var markup = @"
 class Class1
@@ -8478,11 +8478,11 @@ class Class1
         string y = x.$$
     }
 }";
-            VerifyItemExists(markup, "ToString", matchPriority: (int)MatchPriority.Prefer);
+            await VerifyItemExistsAsync(markup, "ToString", matchPriority: (int)MatchPriority.Prefer);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void TargetTypeInCollectionInitializer1()
+        public async Task TargetTypeInCollectionInitializer1()
         {
             var markup = @"
 using System.Collections.Generic;
@@ -8496,11 +8496,11 @@ class Program
         List<int> x = new List<int>() { $$  }
     }
 }";
-            VerifyItemExists(markup, "z", matchPriority: (int)MatchPriority.Prefer);
+            await VerifyItemExistsAsync(markup, "z", matchPriority: (int)MatchPriority.Prefer);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void TargetTypeInCollectionInitializer2()
+        public async Task TargetTypeInCollectionInitializer2()
         {
             var markup = @"
 using System.Collections.Generic;
@@ -8514,11 +8514,11 @@ class Program
         List<int> x = new List<int>() { 1, $$  }
     }
 }";
-            VerifyItemExists(markup, "z", matchPriority: (int)MatchPriority.Prefer);
+            await VerifyItemExistsAsync(markup, "z", matchPriority: (int)MatchPriority.Prefer);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void TargeTypeInObjectInitializer1()
+        public async Task TargeTypeInObjectInitializer1()
         {
             var markup = @"
 class C
@@ -8532,11 +8532,11 @@ class C
         var c = new C() { X = $$ }
     }
 }";
-            VerifyItemExists(markup, "i", matchPriority: (int)MatchPriority.Prefer);
+            await VerifyItemExistsAsync(markup, "i", matchPriority: (int)MatchPriority.Prefer);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void TargeTypeInObjectInitializer2()
+        public async Task TargeTypeInObjectInitializer2()
         {
             var markup = @"
 class C
@@ -8550,7 +8550,7 @@ class C
         var c = new C() { X = 1, Y = $$ }
     }
 }";
-            VerifyItemExists(markup, "i", matchPriority: (int)MatchPriority.Prefer);
+            await VerifyItemExistsAsync(markup, "i", matchPriority: (int)MatchPriority.Prefer);
         }
     }
 }
