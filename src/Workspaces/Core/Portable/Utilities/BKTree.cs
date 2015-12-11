@@ -80,8 +80,7 @@ namespace Roslyn.Utilities
             // because we need that edit distance to appropriately determine which edges to walk 
             // in the tree.
             var editDistance = EditDistance.GetEditDistance(
-                currentNode.LowerCaseCharacters, queryCharacters,
-                currentNode.LowerCaseCharacters.Length, queryLength);
+                new ArraySlice<char>(currentNode.LowerCaseCharacters), new ArraySlice<char>(queryCharacters, 0, queryLength));
 
             if (editDistance <= threshold)
             {

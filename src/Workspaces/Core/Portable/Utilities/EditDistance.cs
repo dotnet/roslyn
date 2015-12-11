@@ -110,7 +110,7 @@ namespace Roslyn.Utilities
 
         public static int GetEditDistance(char[] s, char[] t)
         {
-            return GetEditDistance(s, t, s.Length, t.Length);
+            return GetEditDistance(new ArraySlice<char>(s), new ArraySlice<char>(t));
         }
 
         public int GetEditDistance(string target)
@@ -128,7 +128,9 @@ namespace Roslyn.Utilities
             var targetLowerCaseCharacters = ConvertToLowercaseArray(target);
             try
             {
-                return GetEditDistance(_sourceLowerCaseCharacters, targetLowerCaseCharacters, _source.Length, target.Length);
+                return GetEditDistance(
+                    new ArraySlice<char>(_sourceLowerCaseCharacters, 0, _source.Length),
+                    new ArraySlice<char>(targetLowerCaseCharacters, 0, target.Length));
             }
             finally
             {
@@ -174,41 +176,39 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength)
+        public static int GetEditDistance(ArraySlice<char> source, ArraySlice<char> target)
         {
-            return GetEditDistance(source, target, sourceLength, targetLength, useThreshold: false);
+            return GetEditDistance(source, target, useThreshold: false);
         }
 
-        private static int GetEditDistance(char[] source, char[] target, int sourceLength, int targetLength, bool useThreshold)
+        private static int GetEditDistance(ArraySlice<char> source, ArraySlice<char> target, bool useThreshold)
         {
-            return sourceLength <= targetLength
-                ? GetEditDistanceWorker(source, target, sourceLength, targetLength, useThreshold)
-                : GetEditDistanceWorker(target, source, targetLength, sourceLength, useThreshold);
+            return source.Length <= target.Length
+                ? GetEditDistanceWorker(source, target, useThreshold)
+                : GetEditDistanceWorker(target, source, useThreshold);
         }
 
-        private static int GetEditDistanceWorker(char[] source, char[] target, int sourceLength, int targetLength, bool useThreshold)
+        private static int GetEditDistanceWorker(ArraySlice<char> source, ArraySlice<char> target, bool useThreshold)
         {
             // Note: sourceLength and targetLength values will mutate and represent the lengths 
             // of the portions of the arrays we want to compare.
             //
             // Also note: sourceLength will always be smaller or equal to targetLength.
-            Debug.Assert(sourceLength <= targetLength);
+            Debug.Assert(source.Length <= target.Length);
 
             // First:
             // Determine the common prefix/suffix portions of the strings.  We don't even need to 
             // consider them as they won't add anything to the edit cost.
-            while (sourceLength > 0 && source[sourceLength - 1] == target[targetLength - 1])
+            while (source.Length > 0 && source[source.Length - 1] == target[target.Length - 1])
             {
-                sourceLength--;
-                targetLength--;
+                source.SetLength(source.Length - 1);
+                target.SetLength(target.Length - 1);
             }
 
-            var startIndex = 0;
-            while (startIndex < sourceLength && source[startIndex] == target[startIndex])
+            while (source.Length > 0 && source[0] == target[0])
             {
-                startIndex++;
-                sourceLength--;
-                targetLength--;
+                source.MoveStartForward(amount: 1);
+                target.MoveStartForward(amount: 1);
             }
 
             // 'sourceLength' and 'targetLength' are now the lengths of the substrings of our strings that we
@@ -219,6 +219,8 @@ namespace Roslyn.Utilities
             //
             // Note: we don't have to check if targetLength is 0.  That's because targetLength being zero would
             // necessarily mean that sourceLength is 0.
+            var sourceLength = source.Length;
+            var targetLength = target.Length;
             if (sourceLength == 0)
             {
                 return targetLength;
@@ -233,11 +235,11 @@ namespace Roslyn.Utilities
                 for (int i = 1; i <= sourceLength; i++)
                 {
                     var lastMatchIndex_inTarget = 0;
-                    var sourceChar = source[startIndex + (i - 1)];
+                    var sourceChar = source[i - 1];
 
                     for (int j = 1; j <= targetLength; j++)
                     {
-                        var targetChar = target[startIndex + (j - 1)];
+                        var targetChar = target[j - 1];
 
                         var i1 = GetValue(characterToLastSeenIndex_inSource, targetChar);
                         var j1 = lastMatchIndex_inTarget;
