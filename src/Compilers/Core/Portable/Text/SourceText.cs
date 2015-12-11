@@ -663,6 +663,12 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+        internal bool TryGetLines(out TextLineCollection lines)
+        {
+            lines = _lazyLineInfo;
+            return lines != null;
+        }
+
         /// <summary>
         /// Called from <see cref="Lines"/> to initialize the <see cref="TextLineCollection"/>. Thereafter,
         /// the collection is cached.
