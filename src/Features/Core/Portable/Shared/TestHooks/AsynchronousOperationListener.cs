@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public AsynchronousOperationListener()
         {
             TrackActiveTokens = Debugger.IsAttached;
+
+            // TODO: debugging only		
+            TrackActiveTokens = true;
         }
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
