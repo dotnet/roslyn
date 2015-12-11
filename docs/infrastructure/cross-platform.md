@@ -37,7 +37,7 @@ $mono> git checkout -b build-roslyn jaredpar/build-roslyn
 Roslyn depends on the Portable Class Libraries to build which is not standard on Mono.  Hence the installation of Mono being used must be patched in order to build Roslyn.  The [setup-pcl.sh](https://github.com/dotnet/roslyn/blob/master/build/linux/setup-pcl.sh) script takes care of this.  
 
 ```
-$> ./roslyn/builds/linux/setup-pcl.sh ~/builds/mono
+$> ./roslyn/build/linux/setup-pcl.sh ~/builds/mono
 ```
 
 ## Configuring Mono
@@ -47,7 +47,7 @@ Note: This script may need to be used with `sudo` depending on where mono was in
 Additionally we need to update the certificate store so that NuGet can function correctly.  
 
 ```
-$> sudo roslyn/builds/linux/setup-certs.sh
+$> sudo roslyn/build/linux/setup-certs.sh
 ```
 
 ## Building Roslyn on Linux / Mac
