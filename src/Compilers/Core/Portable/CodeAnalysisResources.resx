@@ -503,4 +503,7 @@
   <data name="ResourceStreamEndedUnexpectedly" xml:space="preserve">
     <value>Resource stream ended at {0} bytes, expected {1} bytes.</value>
   </data>
+  <data name="SharedArgumentMissing" xml:space="preserve">
+    <value>Value for argument '/shared:' must not be empty</value>
+  </data>
 </root>

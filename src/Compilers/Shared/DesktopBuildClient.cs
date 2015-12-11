@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
         protected override Task<BuildResponse> RunServerCompilation(
             List<string> arguments, 
             BuildPaths buildPaths, 
+            string sessionKey,
             string keepAlive, 
             string libDirectory, 
             CancellationToken cancellationToken)
         {
-            var pipeName = GetPipeName(buildPaths.ClientDirectory);
-            return RunServerCompilationCore(_language, arguments, buildPaths, pipeName, keepAlive, libDirectory, TryCreateServer, cancellationToken);
+            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TryCreateServer, cancellationToken);
         }
 
         public static Task<BuildResponse> RunServerCompilation(
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             var clientDir = buildPaths.ClientDirectory;
 
-            var clientMutexName = $"{pipeName}.client";
+            var clientMutexName = BuildProtocolConstants.GetClientMutexName(pipeName);
             bool holdsMutex;
             using (var clientMutex = new Mutex(initiallyOwned: true,
                                                name: clientMutexName,
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
 
                     // Check for an already running server
-                    var serverMutexName = $"{pipeName}.server";
+                    var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
                     Mutex mutexIgnore;
                     bool wasServerRunning = Mutex.TryOpenExisting(serverMutexName, out mutexIgnore);
                     var timeout = wasServerRunning ? TimeOutMsExistingProcess : TimeOutMsNewProcess;
@@ -398,9 +398,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// retrieves the name of the pipe for client/server communication on
         /// that instance of the compiler.
         /// </summary>
-        protected virtual string GetPipeName(string compilerExeDirectory)
+        protected override string GetSessionKey(BuildPaths buildPaths)
         {
-            return GetPipeNameFromFileInfo(compilerExeDirectory);
+            return GetPipeNameFromFileInfo(buildPaths.ClientDirectory);
         }
 
         internal static string GetPipeNameFromFileInfo(string compilerExeDirectory)

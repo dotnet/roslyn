@@ -90,6 +90,7 @@
   <ItemGroup>
     <Compile Include="CscTests.cs" />
     <Compile Include="CsiTests.cs" />
+    <Compile Include="IntegrationTests.cs" />
     <Compile Include="MSBuildUtil.cs" />
     <Compile Include="VbcTests.cs" />
   </ItemGroup>
