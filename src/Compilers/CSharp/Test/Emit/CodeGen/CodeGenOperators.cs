@@ -3310,6 +3310,50 @@ public class Program
             comp.VerifyIL("Program.M", il);
         }
 
+        [WorkItem(7091, "https://github.com/dotnet/roslyn/issues/7091")]
+        [Fact]
+        public void LiftedBitwiseOr()
+        {
+            var text =
+@"using System;
+public class Program
+{
+    static void Main()
+    {
+        var res = XX() | YY();
+    }
+
+    static bool XX()
+    {
+        Console.WriteLine (""XX"");
+        return true;
+    }
+
+    static bool? YY()
+    {
+        Console.WriteLine(""YY"");
+        return true;
+    }
+}
+";
+            var expectedOutput =
+@"XX
+YY";
+            var comp = CompileAndVerify(text, expectedOutput: expectedOutput);
+            string il = @"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (bool? V_0)
+  IL_0000:  call       ""bool Program.XX()""
+  IL_0005:  call       ""bool? Program.YY()""
+  IL_000a:  stloc.0
+  IL_000b:  pop
+  IL_000c:  ret
+}
+";
+            comp.VerifyIL("Program.Main", il);
+        }
+
         [WorkItem(544943, "DevDiv")]
         [Fact]
         public void OptimizedXor()
@@ -4641,12 +4685,12 @@ class Test
         System.Console.WriteLine((Calculate1(f) == Calculate2(f)) ? ""True"" : ""False"");
     }
 
-	public static long Calculate1(long[] f)
+    public static long Calculate1(long[] f)
     {
 " + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
     }
 
-	public static long Calculate2(long[] f)
+    public static long Calculate2(long[] f)
     {
         long result = 0;
         int i;
@@ -4700,7 +4744,7 @@ class Test
         System.Console.WriteLine(Calculate(f));
     }
 
-	public static double Calculate(long[] f)
+    public static double Calculate(long[] f)
     {
 " + $"        return checked({ BuildSequenceOfBinaryExpressions_01() });" + @"
     }
@@ -4723,7 +4767,7 @@ class Test
     {
     }
 
-	public static bool Calculate(bool[] a, bool[] f)
+    public static bool Calculate(bool[] a, bool[] f)
     {
 " + $"        return { BuildSequenceOfBinaryExpressions_03() };" + @"
     }
@@ -4778,7 +4822,7 @@ class Test
         System.Console.WriteLine(Calculate(f));
     }
 
-	public static double? Calculate(float?[] f)
+    public static double? Calculate(float?[] f)
     {
 " + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
     }
@@ -4818,7 +4862,7 @@ class Test
         System.Console.WriteLine(Calculate(f));
     }
 
-	public static double? Calculate(double?[] f)
+    public static double? Calculate(double?[] f)
     {
 " + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
     }
@@ -4834,7 +4878,7 @@ class Test
         System.Console.WriteLine(Calculate(f));
     }
 
-	public static double Calculate(double[] f)
+    public static double Calculate(double[] f)
     {
 " + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
     }
@@ -4856,7 +4900,7 @@ class Test
     {
     }
 
-	public static bool Calculate(S1[] a, S1[] f)
+    public static bool Calculate(S1[] a, S1[] f)
     {
 " + $"        return { BuildSequenceOfBinaryExpressions_03() };" + @"
     }
