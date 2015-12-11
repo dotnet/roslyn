@@ -453,7 +453,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             If CInt(kind) >= SyntaxKind.AddHandlerKeyword Then
 
-                If CInt(kind) <= SyntaxKind.YieldKeyword OrElse kind = SyntaxKind.NameOfKeyword Then
+                If CInt(kind) <= SyntaxKind.YieldKeyword OrElse
+                        kind = SyntaxKind.NameOfKeyword OrElse
+                        CInt(kind) = SyntaxKind.LoadKeyword _
+                Then
                     Return New KeywordSyntax(kind, tokenText, leading, trailing)
                 ElseIf CInt(kind) <= SyntaxKind.EndOfXmlToken OrElse
                        kind = SyntaxKind.EndOfInterpolatedStringToken OrElse

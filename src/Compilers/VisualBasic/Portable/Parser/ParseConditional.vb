@@ -79,6 +79,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Case SyntaxKind.ReferenceKeyword
                             statement = ParseReferenceDirective(hashToken)
 
+                        Case SyntaxKind.LoadKeyword
+                            statement = ParseLoadDirective(hashToken)
+
                         Case Else
                             statement = ParseBadDirective(hashToken)
                     End Select
@@ -458,6 +461,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             VerifyExpectedToken(SyntaxKind.StringLiteralToken, file)
 
             Return SyntaxFactory.ReferenceDirectiveTrivia(hashToken, referenceKeyword, file)
+        End Function
+
+        Private Function ParseLoadDirective(hashToken As PunctuationSyntax) As LoadDirectiveTriviaSyntax
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso DirectCast(CurrentToken, IdentifierTokenSyntax).PossibleKeywordKind = SyntaxKind.LoadKeyword,
+                         NameOf(ParseLoadDirective) & " called with wrong token")
+
+            Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
+            GetNextToken()
+            Dim loadKeyword = _scanner.MakeKeyword(identifier)
+
+            If Not IsScript Then
+                loadKeyword = AddError(loadKeyword, ERRID.ERR_LoadDirectiveOnlyAllowedInScripts)
+            End If
+
+            Dim file As StringLiteralTokenSyntax = Nothing
+            VerifyExpectedToken(SyntaxKind.StringLiteralToken, file)
+
+            Return SyntaxFactory.LoadDirectiveTrivia(hashToken, loadKeyword, file)
         End Function
 
         Private Shared Function ParseBadDirective(hashToken As PunctuationSyntax) As BadDirectiveTriviaSyntax

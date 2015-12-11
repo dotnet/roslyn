@@ -3174,6 +3174,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         EndOfInterpolatedStringToken = 787                              ' PunctuationSyntax : SyntaxToken
 
+        LoadKeyword = 788
+        LoadDirectiveTrivia = 789
+        LoadDirectiveTriviaSyntax = 790
+
     End Enum
 
 End Namespace

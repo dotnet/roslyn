@@ -480,6 +480,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SyntaxKind.LetKeyword,
                 SyntaxKind.LibKeyword,
                 SyntaxKind.LikeKeyword,
+                SyntaxKind.LoadKeyword,
                 SyntaxKind.LongKeyword,
                 SyntaxKind.LoopKeyword,
                 SyntaxKind.MeKeyword,

@@ -7795,6 +7795,10 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="ConstKeyword" />
         <native-equiv name="" />
       </node-kind>
+      <node-kind name="LoadKeyword" token-text="Load">
+        <lm-equiv name="LoadKeyword" />
+        <native-equiv name="" />
+      </node-kind>
       <node-kind name="ReferenceKeyword" token-text="R">
         <lm-equiv name="ReferenceKeyword" />
         <native-equiv name="" />
@@ -9446,6 +9450,14 @@ Unify Enum declarations with other block type declarations.
       <node-kind name="ReferenceDirectiveTrivia"></node-kind>
 
       <child name="ReferenceKeyword" kind="ReferenceKeyword"/>
+      <child name="File" kind="StringLiteralToken"/>
+    </node-structure>
+
+    <node-structure name="LoadDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
+      <description>Represents a #load directive appearing in scripts.</description>
+      <node-kind name="LoadDirectiveTrivia"></node-kind>
+
+      <child name="LoadKeyword" kind="LoadKeyword"/>
       <child name="File" kind="StringLiteralToken"/>
     </node-structure>
 

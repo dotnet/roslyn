@@ -2560,6 +2560,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestPreprocessorLoad() As Task
+            Await TestInNamespaceAsync("#Load ""file""",
+                            PPKeyword("#"),
+                            PPKeyword("Load"),
+                            [String]("""file"""))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorConst1() As Task
             Await TestInNamespaceAsync("#Const Foo = 1",
                             PPKeyword("#"),
