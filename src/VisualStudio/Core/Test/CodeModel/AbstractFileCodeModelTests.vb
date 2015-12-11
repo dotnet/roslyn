@@ -8,6 +8,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Inherits AbstractCodeModelObjectTests(Of EnvDTE80.FileCodeModel2)
 
         Protected Async Function TestOperation(code As XElement, expectedCode As XElement, operation As Action(Of EnvDTE80.FileCodeModel2)) As Task
+            Roslyn.Test.Utilities.WpfTestCase.RequireWpfFact($"Test calls TestOperation which means we're creating new CodeModel elements.")
+
             Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
