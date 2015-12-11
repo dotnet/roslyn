@@ -2511,19 +2511,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
                     else
                     {
-                        var selection = TextView.Selection;
-                        var startPoint = selection.Start.Position.GetContainingLine().Start;
-                        var projectionSpans = TextView.BufferGraph.MapUpToSnapshot(new SnapshotSpan(startPoint,
-                                                                                                    selection.End.Position.GetContainingLine().EndIncludingLineBreak),
-                                                                                   SpanTrackingMode.EdgeInclusive,
-                                                                                   _projectionBuffer.CurrentSnapshot);
-                        CopySpans(projectionSpans, lineCutCopyTag: true, boxCutCopyTag: false);
+                        var projectionSpans = CopySelectedLines();
                         if (!IsSpanCollectionInsideCurrentSubmission(projectionSpans))
                         {
                             return;
                         }
                         DeleteSpans(projectionSpans);
-                        selection.Clear();
+                        TextView.Selection.Clear();
                     }
                     MoveCaretToClosestEditableBuffer();
                     TextView.Caret.EnsureVisible();
@@ -2796,6 +2790,37 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
+            /// <summary>Implements <see cref="IInteractiveWindowOperations2.CopyInputs"/>.</summary>
+            public void CopyInputs()
+            {
+                NormalizedSnapshotSpanCollection spans;
+                if (TextView.Selection.IsEmpty)
+                {
+                    spans = GetSpansFromCurrentLine();
+                }
+                else
+                {
+                    spans = GetSpansFromSelectedLines();
+                }
+
+                Debug.Assert(spans.Count == 1);
+
+                var inputSpans = new List<SnapshotSpan>();
+                // For each selected source buffer span, if the span is in input buffer, 
+                // the lambda function generates the corresponding snapshot span in the source buffer snapshot, otherwise it returns null.
+                GetValuesFromSpan<SnapshotSpan>(inputSpans, 
+                    spans.First(), 
+                    (kind, snapshot, s) =>  kind == ReplSpanKind.Input ? new SnapshotSpan(snapshot, s) : (SnapshotSpan?)null);
+
+                var projectionInputSpans = new List<SnapshotSpan>();
+                foreach (var inputSpan in inputSpans)
+                {
+                    projectionInputSpans.AddRange(TextView.BufferGraph.MapUpToSnapshot(inputSpan, SpanTrackingMode.EdgeInclusive, _projectionBuffer.CurrentSnapshot));
+                }
+                var projectSpans = new NormalizedSnapshotSpanCollection(projectionInputSpans);
+                CopySpans(projectSpans, lineCutCopyTag: true, boxCutCopyTag: false);
+            }
+
             private void CopySelection()
             {
                 Debug.Assert(!TextView.Selection.IsEmpty);
@@ -2806,10 +2831,33 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private void CopyCurrentLine()
             {
                 Debug.Assert(TextView.Selection.IsEmpty);
+                CopySpans(GetSpansFromCurrentLine(), lineCutCopyTag: true, boxCutCopyTag: false);
+            }
 
+            private NormalizedSnapshotSpanCollection GetSpansFromCurrentLine()
+            {
                 var snapshotLine = TextView.Caret.Position.VirtualBufferPosition.Position.GetContainingLine();
                 var span = new SnapshotSpan(snapshotLine.Start, snapshotLine.LengthIncludingLineBreak);
-                CopySpans(new NormalizedSnapshotSpanCollection(span), lineCutCopyTag: true, boxCutCopyTag: false);
+                return new NormalizedSnapshotSpanCollection(span);
+            }
+
+            private NormalizedSnapshotSpanCollection CopySelectedLines()
+            {
+                Debug.Assert(!TextView.Selection.IsEmpty);
+                var selectedLines = GetSpansFromSelectedLines();
+                CopySpans(selectedLines, lineCutCopyTag: true, boxCutCopyTag: false);
+                return selectedLines;
+            }
+
+            private NormalizedSnapshotSpanCollection GetSpansFromSelectedLines()
+            {
+                var selection = TextView.Selection;
+                var startPoint = selection.Start.Position.GetContainingLine().Start;
+                var projectionSpans = TextView.BufferGraph.MapUpToSnapshot(new SnapshotSpan(startPoint,
+                                                                                            selection.End.Position.GetContainingLine().EndIncludingLineBreak),
+                                                                           SpanTrackingMode.EdgeInclusive,
+                                                                           _projectionBuffer.CurrentSnapshot);
+                return projectionSpans;
             }
 
             /// <summary>
@@ -2918,7 +2966,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var blocks = new List<BufferBlock>();
                 foreach (var span in spans)
                 {
-                    GetTextBlocks(blocks, span);
+                    // the lambda function generates a BufferBlock for each selected source buffer span
+                    GetValuesFromSpan<BufferBlock>(blocks, span, (kind, snapshot, s) =>
+                                                                    {
+                                                                        if (kind == ReplSpanKind.LineBreak)
+                                                                        {
+                                                                            kind = ReplSpanKind.Output;
+                                                                        }
+                                                                        return new BufferBlock(kind, snapshot.GetText(s));
+                                                                    });
                     if (AddNewLineBlock)
                     {
                         blocks.Add(new BufferBlock(ReplSpanKind.LineBreak, EditorOperations.Options.GetNewLineCharacter()));
@@ -2927,7 +2983,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return BufferBlock.Serialize(blocks.ToArray());
             }
 
-            private void GetTextBlocks(List<BufferBlock> blocks, SnapshotSpan span)
+            /// <summary>
+            /// Maps given snapshot span into a list of spans in source buffers, and let the user provided delegate generates an object of type T 
+            /// for each span and added it to the list if it is not null.
+            /// </summary>
+            private void GetValuesFromSpan<T>(List<T> list, SnapshotSpan span, Func<ReplSpanKind, ITextSnapshot, Span, T?> generateValue)
+                where T : struct
             {
                 // Find the range of source spans that cover the span.
                 var sourceSpans = GetSourceSpans(span.Snapshot);
@@ -2954,12 +3015,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         if (intersection.HasValue && !intersection.Value.IsEmpty)
                         {
                             var kind = GetSpanKind(sourceSpan);
-                            if (kind == ReplSpanKind.LineBreak)
+                            var interactionValue = intersection.Value;
+                            var content = sourceSnapshot.GetText(interactionValue);
+
+                            var TValue = generateValue(kind, sourceSnapshot, interactionValue);
+                            if (TValue.HasValue)
                             {
-                                kind = ReplSpanKind.Output;
+                                list.Add(TValue.Value);
                             }
-                            var content = sourceSnapshot.GetText(intersection.Value);
-                            blocks.Add(new BufferBlock(kind, content));
                             added = true;
                         }
                     }
