@@ -83,8 +83,8 @@ namespace Roslyn.Utilities
 
         public static bool IsCloseMatch(string originalText, string candidateText)
         {
-            double dummy;
-            return IsCloseMatch(originalText, candidateText, out dummy);
+            double unused;
+            return IsCloseMatch(originalText, candidateText, out unused);
         }
 
         /// <summary>
@@ -270,16 +270,16 @@ namespace Roslyn.Utilities
 
         private static void InitializeMaxValues(int sourceLength, int targetLength, int[,] matrix)
         {
-            var max = sourceLength + targetLength + 1;
-            matrix[0, 0] = max;
+            var infiniteCost = sourceLength + targetLength + 1;
+            matrix[0, 0] = infiniteCost;
             for (int i = 0; i <= sourceLength; i++)
             {
-                matrix[i + 1, 0] = max;
+                matrix[i + 1, 0] = infiniteCost;
             }
 
             for (int j = 0; j <= targetLength; j++)
             {
-                matrix[0, j + 1] = max;
+                matrix[0, j + 1] = infiniteCost;
             }
         }
 
