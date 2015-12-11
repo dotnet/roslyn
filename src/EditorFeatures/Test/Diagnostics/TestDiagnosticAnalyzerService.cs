@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
             IDiagnosticUpdateSourceRegistrationService registrationService = null)
-            : this(CreateHostAnalyzerManager(analyzersMap, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, onAnalyzerException, registrationService, listener)
+            : this(CreateHostAnalyzerManager(analyzersMap, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, onAnalyzerException, registrationService)
         {
         }
 
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             IDiagnosticUpdateSourceRegistrationService registrationService = null)
-            : base(hostAnalyzerManager, hostDiagnosticUpdateSource, registrationService ?? new MockDiagnosticUpdateSourceRegistrationService(), listener)
+            : base(hostAnalyzerManager, hostDiagnosticUpdateSource, registrationService ?? new MockDiagnosticUpdateSourceRegistrationService())
         {
             _onAnalyzerException = onAnalyzerException;
         }
