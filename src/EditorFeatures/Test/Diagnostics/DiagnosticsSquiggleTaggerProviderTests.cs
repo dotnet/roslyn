@@ -104,6 +104,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 if (_taggerProvider == null)
                 {
+                    WpfTestCase.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper)}.{nameof(TaggerProvider)} creates asynchronous taggers");
+
                     _taggerProvider = new DiagnosticsSquiggleTaggerProvider(
                         _workspace.Services.GetService<IOptionService>(), DiagnosticService,
                         _workspace.GetService<IForegroundNotificationService>(), _listeners);

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ExportProvider exportProvider = null,
             string workspaceKind = null)
         {
-            return CreateWorkspaceAsync(workspaceElement, completed, openDocuments, exportProvider, workspaceKind).WaitAndGetResult(CancellationToken.None);
+            return CreateWorkspaceAsync(workspaceElement, completed, openDocuments, exportProvider, workspaceKind).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
         }
 
         public static async Task<TestWorkspace> CreateWorkspaceAsync(

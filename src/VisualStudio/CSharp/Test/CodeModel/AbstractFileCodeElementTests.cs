@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
@@ -55,6 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
         protected async Task<CodeElement> GetCodeElementAsync(params object[] path)
         {
+            WpfTestCase.RequireWpfFact("Tests create CodeElements which use the affinitized CleanableWeakComHandleTable");
+
             if (path.Length == 0)
             {
                 throw new ArgumentException("path must be non-empty.", "path");

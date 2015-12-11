@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         {
             using (var workspace = await CreateWorkspaceAsync(markup))
             {
+                WpfTestCase.RequireWpfFact($"{nameof(AbstractBraceHighlightingTests)}.{nameof(TestBraceHighlightingAsync)} creates asynchronous taggers");
+
                 var provider = new BraceHighlightingViewTaggerProvider(
                     workspace.GetService<IBraceMatchingService>(),
                     workspace.GetService<IForegroundNotificationService>(),

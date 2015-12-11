@@ -31,6 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags)
 
             Dim mockEditorAdaptersFactoryService = New VsEditorAdaptersFactoryServiceMock(mockVsBuffer)
+            WpfTestCase.RequireWpfFact($"{NameOf(VsReadOnlyDocumentTracker)} is thread affinitized")
             Dim readOnlyDocumentTracker As VsReadOnlyDocumentTracker
 
             Dim sessionReason As SessionReadOnlyReason

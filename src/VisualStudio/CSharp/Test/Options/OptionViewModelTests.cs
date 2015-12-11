@@ -37,6 +37,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
             return viewModel.TextViewHost.TextView.TextBuffer.CurrentSnapshot.GetText().ToString();
         }
 
+        public OptionViewModelTests()
+        {
+            WpfTestCase.RequireWpfFact("Tests create WPF ViewModels and updates previews with them");
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
         public async Task TestCheckBox()
         {

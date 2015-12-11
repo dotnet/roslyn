@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             return _project
                 .GetCompilationAsync(CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
+                .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
         }
 
         protected void AddAssemblyLink(IAssemblySymbol assemblySymbol)

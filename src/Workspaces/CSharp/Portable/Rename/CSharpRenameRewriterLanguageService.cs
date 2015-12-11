@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                                                                     _solution,
                                                                                     symbols,
                                                                                     _cancellationToken)
-                                                                                        .WaitAndGetResult(_cancellationToken);
+                                                                                        .WaitAndGetResult_CanCallOnBackground(_cancellationToken);
 
                     var renameAnnotation = new RenameActionAnnotation(
                                                 identifierToken.Span,
