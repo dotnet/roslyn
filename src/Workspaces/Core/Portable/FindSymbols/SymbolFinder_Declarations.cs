@@ -91,16 +91,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return new SearchQuery(name, ignoreCase ? SearchKind.ExactIgnoreCase : SearchKind.Exact);
         }
 
-        //public static SearchQuery Exact(string name)
-        //{
-        //    return new SearchQuery(name, SearchKind.Exact);
-        //}
-
-        //public static SearchQuery ExactIgnoreCase(string name)
-        //{
-        //    return new SearchQuery(name, SearchKind.ExactIgnoreCase);
-        //}
-
         public static SearchQuery CreateFuzzy(string name)
         {
             return new SearchQuery(name, SearchKind.Fuzzy);
@@ -299,25 +289,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var info = await SymbolTreeInfo.GetInfoForAssemblyAsync(solution, assembly, filePath, cancellationToken).ConfigureAwait(false);
 
-                // If the query has a specific string provided, then call into the SymbolTreeInfo
-                // helpers optimized for lookup based on an exact name.
-                switch (query.Kind)
-                {
-                    case SearchKind.Exact:
-                        list.AddRange(FilterByCriteria(info.Find(assembly, query.Name, ignoreCase: false, cancellationToken: cancellationToken), filter));
-                        return;
-                    case SearchKind.ExactIgnoreCase:
-                        list.AddRange(FilterByCriteria(info.Find(assembly, query.Name, ignoreCase: true, cancellationToken: cancellationToken), filter));
-                        return;
-                    case SearchKind.Fuzzy:
-                        list.AddRange(FilterByCriteria(info.FuzzyFind(assembly, query.Name, cancellationToken), filter));
-                        return;
-                    case SearchKind.Custom:
-                        // Otherwise, we'll have to do a slow linear search over all possible symbols.
-                        list.AddRange(FilterByCriteria(info.Find(assembly, query.GetPredicate(), cancellationToken), filter));
-                        return;
-                }
+                list.AddRange(FilterByCriteria(Find(query, info, assembly, cancellationToken), filter));
             }
+        }
+
+        private static IEnumerable<ISymbol> Find(SearchQuery query, SymbolTreeInfo info, IAssemblySymbol assembly, CancellationToken cancellationToken)
+        {
+            // If the query has a specific string provided, then call into the SymbolTreeInfo
+            // helpers optimized for lookup based on an exact name.
+            switch (query.Kind)
+            {
+                case SearchKind.Exact:
+                    return info.Find(assembly, query.Name, ignoreCase: false, cancellationToken: cancellationToken);
+                case SearchKind.ExactIgnoreCase:
+                    return info.Find(assembly, query.Name, ignoreCase: true, cancellationToken: cancellationToken);
+                case SearchKind.Fuzzy:
+                    return info.FuzzyFind(assembly, query.Name, cancellationToken);
+                case SearchKind.Custom:
+                    // Otherwise, we'll have to do a slow linear search over all possible symbols.
+                    return info.Find(assembly, query.GetPredicate(), cancellationToken);
+            }
+
+            throw new InvalidOperationException();
         }
 
         /// <summary>
