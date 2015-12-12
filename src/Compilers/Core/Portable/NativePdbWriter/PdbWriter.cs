@@ -305,7 +305,7 @@ namespace Microsoft.Cci
         private IModule Module => Context.Module;
         private EmitContext Context => _metadataWriter.Context;
 
-        public void SerializeDebugInfo(IMethodBody methodBody, uint localSignatureToken, CustomDebugInfoWriter customDebugInfoWriter)
+        public void SerializeDebugInfo(IMethodBody methodBody, uint localSignatureToken, int methodBodyOffset, CustomDebugInfoWriter customDebugInfoWriter)
         {
             Debug.Assert(_metadataWriter != null);
 
@@ -319,7 +319,7 @@ namespace Microsoft.Cci
 
             int methodToken = _metadataWriter.GetMethodToken(methodBody.MethodDefinition);
 
-            OpenMethod((uint)methodToken, methodBody.MethodDefinition);
+            OpenMethod((uint)methodToken, methodBodyOffset, methodBody.MethodDefinition);
 
             var localScopes = methodBody.LocalScopes;
 
@@ -982,11 +982,11 @@ namespace Microsoft.Cci
             return writer;
         }
 
-        private void OpenMethod(uint methodToken, IMethodDefinition method)
+        private void OpenMethod(uint methodToken, int methodBodyOffset, IMethodDefinition method)
         {
             try
             {
-                _symWriter.OpenMethod(methodToken);
+                _symWriter.OpenMethod2(methodToken, sectionIndex: 1, sectionRelativeOffset: methodBodyOffset);
                 if (_callLogger.LogOperation(OP.OpenMethod))
                 {
                     _callLogger.LogArgument(methodToken);
@@ -994,6 +994,7 @@ namespace Microsoft.Cci
                     // So we log that. Note that this will be the same for overloaded methods.
                     _callLogger.LogArgument(GetOrCreateSerializedTypeName(method.ContainingTypeDefinition));
                     _callLogger.LogArgument(method.Name);
+                    _callLogger.LogArgument(methodBodyOffset);
                 }
 
                 // open outermost scope:

@@ -71,7 +71,7 @@ namespace Microsoft.Cci
 
         #region ISymUnmanagedWriter3
 
-        void OpenMethod2(uint methodToken, int sectionIndex, int offsetRelativeOffset);
+        void OpenMethod2(uint methodToken, int sectionIndex, int sectionRelativeOffset);
         void Commit();
 
         #endregion

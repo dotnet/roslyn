@@ -4255,7 +4255,7 @@ namespace Microsoft.Cci
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
                         rva = this.SerializeMethodBody(body, ilWriter, localSignatureToken);
 
-                        pdbWriterOpt?.SerializeDebugInfo(body, localSignatureToken, customDebugInfoWriter);
+                        pdbWriterOpt?.SerializeDebugInfo(body, localSignatureToken, rva, customDebugInfoWriter);
                     }
                     else
                     {
