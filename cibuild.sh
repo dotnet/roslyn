@@ -10,6 +10,8 @@ usage()
     echo "  --os <os>           OS to run (Linux / Darwin)"
 }
 
+NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
+NugetZipFileName=nuget.36.zip
 XUNIT_VERSION=2.1.0
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
@@ -80,8 +82,7 @@ set_build_info()
 
 restore_nuget()
 {
-    local package_name="nuget.35.zip"
-    local target="/tmp/$package_name"
+    local target="/tmp/$NugetZipFileName"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
@@ -92,9 +93,9 @@ restore_nuget()
 
     pushd /tmp/
 
-    rm $package_name 2>/dev/null
-    curl -O https://dotnetci.blob.core.windows.net/roslyn/$package_name
-    unzip -uoq $package_name -d ~/
+    rm $NugetZipFileName 2>/dev/null
+    curl -O $NugetZipUrlRoot/$NugetZipFileName
+    unzip -uoq $NugetZipFileName -d ~/
     if [ $? -ne 0 ]; then
         echo "Unable to download NuGet packages"
         exit 1
