@@ -48,6 +48,16 @@
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.props"
           Condition="'$(OS)' != 'Windows_NT'" />
 
+  <!-- The /publicsign argument is required for the compiler, but the current MSBuild
+       build task can't be redirected and even if it could the new build task is not
+       built against the xplat MSBuild references so it can't be loaded properly. Providing
+       a response file works around the problem by directly adding the public sign argument
+       to all unix compilations. This shouldn't present a problem as it's impossible to
+       fully sign on unix at the moment anyway -->
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+      <CompilerResponseFile>$(MSBuildThisFileDirectory)..\scripts\extra_unix_args.rsp</CompilerResponseFile>
+  </PropertyGroup>
+
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
   </PropertyGroup>

@@ -6,7 +6,7 @@ BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
 BUILD_LOG_PATH =
 XUNIT_VERSION = 2.1.0
 
-MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:SignAssembly=false /p:DebugSymbols=false /p:Configuration=$(BUILD_CONFIGURATION)
+MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:DebugSymbols=false /p:Configuration=$(BUILD_CONFIGURATION)
 
 ifeq ($(OS_NAME),Linux)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=ubuntu.14.04
