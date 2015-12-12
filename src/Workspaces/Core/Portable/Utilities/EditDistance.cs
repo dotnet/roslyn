@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using static System.Math;
 
 namespace Roslyn.Utilities
@@ -219,13 +220,13 @@ namespace Roslyn.Utilities
             var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
 
             // Say we want to find the edit distance between "sunday" and "saturday".  Our initial
-            // matrix will be:
+            // matrix will be.
 
             //           s u n d a y
             //      ----------------
             //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
             //      |∞ 0 1 2 3 4 5 6
-            //    s |∞ 1
+            //    s |∞ 1 
             //    a |∞ 2
             //    t |∞ 3
             //    u |∞ 4
@@ -234,9 +235,115 @@ namespace Roslyn.Utilities
             //    a |∞ 7
             //    y |∞ 8
             //
-            // We'll then fill out the matrix to be:
+            // Note that the matrix will always be square, or a rectangle that is taller htan it is 
+            // longer.  Our 'source' is at the top, and our 'target' is on the left.  The edit distance
+            // between any prefix of 'source' and any prefix of 'target' can then be found in 
+            // the unfilled area of the matrix.  Specifically, if we have source.substring(0, m) and
+            // target.substring(0, n), then the edit distance for them can be found at matrix position
+            // (m+1, n+1).  This is why the 1'th row and 1'th column can be prefilled.  They represent
+            // the cost to go from the empty target to the full source or the empty source to the full
+            // target (respectively).  So, if we wanted to know the edit distance between "sun" and 
+            // "sat", we'd look at (3+1, 3+1).  It then follows that our final edit distance between
+            // the full source and target is in the lower right corner of this matrix.
+            //
+            // If we fill out the matrix fully we'll get:
+            //          
+            //           s u n d a y <-- source
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 0 1 2 3 4 5 
+            //    a |∞ 2 1 1 2 3 3 4 
+            //    t |∞ 3 2 2 2 3 4 4 
+            //    u |∞ 4 3 2 3 3 4 5 
+            //    r |∞ 5 4 3 3 4 4 5 
+            //    d |∞ 6 5 4 4 3 4 5 
+            //    a |∞ 7 6 5 5 4 3 4 
+            //    y |∞ 8 7 6 6 5 4 3 <--
+            //                     ^
+            //                     |
+            //
+            // So in this case, the edit distance is 3.  Or, specifically, the edits:
+            //
+            //      Sunday -> Replace("n", "r") -> 
+            //      Surday -> Insert("a") ->
+            //      Saurday -> Insert("t") ->
+            //      Saturday
             //
             //
+            // Now: in the case where we want to know what the edit distance actually is (for example
+            // when making a BKTree), we must fill out this entire array to get the true edit distance.
+            //
+            // However, in some cases we can do a bit better.  For example, if a client only wants to
+            // the edit distance *when the edit distance will be less than some threshold* then we do
+            // not need to examine the entire matrix.  We only want to examine until the point where
+            // we realize that, no matter what, our final edit distance will be more than that threshold
+            // (at which point we can return early).
+            //
+            // Some things are trivially easy to check.  First, the edit distance between two strings is at
+            // *best* the difference of their lengths.  i.e. if i have "aa" and "aaaaa" then the edit
+            // distance is 3 (the difference of 5 and 2).  If our threshold is less then 3 then there
+            // is no way these two strings could match.  So we can leave early if we can tell it would
+            // simply be impossible to get an edit distance within the specified threshold.
+            //
+            // Second, let's look at our matrix again:
+            //
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 
+            //    a |∞ 2
+            //    t |∞ 3
+            //    u |∞ 4
+            //    r |∞ 5
+            //    d |∞ 6
+            //    a |∞ 7
+            //    y |∞ 8           *
+            //
+            // We want to know what the value is at *, and we want to stop as early as possible if it
+            // is greater than our threshold.
+            //
+            // Given the edit distance rules we observe edit distance at any point (i,j) in the matrix will
+            // always be greater than or equal to the value in (i-1, j-1).  i.e. the edit distance of
+            // any two strings is going to be *at best* equal to the edit distance of those two strings
+            // without their final characters.  If their final characters are the same, they'll ahve the
+            // same edit distance.  If they are different, the edit distance will be greater.  Given 
+            // that we know the final edit distance is in the lower right, we can discover something 
+            // useful in the matrix.
+            //
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 
+            //    a |∞ 2
+            //    t |∞ 3 \
+            //    u |∞ 4   \
+            //    r |∞ 5     \
+            //    d |∞ 6       \
+            //    a |∞ 7         \
+            //    y |∞ 8           *
+            //
+            // The slashes are the diagonal leading to the lower right.  The value in the lower right will
+            // be strictly equal to or greater than any value on this diagonal.  Thus, if that value 
+            // exceeds the threshold, we know we can stop immediately as the total edit distance must be
+            // greater than the threshold.
+
+
+            // The is the minimum number of edits we'd have to make.  i.e. if  'source' and 
+            // 'target' are the same length, then we might not need to make any edits.  However,
+            // if target has length 10 and source has length 7, then we're going to have to
+            // make at least 3 edits no matter what.
+            var minimumEditCount = targetLength - sourceLength;
+            Debug.Assert(minimumEditCount >= 0);
+
+            // If the number of edits we'd have to perform is greater than our threshold, then
+            // there's no point in even continuing.
+            if (minimumEditCount > threshold)
+            {
+                return int.MaxValue;
+            }
 
             try
             {
@@ -267,6 +374,17 @@ namespace Roslyn.Utilities
                     }
 
                     characterToLastSeenIndex_inSource[sourceChar] = i;
+
+                    // Recall that minimumEditCount is simply the difference in length of our two
+                    // strings.  So matrix[i+1,i+1] is the cost for the upper-left diagonal of the
+                    // matrix.  matrix[i+1,i+1+minimumEditCount] is the cost for the lower right diagonal.
+                    // Here we are simply getting the lowest cost edit of hese two substrings so far.
+                    // If this lowest cost edit is greater than our threshold, then there is no need 
+                    // to proceed.
+                    if (matrix[i + 1, i + minimumEditCount + 1] > threshold)
+                    {
+                        return int.MaxValue;
+                    }
                 }
 
                 return matrix[sourceLength + 1, targetLength + 1];
@@ -275,6 +393,21 @@ namespace Roslyn.Utilities
             {
                 ReleaseMatrix(matrix);
             }
+        }
+
+        private static string ToString(int[,] matrix, int width, int height)
+        {
+            var sb = new StringBuilder();
+            for (var j = 0; j < height; j++)
+            {
+                for (var i = 0; i < width; i++)
+                {
+                    sb.Append(matrix[i + 2, j + 2] + " ");
+                }
+                sb.AppendLine();
+            }
+
+            return sb.ToString().Trim();
         }
 
         private static int GetValue(Dictionary<char, int> da, char c)
