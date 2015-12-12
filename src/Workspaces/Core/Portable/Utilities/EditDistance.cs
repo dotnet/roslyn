@@ -25,6 +25,19 @@ namespace Roslyn.Utilities
     // NOTE: do not use this class directly.  It is intended for use only by the spell checker.
     internal class EditDistance : IDisposable
     {
+        // Our edit distance algorithm makes use of an 'infinite' value.  A value so high that it 
+        // could never participate in an edit distance (and effectively means the path through it
+        // is dead).
+        //
+        // We do *not* represent this with "int.MaxValue" due to the presence of certain addition
+        // operations in the edit distance algorithm. These additions could cause int.MaxValue
+        // to roll over to a very negative value (which would then look like the lowest cost
+        // path).
+        //
+        // So we pick a value that is both effectively larger than any possible edit distance,
+        // and also has no chance of overflowing.
+        private const int Infinity = int.MaxValue >> 2;
+
         private string _source;
         private char[] _sourceLowerCaseCharacters;
 
@@ -106,16 +119,44 @@ namespace Roslyn.Utilities
 
         private static int[,] InitializeMatrix(int[,] matrix)
         {
+            // All matrices share the following in common:
+            //
+            // ------------------
+            // |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            // |∞ 0 1 2 3 4 5 6 7
+            // |∞ 1
+            // |∞ 2
+            // |∞ 3
+            // |∞ 4
+            // |∞ 5
+            // |∞ 6
+            // |∞ 7
+            //
+            // So we initialize this once when the matrix is created.  For pooled arrays we only
+            // have to do this once, and it will retain this layout for all future computations.
+
+
             var width = matrix.GetLength(0);
-            for (int i = 0; i < width - 1; i++)
+            var height = matrix.GetLength(1);
+
+            for (int i = 0; i < width; i++)
             {
-                matrix[i + 1, 1] = i;
+                matrix[i, 0] = Infinity;
+
+                if (i < width - 1)
+                {
+                    matrix[i + 1, 1] = i;
+                }
             }
 
-            var height = matrix.GetLength(1);
-            for (int j = 0; j < height - 1; j++)
+            for (int j = 0; j < height; j++)
             {
-                matrix[1, j + 1] = j;
+                matrix[0, j] = Infinity;
+
+                if (j < height - 1)
+                {
+                    matrix[1, j + 1] = j;
+                }
             }
 
             return matrix;
@@ -138,10 +179,11 @@ namespace Roslyn.Utilities
 
         private static int GetEditDistanceWorker(ArraySlice<char> source, ArraySlice<char> target, int threshold)
         {
-            // Note: sourceLength and targetLength values will mutate and represent the lengths 
-            // of the portions of the arrays we want to compare.
+            // Note: sourceLength will always be smaller or equal to targetLength.
             //
-            // Also note: sourceLength will always be smaller or equal to targetLength.
+            // Also Note: sourceLength and targetLength values will mutate and represent the lengths 
+            // of the portions of the arrays we want to compare.  However, even after mutation, hte
+            // invariant htat sourceLength is <= targetLength will remain.
             Debug.Assert(source.Length <= target.Length);
 
             // First:
@@ -175,10 +217,29 @@ namespace Roslyn.Utilities
             }
 
             var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
+
+            // Say we want to find the edit distance between "sunday" and "saturday".  Our initial
+            // matrix will be:
+
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1
+            //    a |∞ 2
+            //    t |∞ 3
+            //    u |∞ 4
+            //    r |∞ 5
+            //    d |∞ 6
+            //    a |∞ 7
+            //    y |∞ 8
+            //
+            // We'll then fill out the matrix to be:
+            //
+            //
+
             try
             {
-                InitializeMaxValues(sourceLength, targetLength, matrix);
-
                 var characterToLastSeenIndex_inSource = new Dictionary<char, int>();
                 for (int i = 1; i <= sourceLength; i++)
                 {
@@ -213,21 +274,6 @@ namespace Roslyn.Utilities
             finally
             {
                 ReleaseMatrix(matrix);
-            }
-        }
-
-        private static void InitializeMaxValues(int sourceLength, int targetLength, int[,] matrix)
-        {
-            var infiniteCost = sourceLength + targetLength + 1;
-            matrix[0, 0] = infiniteCost;
-            for (int i = 0; i <= sourceLength; i++)
-            {
-                matrix[i + 1, 0] = infiniteCost;
-            }
-
-            for (int j = 0; j <= targetLength; j++)
-            {
-                matrix[0, j + 1] = infiniteCost;
             }
         }
 
