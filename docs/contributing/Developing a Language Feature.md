@@ -22,7 +22,7 @@ This page discusses the process by which language feature *implementations* are 
 
 1. **Language team makes a decision**: When the Language Team believes enough information is available they will update the issue accordingly:
 
-    * **Ready for prototype**: The feature is worth pursuing as a prototype for the language.
+    * **Ready for prototype**: The feature is worth pursuing as a prototype for the language. Work continues in the "Prototype" phase.
     * **Not actionable**: The discussion didn't lead to a design that was actionable by the team.
     * **Declined as proposed**: The proposal is overall a good idea but the proposed implementation details are not as efficient as they could be. In most cases, the language team will attempt to steer the discussion to a cleaner design but understand that it may be simpler to close and start over with a new issue.  
     * **Backlog**: The feature is a good idea with an acceptable design but the Language Team simply can't allocate the resources at this time for this work.
@@ -36,6 +36,12 @@ This page discusses the process by which language feature *implementations* are 
 
 1. **Prototype decision**: When the prototype phase ends, the Language Team will make a decision on the feature:
     * **Ready to integrate**: The feature implementation revealed no blocking issues, has a healthy set of test suites, and is sufficiently complete in the compiler, IDE, debugger, etc. to integrate into the main tree on a selected branch.  The test suites need to focus both on the feature in isolation and when combined with other areas of the language.  
+    * **Iterate**: Experience with the prototype has produced valuable feedback suggesting modifications to the
+    speclet. Work reverts to the Discussion state, which may lead to speclet and prototype
+    changes (or even abandoning the feature!). This typically occurs either when the original speclet
+    left some language details unspecified, to be resolved based
+    on implementation experience, or when experience with the prototype suggests that some language design
+    decisions should be reconsidered. 
     * **Closed**: The feature hit unforeseen design issues, implementation road blocks, etc. that caused it to be removed.
 
 1. **Finishing**: Once a feature is integrated into the main tree, it's time to lock down and finish the implementation. This includes any remaining areas not completed in the prototype, and completing all of the corner cases and tests (lots and lots of tests!).  
