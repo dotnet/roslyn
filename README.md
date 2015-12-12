@@ -68,6 +68,9 @@ Some of the best ways to contribute are to try things out, file bugs, and join i
 
 Looking for something to work on? The list of [up for grabs issues](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22Up+for+Grabs%22) is a great place to start.
 
+This project has adopted a code of conduct adapted from the [Contributor Covenant](http://contributor-covenant.org/) to clarify expected behavior in our community. This code of conduct has been [adopted by many other projects](http://contributor-covenant.org/adopters/). For more information see the [Code of conduct](http://www.dotnetfoundation.org/code-of-conduct).
+
+
 ### .NET Foundation
 
 This project is part of the [.NET Foundation](http://www.dotnetfoundation.org/projects) along with other
