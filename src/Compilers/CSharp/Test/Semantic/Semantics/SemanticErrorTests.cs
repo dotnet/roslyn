@@ -15340,13 +15340,23 @@ class ErrorCS1676
     }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] {
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_NewlineInConst, Line = 11, Column = 31 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_CloseParenExpected, Line = 11, Column = 34 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 11, Column = 34 },
-                    // new ErrorDescription { Code = (int)ErrorCode.ERR_CantConvAnonMethNoParams, Line = 9, Column = 13 },
-                });
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (11,31): error CS1010: Newline in constant
+                //             Console.WriteLine(");
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(11, 31),
+                // (11,34): error CS1026: ) expected
+                //             Console.WriteLine(");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(11, 34),
+                // (11,34): error CS1002: ; expected
+                //             Console.WriteLine(");
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 34),
+                // (9,13): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'OutParam' because it has one or more out parameters
+                //         o = delegate  // CS1688
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, @"delegate  // CS1688
+        {
+            Console.WriteLine("");
+        }").WithArguments("OutParam").WithLocation(9, 13)
+                );
         }
 
         [Fact]
@@ -22121,8 +22131,19 @@ class Program
 ";
             // Used to assert.
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (8,10): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
+    // (8,10): error CS1513: } expected
+    //         {
+    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 10),
+    // (9,14): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
+    //             .ToString();
+    Diagnostic(ErrorCode.ERR_ObjectRequired, "ToString").WithArguments("object.ToString()").WithLocation(9, 14),
+    // (7,15): error CS1643: Not all code paths return a value in anonymous method of type 'Program.D'
+    //         D d = delegate
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, @"delegate
+        {
+            .ToString();
+        }").WithArguments("anonymous method", "Program.D").WithLocation(7, 15)
+                );
         }
 
         [WorkItem(543473, "DevDiv")]

@@ -1400,6 +1400,31 @@ public interface IColumn { }
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
+        [Fact, WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void SyntaxAndSemanticErrorInLambda()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    public static void Main(string[] args)
+    {
+        Action a = () => { new X().ToString() };
+        a();
+    }
+}
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,47): error CS1002: ; expected
+                //         Action a = () => { new X().ToString() };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 47),
+                // (7,32): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //         Action a = () => { new X().ToString() };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(7, 32)
+                );
+        }
+
         [Fact, WorkItem(4527, "https://github.com/dotnet/roslyn/issues/4527")]
         public void AnonymousMethodExpressionWithoutParameterList()
         {

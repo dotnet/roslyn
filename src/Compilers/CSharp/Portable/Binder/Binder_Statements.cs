@@ -2213,7 +2213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the target type is an error then we've already reported a diagnostic. Don't bother
             // reporting the conversion error.
-            if (targetType.IsErrorType() || syntax.HasErrors)
+            if (targetType.IsErrorType())
             {
                 return;
             }

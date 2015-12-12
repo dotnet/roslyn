@@ -304,8 +304,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var result = action(document);
 
-                var formatted = Formatter.FormatAsync(result, Formatter.Annotation).WaitAndGetResult(CancellationToken.None);
-                formatted = Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).WaitAndGetResult(CancellationToken.None);
+                var formatted = Formatter.FormatAsync(result, Formatter.Annotation).WaitAndGetResult_CodeModel(CancellationToken.None);
+                formatted = Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).WaitAndGetResult_CodeModel(CancellationToken.None);
 
                 ApplyChanges(workspace, formatted);
             });
@@ -376,28 +376,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return GetDocument()
                 .GetSyntaxTreeAsync(CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
+                .WaitAndGetResult_CodeModel(CancellationToken.None);
         }
 
         internal SyntaxNode GetSyntaxRoot()
         {
             return GetDocument()
                 .GetSyntaxRootAsync(CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
+                .WaitAndGetResult_CodeModel(CancellationToken.None);
         }
 
         internal SemanticModel GetSemanticModel()
         {
             return GetDocument()
                 .GetSemanticModelAsync(CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
+                .WaitAndGetResult_CodeModel(CancellationToken.None);
         }
 
         internal Compilation GetCompilation()
         {
             return GetDocument().Project
                 .GetCompilationAsync(CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
+                .WaitAndGetResult_CodeModel(CancellationToken.None);
         }
 
         internal ProjectId GetProjectId()
@@ -516,7 +516,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var lineNumber = point.Line - 1;
             var column = point.LineCharOffset - 1;
-            var line = GetDocument().GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Lines[lineNumber];
+            var line = GetDocument().GetTextAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None).Lines[lineNumber];
             var position = line.Start + column;
 
             return position;
@@ -666,7 +666,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     if (_batchDocument != null)
                     {
                         // perform expensive operations at once
-                        var newDocument = Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        var newDocument = Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
                         _batchDocument.Project.Solution.Workspace.TryApplyChanges(newDocument.Project.Solution);
 
                         // done using batch document

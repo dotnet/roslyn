@@ -204,16 +204,13 @@ set TMP=%TEMP%
             addUnitPublisher(myJob)
             addArtifactArchiving(myJob, "**/Binaries/**", "**/Binaries/Obj/**")
 
-            // Change the trigger to only fire when the right phrase is
-            // said for mac temporarily while there are machine issues.
-            def triggerOnly = opsys in ['mac']
             if (branchName == 'prtest') {
               switch (buildTarget) {
                 case 'unit32':
-                  addPullRequestTrigger(myJob, jobName, opsys, "(unit|unit32|unit\\W+32)", triggerOnly)
+                  addPullRequestTrigger(myJob, jobName, opsys, "(unit|unit32|unit\\W+32)")
                   break;
                 case 'unit64':
-                  addPullRequestTrigger(myJob, jobName, opsys, '(unit|unit64|unit\\W+64)', triggerOnly)
+                  addPullRequestTrigger(myJob, jobName, opsys, '(unit|unit64|unit\\W+64)')
                   break;
               }
               addScm(myJob, '${sha1}', '+refs/pull/*:refs/remotes/origin/pr/*')
