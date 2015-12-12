@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     // Search query parameters.
     internal class SearchQuery
     {
-        // The name being searched for may be null in some cases.  But can be used for faster 
-        // index based searching if it is provided.
+        // The name being searched for.  Is null in the case of custom predicate searching..  But 
+        // can be used for faster index based searching when it is available.
         public readonly string Name;
 
         // The kind of search this is.  Can be used for faster index based searching if it
@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // Create the edit distance object outside of the lambda  That way we only create it
                     // once and it can cache all the information it needs while it does the IsCloseMatch
                     // check against all the possible candidates.
-                    var editDistance = new EditDistance(name);
-                    _predicate = editDistance.IsCloseMatch;
+                    var editDistance = new WordSimilarityChecker(name);
+                    _predicate = editDistance.AreSimilar;
                     break;
             }
         }

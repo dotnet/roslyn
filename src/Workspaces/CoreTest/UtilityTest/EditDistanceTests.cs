@@ -96,32 +96,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestCloseMatch()
-        {
-            Assert.True(EditDistance.IsCloseMatch("variabledeclaratorsyntax", "variabledeclaratorsyntaxextensions"));
-
-            Assert.True(EditDistance.IsCloseMatch("expressionsyntax", "expressionsyntaxextensions"));
-            Assert.True(EditDistance.IsCloseMatch("expressionsyntax", "expressionsyntaxgeneratorvisitor"));
-        }
-
-        [Fact]
-        public void TestNotCloseMatch()
-        {
-            Assert.False(EditDistance.IsCloseMatch("propertyblocksyntax", "ipropertysymbol"));
-            Assert.False(EditDistance.IsCloseMatch("propertyblocksyntax", "ipropertysymbolextensions"));
-            Assert.False(EditDistance.IsCloseMatch("propertyblocksyntax", "typeblocksyntaxextensions"));
-
-            Assert.False(EditDistance.IsCloseMatch("fielddeclarationsyntax", "declarationinfo"));
-            Assert.False(EditDistance.IsCloseMatch("fielddeclarationsyntax", "declarationcomputer"));
-            Assert.False(EditDistance.IsCloseMatch("fielddeclarationsyntax", "filelinepositionspan"));
-
-            Assert.False(EditDistance.IsCloseMatch("variabledeclaratorsyntax", "visualbasicdeclarationcomputer"));
-            Assert.False(EditDistance.IsCloseMatch("variabledeclaratorsyntax", "ilineseparatorservice"));
-
-            Assert.False(EditDistance.IsCloseMatch("expressionsyntax", "awaitexpressioninfo"));
-        }
-
-        [Fact]
         public void TestMetric()
         {
             // If our edit distance is a metric then ED(CA,ABC) = 2 because CA -> AC -> ABC

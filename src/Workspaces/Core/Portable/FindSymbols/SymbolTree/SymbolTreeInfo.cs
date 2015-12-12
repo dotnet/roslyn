@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly IReadOnlyList<Node> _nodes;
 
         /// <summary>
-        /// The tree we use for fuzzy match queries.
+        /// The spell checker we use for fuzzy match queries.
         /// </summary>
-        private readonly BKTree _bkTree;
+        private readonly SpellChecker _spellChecker;
 
         private static readonly StringComparer s_caseInsensitiveComparer = CaseInsensitiveComparison.Comparer;
 
@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 : StringComparer.Ordinal.Compare(s1, s2);
         };
 
-        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, BKTree bkTree)
+        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, SpellChecker spellChecker)
         {
             _version = version;
             _nodes = orderedNodes;
-            _bkTree = bkTree;
+            _spellChecker = spellChecker;
         }
 
         public int Count => _nodes.Count;
@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public IEnumerable<ISymbol> FuzzyFind(IAssemblySymbol assembly, string name, CancellationToken cancellationToken)
         {
-            var potentialNames = _bkTree.Find(name);
-            return potentialNames.SelectMany(n => Find(assembly, n, ignoreCase: true, cancellationToken: cancellationToken));
+            var similarNames = _spellChecker.FindSimilarWords(name);
+            return similarNames.SelectMany(n => Find(assembly, n, ignoreCase: true, cancellationToken: cancellationToken));
         }
 
         /// <summary>
@@ -235,9 +235,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var list = new List<Node>();
             GenerateNodes(assembly.GlobalNamespace, list);
 
-            var bkTree = BKTree.Create(list.Select(n => n.Name));
+            var spellChecker = new SpellChecker(list.Select(n => n.Name));
 
-            return new SymbolTreeInfo(version, SortNodes(list), bkTree);
+            return new SymbolTreeInfo(version, SortNodes(list), spellChecker);
         }
 
         private static Node[] SortNodes(List<Node> nodes)

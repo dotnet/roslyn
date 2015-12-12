@@ -10,6 +10,9 @@ using static Roslyn.Utilities.PortableShim;
 
 namespace Roslyn.Utilities
 {
+    /// <summary>
+    /// NOTE: do not use this class directly.  It is intended for use only by the spell checker.
+    /// </summary>
     internal partial class BKTree
     {
         public static readonly BKTree Empty = new BKTree(
@@ -50,19 +53,7 @@ namespace Roslyn.Utilities
             return new Builder(values).Create();
         }
 
-        public IList<string> Find(string value)
-        {
-            var result = Find(value, threshold: null);
-            var editDistance = new EditDistance(value);
-            return result.Where(editDistance.IsCloseMatch).ToArray();
-        }
-
-        internal IList<string> Find_ForTestingOnly(string value, int? threshold = null)
-        {
-            return Find(value, threshold);
-        }
-
-        private IList<string> Find(string value, int? threshold = null)
+        public IList<string> Find(string value, int? threshold = null)
         {
             if (_nodes.Length == 0)
             {
@@ -77,7 +68,7 @@ namespace Roslyn.Utilities
                     lowerCaseCharacters[i] = char.ToLower(value[i]);
                 }
 
-                threshold = threshold ?? EditDistance.GetThreshold(value);
+                threshold = threshold ?? WordSimilarityChecker.GetThreshold(value);
                 var result = new List<string>();
                 Lookup(_nodes[0], lowerCaseCharacters, value.Length, threshold.Value, result);
                 return result;

@@ -47,14 +47,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
                 // great way to store the original value we compute because it happens deep in the 
                 // compiler bowels when we call FindDeclarations.
-                return symbols.Select(s =>
+                using (var similarityChecker = new WordSimilarityChecker(name))
                 {
-                    double matchCost;
-                    var isCloseMatch = EditDistance.IsCloseMatch(name, s.Name, out matchCost);
+                    return symbols.Select(s =>
+                    {
+                        double matchCost;
+                        var areSimilar = similarityChecker.AreSimilar(s.Name, out matchCost);
 
-                    Debug.Assert(isCloseMatch);
-                    return SearchResult.Create(s.Name, nameNode, s, matchCost);
-                }).ToList();
+                        Debug.Assert(areSimilar);
+                        return SearchResult.Create(s.Name, nameNode, s, matchCost);
+                    }).ToList();
+                }
             }
         }
 
