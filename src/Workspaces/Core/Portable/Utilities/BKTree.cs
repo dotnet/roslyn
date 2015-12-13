@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -17,8 +18,8 @@ namespace Roslyn.Utilities
     {
         public static readonly BKTree Empty = new BKTree(
             SpecializedCollections.EmptyArray<char>(),
-            SpecializedCollections.EmptyArray<Node>(),
-            SpecializedCollections.EmptyArray<Edge>());
+            ImmutableArray<Node>.Empty,
+            ImmutableArray<Edge>.Empty);
 
         // We have three completely flat arrays of structs.  These arrays fully represent the 
         // BK tree.  The structure is as follows:
@@ -35,12 +36,16 @@ namespace Roslyn.Utilities
         //
         // Each node also has an associated string.  These strings are concatenated and stored
         // in _allLowerCaseCharacters.  Each node has a TextSpan that indicates which portion
-        // of the character array is their string.
+        // of the character array is their string.  Note: i'd like to use an immutable array
+        // for the characters as well.  However, we need to create slices, and they need to 
+        // work on top of an ArraySlice (which needs a char[]).  The edit distance code also
+        // wants to work on top of raw char[]s (both for speed, and so it can pool arrays
+        // to prevent lots of garbage).  Because of that we just keep this as a char[].
         private readonly char[] _allLowerCaseCharacters;
-        private readonly Node[] _nodes;
-        private readonly Edge[] _edges;
+        private readonly ImmutableArray<Node> _nodes;
+        private readonly ImmutableArray<Edge> _edges;
 
-        private BKTree(char[] allLowerCaseCharacters, Node[] nodes, Edge[] edges)
+        private BKTree(char[] allLowerCaseCharacters, ImmutableArray<Node> nodes, ImmutableArray<Edge> edges)
         {
             _allLowerCaseCharacters = allLowerCaseCharacters;
             _nodes = nodes;

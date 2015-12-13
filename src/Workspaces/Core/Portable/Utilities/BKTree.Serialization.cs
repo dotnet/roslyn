@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,19 +38,21 @@ namespace Roslyn.Utilities
                 allLowerCaseCharacters[i] = reader.ReadChar();
             }
 
-            var nodes = new Node[reader.ReadInt32()];
-            for (var i = 0; i < nodes.Length; i++)
+            var nodeCount = reader.ReadInt32();
+            var nodes = ImmutableArray.CreateBuilder<Node>(nodeCount);
+            for (var i = 0; i < nodeCount; i++)
             {
-                nodes[i] = Node.ReadFrom(reader);
+                nodes.Add(Node.ReadFrom(reader));
             }
 
-            var edges = new Edge[reader.ReadInt32()];
-            for (var i = 0; i < edges.Length; i++)
+            var edgeCount = reader.ReadInt32();
+            var edges = ImmutableArray.CreateBuilder<Edge>(edgeCount);
+            for (var i = 0; i < edgeCount; i++)
             {
-                edges[i] = Edge.ReadFrom(reader);
+                edges.Add(Edge.ReadFrom(reader));
             }
 
-            return new BKTree(allLowerCaseCharacters, nodes, edges);
+            return new BKTree(allLowerCaseCharacters, nodes.MoveToImmutable(), edges.MoveToImmutable());
         }
     }
 }

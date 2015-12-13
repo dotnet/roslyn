@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -108,18 +109,18 @@ namespace Roslyn.Utilities
                     Add(_characterSpans[i], insertionIndex: i);
                 }
 
-                var nodes = new Node[_builderNodes.Length];
+                var nodes = ImmutableArray.CreateBuilder<Node>(_builderNodes.Length);
 
                 // There will be one less edge in the graph than nodes.  Each node (except for the
                 // root) will have a single edge pointing to it.
-                var edges = new Edge[_builderNodes.Length - 1];
+                var edges = ImmutableArray.CreateBuilder<Edge>(_builderNodes.Length - 1);
 
                 BuildArrays(nodes, edges);
 
-                return new BKTree(_allLowerCaseCharacters, nodes, edges);
+                return new BKTree(_allLowerCaseCharacters, nodes.MoveToImmutable(), edges.MoveToImmutable());
             }
 
-            private void BuildArrays(Node[] nodes, Edge[] edges)
+            private void BuildArrays(ImmutableArray<Node>.Builder nodes, ImmutableArray<Edge>.Builder edges)
             {
                 var currentEdgeIndex = 0;
                 for (var i = 0; i < _builderNodes.Length; i++)
@@ -127,16 +128,19 @@ namespace Roslyn.Utilities
                     var builderNode = _builderNodes[i];
                     var edgeCount = builderNode.EdgeCount;
 
-                    nodes[i] = new Node(builderNode.CharacterSpan, edgeCount, currentEdgeIndex);
+                    nodes.Add(new Node(builderNode.CharacterSpan, edgeCount, currentEdgeIndex));
 
                     if (edgeCount > 0)
                     {
                         if (edgeCount <= CompactEdgeAllocationSize)
                         {
-                            // When tehre are less than 4 elements, we can just do an easy array 
-                            // copy from our array into the final destination.
-                            Array.Copy(_compactEdges, i * CompactEdgeAllocationSize, edges, currentEdgeIndex, edgeCount);
-                            currentEdgeIndex += edgeCount;
+                            // When tehre are less than 4 elements, copy from teh _compact array.
+                            var start = i * CompactEdgeAllocationSize;
+                            var end = start + edgeCount;
+                            for (var j = start; j < end; j++)
+                            {
+                                edges.Add(_compactEdges[j]);
+                            }
                         }
                         else
                         {
@@ -147,14 +151,16 @@ namespace Roslyn.Utilities
 
                             foreach (var kvp in spilledEdges)
                             {
-                                edges[currentEdgeIndex] = new Edge(kvp.Key, kvp.Value);
-                                currentEdgeIndex++;
+                                edges.Add(new Edge(kvp.Key, kvp.Value));
                             }
                         }
                     }
+
+                    currentEdgeIndex += edgeCount;
                 }
 
-                Debug.Assert(currentEdgeIndex == edges.Length);
+                Debug.Assert(currentEdgeIndex == edges.Capacity);
+                Debug.Assert(currentEdgeIndex == edges.Count);
             }
 
             private void Add(TextSpan characterSpan, int insertionIndex)
