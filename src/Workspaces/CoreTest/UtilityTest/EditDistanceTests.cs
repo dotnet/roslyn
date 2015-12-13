@@ -126,10 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyEditDistance("aaaabbbb", "bbbbcccc", 8);
         }
 
-        [Fact]
-        public void Top1000()
-        {
-            var values = new string[]
+        public static readonly string[] Top1000 = new string[]
             {
                 "a","able","about","above","act","add","afraid","after","again","against","age","ago","agree","air","all",
                 "allow","also","always","am","among","an","and","anger","animal","answer","any","appear","apple","are",
@@ -208,12 +205,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "wrong","wrote","yard","year","yellow","yes","yet","you","young","your",
             };
 
-            for (var i = 0; i < values.Length; i++)
+
+        [Fact]
+        public void Top1000Test()
+        {
+            for (var i = 0; i < Top1000.Length; i++)
             {
-                var source = values[i];
-                for (var j = 0; j < values.Length; j++)
+                var source = Top1000[i];
+                for (var j = 0; j < Top1000.Length; j++)
                 {
-                    var target = values[j];
+                    var target = Top1000[j];
                     var editDistance1 = EditDistance.GetEditDistance(source, target);
 
                     if (i == j)

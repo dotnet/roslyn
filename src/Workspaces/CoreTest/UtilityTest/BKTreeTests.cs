@@ -141,6 +141,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             TestTreeInvariants(testValues);
         }
 
+        [Fact]
+        public void Top1000()
+        {
+            TestTreeInvariants(EditDistanceTests.Top1000);
+        }
+
         private IEnumerable<string> Expected(params string[] values)
         {
             return values;
