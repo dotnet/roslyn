@@ -221,9 +221,23 @@ namespace Roslyn.Utilities
                 return targetLength <= threshold ? targetLength : BeyondThreshold;
             }
 
+            // The is the minimum number of edits we'd have to make.  i.e. if  'source' and 
+            // 'target' are the same length, then we might not need to make any edits.  However,
+            // if target has length 10 and source has length 7, then we're going to have to
+            // make at least 3 edits no matter what.
+            var minimumEditCount = targetLength - sourceLength;
+            Debug.Assert(minimumEditCount >= 0);
+
+            // If the number of edits we'd have to perform is greater than our threshold, then
+            // there's no point in even continuing.
+            if (minimumEditCount > threshold)
+            {
+                return BeyondThreshold;
+            }
+
             // Say we want to find the edit distance between "sunday" and "saturday".  Our initial
             // matrix will be.
-
+            //
             //           s u n d a y
             //      ----------------
             //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
@@ -320,32 +334,148 @@ namespace Roslyn.Utilities
             //      |∞ 0 1 2 3 4 5 6
             //    s |∞ 1 
             //    a |∞ 2
-            //    t |∞ 3 \
-            //    u |∞ 4   \
-            //    r |∞ 5     \
-            //    d |∞ 6       \
-            //    a |∞ 7         \
+            //    t |∞ 3 `
+            //    u |∞ 4   `
+            //    r |∞ 5     `
+            //    d |∞ 6       `
+            //    a |∞ 7         `
             //    y |∞ 8           *
             //
             // The slashes are the diagonal leading to the lower right.  The value in the lower right will
             // be strictly equal to or greater than any value on this diagonal.  Thus, if that value 
             // exceeds the threshold, we know we can stop immediately as the total edit distance must be
             // greater than the threshold.
-
-
-            // The is the minimum number of edits we'd have to make.  i.e. if  'source' and 
-            // 'target' are the same length, then we might not need to make any edits.  However,
-            // if target has length 10 and source has length 7, then we're going to have to
-            // make at least 3 edits no matter what.
-            var minimumEditCount = targetLength - sourceLength;
-            Debug.Assert(minimumEditCount >= 0);
-
-            // If the number of edits we'd have to perform is greater than our threshold, then
-            // there's no point in even continuing.
-            if (minimumEditCount > threshold)
-            {
-                return BeyondThreshold;
-            }
+            //
+            // We can use similar logic to avoid even having to examine more of the matrix when we
+            // have a threshold. First, consider the bottom diagonal.
+            // 
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1
+            //    a |∞ 2
+            //    t |∞ 3 `
+            //    u |∞ 4   `       x
+            //    r |∞ 5     `     |
+            //    d |∞ 6       `   |
+            //    a |∞ 7         ` |
+            //    y |∞ 8           *
+            //
+            // And then consider a point above that diagonal (indicated by x).  In the example
+            // above, the edit distance to * from + will be (x+4).  If, for example, threshold
+            // was '2', then it would be impossible for the path from 'x' to provide a good
+            // enough edit distance *ever*.   Similarly:
+            //
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1
+            //    a |∞ 2
+            //    t |∞ 3 `
+            //    u |∞ 4   `
+            //    r |∞ 5     `
+            //    d |∞ 6       `
+            //    a |∞ 7         `
+            //    y |∞ 8     y - - *
+            //
+            // Here we see that the final edit distance will be "y+3".  Again, if the edit 
+            // Distance threshold is less than 3, then could never contribute a path.
+            //
+            // So, if we had an edit distance threshold of 3, then the range around that
+            // bottom diagonal that we should consider checking is:
+            //
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 | |
+            //    a |∞ 2 | | |
+            //    t |∞ 3 ` | | |
+            //    u |∞ 4 - ` | | |
+            //    r |∞ 5 - - ` | | |
+            //    d |∞ 6 - - - ` | |
+            //    a |∞ 7   - - - ` |
+            //    y |∞ 8     - - - *
+            //
+            // Now, also consider that it will take a minimum of targetLength-sourceLength edits 
+            // just to move to the lower diagonal from the upper diagonal.  That leaves
+            // 'threshold - (targetLength - sourceLength)' edits remaining.  In this example, that
+            // means '3 - (8 - 6)' = 1.  Because of this our lower diagonal offset is capped at:
+            //
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 | |
+            //    a |∞ 2 | | |
+            //    t |∞ 3 ` | | |
+            //    u |∞ 4 - ` | | |
+            //    r |∞ 5   - ` | | |
+            //    d |∞ 6     - ` | |
+            //    a |∞ 7       - ` |
+            //    y |∞ 8         - *
+            //
+            // If we mark the upper diagonal appropriately we see the matrix as:
+            //
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 ` |
+            //    a |∞ 2   ` |
+            //    t |∞ 3 `   ` |
+            //    u |∞ 4 - `   ` |
+            //    r |∞ 5   - `   ` |
+            //    d |∞ 6     - `   `
+            //    a |∞ 7       - `  
+            //    y |∞ 8         - *
+            //
+            // Or, effectively, we only need to examine 'threshold - (targetLength - sourceLength)' 
+            // above and below the diagonals.
+            //
+            // Now, given our max edit distance in practice is capped at 2.  the most around the
+            // diagon we'll ever have to check is +-2 elements.  i.e. with strings of length 10
+            // we'd only check:
+            // 
+            //           a b c d e f g h i j
+            //      ------------------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6 7 8 9 10
+            //    m |∞ 1 * * *
+            //    n |∞ 2 * * * *
+            //    o |∞ 3 * * * * *
+            //    p |∞ 4   * * * * *
+            //    q |∞ 5     * * * * *
+            //    r |∞ 6       * * * * *
+            //    s |∞ 7         * * * * *
+            //    t |∞ 8           * * * * *
+            //    u |∞ 9             * * * *
+            //    v |∞10               * * *
+            //
+            // or 10+18+16=44.  Or only 44%. if our threshold is two and our
+            // strings differ by length 2 then we have:
+            //
+            //           a b c d e f g h
+            //      --------------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6 7 8
+            //    m |∞ 1 *
+            //    n |∞ 2 * *
+            //    o |∞ 3 * * *
+            //    p |∞ 4   * * *
+            //    q |∞ 5     * * *
+            //    r |∞ 6       * * *
+            //    s |∞ 7         * * *
+            //    t |∞ 8           * * *
+            //    u |∞ 9             * * 
+            //    v |∞10               *  
+            //
+            // Then we examine 8+8+8=24 out of 80, or only 30% of the matrix.  As the strings
+            // get larger, the savings increase as well.
+            
+            // --------------------------------------------------------------------------------
 
             // The highest cost it can be to convert a source to target is targetLength.  i.e.
             // changing all the characters in source to target (which would be be 'sourceLength'
@@ -369,9 +499,14 @@ namespace Roslyn.Utilities
                     var lastMatchIndex_inTarget = 0;
                     var sourceChar = source[i - 1];
 
+                    // Determinethe portion of the column we actually want to examine.
                     var jStart = Math.Max(1, i - offset);
                     var jEnd = Math.Min(targetLength, i + minimumEditCount + offset);
 
+                    // If we're examining only a subportion of the column, then we need to make sure
+                    // that the values outside that range are set to Infinity.  That way we don't
+                    // consider them when we look through edit paths from above (for this column) or 
+                    // from the left (for the next column).
                     if (jStart > 1)
                     {
                         matrix[i + 1, jStart] = Infinity;
