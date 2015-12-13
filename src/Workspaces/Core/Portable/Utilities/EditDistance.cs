@@ -421,6 +421,11 @@ namespace Roslyn.Utilities
 
         private static int Min(int v1, int v2, int v3, int v4)
         {
+            Debug.Assert(v1 >= 0);
+            Debug.Assert(v2 >= 0);
+            Debug.Assert(v3 >= 0);
+            Debug.Assert(v4 >= 0);
+
             var min = v1;
             if (v2 < min)
             {
