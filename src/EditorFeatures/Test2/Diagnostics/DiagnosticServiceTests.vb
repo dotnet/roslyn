@@ -532,7 +532,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                     Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                     project = project.AddAnalyzerReference(analyzerReference)
 
-                    Dim descriptorsMap = DiagnosticService.GetDiagnosticDescriptors(project)
+                    Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
                     Assert.Equal(1, descriptorsMap.Count)
 
                     Dim document = project.Documents.Single()
@@ -881,7 +881,7 @@ class AnonymousFunctions
                     Dim document = project.GetDocument(diagnostic.DocumentId)
                     If document.Name = "Test1.cs" Then
                         file1HasDiag = True
-                    ElseIf document.Name = "Test2.cs"
+                    ElseIf document.Name = "Test2.cs" Then
                         file2HasDiag = True
                     End If
                 Next
