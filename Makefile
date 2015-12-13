@@ -1,7 +1,7 @@
 OS_NAME = $(shell uname -s)
 NUGET_PACKAGE_NAME = nuget.35
 BUILD_CONFIGURATION = Debug
-BOOTSTRAP_PATH = Binaries/Bootstrap
+BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
 
 
 MSBUILD_ADDITIONALARGS = /v:m /fl /fileloggerparameters:Verbosity=normal /p:SignAssembly=false /p:DebugSymbols=false
@@ -37,6 +37,8 @@ bootstrap: tools_packages
 	cp Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) ; \
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
+clean:
+	@rm -rf Binaries
 
 tools_packages: /tmp/$(ROSLYN_TOOLSET_NAME).tar.bz2  /tmp/$(MONO_TOOLSET_NAME).tar.bz2 /tmp/$(NUGET_PACKAGE_NAME).zip
 
