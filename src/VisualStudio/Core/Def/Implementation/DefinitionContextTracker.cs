@@ -92,8 +92,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var cancellationTokenSource = new CancellationTokenSource();
             _views[textView] = cancellationTokenSource;
             var cancellationToken = cancellationTokenSource.Token;
+
+            var foregroundTaskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+
             var context = await Task.Run(
-                async () => await GetContextFromPoint(pointInRoslynSnapshot, cancellationToken).ConfigureAwait(false),
+                async () => await GetContextFromPoint(pointInRoslynSnapshot, foregroundTaskScheduler, cancellationToken).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(true);
 
             if (context != null)
@@ -102,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private async Task<Context> GetContextFromPoint(SnapshotPoint? pointInRoslynSnapshot, CancellationToken cancellationToken)
+        private async Task<Context> GetContextFromPoint(SnapshotPoint? pointInRoslynSnapshot, TaskScheduler foregroundTaskScheduler, CancellationToken cancellationToken)
         {
             // TODO: Does this allocate too many tasks - should we switch to a queue like the classifier uses?
             await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
@@ -172,34 +175,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     project = originatingProject ?? project;
                 }
 
+                // Three choices here:
+                // 1. Another language (like Xaml) will take over via ISymbolNavigationService
+                // 2. There are locations in source, so we'll use those
+                // 3. There are no locations from source, so we'll try to generate a metadata as source file and use that
                 var results = new ArrayBuilder<Location>();
-
-                string filePath;
-                int lineNumber;
-                int charOffset;
+                string filePath = null;
+                int lineNumber = 0;
+                int charOffset = 0;
                 var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-                //if (symbolNavigationService.WouldNavigateToSymbol(symbol, solution, out filePath, out lineNumber, out charOffset))
-                //{
-                //    results.Add(new Location(symbol.ToDisplayString(), filePath, lineNumber, charOffset));
-                //}
-                //else
+                var wouldNavigate = false;
+                await Task.Factory.StartNew(
+                    () => wouldNavigate = symbolNavigationService.WouldNavigateToSymbol(symbol, solution, out filePath, out lineNumber, out charOffset),
+                    cancellationToken,
+                    TaskCreationOptions.None,
+                    foregroundTaskScheduler).ConfigureAwait(false);
+
+                if (wouldNavigate)
                 {
-                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
+                    results.Add(new Location(symbol.ToDisplayString(), filePath, lineNumber, charOffset));
+                }
+                else
+                {
                     var sourceLocations = symbol.Locations.Where(l => l.IsInSource).ToList();
-
-                    if (!sourceLocations.Any())
+                    if (sourceLocations.Any())
                     {
-                        // It's a symbol from metadata, so we want to go produce it from metadata
+                        foreach (var declaration in sourceLocations)
+                        {
+                            var declarationLocation = declaration.GetLineSpan();
+                            results.Add(new Location(symbol.ToDisplayString(), declarationLocation.Path, declarationLocation.Span.Start.Line, declarationLocation.Span.Start.Character));
+                        }
+                    }
+                    else
+                    {
                         var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, cancellationToken).ConfigureAwait(false);
                         var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         results.Add(new Location(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start.Line, identifierSpan.Start.Character));
-                    }
-
-                    foreach (var declaration in sourceLocations)
-                    {
-                        var declarationLocation = declaration.GetLineSpan();
-                        results.Add(new Location(symbol.ToDisplayString(), declarationLocation.Path, declarationLocation.Span.Start.Line, declarationLocation.Span.Start.Character));
                     }
                 }
 
