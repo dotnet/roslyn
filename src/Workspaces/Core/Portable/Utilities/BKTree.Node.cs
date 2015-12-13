@@ -11,8 +11,8 @@ namespace Roslyn.Utilities
     {
         private struct Node
         {
-            // The string this node corresponds to.  Stored in char[] format so we can easily compute
-            // edit distances on it.
+            // The string this node corresponds to.  Specifically, this span is the range of
+            // _allLowerCaseCharacters for that string.
             public readonly TextSpan CharacterSpan;
 
             // How many children/edges this node has.
