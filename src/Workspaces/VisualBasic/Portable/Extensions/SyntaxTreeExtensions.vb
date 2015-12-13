@@ -29,22 +29,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Function FindTriviaToLeft(nodeOrToken As SyntaxNodeOrToken, position As Integer) As SyntaxTrivia
+recurse:
             For Each child In nodeOrToken.ChildNodesAndTokens().Reverse()
-                If child.FullSpan.Start < position AndAlso position <= child.FullSpan.End Then
+                If (child.FullSpan.Start < position) AndAlso (position <= child.FullSpan.End) Then
                     If child.IsNode Then
-                        Return FindTriviaToLeft(child, position)
+                        nodeOrToken = child
+                        GoTo recurse
                     Else
-                        Dim triviaList = child.GetLeadingTrivia().Concat(child.GetTrailingTrivia()).Reverse()
-
-                        For Each trivia In triviaList
-                            If trivia.SpanStart < position AndAlso position <= child.FullSpan.End Then
+                        For Each trivia In child.GetTrailingTrivia.Reverse
+                            If (trivia.SpanStart < position) AndAlso (position <= child.FullSpan.End) Then
+                                Return trivia
+                            End If
+                        Next
+                        For Each trivia In child.GetLeadingTrivia.Reverse
+                            If (trivia.SpanStart < position) AndAlso (position <= child.FullSpan.End) Then
                                 Return trivia
                             End If
                         Next
                     End If
                 End If
             Next
-
             Return Nothing
         End Function
 
@@ -130,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' #IF false Then
             ' |$
 
-            If SyntaxTree.FindTriviaToLeft(position, cancellationToken).Kind = SyntaxKind.DisabledTextTrivia Then
+            If syntaxTree.FindTriviaToLeft(position, cancellationToken).Kind = SyntaxKind.DisabledTextTrivia Then
                 Return True
             End If
 
