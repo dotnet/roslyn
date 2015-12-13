@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class EditDistanceTests
     {
-        private static int VerifyEditDistance(string s, string t, int expectedEditDistance)
+        private static void VerifyEditDistance(string s, string t, int expectedEditDistance)
         {
             // We want the full edit distance, without bailing out early because we crossed the
             // threshold.
@@ -18,7 +18,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var editDistance2 = EditDistance.GetEditDistance(s, t, editDistance1);
             Assert.Equal(editDistance1, editDistance2);
 
-            return editDistance1;
+            if (editDistance1 > 0)
+            {
+                var editDistance3 = EditDistance.GetEditDistance(s, t, editDistance1 - 1);
+                Assert.Equal(editDistance3, EditDistance.BeyondThreshold);
+            }
         }
 
         [Fact]
@@ -104,6 +108,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Fact]
         public void EditDistance11()
+        {
+            var editDistance = EditDistance.GetEditDistance("book", "moons", 1);
+            Assert.Equal(editDistance, EditDistance.BeyondThreshold);
+            VerifyEditDistance("book", "moons", 3);
+        }
+
+        [Fact]
+        public void EditDistance12()
         {
             VerifyEditDistance("aaaab", "aaabc", 2);
             VerifyEditDistance("aaaab", "aabcc", 3);

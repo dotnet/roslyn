@@ -18,7 +18,7 @@ namespace Roslyn.Utilities
     // Important, unlike many edit distance algorithms out there, this one implements a true metric
     // that satisfies the triangle inequality.  (Unlike the "Optimal String Alignment" or "Restricted
     // string edit distance" solutions which do not).  This means this edit distance can be used in
-    // other domains that require the triangle inequality.
+    // other domains that require the triangle inequality (like BKTrees).
     //
     // Specifically, this implementation satisfies the following inequality: D(x, y) + D(y, z) >= D(x, z)
     // (where D is the edit distance).
@@ -37,7 +37,9 @@ namespace Roslyn.Utilities
         //
         // So we pick a value that is both effectively larger than any possible edit distance,
         // and also has no chance of overflowing.
-        private const int Infinity = int.MaxValue >> 2;
+        private const int Infinity = int.MaxValue >> 1;
+
+        public const int BeyondThreshold = int.MaxValue;
 
         private string _source;
         private char[] _sourceLowerCaseCharacters;
@@ -216,7 +218,7 @@ namespace Roslyn.Utilities
             var targetLength = target.Length;
             if (sourceLength == 0)
             {
-                return targetLength;
+                return targetLength <= threshold ? targetLength : BeyondThreshold;
             }
 
             // Say we want to find the edit distance between "sunday" and "saturday".  Our initial
@@ -342,8 +344,20 @@ namespace Roslyn.Utilities
             // there's no point in even continuing.
             if (minimumEditCount > threshold)
             {
-                return int.MaxValue;
+                return BeyondThreshold;
             }
+
+            // The highest cost it can be to convert a source to target is targetLength.  i.e.
+            // changing all the characters in source to target (which would be be 'sourceLength'
+            // changes), and then adding all the missing characters in 'target' (which is
+            // 'targetLength' - 'sourceLength' changes).  Combined that's 'targetLength'.  
+            //
+            // So we can just cap our threshold here.  This makes some of the walking code 
+            // below simpler.
+            threshold = Math.Min(threshold, targetLength);
+
+            var offset = threshold - minimumEditCount;
+            Debug.Assert(offset >= 0);
 
             var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
             var characterToLastSeenIndex_inSource = s_dictionaryPool.AllocateAndClear();
@@ -355,7 +369,20 @@ namespace Roslyn.Utilities
                     var lastMatchIndex_inTarget = 0;
                     var sourceChar = source[i - 1];
 
-                    for (int j = 1; j <= targetLength; j++)
+                    var jStart = Math.Max(1, i - offset);
+                    var jEnd = Math.Min(targetLength, i + minimumEditCount + offset);
+
+                    if (jStart > 1)
+                    {
+                        matrix[i + 1, jStart] = Infinity;
+                    }
+
+                    if (jEnd < targetLength)
+                    {
+                        matrix[i + 1, jEnd + 2] = Infinity;
+                    }
+
+                    for (int j = jStart; j <= jEnd; j++)
                     {
                         var targetChar = target[j - 1];
 
@@ -385,7 +412,7 @@ namespace Roslyn.Utilities
                     // to proceed.
                     if (matrix[i + 1, i + minimumEditCount + 1] > threshold)
                     {
-                        return int.MaxValue;
+                        return BeyondThreshold;
                     }
                 }
 
@@ -405,7 +432,8 @@ namespace Roslyn.Utilities
             {
                 for (var i = 0; i < width; i++)
                 {
-                    sb.Append(matrix[i + 2, j + 2] + " ");
+                    var v = matrix[i + 2, j + 2];
+                    sb.Append((v == Infinity ? "∞" : v.ToString()) + " ");
                 }
                 sb.AppendLine();
             }
