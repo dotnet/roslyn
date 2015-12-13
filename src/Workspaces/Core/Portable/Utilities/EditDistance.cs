@@ -178,6 +178,8 @@ namespace Roslyn.Utilities
                 : GetEditDistanceWorker(target, source, threshold);
         }
 
+        private static ObjectPool<Dictionary<char, int>> s_dictionaryPool = new ObjectPool<Dictionary<char, int>>(() => new Dictionary<char, int>());
+
         private static int GetEditDistanceWorker(ArraySlice<char> source, ArraySlice<char> target, int threshold)
         {
             // Note: sourceLength will always be smaller or equal to targetLength.
@@ -216,8 +218,6 @@ namespace Roslyn.Utilities
             {
                 return targetLength;
             }
-
-            var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
 
             // Say we want to find the edit distance between "sunday" and "saturday".  Our initial
             // matrix will be.
@@ -345,9 +345,11 @@ namespace Roslyn.Utilities
                 return int.MaxValue;
             }
 
+            var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
+            var characterToLastSeenIndex_inSource = s_dictionaryPool.AllocateAndClear();
+
             try
             {
-                var characterToLastSeenIndex_inSource = new Dictionary<char, int>();
                 for (int i = 1; i <= sourceLength; i++)
                 {
                     var lastMatchIndex_inTarget = 0;
@@ -392,6 +394,7 @@ namespace Roslyn.Utilities
             finally
             {
                 ReleaseMatrix(matrix);
+                s_dictionaryPool.Free(characterToLastSeenIndex_inSource);
             }
         }
 
