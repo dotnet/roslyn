@@ -1,5 +1,10 @@
 OS_NAME = $(shell uname -s)
 NUGET_PACKAGE_NAME = nuget.35
+BUILD_CONFIGURATION = Debug
+BOOTSTRAP_PATH = Binaries/Bootstrap
+
+
+MSBUILD_ADDITIONALARGS = /v:m /fl /fileloggerparameters:Verbosity=normal /p:SignAssembly=false /p:DebugSymbols=false
 
 ifeq ($(OS_NAME),Linux)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=ubuntu.14.04
@@ -11,11 +16,29 @@ else ifeq ($(OS_NAME),Darwin)
 	ROSLYN_TOOLSET_NAME=roslyn.mac.1
 endif
 
-MONO_PATH = /tmp/$(MONO_TOOLSET_NAME)/bin/mono
-BOOTSTRAP_ARGS=$(MSBUILD_ADDITIONALARGS) /p:CscToolPath=/tmp/$(ROSLYN_TOOLSET_NAME) /p:CscToolExe=csc /p:VbcToolPath=/tmp/$(ROSLYN_TOOLSET_NAME) /p:VbcToolExe=vbc
+ifeq ($(BOOTSTRAP),true)
+	ROSLYN_TOOLSET_PATH = $(BOOTSTRAP_PATH)
+else
+	ROSLYN_TOOLSET_PATH = /tmp/$(ROSLYN_TOOLSET_NAME)
+endif
 
-all: /tmp/$(ROSLYN_TOOLSET_NAME).tar.bz2  /tmp/$(MONO_TOOLSET_NAME).tar.bz2 /tmp/$(NUGET_PACKAGE_NAME).zip
-	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $(BOOTSTRAP_ARGS) /p:SignAssembly=false /p:DebugSymbols=false CrossPlatform.sln
+MONO_PATH = /tmp/$(MONO_TOOLSET_NAME)/bin/mono
+TOOLSET_ARGS = $(MSBUILD_ADDITIONALARGS) /p:CscToolPath=$(ROSLYN_TOOLSET_PATH) /p:CscToolExe=csc /p:VbcToolPath=$(ROSLYN_TOOLSET_PATH) /p:VbcToolExe=vbc
+
+all: tools_packages
+	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $(TOOLSET_ARGS) CrossPlatform.sln
+
+
+bootstrap: tools_packages
+	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $(TOOLSET_ARGS) src/Compilers/CSharp/CscCore/CscCore.csproj ; \
+	$(MONO_PATH) ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $(TOOLSET_ARGS) src/Compilers/VisualBasic/VbcCore/VbcCore.csproj ; \
+	mkdir -p $(BOOTSTRAP_PATH) ; \
+	cp Binaries/$(BUILD_CONFIGURATION)/csccore/* $(BOOTSTRAP_PATH) ; \
+	cp Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) ; \
+	rm -rf Binaries/$(BUILD_CONFIGURATION)
+
+
+tools_packages: /tmp/$(ROSLYN_TOOLSET_NAME).tar.bz2  /tmp/$(MONO_TOOLSET_NAME).tar.bz2 /tmp/$(NUGET_PACKAGE_NAME).zip
 
 /tmp/$(ROSLYN_TOOLSET_NAME).tar.bz2:
 	@pushd /tmp/ ; \
