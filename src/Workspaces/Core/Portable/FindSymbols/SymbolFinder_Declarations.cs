@@ -14,17 +14,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal enum SearchKind
     {
         /// <summary>
-        /// Search term must be matched exactly (including casing).
+        /// Use an case-sensitive comparison when searching for matching items.
         /// </summary>
         Exact,
 
         /// <summary>
-        /// Search term must be matched exactly (not including casing).
+        /// Use a case-insensitive comparison when searching for matching items.
         /// </summary>
         ExactIgnoreCase,
 
         /// <summary>
-        /// Search term can match in a fuzzy (i.e. misspellings) manner.
+        /// Use a fuzzy comparison when searching for matching items. Fuzzy matching allows for 
+        /// a certain amount of misspellings, missing words, etc. See <see cref="SpellChecker"/> for 
+        /// more details.
         /// </summary>
         Fuzzy,
 
