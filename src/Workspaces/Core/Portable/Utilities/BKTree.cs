@@ -20,8 +20,8 @@ namespace Roslyn.Utilities
             SpecializedCollections.EmptyArray<Node>(),
             SpecializedCollections.EmptyArray<Edge>());
 
-        // We have two completely flat arrays of structs (except for the char[] values the nodes
-        // point to).  These arrays fully represent the BK tree.  The structure is as follows:
+        // We have three completely flat arrays of structs.  These arrays fully represent the 
+        // BK tree.  The structure is as follows:
         //
         // The root node is in _nodes[0].
         //
@@ -32,6 +32,10 @@ namespace Roslyn.Utilities
         // * of course '0' is only for the root case.  All nodes state where in _edges
         // their child edges range starts.  So the children for any node are in _edges from
         // [node.FirstEdgeIndex, node.FirstEdgeIndex + node.EdgeCount)
+        //
+        // Each node also has an associated string.  These strings are concatenated and stored
+        // in _allLowerCaseCharacters.  Each node has a TextSpan that indicates which portion
+        // of the character array is their string.
         private readonly char[] _allLowerCaseCharacters;
         private readonly Node[] _nodes;
         private readonly Edge[] _edges;
