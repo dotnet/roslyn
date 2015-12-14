@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         internal abstract List<TDirectiveTriviaSyntax> GetMatchingConditionalDirectives(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
         internal abstract TDirectiveTriviaSyntax GetMatchingDirective(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
-        internal abstract TextSpan GetSpansForTagging(TDirectiveTriviaSyntax directive);
+        internal abstract TextSpan GetSpanForTagging(TDirectiveTriviaSyntax directive);
 
         public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             return new BraceMatchingResult(
-                leftSpan: GetSpansForTagging(directive),
-                rightSpan: GetSpansForTagging(matchingDirective));
+                leftSpan: GetSpanForTagging(directive),
+                rightSpan: GetSpanForTagging(matchingDirective));
         }
 
 

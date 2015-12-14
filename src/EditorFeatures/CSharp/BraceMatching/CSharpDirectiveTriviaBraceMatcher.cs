@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
         internal override DirectiveTriviaSyntax GetMatchingDirective(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
                 => directive.GetMatchingDirective(cancellationToken);
 
-        internal override TextSpan GetSpansForTagging(DirectiveTriviaSyntax directive)
+        internal override TextSpan GetSpanForTagging(DirectiveTriviaSyntax directive)
                 => TextSpan.FromBounds(directive.HashToken.SpanStart, directive.DirectiveNameToken.Span.End);
     }
 }

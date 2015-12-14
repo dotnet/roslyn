@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
             Return directive.GetMatchingStartOrEndDirective(cancellationToken)
         End Function
 
-        Friend Overrides Function GetSpansForTagging(directive As DirectiveTriviaSyntax) As TextSpan
+        Friend Overrides Function GetSpanForTagging(directive As DirectiveTriviaSyntax) As TextSpan
             Dim keywordToken = directive.TypeSwitch(
                                            Function(context As IfDirectiveTriviaSyntax) context.IfOrElseIfKeyword,
                                            Function(context As ElseDirectiveTriviaSyntax) context.ElseKeyword,
