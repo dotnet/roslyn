@@ -33,19 +33,19 @@ namespace Roslyn.Utilities
         // [node.FirstEdgeIndex, node.FirstEdgeIndex + node.EdgeCount)
         //
         // Each node also has an associated string.  These strings are concatenated and stored
-        // in _allLowerCaseCharacters.  Each node has a TextSpan that indicates which portion
+        // in _concatenatedLowerCaseWords.  Each node has a TextSpan that indicates which portion
         // of the character array is their string.  Note: i'd like to use an immutable array
         // for the characters as well.  However, we need to create slices, and they need to 
         // work on top of an ArraySlice (which needs a char[]).  The edit distance code also
         // wants to work on top of raw char[]s (both for speed, and so it can pool arrays
         // to prevent lots of garbage).  Because of that we just keep this as a char[].
-        private readonly char[] _allLowerCaseCharacters;
+        private readonly char[] _concatenatedLowerCaseWords;
         private readonly ImmutableArray<Node> _nodes;
         private readonly ImmutableArray<Edge> _edges;
 
-        private BKTree(char[] allLowerCaseCharacters, ImmutableArray<Node> nodes, ImmutableArray<Edge> edges)
+        private BKTree(char[] concatenatedLowerCaseWords, ImmutableArray<Node> nodes, ImmutableArray<Edge> edges)
         {
-            _allLowerCaseCharacters = allLowerCaseCharacters;
+            _concatenatedLowerCaseWords = concatenatedLowerCaseWords;
             _nodes = nodes;
             _edges = edges;
         }
@@ -91,15 +91,15 @@ namespace Roslyn.Utilities
             // We always want to compute the real edit distance (ignoring any thresholds).  This is
             // because we need that edit distance to appropriately determine which edges to walk 
             // in the tree.
-            var characterSpan = currentNode.CharacterSpan;
+            var characterSpan = currentNode.WordSpan;
             var editDistance = EditDistance.GetEditDistance(
-                new ArraySlice<char>(_allLowerCaseCharacters, characterSpan),
+                new ArraySlice<char>(_concatenatedLowerCaseWords, characterSpan),
                 new ArraySlice<char>(queryCharacters, 0, queryLength));
 
             if (editDistance <= threshold)
             {
                 // Found a match.
-                result.Add(new string(_allLowerCaseCharacters, characterSpan.Start, characterSpan.Length));
+                result.Add(new string(_concatenatedLowerCaseWords, characterSpan.Start, characterSpan.Length));
             }
 
             var min = editDistance - threshold;

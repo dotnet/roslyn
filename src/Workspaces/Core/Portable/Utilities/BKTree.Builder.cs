@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,8 +16,18 @@ namespace Roslyn.Utilities
         {
             private const int CompactEdgeAllocationSize = 4;
 
-            private readonly char[] _allLowerCaseCharacters;
-            private readonly TextSpan[] _characterSpans;
+            // Instead of producing a char[] for each string we're building a node for, we instead 
+            // have one long char[] with all the chracters of each string concatenated.  i.e.
+            // "foo" "bar" and "baz" becomes { f, o, o, b, a, r, b, a, z }.  Then in _wordSpans
+            // we have the text spans for each of those words in this array.  This gives us only
+            // two allocations instead of as many allocations as the number of strings we have.
+            //
+            // Once we are done building, we pass this to the BKTree and its nodes also state the
+            // span of this array that corresponds to the word they were created for.  This works
+            // well as other dependent facilities (like EditDistance) can work on sub-arrays without
+            // any problems.
+            private readonly char[] _concatenatedLowerCaseWords;
+            private readonly TextSpan[] _wordSpans;
 
             // Note: while building a BKTree we have to store children with parents, keyed by the
             // edit distance between the two.  Naive implementations might store a list or dictionary
@@ -83,18 +90,18 @@ namespace Roslyn.Utilities
                 var distinctValues = values.Where(v => v.Length > 0).Distinct(CaseInsensitiveComparison.Comparer).ToArray();
                 var charCount = Enumerable.Sum<string>(values,(Func<string, int>)(v => (int)v.Length));
 
-                _allLowerCaseCharacters = new char[charCount];
-                _characterSpans = new TextSpan[distinctValues.Length];
+                _concatenatedLowerCaseWords = new char[charCount];
+                _wordSpans = new TextSpan[distinctValues.Length];
 
                 var characterIndex = 0;
                 for (int i = 0; i < distinctValues.Length; i++)
                 {
                     var value = distinctValues[i];
-                    _characterSpans[i] = new TextSpan(characterIndex, value.Length);
+                    _wordSpans[i] = new TextSpan(characterIndex, value.Length);
 
                     foreach (var ch in value)
                     {
-                        _allLowerCaseCharacters[characterIndex] = char.ToLower(ch);
+                        _concatenatedLowerCaseWords[characterIndex] = char.ToLower(ch);
                         characterIndex++;
                     }
                 }
@@ -106,9 +113,9 @@ namespace Roslyn.Utilities
 
             internal BKTree Create()
             {
-                for (var i = 0; i < _characterSpans.Length; i++)
+                for (var i = 0; i < _wordSpans.Length; i++)
                 {
-                    Add(_characterSpans[i], insertionIndex: i);
+                    Add(_wordSpans[i], insertionIndex: i);
                 }
 
                 var nodes = ImmutableArray.CreateBuilder<Node>(_builderNodes.Length);
@@ -119,7 +126,7 @@ namespace Roslyn.Utilities
 
                 BuildArrays(nodes, edges);
 
-                return new BKTree(_allLowerCaseCharacters, nodes.MoveToImmutable(), edges.MoveToImmutable());
+                return new BKTree(_concatenatedLowerCaseWords, nodes.MoveToImmutable(), edges.MoveToImmutable());
             }
 
             private void BuildArrays(ImmutableArray<Node>.Builder nodes, ImmutableArray<Edge>.Builder edges)
@@ -136,7 +143,7 @@ namespace Roslyn.Utilities
                     {
                         if (edgeCount <= CompactEdgeAllocationSize)
                         {
-                            // When tehre are less than 4 elements, copy from teh _compact array.
+                            // When there are less than 4 elements, copy from teh _compact array.
                             var start = i * CompactEdgeAllocationSize;
                             var end = start + edgeCount;
                             for (var j = start; j < end; j++)
@@ -182,8 +189,8 @@ namespace Roslyn.Utilities
                     // a threshold here as we need the actual edit distance so we can actually
                     // determine what edge to make or walk.
                     var editDistance = EditDistance.GetEditDistance(
-                        new ArraySlice<char>(_allLowerCaseCharacters, currentNode.CharacterSpan),
-                        new ArraySlice<char>(_allLowerCaseCharacters, characterSpan));
+                        new ArraySlice<char>(_concatenatedLowerCaseWords, currentNode.CharacterSpan),
+                        new ArraySlice<char>(_concatenatedLowerCaseWords, characterSpan));
 
                     if (editDistance == 0)
                     {

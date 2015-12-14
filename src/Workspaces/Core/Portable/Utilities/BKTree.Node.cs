@@ -9,8 +9,8 @@ namespace Roslyn.Utilities
         private struct Node
         {
             // The string this node corresponds to.  Specifically, this span is the range of
-            // _allLowerCaseCharacters for that string.
-            public readonly TextSpan CharacterSpan;
+            // _concatenatedLowerCaseWords for that string.
+            public readonly TextSpan WordSpan;
 
             // How many children/edges this node has.
             public readonly int EdgeCount;
@@ -19,17 +19,17 @@ namespace Roslyn.Utilities
             // _edges[FirstEdgeIndex, FirstEdgeIndex + EdgeCount)
             public readonly int FirstEdgeIndex;
 
-            public Node(TextSpan characterSpan, int edgeCount, int firstEdgeIndex)
+            public Node(TextSpan wordSpan, int edgeCount, int firstEdgeIndex)
             {
-                CharacterSpan = characterSpan;
+                WordSpan = wordSpan;
                 EdgeCount = edgeCount;
                 FirstEdgeIndex = firstEdgeIndex;
             }
 
             internal void WriteTo(ObjectWriter writer)
             {
-                writer.WriteInt32(CharacterSpan.Start);
-                writer.WriteInt32(CharacterSpan.Length);
+                writer.WriteInt32(WordSpan.Start);
+                writer.WriteInt32(WordSpan.Length);
                 writer.WriteInt32(EdgeCount);
                 writer.WriteInt32(FirstEdgeIndex);
             }
