@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.DocumentationCommentFormatting
+namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal interface IDocumentationCommentFormattingService : ILanguageService
     {
