@@ -240,6 +240,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         Assert.Equal(0, editDistance1);
                     }
 
+                    if (editDistance1 == 0)
+                    {
+                        Assert.Equal(i, j);
+                    }
+
                     Assert.True(editDistance1 >= 0);
 
                     var editDistance2 = EditDistance.GetEditDistance(source, target, editDistance1);
