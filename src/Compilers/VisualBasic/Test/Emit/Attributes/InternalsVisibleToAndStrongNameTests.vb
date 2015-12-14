@@ -1638,12 +1638,11 @@ End Class
     Public Sub PublicSignCore(compilation As Compilation)
         Assert.True(compilation.Options.PublicSign)
         Assert.Null(compilation.Options.DelaySign)
-        compilation.VerifyDiagnostics()
-        compilation.VerifyEmitDiagnostics()
 
         Dim stream As New MemoryStream()
         Dim emitResult = compilation.Emit(stream)
         Assert.True(emitResult.Success)
+        Assert.True(emitResult.Diagnostics.IsEmpty)
         stream.Position = 0
 
         Using reader As New PEReader(stream)
