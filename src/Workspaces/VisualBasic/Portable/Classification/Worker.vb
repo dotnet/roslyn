@@ -124,6 +124,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                         SyntaxKind.BadDirectiveTrivia
 
                         ClassifyDirectiveSyntax(DirectCast(trivia.GetStructure(), DirectiveTriviaSyntax))
+                    Case SyntaxKind.ShebangDirectiveTrivia
+                        ClassifyShebangDirective(trivia.GetStructure(), ClassificationTypeNames.Comment)
                     Case SyntaxKind.SkippedTokensTrivia
                         ClassifySkippedTokens(DirectCast(trivia.GetStructure(), SkippedTokensTriviaSyntax))
                 End Select
@@ -136,6 +138,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf trivia.Kind = SyntaxKind.LineContinuationTrivia Then
                 AddClassification(New TextSpan(trivia.SpanStart, 1), ClassificationTypeNames.Punctuation)
             End If
+        End Sub
+
+        Private Sub ClassifyShebangDirective(directiveSyntax As SyntaxNode, classificationType As String)
+            If Not _textSpan.OverlapsWith(directiveSyntax.Span) Then
+                Return
+            End If
+
+            For Each child As SyntaxNodeOrToken In directiveSyntax.DescendantTokens()
+                If child.IsToken Then
+                    AddClassification(child.AsToken(), classificationType)
+                End If
+            Next
+
+            For Each trailingTrivia In directiveSyntax.GetTrailingTrivia()
+                ClassifyTrivia(trailingTrivia)
+            Next
         End Sub
 
         Private Sub ClassifySkippedTokens(skippedTokens As SkippedTokensTriviaSyntax)

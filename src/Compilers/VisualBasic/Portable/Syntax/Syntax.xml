@@ -9445,6 +9445,13 @@ Unify Enum declarations with other block type declarations.
       <child name="ErrorCodes" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@IdentifierNameSyntax"/>
     </node-structure>
 
+    <node-structure name="ShebangDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
+      <description>Represents a #! directive appearning at the beginning of scripts.</description>
+      <node-kind name="ShebangDirectiveTrivia"></node-kind>
+
+      <child name="ExclamationToken" kind="ExclamationToken"/>
+    </node-structure>
+    
     <node-structure name="ReferenceDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
       <description>Represents an #r directive appearing in scripts.</description>
       <node-kind name="ReferenceDirectiveTrivia"></node-kind>

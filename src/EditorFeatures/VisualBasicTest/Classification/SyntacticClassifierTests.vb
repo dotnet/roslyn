@@ -3744,6 +3744,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestShebangDirective() As Task
+            Dim text = "#!/usr/bin/test"
+            Await TestAsync(text,
+                            Comment("#"),
+                            Comment("!"),
+                            Comment("/usr/bin/test"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBadWarningDirectives() As Task
             Dim text = StringFromLines(
                 "Module Program",

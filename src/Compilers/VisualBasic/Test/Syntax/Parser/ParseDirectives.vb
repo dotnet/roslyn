@@ -21,6 +21,20 @@ Public Class ParseDirectives
         ]]>)
     End Sub
 
+    Public Sub ParseShebangDirective()
+        ParseAndVerify(<![CDATA[
+            #!/bin/tac -f
+
+            Dim x = 12
+        ]]>)
+
+        ParseAndVerify(<![CDATA[
+            #!
+
+            Dim x = 12
+        ]]>)
+    End Sub
+
     <Fact>
     Public Sub ParseReferenceDirective()
         ParseAndVerify(<![CDATA[

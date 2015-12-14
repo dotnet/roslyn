@@ -6,6 +6,7 @@
 
 ' // Parse a line containing a conditional compilation directive.
 Imports System.Globalization
+Imports System.Text
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -60,6 +61,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.ConstKeyword
 
                     statement = ParseConstDirective(hashToken)
+
+                Case SyntaxKind.ExclamationToken
+
+                    statement = ParseShebangDirective(hashToken)
 
                 Case SyntaxKind.IdentifierToken
                     Select Case DirectCast(CurrentToken, IdentifierTokenSyntax).PossibleKeywordKind
@@ -461,6 +466,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             VerifyExpectedToken(SyntaxKind.StringLiteralToken, file)
 
             Return SyntaxFactory.ReferenceDirectiveTrivia(hashToken, referenceKeyword, file)
+        End Function
+
+        Private Function ParseShebangDirective(hashToken As PunctuationSyntax) As ShebangDirectiveTriviaSyntax
+            Dim builder = New StringBuilder()
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.ExclamationToken,
+                         NameOf(ParseShebangDirective) & " called with wrong token")
+            Dim exclamationToken = DirectCast(CurrentToken, PunctuationSyntax)
+            GetNextToken()
+
+            ' Eat tokens until the end of line.
+            While CurrentToken.Kind <> SyntaxKind.EndOfLineTrivia AndAlso
+                    CurrentToken.Kind <> SyntaxKind.EndOfFileToken AndAlso
+                    CurrentToken.Kind <> SyntaxKind.StatementTerminatorToken
+                builder.Append(CurrentToken.ToFullString())
+                GetNextToken()
+            End While
+
+
+            exclamationToken = exclamationToken.AddTrailingTrivia(SyntaxFactory.CommentTrivia(builder.ToString()))
+            Return SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken)
         End Function
 
         Private Function ParseLoadDirective(hashToken As PunctuationSyntax) As LoadDirectiveTriviaSyntax

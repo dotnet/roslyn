@@ -3174,9 +3174,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         EndOfInterpolatedStringToken = 787                              ' PunctuationSyntax : SyntaxToken
 
-        LoadKeyword = 788
-        LoadDirectiveTrivia = 789
-        LoadDirectiveTriviaSyntax = 790
+        ''' <summary>
+        ''' Represents a single keyword in a VB program. Which keyword can be determined
+        ''' from the Kind property.
+        ''' </summary>
+        LoadKeyword = 788                                               ' LoadKeyword : SyntaxToken
+
+        ''' <summary>
+        ''' Represents a #load directive appearing in scripts.
+        ''' </summary>
+        LoadDirectiveTrivia = 789                                       ' LoadDirectiveTrivia : DirectiveTriviaSyntax : StructuredTriviaSyntax
+
+        ''' <summary>
+        ''' Represents a '#!' directive appearing in the beginning of scripts.
+        ''' </summary>
+        ShebangDirectiveTrivia = 790                                    ' ShebangDirectiveTrivia : DirectiveTriviaSyntax : StructuredTriviaSyntax
 
     End Enum
 

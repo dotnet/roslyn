@@ -70,7 +70,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SyntaxKind.EnableKeyword,
                     SyntaxKind.DisableKeyword,
                     SyntaxKind.ExternalSourceKeyword,
-                    SyntaxKind.ExternalChecksumKeyword
+                    SyntaxKind.ExternalChecksumKeyword,
+                    SyntaxKind.ExclamationToken
                     Return True
                 Case Else
                     Return False
@@ -528,6 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SyntaxKind.RegionDirectiveTrivia,
                     SyntaxKind.EndRegionDirectiveTrivia,
                     SyntaxKind.ConstDirectiveTrivia,
+                    SyntaxKind.ShebangDirectiveTrivia,
                     SyntaxKind.ExternalSourceDirectiveTrivia,
                     SyntaxKind.EndExternalSourceDirectiveTrivia,
                     SyntaxKind.ExternalChecksumDirectiveTrivia,
