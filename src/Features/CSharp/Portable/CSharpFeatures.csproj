@@ -86,6 +86,7 @@
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.SimplifyTypeNamesFixAllProvider.cs" />
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\CSharpSuppressionCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\UseImplicitTyping\UseImplicitTypingCodeFixProvider.cs" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractMethod\ExtractMethodCodeRefactoringProvider.cs" />
@@ -269,6 +270,7 @@
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpSimplifyTypeNamesDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpUseImplicitTypingDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\CSharpAnalyzerDriverService.cs" />
     <Compile Include="DocumentationComments\CSharpDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationComments\DocumentationCommentUtilities.cs" />

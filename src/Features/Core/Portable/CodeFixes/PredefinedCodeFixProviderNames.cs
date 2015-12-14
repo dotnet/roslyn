@@ -36,5 +36,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string Suppression = nameof(Suppression);
         public const string AddOverloads = "Add Overloads to member";
         public const string AddNew = "Add new keyword to member";
+        public const string UseImplicitTyping = "Use var";
     }
 }
