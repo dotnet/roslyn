@@ -8,15 +8,18 @@ namespace Roslyn.Utilities
     {
         private struct Node
         {
-            // The string this node corresponds to.  Specifically, this span is the range of
-            // _concatenatedLowerCaseWords for that string.
+            /// <summary>
+            /// The string this node corresponds to.  Specifically, this span is the range of
+            /// <see cref="_concatenatedLowerCaseWords"/> for that string.
+            /// </summary>
             public readonly TextSpan WordSpan;
 
-            // How many children/edges this node has.
+            ///<summary>How many child edges this node has.</summary>
             public readonly int EdgeCount;
 
-            // Where the first edge can be found in "_edges".  The edges are in the range:
-            // _edges[FirstEdgeIndex, FirstEdgeIndex + EdgeCount)
+            ///<summary>Where the first edge can be found in <see cref="_edges"/>.  The edges 
+            ///are in the range _edges[FirstEdgeIndex, FirstEdgeIndex + EdgeCount)
+            ///</summary>
             public readonly int FirstEdgeIndex;
 
             public Node(TextSpan wordSpan, int edgeCount, int firstEdgeIndex)
@@ -36,7 +39,9 @@ namespace Roslyn.Utilities
 
             internal static Node ReadFrom(ObjectReader reader)
             {
-                return new Node(new TextSpan(reader.ReadInt32(), reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt32());
+                return new Node(
+                    new TextSpan(start: reader.ReadInt32(), length: reader.ReadInt32()),
+                    edgeCount: reader.ReadInt32(), firstEdgeIndex: reader.ReadInt32());
             }
         }
     }

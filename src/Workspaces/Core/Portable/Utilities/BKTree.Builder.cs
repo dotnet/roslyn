@@ -14,6 +14,10 @@ namespace Roslyn.Utilities
     {
         private class Builder
         {
+            // The number of edges we pre-allocate space for for each node in _compactEdges.
+            //
+            // To make the comments simpler below, i'll use '4' as a synonym for CompactEdgeAllocationSize.
+            // '4' simply reads better and makes it clearer what's going on.
             private const int CompactEdgeAllocationSize = 4;
 
             // Instead of producing a char[] for each string we're building a node for, we instead 
@@ -191,7 +195,7 @@ namespace Roslyn.Utilities
 
                     if (editDistance == 0)
                     {
-                        // This shoudl never happen.  We dedupe all items before proceeding to the 'Add' step.
+                        // This should never happen.  We dedupe all items before proceeding to the 'Add' step.
                         // So the edit distance should always be non-zero.
                         throw new InvalidOperationException();
                     }
@@ -213,11 +217,12 @@ namespace Roslyn.Utilities
             private void AddChildNode(
                 TextSpan characterSpan, int insertionIndex, int currentNodeEdgeCount, int currentNodeIndex, int editDistance)
             {
-                // Node doesn't have an edge with this edit distance. Three cases to handle:
+                // The node as 'currentNodeIndex' doesn't have an edge with this edit distance. 
+                // Three cases to handle:
                 // 1) there are less than 4 edges.  We simply place the edge into the correct
                 //    location in compactEdges
-                // 2) there are 4 edges.  We need to copy these edges into the spillover 
-                //    dictionary and then add the new edge into that.
+                // 2) there are 4 edges.  We need to make the spillover dictionary and then add 
+                //    the new edge into that.
                 // 3) there are more than 4 edges.  Just put the new edge in the spillover 
                 //    dictionary.
 

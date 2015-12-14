@@ -10,7 +10,16 @@ using static System.Math;
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// NOTE: do not use this class directly.  It is intended for use only by the spell checker.
+    /// NOTE: Only use if you truly need a BK-tree.  If you just want to compare words, use
+    /// the SpellChecker type instead.
+    ///
+    /// An implementation of a Burkhard-Keller tree.  Introduced in:
+    /// 
+    /// 'Some approaches to best-match file searching.'
+    /// Communications of the ACM CACM
+    /// Volume 16 Issue 4, April 1973 
+    /// Pages 230-236 
+    /// http://dl.acm.org/citation.cfm?doid=362003.362025
     /// </summary>
     internal partial class BKTree
     {
@@ -28,9 +37,10 @@ namespace Roslyn.Utilities
         // [0*, childCount).  Each edge has the index of the child node it points to, and the
         // edit distance between the parent and the child.
         //
-        // * of course '0' is only for the root case.  All nodes state where in _edges
-        // their child edges range starts.  So the children for any node are in _edges from
-        // [node.FirstEdgeIndex, node.FirstEdgeIndex + node.EdgeCount)
+        // * of course '0' is only for the root case.  
+        //
+        // All nodes state where in _edges their child edges range starts, so the children 
+        // for any node are in the range[node.FirstEdgeIndex, node.FirstEdgeIndex + node.EdgeCount).
         //
         // Each node also has an associated string.  These strings are concatenated and stored
         // in _concatenatedLowerCaseWords.  Each node has a TextSpan that indicates which portion
@@ -105,9 +115,9 @@ namespace Roslyn.Utilities
             var min = editDistance - threshold;
             var max = editDistance + threshold;
 
-            var firstEdgeIndex = currentNode.FirstEdgeIndex;
-            var lastEdgeIndex = firstEdgeIndex + currentNode.EdgeCount;
-            for (var i = firstEdgeIndex; i < lastEdgeIndex; i++)
+            var startInclusive = currentNode.FirstEdgeIndex;
+            var endExclusive = startInclusive + currentNode.EdgeCount;
+            for (var i = startInclusive; i < endExclusive; i++)
             {
                 var childEditDistance = _edges[i].EditDistance;
                 if (min <= childEditDistance && childEditDistance <= max)
@@ -118,6 +128,8 @@ namespace Roslyn.Utilities
             }
         }
 
+#if false
+        // Used for diagnostic purposes.
         internal void DumpStats()
         {
             var sb = new StringBuilder();
@@ -153,9 +165,9 @@ namespace Roslyn.Utilities
                 }
 
                 var maxEditDistance = -1;
-                var firstChild = node.FirstEdgeIndex;
-                var lastChild = firstChild + node.EdgeCount;
-                for (var i = firstChild; i < lastChild; i++)
+                var startInclusive = node.FirstEdgeIndex;
+                var endExclusive = startInclusive + node.EdgeCount;
+                for (var i = startInclusive; i < endExclusive; i++)
                 {
                     maxEditDistance = Max(maxEditDistance, _edges[i].EditDistance);
                 }
@@ -178,5 +190,6 @@ namespace Roslyn.Utilities
 
             var result = sb.ToString();
         }
+#endif
     }
 }

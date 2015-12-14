@@ -8,7 +8,8 @@ using static System.Math;
 
 namespace Roslyn.Utilities
 {
-    // NOTE: do not use this class directly.  It is intended for use only by the spell checker.
+    // NOTE: Only use if you truly need an edit distance.  If you just want to compare words, use
+    // the SpellChecker type instead.
     //
     // Implementation of the Damerau-Levenshtein edit distance algorithm from:
     // An Extension of the String-to-String Correction Problem:
@@ -22,8 +23,6 @@ namespace Roslyn.Utilities
     //
     // Specifically, this implementation satisfies the following inequality: D(x, y) + D(y, z) >= D(x, z)
     // (where D is the edit distance).
-    //
-    // NOTE: do not use this class directly.  It is intended for use only by the spell checker.
     internal class EditDistance : IDisposable
     {
         // Our edit distance algorithm makes use of an 'infinite' value.  A value so high that it 
@@ -236,7 +235,11 @@ namespace Roslyn.Utilities
             }
 
             // Say we want to find the edit distance between "sunday" and "saturday".  Our initial
-            // matrix will be.
+            // matrix will be:
+            //
+            // (Note: for purposes of this explanation we will not be trimming off the common 
+            // prefix/suffix of the strings.  That optimization does not affect any of the 
+            // remainder of the explanation).
             //
             //           s u n d a y
             //      ----------------
@@ -341,13 +344,13 @@ namespace Roslyn.Utilities
             //    a |∞ 7         `
             //    y |∞ 8           *
             //
-            // The slashes are the diagonal leading to the lower right.  The value in the lower right will
-            // be strictly equal to or greater than any value on this diagonal.  Thus, if that value 
-            // exceeds the threshold, we know we can stop immediately as the total edit distance must be
-            // greater than the threshold.
+            // The slashes are the "bottom" diagonal leading to the lower right.  The value in the 
+            // lower right will be strictly equal to or greater than any value on this diagonal.  
+            // Thus, if that value exceeds the threshold, we know we can stop immediately as the 
+            // total edit distance must be greater than the threshold.
             //
             // We can use similar logic to avoid even having to examine more of the matrix when we
-            // have a threshold. First, consider the bottom diagonal.
+            // have a threshold. First, consider the same diagonal.
             // 
             //           s u n d a y
             //      ----------------
@@ -381,7 +384,8 @@ namespace Roslyn.Utilities
             //    y |∞ 8     y - - *
             //
             // Here we see that the final edit distance will be "y+3".  Again, if the edit 
-            // Distance threshold is less than 3, then could never contribute a path.
+            // distance threshold is less than 3, then no path from y will provide a good
+            // enough edit distance.
             //
             // So, if we had an edit distance threshold of 3, then the range around that
             // bottom diagonal that we should consider checking is:
@@ -435,9 +439,9 @@ namespace Roslyn.Utilities
             // Or, effectively, we only need to examine 'threshold - (targetLength - sourceLength)' 
             // above and below the diagonals.
             //
-            // Now, given our max edit distance in practice is capped at 2.  the most around the
-            // diagonal we'll ever have to check is +/- 2 elements.  i.e. with strings of length 10
-            // we'd only check:
+            // In practice, when a threshold is provided it is normally capped at '2'.  Given that,
+            // the most around the diagonal we'll ever have to check is +/- 2 elements.  i.e. with
+            // strings of length 10 we'd only check:
             // 
             //           a b c d e f g h i j
             //      ------------------------
@@ -454,8 +458,8 @@ namespace Roslyn.Utilities
             //    u |∞ 9             * * * *
             //    v |∞10               * * *
             //
-            // or 10+18+16=44.  Or only 44%. if our threshold is two and our
-            // strings differ by length 2 then we have:
+            // or 10+18+16=44.  Or only 44%. if our threshold is two and our strings differ by length 
+            // 2 then we have:
             //
             //           a b c d e f g h
             //      --------------------
@@ -474,7 +478,7 @@ namespace Roslyn.Utilities
             //
             // Then we examine 8+8+8=24 out of 80, or only 30% of the matrix.  As the strings
             // get larger, the savings increase as well.
-            
+
             // --------------------------------------------------------------------------------
 
             // The highest cost it can be to convert a source to target is targetLength.  i.e.
