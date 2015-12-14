@@ -114,13 +114,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Await TestWithImportsAsync(markupInClass, expectedResults)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestInt32() As Task
             Await TestInClassAsync("Dim i As $$Int32",
              MainDescription("Structure System.Int32"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestInteger() As Task
             Await TestInClassAsync("Dim i As $$Integer",
              MainDescription("Structure System.Int32",
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                Struct("Int32"))))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestString() As Task
             Await TestInClassAsync("Dim i As $$String",
              MainDescription("Class System.String",
@@ -144,21 +144,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                [Class]("String"))))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestStringAtEndOfToken() As Task
             Await TestInClassAsync("Dim i As String$$",
              MainDescription("Class System.String"))
         End Function
 
         <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestStringLiteral() As Task
             Await TestInClassAsync("Dim i = ""cat""$$",
              MainDescription("Class System.String"))
         End Function
 
         <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestInterpolatedStringLiteral() As Task
             Await TestInClassAsync("Dim i = $""cat""$$", MainDescription("Class System.String"))
             Await TestInClassAsync("Dim i = $""c$$at""", MainDescription("Class System.String"))
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Await TestInClassAsync("Dim i = $""cat {1$$ + 2} dog""", MainDescription("Structure System.Int32"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestListOfString() As Task
             Await TestInClassAsync("Dim l As $$List(Of String)",
              MainDescription("Class System.Collections.Generic.List(Of T)",
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                Keyword("String"))))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestListOfT() As Task
             Await TestWithImportsAsync(<Text>
                     Class C(Of T)
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                Punctuation.CloseParen)))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestListOfT2() As Task
             Await TestWithImportsAsync(<Text>
                     Class C(Of T)
@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              MainDescription("Class System.Collections.Generic.List(Of T)"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestListOfT3() As Task
             Await TestWithImportsAsync(<Text>
                     Class C(Of T)
@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              MainDescription("Class System.Collections.Generic.List(Of T)"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestListOfT4() As Task
             Await TestWithImportsAsync(<Text>
                     Class C(Of T)
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              Nothing)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDictionaryOfIntegerAndString() As Task
             Await TestWithImportsAsync(<Text>
                     Class C
@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                  $"TValue {FeaturesResources.Is} String")))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDictionaryOfTAndU() As Task
             Await TestWithImportsAsync(<Text>
                     Class C(Of T, U)
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                  $"TValue {FeaturesResources.Is} U")))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestIEnumerableOfInteger() As Task
             Await TestInClassAsync("Dim ie As $$IEnumerable(Of Integer)",
              MainDescription("Interface System.Collections.Generic.IEnumerable(Of Out T)"),
@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Function
 
         <WorkItem(542157)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEvent() As Task
             Await TestInMethodAsync("AddHandler System.Console.$$CancelKeyPress, AddressOf S",
              MainDescription("Event Console.CancelKeyPress As ConsoleCancelEventHandler",
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                [Delegate]("ConsoleCancelEventHandler"))))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEventHandler() As Task
             Await TestInClassAsync("Dim e As $$EventHandler",
              MainDescription("Delegate Sub System.EventHandler(sender As Object, e As System.EventArgs)",
@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                Punctuation.CloseParen)))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTypeParameter() As Task
             Await TestAsync(StringFromLines("Class C(Of T)",
                   "    Dim t As $$T",
@@ -338,14 +338,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              MainDescription($"T {FeaturesResources.In} C(Of T)"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestNullableOfInteger() As Task
             Await TestInClassAsync("Dim n As $$Nullable(Of Integer)",
              MainDescription("Structure System.Nullable(Of T As Structure)"),
              TypeParameterMap(vbCrLf & $"T {FeaturesResources.Is} Integer"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestGenericTypeDeclaredOnMethod1() As Task
             Await TestAsync(<Text>
                     Class C
@@ -357,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              MainDescription($"T1 {FeaturesResources.In} C.Meth1(Of T1)"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestGenericTypeDeclaredOnMethod2() As Task
             Await TestAsync(<Text>
                     Class C
@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Function
 
         <WorkItem(538732)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestParameter() As Task
             Await TestWithImportsAsync(<Text>
                     Module C
@@ -403,13 +403,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                Punctuation.CloseParen)))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOnFieldDeclaration() As Task
             Await TestInClassAsync("Dim $$i As Int32",
              MainDescription($"({FeaturesResources.Field}) C.i As Integer"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestMinimal1() As Task
             Await TestAsync(<Text>
                      Imports System.Collections.Generic
@@ -420,7 +420,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
               MainDescription($"Sub List(Of String).New() (+ 2 {FeaturesResources.Overloads})"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestMinimal2() As Task
             Await TestAsync(<Text>
                      Imports System.Collections.Generic
@@ -431,7 +431,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
               MainDescription("Function C.P() As List(Of String)"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAnd() As Task
             Await TestAsync(<Text>
                      Imports System.Collections.Generic
@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Function
 
         <WorkItem(538822)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDelegate() As Task
             Await TestAsync(<Text>
                      Imports System
@@ -463,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Function
 
         <WorkItem(538824)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOnDelegateInvocation() As Task
             Await TestAsync(<Text>
                     Class Program
@@ -477,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Function
 
         <WorkItem(538786)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOnGenericOverloads1() As Task
             Await TestAsync(<Text>
 Module C
@@ -502,7 +502,7 @@ End Class
         End Function
 
         <WorkItem(538786)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOnGenericOverloads2() As Task
             Await TestAsync(<Text>
 Module C
@@ -527,7 +527,7 @@ End Class
         End Function
 
         <WorkItem(538773)>
-        <WpfFact>
+        <Fact>
         Public Async Function TestOverriddenMethod() As Task
             Await TestAsync(<Text>
 Class A
@@ -552,7 +552,7 @@ End Class
         End Function
 
         <WorkItem(538918)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOnMe() As Task
             Await TestAsync(<Text>
 class C
@@ -569,7 +569,7 @@ End class
         End Function
 
         <WorkItem(539240)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOnArrayCreation1() As Task
             Await TestAsync(<Text>
 class C
@@ -582,7 +582,7 @@ End class
         End Function
 
         <WorkItem(539240)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOnArrayCreation2() As Task
             Await TestAsync(<Text>
 class C
@@ -594,17 +594,17 @@ End class
             MainDescription("Structure System.Int32"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimInFieldDeclaration() As Task
             Await TestInClassAsync("Dim$$ a As Integer", MainDescription("Structure System.Int32"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimMultipleInFieldDeclaration() As Task
             Await TestInClassAsync("$$Dim x As Integer, y As String", MainDescription(VBEditorResources.MultipleTypes))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimInFieldDeclarationCustomType() As Task
             Await TestAsync(<Text>
 Module Program
@@ -616,17 +616,17 @@ End Module
             MainDescription("Class Program.CustomClass"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimInLocalDeclaration() As Task
             Await TestInMethodAsync("Dim$$ a As Integer", MainDescription("Structure System.Int32"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimMultipleInLocalDeclaration() As Task
             Await TestInMethodAsync("$$Dim x As Integer, y As String", MainDescription(VBEditorResources.MultipleTypes))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimInLocalDeclarationCustomType() As Task
             Await TestAsync(<Text>
 Module Program
@@ -640,7 +640,7 @@ End Module
             MainDescription("Class Program.CustomClass"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDefaultProperty1() As Task
             Await TestAsync(<Text>
 Class X
@@ -671,7 +671,7 @@ End Module
             MainDescription("ReadOnly Property X.Foo As Y"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDefaultProperty2() As Task
             Await TestAsync(<Text>
 Class X
@@ -703,7 +703,7 @@ End Module
         End Function
 
         <WorkItem(541582)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestLambdaExpression() As Task
             Await TestAsync(<Text>Imports System
 Imports System.Collections.Generic
@@ -719,13 +719,13 @@ End Module</Text>.NormalizedValue, Nothing)
         End Function
 
         <WorkItem(541353)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestUnboundMethodInvocation() As Task
             Await TestInMethodAsync("Me.Fo$$o()", Nothing)
         End Function
 
         <WorkItem(541582)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestQuickInfoOnExtensionMethod() As Task
             Await TestAsync(<Text><![CDATA[Imports System.Runtime.CompilerServices
 Class Program
@@ -744,7 +744,7 @@ End Module]]></Text>.NormalizedValue,
             MainDescription($"<{VBFeaturesResources.Extension}> Function Integer.Count(items As IEnumerable(Of Integer)) As Boolean"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestQuickInfoOnExtensionMethodOverloads() As Task
             Await TestAsync(<Text><![CDATA[Imports System.Runtime.CompilerServices
 Class Program
@@ -768,7 +768,7 @@ End Module]]></Text>.NormalizedValue,
             MainDescription($"<{VBFeaturesResources.Extension}> Sub String.TestExt() (+ 2 {FeaturesResources.Overloads})"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestQuickInfoOnExtensionMethodOverloads2() As Task
             Await TestAsync(<Text><![CDATA[Imports System.Runtime.CompilerServices
 Class Program
@@ -793,7 +793,7 @@ End Module]]></Text>.NormalizedValue,
         End Function
 
         <WorkItem(541960)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDontRemoveAttributeSuffixAndProduceInvalidIdentifier1() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -806,7 +806,7 @@ End Class]]></Text>.NormalizedValue,
         End Function
 
         <WorkItem(541960)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDontRemoveAttributeSuffixAndProduceInvalidIdentifier2() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -819,7 +819,7 @@ End Class]]></Text>.NormalizedValue,
         End Function
 
         <WorkItem(541960)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDontRemoveAttributeSuffix1() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -832,7 +832,7 @@ End Class]]></Text>.NormalizedValue,
         End Function
 
         <WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAttributeQuickInfoBindsToClassTest() As Task
             Await TestAsync("
 Imports System
@@ -855,7 +855,7 @@ End Class
         End Function
 
         <WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAttributeConstructorQuickInfo() As Task
             Await TestAsync("
 Imports System
@@ -878,7 +878,7 @@ End Class
         End Function
 
         <WorkItem(542613)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestUnboundGeneric() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -893,7 +893,7 @@ End Class]]></Text>.NormalizedValue,
         End Function
 
         <WorkItem(543209)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestQuickInfoForAnonymousType1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -907,7 +907,7 @@ End Class]]></Text>.NormalizedValue,
         End Function
 
         <WorkItem(543226)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestQuickInfoForAnonymousType2() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System.Linq
@@ -925,7 +925,7 @@ End Module]]></Text>.NormalizedValue,
         End Function
 
         <WorkItem(543223)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestQuickInfoForAnonymousType3() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -940,7 +940,7 @@ End Class
         End Function
 
         <WorkItem(543242)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestQuickInfoForUnboundLabel() As Task
             Await TestAsync(<Text><![CDATA[
 Option Infer On
@@ -955,7 +955,7 @@ End Class]]></Text>.NormalizedValue,
 
         <WorkItem(543624)>
         <WorkItem(543275)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestQuickInfoForAnonymousDelegate1() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -971,7 +971,7 @@ End Module
 
         <WorkItem(543624)>
         <WorkItem(543275)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestQuickInfoForAnonymousDelegate2() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -986,7 +986,7 @@ End Module
         End Function
 
         <WorkItem(543624)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestQuickInfoForAnonymousDelegate3() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -1004,7 +1004,7 @@ End Module
 
         <WorkItem(543624)>
         <WorkItem(543275)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestQuickInfoForAnonymousDelegate4() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -1021,7 +1021,7 @@ End Module
         End Function
 
         <WorkItem(543389)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestImplicitMemberNameLocal1() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -1040,7 +1040,7 @@ End Module
         End Function
 
         <WorkItem(543389)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestImplicitMemberNameLocal2() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -1059,7 +1059,7 @@ End Module
         End Function
 
         <WorkItem(543389)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestImplicitMemberNameLocal3() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -1275,19 +1275,19 @@ end class
                 Documentation(ReplacesChars))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestConstantField() As Task
             Await TestInClassAsync("const $$F = 1",
                 MainDescription($"({FeaturesResources.Constant}) C.F As Integer = 1"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestMultipleConstantFields() As Task
             Await TestInClassAsync("Public Const X As Double = 1.0, Y As Double = 2.0, $$Z As Double = 3.5",
                 MainDescription($"({FeaturesResources.Constant}) C.Z As Double = 3.5"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestConstantDependencies() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -1303,7 +1303,7 @@ End Class
                 MainDescription($"({FeaturesResources.Constant}) A.X As Integer = B.Z + 1"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestConstantCircularDependencies() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -1319,13 +1319,13 @@ End Class
         End Function
 
         <WorkItem(544620)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestConstantOverflow() As Task
             Await TestInClassAsync("Public Const $$Z As Integer = Integer.MaxValue + 1",
                 MainDescription($"({FeaturesResources.Constant}) C.Z As Integer = Integer.MaxValue + 1"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEnumInConstantField() As Task
             Await TestAsync(<Text><![CDATA[
 Public Class EnumTest
@@ -1346,7 +1346,7 @@ End Class
                 MainDescription($"({FeaturesResources.LocalConstant}) x As Integer = CInt(Days.Sun)"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEnumInConstantField2() As Task
             Await TestAsync(<Text><![CDATA[
 Public Class EnumTest
@@ -1367,38 +1367,38 @@ End Class
                 MainDescription($"({FeaturesResources.LocalConstant}) x As Days = Days.Sun"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestConstantParameter() As Task
             Await TestInClassAsync("Sub Bar(optional $$b as Integer = 1)",
                 MainDescription($"({FeaturesResources.Parameter}) b As Integer = 1"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestConstantLocal() As Task
             Await TestInMethodAsync("const $$loc = 1",
                 MainDescription($"({FeaturesResources.LocalConstant}) loc As Integer = 1"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEnumValue1() As Task
             Await TestInMethodAsync("Const $$sunday = DayOfWeek.Sunday",
                 MainDescription($"({FeaturesResources.LocalConstant}) sunday As DayOfWeek = DayOfWeek.Sunday"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEnumValue2() As Task
             Await TestInMethodAsync("Const $$v = AttributeTargets.Constructor or AttributeTargets.Class",
                 MainDescription($"({FeaturesResources.LocalConstant}) v As AttributeTargets = AttributeTargets.Constructor or AttributeTargets.Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestComplexConstantParameter() As Task
             Await TestInClassAsync("Sub Bar(optional $$b as Integer = 1 + True)",
                 MainDescription($"({FeaturesResources.Parameter}) b As Integer = 1 + True"))
         End Function
 
         <WorkItem(546849)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestIndexedPropertyWithOptionalParameter() As Task
             Await TestAsync(<Text><![CDATA[
 Class Test
@@ -1419,7 +1419,7 @@ End Class
                  MainDescription("Property Test.Prop(p1 As Integer, [p2 As Integer = 0]) As Integer"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAwaitableMethod() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1443,7 +1443,7 @@ End Class
                  MainDescription(description), Usage(doc))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestObsoleteItem() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System
@@ -1458,7 +1458,7 @@ End Class
                 MainDescription($"({VBFeaturesResources.Deprecated}) Sub C.Foo()"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEnumMemberNameFromMetadata() As Task
             Dim code =
 <Code>
@@ -1475,7 +1475,7 @@ End Class
                 MainDescription("ConsoleColor.Black = 0"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEnumMemberNameFromSource1() As Task
             Dim code =
 <Code>
@@ -1496,7 +1496,7 @@ End Class
                 MainDescription("Foo.B = 1 << 1"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEnumMemberNameFromSource2() As Task
             Dim code =
 <Code>
@@ -1517,7 +1517,7 @@ End Class
                 MainDescription("Foo.B = 1"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTextOnlyDocComment() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary>
@@ -1527,7 +1527,7 @@ Class C$$
 End Class]]></text>.NormalizedValue(), Documentation("foo"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTrimConcatMultiLine() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary>
@@ -1538,7 +1538,7 @@ Class C$$
 End Class]]></text>.NormalizedValue(), Documentation("foo bar"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCref() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary>
@@ -1549,7 +1549,7 @@ Class C$$
 End Class]]></text>.NormalizedValue(), Documentation("C C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestExcludeTextOutsideSummaryBlock() As Task
             Await TestAsync(<text><![CDATA[
 ''' red
@@ -1561,7 +1561,7 @@ Class C$$
 End Class]]></text>.NormalizedValue(), Documentation("green"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestNewlineAfterPara() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary>
@@ -1571,7 +1571,7 @@ Class C$$
 End Class]]></text>.NormalizedValue(), Documentation("foo"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestParam() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary></summary>
@@ -1584,7 +1584,7 @@ Public Class C
         End Class]]></text>.NormalizedValue(), Documentation("First parameter of C.Foo(Of T)(String(), T)"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestParam2() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary></summary>
@@ -1597,7 +1597,7 @@ Public Class C
         End Class]]></text>.NormalizedValue(), Documentation("Another parameter of C.Foo(Of T)(String(), T)"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTypeParam() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary></summary>
@@ -1610,7 +1610,7 @@ Public Class C
         End Class]]></text>.NormalizedValue(), Documentation("A type parameter of C.Foo(Of T)(String(), T)"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestUnboundCref() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary></summary>
@@ -1621,7 +1621,7 @@ Public Class C
         End Class]]></text>.NormalizedValue(), Documentation("A type parameter of foo(Of T) (string, T)"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCrefInConstructor() As Task
             Await TestAsync(<text><![CDATA[
 Public Class TestClass
@@ -1633,7 +1633,7 @@ Public Class TestClass
         End Class]]></text>.NormalizedValue(), Documentation("This sample shows how to specify the TestClass constructor as a cref attribute."))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCrefInConstructorOverloaded() As Task
             Await TestAsync(<text><![CDATA[
 Public Class TestClass
@@ -1648,7 +1648,7 @@ Public Class TestClass
         End Function
 
         <WorkItem(814191)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCrefInGenericMethod1() As Task
             Await TestAsync(<text><![CDATA[
 Public Class TestClass
@@ -1661,7 +1661,7 @@ Public Class TestClass
         End Class]]></text>.NormalizedValue(), Documentation("This sample shows how to specify the TestClass.GetGenericValue(Of T)(T) method as a cref attribute."))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCrefInGenericMethod2() As Task
             Await TestAsync(<text><![CDATA[
 Public class TestClass
@@ -1675,7 +1675,7 @@ End Class]]></text>.NormalizedValue(), Documentation("This sample shows how to s
         End Function
 
         <WorkItem(813350)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCrefInMethodOverloading1() As Task
             Await TestAsync(<text><![CDATA[
 public class TestClass
@@ -1700,7 +1700,7 @@ End Class]]></text>.NormalizedValue(), Documentation("This sample shows how to s
         End Function
 
         <WorkItem(813350)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCrefInMethodOverloading2() As Task
             Await TestAsync(<text><![CDATA[
 public class TestClass
@@ -1724,7 +1724,7 @@ public class TestClass
 End Class]]></text>.NormalizedValue(), Documentation("This sample shows how to specify the GetGenericValue(OfT)(T) method as a cref attribute."))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestCrefInGenericType() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary>
@@ -1753,7 +1753,7 @@ End Class]]></text>.NormalizedValue(),
         ''' While implementing this story, determine the correct behavior for quick info on VB Await keyword (syntactic vs semantic) and update these tests.
         ''' </Remarks>
         <WorkItem(756226), WorkItem(522342)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAwaitKeywordOnTaskReturningAsync() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1775,7 +1775,7 @@ End Class
         End Function
 
         <WorkItem(756226), WorkItem(522342)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAwaitKeywordOnGenericTaskReturningAsync() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1798,7 +1798,7 @@ End Class
         End Function
 
         <WorkItem(756226), WorkItem(522342)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAwaitKeywordOnTaskReturningAsync2() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1820,7 +1820,7 @@ End Class
         End Function
 
         <WorkItem(756226), WorkItem(522342)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestNestedAwaitKeywords1() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1856,7 +1856,7 @@ End Class
         End Function
 
         <WorkItem(756226), WorkItem(522342)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestNestedAwaitKeywords2() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1892,7 +1892,7 @@ End Class
         End Function
 
         <WorkItem(756226), WorkItem(756337), WorkItem(522342)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTaskType() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1914,7 +1914,7 @@ End Class
         End Function
 
         <WorkItem(756226), WorkItem(756337), WorkItem(522342)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTaskOfTType() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1936,7 +1936,7 @@ End Class
         End Function
 
         <WorkItem(756226), WorkItem(756337), WorkItem(522342)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAwaitablePrefixOnCustomAwaiter() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1979,7 +1979,7 @@ End Class
         End Function
 
         <WorkItem(792629)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestGenericMethodWithConstraintsAtDeclaration() As Task
             Await TestInClassAsync("Private Function Fo$$o(Of TIn As Class, TOut)(arg As TIn) As TOut
     Foo(Of TIn, TOut)(Nothing)
@@ -1988,7 +1988,7 @@ End Function",
         End Function
 
         <WorkItem(792629)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestGenericMethodWithMultipleConstraintsAtDeclaration() As Task
             Await TestInClassAsync("Private Function Fo$$o(Of TIn As {IComparable, New}, TOut)(arg As TIn) As TOut
     Foo(Of TIn, TOut)(Nothing)
@@ -1997,7 +1997,7 @@ End Function",
         End Function
 
         <WorkItem(792629)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestUnConstructedGenericMethodWithConstraintsAtInvocation() As Task
             Await TestInClassAsync("Private Function Foo(Of TIn As {Class, New}, TOut)(arg As TIn) As TOut
     F$$oo(Of TIn, TOut)(Nothing)
@@ -2006,7 +2006,7 @@ End Function",
         End Function
 
         <WorkItem(991466)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDocumentationInImportsDirectiveWithAlias() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">

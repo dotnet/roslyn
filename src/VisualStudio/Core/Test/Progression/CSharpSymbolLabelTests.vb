@@ -6,7 +6,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class CSharpSymbolLabelTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestNamedType() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestGenericNamedType() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestGenericMethod() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestMethodWithParamsParameter() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -66,7 +66,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestMethodWithOptionalParameter() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -81,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestMethodWithRefAndOutParameters() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -96,7 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545017)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545017)>
         Public Async Function TestEnumMember() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -111,7 +111,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545014)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545014)>
         Public Async Function TestConstructor() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -126,7 +126,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545014)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545014)>
         Public Async Function TestDestructor() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -141,7 +141,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545013)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545013)>
         Public Async Function TestExplicitlyImplementedInterface() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -157,7 +157,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(13229, "DevDiv_Projects/Roslyn"), WorkItem(545353)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(13229, "DevDiv_Projects/Roslyn"), WorkItem(545353)>
         Public Async Function TestFixedFieldInStruct() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -173,7 +173,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Function
 
         <WorkItem(545011)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(13229, "DevDiv_Projects/Roslyn")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(13229, "DevDiv_Projects/Roslyn")>
         Public Async Function TestDelegateStyle() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>

@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
     Public Class ImplementsGraphQueryTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestClassImplementsInterface1() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -40,7 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestMethodImplementsInterfaceMethod1() As Threading.Tasks.Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>

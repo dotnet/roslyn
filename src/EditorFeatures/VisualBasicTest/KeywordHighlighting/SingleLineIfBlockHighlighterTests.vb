@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New SingleLineIfBlockHighlighter()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestSinglelineIf1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -21,7 +21,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestSinglelineIf2() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -31,7 +31,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestSinglelineIf3() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -41,7 +41,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestSinglelineIfNestedInMultilineIf1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -57,7 +57,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestSinglelineIfNestedInMultilineIf2() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -73,7 +73,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestSinglelineIfNestedInMultilineIf3() As Task
             Await TestAsync(<Text><![CDATA[
 Class C

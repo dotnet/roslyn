@@ -633,7 +633,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithInheritenceCascadingWithClass()
             Using result = RenameEngineResult.Create(

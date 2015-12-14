@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return New MaSOutliners.RegionDirectiveOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function FileHeader() As Task
             Const code = "
 {|span:$$#Region ""Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
                 Region("span", "Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", autoCollapse:=True, isDefaultCollapsed:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function EmptyFileHeader() As Task
             Const code = "
 {|span:$$#Region """"

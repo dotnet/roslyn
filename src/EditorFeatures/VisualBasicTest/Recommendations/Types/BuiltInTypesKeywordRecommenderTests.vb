@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
             "UShort"
         }
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NumericTypesAfterEnumAs()
             VerifyRecommendationsAreExactly(<File>Enum Foo As |</File>, "Byte",
                                                                         "SByte",
@@ -33,23 +33,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
                                                                         "ULong")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AllTypesAfterMethodBody()
             VerifyRecommendationsContain(<MethodBody>Dim foo As |</MethodBody>, _keywordList)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoTypesAreInTypeConstraint()
             VerifyRecommendationsMissing(<File>Class Foo(Of String As |</File>, _keywordList)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoTypesAfterImports()
             VerifyRecommendationsMissing(<File>Imports |</File>, _keywordList)
         End Sub
 
         <WorkItem(543270)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoTypesInDelegateCreation()
             Dim code =
 <File>
@@ -69,7 +69,7 @@ End Module
             VerifyRecommendationsMissing(code, _keywordList)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoTypesInInheritsStatement()
             Dim code =
 <File>
@@ -81,7 +81,7 @@ End Class
             VerifyRecommendationsMissing(code, _keywordList)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoTypesInImplementsStatement()
             Dim code =
 <File>

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New XmlExpressionOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestXmlDocument1() As Task
             Dim code = "
 Class C
@@ -27,7 +27,7 @@ End Class
                 Region("span", "<?xml version=""1.0""?> ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestXmlDocument2() As Task
             Dim code = "
 Class C
@@ -40,7 +40,7 @@ End Class
                 Region("span", "<?xml version=""1.0""?><foo> ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestXmlLiteral() As Task
             Dim code = "
 Class C
@@ -53,7 +53,7 @@ End Class
                 Region("span", "<foo> ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestNestedXmlLiteral() As Task
             Dim code = "
 Class C
@@ -68,7 +68,7 @@ End Class
                 Region("span", "<bar> ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestXmlProcessingInstruction() As Task
             Dim code = "
 Class C
@@ -81,7 +81,7 @@ End Class
                 Region("span", "<?foo ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestXmlComment() As Task
             Dim code = "
 Class C
@@ -94,7 +94,7 @@ End Class
                 Region("span", "<!-- Foo ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestXmlCData() As Task
             Dim code = "
 Class C
@@ -107,7 +107,7 @@ End Class
                 Region("span", "<![CDATA[ ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestXmlEmbeddedExpression() As Task
             Dim code = "
 Class C
@@ -123,7 +123,7 @@ End Class
                 Region("span", "<%= ...", autoCollapse:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestDocumentationCommentIsNotOutlined() As Task
             Dim code = "
 ''' $$<summary>

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
         }
 
         [WorkItem(1174405)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task PrependedDollarSign()
         {
             const string code = @"
@@ -42,7 +42,7 @@ $$class C
         }
 
         [WorkItem(1174405)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task SymbolsAndPunctuation()
         {
             const string code = @"
@@ -55,7 +55,7 @@ $$class C
         }
 
         [WorkItem(1174405)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task IdentifierThatLooksLikeCode()
         {
             const string code = @"

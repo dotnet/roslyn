@@ -6,7 +6,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class ContainsChildrenGraphQueryTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForDocument() As Threading.Tasks.Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -37,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForEmptyDocument() As Threading.Tasks.Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -67,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <WorkItem(789685)>
         <WorkItem(794846)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForNotYetLoadedSolution() As Threading.Tasks.Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>

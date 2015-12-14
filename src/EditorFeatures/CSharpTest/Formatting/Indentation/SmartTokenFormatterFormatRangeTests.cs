@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public class SmartTokenFormatterFormatRangeTests
     {
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task BeginningOfFile()
         {
@@ -1880,7 +1880,7 @@ class Class
             await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task StringLiterals()
         {
@@ -1890,7 +1890,7 @@ class Class
             await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.StringLiteralToken, SyntaxKind.None);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task CharLiterals()
         {
@@ -1900,7 +1900,7 @@ class Class
             await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task CharLiterals1()
         {
@@ -1910,7 +1910,7 @@ class Class
             await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.EndOfFileToken, SyntaxKind.None);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Comments()
         {
@@ -2075,7 +2075,7 @@ int         nextLine            =           30          ;$$
         }
 
         [WorkItem(537779)]
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task DisappearedTokens2()
         {
@@ -2365,7 +2365,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.ColonToken);
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(537804)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Colon_Label()

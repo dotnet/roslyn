@@ -22,21 +22,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             return new SymbolCompletionProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EmptyFile()
         {
             await VerifyItemIsAbsentAsync(@"$$", @"String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular);
             await VerifyItemIsAbsentAsync(@"$$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EmptyFile_Interactive()
         {
             await VerifyItemIsAbsentAsync(@"$$", @"String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             await VerifyItemExistsAsync(@"$$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EmptyFileWithUsing()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -45,7 +45,7 @@ $$", @"String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.
 $$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EmptyFileWithUsing_Interactive()
         {
             await VerifyItemExistsAsync(@"using System;
@@ -54,19 +54,19 @@ $$", @"String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.
 $$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterHashR()
         {
             await VerifyItemIsAbsentAsync(@"#r $$", "@System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterHashLoad()
         {
             await VerifyItemIsAbsentAsync(@"#load $$", "@System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingDirective()
         {
             await VerifyItemIsAbsentAsync(@"using $$", @"String");
@@ -75,7 +75,7 @@ $$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.
             await VerifyItemExistsAsync(@"using T = $$", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InactiveRegion()
         {
             await VerifyItemIsAbsentAsync(@"class C {
@@ -88,7 +88,7 @@ $$
 #endif", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ActiveRegion()
         {
             await VerifyItemIsAbsentAsync(@"class C {
@@ -101,7 +101,7 @@ $$
 #endif", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InactiveRegionWithUsing()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -118,7 +118,7 @@ $$
 #endif", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ActiveRegionWithUsing()
         {
             await VerifyItemExistsAsync(@"using System;
@@ -135,7 +135,7 @@ $$
 #endif", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SingleLineComment1()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -148,7 +148,7 @@ class C {
 // $$", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SingleLineComment2()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -168,7 +168,7 @@ class C {
 ", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MultiLineComment()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -203,7 +203,7 @@ class C {
 ", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SingleLineXmlComment1()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -216,7 +216,7 @@ class C {
 /// $$", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SingleLineXmlComment2()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -236,7 +236,7 @@ class C {
 ", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MultiLineXmlComment()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -263,56 +263,56 @@ class C {
 ", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OpenStringLiteral()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$")), @"String");
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OpenStringLiteralInDirective()
         {
             await VerifyItemIsAbsentAsync("#r \"$$", "String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             await VerifyItemIsAbsentAsync("#r \"$$", "System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StringLiteral()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$\";")), @"System");
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$\";")), @"String");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StringLiteralInDirective()
         {
             await VerifyItemIsAbsentAsync("#r \"$$\"", "String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             await VerifyItemIsAbsentAsync("#r \"$$\"", "System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OpenCharLiteral()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("char c = '$$")), @"System");
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("char c = '$$")), @"String");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AssemblyAttribute1()
         {
             await VerifyItemExistsAsync(@"[assembly: $$]", @"System");
             await VerifyItemIsAbsentAsync(@"[assembly: $$]", @"String");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AssemblyAttribute2()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"[assembly: $$]"), @"System");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"[assembly: $$]"), @"AttributeUsage");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SystemAttributeIsNotAnAttribute()
         {
             var content = @"[$$]
@@ -321,7 +321,7 @@ class CL {}";
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"Attribute");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeAttribute()
         {
             var content = @"[$$]
@@ -331,14 +331,14 @@ class CL {}";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParamAttribute()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<[A$$]T> {}"), @"AttributeUsage");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<[A$$]T> {}"), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodAttribute()
         {
             var content = @"class CL {
@@ -349,7 +349,7 @@ class CL {}";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodTypeParamAttribute()
         {
             var content = @"class CL{
@@ -359,7 +359,7 @@ class CL {}";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodParamAttribute()
         {
             var content = @"class CL{
@@ -369,28 +369,28 @@ class CL {}";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NamespaceName1()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"namespace $$"), @"String");
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"namespace $$"), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NamespaceName2()
         {
             await VerifyItemIsAbsentAsync(@"namespace $$", @"String");
             await VerifyItemIsAbsentAsync(@"namespace $$", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UnderNamespace()
         {
             await VerifyItemIsAbsentAsync(@"namespace NS { $$", @"String");
             await VerifyItemIsAbsentAsync(@"namespace NS { $$", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OutsideOfType1()
         {
             await VerifyItemIsAbsentAsync(@"namespace NS {
@@ -401,7 +401,7 @@ class CL {}
 $$", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OutsideOfType2()
         {
             var content = @"namespace NS {
@@ -411,7 +411,7 @@ $$";
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionInsideProperty()
         {
             var content = @"class C
@@ -426,21 +426,21 @@ $$";
             await VerifyItemExistsAsync(content, @"C");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterDot()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"[assembly: A.$$"), @"String");
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"[assembly: A.$$"), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingAlias()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"using MyType = $$"), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"using MyType = $$"), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IncompleteMember()
         {
             var content = @"class CL {
@@ -450,7 +450,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IncompleteMemberAccessibility()
         {
             var content = @"class CL {
@@ -460,105 +460,105 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BadStatement()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = $$)c")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = $$)c")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeTypeParameter()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<$$"), @"String");
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<$$"), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeTypeParameterList()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T, $$"), @"String");
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T, $$"), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CastExpressionTypePart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = ($$)c")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = ($$)c")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ObjectCreationExpression()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ArrayCreationExpression()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new $$ [")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new $$ [")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StackAllocArrayCreationExpression()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = stackalloc $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = stackalloc $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FromClauseTypeOptPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from $$ c")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from $$ c")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task JoinClause()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join $$ j")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join $$ j")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DeclarationStatement()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$ i =")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$ i =")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task VariableDeclaration()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"fixed($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"fixed($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ForEachStatement()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"foreach($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"foreach($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ForEachStatementNoToken()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod(@"foreach $$")), @"String");
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod(@"foreach $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CatchDeclaration()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"try {} catch($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"try {} catch($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldDeclaration()
         {
             var content = @"class CL {
@@ -567,7 +567,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EventFieldDeclaration()
         {
             var content = @"class CL {
@@ -576,7 +576,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConversionOperatorDeclaration()
         {
             var content = @"class CL {
@@ -585,7 +585,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConversionOperatorDeclarationNoToken()
         {
             var content = @"class CL {
@@ -594,7 +594,7 @@ $$";
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PropertyDeclaration()
         {
             var content = @"class CL {
@@ -603,7 +603,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EventDeclaration()
         {
             var content = @"class CL {
@@ -612,7 +612,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IndexerDeclaration()
         {
             var content = @"class CL {
@@ -621,7 +621,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Parameter()
         {
             var content = @"class CL {
@@ -630,7 +630,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ArrayType()
         {
             var content = @"class CL {
@@ -639,7 +639,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PointerType()
         {
             var content = @"class CL {
@@ -648,7 +648,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NullableType()
         {
             var content = @"class CL {
@@ -657,7 +657,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DelegateDeclaration()
         {
             var content = @"class CL {
@@ -666,7 +666,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodDeclaration()
         {
             var content = @"class CL {
@@ -675,7 +675,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OperatorDeclaration()
         {
             var content = @"class CL {
@@ -684,84 +684,84 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ParenthesizedExpression()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvocationExpression()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$(")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$(")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ElementAccessExpression()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$[")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$[")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Argument()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"i[$$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"i[$$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CastExpressionExpressionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"(c)$$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"(c)$$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FromClauseInPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LetClauseExpressionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C let n = $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C let n = $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OrderingExpressionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C orderby $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C orderby $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SelectClauseExpressionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C select $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C select $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExpressionStatement()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ReturnStatement()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"return $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"return $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ThrowStatement()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"throw $$")), @"String");
@@ -769,203 +769,203 @@ $$";
         }
 
         [WorkItem(760097)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task YieldReturnStatement()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"yield return $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"yield return $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ForEachStatementExpressionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"foreach(T t in $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"foreach(T t in $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingStatementExpressionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"using($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"using($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LockStatement()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"lock($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"lock($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EqualsValueClause()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var i = $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var i = $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ForStatementInitializersPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"for($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"for($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ForStatementConditionOptPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"for(i=0;$$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"for(i=0;$$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ForStatementIncrementorsPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"for(i=0;i>10;$$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"for(i=0;i>10;$$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DoStatementConditionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"do {} while($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"do {} while($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task WhileStatementConditionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"while($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"while($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ArrayRankSpecifierSizesPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"int [$$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"int [$$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PrefixUnaryExpression()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"+$$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"+$$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PostfixUnaryExpression()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$++")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$++")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BinaryExpressionLeftPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$ + 1")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$ + 1")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BinaryExpressionRightPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"1 + $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"1 + $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AssignmentExpressionLeftPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$ = 1")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$ = 1")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AssignmentExpressionRightPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"1 = $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"1 = $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConditionalExpressionConditionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$? 1:")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$? 1:")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConditionalExpressionWhenTruePart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"true? $$:")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"true? $$:")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConditionalExpressionWhenFalsePart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"true? 1:$$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"true? 1:$$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task JoinClauseInExpressionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join p in $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join p in $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task JoinClauseLeftExpressionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join p in P on $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join p in P on $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task JoinClauseRightExpressionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join p in P on id equals $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join p in P on id equals $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task WhereClauseConditionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C where $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C where $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task GroupClauseGroupExpressionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C group $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C group $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task GroupClauseByExpressionPart()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C group g by $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C group g by $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IfStatement()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"if ($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"if ($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SwitchStatement()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"switch($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"switch($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SwitchLabelCase()
         {
             var content = @"switch(i)
@@ -975,35 +975,35 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InitializerExpression()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new [] { $$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new [] { $$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParameterConstraintClause()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : $$"), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : $$"), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParameterConstraintClauseList()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, $$"), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, $$"), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParameterConstraintClauseAnotherWhere()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A where$$"), @"System");
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A where$$"), @"String");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeSymbolOfTypeParameterConstraintClause1()
         {
             await VerifyItemExistsAsync(@"class CL<T> where $$", @"T");
@@ -1011,205 +1011,205 @@ $$";
             await VerifyItemExistsAsync(@"class CL{ void F<T>() where $$", @"T");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeSymbolOfTypeParameterConstraintClause2()
         {
             await VerifyItemIsAbsentAsync(@"class CL<T> where $$", @"System");
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where $$"), @"String");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeSymbolOfTypeParameterConstraintClause3()
         {
             await VerifyItemIsAbsentAsync(@"class CL<T1> { void M<T2> where $$", @"T1");
             await VerifyItemExistsAsync(@"class CL<T1> { void M<T2>() where $$", @"T2");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BaseList1()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL : $$"), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL : $$"), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BaseList2()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL : B, $$"), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL : B, $$"), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task BaseListWhere()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> : B where$$"), @"String");
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> : B where$$"), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AliasedName()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod(@"global::$$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"global::$$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AliasedNamespace()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using S = System;", AddInsideMethod(@"S.$$")), @"String");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AliasedType()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using S = System.String;", AddInsideMethod(@"S.$$")), @"Empty");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstructorInitializer()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class C { C() : $$"), @"String");
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class C { C() : $$"), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Typeof1()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"typeof($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"typeof($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Typeof2()
         {
             await VerifyItemIsAbsentAsync(AddInsideMethod(@"var x = 0; typeof($$"), @"x");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Sizeof1()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"sizeof($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"sizeof($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Sizeof2()
         {
             await VerifyItemIsAbsentAsync(AddInsideMethod(@"var x = 0; sizeof($$"), @"x");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Default1()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"default($$")), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"default($$")), @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Default2()
         {
             await VerifyItemIsAbsentAsync(AddInsideMethod(@"var x = 0; default($$"), @"x");
         }
 
         [WorkItem(543819)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Checked()
         {
             await VerifyItemExistsAsync(AddInsideMethod(@"var x = 0; checked($$"), @"x");
         }
 
         [WorkItem(543819)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Unchecked()
         {
             await VerifyItemExistsAsync(AddInsideMethod(@"var x = 0; unchecked($$"), @"x");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Locals()
         {
             await VerifyItemExistsAsync(@"class c { void M() { string foo; $$", "foo");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Parameters()
         {
             await VerifyItemExistsAsync(@"class c { void M(string args) { $$", "args");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommonTypesInNewExpressionContext()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class c { void M() { new $$"), "Exception");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoCompletionForUnboundTypes()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class c { void M() { foo.$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoParametersInTypeOf()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class c { void M(int x) { typeof($$"), "x");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoParametersInDefault()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class c { void M(int x) { default($$"), "x");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoParametersInSizeOf()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"public class C { void M(int x) { unsafe { sizeof($$"), "x");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoParametersInGenericParameterList()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"public class Generic<T> { void M(int x) { Generic<$$"), "x");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoMembersAfterNullLiteral()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"public class C { void M() { null.$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterTrueLiteral()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { true.$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterFalseLiteral()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { false.$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterCharLiteral()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { 'c'.$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterStringLiteral()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { """".$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterVerbatimStringLiteral()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { @"""".$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterNumericLiteral()
         {
             // NOTE: the Completion command handler will suppress this case if the user types '.',
@@ -1217,63 +1217,63 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { 2.$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoMembersAfterParenthesizedNullLiteral()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"public class C { void M() { (null).$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterParenthesizedTrueLiteral()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (true).$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterParenthesizedFalseLiteral()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (false).$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterParenthesizedCharLiteral()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { ('c').$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterParenthesizedStringLiteral()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { ("""").$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterParenthesizedVerbatimStringLiteral()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (@"""").$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterParenthesizedNumericLiteral()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (2).$$"), "Equals");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterArithmeticExpression()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (1 + 1).$$"), "Equals");
         }
 
         [WorkItem(539332)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceTypesAvailableInUsingAlias()
         {
             await VerifyItemExistsAsync(@"using S = System.$$", "String");
         }
 
         [WorkItem(539812)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedMember1()
         {
             var markup = @"
@@ -1295,7 +1295,7 @@ class B : A
         }
 
         [WorkItem(539812)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedMember2()
         {
             var markup = @"
@@ -1317,7 +1317,7 @@ class B : A
         }
 
         [WorkItem(539812)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedMember3()
         {
             var markup = @"
@@ -1340,7 +1340,7 @@ class B : A
         }
 
         [WorkItem(539812)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedStaticMember1()
         {
             var markup = @"
@@ -1362,7 +1362,7 @@ class B : A
         }
 
         [WorkItem(539812)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedStaticMember2()
         {
             var markup = @"
@@ -1384,7 +1384,7 @@ class B : A
         }
 
         [WorkItem(539812)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedStaticMember3()
         {
             var markup = @"
@@ -1406,7 +1406,7 @@ class B : A
         }
 
         [WorkItem(539812)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedInstanceAndStaticMembers()
         {
             var markup = @"
@@ -1433,7 +1433,7 @@ class B : A
         }
 
         [WorkItem(540155)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ForLoopIndexer1()
         {
             var markup = @"
@@ -1447,7 +1447,7 @@ class C
         }
 
         [WorkItem(540155)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ForLoopIndexer2()
         {
             var markup = @"
@@ -1461,7 +1461,7 @@ class C
         }
 
         [WorkItem(540012)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersAfterType1()
         {
             var markup = @"
@@ -1476,7 +1476,7 @@ class C
         }
 
         [WorkItem(540012)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersAfterType2()
         {
             var markup = @"
@@ -1490,7 +1490,7 @@ class C
         }
 
         [WorkItem(540012)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersAfterType3()
         {
             var markup = @"
@@ -1506,7 +1506,7 @@ class C
         }
 
         [WorkItem(540012)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersAfterType4()
         {
             var markup = @"
@@ -1522,7 +1522,7 @@ class C
         }
 
         [WorkItem(540012)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMembersAfterType1()
         {
             var markup = @"
@@ -1537,7 +1537,7 @@ class C
         }
 
         [WorkItem(540012)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMembersAfterType2()
         {
             var markup = @"
@@ -1551,7 +1551,7 @@ class C
         }
 
         [WorkItem(540012)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMembersAfterType3()
         {
             var markup = @"
@@ -1567,7 +1567,7 @@ class C
         }
 
         [WorkItem(540012)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMembersAfterType4()
         {
             var markup = @"
@@ -1583,7 +1583,7 @@ class C
         }
 
         [WorkItem(540197)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParametersInClass()
         {
             var markup = @"
@@ -1596,7 +1596,7 @@ class C<T, R>
         }
 
         [WorkItem(540212)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterRefInLambda()
         {
             var markup = @"
@@ -1613,7 +1613,7 @@ class C
         }
 
         [WorkItem(540212)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterOutInLambda()
         {
             var markup = @"
@@ -1630,7 +1630,7 @@ class C
         }
 
         [WorkItem(539217)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType1()
         {
             var markup = @"
@@ -1648,7 +1648,7 @@ class Q
         }
 
         [WorkItem(539217)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType2()
         {
             var markup = @"
@@ -1665,7 +1665,7 @@ class Q
         }
 
         [WorkItem(539217)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType3()
         {
             var markup = @"
@@ -1682,7 +1682,7 @@ class Q
         }
 
         [WorkItem(539217)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType4_Regular()
         {
             var markup = @"
@@ -1698,7 +1698,7 @@ $$"; // At EOF
         }
 
         [WorkItem(539217)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType4_Script()
         {
             var markup = @"
@@ -1714,7 +1714,7 @@ $$"; // At EOF
         }
 
         [WorkItem(539217)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType5()
         {
             var markup = @"
@@ -1729,7 +1729,7 @@ class Q
         }
 
         [WorkItem(539217)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType6()
         {
             var markup = @"
@@ -1743,7 +1743,7 @@ class Q
         }
 
         [WorkItem(540574)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AmbiguityBetweenTypeAndLocal()
         {
             var markup = @"
@@ -1764,7 +1764,7 @@ class Program
         }
 
         [WorkItem(540750)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionAfterNewInScript()
         {
             var markup = @"
@@ -1776,7 +1776,7 @@ new $$";
         }
 
         [WorkItem(540933)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExtensionMethodsInScript()
         {
             var markup = @"
@@ -1788,7 +1788,7 @@ a.$$";
         }
 
         [WorkItem(541019)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExpressionsInForLoopInitializer()
         {
             var markup = @"
@@ -1804,7 +1804,7 @@ public class C
         }
 
         [WorkItem(541108)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterLambdaExpression1()
         {
             var markup = @"
@@ -1821,7 +1821,7 @@ public class C
         }
 
         [WorkItem(541108)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterLambdaExpression2()
         {
             var markup = @"
@@ -1839,7 +1839,7 @@ public class C
         }
 
         [WorkItem(541216)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InMultiLineCommentAtEndOfFile()
         {
             var markup = @"
@@ -1850,7 +1850,7 @@ using System;
         }
 
         [WorkItem(541218)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParametersAtEndOfFile()
         {
             var markup = @"
@@ -1874,7 +1874,7 @@ Outer<$$";
         }
 
         [WorkItem(552717)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LabelInCaseSwitchAbsentForCase()
         {
             var markup = @"
@@ -1892,7 +1892,7 @@ class Program
         }
 
         [WorkItem(552717)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LabelInCaseSwitchAbsentForDefaultWhenAbsent()
         {
             var markup = @"
@@ -1910,7 +1910,7 @@ class Program
         }
 
         [WorkItem(552717)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LabelInCaseSwitchPresentForDefault()
         {
             var markup = @"
@@ -1927,7 +1927,7 @@ class Program
             await VerifyItemExistsAsync(markup, "default:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LabelAfterGoto1()
         {
             var markup = @"
@@ -1942,7 +1942,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Foo");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LabelAfterGoto2()
         {
             var markup = @"
@@ -1958,7 +1958,7 @@ class Program
         }
 
         [WorkItem(542225)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeName()
         {
             var markup = @"
@@ -1970,7 +1970,7 @@ using System;
         }
 
         [WorkItem(542225)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterSpecifier()
         {
             var markup = @"
@@ -1983,7 +1983,7 @@ using System;
         }
 
         [WorkItem(542225)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameInAttributeList()
         {
             var markup = @"
@@ -1995,7 +1995,7 @@ using System;
         }
 
         [WorkItem(542225)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameBeforeClass()
         {
             var markup = @"
@@ -2008,7 +2008,7 @@ class C { }";
         }
 
         [WorkItem(542225)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterSpecifierBeforeClass()
         {
             var markup = @"
@@ -2021,7 +2021,7 @@ class C { }";
         }
 
         [WorkItem(542225)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameInAttributeArgumentList()
         {
             var markup = @"
@@ -2034,7 +2034,7 @@ class C { }";
         }
 
         [WorkItem(542225)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameInsideClass()
         {
             var markup = @"
@@ -2046,7 +2046,7 @@ class C { $$ }";
         }
 
         [WorkItem(542954)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NamespaceAliasInAttributeName1()
         {
             var markup = @"
@@ -2059,7 +2059,7 @@ class C { }";
         }
 
         [WorkItem(542954)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NamespaceAliasInAttributeName2()
         {
             var markup = @"
@@ -2074,7 +2074,7 @@ class C { }";
         }
 
         [WorkItem(542954)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NamespaceAliasInAttributeName3()
         {
             var markup = @"
@@ -2088,7 +2088,7 @@ class C { }";
             await VerifyItemExistsAsync(markup, "Alias");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(545121)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespace()
@@ -2104,7 +2104,7 @@ namespace Test
             await VerifyItemIsAbsentAsync(markup, "MyAttribute");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(545121)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespace2()
@@ -2123,7 +2123,7 @@ namespace Test
             await VerifyItemIsAbsentAsync(markup, "MyAttribute");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(545121)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameWhenSuffixlessFormIsKeyword()
@@ -2140,7 +2140,7 @@ namespace Test
             await VerifyItemIsAbsentAsync(markup, "@namespace");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(545121)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterNamespaceWhenSuffixlessFormIsKeyword()
@@ -2157,7 +2157,7 @@ namespace Test
             await VerifyItemIsAbsentAsync(markup, "@namespace");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(545348)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task KeywordsUsedAsLocals()
@@ -2187,7 +2187,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "int");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(545348)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords1()
@@ -2206,7 +2206,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "from");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(545348)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords2()
@@ -2229,7 +2229,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "where");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(545348)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QueryContextualKeywords3()
@@ -2252,7 +2252,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "where");
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(545121)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterGlobalAlias()
@@ -2265,7 +2265,7 @@ class Program { }";
             await VerifyItemIsAbsentAsync(markup, "MyAttribute", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(545121)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeNameAfterGlobalAliasWhenSuffixlessFormIsKeyword()
@@ -2280,7 +2280,7 @@ class Program { }";
         }
 
         [WorkItem(542230)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task RangeVariableInQuerySelect()
         {
             var markup = @"
@@ -2297,7 +2297,7 @@ class P
         }
 
         [WorkItem(542429)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInSwitchCase()
         {
             var markup = @"
@@ -2315,7 +2315,7 @@ class C
         }
 
         [WorkItem(542429)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInSwitchGotoCase()
         {
             var markup = @"
@@ -2336,7 +2336,7 @@ class C
         }
 
         [WorkItem(542429)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInEnumMember()
         {
             var markup = @"
@@ -2351,7 +2351,7 @@ class C
         }
 
         [WorkItem(542429)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInAttribute1()
         {
             var markup = @"
@@ -2364,7 +2364,7 @@ class C
         }
 
         [WorkItem(542429)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInAttribute2()
         {
             var markup = @"
@@ -2377,7 +2377,7 @@ class C
         }
 
         [WorkItem(542429)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInAttribute3()
         {
             var markup = @"
@@ -2390,7 +2390,7 @@ class C
         }
 
         [WorkItem(542429)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInAttribute4()
         {
             var markup = @"
@@ -2403,7 +2403,7 @@ class C
         }
 
         [WorkItem(542429)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInParameterDefaultValue()
         {
             var markup = @"
@@ -2416,7 +2416,7 @@ class C
         }
 
         [WorkItem(542429)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInConstField()
         {
             var markup = @"
@@ -2429,7 +2429,7 @@ class C
         }
 
         [WorkItem(542429)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInConstLocal()
         {
             var markup = @"
@@ -2443,7 +2443,7 @@ class C
             await VerifyItemExistsAsync(markup, "FOO");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DescriptionWith1Overload()
         {
             var markup = @"
@@ -2457,7 +2457,7 @@ class C
             await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.Overload})");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DescriptionWith2Overloads()
         {
             var markup = @"
@@ -2472,7 +2472,7 @@ class C
             await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 2 {FeaturesResources.Overloads})");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DescriptionWith1GenericOverload()
         {
             var markup = @"
@@ -2486,7 +2486,7 @@ class C
             await VerifyItemExistsAsync(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(T i) (+ 1 {FeaturesResources.GenericOverload})");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DescriptionWith2GenericOverloads()
         {
             var markup = @"
@@ -2501,7 +2501,7 @@ class C
             await VerifyItemExistsAsync(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(int i) (+ 2 {FeaturesResources.GenericOverloads})");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DescriptionNamedGenericType()
         {
             var markup = @"
@@ -2514,7 +2514,7 @@ class C<T>
             await VerifyItemExistsAsync(markup, "C<>", expectedDescriptionOrNull: "class C<T>");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DescriptionParameter()
         {
             var markup = @"
@@ -2527,7 +2527,7 @@ class C<T>
             await VerifyItemExistsAsync(markup, "foo", expectedDescriptionOrNull: $"({FeaturesResources.Parameter}) T foo");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DescriptionGenericTypeParameter()
         {
             var markup = @"
@@ -2540,7 +2540,7 @@ class C<T>
             await VerifyItemExistsAsync(markup, "T", expectedDescriptionOrNull: $"T {FeaturesResources.In} C<T>");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DescriptionAnonymousType()
         {
             var markup = @"
@@ -2562,7 +2562,7 @@ $@"({FeaturesResources.LocalVariable}) 'a a
         }
 
         [WorkItem(543288)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterNewInAnonymousType()
         {
             var markup = @"
@@ -2578,7 +2578,7 @@ class Program {
         }
 
         [WorkItem(543601)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceFieldsInStaticMethod()
         {
             var markup = @"
@@ -2596,7 +2596,7 @@ class C
         }
 
         [WorkItem(543601)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceFieldsInStaticFieldInitializer()
         {
             var markup = @"
@@ -2611,7 +2611,7 @@ class C
         }
 
         [WorkItem(543601)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticFieldsInStaticMethod()
         {
             var markup = @"
@@ -2629,7 +2629,7 @@ class C
         }
 
         [WorkItem(543601)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticFieldsInStaticFieldInitializer()
         {
             var markup = @"
@@ -2644,7 +2644,7 @@ class C
         }
 
         [WorkItem(543680)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceFieldsFromOuterClassInInstanceMethod()
         {
             var markup = @"
@@ -2665,7 +2665,7 @@ class outer
         }
 
         [WorkItem(543680)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticFieldsFromOuterClassInInstanceMethod()
         {
             var markup = @"
@@ -2686,7 +2686,7 @@ class outer
         }
 
         [WorkItem(543104)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OnlyEnumMembersInEnumMemberAccess()
         {
             var markup = @"
@@ -2707,7 +2707,7 @@ class C
         }
 
         [WorkItem(543104)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoEnumMembersInEnumLocalAccess()
         {
             var markup = @"
@@ -2729,7 +2729,7 @@ class C
         }
 
         [WorkItem(529138)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterLambdaParameterDot()
         {
             var markup = @"
@@ -2752,7 +2752,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Substring");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueNotAtRoot_Interactive()
         {
             await VerifyItemIsAbsentAsync(
@@ -2761,7 +2761,7 @@ class Program
 expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueNotAfterClass_Interactive()
         {
             await VerifyItemIsAbsentAsync(
@@ -2771,7 +2771,7 @@ $$",
 expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueNotAfterGlobalStatement_Interactive()
         {
             await VerifyItemIsAbsentAsync(
@@ -2781,7 +2781,7 @@ $$",
 expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyItemIsAbsentAsync(
@@ -2791,7 +2791,7 @@ $$",
 expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueNotInUsingAlias()
         {
             await VerifyItemIsAbsentAsync(
@@ -2799,7 +2799,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 "value");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueNotInEmptyStatement()
         {
             await VerifyItemIsAbsentAsync(AddInsideMethod(
@@ -2807,7 +2807,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 "value");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueInsideSetter()
         {
             await VerifyItemExistsAsync(
@@ -2818,7 +2818,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 "value");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueInsideAdder()
         {
             await VerifyItemExistsAsync(
@@ -2829,7 +2829,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 "value");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueInsideRemover()
         {
             await VerifyItemExistsAsync(
@@ -2840,7 +2840,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 "value");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueNotAfterDot()
         {
             await VerifyItemIsAbsentAsync(
@@ -2851,7 +2851,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 "value");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueNotAfterArrow()
         {
             await VerifyItemIsAbsentAsync(
@@ -2862,7 +2862,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 "value");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueNotAfterColonColon()
         {
             await VerifyItemIsAbsentAsync(
@@ -2873,7 +2873,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 "value");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueNotInGetter()
         {
             await VerifyItemIsAbsentAsync(
@@ -2885,7 +2885,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
         [WorkItem(544205)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterNullableType()
         {
             await VerifyItemIsAbsentAsync(
@@ -2897,7 +2897,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
         [WorkItem(544205)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterNullableTypeAlias()
         {
             await VerifyItemIsAbsentAsync(
@@ -2910,7 +2910,7 @@ class C {
         }
 
         [WorkItem(544205)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotAfterNullableTypeAndPartialIdentifier()
         {
             await VerifyItemIsAbsentAsync(
@@ -2922,7 +2922,7 @@ class C {
         }
 
         [WorkItem(544205)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterQuestionMarkInConditional()
         {
             await VerifyItemExistsAsync(
@@ -2935,7 +2935,7 @@ class C {
         }
 
         [WorkItem(544205)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterQuestionMarkAndPartialIdentifierInConditional()
         {
             await VerifyItemExistsAsync(
@@ -2948,7 +2948,7 @@ class C {
         }
 
         [WorkItem(544205)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterPointerType()
         {
             await VerifyItemIsAbsentAsync(
@@ -2960,7 +2960,7 @@ class C {
         }
 
         [WorkItem(544205)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterPointerTypeAlias()
         {
             await VerifyItemIsAbsentAsync(
@@ -2973,7 +2973,7 @@ class C {
         }
 
         [WorkItem(544205)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterPointerTypeAndPartialIdentifier()
         {
             await VerifyItemIsAbsentAsync(
@@ -2985,7 +2985,7 @@ class C {
         }
 
         [WorkItem(544205)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterAsteriskInMultiplication()
         {
             await VerifyItemExistsAsync(
@@ -2998,7 +2998,7 @@ class C {
         }
 
         [WorkItem(544205)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterAsteriskAndPartialIdentifierInMultiplication()
         {
             await VerifyItemExistsAsync(
@@ -3011,7 +3011,7 @@ class C {
         }
 
         [WorkItem(543868)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterEventFieldDeclaredInSameType()
         {
             await VerifyItemExistsAsync(
@@ -3023,7 +3023,7 @@ class C {
         }
 
         [WorkItem(543868)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterFullEventDeclaredInSameType()
         {
             await VerifyItemIsAbsentAsync(
@@ -3035,7 +3035,7 @@ class C {
         }
 
         [WorkItem(543868)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterEventDeclaredInDifferentType()
         {
             await VerifyItemIsAbsentAsync(
@@ -3046,7 +3046,7 @@ class C {
         }
 
         [WorkItem(544219)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInObjectInitializerMemberContext()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -3060,7 +3060,7 @@ class C
         }
 
         [WorkItem(544219)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task AfterPointerMemberAccess()
         {
             await VerifyItemExistsAsync(@"
@@ -3083,7 +3083,7 @@ class Program
         // After @ both X and XAttribute are legal. We think this is an edge case in the language and
         // are not fixing the bug 11931. This test captures that XAttribute doesn't show up indeed.
         [WorkItem(11931, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task VerbatimAttributes()
         {
             var code = @"
@@ -3103,7 +3103,7 @@ class Class3 { }
         }
 
         [WorkItem(544928)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task InForLoopIncrementor1()
         {
             await VerifyItemExistsAsync(@"
@@ -3120,7 +3120,7 @@ class Program
         }
 
         [WorkItem(544928)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task InForLoopIncrementor2()
         {
             await VerifyItemExistsAsync(@"
@@ -3137,7 +3137,7 @@ class Program
         }
 
         [WorkItem(544931)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task InForLoopInitializer1()
         {
             await VerifyItemExistsAsync(@"
@@ -3154,7 +3154,7 @@ class Program
         }
 
         [WorkItem(544931)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task InForLoopInitializer2()
         {
             await VerifyItemExistsAsync(@"
@@ -3171,7 +3171,7 @@ class Program
         }
 
         [WorkItem(10572, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LocalVariableInItsDeclaration()
         {
             // "int foo = foo = 1" is a legal declaration
@@ -3186,7 +3186,7 @@ class Program
         }
 
         [WorkItem(10572, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LocalVariableInItsDeclarator()
         {
             // "int bar = bar = 1" is legal in a declarator
@@ -3201,7 +3201,7 @@ class Program
         }
 
         [WorkItem(10572, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LocalVariableNotBeforeDeclaration()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -3216,7 +3216,7 @@ class Program
         }
 
         [WorkItem(10572, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LocalVariableNotBeforeDeclarator()
         {
             await VerifyItemIsAbsentAsync(@"
@@ -3230,7 +3230,7 @@ class Program
         }
 
         [WorkItem(10572, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LocalVariableAfterDeclarator()
         {
             await VerifyItemExistsAsync(@"
@@ -3244,7 +3244,7 @@ class Program
         }
 
         [WorkItem(10572, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LocalVariableAsOutArgumentInInitializerExpression()
         {
             await VerifyItemExistsAsync(@"
@@ -3263,7 +3263,7 @@ class Program
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Method_BrowsableStateAlways()
         {
             var markup = @"
@@ -3294,7 +3294,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Method_BrowsableStateNever()
         {
             var markup = @"
@@ -3325,7 +3325,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Method_BrowsableStateAdvanced()
         {
             var markup = @"
@@ -3367,7 +3367,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Method_Overloads_BothBrowsableAlways()
         {
             var markup = @"
@@ -3404,7 +3404,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Method_Overloads_OneBrowsableAlways_OneBrowsableNever()
         {
             var markup = @"
@@ -3441,7 +3441,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Method_Overloads_BothBrowsableNever()
         {
             var markup = @"
@@ -3478,7 +3478,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_ExtensionMethod_BrowsableAlways()
         {
             var markup = @"
@@ -3514,7 +3514,7 @@ public static class FooExtensions
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_ExtensionMethod_BrowsableNever()
         {
             var markup = @"
@@ -3550,7 +3550,7 @@ public static class FooExtensions
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_ExtensionMethod_BrowsableAdvanced()
         {
             var markup = @"
@@ -3597,7 +3597,7 @@ public static class FooExtensions
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_ExtensionMethod_BrowsableMixed()
         {
             var markup = @"
@@ -3638,7 +3638,7 @@ public static class FooExtensions
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_OverloadExtensionMethodAndMethod_BrowsableAlways()
         {
             var markup = @"
@@ -3678,7 +3678,7 @@ public static class FooExtensions
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_OverloadExtensionMethodAndMethod_BrowsableMixed()
         {
             var markup = @"
@@ -3718,7 +3718,7 @@ public static class FooExtensions
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_SameSigExtensionMethodAndMethod_InstanceMethodBrowsableNever()
         {
             var markup = @"
@@ -3758,7 +3758,7 @@ public static class FooExtensions
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OverriddenSymbolsFilteredFromCompletionList()
         {
             var markup = @"
@@ -3797,7 +3797,7 @@ public class D : B
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverClass()
         {
             var markup = @"
@@ -3830,7 +3830,7 @@ public class C
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverBaseClass()
         {
             var markup = @"
@@ -3870,7 +3870,7 @@ public class D : B
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_BrowsableStateNeverMethodsInBaseClass()
         {
             var markup = @"
@@ -3902,7 +3902,7 @@ public class B
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableAlways()
         {
             var markup = @"
@@ -3933,7 +3933,7 @@ public class C<T>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed1()
         {
             var markup = @"
@@ -3965,7 +3965,7 @@ public class C<T>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed2()
         {
             var markup = @"
@@ -3997,7 +3997,7 @@ public class C<T>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableNever()
         {
             var markup = @"
@@ -4030,7 +4030,7 @@ public class C<T>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableAlways()
         {
             var markup = @"
@@ -4061,7 +4061,7 @@ public class C<T, U>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BrowsableMixed()
         {
             var markup = @"
@@ -4093,7 +4093,7 @@ public class C<T, U>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableNever()
         {
             var markup = @"
@@ -4126,7 +4126,7 @@ public class C<T, U>
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Field_BrowsableStateNever()
         {
             var markup = @"
@@ -4156,7 +4156,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Field_BrowsableStateAlways()
         {
             var markup = @"
@@ -4185,7 +4185,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Field_BrowsableStateAdvanced()
         {
             var markup = @"
@@ -4255,7 +4255,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Property_IgnoreBrowsabilityOfGetSetMethods()
         {
             var markup = @"
@@ -4288,7 +4288,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Property_BrowsableStateAlways()
         {
             var markup = @"
@@ -4317,7 +4317,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Property_BrowsableStateAdvanced()
         {
             var markup = @"
@@ -4357,7 +4357,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Constructor_BrowsableStateNever()
         {
             var markup = @"
@@ -4388,7 +4388,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Constructor_BrowsableStateAlways()
         {
             var markup = @"
@@ -4419,7 +4419,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Constructor_BrowsableStateAdvanced()
         {
             var markup = @"
@@ -4461,7 +4461,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Constructor_MixedOverloads1()
         {
             var markup = @"
@@ -4496,7 +4496,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Constructor_MixedOverloads2()
         {
             var markup = @"
@@ -4532,7 +4532,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Event_BrowsableStateNever()
         {
             var markup = @"
@@ -4563,7 +4563,7 @@ public class C
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Event_BrowsableStateAlways()
         {
             var markup = @"
@@ -4594,7 +4594,7 @@ public class C
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Event_BrowsableStateAdvanced()
         {
             var markup = @"
@@ -4636,7 +4636,7 @@ public class C
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Delegate_BrowsableStateNever()
         {
             var markup = @"
@@ -4660,7 +4660,7 @@ public delegate void Handler();";
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Delegate_BrowsableStateAlways()
         {
             var markup = @"
@@ -4684,7 +4684,7 @@ public delegate void Handler();";
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Delegate_BrowsableStateAdvanced()
         {
             var markup = @"
@@ -4719,7 +4719,7 @@ public delegate void Handler();";
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Class_BrowsableStateNever_DeclareLocal()
         {
             var markup = @"
@@ -4747,7 +4747,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Class_BrowsableStateNever_DeriveFrom()
         {
             var markup = @"
@@ -4771,7 +4771,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Class_BrowsableStateNever_FullyQualifiedInUsing()
         {
             var markup = @"
@@ -4805,7 +4805,7 @@ namespace NS
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Class_BrowsableStateAlways_DeclareLocal()
         {
             var markup = @"
@@ -4833,7 +4833,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Class_BrowsableStateAlways_DeriveFrom()
         {
             var markup = @"
@@ -4857,7 +4857,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Class_BrowsableStateAlways_FullyQualifiedInUsing()
         {
             var markup = @"
@@ -4891,7 +4891,7 @@ namespace NS
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Class_BrowsableStateAdvanced_DeclareLocal()
         {
             var markup = @"
@@ -4930,7 +4930,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Class_BrowsableStateAdvanced_DeriveFrom()
         {
             var markup = @"
@@ -4965,7 +4965,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Class_BrowsableStateAdvanced_FullyQualifiedInUsing()
         {
             var markup = @"
@@ -5010,7 +5010,7 @@ namespace NS
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Class_IgnoreBaseClassBrowsableNever()
         {
             var markup = @"
@@ -5042,7 +5042,7 @@ public class Bar
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Struct_BrowsableStateNever_DeclareLocal()
         {
             var markup = @"
@@ -5070,7 +5070,7 @@ public struct Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Struct_BrowsableStateNever_DeriveFrom()
         {
             var markup = @"
@@ -5094,7 +5094,7 @@ public struct Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Struct_BrowsableStateAlways_DeclareLocal()
         {
             var markup = @"
@@ -5122,7 +5122,7 @@ public struct Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Struct_BrowsableStateAlways_DeriveFrom()
         {
             var markup = @"
@@ -5146,7 +5146,7 @@ public struct Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Struct_BrowsableStateAdvanced_DeclareLocal()
         {
             var markup = @"
@@ -5185,7 +5185,7 @@ public struct Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Struct_BrowsableStateAdvanced_DeriveFrom()
         {
             var markup = @"
@@ -5220,7 +5220,7 @@ public struct Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Enum_BrowsableStateNever()
         {
             var markup = @"
@@ -5248,7 +5248,7 @@ public enum Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Enum_BrowsableStateAlways()
         {
             var markup = @"
@@ -5276,7 +5276,7 @@ public enum Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Enum_BrowsableStateAdvanced()
         {
             var markup = @"
@@ -5315,7 +5315,7 @@ public enum Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Interface_BrowsableStateNever_DeclareLocal()
         {
             var markup = @"
@@ -5343,7 +5343,7 @@ public interface Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Interface_BrowsableStateNever_DeriveFrom()
         {
             var markup = @"
@@ -5367,7 +5367,7 @@ public interface Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Interface_BrowsableStateAlways_DeclareLocal()
         {
             var markup = @"
@@ -5395,7 +5395,7 @@ public interface Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Interface_BrowsableStateAlways_DeriveFrom()
         {
             var markup = @"
@@ -5419,7 +5419,7 @@ public interface Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Interface_BrowsableStateAdvanced_DeclareLocal()
         {
             var markup = @"
@@ -5458,7 +5458,7 @@ public interface Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_Interface_BrowsableStateAdvanced_DeriveFrom()
         {
             var markup = @"
@@ -5493,7 +5493,7 @@ public interface Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_CrossLanguage_CStoVB_Always()
         {
             var markup = @"
@@ -5521,7 +5521,7 @@ End Class";
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_CrossLanguage_CStoVB_Never()
         {
             var markup = @"
@@ -5549,7 +5549,7 @@ End Class";
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibType_NotHidden()
         {
             var markup = @"
@@ -5577,7 +5577,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibType_Hidden()
         {
             var markup = @"
@@ -5605,7 +5605,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibType_HiddenAndOtherFlags()
         {
             var markup = @"
@@ -5633,7 +5633,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibType_NotHidden_Int16Constructor()
         {
             var markup = @"
@@ -5661,7 +5661,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibType_Hidden_Int16Constructor()
         {
             var markup = @"
@@ -5689,7 +5689,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibType_HiddenAndOtherFlags_Int16Constructor()
         {
             var markup = @"
@@ -5717,7 +5717,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibFunc_NotHidden()
         {
             var markup = @"
@@ -5748,7 +5748,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibFunc_Hidden()
         {
             var markup = @"
@@ -5779,7 +5779,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibFunc_HiddenAndOtherFlags()
         {
             var markup = @"
@@ -5810,7 +5810,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibFunc_NotHidden_Int16Constructor()
         {
             var markup = @"
@@ -5841,7 +5841,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibFunc_Hidden_Int16Constructor()
         {
             var markup = @"
@@ -5872,7 +5872,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibFunc_HiddenAndOtherFlags_Int16Constructor()
         {
             var markup = @"
@@ -5903,7 +5903,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibVar_NotHidden()
         {
             var markup = @"
@@ -5932,7 +5932,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibVar_Hidden()
         {
             var markup = @"
@@ -5961,7 +5961,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibVar_HiddenAndOtherFlags()
         {
             var markup = @"
@@ -5990,7 +5990,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibVar_NotHidden_Int16Constructor()
         {
             var markup = @"
@@ -6019,7 +6019,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibVar_Hidden_Int16Constructor()
         {
             var markup = @"
@@ -6048,7 +6048,7 @@ public class Foo
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_TypeLibVar_HiddenAndOtherFlags_Int16Constructor()
         {
             var markup = @"
@@ -6077,7 +6077,7 @@ public class Foo
         }
 
         [WorkItem(545557)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestColorColor1()
         {
             var markup = @"
@@ -6098,7 +6098,7 @@ class A
         }
 
         [WorkItem(545647)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestLaterLocalHidesType1()
         {
             var markup = @"
@@ -6116,7 +6116,7 @@ class C
         }
 
         [WorkItem(545647)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestLaterLocalHidesType2()
         {
             var markup = @"
@@ -6133,7 +6133,7 @@ class C
             await VerifyItemExistsAsync(markup, "Console");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestIndexedProperty()
         {
             var markup = @"class Program
@@ -6184,7 +6184,7 @@ End Class";
         }
 
         [WorkItem(546841)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestDeclarationAmbiguity()
         {
             var markup = @"
@@ -6202,7 +6202,7 @@ class Program
             await VerifyItemExistsAsync(markup, "CommandLine");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCursorOnClassCloseBrace()
         {
             var markup = @"
@@ -6217,7 +6217,7 @@ $$}";
             await VerifyItemExistsAsync(markup, "Inner");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterAsync1()
         {
             var markup = @"
@@ -6230,7 +6230,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Task");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterAsync2()
         {
             var markup = @"
@@ -6243,7 +6243,7 @@ class Program
             await VerifyItemExistsAsync(markup, "Task");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterAsyncInMethodBody()
         {
             var markup = @"
@@ -6259,7 +6259,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "Task");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAwaitable1()
         {
             var markup = @"
@@ -6274,7 +6274,7 @@ class Program
             await VerifyItemWithMscorlib45Async(markup, "foo", "void Program.foo()", "C#");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAwaitable2()
         {
             var markup = @"
@@ -6289,7 +6289,7 @@ class Program
             await VerifyItemWithMscorlib45Async(markup, "foo", "void Program.foo()", "C#");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Awaitable1()
         {
             var markup = @"
@@ -6311,7 +6311,7 @@ class Program
             await VerifyItemWithMscorlib45Async(markup, "foo", description, "C#");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Awaitable2()
         {
             var markup = @"
@@ -6332,7 +6332,7 @@ class Program
             await VerifyItemWithMscorlib45Async(markup, "foo", description, "C#");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ObsoleteItem()
         {
             var markup = @"
@@ -6350,7 +6350,7 @@ class Program
         }
 
         [WorkItem(568986)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoMembersOnDottingIntoUnboundType()
         {
             var markup = @"
@@ -6367,7 +6367,7 @@ class Program
         }
 
         [WorkItem(550717)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeArgumentsInConstraintAfterBaselist()
         {
             var markup = @"
@@ -6378,7 +6378,7 @@ public class Foo<T> : System.Object where $$
         }
 
         [WorkItem(647175)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoDestructor()
         {
             var markup = @"
@@ -6392,7 +6392,7 @@ class C
         }
 
         [WorkItem(669624)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExtensionMethodOnCovariantInterface()
         {
             var markup = @"
@@ -6425,7 +6425,7 @@ class Program
         }
 
         [WorkItem(667752)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ForEachInsideParentheses()
         {
             var markup = @"
@@ -6441,7 +6441,7 @@ class C
         }
 
         [WorkItem(766869)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestFieldInitializerInP2P()
         {
             var markup = @"
@@ -6459,7 +6459,7 @@ public static class Consts
         }
 
         [WorkItem(834605)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowWithEqualsSign()
         {
             var markup = @"
@@ -6477,7 +6477,7 @@ class d
         }
 
         [WorkItem(825661)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NothingAfterThisDotInStaticContext()
         {
             var markup = @"
@@ -6495,7 +6495,7 @@ class C
         }
 
         [WorkItem(825661)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NothingAfterBaseDotInStaticContext()
         {
             var markup = @"
@@ -6513,7 +6513,7 @@ class C
         }
 
         [WorkItem(858086)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoNestedTypeWhenDisplayingInstance()
         {
             var markup = @"
@@ -6533,7 +6533,7 @@ class C
         }
 
         [WorkItem(876031)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CatchVariableInExceptionFilter()
         {
             var markup = @"
@@ -6550,7 +6550,7 @@ class C
         }
 
         [WorkItem(849698)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionAfterExternAlias()
         {
             var markup = @"
@@ -6566,7 +6566,7 @@ class C
         }
 
         [WorkItem(849698)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExternAliasSuggested()
         {
             var markup = @"
@@ -6582,7 +6582,7 @@ class C
         }
 
         [WorkItem(635957)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ClassDestructor()
         {
             var markup = @"
@@ -6598,7 +6598,7 @@ class C
         }
 
         [WorkItem(635957)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TildeOutsideClass()
         {
             var markup = @"
@@ -6613,7 +6613,7 @@ class C
         }
 
         [WorkItem(635957)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StructDestructor()
         {
             var markup = @"
@@ -6624,7 +6624,7 @@ struct C
             await VerifyItemExistsAsync(markup, "C");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldAvailableInBothLinkedFiles()
         {
             var markup = @"<Workspace>
@@ -6649,7 +6649,7 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, "x", $"({FeaturesResources.Field}) int C.x");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
@@ -6677,7 +6677,7 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldUnavailableInTwoLinkedFiles()
         {
             var markup = @"<Workspace>
@@ -6708,7 +6708,7 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
@@ -6742,7 +6742,7 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UnionOfItemsFromBothContexts()
         {
             var markup = @"<Workspace>
@@ -6781,7 +6781,7 @@ class C
         }
 
         [WorkItem(1020944)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LocalsValidInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -6807,7 +6807,7 @@ class C
         }
 
         [WorkItem(1020944)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LocalWarningInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -6835,7 +6835,7 @@ class C
         }
 
         [WorkItem(1020944)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LabelsValidInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -6861,7 +6861,7 @@ LABEL:  int xyz;
         }
 
         [WorkItem(1020944)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task RangeVariablesValidInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -6887,7 +6887,7 @@ class C
         }
 
         [WorkItem(1063403)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodOverloadDifferencesIgnored()
         {
             var markup = @"<Workspace>
@@ -6920,7 +6920,7 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, "Do", expectedDescription);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodOverloadDifferencesIgnored_ExtensionMethod()
         {
             var markup = @"<Workspace>
@@ -6959,7 +6959,7 @@ public static class Extensions
             await VerifyItemInLinkedFilesAsync(markup, "Do", expectedDescription);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodOverloadDifferencesIgnored_ExtensionMethod2()
         {
             var markup = @"<Workspace>
@@ -6998,7 +6998,7 @@ public static class Extensions
             await VerifyItemInLinkedFilesAsync(markup, "Do", expectedDescription);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodOverloadDifferencesIgnored_ContainingType()
         {
             var markup = @"<Workspace>
@@ -7052,7 +7052,7 @@ public class Methods2
             await VerifyItemInLinkedFilesAsync(markup, "Do", expectedDescription);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SharedProjectFieldAndPropertiesTreatedAsIdentical()
         {
             var markup = @"<Workspace>
@@ -7083,7 +7083,7 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SharedProjectFieldAndPropertiesTreatedAsIdentical2()
         {
             var markup = @"<Workspace>
@@ -7114,7 +7114,7 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConditionalAccessWalkUp()
         {
             var markup = @"
@@ -7140,7 +7140,7 @@ class A
             await VerifyItemExistsAsync(markup, "AB", experimental: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConditionalAccessNullableIsUnwrapped()
         {
             var markup = @"
@@ -7163,7 +7163,7 @@ class A
             await VerifyItemIsAbsentAsync(markup, "value", experimental: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConditionalAccessNullableIsUnwrapped2()
         {
             var markup = @"
@@ -7185,7 +7185,7 @@ class A
             await VerifyItemIsAbsentAsync(markup, "value", experimental: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionAfterConditionalIndexing()
         {
             var markup = @"
@@ -7208,7 +7208,7 @@ class A
         }
 
         [WorkItem(1109319)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task WithinChainOfConditionalAccesses()
         {
             var markup = @"
@@ -7229,7 +7229,7 @@ class D { public int e; }";
         }
 
         [WorkItem(843466)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedAttributeAccessibleOnSelf()
         {
             var markup = @"using System;
@@ -7246,7 +7246,7 @@ class X
         }
 
         [WorkItem(843466)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedAttributeAccessibleOnOuterType()
         {
             var markup = @"using System;
@@ -7269,7 +7269,7 @@ class X
             await VerifyItemExistsAsync(markup, "My");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceMembersFromBaseOuterType()
         {
             var markup = @"abstract class Test
@@ -7288,7 +7288,7 @@ class X
             await VerifyItemExistsAsync(markup, "_field");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceMembersFromBaseOuterType2()
         {
             var markup = @"class C<T>
@@ -7313,7 +7313,7 @@ class X
             await VerifyItemExistsAsync(markup, "M");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceMembersFromBaseOuterType3()
         {
             var markup = @"class C<T>
@@ -7338,7 +7338,7 @@ class X
             await VerifyItemIsAbsentAsync(markup, "M");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceMembersFromBaseOuterType4()
         {
             var markup = @"class C<T>
@@ -7363,7 +7363,7 @@ class X
             await VerifyItemExistsAsync(markup, "M");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceMembersFromBaseOuterType5()
         {
             var markup = @"
@@ -7384,7 +7384,7 @@ class C<T> : D
             await VerifyItemIsAbsentAsync(markup, "Q");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceMembersFromBaseOuterType6()
         {
             var markup = @"
@@ -7407,7 +7407,7 @@ class Derived : Base<int>
         }
 
         [WorkItem(983367)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoTypeParametersDefinedInCrefs()
         {
             var markup = @"using System;
@@ -7418,7 +7418,7 @@ class Program<T> { }";
         }
 
         [WorkItem(988025)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowTypesInGenericMethodTypeParameterList1()
         {
             var markup = @"
@@ -7444,7 +7444,7 @@ class Program
         }
 
         [WorkItem(988025)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowTypesInGenericMethodTypeParameterList2()
         {
             var markup = @"
@@ -7470,7 +7470,7 @@ class Program
         }
 
         [WorkItem(991466)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DescriptionInAliasedType()
         {
             var markup = @"
@@ -7485,7 +7485,7 @@ class C
             await VerifyItemExistsAsync(markup, "IAlias", expectedDescriptionOrNull: "interface IFoo\r\nsummary for interface IFoo");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task WithinNameOf()
         {
             var markup = @"
@@ -7501,7 +7501,7 @@ class C
         }
 
         [WorkItem(997410)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceMemberInNameOfInStaticContext()
         {
             var markup = @"
@@ -7515,7 +7515,7 @@ class C
         }
 
         [WorkItem(997410)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMemberInNameOfInStaticContext()
         {
             var markup = @"
@@ -7529,7 +7529,7 @@ class C
         }
 
         [WorkItem(883293)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IncompleteDeclarationExpressionType()
         {
             var markup = @"
@@ -7547,7 +7547,7 @@ class C
         }
 
         [WorkItem(1024380)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticAndInstanceInNameOf()
         {
             var markup = @"
@@ -7571,7 +7571,7 @@ class C
         }
 
         [WorkItem(1663, "https://github.com/dotnet/roslyn/issues/1663")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameOfMembersListedForLocals()
         {
             var markup = @"class C
@@ -7596,7 +7596,7 @@ public class U
         }
 
         [WorkItem(1029522)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameOfMembersListedForNamespacesAndTypes2()
         {
             var markup = @"class C
@@ -7621,7 +7621,7 @@ public class U
         }
 
         [WorkItem(1029522)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameOfMembersListedForNamespacesAndTypes3()
         {
             var markup = @"class C
@@ -7643,7 +7643,7 @@ public class U
         }
 
         [WorkItem(1029522)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameOfMembersListedForNamespacesAndTypes4()
         {
             var markup = @"
@@ -7659,7 +7659,7 @@ class C
             await VerifyItemExistsAsync(markup, "Console");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InterpolatedStrings1()
         {
             var markup = @"
@@ -7674,7 +7674,7 @@ class C
             await VerifyItemExistsAsync(markup, "a");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InterpolatedStrings2()
         {
             var markup = @"
@@ -7690,7 +7690,7 @@ class C
             await VerifyItemExistsAsync(markup, "a");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InterpolatedStrings3()
         {
             var markup = @"
@@ -7705,7 +7705,7 @@ class C
             await VerifyItemExistsAsync(markup, "b");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InterpolatedStrings4()
         {
             var markup = @"
@@ -7721,7 +7721,7 @@ class C
             await VerifyItemExistsAsync(markup, "b");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InterpolatedStrings5()
         {
             var markup = @"
@@ -7736,7 +7736,7 @@ class C
             await VerifyItemExistsAsync(markup, "b");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InterpolatedStrings6()
         {
             var markup = @"
@@ -7753,7 +7753,7 @@ class C
         }
 
         [WorkItem(1064811)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotBeforeFirstStringHole()
         {
             await VerifyNoItemsExistAsync(AddInsideMethod(
@@ -7761,7 +7761,7 @@ class C
         }
 
         [WorkItem(1064811)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotBetweenStringHoles()
         {
             await VerifyNoItemsExistAsync(AddInsideMethod(
@@ -7769,7 +7769,7 @@ class C
         }
 
         [WorkItem(1064811)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotAfterStringHoles()
         {
             await VerifyNoItemsExistAsync(AddInsideMethod(
@@ -7777,14 +7777,14 @@ class C
         }
 
         [WorkItem(1087171)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task CompletionAfterTypeOfGetType()
         {
             await VerifyItemExistsAsync(AddInsideMethod(
 "typeof(int).GetType().$$"), "GUID");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingDirectives1()
         {
             var markup = @"
@@ -7806,7 +7806,7 @@ namespace N
             await VerifyItemExistsAsync(markup, "N");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingDirectives2()
         {
             var markup = @"
@@ -7828,7 +7828,7 @@ namespace N
             await VerifyItemExistsAsync(markup, "M");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingDirectives3()
         {
             var markup = @"
@@ -7850,7 +7850,7 @@ namespace N
             await VerifyItemExistsAsync(markup, "N");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingDirectives4()
         {
             var markup = @"
@@ -7872,7 +7872,7 @@ namespace N
             await VerifyItemExistsAsync(markup, "M");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingDirectives5()
         {
             var markup = @"
@@ -7894,7 +7894,7 @@ namespace N
             await VerifyItemExistsAsync(markup, "N");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingDirectives6()
         {
             var markup = @"
@@ -7916,7 +7916,7 @@ namespace N
             await VerifyItemExistsAsync(markup, "M");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingStaticDoesNotShowDelegates1()
         {
             var markup = @"
@@ -7938,7 +7938,7 @@ namespace N
             await VerifyItemExistsAsync(markup, "N");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingStaticDoesNotShowDelegates2()
         {
             var markup = @"
@@ -7960,7 +7960,7 @@ namespace N
             await VerifyItemExistsAsync(markup, "M");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingStaticDoesNotShowInterfaces1()
         {
             var markup = @"
@@ -7982,7 +7982,7 @@ namespace N
             await VerifyItemExistsAsync(markup, "M");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingStaticDoesNotShowInterfaces2()
         {
             var markup = @"
@@ -8004,7 +8004,7 @@ namespace N
             await VerifyItemExistsAsync(markup, "N");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingStaticAndExtensionMethods1()
         {
             var markup = @"
@@ -8034,7 +8034,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Bar");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingStaticAndExtensionMethods2()
         {
             var markup = @"
@@ -8066,7 +8066,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Bar");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingStaticAndExtensionMethods3()
         {
             var markup = @"
@@ -8099,7 +8099,7 @@ class C
             await VerifyItemExistsAsync(markup, "Bar");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingStaticAndExtensionMethods4()
         {
             var markup = @"
@@ -8133,7 +8133,7 @@ class C
             await VerifyItemExistsAsync(markup, "Bar");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingStaticAndExtensionMethods5()
         {
             var markup = @"
@@ -8166,7 +8166,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Bar");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingStaticAndExtensionMethods6()
         {
             var markup = @"
@@ -8199,7 +8199,7 @@ class C
             await VerifyItemExistsAsync(markup, "Bar");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingStaticAndExtensionMethods7()
         {
             var markup = @"
@@ -8233,7 +8233,7 @@ class C
             await VerifyItemExistsAsync(markup, "Bar");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExceptionFilter1()
         {
             var markup = @"
@@ -8252,7 +8252,7 @@ class C
             await VerifyItemExistsAsync(markup, "x");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExceptionFilter2()
         {
             var markup = @"
@@ -8272,7 +8272,7 @@ class C
         }
 
         [WorkItem(717, "https://github.com/dotnet/roslyn/issues/717")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExpressionContextCompletionWithinCast()
         {
             var markup = @"
@@ -8292,7 +8292,7 @@ class Program
         }
 
         [WorkItem(1277, "https://github.com/dotnet/roslyn/issues/1277")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersInPropertyInitializer()
         {
             var markup = @"
@@ -8305,7 +8305,7 @@ class A {
         }
 
         [WorkItem(1277, "https://github.com/dotnet/roslyn/issues/1277")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMembersInPropertyInitializer()
         {
             var markup = @"
@@ -8318,7 +8318,7 @@ class A {
         }
 
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoInstanceMembersInFieldLikeEventInitializer()
         {
             var markup = @"
@@ -8330,7 +8330,7 @@ class A {
             await VerifyItemIsAbsentAsync(markup, "abc");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMembersInFieldLikeEventInitializer()
         {
             var markup = @"
@@ -8343,7 +8343,7 @@ class A {
         }
 
         [WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceMembersInTopLevelFieldInitializer()
         {
             var markup = @"
@@ -8354,7 +8354,7 @@ int bbb = $$
         }
 
         [WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceMembersInTopLevelFieldLikeEventInitializer()
         {
             var markup = @"
@@ -8365,7 +8365,7 @@ event Action bbb = $$
         }
 
         [WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoConditionalAccessCompletionOnTypes1()
         {
             var markup = @"
@@ -8379,7 +8379,7 @@ class C
         }
 
         [WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoConditionalAccessCompletionOnTypes2()
         {
             var markup = @"
@@ -8392,7 +8392,7 @@ class C
         }
 
         [WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoConditionalAccessCompletionOnTypes3()
         {
             var markup = @"
@@ -8404,7 +8404,7 @@ class C
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionInIncompletePropertyDeclaration()
         {
             var markup = @"
@@ -8421,7 +8421,7 @@ class Class2
             await VerifyItemExistsAsync(markup, "Property1");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoCompletionInShebangComments()
         {
             await VerifyNoItemsExistAsync("#!$$", sourceCodeKind: SourceCodeKind.Script);

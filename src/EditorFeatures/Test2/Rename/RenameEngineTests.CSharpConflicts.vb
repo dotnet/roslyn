@@ -33,7 +33,7 @@ class C
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <WorkItem(773534)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub BreakingRenameWithRollBacksInsideLambdas_1()
@@ -65,7 +65,7 @@ class C
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <WorkItem(773435)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub BreakingRenameWithInvocationOnDelegateInstance()
@@ -96,7 +96,7 @@ class C
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <WorkItem(782020)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub BreakingRenameWithSameClassInOneNamespace()
@@ -125,7 +125,7 @@ namespace N
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub BreakingRenameCrossAssembly()
                 Using result = RenameEngineResult.Create(
@@ -157,7 +157,7 @@ public class [|C|]
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionInsideLambdaBody()
                 Using result = RenameEngineResult.Create(
@@ -204,7 +204,7 @@ class Proaasgram
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <WorkItem(1069237)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionInsideExpressionBodiedLambda()
@@ -230,7 +230,7 @@ public class B
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <WorkItem(1069237)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionInsideExpressionBodiedLambda2()
@@ -256,7 +256,7 @@ public class B
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionInsideMethodBody()
                 Using result = RenameEngineResult.Create(
@@ -284,7 +284,7 @@ public class B
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionInInvocationWithLambda_1()
                 Using result = RenameEngineResult.Create(
@@ -334,7 +334,7 @@ static class E
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionInInvocationWithLambda_2()
                 Using result = RenameEngineResult.Create(
@@ -384,7 +384,7 @@ static class E
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionInInvocationWithLambda_3()
                 Using result = RenameEngineResult.Create(
@@ -434,7 +434,7 @@ static class E
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionInInvocationWithLambda_4()
                 Using result = RenameEngineResult.Create(
@@ -484,7 +484,7 @@ static class E
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictResolutionInInvocationWithLambda_5()
                 Using result = RenameEngineResult.Create(
@@ -534,7 +534,7 @@ static class E
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ParameterConflictingWithInstanceField1()
                 Using result = RenameEngineResult.Create(
@@ -559,7 +559,7 @@ class Foo
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ParameterConflictingWithInstanceField2()
                 Using result = RenameEngineResult.Create(
@@ -586,7 +586,7 @@ class Foo
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ParameterConflictingWithInstanceFieldRenamingToKeyword()
                 Using result = RenameEngineResult.Create(
@@ -613,7 +613,7 @@ class Foo
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ParameterConflictingWithStaticField()
                 Using result = RenameEngineResult.Create(
@@ -640,7 +640,7 @@ class Foo
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ParameterConflictingWithFieldFromAnotherLanguage()
                 Using result = RenameEngineResult.Create(
@@ -671,7 +671,7 @@ End Class
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <WorkItem(539745)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub ConflictingTypeDeclaration()
@@ -719,7 +719,7 @@ static class C<T>
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenamingToInvalidIdentifier()
                 Using result = RenameEngineResult.Create(
@@ -739,7 +739,7 @@ class {|Invalid:$$Foo|}
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenamingToInvalidIdentifier2()
                 Using result = RenameEngineResult.Create(
@@ -760,7 +760,7 @@ class {|Invalid:$$Foo|}
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <WorkItem(539636)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenamingToConflictingMethodInvocation()
@@ -791,7 +791,7 @@ class Program
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenamingToConflictingMethodInvocation2()
                 Using result = RenameEngineResult.Create(
@@ -819,7 +819,7 @@ class Program
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <WorkItem(539733)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenamingTypeToConflictingMemberAndParentTypeName()
@@ -845,7 +845,7 @@ class {|Conflict:Foo|}
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <WorkItem(539733)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenamingMemberToNameConflictingWithParent()
@@ -866,7 +866,7 @@ class {|Conflict:Foo|}
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <WorkItem(540199)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenamingMemberToInvalidIdentifierName()
@@ -886,7 +886,7 @@ class {|Invalid:$$Foo|}
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub MinimalQualificationOfBaseType1()
                 Using result = RenameEngineResult.Create(
@@ -912,7 +912,7 @@ class Y : X
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub MinimalQualificationOfBaseType2()
                 Using result = RenameEngineResult.Create(
@@ -938,7 +938,7 @@ class Y : X
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(542322)>
             Public Sub EscapeIfKeywordWhenDoingTypeNameQualification()
@@ -965,7 +965,7 @@ static class Foo
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(542322)>
             Public Sub EscapeUnboundGenericTypesInTypeOfContext()
@@ -1000,7 +1000,7 @@ class Program
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(542322)>
             Public Sub EscapeUnboundGenericTypesInTypeOfContext2()
@@ -1036,7 +1036,7 @@ class Program
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(542322)>
             Public Sub EscapeUnboundGenericTypesInTypeOfContext3()
@@ -1079,7 +1079,7 @@ class Program
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(542651)>
             Public Sub ReplaceAliasWithGenericTypeThatIncludesArrays()
@@ -1107,7 +1107,7 @@ class Program
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(542651)>
             Public Sub ReplaceAliasWithGenericTypeThatIncludesPointers()
@@ -1135,7 +1135,7 @@ class Program
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(542651)>
             Public Sub ReplaceAliasWithNestedGenericType()
@@ -1165,7 +1165,7 @@ class B
                 End Using
             End Sub
 
-            <WpfFact()>
+            <Fact()>
             <WorkItem(535068)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(542103)>
@@ -1196,7 +1196,7 @@ static class E
                 End Using
             End Sub
 
-            <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(535068)>
             <WorkItem(528902)>
             <WorkItem(645152)>
@@ -1290,7 +1290,7 @@ static class E
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub DoNotDetectQueryContinuationNamedTheSame()
                 Using result = RenameEngineResult.Create(
@@ -1318,7 +1318,7 @@ class C
                 End Using
             End Sub
 
-            <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(543027)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenameHandlesUsingWithoutDeclaration()
@@ -1347,7 +1347,7 @@ class Program
                 End Using
             End Sub
 
-            <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(543027)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenameHandlesForWithoutDeclaration()
@@ -1375,7 +1375,7 @@ class Program
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenameAttributeSuffix()
                 Using result = RenameEngineResult.Create(
@@ -1400,7 +1400,7 @@ public class [|$$SomethingAttribute|] : Attribute
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenameAddAttributeSuffix()
                 Using result = RenameEngineResult.Create(
@@ -1424,7 +1424,7 @@ public class [|$$SomethingAttribute|] : Attribute
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenameKeepAttributeSuffixOnUsages()
                 Using result = RenameEngineResult.Create(
@@ -1448,7 +1448,7 @@ public class [|$$SomethingAttribute|] : Attribute
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenameToConflictWithValue()
                 Using result = RenameEngineResult.Create(
@@ -1476,7 +1476,7 @@ class C
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <WorkItem(543482)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub RenameAttributeWithConflictingUse()
@@ -1504,7 +1504,7 @@ class [|$$Main|] : System.Attribute
                 End Using
             End Sub
 
-            <WpfFact>
+            <Fact>
             <WorkItem(542649)>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub QualifyTypeWithGlobalWhenConflicting()
@@ -1530,7 +1530,7 @@ class B
             End Sub
         End Class
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameSymbolConflictWithLocals()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -1556,7 +1556,7 @@ class C
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(528738)>
         Public Sub RenameAliasToCatchConflict()
             Using result = RenameEngineResult.Create(
@@ -1580,7 +1580,7 @@ namespace X
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameAttributeToCreateConflict()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -1606,7 +1606,7 @@ class [|$$Main|] : Attribute // Rename 'Main' to 'Special'
             End Using
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameUsingToKeyword()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -1631,7 +1631,7 @@ class B
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(16809)>
         <WorkItem(535066)>
         Public Sub RenameInNestedClasses()
@@ -1667,7 +1667,7 @@ namespace N
             End Using
         End Sub
 
-        <WpfFact()>
+        <Fact()>
         <WorkItem(535066)>
         <WorkItem(531433)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
@@ -1690,7 +1690,7 @@ class [|t$$o|] // Rename 'to' to 'from'
             End Using
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(522774)>
         Public Sub RenameCrefWithConflict()
             Using result = RenameEngineResult.Create(
@@ -1728,7 +1728,7 @@ class C
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameClassContainingAlias()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -1755,7 +1755,7 @@ class [|$$B|]
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameFunctionWithOverloadConflict()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -1780,7 +1780,7 @@ class Bar
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameActionWithFunctionConflict()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -1808,7 +1808,7 @@ class Program
             End Using
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(552522)>
         Public Sub RenameFunctionNameToDelegateTypeConflict1()
             Using result = RenameEngineResult.Create(
@@ -1839,7 +1839,7 @@ class A
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(552520)>
         Public Sub RenameFunctionNameToDelegateTypeConflict2()
             Using result = RenameEngineResult.Create(
@@ -1869,7 +1869,7 @@ class A
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameFunctionNameToDelegateTypeConflict3()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -1900,7 +1900,7 @@ class A
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(552520)>
         Public Sub RenameFunctionNameToDelegateTypeConflict4()
             Using result = RenameEngineResult.Create(
@@ -1933,7 +1933,7 @@ class A
             End Using
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(552722)>
         Public Sub RenameActionTypeConflict()
             Using result = RenameEngineResult.Create(
@@ -1962,7 +1962,7 @@ class A
             End Using
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(552722)>
         Public Sub RenameConflictAttribute1()
             Using result = RenameEngineResult.Create(
@@ -1985,7 +1985,7 @@ class [|$$FooAttribute|] : System.Attribute
             End Using
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConflictAttribute2()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2009,7 +2009,7 @@ class AAttributeAttribute : Attribute
         End Sub
 
         <WorkItem(576573)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug576573_ConflictAttributeWithNamespace()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2040,7 +2040,7 @@ namespace X
         End Sub
 
         <WorkItem(579602)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug579602_RenameFunctionWithDynamicParameter()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2071,7 +2071,7 @@ class A
             End Using
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub IdentifyConflictsWithVar()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2099,7 +2099,7 @@ class [|$$vor|]
         End Sub
 
         <WorkItem(633180)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_DetectOverLoadResolutionChangesInEnclosingInvocations()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2138,7 +2138,7 @@ static class E
         End Sub
 
         <WorkItem(635622)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ExpandingDynamicAddsObjectCast()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2168,7 +2168,7 @@ class C
         End Sub
 
         <WorkItem(673562)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespaceConflictsAndResolves()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2203,7 +2203,7 @@ namespace N
         End Sub
 
         <WorkItem(673667)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameUnnecessaryExpansion()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2235,7 +2235,7 @@ namespace N
         End Sub
 
         <WorkItem(768910)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInCrefPreservesWhitespaceTrivia()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2274,7 +2274,7 @@ public class A
 
 #Region "Type Argument Expand/Reduce for Generic Method Calls - 639136"
         <WorkItem(639136)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2303,7 +2303,7 @@ class C
 
         <WorkItem(639136)>
         <WorkItem(725934)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_This()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2332,7 +2332,7 @@ class C
         End Sub
 
         <WorkItem(639136)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_Nested()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2362,7 +2362,7 @@ class C
             End Using
         End Sub
         <WorkItem(639136)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_ReferenceType()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2389,7 +2389,7 @@ class C
         End Sub
 
         <WorkItem(639136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_ConstructedTypeArgumentNonGenericContainer()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2419,7 +2419,7 @@ class D<T>
         End Sub
 
         <WorkItem(639136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_SameTypeParameter()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2447,7 +2447,7 @@ class C
         End Sub
 
         <WorkItem(639136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_ArrayTypeParameter()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2474,7 +2474,7 @@ class C
         End Sub
 
         <WorkItem(639136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_MultiDArrayTypeParameter()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2501,7 +2501,7 @@ class C
         End Sub
 
         <WorkItem(639136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_UsedAsArgument()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2528,7 +2528,7 @@ class C
         End Sub
 
         <WorkItem(639136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_UsedInConstructorInitialization()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2555,7 +2555,7 @@ class C
         End Sub
 
         <WorkItem(639136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_CalledOnObject()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2582,7 +2582,7 @@ class C
         End Sub
 
         <WorkItem(639136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_UsedInGenericDelegate()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2609,7 +2609,7 @@ class C
         End Sub
 
         <WorkItem(639136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_UsedInNonGenericDelegate()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2636,7 +2636,7 @@ class C
         End Sub
 
         <WorkItem(639136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_MultipleTypeParameters()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2664,7 +2664,7 @@ class C
 
         <WorkItem(639136)>
         <WorkItem(730781)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_ConflictInDerived()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2693,7 +2693,7 @@ class D : C
         End Sub
 
         <WorkItem(728653)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameGenericInvocationWithDynamicArgument()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2720,7 +2720,7 @@ class C
         End Sub
 
         <WorkItem(728646)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ExpandInvocationInStaticMemberAccess()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2754,7 +2754,7 @@ class D
         End Sub
 
         <WorkItem(728628)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RecursiveTypeParameterExpansionFail()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2782,7 +2782,7 @@ class C<T>
         End Sub
 
         <WorkItem(728575)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCrefWithProperBracesForTypeInferenceAdditionToMethod()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2808,7 +2808,7 @@ class C
         End Sub
 
         <WorkItem(639136)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub GenericNameTypeInferenceExpansion_GenericBase()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2874,7 +2874,7 @@ class C
 #End Region
 
         <WorkItem(1016652)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CS_ConflictBetweenTypeNamesInTypeConstraintSyntax()
             Using result = RenameEngineResult.Create(
@@ -2905,7 +2905,7 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : IReferenceFin
         End Sub
 
         <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MemberQualificationInNameOfUsesTypeName_StaticReferencingInstance()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2930,7 +2930,7 @@ class C
         End Sub
 
         <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MemberQualificationInNameOfUsesTypeName_InstanceReferencingStatic()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2955,7 +2955,7 @@ class C
         End Sub
 
         <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MemberQualificationInNameOfUsesTypeName_InstanceReferencingInstance()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -2980,7 +2980,7 @@ class C
         End Sub
 
         <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MemberQualificationInNameOfMethodInvocationUsesThisDot()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -3007,7 +3007,7 @@ class C
         End Sub
 
         <WorkItem(1053, "https://github.com/dotnet/roslyn/issues/1053")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameComplexifiesInLambdaBodyExpression()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -3029,7 +3029,7 @@ class C
         End Sub
 
         <WorkItem(1053, "https://github.com/dotnet/roslyn/issues/1053")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameComplexifiesInExpressionBodiedMembers()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -3052,7 +3052,7 @@ class C
         End Sub
 
         <WorkItem(1027506)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TestConflictBetweenClassAndInterface1()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -3070,7 +3070,7 @@ interface [|$$I|] { }
         End Sub
 
         <WorkItem(1027506)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TestConflictBetweenClassAndInterface2()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -3088,7 +3088,7 @@ interface {|conflict:I|} { }
         End Sub
 
         <WorkItem(1027506)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TestConflictBetweenClassAndNamespace1()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -3106,7 +3106,7 @@ namespace N { }
         End Sub
 
         <WorkItem(1027506)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TestConflictBetweenClassAndNamespace2()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -3124,7 +3124,7 @@ namespace [|$$N|] { }
         End Sub
 
         <WorkItem(1027506)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TestNoConflictBetweenTwoNamespaces()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -3140,7 +3140,7 @@ namespace N2 { }
         End Sub
 
         <WorkItem(1729, "https://github.com/dotnet/roslyn/issues/1729")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TestNoConflictWithParametersOrLocalsOfDelegateType()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -3173,7 +3173,7 @@ class C
         End Sub
 
         <WorkItem(1729, "https://github.com/dotnet/roslyn/issues/1729")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TestConflictWithLocalsOfDelegateTypeWhenBindingChangesToNonDelegateLocal()
             Using result = RenameEngineResult.Create(
                 <Workspace>
@@ -3199,7 +3199,7 @@ class C
         End Sub
 
         <WorkItem(446, "https://github.com/dotnet/roslyn/issues/446")>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoCrashOrConflictOnRenameWithNameOfInAttribute()
             Using result = RenameEngineResult.Create(
@@ -3220,7 +3220,7 @@ class C
         End Sub
 
         <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictWhenNameOfReferenceDoesNotBindToAnyOriginalSymbols()
             Using result = RenameEngineResult.Create(
@@ -3244,7 +3244,7 @@ class C
         End Sub
 
         <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictWhenNameOfReferenceDoesNotBindToSomeOriginalSymbols()
             Using result = RenameEngineResult.Create(
@@ -3263,7 +3263,7 @@ class Program
         End Sub
 
         <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictWhenNameOfReferenceBindsToSymbolForFirstTime()
             Using result = RenameEngineResult.Create(
@@ -3282,7 +3282,7 @@ class Program
         End Sub
 
         <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictWhenNameOfReferenceChangesBindingFromMetadataToSource()
             Using result = RenameEngineResult.Create(
@@ -3308,7 +3308,7 @@ class Program
         End Sub
 
         <WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub InvalidNamesDoNotCauseCrash_IntroduceQualifiedName()
             Using result = RenameEngineResult.Create(
@@ -3326,7 +3326,7 @@ class {|conflict:C$$|} { }
         End Sub
 
         <WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub InvalidNamesDoNotCauseCrash_AccidentallyPasteLotsOfCode()
             Dim renameTo = "class C { public void M() { for (int i = 0; i < 10; i++) { System.Console.Writeline(""This is a test""); } } }"
@@ -3346,7 +3346,7 @@ class {|conflict:C$$|} { }
         End Sub
 
         <WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DeclarationConflictInFileWithoutReferences_SameProject()
             Using result = RenameEngineResult.Create(
@@ -3378,7 +3378,7 @@ class Program2
         End Sub
 
         <WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DeclarationConflictInFileWithoutReferences_DifferentProjects()
             Using result = RenameEngineResult.Create(
@@ -3414,7 +3414,7 @@ class Program2
 
         <WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
         <WorkItem(3303, "https://github.com/dotnet/roslyn/issues/3303")>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DeclarationConflictInFileWithoutReferences_PartialTypes()
             Using result = RenameEngineResult.Create(
@@ -3445,7 +3445,7 @@ partial class C
         End Sub
 
         <WorkItem(1439, "https://github.com/dotnet/roslyn/issues/1439")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInsideNameOf1()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -3472,7 +3472,7 @@ class Program
         End Sub
 
         <WorkItem(1439, "https://github.com/dotnet/roslyn/issues/1439")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInsideNameOf2()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -3499,7 +3499,7 @@ class Program
         End Sub
 
         <WorkItem(1439, "https://github.com/dotnet/roslyn/issues/1439")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInsideNameOf3()
             Using result = RenameEngineResult.Create(
                     <Workspace>

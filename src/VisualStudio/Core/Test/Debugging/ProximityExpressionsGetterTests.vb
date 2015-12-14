@@ -165,7 +165,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
                                                       End Function)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(538819)>
         <WorkItem(527754)>
         Public Async Function TestIsValid1() As Task
@@ -177,32 +177,32 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
 End Module</text>.Value, "local", True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
         Public Async Function TestIsValidWithDiagnostics() As Task
             ' local doesn't exist in this context
             Await TestIsValidAsync("class Class { void Method() { string local; } $$}", "local", False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
         Public Async Function TestIsValidReferencingLocalBeforeDeclaration() As Task
             Await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "j", False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
         Public Async Function TestIsValidReferencingUndefinedVariable() As Task
             Await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "k", False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
         Public Async Function TestIsValidNoTypeSymbol() As Task
             Await TestIsValidAsync("namespace Namespace$$ { }", "foo", False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
         Public Async Function TestIsValidLocalAfterPosition() As Task
             Await TestIsValidAsync("class Class { void Method() { $$ int i; string local; } }", "local", False)
@@ -224,13 +224,13 @@ End Module</text>.Value, "local", True)
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(538819)>
         Public Async Function TestDebugInfo1() As Task
             Await TestLanguageDebugInfoTryGetProximityExpressionsAsync("$$Module M : End Module", Array.Empty(Of String)(), False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         Public Async Function TestTryDo1() As Task
             Await TestTryDoAsync(<text>Module M
     Sub S
@@ -240,18 +240,18 @@ End Module</text>.Value, "local", True)
 End Module</text>.NormalizedValue, "local")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         Public Async Function TestStatementTerminatorToken() As Task
             Await TestTryDoAsync(<text>Module M$$
 </text>.Value)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         Public Async Function TestNoParentToken() As Task
             Await TestTryDoAsync(<text>$$</text>.NormalizedValue)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         Public Async Function TestCatchParameters() As Task
             Await TestTryDoAsync(<text>
 Module M
@@ -268,7 +268,7 @@ End Module
         End Function
 
         <WorkItem(538847)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         Public Async Function TestMultipleStatementsOnSameLine() As Task
             Await TestTryDoAsync(<text>
 Imports System

@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public class DiagnosticDataTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void DiagnosticData_GetText()
         {
             var code = "";
             VerifyTextSpan(code, 10, 10, 20, 20, new TextSpan(0, 0));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void DiagnosticData_GetText1()
         {
             var code = @"
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             VerifyTextSpan(code, 30, 30, 40, 40, new TextSpan(code.Length, 0));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void DiagnosticData_GetText2()
         {
             var code = @"
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             VerifyTextSpan(code, -1, 30, 40, 40, new TextSpan(0, code.Length));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void DiagnosticData_GetText3()
         {
             var code = @"
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             VerifyTextSpan(code, -1, 30, -1, 40, new TextSpan(0, 0));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void DiagnosticData_GetText4()
         {
             var code = @"
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             VerifyTextSpan(code, 1, 30, -1, 40, new TextSpan(code.Length, 0));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void DiagnosticData_GetText5()
         {
             var code = @"
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             VerifyTextSpan(code, 1, 30, 1, 40, new TextSpan(code.Length, 0));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void DiagnosticData_GetText6()
         {
             var code = @"
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             VerifyTextSpan(code, 1, 30, 2, 40, new TextSpan(code.Length, 0));
         }
 
-        [WpfFact, Trait(Test.Utilities.Traits.Feature, Test.Utilities.Traits.Features.Diagnostics)]
+        [Fact, Trait(Test.Utilities.Traits.Feature, Test.Utilities.Traits.Features.Diagnostics)]
         public void DiagnosticData_GetText7()
         {
             var code = @"
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             VerifyTextSpan(code, 1, 0, 1, 2, new TextSpan(code.Length, 0));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void DiagnosticData_GetText8()
         {
             var code = @"

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestWorkspaceTryApplyChangesDirectCall()
         {
             using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(WorkspaceXml))

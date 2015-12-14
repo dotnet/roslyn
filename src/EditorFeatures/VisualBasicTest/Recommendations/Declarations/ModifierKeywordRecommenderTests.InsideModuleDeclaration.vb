@@ -6,63 +6,63 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations.ModifierKeywordRecommenderTests
     Public Class InsideModuleDeclaration
 
-        <WpfFact>
+        <Fact>
         <WorkItem(544630)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub DefaultNotInModule()
             VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Default")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(544630)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NarrowingNotInModule()
             VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Narrowing")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(544630)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OverloadsNotInModule()
             VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Overloads")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(544630)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OverridesNotInModule()
             VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Overrides")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(544630)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ShadowsNotInModule()
             VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Shadows")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(544630)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SharedNotInModule()
             VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Shared")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(544630)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WideningNotInModule()
             VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "Widening")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(554103)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub PartialInModule()
             VerifyRecommendationsContain(<ModuleDeclaration>|</ModuleDeclaration>, "Partial")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(554103)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub PartialAfterPrivate()

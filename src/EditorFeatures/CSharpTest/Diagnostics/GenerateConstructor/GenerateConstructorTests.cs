@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
                 null, new GenerateConstructorCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithSimpleArgument()
         {
             await TestAsync(
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { private int v; public C(int v) { this.v = v; } void M() { new C(1); } }");
         }
 
-        [WpfFact, WorkItem(910589), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, WorkItem(910589), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithNoArgs()
         {
             await TestAsync(
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { public C() { } public C(int v) { } void M() { new C(); } }");
         }
 
-        [WpfFact, WorkItem(910589), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, WorkItem(910589), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithNamedArg()
         {
             await TestAsync(
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { private int foo; public C(int foo) { this.foo = foo; } void M() { new C(foo: 1); } }");
         }
 
-        [WpfFact, WorkItem(910589), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, WorkItem(910589), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField1()
         {
             await TestAsync(
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M() { new D(foo: 1); } } class D { private int foo; public D(int foo) { this.foo = foo; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField2()
         {
             await TestAsync(
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M() { new D(1); } } class D { private string v; private int v1; public D(int v1) { this.v1 = v1; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField3()
         {
             await TestAsync(
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M() { new D(1); } } class B { protected int v; } class D : B { public D(int v) { this.v = v; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField4()
         {
             await TestAsync(
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField5()
         {
             await TestAsync(
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField5WithQualification()
         {
             await TestAsync(
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField6()
         {
             await TestAsync(
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField7()
         {
             await TestAsync(
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField7WithQualification()
         {
             await TestAsync(
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField8()
         {
             await TestAsync(
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField9()
         {
             await TestAsync(
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty1()
         {
             await TestAsync(
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty1WithQualification()
         {
             await TestAsync(
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty2()
         {
             await TestAsync(
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty3()
         {
             await TestAsync(
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty3WithQualification()
         {
             await TestAsync(
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty4()
         {
             await TestAsync(
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty4WithQualification()
         {
             await TestAsync(
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539444)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingProperty5()
         {
             await TestAsync(
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M(int X) { new D(X); } } class B { protected int X { get; } } class D : B { private int x; public D(int x) { this.x = x; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithOutParam()
         {
             await TestAsync(
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M(int i) { new D(out i); } } class D { public D(out int i) { i = 0; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithBaseDelegatingConstructor1()
         {
             await TestAsync(
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M() { new D(1); } } class B { protected B(int x) { } } class D : B { public D(int x) : base(x) { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithBaseDelegatingConstructor2()
         {
             await TestAsync(
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class C { void M() { new D(1); } } class B { private B(int x) { } } class D : B { private int v; public D(int v) { this.v = v; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestStructInLocalInitializerWithSystemType()
         {
             await TestAsync(
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestEscapedName()
         {
             await TestAsync(
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestEscapedKeyword()
         {
             await TestAsync(
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
 @"class @int { private int v; public @int(int v) { this.v = v; } void M() { new @int(1); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestIsSymbolAccessibleWithInternalField()
         {
             await TestAsync(
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateCon
         }
 
         [WorkItem(539548)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestFormatting()
         {
             await TestAsync(
@@ -306,7 +306,7 @@ compareTokens: false);
         }
 
         [WorkItem(5864, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestNotOnStructConstructor()
         {
             await TestMissingAsync(
@@ -314,7 +314,7 @@ compareTokens: false);
         }
 
         [WorkItem(539787)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateIntoCorrectPart()
         {
             await TestAsync(
@@ -322,7 +322,7 @@ compareTokens: false);
 @"partial class C { } partial class C { private string v ; public C ( string v ) { this . v = v ; } void Method ( ) { C c = new C ( ""a"" ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestDelegateToSmallerConstructor1()
         {
             await TestAsync(
@@ -330,7 +330,7 @@ compareTokens: false);
 @"class A { void M ( ) { Delta d1 = new Delta ( ""ss"" , 3 ) ; Delta d2 = new Delta ( ""ss"" , 5 , true ) ; } } class Delta { private bool v ; private string v1 ; private int v2 ; public Delta ( string v1 , int v2 ) { this . v1 = v1 ; this . v2 = v2 ; } public Delta ( string v1 , int v2 , bool v ) : this ( v1 , v2 ) { this . v = v ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestDelegateToSmallerConstructor2()
         {
             await TestAsync(
@@ -338,7 +338,7 @@ compareTokens: false);
 @"class A { void M ( ) { Delta d1 = new Delta ( ""ss"" , 3 ) ; Delta d2 = new Delta ( ""ss"" , 5 , true ) ; } } class Delta { private string a ; private int b ; private bool v ; public Delta ( string a , int b ) { this . a = a ; this . b = b ; } public Delta ( string a , int b , bool v) : this ( a , b ) { this . v = v ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestDelegateToSmallerConstructor3()
         {
             await TestAsync(
@@ -346,7 +346,7 @@ compareTokens: false);
 @"class A { void M ( ) { var d1 = new Base ( ""ss"" , 3 ) ; var d2 = new Delta ( ""ss"" , 5 , true ) ; } } class Base { private string v1 ; private int v2 ; public Base ( string v1 , int v2 ) { this . v1 = v1 ; this . v2 = v2 ; } } class Delta : Base { private bool v ; public Delta ( string v1 , int v2 , bool v ) : base ( v1 , v2 ) { this . v = v ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestDelegateToSmallerConstructor4()
         {
             await TestAsync(
@@ -354,7 +354,7 @@ compareTokens: false);
 @"class A { void M ( ) { Delta d1 = new Delta ( ""ss"" , 3 ) ; Delta d2 = new Delta ( ""ss"" , 5 , true ) ; } } class Delta { private bool v ; private string v1 ; private int v2 ;  public Delta ( string v1 , int v2 ) { this . v1 = v1 ; this . v2 = v2 ; } public Delta ( string v1 , int v2 , bool v ) : this ( v1 , v2 ) { this . v = v ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromThisInitializer1()
         {
             await TestAsync(
@@ -362,7 +362,7 @@ compareTokens: false);
 @"class C { private int v ; public C ( ) : this ( 4 ) { } public C ( int v ) { this . v = v ; } } ");
         }
 
-        [WpfFact, WorkItem(910589), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, WorkItem(910589), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromThisInitializer2()
         {
             await TestAsync(
@@ -370,7 +370,7 @@ compareTokens: false);
 @"class C { public C ( ) { } public C ( int i ) : this ( ) { } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromBaseInitializer1()
         {
             await TestAsync(
@@ -378,7 +378,7 @@ compareTokens: false);
 @"class C : B { public C ( int i ) : base ( i ) { } } class B { private int i ; public B ( int i ) { this . i = i ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromBaseInitializer2()
         {
             await TestAsync(
@@ -387,7 +387,7 @@ compareTokens: false);
         }
 
         [WorkItem(539969)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestNotOnExistingConstructor()
         {
             await TestMissingAsync(
@@ -395,7 +395,7 @@ compareTokens: false);
         }
 
         [WorkItem(539972)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestUnavailableTypeParameters()
         {
             await TestAsync(
@@ -404,7 +404,7 @@ compareTokens: false);
         }
 
         [WorkItem(541020)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateCallToDefaultConstructorInStruct()
         {
             await TestAsync(
@@ -413,7 +413,7 @@ compareTokens: false);
         }
 
         [WorkItem(541121)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestReadonlyFieldDelegation()
         {
             await TestAsync(
@@ -421,7 +421,7 @@ compareTokens: false);
 @"class C { private readonly int x ; public C ( int x ) { this . x = x ; } void Test ( ) { int x = 10 ; C c = new C ( x ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestNoGenerationIntoEntirelyHiddenType()
         {
             await TestMissingAsync(
@@ -442,7 +442,7 @@ class D
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestNestedConstructorCall()
         {
             await TestAsync(
@@ -491,7 +491,7 @@ class D
         }
 
         [WorkItem(530003)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithArgument()
         {
             await TestAsync(
@@ -500,7 +500,7 @@ class D
         }
 
         [WorkItem(530003)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithMultipleArguments()
         {
             await TestAsync(
@@ -509,7 +509,7 @@ class D
         }
 
         [WorkItem(530003)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithNamedArguments()
         {
             await TestAsync(
@@ -518,7 +518,7 @@ class D
         }
 
         [WorkItem(530003)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithAdditionalConstructors()
         {
             await TestAsync(
@@ -527,7 +527,7 @@ class D
         }
 
         [WorkItem(530003)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithOverloading()
         {
             await TestAsync(
@@ -536,7 +536,7 @@ class D
         }
 
         [WorkItem(530003)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithOverloadingMultipleParameters()
         {
             await TestAsync(
@@ -545,7 +545,7 @@ class D
         }
 
         [WorkItem(530003)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithAllValidParameters()
         {
             await TestAsync(
@@ -554,7 +554,7 @@ class D
         }
 
         [WorkItem(530003)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithDelegation()
         {
             await TestMissingAsync(
@@ -562,7 +562,7 @@ class D
         }
 
         [WorkItem(530003)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestAttributesWithLambda()
         {
             await TestMissingAsync(
@@ -570,7 +570,7 @@ class D
         }
 
         [WorkItem(889349)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestConstructorGenerationForDifferentNamedParameter()
         {
             await TestAsync(
@@ -612,7 +612,7 @@ class Program
         }
 
         [WorkItem(528257)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateInInaccessibleType()
         {
             await TestAsync(
@@ -629,7 +629,7 @@ class Program
             }
 
             [WorkItem(1241, @"https://github.com/dotnet/roslyn/issues/1241")]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
             public async Task TestGenerateConstructorInIncompleteLambda()
             {
                 await TestAsync(

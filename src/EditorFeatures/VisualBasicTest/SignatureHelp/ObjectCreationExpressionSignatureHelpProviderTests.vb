@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
 #Region "Regular tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationWithoutParameters() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -37,7 +37,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationWithoutParametersMethodXmlComments() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -60,7 +60,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationWithParametersOn1() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -79,7 +79,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationWithParametersXmlCommentsOn1() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -104,7 +104,7 @@ End Class
         End Function
 
         <WorkItem(545931)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestUnsupportedParameters() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -123,7 +123,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationWithParametersOn2() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -142,7 +142,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationWithParametersXmlComentsOn2() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -166,7 +166,7 @@ End Class]]></a>.Value
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationWithoutClosingParen() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -182,7 +182,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationWithoutClosingParenWithParameters() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -201,7 +201,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationWithoutClosingParenWithParametersOn2() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -220,7 +220,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnLambda() As Task
             Dim markup = <a><![CDATA[
 Imports System
@@ -242,7 +242,7 @@ End Class
 
 #Region "Current Parameter Name"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestCurrentParameterName() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -262,7 +262,7 @@ End Class
 
 #Region "Trigger tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnTriggerParens() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -278,7 +278,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationOnTriggerComma() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -296,7 +296,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestNoInvocationOnSpace() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -313,7 +313,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestTriggerCharacters()
             Dim expectedCharacters() As Char = {","c, "("c}
             Dim unexpectedCharacters() As Char = {" "c, "["c, "<"c}
@@ -325,7 +325,7 @@ End Class
 
 #Region "EditorBrowsable tests"
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestEditorBrowsable_ObjectCreation_BrowsableAlways() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -355,7 +355,7 @@ End Class
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestEditorBrowsable_ObjectCreation_BrowsableNever() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -385,7 +385,7 @@ End Class
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestEditorBrowsable_ObjectCreation_BrowsableAdvanced() As Task
             Dim markup = <Text><![CDATA[
 Class Program
@@ -424,7 +424,7 @@ End Class
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestEditorBrowsable_ObjectCreation_BrowsableMixed() As Task
             Dim markup = <Text><![CDATA[
 Class Program

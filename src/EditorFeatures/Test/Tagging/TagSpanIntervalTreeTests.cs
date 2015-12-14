@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             return new TagSpanIntervalTree<ITextMarkerTag>(buffer, SpanTrackingMode.EdgeInclusive, tags);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestEmptyTree()
         {
             var tree = CreateTree(string.Empty);
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             Assert.Empty(tree.GetSpans(tree.Buffer.CurrentSnapshot));
         }
 
-        [WpfFact]
+        [Fact]
         public void TestSingleSpan()
         {
             var tree = CreateTree("Hello, World", new Span(0, 5));
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             Assert.Equal(new Span(0, 5), tree.GetSpans(tree.Buffer.CurrentSnapshot).Single().Span);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestSingleIntersectingSpanAtStartWithEdit()
         {
             var tree = CreateTree("Hello, World", new Span(7, 5));
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             Assert.Equal(new Span(107, 5), spans.Single().Span);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestSingleIntersectingSpanAtEndWithEdit()
         {
             var tree = CreateTree("Hello, World", new Span(7, 5));
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             Assert.Equal(new Span(107, 5), spans.Single().Span);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestManySpansWithEdit()
         {
             // Create a buffer with the second half of the buffer covered with spans
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             Assert.Equal(26, tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, 175, 25)).Count());
         }
 
-        [WpfFact]
+        [Fact]
         public void TestManySpansWithEdit2()
         {
             // Cover the full buffer with spans
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             Assert.Equal(2, tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, 100, 1)).Count());
         }
 
-        [WpfFact]
+        [Fact]
         public void TestManySpansWithDeleteAndEditAtStart()
         {
             // Cover the full buffer with spans
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             Assert.Equal(51, tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, 0, 1)).Count());
         }
 
-        [WpfFact]
+        [Fact]
         public void TestManySpansWithDeleteAndEditAtEnd()
         {
             // Cover the full buffer with spans
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             Assert.Equal(51, tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, 99, 1)).Count());
         }
 
-        [WpfFact]
+        [Fact]
         public void TestTagSpanOrdering()
         {
             // Cover the full buffer with spans
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void TestEmptySpanIntersects1()
         {
             var tree = CreateTree("foo", new Span(0, 0));
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             Assert.True(spans.Count == 1);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestEmptySpanIntersects2()
         {
             var tree = CreateTree("foo", new Span(0, 0));
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             Assert.True(spans.Count == 1);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestEmptySpanIntersects3()
         {
             var tree = CreateTree("foo", new Span(1, 0));
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             Assert.True(spans.Count == 1);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestEmptySpanIntersects4()
         {
             var tree = CreateTree("foo", new Span(1, 0));
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
             Assert.True(spans.Count == 1);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestEmptySpanIntersects5()
         {
             var tree = CreateTree("foo", new Span(1, 0));

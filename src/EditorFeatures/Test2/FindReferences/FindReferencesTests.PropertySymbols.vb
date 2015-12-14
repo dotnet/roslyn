@@ -5,7 +5,7 @@ Imports System.Threading.Tasks
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(538886)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_Property1() As Task
             Dim input =
 <Workspace>
@@ -36,7 +36,7 @@ namespace ConsoleApplication22
         End Function
 
         <WorkItem(538886)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_Property2() As Task
             Dim input =
 <Workspace>
@@ -67,7 +67,7 @@ namespace ConsoleApplication22
         End Function
 
         <WorkItem(539022)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyCascadeThroughInterface1() As Task
             Dim input =
 <Workspace>
@@ -89,7 +89,7 @@ namespace ConsoleApplication22
         End Function
 
         <WorkItem(539022)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyCascadeThroughInterface2() As Task
             Dim input =
 <Workspace>
@@ -111,7 +111,7 @@ namespace ConsoleApplication22
         End Function
 
         <WorkItem(539047)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyThroughBase1() As Task
             Dim input =
 <Workspace>
@@ -144,7 +144,7 @@ class C2 : C1
         End Function
 
         <WorkItem(539047)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyThroughBase2() As Task
             Dim input =
 <Workspace>
@@ -177,7 +177,7 @@ class C2 : C1
         End Function
 
         <WorkItem(539047)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyThroughBase3() As Task
             Dim input =
 <Workspace>
@@ -210,7 +210,7 @@ class C2 : C1
         End Function
 
         <WorkItem(539047)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyThroughBase4() As Task
             Dim input =
 <Workspace>
@@ -243,7 +243,7 @@ class C2 : C1
         End Function
 
         <WorkItem(539523)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_ExplicitProperty1() As Task
             Dim input =
 <Workspace>
@@ -268,7 +268,7 @@ public class A : DD
         End Function
 
         <WorkItem(539523)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_ExplicitProperty2() As Task
             Dim input =
 <Workspace>
@@ -293,7 +293,7 @@ public class A : DD
         End Function
 
         <WorkItem(539885)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyFromGenericInterface1() As Task
             Dim input =
 <Workspace>
@@ -330,7 +330,7 @@ public class M<T> : I1<T>, I3<T>
         End Function
 
         <WorkItem(539885)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyFromGenericInterface2() As Task
             Dim input =
 <Workspace>
@@ -367,7 +367,7 @@ public class M<T> : I1<T>, I3<T>
         End Function
 
         <WorkItem(539885)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyFromGenericInterface3() As Task
             Dim input =
 <Workspace>
@@ -404,7 +404,7 @@ public class M<T> : I1<T>, I3<T>
         End Function
 
         <WorkItem(539885)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyFromGenericInterface4() As Task
             Dim input =
 <Workspace>
@@ -441,7 +441,7 @@ public class M<T> : I1<T>, I3<T>
         End Function
 
         <WorkItem(539885)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_PropertyFromGenericInterface5() As Task
             Dim input =
 <Workspace>
@@ -478,7 +478,7 @@ public class M<T> : I1<T>, I3<T>
         End Function
 
         <WorkItem(540440)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_PropertyFunctionValue1() As Task
             Dim input =
 <Workspace>
@@ -499,7 +499,7 @@ End Module]]>
         End Function
 
         <WorkItem(540440)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_PropertyFunctionValue2() As Task
             Dim input =
 <Workspace>
@@ -520,7 +520,7 @@ End Module]]>
         End Function
 
         <WorkItem(543125)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_AnonymousTypeProperties1() As Task
             Dim input =
 <Workspace>
@@ -543,7 +543,7 @@ class C
         End Function
 
         <WorkItem(543125)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_AnonymousTypeProperties2() As Task
             Dim input =
 <Workspace>
@@ -566,7 +566,7 @@ class C
         End Function
 
         <WorkItem(543125)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_AnonymousTypeProperties3() As Task
             Dim input =
 <Workspace>
@@ -589,7 +589,7 @@ class C
         End Function
 
         <WorkItem(543125)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_AnonymousTypeProperties4() As Task
             Dim input =
 <Workspace>
@@ -612,7 +612,7 @@ class C
         End Function
 
         <WorkItem(542881)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_AnonymousTypeProperties1() As Task
             Dim input =
 <Workspace>
@@ -636,7 +636,7 @@ End Module
         End Function
 
         <WorkItem(542881)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_AnonymousTypeProperties2() As Task
             Dim input =
 <Workspace>
@@ -660,7 +660,7 @@ End Module
         End Function
 
         <WorkItem(542881)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_AnonymousTypeProperties3() As Task
             Dim input =
 <Workspace>
@@ -684,7 +684,7 @@ End Module
         End Function
 
         <WorkItem(545576)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_CascadeBetweenPropertyAndField1() As Task
             Dim input =
 <Workspace>
@@ -704,7 +704,7 @@ End Class
         End Function
 
         <WorkItem(545576)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_CascadeBetweenPropertyAndField2() As Task
             Dim input =
 <Workspace>
@@ -724,7 +724,7 @@ End Class
         End Function
 
         <WorkItem(529765)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod1() As Task
             Dim input =
 <Workspace>
@@ -757,7 +757,7 @@ class B : A
         End Function
 
         <WorkItem(529765)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod2() As Task
             Dim input =
 <Workspace>
@@ -790,7 +790,7 @@ class B : A
         End Function
 
         <WorkItem(529765)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod3() As Task
             Dim input =
 <Workspace>
@@ -823,7 +823,7 @@ class B : A
         End Function
 
         <WorkItem(665876)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_DefaultProperties() As Task
             Dim input =
 <Workspace>
@@ -859,7 +859,7 @@ End Class
         End Function
 
         <WorkItem(665876)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_DefaultProperties2() As Task
             Dim input =
 <Workspace>

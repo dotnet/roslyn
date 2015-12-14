@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
     Public Class AddAwaitTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TaskNotAwaited() As Task
             Await TestAsync(
                 NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Sub MySub() \n [|Task.Delay(3)|] \n End Sub \n End Module"),
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
 )
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestTaskNotAwaited_WithLeadingTrivia() As Task
             Dim initial =
 <File>
@@ -47,7 +47,7 @@ End Module
             Await TestAsync(initial, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestBadAsyncReturnOperand1() As Task
             Dim initial =
 <File>
@@ -86,7 +86,7 @@ End Module
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestFunctionNotAwaited() As Task
             Dim initial =
 <File>
@@ -126,7 +126,7 @@ End Module
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestFunctionNotAwaited_WithLeadingTrivia() As Task
             Dim initial =
 <File>
@@ -170,7 +170,7 @@ End Module
             Await TestAsync(initial, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestSubLambdaNotAwaited() As Task
             Dim initial =
 <File>
@@ -206,7 +206,7 @@ End Module
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Async Function TestFunctionLambdaNotAwaited() As Task
             Dim initial =
 <File>

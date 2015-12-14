@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(n));
         }
 
-        [WpfFact]
+        [Fact]
         public void GetSequenceEdits1()
         {
             var edits = SyntaxComparer.GetSequenceEdits(
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, edits, itemInspector: e => e.GetDebuggerDisplay());
         }
 
-        [WpfFact]
+        [Fact]
         public void GetSequenceEdits2()
         {
             var edits = SyntaxComparer.GetSequenceEdits(
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, edits, itemInspector: e => e.GetDebuggerDisplay());
         }
 
-        [WpfFact]
+        [Fact]
         public void GetSequenceEdits3()
         {
             var edits = SyntaxComparer.GetSequenceEdits(
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, edits, itemInspector: e => e.GetDebuggerDisplay());
         }
 
-        [WpfFact]
+        [Fact]
         public void GetSequenceEdits4()
         {
             var edits = SyntaxComparer.GetSequenceEdits(
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, edits, itemInspector: e => e.GetDebuggerDisplay());
         }
 
-        [WpfFact]
+        [Fact]
         public void ComputeDistance1()
         {
             double distance = SyntaxComparer.ComputeDistance(
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Assert.Equal(0.67, Math.Round(distance, 2));
         }
 
-        [WpfFact]
+        [Fact]
         public void ComputeDistance2()
         {
             double distance = SyntaxComparer.ComputeDistance(
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Assert.Equal(0.67, Math.Round(distance, 2));
         }
 
-        [WpfFact]
+        [Fact]
         public void ComputeDistance3()
         {
             double distance = SyntaxComparer.ComputeDistance(
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Assert.Equal(0.33, Math.Round(distance, 2));
         }
 
-        [WpfFact]
+        [Fact]
         public void ComputeDistance4()
         {
             double distance = SyntaxComparer.ComputeDistance(
@@ -119,21 +119,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Assert.Equal(0.33, Math.Round(distance, 2));
         }
 
-        [WpfFact]
+        [Fact]
         public void ComputeDistance_Token()
         {
             double distance = SyntaxComparer.ComputeDistance(SyntaxFactory.Literal("abc", "abc"), SyntaxFactory.Literal("acb", "acb"));
             Assert.Equal(0.33, Math.Round(distance, 2));
         }
 
-        [WpfFact]
+        [Fact]
         public void ComputeDistance_Node()
         {
             double distance = SyntaxComparer.ComputeDistance(MakeLiteral(101), MakeLiteral(150));
             Assert.Equal(1, Math.Round(distance, 2));
         }
 
-        [WpfFact]
+        [Fact]
         public void ComputeDistance_Null()
         {
             double distance = SyntaxComparer.ComputeDistance(

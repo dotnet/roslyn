@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSimpleComment1()
         {
             const string code = @"
@@ -52,7 +52,7 @@ class C
                 Region("span", "// Hello ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSimpleComment2()
         {
             const string code = @"
@@ -68,7 +68,7 @@ class C
                 Region("span", "// Hello ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSimpleComment3()
         {
             const string code = @"
@@ -84,7 +84,7 @@ class C
                 Region("span", "// Hello ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSingleLineCommentGroupFollowedByDocumentationComment()
         {
             const string code = @"
@@ -101,7 +101,7 @@ class C
                 Region("span", "// Hello ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestMultilineComment1()
         {
             const string code = @"
@@ -116,7 +116,7 @@ class C
                 Region("span", "/* Hello ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestMultilineCommentOnOneLine()
         {
             const string code = @"
@@ -132,7 +132,7 @@ class C
 
         [WorkItem(791)]
         [WorkItem(1108049)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestIncompleteMultilineCommentZeroSpace()
         {
             const string code = @"
@@ -144,7 +144,7 @@ class C
 
         [WorkItem(791)]
         [WorkItem(1108049)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestIncompleteMultilineCommentSingleSpace()
         {
             const string code = @"

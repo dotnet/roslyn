@@ -51,12 +51,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestVisualBasicLanguageDebugInfoGetDataTipSpanAndText() As Task
             Await TestAsync(<text>Module [|$$M|] : End Module</text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function Test1() As Task
             Await TestAsync(<text>
 class C
@@ -66,7 +66,7 @@ class C
 end class</text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function Test2() As Task
             Await TestAsync(<text>
 class C
@@ -76,7 +76,7 @@ class C
 end class</text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function Test3() As Task
             Await TestAsync(<text>
 class C
@@ -86,7 +86,7 @@ class C
 end class</text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function Test4() As Task
             Await TestAsync(<text>
 class C
@@ -96,7 +96,7 @@ class C
 end class</text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function Test5() As Task
             Await TestAsync(<text>
 class C
@@ -106,7 +106,7 @@ class C
 end class</text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function Test6() As Task
             Await TestNoDataTipAsync(<text>
 class C
@@ -116,7 +116,7 @@ class C
 end class</text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function Test7() As Task
             Await TestAsync(<text>
 class C
@@ -126,7 +126,7 @@ class C
 end class</text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function Test8() As Task
             Await TestNoDataTipAsync(<text>
 class C
@@ -136,7 +136,7 @@ class C
 end class</text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function Test9() As Task
             Await TestAsync(<text>
 class C
@@ -146,7 +146,7 @@ class C
 end class</text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestLiterals() As Task
             Await TestNoDataTipAsync(<text>
 class C
@@ -156,7 +156,7 @@ class C
 end class</text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestNonExpressions() As Task
             Await TestNoDataTipAsync(<text>
 class C
@@ -167,7 +167,7 @@ end class</text>)
         End Function
 
         <WorkItem(538152)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestOnComma() As Task
             Await TestNoDataTipAsync(<text>
 class C
@@ -179,7 +179,7 @@ end class</text>)
         End Function
 
         <WorkItem(546280)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestOnParameter() As Task
             Await TestAsync(<text>
 Module Module1
@@ -195,7 +195,7 @@ End Module
         End Function
 
         <WorkItem(942699)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestOnCatchVariable() As Task
             Await TestAsync(<text>
 Module Module1
@@ -210,7 +210,7 @@ End Module
 </text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestOnTypeDeclaration() As Task
             Await TestAsync(<text>
 Module [|$$M|]
@@ -238,7 +238,7 @@ Delegate Sub [|$$M|] ()
 </text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestOnEnumMember() As Task
             Await TestAsync(<text>
 Enum E
@@ -247,7 +247,7 @@ End Enum
 </text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestOnTypeParameter() As Task
             Await TestAsync(<text>
 Class C(Of [|$$T|])
@@ -261,7 +261,7 @@ End Class
 </text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestOnProperty() As Task
             Await TestAsync(<text>
 Class C
@@ -270,7 +270,7 @@ End Class
 </text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestOnEvent() As Task
             Await TestAsync(<text>
 Class C
@@ -279,7 +279,7 @@ End Class
 </text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestOnMethod() As Task
             Await TestAsync(<text>
 Class C
@@ -289,7 +289,7 @@ End Class
 </text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestInQuery() As Task
             Await TestAsync(<text>
 Class C
@@ -308,7 +308,7 @@ End Class
 </text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
         Public Async Function TestConditionalAccessExpression() As Task
             Const sourceTemplate = "
 Class A
@@ -374,7 +374,7 @@ End Class
             Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]") %></text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
         Public Async Function TestConditionalAccessExpression_Dictionary() As Task
             Const sourceTemplate = "
 Class A
@@ -404,7 +404,7 @@ End Class
             Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?!B?!$$C|]") %></text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(2602)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(2602)>
         Public Async Function TestParameterizedProperty() As Task
             Const sourceTemplate = "
 Class Class1
