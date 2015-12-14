@@ -9,24 +9,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal struct TypeAndCustomInfo
     {
-        public readonly Type Type;
+        public readonly DkmClrType ClrType;
         public readonly DkmClrCustomTypeInfo Info;
 
-        public TypeAndCustomInfo(Type type, DkmClrCustomTypeInfo info)
+        public TypeAndCustomInfo(DkmClrType type, DkmClrCustomTypeInfo info = null)
         {
             Debug.Assert(type != null); // Can only be null in the default instance.
-            Type = type;
+            ClrType = type;
             Info = info;
         }
 
-        public TypeAndCustomInfo(Type type)
-            : this(type, null)
+        public Type Type
         {
-        }
-
-        public TypeAndCustomInfo(DkmClrType type)
-            : this(type.GetLmrType(), null)
-        {
+            get { return (ClrType == null) ? null : ClrType.GetLmrType(); }
         }
     }
 }

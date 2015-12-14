@@ -13,11 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SynthesizedMethodBaseSymbol : SourceMethodSymbol
     {
         protected readonly MethodSymbol BaseMethod;
-        protected TypeMap TypeMap { get; private set; }
+        internal TypeMap TypeMap { get; private set; }
 
         private readonly string _name;
         private ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
+        private TypeSymbol _iteratorElementType;
 
         protected SynthesizedMethodBaseSymbol(NamedTypeSymbol containingType,
                                               MethodSymbol baseMethod,
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int ParameterCount
         {
-            get { return this.BaseMethod.ParameterCount; }
+            get { return this.Parameters.Length; }
         }
 
         public sealed override ImmutableArray<ParameterSymbol> Parameters
@@ -93,6 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 return _parameters;
             }
+        }
+
+        protected virtual ImmutableArray<TypeSymbol> ExtraSynthesizedRefParameters
+        {
+            get { return default(ImmutableArray<TypeSymbol>); }
         }
 
         protected virtual ImmutableArray<ParameterSymbol> BaseMethodParameters
@@ -108,6 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var p in parameters)
             {
                 builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type).Type, ordinal++, p.RefKind, p.Name));
+            }
+            var extraSynthed = ExtraSynthesizedRefParameters;
+            if (!extraSynthed.IsDefaultOrEmpty)
+            {
+                foreach (var extra in extraSynthed)
+                {
+                    builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(extra).Type, ordinal++, RefKind.Ref));
+                }
             }
             return builder.ToImmutableAndFree();
         }
@@ -135,6 +149,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsExpressionBodied
         {
             get { return false; }
+        }
+
+        internal override TypeSymbol IteratorElementType
+        {
+            get
+            {
+                if (_iteratorElementType == null)
+                {
+                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementType).Type;
+                }
+                return _iteratorElementType;
+            }
+            set
+            {
+                Debug.Assert(value != null);
+                _iteratorElementType = value;
+            }
         }
     }
 }

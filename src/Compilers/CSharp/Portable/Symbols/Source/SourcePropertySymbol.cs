@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             SyntaxToken arglistToken;
-            var parameters = ParameterHelpers.MakeParameters(binder, owner, parameterSyntaxOpt, false, out arglistToken, diagnostics);
+            var parameters = ParameterHelpers.MakeParameters(binder, owner, parameterSyntaxOpt, false, out arglistToken, diagnostics, false);
 
             if (arglistToken.Kind() != SyntaxKind.None)
             {

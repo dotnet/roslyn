@@ -58,6 +58,7 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SyntaxTreeAct
 Microsoft.CodeAnalysis.Emit.DebugInformationFormat.Embedded = 3 -> Microsoft.CodeAnalysis.Emit.DebugInformationFormat
 Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb = 2 -> Microsoft.CodeAnalysis.Emit.DebugInformationFormat
 Microsoft.CodeAnalysis.MetadataReference.MetadataReference(Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
+Microsoft.CodeAnalysis.MethodKind.LocalFunction = 17 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.ParseOptions.WithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
 Microsoft.CodeAnalysis.ScriptCompilationInfo
 Microsoft.CodeAnalysis.ScriptCompilationInfo.GlobalsType.get -> System.Type

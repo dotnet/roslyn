@@ -2694,6 +2694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case MethodKind.ExplicitInterfaceImplementation:
                         //CS0541 is handled in SourcePropertySymbol
                         case MethodKind.Ordinary:
+                        case MethodKind.LocalFunction:
                         case MethodKind.PropertyGet:
                         case MethodKind.PropertySet:
                         case MethodKind.EventAdd:

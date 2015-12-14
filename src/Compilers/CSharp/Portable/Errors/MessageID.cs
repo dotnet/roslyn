@@ -112,6 +112,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_OperationCausedStackOverflow = MessageBase + 12703,
         IDS_AwaitInCatchAndFinally = MessageBase + 12704,
         IDS_FeatureReadonlyAutoImplementedProperties = MessageBase + 12705,
+        IDS_FeatureBinaryLiteral = MessageBase + 12706,
+        IDS_FeatureDigitSeparator = MessageBase + 12707,
+        IDS_FeatureLocalFunctions = MessageBase + 12708,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -145,10 +148,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalizableErrorArgument(id);
         }
 
+        // Returns the string to be used in the /features flag switch to enable the MessageID feature.
+        // Always call this before RequiredVersion:
+        //   If this method returns null, call RequiredVersion and use that.
+        //   If this method returns non-null, use that.
+        // Features should be mutually exclusive between RequiredFeature and RequiredVersion.
+        //   (hence the above rule - RequiredVersion throws when RequiredFeature returns non-null)
         internal static string RequiredFeature(this MessageID feature)
         {
             switch (feature)
             {
+                case MessageID.IDS_FeatureBinaryLiteral:
+                    return "binaryLiterals";
+                case MessageID.IDS_FeatureDigitSeparator:
+                    return "digitSeparators";
+                case MessageID.IDS_FeatureLocalFunctions:
+                    return "localFunctions";
+
                 default:
                     return null;
             }

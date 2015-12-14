@@ -1047,6 +1047,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return this.ServiceProvider.GetService(typeof(TService)) as TInterface;
         }
 
+        public object GetVsService(Type serviceType)
+        {
+            return ServiceProvider.GetService(serviceType);
+        }
+
+        public DTE GetVsDte()
+        {
+            return GetVsService<SDTE, DTE>();
+        }
+
         /// <summary>
         /// A trivial implementation of <see cref="IVisualStudioWorkspaceHost" /> that just
         /// forwards the calls down to the underlying Workspace.

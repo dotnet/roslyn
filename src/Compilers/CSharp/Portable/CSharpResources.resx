@@ -4602,6 +4602,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_AwaitInCatchAndFinally" xml:space="preserve">
     <value>await in catch blocks and finally blocks</value>
   </data>
+  <data name="IDS_FeatureBinaryLiteral" xml:space="preserve">
+    <value>binary literals</value>
+  </data>
+  <data name="IDS_FeatureDigitSeparator" xml:space="preserve">
+    <value>digit separators</value>
+  </data>
+  <data name="IDS_FeatureLocalFunctions" xml:space="preserve">
+    <value>local functions</value>
+  </data>
   <data name="ERR_UnescapedCurly" xml:space="preserve">
     <value>A '{0}' character must be escaped (by doubling) in an interpolated string.</value>
   </data>
@@ -4668,5 +4677,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InvalidReal" xml:space="preserve">
     <value>Invalid real literal.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
+    <value>An expression tree may not contain a reference to a local function</value>
+  </data>
+  <data name="ERR_ReturnTypesDontMatch" xml:space="preserve">
+    <value>Cannot infer the return type of '{0}' due to differing return types.</value>
+  </data>
+  <data name="ERR_DynamicLocalFunctionParameter" xml:space="preserve">
+    <value>Cannot invoke the local function '{0}' with dynamic parameters.</value>
+  </data>
+  <data name="ERR_CantInferVoid" xml:space="preserve">
+    <value>Cannot infer the type of '{0}' as it does not return a value.</value>
   </data>
 </root>

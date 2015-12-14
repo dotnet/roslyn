@@ -324,6 +324,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return value.GetMemberValue(name, (int)MemberTypes.Field, ParentTypeName: null, InspectionContext: inspectionContext);
         }
 
+        internal static DkmClrValue GetNullableValue(this DkmClrValue value, Type nullableTypeArg, DkmInspectionContext inspectionContext)
+        {
+            var valueType = value.Type.GetLmrType();
+            if (valueType.Equals(nullableTypeArg))
+            {
+                return value;
+            }
+            return value.GetNullableValue(inspectionContext);
+        }
+
         internal static DkmClrValue GetNullableValue(this DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             Debug.Assert(value.Type.GetLmrType().IsNullable());

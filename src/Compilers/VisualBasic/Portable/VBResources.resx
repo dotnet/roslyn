@@ -5332,6 +5332,12 @@
   <data name="FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite" xml:space="preserve">
     <value>implementing read-only or write-only property with read-write property</value>
   </data>
+  <data name="FEATURE_DigitSeparators" xml:space="preserve">
+    <value>digit separators</value>
+  </data>
+  <data name="FEATURE_BinaryLiterals" xml:space="preserve">
+    <value>binary literals</value>
+  </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>

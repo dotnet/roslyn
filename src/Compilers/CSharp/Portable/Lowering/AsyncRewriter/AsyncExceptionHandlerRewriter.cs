@@ -226,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var completeTry = _F.Block(
                 locals.ToImmutableAndFree(),
+                ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements.ToImmutableAndFree());
 
             return completeTry;
@@ -402,6 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return _F.Block(
                     ImmutableArray.Create<LocalSymbol>(obj),
+                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     objInit,
                     _F.If(
                         _F.ObjectNotEqual(
@@ -430,6 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // better rethrow 
                 rethrow = _F.Block(
                     ImmutableArray.Create(ex),
+                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     assignment,
                     _F.If(_F.ObjectEqual(_F.Local(ex), _F.Null(ex.Type)), rethrow),
                     // ExceptionDispatchInfo.Capture(pendingExceptionLocal).Throw();
@@ -484,6 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         currentAwaitCatchFrame.pendingCaughtException,
                         currentAwaitCatchFrame.pendingCatch).
                         AddRange(currentAwaitCatchFrame.GetHoistedLocals()),
+                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     _F.HiddenSequencePoint(),
                     _F.Assignment(
                         _F.Local(currentAwaitCatchFrame.pendingCatch),
@@ -616,6 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var handler = _F.Block(
                     handlerLocals,
+                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     handlerStatements.ToImmutableAndFree()
                 );
 
@@ -671,6 +676,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             _currentAwaitFinallyFrame = new AwaitFinallyFrame();
 
             var result = base.VisitLambda(node);
+
+            _F.CurrentMethod = oldContainingSymbol;
+            _currentAwaitFinallyFrame = oldAwaitFinallyFrame;
+
+            return result;
+        }
+
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            var oldContainingSymbol = _F.CurrentMethod;
+            var oldAwaitFinallyFrame = _currentAwaitFinallyFrame;
+
+            _F.CurrentMethod = node.Symbol;
+            _currentAwaitFinallyFrame = new AwaitFinallyFrame();
+
+            var result = base.VisitLocalFunctionStatement(node);
 
             _F.CurrentMethod = oldContainingSymbol;
             _currentAwaitFinallyFrame = oldAwaitFinallyFrame;
@@ -825,6 +846,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _seenAwait = false;
 
                 base.VisitLambda(node);
+
+                this.currentLabels = origLabels;
+                _seenAwait = origSeenAwait;
+
+                return null;
+            }
+
+            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+            {
+                var origLabels = this.currentLabels;
+                var origSeenAwait = _seenAwait;
+
+                this.currentLabels = null;
+                _seenAwait = false;
+
+                base.VisitLocalFunctionStatement(node);
 
                 this.currentLabels = origLabels;
                 _seenAwait = origSeenAwait;

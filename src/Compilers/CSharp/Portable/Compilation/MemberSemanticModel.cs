@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -426,6 +426,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Can't define member inside member.
             return null;
+        }
+
+        public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var boundLocalFunction = GetLowerBoundNode(declarationSyntax) as BoundLocalFunctionStatement;
+            return boundLocalFunction?.Symbol;
         }
 
         public override ISymbol GetDeclaredSymbol(MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -1147,6 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ParenthesizedLambdaExpression:
                     case SyntaxKind.SimpleLambdaExpression:
                     case SyntaxKind.AnonymousMethodExpression:
+                    case SyntaxKind.LocalFunctionStatement:
                         // We can't use a statement that is inside a lambda.
                         enclosingStatement = null;
                         break;
