@@ -2396,6 +2396,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Loads a reference assembly.
+        '''</summary>
+        Friend ReadOnly Property ReferenceKeywordTooltip() As String
+            Get
+                Return ResourceManager.GetString("ReferenceKeywordTooltip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Collapses and hides sections of code in Visual Basic files..
         '''</summary>
         Friend ReadOnly Property RegionKeywordToolTip() As String

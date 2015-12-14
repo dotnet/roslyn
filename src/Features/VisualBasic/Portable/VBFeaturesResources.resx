@@ -1201,4 +1201,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="AddOverloadsKeyword" xml:space="preserve">
     <value>Add Overloads</value>
   </data>
+  <data name="ReferenceKeywordTooltip" xml:space="preserve">
+    <value>Loads a reference assembly</value>
+  </data>
 </root>
