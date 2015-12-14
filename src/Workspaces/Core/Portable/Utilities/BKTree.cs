@@ -11,7 +11,7 @@ namespace Roslyn.Utilities
 {
     /// <summary>
     /// NOTE: Only use if you truly need a BK-tree.  If you just want to compare words, use
-    /// the SpellChecker type instead.
+    /// the <see cref="SpellChecker"/> type instead.
     ///
     /// An implementation of a Burkhard-Keller tree.  Introduced in:
     /// 

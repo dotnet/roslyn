@@ -8,21 +8,23 @@ using static System.Math;
 
 namespace Roslyn.Utilities
 {
-    // NOTE: Only use if you truly need an edit distance.  If you just want to compare words, use
-    // the SpellChecker type instead.
-    //
-    // Implementation of the Damerau-Levenshtein edit distance algorithm from:
-    // An Extension of the String-to-String Correction Problem:
-    // Published in Journal of the ACM (JACM)
-    // Volume 22 Issue 2, April 1975.
-    //
-    // Important, unlike many edit distance algorithms out there, this one implements a true metric
-    // that satisfies the triangle inequality.  (Unlike the "Optimal String Alignment" or "Restricted
-    // string edit distance" solutions which do not).  This means this edit distance can be used in
-    // other domains that require the triangle inequality (like BKTrees).
-    //
-    // Specifically, this implementation satisfies the following inequality: D(x, y) + D(y, z) >= D(x, z)
-    // (where D is the edit distance).
+    ///<summary>
+    /// NOTE: Only use if you truly need an edit distance.  If you just want to compare words, use
+    /// the <see cref="SpellChecker"/> type instead.
+    ///
+    /// Implementation of the Damerau-Levenshtein edit distance algorithm from:
+    /// An Extension of the String-to-String Correction Problem:
+    /// Published in Journal of the ACM (JACM)
+    /// Volume 22 Issue 2, April 1975.
+    ///
+    /// Important, unlike many edit distance algorithms out there, this one implements a true metric
+    /// that satisfies the triangle inequality.  (Unlike the "Optimal String Alignment" or "Restricted
+    /// string edit distance" solutions which do not).  This means this edit distance can be used in
+    /// other domains that require the triangle inequality (like BKTrees).
+    ///
+    /// Specifically, this implementation satisfies the following inequality: D(x, y) + D(y, z) >= D(x, z)
+    /// (where D is the edit distance).
+    ///</summary> 
     internal class EditDistance : IDisposable
     {
         // Our edit distance algorithm makes use of an 'infinite' value.  A value so high that it 
