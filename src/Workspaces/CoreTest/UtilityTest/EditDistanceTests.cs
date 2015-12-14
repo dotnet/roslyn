@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestMetric()
+        public void TestSpecificMetric()
         {
             // If our edit distance is a metric then ED(CA,ABC) = 2 because CA -> AC -> ABC
             // In this case.  This then satisifes the triangle inequality because 
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestMetricTop50()
+        public void TestTriangleInequality()
         {
             var top = Top1000.Take(50).ToArray();
 
