@@ -3977,6 +3977,14 @@ End Module
             Await AssertFormatLf2CrLfAsync(text.Value, expected.Value)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Async Function TestLoadDirective() As Task
+            Dim text = <Code>#Load           "filename"</Code>
+            Dim expected = <Code>#Load "filename"</Code>
+
+            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value)
+        End Function
+
         <WorkItem(796562)>
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>

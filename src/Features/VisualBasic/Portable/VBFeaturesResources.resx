@@ -1204,4 +1204,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="ReferenceKeywordTooltip" xml:space="preserve">
     <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
   </data>
+  <data name="LoadKeywordToolTip" xml:space="preserve">
+    <value>Load a vbx file.</value>
+  </data>
 </root>

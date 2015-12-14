@@ -6,9 +6,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives
     ''' <summary>
-    ''' Recommends the "#R" preprocessor directive
+    ''' Recommends the "#Load" preprocessor directive.
     ''' </summary>
-    Friend Class ReferenceDirectiveKeywordRecommender
+    Friend Class LoadDirectiveKeywordRecommender
         Inherits AbstractKeywordRecommender
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
@@ -16,10 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Prep
             If context.IsPreprocessorStartContext AndAlso
                     tree.IsScript AndAlso
                     tree.IsBeforeFirstToken(context.Position, cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#R", VBFeaturesResources.ReferenceKeywordTooltip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#Load", VBFeaturesResources.LoadKeywordToolTip))
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)
         End Function
     End Class
 End Namespace

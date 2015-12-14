@@ -1701,6 +1701,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Load a vbx file..
+        '''</summary>
+        Friend ReadOnly Property LoadKeywordToolTip() As String
+            Get
+                Return ResourceManager.GetString("LoadKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Terminates a loop that is introduced with a Do statement..
         '''</summary>
         Friend ReadOnly Property LoopKeywordToolTip() As String

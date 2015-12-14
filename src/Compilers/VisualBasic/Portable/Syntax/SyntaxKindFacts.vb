@@ -529,6 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SyntaxKind.RegionDirectiveTrivia,
                     SyntaxKind.EndRegionDirectiveTrivia,
                     SyntaxKind.ConstDirectiveTrivia,
+                    SyntaxKind.LoadDirectiveTrivia,
                     SyntaxKind.ShebangDirectiveTrivia,
                     SyntaxKind.ExternalSourceDirectiveTrivia,
                     SyntaxKind.EndExternalSourceDirectiveTrivia,

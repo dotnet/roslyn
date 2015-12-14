@@ -118,6 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.PreprocessorDirectives.EndRegionDirectiveKeywordRecommender(),
                 New KeywordRecommenders.PreprocessorDirectives.IfDirectiveKeywordRecommender(),
                 New KeywordRecommenders.PreprocessorDirectives.ReferenceDirectiveKeywordRecommender(),
+                New KeywordRecommenders.PreprocessorDirectives.LoadDirectiveKeywordRecommender(),
                 New KeywordRecommenders.PreprocessorDirectives.RegionDirectiveKeywordRecommender(),
                 New KeywordRecommenders.PreprocessorDirectives.WarningDirectiveKeywordRecommender(),
                 New KeywordRecommenders.Queries.AggregateKeywordRecommender(),
