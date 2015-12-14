@@ -52,11 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Dim token = preProcessorTokenOnLeftOfPosition
             token = token.GetPreviousTokenIfTouchingWord(position)
 
-            If token.IsKind(SyntaxKind.HashToken) Then
-                Return True
-            End If
-
-            Return False
+            Return token.HasAncestor(Of DirectiveTriviaSyntax)
         End Function
 
         <Extension()>

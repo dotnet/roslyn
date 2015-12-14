@@ -111,6 +111,24 @@ Type ""#help"" for more information.
 >", runner.Console.Out.ToString())
         End Sub
 
+        <Fact()>
+        Public Sub TestReferenceDirectiveWhenReferenceMissing()
+            Dim runner = CreateRunner(args:={}, input:="#r ""://invalidfilepath""")
+
+            runner.RunInteractive()
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+"Microsoft (R) Visual Basic Interactive Compiler version " + CompilerVersion + "
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> #r ""://invalidfilepath""
+«Red»
+(1) : error BC2017: could not find library '://invalidfilepath'
+«Gray»
+>", runner.Console.Out.ToString())
+        End Sub
+
     End Class
 
 End Namespace

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Scripting
     {
         // TODO: we need to clean up and refactor CreateCompilationWithMscorlib in compiler tests 
         // so that it can be used in portable tests.
-        internal static Compilation CreateCompilationWithMscorlib(string source, string assemblyName)
+        internal static Compilation CreateCSharpCompilationWithMscorlib(string source, string assemblyName)
         {
             return CSharpCompilation.Create(
                 assemblyName,
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 
-        internal static Compilation CreateCompilation(string source, MetadataReference[] references, string assemblyName, CSharpCompilationOptions options = null)
+        internal static Compilation CreateCSharpCompilation(string source, MetadataReference[] references, string assemblyName, CSharpCompilationOptions options = null)
         {
             return CSharpCompilation.Create(
                 assemblyName,

@@ -1,27 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
 {
-    [ExportCompletionProvider("ReplCommandCompletionProvider", LanguageNames.CSharp)]
-    [TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)]
-    [Order(Before = PredefinedCompletionProviderNames.Keyword)]
     internal abstract class ReplCompletionProvider : CompletionListProvider
     {
         protected abstract Task<TextSpan> GetTextChangeSpanAsync(Document document, int position, CancellationToken cancellationToken);
         protected abstract bool ShouldDisplayCommandCompletions(SyntaxTree tree, int position, CancellationToken cancellationToken);
+        protected abstract string GetCompletionString(string commandName);
 
         public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
@@ -50,8 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
                             {
                                 foreach (var commandName in command.Names)
                                 {
+                                    string completion = GetCompletionString(commandName);
                                     context.AddItem(new CompletionItem(
-                                        this, commandName, filterSpan, c => Task.FromResult(command.Description.ToSymbolDisplayParts()), glyph: Glyph.Intrinsic));
+                                        this, completion, filterSpan, c => Task.FromResult(command.Description.ToSymbolDisplayParts()), glyph: Glyph.Intrinsic));
                                 }
                             }
                         }

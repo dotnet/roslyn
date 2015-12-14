@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return CompletionUtilities.GetTextChangeSpan(text, position);
+        }
+
+        protected override string GetCompletionString(string commandName)
+        {
+            return commandName;
         }
 
         // TODO (tomat): REPL commands should have their own providers:

@@ -24,6 +24,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             Return CompletionUtilities.GetTextChangeSpan(text, position)
         End Function
 
+        Protected Overrides Function GetCompletionString(commandName As String) As String
+            Return "#" & commandName
+        End Function
+
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
