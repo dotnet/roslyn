@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -13,15 +15,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // threshold.
             var editDistance1 = EditDistance.GetEditDistance(s, t);
             Assert.Equal(expectedEditDistance, editDistance1);
+
+            // Edit distances are symmetric.
+            var editDistance2 = EditDistance.GetEditDistance(t, s);
+            Assert.Equal(editDistance1, editDistance2);
             
             // If we set hte edit distance as our threshold, we should still find the value.
-            var editDistance2 = EditDistance.GetEditDistance(s, t, editDistance1);
-            Assert.Equal(editDistance1, editDistance2);
+            var editDistance3 = EditDistance.GetEditDistance(s, t, editDistance1);
+            Assert.Equal(editDistance1, editDistance3);
 
             if (editDistance1 > 0)
             {
-                var editDistance3 = EditDistance.GetEditDistance(s, t, editDistance1 - 1);
-                Assert.Equal(editDistance3, EditDistance.BeyondThreshold);
+                var editDistance4 = EditDistance.GetEditDistance(s, t, editDistance1 - 1);
+                Assert.Equal(editDistance4, EditDistance.BeyondThreshold);
             }
         }
 
@@ -257,6 +263,51 @@ namespace Microsoft.CodeAnalysis.UnitTests
             //
             // Being a metric is important so that we can properly use this with BKTrees.
             VerifyEditDistance("CA", "ABC", 2);
+        }
+
+        [Fact]
+        public void TestMetricTop50()
+        {
+            var top = Top1000.Take(50).ToArray();
+
+            for (var i = 0; i < top.Length; i++)
+            {
+                for (var j = 0; j < top.Length; j++)
+                {
+                    if (j == i)
+                    {
+                        continue;
+                    }
+
+                    for (var k = 0; k < top.Length; k++)
+                    {
+                        if (k == i || k == j)
+                        {
+                            continue;
+                        }
+
+                        var string1 = top[i];
+                        var string2 = top[j];
+                        var string3 = top[k];
+
+                        VerifyMetric(string1, string2, string3);
+                        VerifyMetric(string1, string3, string2);
+                        VerifyMetric(string2, string1, string3);
+                        VerifyMetric(string2, string3, string1);
+                        VerifyMetric(string3, string1, string2);
+                        VerifyMetric(string3, string2, string1);
+                    }
+                }
+            }
+        }
+
+        private void VerifyMetric(string string1, string string2, string string3)
+        {
+            var editDistance12 = EditDistance.GetEditDistance(string1, string2);
+            var editDistance13 = EditDistance.GetEditDistance(string1, string3);
+            var editDistance23 = EditDistance.GetEditDistance(string2, string3);
+
+            Assert.True(editDistance13 <= editDistance12 + editDistance23);
         }
     }
 }
