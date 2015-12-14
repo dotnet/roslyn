@@ -121,5 +121,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var lineVisibility = tree.GetLineVisibility(position, cancellationToken);
             return lineVisibility == LineVisibility.Hidden || lineVisibility == LineVisibility.BeforeFirstLineDirective;
         }
+
+        public static bool IsBeforeFirstToken(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var firstToken = syntaxTree.GetRoot(cancellationToken).GetFirstToken(includeZeroWidth: true, includeSkipped: true);
+
+            return position <= firstToken.SpanStart;
+        }
     }
 }

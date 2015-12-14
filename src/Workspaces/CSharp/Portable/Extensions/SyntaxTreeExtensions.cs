@@ -564,14 +564,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static bool IsBeforeFirstToken(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            var firstToken = syntaxTree.GetRoot(cancellationToken).GetFirstToken(includeZeroWidth: true, includeSkipped: true);
-
-            return position <= firstToken.SpanStart;
-        }
-
         public static SyntaxToken FindTokenOrEndToken(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {

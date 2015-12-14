@@ -155,13 +155,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsBeforeFirstToken(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
-            Dim firstToken = syntaxTree.GetRoot(cancellationToken).GetFirstToken(includeZeroWidth:=True, includeSkipped:=True)
-
-            Return position <= firstToken.SpanStart
-        End Function
-
-        <Extension()>
         Public Function IsInSkippedText(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim trivia = syntaxTree.FindTriviaToLeft(position, cancellationToken)
 
