@@ -36,18 +36,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Custom
     }
 
-    // Search query parameters.
     internal class SearchQuery
     {
-        // The name being searched for.  Is null in the case of custom predicate searching..  But 
-        // can be used for faster index based searching when it is available.
+        /// <summary>The name being searched for.  Is null in the case of custom predicate searching..  But 
+        /// can be used for faster index based searching when it is available.</summary> 
         public readonly string Name;
 
-        // The kind of search this is.  Can be used for faster index based searching if it
-        // has the values "Exact, ExactIgnoreCase, Fuzzy".
+        ///<summary>The kind of search this is.  Faster index-based searching can be used if the 
+        /// SearchKind is not <see cref="SearchKind.Custom"/>.</summary>
         public readonly SearchKind Kind;
 
-        // The predicate to fall back on if faster index searching is not possible.
+        ///<summary>The predicate to fall back on if faster index searching is not possible.</summary>
         private readonly Func<string, bool> _predicate;
 
         private SearchQuery(string name, SearchKind kind)
@@ -69,8 +68,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     _predicate = s => CaseInsensitiveComparison.Comparer.Equals(name, s);
                     break;
                 case SearchKind.Fuzzy:
-                    // Create the edit distance object outside of the lambda  That way we only create it
-                    // once and it can cache all the information it needs while it does the IsCloseMatch
+                    // Create a single WordSimilarityChecker and capture a delegate reference to 
+                    // its 'AreSimilar' method. That way we only create the WordSimilarityChecker
+                    // once and it can cache all the information it needs while it does the AreSimilar
                     // check against all the possible candidates.
                     var editDistance = new WordSimilarityChecker(name);
                     _predicate = editDistance.AreSimilar;

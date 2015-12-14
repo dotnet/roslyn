@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Utilities
@@ -41,12 +39,33 @@ namespace Roslyn.Utilities
 
         private void SetStartAndLength(int start, int length)
         {
-            Debug.Assert(start >= 0);
-            Debug.Assert(start <= _array.Length);
-            Debug.Assert(length >= 0);
-            Debug.Assert(start + length <= _array.Length);
+            if (start < 0)
+            {
+                throw new ArgumentException(nameof(start), $"{start} < {0}");
+            }
+
+            if (start > _array.Length)
+            {
+                throw new ArgumentException(nameof(start), $"{start} > {_array.Length}");
+            }
+
+            CheckLength(start, length);
+
             _start = start;
             _length = length;
+        }
+
+        private void CheckLength(int start, int length)
+        {
+            if (length < 0)
+            {
+                throw new ArgumentException(nameof(length), $"{length} < {0}");
+            }
+
+            if (start + length > _array.Length)
+            {
+                throw new ArgumentException(nameof(start), $"{start} + {length} > {_array.Length}");
+            }
         }
 
         public void MoveStartForward(int amount)
@@ -56,8 +75,7 @@ namespace Roslyn.Utilities
 
         public void SetLength(int length)
         {
-            Debug.Assert(length >= 0);
-            Debug.Assert(_start + length <= _array.Length);
+            CheckLength(_start, length);
             _length = length;
         }
     }

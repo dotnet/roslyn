@@ -363,7 +363,7 @@ namespace Roslyn.Utilities
             //    y |∞ 8           *
             //
             // And then consider a point above that diagonal (indicated by x).  In the example
-            // above, the edit distance to * from + will be (x+4).  If, for example, threshold
+            // above, the edit distance to * from 'x' will be (x+4).  If, for example, threshold
             // was '2', then it would be impossible for the path from 'x' to provide a good
             // enough edit distance *ever*.   Similarly:
             //
@@ -436,7 +436,7 @@ namespace Roslyn.Utilities
             // above and below the diagonals.
             //
             // Now, given our max edit distance in practice is capped at 2.  the most around the
-            // diagon we'll ever have to check is +-2 elements.  i.e. with strings of length 10
+            // diagonal we'll ever have to check is +/- 2 elements.  i.e. with strings of length 10
             // we'd only check:
             // 
             //           a b c d e f g h i j

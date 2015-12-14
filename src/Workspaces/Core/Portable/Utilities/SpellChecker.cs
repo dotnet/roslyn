@@ -1,15 +1,16 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Roslyn.Utilities
 {
     internal class SpellChecker
     {
         public static readonly SpellChecker Empty = new SpellChecker(BKTree.Empty);
+
         private readonly BKTree _bkTree;
 
         public SpellChecker(BKTree bKTree)
