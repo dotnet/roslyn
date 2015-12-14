@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.VisualBasic.DocumentationCommentFormatting;
+using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
 using Roslyn.Test.Utilities;
 using Xunit;
 
