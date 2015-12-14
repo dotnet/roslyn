@@ -2396,7 +2396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Loads a reference assembly.
+        '''  Looks up a localized string similar to Add a metadata reference to specified assembly and all its dependencies, e.g. #r &quot;myLib.dll&quot;..
         '''</summary>
         Friend ReadOnly Property ReferenceKeywordTooltip() As String
             Get

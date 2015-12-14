@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
 
             // the provider might be invoked in non-interactive context:
             Workspace ws;
-            if (Workspace.TryGetWorkspace(document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).Container, out ws))
+            SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (Workspace.TryGetWorkspace(sourceText.Container, out ws))
             {
                 var workspace = ws as InteractiveWorkspace;
                 if (workspace != null)

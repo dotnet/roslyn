@@ -1202,6 +1202,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>Add Overloads</value>
   </data>
   <data name="ReferenceKeywordTooltip" xml:space="preserve">
-    <value>Loads a reference assembly</value>
+    <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
   </data>
 </root>

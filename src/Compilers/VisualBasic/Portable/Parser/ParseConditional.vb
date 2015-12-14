@@ -380,12 +380,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseWarningDirective(hashToken As PunctuationSyntax) As DirectiveTriviaSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken,
-                         NameOf(ParseWarningDirective) & " called with token that is not an {NameOf(SyntaxKind.IdentifierToken)}")
+                         NameOf(ParseWarningDirective) & " called with token that is not an " & NameOf(SyntaxKind.IdentifierToken))
             Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
 
             Debug.Assert((identifier.PossibleKeywordKind = SyntaxKind.EnableKeyword) OrElse
                          (identifier.PossibleKeywordKind = SyntaxKind.DisableKeyword),
-                         NameOf(ParseWarningDirective) & " called with token that is neither {NameOf(SyntaxKind.EnableKeyword)} nor {NameOf(SyntaxKind.DisableKeyword)}")
+                         NameOf(ParseWarningDirective) & " called with token that is neither " & NameOf(SyntaxKind.EnableKeyword) & " nor " & NameOf(SyntaxKind.DisableKeyword))
             Dim enableOrDisableKeyword = _scanner.MakeKeyword(identifier)
 
             GetNextToken()
