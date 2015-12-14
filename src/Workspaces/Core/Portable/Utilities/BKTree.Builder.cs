@@ -113,7 +113,7 @@ namespace Roslyn.Utilities
 
                 // There will be one less edge in the graph than nodes.  Each node (except for the
                 // root) will have a single edge pointing to it.
-                var edges = ImmutableArray.CreateBuilder<Edge>(_builderNodes.Length - 1);
+                var edges = ImmutableArray.CreateBuilder<Edge>(Math.Max(0, _builderNodes.Length - 1));
 
                 BuildArrays(nodes, edges);
 
