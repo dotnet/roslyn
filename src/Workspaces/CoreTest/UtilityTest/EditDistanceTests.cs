@@ -290,24 +290,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         var string2 = top[j];
                         var string3 = top[k];
 
-                        VerifyMetric(string1, string2, string3);
-                        VerifyMetric(string1, string3, string2);
-                        VerifyMetric(string2, string1, string3);
-                        VerifyMetric(string2, string3, string1);
-                        VerifyMetric(string3, string1, string2);
-                        VerifyMetric(string3, string2, string1);
+                        var editDistance12 = EditDistance.GetEditDistance(string1, string2);
+                        var editDistance13 = EditDistance.GetEditDistance(string1, string3);
+                        var editDistance23 = EditDistance.GetEditDistance(string2, string3);
+
+                        Assert.True(editDistance13 <= editDistance12 + editDistance23);
                     }
                 }
             }
-        }
-
-        private void VerifyMetric(string string1, string string2, string string3)
-        {
-            var editDistance12 = EditDistance.GetEditDistance(string1, string2);
-            var editDistance13 = EditDistance.GetEditDistance(string1, string3);
-            var editDistance23 = EditDistance.GetEditDistance(string2, string3);
-
-            Assert.True(editDistance13 <= editDistance12 + editDistance23);
         }
     }
 }
