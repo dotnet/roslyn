@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.Syntax;
 using Xunit;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
@@ -80,27 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [WorkItem(2771, "https://github.com/dotnet/roslyn/issues/2771")]
-        [Fact(Skip = "This test continues to be flaky, even in this form, due to variations in the amount of memory available when it is run")]
+        [ConditionalFact(typeof(IsRelease))]
         public void TestBinary()
         {
-            // Apparently this fixed seed exposed a bug at some point
-            var random = new System.Random(12345);
-            // 40 million "character"s
-            const int n = 40 * 1000 * 1000;
-            var str = new string(' ', n);
-
-            unsafe
-            {
-                fixed(char* chars = str)
-                {
-                    for(int i = 0; i < n; i++)
-                    {
-                        chars[i] = (char)random.Next(char.MaxValue);
-                    }
-                }
-            }
-
-            var tree = CSharpSyntaxTree.ParseText(str);
+            CSharpSyntaxTree.ParseText(new RandomizedSourceText());
         }
     }
 }
