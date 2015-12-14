@@ -141,22 +141,19 @@ namespace Roslyn.Utilities
 
                     if (edgeCount > 0)
                     {
-                        if (edgeCount <= CompactEdgeAllocationSize)
+                        // First, copy any edges that are in the compact array.
+                        var start = i * CompactEdgeAllocationSize;
+                        var end = start + Math.Min(edgeCount, CompactEdgeAllocationSize);
+                        for (var j = start; j < end; j++)
                         {
-                            // When there are less than 4 elements, copy from teh _compact array.
-                            var start = i * CompactEdgeAllocationSize;
-                            var end = start + edgeCount;
-                            for (var j = start; j < end; j++)
-                            {
-                                edges.Add(_compactEdges[j]);
-                            }
+                            edges.Add(_compactEdges[j]);
                         }
-                        else
+
+                        // Then, if we've spilled over any edges, copy them as well.
+                        var spilledEdges = builderNode.SpilloverEdges;
+                        if (spilledEdges != null)
                         {
-                            // When there are more than 4 elements, then we have to manually 
-                            // copy over the spilled items ourselves.
-                            var spilledEdges = builderNode.SpilloverEdges;
-                            Debug.Assert(spilledEdges.Count == edgeCount);
+                            Debug.Assert(spilledEdges.Count == (edgeCount - CompactEdgeAllocationSize));
 
                             foreach (var kvp in spilledEdges)
                             {
@@ -231,18 +228,13 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
+                    // When we hit 4 elements, we need to allocate the spillover dictionary to 
+                    // place the extra edges.
                     if (currentNodeEdgeCount == CompactEdgeAllocationSize)
                     {
+                        Debug.Assert(_builderNodes[currentNodeIndex].SpilloverEdges == null);
                         var spilloverEdges = new Dictionary<int, int>();
                         _builderNodes[currentNodeIndex].SpilloverEdges = spilloverEdges;
-
-                        var start = currentNodeIndex * CompactEdgeAllocationSize;
-                        var end = start + CompactEdgeAllocationSize;
-                        for (var i = start; i < end; i++)
-                        {
-                            var edge = _compactEdges[i];
-                            spilloverEdges.Add(edge.EditDistance, edge.ChildNodeIndex);
-                        }
                     }
 
                     _builderNodes[currentNodeIndex].SpilloverEdges.Add(editDistance, insertionIndex);
@@ -255,16 +247,9 @@ namespace Roslyn.Utilities
 
             private bool TryGetChildIndex(BuilderNode currentNode, int currentNodeIndex, int editDistance, out int childIndex)
             {
-                if (currentNode.SpilloverEdges != null)
-                {
-                    // Can't use the compact array.  Have to use the spillover dictionary instead.
-                    Debug.Assert(currentNode.SpilloverEdges.Count == currentNode.EdgeCount);
-                    return currentNode.SpilloverEdges.TryGetValue(editDistance, out childIndex);
-                }
-
                 // linearly scan the children we have to see if there is one with this edit distance.
                 var start = currentNodeIndex * CompactEdgeAllocationSize;
-                var end = start + currentNode.EdgeCount;
+                var end = start + Math.Min(currentNode.EdgeCount, CompactEdgeAllocationSize);
 
                 for (var i = start; i < end; i++)
                 {
@@ -273,6 +258,14 @@ namespace Roslyn.Utilities
                         childIndex = _compactEdges[i].ChildNodeIndex;
                         return true;
                     }
+                }
+
+                // If we've spilled over any edges, check there as well
+                if (currentNode.SpilloverEdges != null)
+                {
+                    // Can't use the compact array.  Have to use the spillover dictionary instead.
+                    Debug.Assert(currentNode.SpilloverEdges.Count == (currentNode.EdgeCount - CompactEdgeAllocationSize));
+                    return currentNode.SpilloverEdges.TryGetValue(editDistance, out childIndex);
                 }
 
                 childIndex = -1;
