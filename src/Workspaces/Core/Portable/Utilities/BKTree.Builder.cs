@@ -93,7 +93,7 @@ namespace Roslyn.Utilities
             {
                 // TODO(cyrusn): Properly handle unicode normalization here.
                 var distinctValues = values.Where(v => v.Length > 0).Distinct(CaseInsensitiveComparison.Comparer).ToArray();
-                var charCount = values.Sum(v => (int)v.Length);
+                var charCount = values.Sum(v => v.Length);
 
                 _concatenatedLowerCaseWords = new char[charCount];
                 _wordSpans = new TextSpan[distinctValues.Length];
