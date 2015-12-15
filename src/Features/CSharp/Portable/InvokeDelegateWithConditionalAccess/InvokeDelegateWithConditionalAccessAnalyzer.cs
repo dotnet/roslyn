@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class InvokeDelegateWithConditionalAccessAnalyzer : DiagnosticAnalyzer
+    internal class InvokeDelegateWithConditionalAccessAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
             IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
@@ -246,5 +246,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
         private bool IsNotEqualsExpression(ExpressionSyntax left, ExpressionSyntax right) =>
             left.IsKind(SyntaxKind.IdentifierName) && right.IsKind(SyntaxKind.NullLiteralExpression);
+
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        {
+            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        }
     }
 }
