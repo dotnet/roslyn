@@ -1,3 +1,4 @@
+SHELL = /bin/bash
 OS_NAME = $(shell uname -s)
 NUGET_PACKAGE_NAME = nuget.35
 BUILD_CONFIGURATION = Debug
