@@ -228,8 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // NOTE: the following is not cancellable.  Once we've set the
                     // members, we *must* do the following to make sure we're in a consistent state.
                     this.DeclaringCompilation.DeclarationDiagnostics.AddRange(diagnostics);
-
                     RegisterDeclaredCorTypes();
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
                     _state.NotePartComplete(CompletionPart.NameToMembersMap);
                 }
 
