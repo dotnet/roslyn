@@ -349,6 +349,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
+            if (pathToTool == null)
+            {
+                throw new ArgumentNullException(nameof(pathToTool));
+            }
+            if (responseFileCommands == null)
+            {
+                throw new ArgumentNullException(nameof(responseFileCommands));
+            }
+            if (commandLineCommands == null)
+            {
+                throw new ArgumentNullException(nameof(commandLineCommands));
+            }
+
             if (ProvideCommandLineArgs)
             {
                 CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
