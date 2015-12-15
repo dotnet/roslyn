@@ -27,7 +27,7 @@ override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatte
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.NullLiteral.get -> string
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.ArrayClosing.get -> string
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.ArrayOpening.get -> string
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.FormatTypeName(System.Type type, bool useHexadecimalArrayBounds) -> string
+override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.FormatTypeName(System.Type type, Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.Options options) -> string
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.GenericParameterClosing.get -> string
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.GenericParameterOpening.get -> string
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.GetPrimitiveTypeName(Microsoft.CodeAnalysis.SpecialType type) -> string
