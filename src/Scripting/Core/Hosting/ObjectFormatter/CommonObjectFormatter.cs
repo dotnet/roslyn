@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         protected abstract CommonTypeNameFormatter TypeNameFormatter { get; }
         protected abstract CommonPrimitiveFormatter PrimitiveFormatter { get; }
 
-        protected abstract bool TryFormatCompositeObject(object obj, out string value, out bool suppressMembers);
-
         internal virtual BuilderOptions GetInternalBuilderOptions(PrintOptions printOptions) =>
             new BuilderOptions(
                 indentation: "  ",

@@ -7,7 +7,6 @@ Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.CSharpTy
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.FormatRefKind(System.Reflection.ParameterInfo parameter) -> string
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.IsHiddenMember(System.Reflection.MemberInfo member) -> bool
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.PrimitiveFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.TryFormatCompositeObject(object obj, out string value, out bool suppressMembers) -> bool
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.TypeNameFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(System.DateTime value) -> string
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter.FormatLiteral(bool value) -> string

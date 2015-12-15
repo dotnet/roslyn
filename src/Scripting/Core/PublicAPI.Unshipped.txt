@@ -142,7 +142,6 @@ Microsoft.CodeAnalysis.Scripting.ScriptVariable.Value.set -> void
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.FormatRefKind(System.Reflection.ParameterInfo parameter) -> string
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.IsHiddenMember(System.Reflection.MemberInfo member) -> bool
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.PrimitiveFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter
-abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.TryFormatCompositeObject(object obj, out string value, out bool suppressMembers) -> bool
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.TypeNameFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(System.DateTime value) -> string
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatLiteral(bool value) -> string

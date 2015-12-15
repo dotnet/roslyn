@@ -31,12 +31,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
                     : "out"
                 : "";
         }
-
-        protected override bool TryFormatCompositeObject(object obj, out string value, out bool suppressMembers)
-        {
-            value = null;
-            suppressMembers = false;
-            return false;
-        }
     }
 }

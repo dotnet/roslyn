@@ -6,7 +6,6 @@ Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatte
 Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter.FormatRefKind(parameter As System.Reflection.ParameterInfo) -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter.IsHiddenMember(member As System.Reflection.MemberInfo) -> Boolean
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter.TryFormatCompositeObject(obj As Object, ByRef value As String, ByRef suppressMembers As Boolean) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(c As Char, quote As Boolean, includeCodePoints As Boolean = False, useHexadecimalNumbers As Boolean = False) -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Boolean) -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Byte, useHexadecimalNumbers As Boolean = False) -> String

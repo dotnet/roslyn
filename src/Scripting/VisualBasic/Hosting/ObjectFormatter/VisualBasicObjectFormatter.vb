@@ -24,10 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         Protected Overrides Function FormatRefKind(parameter As ParameterInfo) As String
             Return If(parameter.IsOut, "ByRef", "")
         End Function
-
-        Protected Overrides Function TryFormatCompositeObject(obj As Object, ByRef value As String, ByRef suppressMembers As Boolean) As Boolean
-            Return False
-        End Function
     End Class
 
 End Namespace

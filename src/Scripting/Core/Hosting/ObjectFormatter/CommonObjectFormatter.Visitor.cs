@@ -94,22 +94,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 bool includeNonPublic = memberFormat == MemberDisplayFormat.SeparateLines;
                 bool inlineMembers = memberFormat == MemberDisplayFormat.SingleLine;
 
-                // Note that we call this after calling the PrimitiveFormatter.  If you want to override primitive
-                // formatting, you should do so using that mechanism.
-                string compositeValue;
-                bool suppressCompositeValueMembers;
-                if (_formatter.TryFormatCompositeObject(obj, out compositeValue, out suppressCompositeValueMembers))
-                {
-                    result.Append(compositeValue);
-
-                    if (!suppressCompositeValueMembers && memberFormat != MemberDisplayFormat.Hidden)
-                    {
-                        FormatMembers(result, obj, proxy: null, includeNonPublic: includeNonPublic, inlineMembers: inlineMembers);
-                    }
-
-                    return result;
-                }
-
                 Type type = obj.GetType();
                 TypeInfo typeInfo = type.GetTypeInfo();
 
