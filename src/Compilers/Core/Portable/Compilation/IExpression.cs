@@ -755,6 +755,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         ImmutableArray<IMemberInitializer> MemberInitializers { get; }
     }
 
+    /// <summary>
+    /// Represents an object member initializer.
+    /// </summary>
     public interface IMemberInitializer : IOperation
     {
         MemberInitializerKind MemberInitializerKind { get; }
@@ -808,49 +811,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Values of elements of the created array instance.
         /// </summary>
-        IArrayInitializer ElementValues { get; }
+        IArrayInitializer Initializer { get; }
     }
 
     /// <summary>
     /// Represents the initialization of an array instance.
     /// </summary>
-    public interface IArrayInitializer
+    public interface IArrayInitializer : IExpression
     {
         /// <summary>
-        /// Kind of array initialization.
+        /// Values to initialize array elements.
         /// </summary>
-        ArrayInitializerKind ArrayInitializerKind { get; }
-    }
-
-    /// <summary>
-    /// Kinds of array initializers.
-    /// </summary>
-    public enum ArrayInitializerKind
-    {
-        /// <summary>
-        /// Initializer specifies a single element value.
-        /// </summary>
-        Expression,
-        /// <summary>
-        /// Initializer specifies multiple elements of a dimension of the array. 
-        /// </summary>
-        Dimension
-    }
-
-    /// <summary>
-    /// Represents an initialization of a single element of an array instance.
-    /// </summary>
-    public interface IExpressionArrayInitializer : IArrayInitializer
-    {
-        IExpression ElementValue { get; }
-    }
-
-    /// <summary>
-    /// Represents an initialization of a single dimension of an array instance.
-    /// </summary>
-    public interface IDimensionArrayInitializer : IArrayInitializer
-    {
-        ImmutableArray<IArrayInitializer> ElementValues { get; }
+        ImmutableArray<IExpression> ElementValues { get; }
     }
 
     /// <summary>

@@ -831,5 +831,52 @@ class C
             Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, "Property2 = new Bar { Field = true }").WithLocation(22, 30),
             Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, "Field = true").WithLocation(22, 52));
         }
+
+        [Fact]
+        public void ArrayInitializerCSharp()
+        {
+            const string source = @"
+class C
+{
+    void M1()
+    {
+        int[] arr1 = new int[0];                       
+        byte[] arr2 = { };                             
+        C[] arr3 = new C[] { };                        
+
+        int[] arr4 = new int[] { 1, 2, 3 };            
+        byte[] arr5 = { 1, 2, 3 };                     
+        C[] arr6 = new C[] { null, null, null };       
+
+        int[] arr7 = new int[] { 1, 2, 3, 4, 5, 6 };                // LargeList
+        byte[] arr8 = { 1, 2, 3, 4, 5, 6 };                         // LargeList
+        C[] arr9 = new C[] { null, null, null, null, null, null };  // LargeList
+
+        int[,] arr10 = new int[,] { { 1, 2, 3, 4, 5, 6 } };     // LargeList
+        byte[,] arr11 = {                                      
+                          { 1, 2, 3, 4, 5, 6 },                 // LargeList
+                          { 7, 8, 9, 10, 11, 12 }                  // LargeList
+                        };
+        C[,] arr12 = new C[,] {                                 
+                                { null, null, null, null, null, null }  // LargeList
+                              };
+
+        int[][] arr13 = new int[][] { new[] { 1,2,3 }, new int[5] };
+        int[][] arr14 = new int[][] { new int[] { 1,2,3 }, new[] { 1, 2, 3, 4, 5, 6 } };  // LargeList
+    }
+}";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ArrayInitializerTestAnalyzer() }, null, null, false,
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{ 1, 2, 3, 4, 5, 6 }").WithLocation(14, 32),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{ 1, 2, 3, 4, 5, 6 }").WithLocation(15, 23),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{ null, null, null, null, null, null }").WithLocation(16, 28),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{ 1, 2, 3, 4, 5, 6 }").WithLocation(18, 37),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{ 1, 2, 3, 4, 5, 6 }").WithLocation(20, 27),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{ 7, 8, 9, 10, 11, 12 }").WithLocation(21, 27),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{ null, null, null, null, null, null }").WithLocation(24, 33),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{ 1, 2, 3, 4, 5, 6 }").WithLocation(28, 66)
+            );
+        }
     }
 }

@@ -1162,83 +1162,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IElementValues As IArrayInitializer Implements IArrayCreationExpression.ElementValues
+        Private ReadOnly Property IInitializer As IArrayInitializer Implements IArrayCreationExpression.Initializer
             Get
                 Dim initializer As BoundArrayInitialization = Me.InitializerOpt
-                If initializer IsNot Nothing Then
-                    Return MakeInitializer(initializer)
-                End If
-
-                Return Nothing
+                Return initializer
             End Get
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ArrayCreationExpression
         End Function
+    End Class
 
-        Private Shared ArrayInitializerMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundArrayInitialization, IArrayInitializer)
+    Partial Class BoundArrayInitialization
+        Implements IArrayInitializer
 
-        Private Function MakeInitializer(initializer As BoundArrayInitialization) As IArrayInitializer
-            Return ArrayInitializerMappings.GetValue(
-                initializer,
-                Function(arrayInitalizer)
-                    Dim dimension As ImmutableArray(Of IArrayInitializer).Builder = ImmutableArray.CreateBuilder(Of IArrayInitializer)(arrayInitalizer.Initializers.Length)
-
-                    For index As Integer = 0 To arrayInitalizer.Initializers.Length - 1
-                        Dim elementInitializer As BoundExpression = arrayInitalizer.Initializers(index)
-                        Dim elementArray As BoundArrayInitialization = TryCast(elementInitializer, BoundArrayInitialization)
-                        dimension.Add(If(elementArray IsNot Nothing, MakeInitializer(elementArray), New ElementInitializer(elementInitializer)))
-                    Next
-
-                    Return New DimensionInitializer(dimension.ToImmutable())
-                End Function)
-
+        Public ReadOnly Property ElementValues As ImmutableArray(Of IExpression) Implements IArrayInitializer.ElementValues
+            Get
+                Return Me.Initializers.As(Of IExpression)()
+            End Get
+        End Property
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.ArrayInitializer
         End Function
-
-        Private Class ElementInitializer
-            Implements IExpressionArrayInitializer
-
-            ReadOnly _element As BoundExpression
-
-            Public Sub New(element As BoundExpression)
-                Me._element = element
-            End Sub
-
-            ReadOnly Property ElementValue As IExpression Implements IExpressionArrayInitializer.ElementValue
-                Get
-                    Return Me._element
-                End Get
-            End Property
-
-            ReadOnly Property ArrayInitializerKind As ArrayInitializerKind Implements IExpressionArrayInitializer.ArrayInitializerKind
-                Get
-                    Return ArrayInitializerKind.Expression
-                End Get
-            End Property
-        End Class
-
-        Private Class DimensionInitializer
-            Implements IDimensionArrayInitializer
-
-            ReadOnly _dimension As ImmutableArray(Of IArrayInitializer)
-
-            Public Sub New(dimension As ImmutableArray(Of IArrayInitializer))
-                Me._dimension = dimension
-            End Sub
-
-            ReadOnly Property ElementValues As ImmutableArray(Of IArrayInitializer) Implements IDimensionArrayInitializer.ElementValues
-                Get
-                    Return Me._dimension
-                End Get
-            End Property
-
-            ReadOnly Property ArrayInitializerKind As ArrayInitializerKind Implements IDimensionArrayInitializer.ArrayInitializerKind
-                Get
-                    Return ArrayInitializerKind.Dimension
-                End Get
-            End Property
-        End Class
     End Class
 
     Partial Class BoundPropertyAccess

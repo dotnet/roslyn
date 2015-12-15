@@ -827,5 +827,54 @@ End Class
                                             Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, ".Prop2 = New Bar() With {.Field = True}").WithLocation(17, 32),
                                             Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, ".Field = True").WithLocation(17, 57))
         End Sub
+
+        <Fact>
+        Public Sub ArrayInitializerVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M1()
+        Dim arr1 = New Integer() {}
+        Dim arr2 As Object = {}
+        Dim arr3 = {}
+
+        Dim arr4 = New Integer() {1, 2, 3}
+        Dim arr5 = {1, 2, 3}
+        Dim arr6 As C() = {Nothing, Nothing, Nothing}
+
+        Dim arr7 = New Integer() {1, 2, 3, 4, 5, 6}                                 ' LargeList
+        Dim arr8 = {1, 2, 3, 4, 5, 6}                                               ' LargeList
+        Dim arr9 As C() = {Nothing, Nothing, Nothing, Nothing, Nothing, Nothing}    ' LargeList
+
+        Dim arr10 As Integer(,) = {{1, 2, 3, 4, 5, 6}}      ' LargeList
+        Dim arr11 = New Integer(,) {{1, 2, 3, 4, 5, 6},     ' LargeList
+                                    {7, 8, 9, 10, 11, 12}}  ' LargeList
+        Dim arr12 As C(,) = {{Nothing, Nothing, Nothing, Nothing, Nothing, Nothing},    ' LargeList
+                            {Nothing, Nothing, Nothing, Nothing, Nothing, Nothing}}     ' LargeList
+        Dim arr13 = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}
+
+        ' jagged array
+        Dim arr14 = {({1, 2, 3}), ({4, 5}), ({6}), ({7})}
+        Dim arr15 = {({({1, 2, 3, 4, 5, 6})})}              ' LargeList
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New ArrayInitializerTestAnalyzer()}, Nothing, Nothing, False,
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{1, 2, 3, 4, 5, 6}").WithLocation(11, 34),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{1, 2, 3, 4, 5, 6}").WithLocation(12, 20),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{Nothing, Nothing, Nothing, Nothing, Nothing, Nothing}").WithLocation(13, 27),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{1, 2, 3, 4, 5, 6}").WithLocation(15, 36),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{1, 2, 3, 4, 5, 6}").WithLocation(16, 37),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{7, 8, 9, 10, 11, 12}").WithLocation(17, 37),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{Nothing, Nothing, Nothing, Nothing, Nothing, Nothing}").WithLocation(18, 30),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{Nothing, Nothing, Nothing, Nothing, Nothing, Nothing}").WithLocation(19, 29),
+                Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{1, 2, 3, 4, 5, 6}").WithLocation(24, 25))
+        End Sub
     End Class
 End Namespace

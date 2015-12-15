@@ -134,7 +134,7 @@ Microsoft.CodeAnalysis.Semantics.Binary.Syntax.get -> Microsoft.CodeAnalysis.Syn
 Microsoft.CodeAnalysis.Semantics.ArrayCreation
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.ArrayCreation(Microsoft.CodeAnalysis.IArrayTypeSymbol arrayType, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IExpression> elementValues, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.DimensionSizes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IExpression>
-Microsoft.CodeAnalysis.Semantics.ArrayCreation.ElementValues.get -> Microsoft.CodeAnalysis.Semantics.IArrayInitializer
+Microsoft.CodeAnalysis.Semantics.ArrayCreation.Initializer.get -> Microsoft.CodeAnalysis.Semantics.IArrayInitializer
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
@@ -240,16 +240,9 @@ Microsoft.CodeAnalysis.Semantics.IPropertyInitializer.Setter.get -> Microsoft.Co
 Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression
 Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression.DimensionSizes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IExpression>
-Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression.ElementValues.get -> Microsoft.CodeAnalysis.Semantics.IArrayInitializer
+Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression.Initializer.get -> Microsoft.CodeAnalysis.Semantics.IArrayInitializer
 Microsoft.CodeAnalysis.Semantics.IArrayInitializer
-Microsoft.CodeAnalysis.Semantics.IArrayInitializer.ArrayInitializerKind.get -> Microsoft.CodeAnalysis.Semantics.ArrayInitializerKind
-Microsoft.CodeAnalysis.Semantics.IExpressionArrayInitializer
-Microsoft.CodeAnalysis.Semantics.IExpressionArrayInitializer.ElementValue.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.IDimensionArrayInitializer
-Microsoft.CodeAnalysis.Semantics.IDimensionArrayInitializer.ElementValues.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArrayInitializer>
-Microsoft.CodeAnalysis.Semantics.ArrayInitializerKind
-Microsoft.CodeAnalysis.Semantics.ArrayInitializerKind.Expression = 0 -> Microsoft.CodeAnalysis.Semantics.ArrayInitializerKind
-Microsoft.CodeAnalysis.Semantics.ArrayInitializerKind.Dimension = 1 -> Microsoft.CodeAnalysis.Semantics.ArrayInitializerKind
+Microsoft.CodeAnalysis.Semantics.IArrayInitializer.ElementValues.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IExpression>
 Microsoft.CodeAnalysis.Semantics.MemberInitializerKind
 Microsoft.CodeAnalysis.Semantics.MemberInitializerKind.Field = 0 -> Microsoft.CodeAnalysis.Semantics.MemberInitializerKind
 Microsoft.CodeAnalysis.Semantics.MemberInitializerKind.Property = 1 -> Microsoft.CodeAnalysis.Semantics.MemberInitializerKind
@@ -645,6 +638,7 @@ Microsoft.CodeAnalysis.Semantics.OperationKind.IncrementExpression = 63 -> Micro
 Microsoft.CodeAnalysis.Semantics.OperationKind.Argument = 64 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.FieldInitializer = 65 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.PropertyInitializer = 66 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ArrayInitializer = 67 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OperationBlocks.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IOperation>

@@ -120,20 +120,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // No argument has been supplied for the parameter at `parameterIndex`:
-                // 1. `argumentIndex == -1' when when the arguments are specified out of parameter order, and no argument is provided for parameter correspoding to `parameters[parameterIndex]`.
+                // 1. `argumentIndex == -1' when when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
                 // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
                 if (argumentIndex == -1 || argumentIndex >= boundArguments.Length)
                 {
                     Symbols.ParameterSymbol parameter = parameters[parameterIndex];
-                    // corresponding parameter is optional with default value.
+                    // Corresponding parameter is optional with default value.
                     if (parameter.HasExplicitDefaultValue)
                     {
                         arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, null)));
                     }
                     else
                     {
-                        // if corresponding parameter is Param array, then this means 0 element is provided and an Argument of kind == ParamArray will be added, 
-                        // otherwise it is an eror and null is added.
+                        // If corresponding parameter is Param array, then this means 0 element is provided and an Argument of kind == ParamArray will be added, 
+                        // otherwise it is an error and null is added.
                         arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters));
                     }
                 }
@@ -548,74 +548,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ImmutableArray<IExpression> IArrayCreationExpression.DimensionSizes => this.Bounds.As<IExpression>();
 
-        IArrayInitializer IArrayCreationExpression.ElementValues
-        {
-            get
-            {
-                BoundArrayInitialization initializer = this.InitializerOpt;
-                if (initializer != null)
-                {
-                    return MakeInitializer(initializer);
-                }
-
-                return null; 
-            }
-        }
-
-        private static System.Runtime.CompilerServices.ConditionalWeakTable<BoundArrayInitialization, IArrayInitializer> ArrayInitializerMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundArrayInitialization, IArrayInitializer>();
-
-        IArrayInitializer MakeInitializer(BoundArrayInitialization initializer)
-        {
-            return ArrayInitializerMappings.GetValue(
-                initializer,
-                (arrayInitializer) =>
-                {
-                    ArrayBuilder<IArrayInitializer> dimension = ArrayBuilder<IArrayInitializer>.GetInstance(arrayInitializer.Initializers.Length);
-                    for (int index = 0; index < arrayInitializer.Initializers.Length; index++)
-                    {
-                        BoundExpression elementInitializer = arrayInitializer.Initializers[index];
-                        BoundArrayInitialization elementArray = elementInitializer as BoundArrayInitialization;
-                        dimension[index] = elementArray != null ? MakeInitializer(elementArray) : new ElementInitializer(elementInitializer);
-                    }
-
-                    return new DimensionInitializer(dimension.ToImmutableAndFree());
-                });
-        }
+        IArrayInitializer IArrayCreationExpression.Initializer => (IArrayInitializer)(this.InitializerOpt);
 
         protected override OperationKind ExpressionKind => OperationKind.ArrayCreationExpression;
-
-        class ElementInitializer : IExpressionArrayInitializer
-        {
-            private readonly BoundExpression _element;
-
-            public ElementInitializer(BoundExpression element)
-            {
-                _element = element;
-            }
-
-            public IExpression ElementValue => _element;
-
-            public ArrayInitializerKind ArrayInitializerKind => ArrayInitializerKind.Expression;
-        }
-
-        class DimensionInitializer : IDimensionArrayInitializer
-        {
-            private readonly ImmutableArray<IArrayInitializer> _dimension;
-
-            public DimensionInitializer(ImmutableArray<IArrayInitializer> dimension)
-            {
-                _dimension = dimension;
-            }
-
-            public ImmutableArray<IArrayInitializer> ElementValues => _dimension;
-
-            public ArrayInitializerKind ArrayInitializerKind => ArrayInitializerKind.Dimension;
-        }
     }
 
-    partial class BoundArrayInitialization
+    partial class BoundArrayInitialization : IArrayInitializer
     {
-        protected override OperationKind ExpressionKind => OperationKind.None;
+        public ImmutableArray<IExpression> ElementValues => this.Initializers.As<IExpression>();
+
+        protected override OperationKind ExpressionKind => OperationKind.ArrayInitializer;
     }
 
     partial class BoundDefaultOperator

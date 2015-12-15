@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             _arrayType = arrayType;
             this.DimensionSizes = ImmutableArray.Create<IExpression>(new IntegerLiteral(elementValues.Count(), null, syntax));
-            this.ElementValues = new DimensionInitializer(elementValues);
+            this.Initializer = new ArrayInitializer(elementValues, syntax, arrayType);
             this.Syntax = syntax;
         }
 
@@ -301,68 +301,44 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public ITypeSymbol ElementType => _arrayType.ElementType;
 
-        public IArrayInitializer ElementValues { get; }
+        public IArrayInitializer Initializer { get; }
 
         public SyntaxNode Syntax { get; }
 
         public OperationKind Kind => OperationKind.ArrayCreationExpression;
 
-        public bool IsInvalid => IsInvalidInitializer(ElementValues);
+        public bool IsInvalid => IsInvalidInitializer(Initializer);
        
-        static bool IsInvalidInitializer(IArrayInitializer initializer)
-        {
-            switch (initializer.ArrayInitializerKind)
-            {
-                case ArrayInitializerKind.Dimension:
-                    foreach (IArrayInitializer element in ((IDimensionArrayInitializer)initializer).ElementValues)
-                    {
-                        if (IsInvalidInitializer(element))
-                        {
-                            return true;
-                        }
-                    }
-
-                    break;
-
-                case ArrayInitializerKind.Expression:
-                    return ((IExpressionArrayInitializer)initializer).ElementValue.IsInvalid;
-            }
-
-            return false;
-        }
+        static bool IsInvalidInitializer(IArrayInitializer initializer) => initializer.IsInvalid;
 
         public object ConstantValue => null;
 
-        private class DimensionInitializer : IDimensionArrayInitializer
+        private class ArrayInitializer : IArrayInitializer
         {
-            private readonly ImmutableArray<IArrayInitializer> _elementValues;
-
-            public DimensionInitializer(ImmutableArray<IExpression> elementValues)
+            public ArrayInitializer(ImmutableArray<IExpression> elementValues, SyntaxNode syntax, ITypeSymbol arrayType)
             {
-                ArrayBuilder<IArrayInitializer> builder = ArrayBuilder<IArrayInitializer>.GetInstance();
+                ArrayBuilder<IExpression> builder = ArrayBuilder<IExpression>.GetInstance();
                 foreach (IExpression element in elementValues)
                 {
-                    builder.Add(new ExpressionInitializer(element));
+                    builder.Add(element);
                 }
 
-                _elementValues = builder.ToImmutableAndFree();
+                ElementValues = builder.ToImmutableAndFree();
+                Syntax = syntax;
+                ResultType = arrayType;
             }
 
-            public ArrayInitializerKind ArrayInitializerKind => ArrayInitializerKind.Dimension;
+            public object ConstantValue => null;
 
-            public ImmutableArray<IArrayInitializer> ElementValues => _elementValues;
-        }
+            public ImmutableArray<IExpression> ElementValues { get; }
 
-        private class ExpressionInitializer : IExpressionArrayInitializer
-        {
-            public ExpressionInitializer(IExpression expression)
-            {
-                ElementValue = expression;
-            }
+            public bool IsInvalid => ElementValues.Any(v => v.IsInvalid);
 
-            public ArrayInitializerKind ArrayInitializerKind => ArrayInitializerKind.Expression;
+            public OperationKind Kind => OperationKind.ArrayInitializer;
 
-            public IExpression ElementValue { get; }
+            public ITypeSymbol ResultType { get; }
+
+            public SyntaxNode Syntax { get; }
         }
     }
     

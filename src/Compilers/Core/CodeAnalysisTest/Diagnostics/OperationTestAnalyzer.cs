@@ -473,26 +473,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          if (argument.ArgumentKind == ArgumentKind.ParamArray)
                          {
                              IArrayCreationExpression arrayArgument = argument.Value as IArrayCreationExpression;
-                             if (arrayArgument != null && arrayArgument.ElementValues.ArrayInitializerKind == ArrayInitializerKind.Dimension)
+                             if (arrayArgument != null)
                              {
-                                 IDimensionArrayInitializer dimension = arrayArgument.ElementValues as IDimensionArrayInitializer;
-                                 if (dimension != null)
+                                 var initializer = arrayArgument.Initializer;
+                                 if (initializer != null)
                                  {
-                                     if (dimension.ElementValues.Length > 10)
+                                     if (initializer.ElementValues.Length > 10)
                                      {
                                          Report(operationContext, invocation.Syntax, BigParamarrayArgumentsDescriptor);
                                      }
 
-                                     foreach (IArrayInitializer dimensionValues in dimension.ElementValues)
+                                     foreach (IExpression element in initializer.ElementValues)
                                      {
-                                         if (dimensionValues.ArrayInitializerKind == ArrayInitializerKind.Expression)
-                                         {
-                                             IExpressionArrayInitializer expressionInitializer = dimensionValues as IExpressionArrayInitializer;
-                                             if (expressionInitializer != null)
-                                             {
-                                                 TestAscendingArgument(operationContext, expressionInitializer.ElementValue, ref priorArgumentValue);
-                                             }
-                                         }
+                                         TestAscendingArgument(operationContext, element, ref priorArgumentValue);
                                      }
                                  }
                              }
@@ -646,6 +639,46 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  },
                  OperationKind.FieldInitializer,
                  OperationKind.PropertyInitializer);
+        }
+
+        private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
+        }
+    }
+
+    /// <summary>Analyzer used to test IArrayInitializer IOperations.</summary>
+    public class ArrayInitializerTestAnalyzer : DiagnosticAnalyzer
+    {
+        /// <summary>Diagnostic category "Reliability".</summary>
+        private const string Maintainability = "Maintainability";
+
+        public static readonly DiagnosticDescriptor DoNotUseLargeListOfArrayInitializersDescriptor = new DiagnosticDescriptor(
+            "DoNotUseLongListToInitializeArray",
+            "Do not use long list to initialize array",
+            "a list of more than 5 elements is used for an array initialization",
+            Maintainability,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(DoNotUseLargeListOfArrayInitializersDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var initializer = (IArrayInitializer)operationContext.Operation;
+                     if (initializer.ElementValues.Length > 5)
+                     {
+                         Report(operationContext, initializer.Syntax, DoNotUseLargeListOfArrayInitializersDescriptor);
+                     }
+                 },
+                 OperationKind.ArrayInitializer);
         }
 
         private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
