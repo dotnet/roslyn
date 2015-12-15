@@ -8,8 +8,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         private NumberRadix _numberRadix = NumberRadix.Decimal;
         private MemberDisplayFormat _memberDisplayFormat;
-        private bool _escapeNonPrintableCharacters;
         private int _maximumOutputLength = 1024;
+
+        public string Ellipsis { get; set; } = "...";
+        public bool EscapeNonPrintableCharacters { get; set; }
 
         public NumberRadix NumberRadix
         {
@@ -44,19 +46,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
 
                 _memberDisplayFormat = value;
-            }
-        }
-
-        public bool EscapeNonPrintableCharacters
-        {
-            get
-            {
-                return _escapeNonPrintableCharacters;
-            }
-
-            set
-            {
-                _escapeNonPrintableCharacters = value;
             }
         }
 

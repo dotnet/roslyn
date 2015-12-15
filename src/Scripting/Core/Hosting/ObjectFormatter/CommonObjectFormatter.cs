@@ -17,6 +17,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         public override string FormatObject(object obj, PrintOptions options)
         {
+            if (options == null)
+            {
+                // We could easily recover by using default options, but it makes
+                // more sense for the host to choose the defaults so we'll require
+                // that options be passed.
+                throw new ArgumentNullException(nameof(options));
+            }
+
             var formatter = new Visitor(this, GetInternalBuilderOptions(options), GetPrimitiveOptions(options), GetTypeNameOptions(options), options.MemberDisplayFormat);
             return formatter.FormatObject(obj);
         }
@@ -32,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             new BuilderOptions(
                 indentation: "  ",
                 newLine: Environment.NewLine,
-                ellipsis: "...",
+                ellipsis: printOptions.Ellipsis,
                 maximumLineLength: int.MaxValue,
                 maximumOutputLength: printOptions.MaximumOutputLength);
 

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             new BuilderOptions(
                 indentation: "  ",
                 newLine: Environment.NewLine,
-                ellipsis: "...",
+                ellipsis: printOptions.Ellipsis,
                 maximumLineLength: _maximumLineLength,
                 maximumOutputLength: printOptions.MaximumOutputLength);
 

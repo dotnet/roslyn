@@ -39,16 +39,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     MaximumLineLength,
                     maximumOutputLength);
             }
-
-            public BuilderOptions SubtractEllipsisLength()
-            {
-                return new BuilderOptions(
-                    Indentation,
-                    NewLine,
-                    Ellipsis,
-                    Math.Max(0, MaximumLineLength - Ellipsis.Length - 1),
-                    Math.Max(0, MaximumOutputLength - Ellipsis.Length - 1));
-            }
         }
     }
 }

@@ -56,14 +56,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             private Builder MakeMemberBuilder(int limit)
             {
-                return new Builder(_builderOptions.WithMaximumOutputLength(Math.Min(_builderOptions.MaximumLineLength, limit)), insertEllipsis: false);
+                return new Builder(_builderOptions.WithMaximumOutputLength(Math.Min(_builderOptions.MaximumLineLength, limit)), suppressEllipsis: true);
             }
 
             public string FormatObject(object obj)
             {
                 try
                 {
-                    var builder = new Builder(_builderOptions, insertEllipsis: true);
+                    var builder = new Builder(_builderOptions, suppressEllipsis: false);
                     string _;
                     return FormatObjectRecursive(builder, obj, isRoot: true, debuggerDisplayName: out _).ToString();
                 }
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return null;
                 }
 
-                var builder = new Builder(_builderOptions.WithMaximumOutputLength(lengthLimit), insertEllipsis: false);
+                var builder = new Builder(_builderOptions.WithMaximumOutputLength(lengthLimit), suppressEllipsis: true);
                 return FormatWithEmbeddedExpressions(builder, format, obj).ToString();
             }
 

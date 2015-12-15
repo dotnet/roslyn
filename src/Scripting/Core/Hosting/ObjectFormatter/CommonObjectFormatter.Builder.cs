@@ -14,18 +14,17 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             private readonly StringBuilder _sb;
 
-            private readonly bool _insertEllipsis;
+            private readonly bool _suppressEllipsis;
 
             private readonly BuilderOptions _options;
 
             private int _currentLimit;
 
-            public Builder(BuilderOptions options, bool insertEllipsis)
+            public Builder(BuilderOptions options, bool suppressEllipsis)
             {
                 _sb = new StringBuilder();
-                _insertEllipsis = insertEllipsis;
-                _options = insertEllipsis ? options.SubtractEllipsisLength() : options;
-
+                _suppressEllipsis = suppressEllipsis;
+                _options = options;
                 _currentLimit = Math.Min(_options.MaximumLineLength, _options.MaximumOutputLength);
             }
 
@@ -59,12 +58,18 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             private void AppendEllipsis()
             {
-                if (_sb.Length > 0 && _sb[_sb.Length - 1] != ' ')
+                if (_suppressEllipsis)
                 {
-                    _sb.Append(' ');
+                    return;
                 }
 
-                _sb.Append(_options.Ellipsis);
+                var ellipsis = _options.Ellipsis;
+                if (string.IsNullOrEmpty(ellipsis))
+                {
+                    return;
+                }
+
+                _sb.Append(ellipsis);
             }
 
             public void Append(char c, int count = 1)
@@ -78,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                 _sb.Append(c, length);
 
-                if (_insertEllipsis && length < count)
+                if (!_suppressEllipsis && length < count)
                 {
                     AppendEllipsis();
                 }
@@ -95,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 int length = Math.Min(count, CurrentRemaining);
                 _sb.Append(str, start, length);
 
-                if (_insertEllipsis && length < count)
+                if (!_suppressEllipsis && length < count)
                 {
                     AppendEllipsis();
                 }
@@ -164,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 AppendGroupOpening();
                 AppendCollectionItemSeparator(isFirst: true, inline: true);
-                Append(_options.Ellipsis);
+                Append("...");
                 AppendGroupClosing(inline: true);
             }
 

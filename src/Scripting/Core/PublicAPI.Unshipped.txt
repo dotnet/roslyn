@@ -51,6 +51,8 @@ Microsoft.CodeAnalysis.Scripting.Hosting.NumberRadix.Decimal = 10 -> Microsoft.C
 Microsoft.CodeAnalysis.Scripting.Hosting.NumberRadix.Hexadecimal = 16 -> Microsoft.CodeAnalysis.Scripting.Hosting.NumberRadix
 Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.Ellipsis.get -> string
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.Ellipsis.set -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.EscapeNonPrintableCharacters.get -> bool
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.EscapeNonPrintableCharacters.set -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.MaximumOutputLength.get -> int
