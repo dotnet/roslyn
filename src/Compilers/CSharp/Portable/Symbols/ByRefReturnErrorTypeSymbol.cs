@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                         substitutedReferencedType.CustomModifiers);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
         {
             if ((object)this == (object)t2)
             {
@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ByRefReturnErrorTypeSymbol other = t2 as ByRefReturnErrorTypeSymbol;
-            return (object)other != null && _referencedType.Equals(other._referencedType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic) &&
-                   (ignoreCustomModifiersAndArraySizesAndLowerBounds || _countOfCustomModifiersPrecedingByRef == other._countOfCustomModifiersPrecedingByRef);
+            return (object)other != null && _referencedType.Equals(other._referencedType, options) &&
+                   ((options & TypeSymbolEqualityOptions.IgnoreCustomModifiers) != 0 || _countOfCustomModifiersPrecedingByRef == other._countOfCustomModifiersPrecedingByRef);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Hash.Combine(_referencedType.GetHashCode(), _countOfCustomModifiersPrecedingByRef), 13); // Reduce collisions with referencedType.
+            return Hash.Combine(_referencedType.GetHashCode(), 13); // Reduce collisions with referencedType.
         }
 
         #endregion Defining characteristics of this type

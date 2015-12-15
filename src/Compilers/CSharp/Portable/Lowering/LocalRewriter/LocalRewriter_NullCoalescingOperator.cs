@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenRight != null);
             Debug.Assert(leftConversion.IsValid);
             Debug.Assert((object)rewrittenResultType != null);
-            Debug.Assert(rewrittenRight.Type.Equals(rewrittenResultType, ignoreDynamic: true));
+            Debug.Assert(rewrittenRight.Type.Equals(rewrittenResultType, TypeSymbolEqualityOptions.IgnoreDynamic));
 
             if (_inExpressionLambda)
             {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // MakeConversion(temp, rewrittenResultType)
             BoundExpression convertedLeft = GetConvertedLeftForNullCoalescingOperator(boundTemp, leftConversion, rewrittenResultType);
-            Debug.Assert(convertedLeft.Type.Equals(rewrittenResultType, ignoreDynamic: true));
+            Debug.Assert(convertedLeft.Type.Equals(rewrittenResultType, TypeSymbolEqualityOptions.IgnoreDynamic));
 
             // (temp != null) ? MakeConversion(temp, LeftConversion) : RightOperand
             BoundExpression conditionalExpression = RewriteConditionalOperator(
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenType: rewrittenResultType);
 
             Debug.Assert(conditionalExpression.ConstantValue == null); // we shouldn't have hit this else case otherwise
-            Debug.Assert(conditionalExpression.Type.Equals(rewrittenResultType, ignoreDynamic: true));
+            Debug.Assert(conditionalExpression.Type.Equals(rewrittenResultType, TypeSymbolEqualityOptions.IgnoreDynamic));
 
             return new BoundSequence(
                 syntax: syntax,

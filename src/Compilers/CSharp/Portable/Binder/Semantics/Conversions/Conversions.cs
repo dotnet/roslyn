@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int p = 0; p < delegateParameters.Length; ++p)
                     {
                         if (delegateParameters[p].RefKind != anonymousFunction.RefKind(p) ||
-                            !delegateParameters[p].Type.TypeSymbol.Equals(anonymousFunction.ParameterType(p).TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                            !delegateParameters[p].Type.TypeSymbol.Equals(anonymousFunction.ParameterType(p).TypeSymbol, TypeSymbolEqualityOptions.SameType))
                         {
                             return LambdaConversionResult.MismatchedParameterType;
                         }

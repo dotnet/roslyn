@@ -188,7 +188,7 @@ class CL3
             var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments.SelectAsArray(TypeMap.AsTypeSymbol));
             Assert.True(HasTypeArgumentsCustomModifiers(withModifiers));
             Assert.False(HasTypeArgumentsCustomModifiers(withoutModifiers));
-            Assert.True(withoutModifiers.Equals(withModifiers, ignoreCustomModifiersAndArraySizesAndLowerBounds:true));
+            Assert.True(withoutModifiers.Equals(withModifiers, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.NotEqual(withoutModifiers, withModifiers);
 
             CompileAndVerify(compilation, expectedOutput: "Overriden");
@@ -805,11 +805,11 @@ class Module1
 
             Assert.True(HasTypeArgumentsCustomModifiers(base1));
             Assert.True(HasTypeArgumentsCustomModifiers(base2));
-            Assert.True(base1.Equals(base2, ignoreCustomModifiersAndArraySizesAndLowerBounds:true));
+            Assert.True(base1.Equals(base2, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.NotEqual(base1, base2);
 
             Assert.True(HasTypeArgumentsCustomModifiers(base3));
-            Assert.True(base1.Equals(base3, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
+            Assert.True(base1.Equals(base3, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.Equal(base1, base3);
             Assert.NotSame(base1, base3);
         }

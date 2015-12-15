@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // but we need to change the Type property on the resulting BoundExpression to match the rewrittenType.
                     // This is necessary so that subsequent lowering transformations see that the expression is dynamic.
 
-                    if (_inExpressionLambda || !rewrittenOperand.Type.Equals(rewrittenType, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: false))
+                    if (_inExpressionLambda || !rewrittenOperand.Type.Equals(rewrittenType, TypeSymbolEqualityOptions.None))
                     {
                         break;
                     }

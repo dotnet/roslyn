@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
         {
             return ReferenceEquals(this, t2);
         }

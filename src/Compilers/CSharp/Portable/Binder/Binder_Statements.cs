@@ -2370,7 +2370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var delegateParameterType = delegateParameters[i].Type.TypeSymbol;
                     var delegateRefKind = delegateParameters[i].RefKind;
 
-                    if (!lambdaParameterType.Equals(delegateParameterType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                    if (!lambdaParameterType.Equals(delegateParameterType, TypeSymbolEqualityOptions.SameType))
                     {
                         SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, lambdaParameterType, delegateParameterType);
 

@@ -605,13 +605,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Compares this type to another type.
         /// </summary>
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false)
+        internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
         {
             if (ReferenceEquals(this, t2)) return true;
             if ((object)t2 == null) return false;
 
             // if ignoring dynamic, then treat dynamic the same as the type 'object'
-            if (ignoreDynamic &&
+            if ((options & TypeSymbolEqualityOptions.IgnoreDynamic) != 0 &&
                 t2.TypeKind == TypeKind.Dynamic &&
                 this.SpecialType == SpecialType.System_Object)
             {
@@ -638,15 +638,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // The checks above are supposed to handle the vast majority of cases.
             // More complicated cases are handled in a special helper to make the common case scenario simple/fast
-            return EqualsComplicatedCases(other, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+            return EqualsComplicatedCases(other, options);
         }
 
         /// <summary>
         /// Helper for more complicated cases of Equals like when we have generic instantiations or types nested within them.
         /// </summary>
-        private bool EqualsComplicatedCases(NamedTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        private bool EqualsComplicatedCases(NamedTypeSymbol other, TypeSymbolEqualityOptions options)
         {
-            if ((object)this.ContainingType != null && !this.ContainingType.Equals(other.ContainingType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+            if ((object)this.ContainingType != null && !this.ContainingType.Equals(other.ContainingType, options))
             {
                 return false;
             }
@@ -680,12 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var typeArgument = typeArguments[i];
                 var otherTypeArgument = otherTypeArguments[i];
-                if (!typeArgument.TypeSymbol.Equals(otherTypeArgument.TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
-                {
-                    return false;
-                }
-
-                if (!ignoreCustomModifiersAndArraySizesAndLowerBounds && !typeArgument.CustomModifiers.SequenceEqual(otherTypeArgument.CustomModifiers))
+                if (!typeArgument.Equals(otherTypeArgument, options))
                 {
                     return false;
                 }

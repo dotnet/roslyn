@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -221,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If it is a nullable reference type, <see cref="TypeSymbol"/>
         /// simply returns a symbol for the reference type.
         /// </summary>
-        public abstract bool IsNullable { get; }
+        public abstract bool? IsNullable { get; }
 
         /// <summary>
         /// Is this System.Nullable`1 type, or its substitution.
@@ -249,6 +250,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual bool IsVoid => TypeSymbol.SpecialType == SpecialType.System_Void;
         public virtual bool IsSZArray() => TypeSymbol.IsSZArray();
 
+        public bool Equals(TypeSymbolWithAnnotations other, TypeSymbolEqualityOptions options)
+        {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if ((object)other == null ||
+                !other.TypeSymbol.Equals(this.TypeSymbol, options))
+            {
+                return false;
+            }
+
+            // Make sure custom modifiers are the same.
+            if ((options & TypeSymbolEqualityOptions.IgnoreCustomModifiers) == 0 && !this.CustomModifiers.SequenceEqual(other.CustomModifiers))
+            {
+                return false;
+            }
+
+            if ((options & TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) != 0 && other.IsNullable != this.IsNullable)
+            {
+                return false;
+            }
+
+            return true;
+        }
 
         public bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
@@ -270,14 +297,82 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
             var newTypeWithModifiers = typeMap.SubstituteType(this.TypeSymbol);
-            if (!newTypeWithModifiers.Is(this.TypeSymbol) || newCustomModifiers != this.CustomModifiers)
+            bool? newIsNullable = this.IsNullable;
+            
+            if (newIsNullable == false)
             {
-                return DoUpdate(newTypeWithModifiers.TypeSymbol, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
+                newIsNullable = newTypeWithModifiers.IsNullable;
+            }
+            else if (newIsNullable == null)
+            {
+                if (newTypeWithModifiers.IsNullable == true)
+                {
+                    newIsNullable = true;
+                }
             }
             else
             {
-                return this; // substitution had no effect on the type or modifiers
+                Debug.Assert(newIsNullable == true);
             }
+
+            if (!this.TypeSymbol.Equals(newTypeWithModifiers.TypeSymbol, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) ||
+                !newTypeWithModifiers.CustomModifiers.IsEmpty ||
+                newIsNullable != this.IsNullable ||
+                newCustomModifiers != this.CustomModifiers)
+            {
+                if (newTypeWithModifiers.TypeSymbol.IsNullableType())
+                {
+                    Debug.Assert(newIsNullable == true);
+
+                    if (newCustomModifiers.IsEmpty)
+                    {
+                        return newTypeWithModifiers;
+                    }
+
+                    return TypeSymbolWithAnnotations.Create(newTypeWithModifiers.TypeSymbol, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
+                }
+
+                if (newIsNullable == false)
+                {
+                    Debug.Assert(newTypeWithModifiers.IsNullable == false);
+                    if (newCustomModifiers.IsEmpty)
+                    {
+                        return newTypeWithModifiers;
+                    }
+
+                    return TypeSymbolWithAnnotations.Create(newTypeWithModifiers.TypeSymbol, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
+                }
+
+                Debug.Assert(newIsNullable != false);
+
+                if (newCustomModifiers.IsEmpty && newTypeWithModifiers.IsNullable == newIsNullable)
+                {
+                    return newTypeWithModifiers;
+                }
+
+                newCustomModifiers = newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers);
+
+                if (newIsNullable == true)
+                {
+                    if (newCustomModifiers.IsEmpty)
+                    {
+                        return new NullableReferenceTypeWithoutCustomModifiers(newTypeWithModifiers.TypeSymbol);
+                    }
+
+                    return new NullableReferenceTypeWithCustomModifiers(newTypeWithModifiers.TypeSymbol, newCustomModifiers);
+                }
+
+                Debug.Assert(newIsNullable == null);
+
+                if (newCustomModifiers.IsEmpty)
+                {
+                    return new ReferenceTypeUnknownNullabilityWithoutCustomModifiers(newTypeWithModifiers.TypeSymbol);
+                }
+
+                return new ReferenceTypeUnknownNullabilityWithCustomModifiers(newTypeWithModifiers.TypeSymbol, newCustomModifiers);
+            }
+
+            return this; // substitution had no effect on the type or modifiers
         }
 
         public virtual void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
@@ -319,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public sealed override TypeSymbol TypeSymbol => _typeSymbol;
-            public sealed override bool IsNullable => _typeSymbol.IsNullableType();
+            public sealed override bool? IsNullable => _typeSymbol.IsNullableType();
             public override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
             public override TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers)
@@ -333,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public override TypeSymbol AsTypeSymbolOnly() => _typeSymbol;
-            public override bool Is(TypeSymbol other) => _typeSymbol == other;
+            public override bool Is(TypeSymbol other) => _typeSymbol.Equals(other, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes);
 
             protected sealed override TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
             {
@@ -363,10 +458,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public sealed override TypeSymbol TypeSymbol => _typeSymbol;
-            public sealed override bool IsNullable => true;
+            public sealed override bool? IsNullable => true;
             public override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
-            public override TypeSymbol AsTypeSymbolOnly() => _typeSymbol;
+            public override TypeSymbol AsTypeSymbolOnly()
+            {
+                Debug.Assert(this.IsNullable == false);
+                return _typeSymbol;
+            }
+
             public sealed override bool Is(TypeSymbol other) => false; // It has nullable annotation.
 
             public override TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers)
@@ -395,6 +495,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private class ReferenceTypeUnknownNullabilityWithoutCustomModifiers : TypeSymbolWithAnnotations
+        {
+            protected readonly TypeSymbol _typeSymbol;
+
+            public ReferenceTypeUnknownNullabilityWithoutCustomModifiers(TypeSymbol typeSymbol)
+            {
+                Debug.Assert((object)typeSymbol != null);
+                Debug.Assert(!typeSymbol.IsNullableType());
+                _typeSymbol = typeSymbol;
+            }
+
+            public sealed override TypeSymbol TypeSymbol => _typeSymbol;
+            public sealed override bool? IsNullable => null;
+            public override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
+            public override TypeSymbol AsTypeSymbolOnly()
+            {
+                Debug.Assert(this.IsNullable == false);
+                return _typeSymbol;
+            }
+
+            public sealed override bool Is(TypeSymbol other) => false; // It has nullable annotation, unknown is an annotation.
+
+            public override TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers)
+            {
+                if (customModifiers.IsDefaultOrEmpty)
+                {
+                    return this;
+                }
+
+                return new ReferenceTypeUnknownNullabilityWithCustomModifiers(_typeSymbol, customModifiers);
+            }
+
+            protected sealed override TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
+            {
+                if (customModifiers.IsDefaultOrEmpty)
+                {
+                    return new ReferenceTypeUnknownNullabilityWithoutCustomModifiers(typeSymbol);
+                }
+
+                return new ReferenceTypeUnknownNullabilityWithCustomModifiers(typeSymbol, customModifiers);
+            }
+
+            public override TypeSymbolWithAnnotations AsNullableReferenceType()
+            {
+                return new NullableReferenceTypeWithoutCustomModifiers(_typeSymbol);
+            }
+        }
+
         private class LazyNullableType : TypeSymbolWithAnnotations
         {
             private readonly CSharpCompilation _compilation;
@@ -404,13 +553,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public LazyNullableType(CSharpCompilation compilation, SyntaxReference nullableTypeSyntax, TypeSymbolWithAnnotations underlying)
             {
-                Debug.Assert(!underlying.IsNullable);
+                Debug.Assert(underlying.IsNullable == false);
                 _compilation = compilation;
                 _nullableTypeSyntax = nullableTypeSyntax;
                 _underlying = underlying;
             }
 
-            public override bool IsNullable => true;
+            public override bool? IsNullable => true;
 
             public override bool IsVoid 
             {
@@ -492,12 +641,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbol AsTypeSymbolOnly()
             {
+                Debug.Assert(TypeSymbol.IsNullableType() && CustomModifiers.IsEmpty);
                 return TypeSymbol;
             }
 
             public override bool Is(TypeSymbol other)
             {
-                return TypeSymbol == other;
+                return TypeSymbol.Equals(other, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) && TypeSymbol.IsNullableType();
             }
 
             public override ImmutableArray<CustomModifier> CustomModifiers => _underlying.CustomModifiers;
@@ -600,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override TypeSymbol AsTypeSymbolOnly()
             {
                 Debug.Assert(this.CustomModifiers.IsEmpty);
-                return _typeSymbol;
+                return base.AsTypeSymbolOnly();
             }
 
             public override bool Is(TypeSymbol other)
@@ -645,7 +795,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override TypeSymbol AsTypeSymbolOnly()
             {
                 Debug.Assert(this.CustomModifiers.IsEmpty);
-                return _typeSymbol;
+                return base.AsTypeSymbolOnly();
+            }
+        }
+
+        private class ReferenceTypeUnknownNullabilityWithCustomModifiers : ReferenceTypeUnknownNullabilityWithoutCustomModifiers
+        {
+            private readonly ImmutableArray<CustomModifier> _customModifiers;
+
+            public ReferenceTypeUnknownNullabilityWithCustomModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
+                : base(typeSymbol)
+            {
+                Debug.Assert(!customModifiers.IsDefaultOrEmpty);
+                _customModifiers = customModifiers;
+            }
+
+            public override TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers)
+            {
+                if (customModifiers.IsDefaultOrEmpty)
+                {
+                    return this;
+                }
+
+                return new ReferenceTypeUnknownNullabilityWithCustomModifiers(_typeSymbol, _customModifiers.Concat(customModifiers));
+            }
+
+            public override ImmutableArray<CustomModifier> CustomModifiers => _customModifiers;
+
+            public override TypeSymbol AsTypeSymbolOnly()
+            {
+                Debug.Assert(this.CustomModifiers.IsEmpty);
+                return base.AsTypeSymbolOnly();
+            }
+
+            public override TypeSymbolWithAnnotations AsNullableReferenceType()
+            {
+                return new NullableReferenceTypeWithCustomModifiers(_typeSymbol, _customModifiers);
             }
         }
     }

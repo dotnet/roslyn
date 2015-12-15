@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
         {
             if ((object)t2 == (object)this)
             {

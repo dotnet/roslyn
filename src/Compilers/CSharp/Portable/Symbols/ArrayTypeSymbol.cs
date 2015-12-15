@@ -308,17 +308,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitArrayType(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
         {
-            return this.Equals(t2 as ArrayTypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+            return this.Equals(t2 as ArrayTypeSymbol, options);
         }
 
         internal bool Equals(ArrayTypeSymbol other)
         {
-            return Equals(other, false, false);
+            return Equals(other, TypeSymbolEqualityOptions.None);
         }
 
-        private bool Equals(ArrayTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        private bool Equals(ArrayTypeSymbol other, TypeSymbolEqualityOptions options)
         {
             if (ReferenceEquals(this, other))
             {
@@ -326,35 +326,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((object)other == null || !other.HasSameShapeAs(this) || 
-                !other.ElementType.TypeSymbol.Equals(ElementType.TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+                !other.ElementType.Equals(ElementType, options))
             {
                 return false;
             }
 
-            // Make sure custom modifiers and bounds are the same.
-            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds)
+            // Make sure bounds are the same.
+            if ((options & TypeSymbolEqualityOptions.IgnoreArraySizesAndLowerBounds) == 0 && !this.HasSameSizesAndLowerBoundsAs(other))
             {
-                var mod = this.ElementType.CustomModifiers;
-                var otherMod = other.ElementType.CustomModifiers;
-                var count = mod.Length;
-
-                if (count != otherMod.Length)
-                {
-                    return false;
-                }
-
-                for (int i = 0; i < count; i++)
-                {
-                    if (!mod[i].Equals(otherMod[i]))
-                    {
-                        return false;
-                    }
-                }
-
-                if (!this.HasSameSizesAndLowerBoundsAs(other))
-                {
-                    return false;
-                }
+                return false;
             }
 
             return true;

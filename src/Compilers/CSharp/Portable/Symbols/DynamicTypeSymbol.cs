@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (int)Microsoft.CodeAnalysis.SpecialType.System_Object;
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
         {
             if ((object)t2 == null)
             {
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if (ignoreDynamic)
+            if ((options & TypeSymbolEqualityOptions.IgnoreDynamic) != 0)
             {
                 var other = t2 as NamedTypeSymbol;
                 return (object)other != null && other.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object;

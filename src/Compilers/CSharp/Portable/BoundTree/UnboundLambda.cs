@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private UnboundLambda _unboundLambda; // we would prefer this readonly, but we have an initialization cycle.
         protected readonly Binder binder;
-        private readonly ConcurrentDictionary<object, BoundLambda> _bindingCache = new ConcurrentDictionary<object, BoundLambda>();
+        private readonly ConcurrentDictionary<TypeSymbol, BoundLambda> _bindingCache = new ConcurrentDictionary<TypeSymbol, BoundLambda>(TypeSymbol.EqualsIncludingNullableComparer);
 
         private readonly ConcurrentDictionary<MethodSymbol, BoundLambda> _returnInferenceCache =
             new ConcurrentDictionary<MethodSymbol, BoundLambda>(MemberSignatureComparer.LambdaReturnInferenceCacheComparer);
@@ -331,10 +331,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((object)d == null || (object)d.DelegateInvokeMethod == null) ? ImmutableArray<ParameterSymbol>.Empty : d.DelegateInvokeMethod.Parameters;
         }
 
-        private static TypeSymbol DelegateReturnType(NamedTypeSymbol delegateType)
+        private static TypeSymbolWithAnnotations DelegateReturnType(NamedTypeSymbol delegateType)
         {
             NamedTypeSymbol d = delegateType.GetDelegateType();
-            return ((object)d == null || (object)d.DelegateInvokeMethod == null) ? null : d.DelegateInvokeMethod.ReturnType.TypeSymbol;
+            return ((object)d == null || (object)d.DelegateInvokeMethod == null) ? null : d.DelegateInvokeMethod.ReturnType;
         }
 
         private bool DelegateNeedsReturn(NamedTypeSymbol delegateType)
@@ -372,8 +372,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredFromSingleType)
             {
                 var lambdaSym = returnInferenceLambda.Symbol;
-                var lambdaRetType = lambdaSym.ReturnType.TypeSymbol;
-                if (lambdaRetType == returnType)
+                var lambdaRetType = lambdaSym.ReturnType;
+                if (lambdaRetType.Equals(returnType, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes))
                 {
                     lambdaSymbol = lambdaSym;
                     lambdaBodyBinder = returnInferenceLambda.Binder;
@@ -410,8 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)returnType != null && // Can be null if "delegateType" is not actually a delegate type.
                     returnType.SpecialType != SpecialType.System_Void &&
-                    returnType != binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) &&
-                    returnType.OriginalDefinition != binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+                    returnType.TypeSymbol != binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) &&
+                    returnType.TypeSymbol.OriginalDefinition != binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
                 {
                     // Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.
                     diagnostics.Add(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, lambdaSymbol.Locations[0], lambdaSymbol.MessageID.Localize(), delegateType);

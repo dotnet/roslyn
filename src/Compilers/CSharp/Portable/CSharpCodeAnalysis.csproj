@@ -727,6 +727,7 @@
     <Compile Include="Symbols\TypeParameterSymbolExtensions.cs" />
     <Compile Include="Symbols\TypeSymbol.cs" />
     <Compile Include="Symbols\TypeSymbol.SymbolAndDiagnostics.cs" />
+    <Compile Include="Symbols\TypeSymbolEqualityOptions.cs" />
     <Compile Include="Symbols\TypeSymbolExtensions.cs" />
     <Compile Include="Symbols\TypeUnification.cs" />
     <Compile Include="Symbols\UnboundGenericType.cs" />

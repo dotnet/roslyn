@@ -59,13 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool Equals(AnonymousTypeDescriptor desc)
         {
-            return this.Equals(desc, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: false);
+            return this.Equals(desc, TypeSymbolEqualityOptions.None);
         }
 
         /// <summary>
         /// Compares two anonymous type descriptors, takes into account fields names and types, not locations.
         /// </summary>
-        internal bool Equals(AnonymousTypeDescriptor other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal bool Equals(AnonymousTypeDescriptor other, TypeSymbolEqualityOptions options)
         {
             // Comparing keys ensures field count and field names are the same
             if (this.Key != other.Key)
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<AnonymousTypeField> otherFields = other.Fields;
             for (int i = 0; i < count; i++)
             {
-                if (!myFields[i].Type.TypeSymbol.Equals(otherFields[i].Type.TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+                if (!myFields[i].Type.TypeSymbol.Equals(otherFields[i].Type.TypeSymbol, options))
                 {
                     return false;
                 }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public override bool Equals(object obj)
         {
-            return obj is AnonymousTypeDescriptor && this.Equals((AnonymousTypeDescriptor)obj, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: false);
+            return obj is AnonymousTypeDescriptor && this.Equals((AnonymousTypeDescriptor)obj, TypeSymbolEqualityOptions.None);
         }
 
         public override int GetHashCode()
