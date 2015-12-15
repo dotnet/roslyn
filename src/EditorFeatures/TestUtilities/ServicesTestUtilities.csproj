@@ -68,12 +68,8 @@
     <Compile Include="DispatcherExtensions.cs" />
     <Compile Include="DirectoryExtensions.cs" />
     <Compile Include="ExceptionUtilities.cs" />
-    <Compile Include="Threading\ConditionalStaFactAttribute.cs" />
     <Compile Include="Threading\ConditionalWpfFactAttribute.cs" />
-    <Compile Include="Threading\StaFactAttribute.cs" />
-    <Compile Include="Threading\StaFactDiscoverer.cs" />
     <Compile Include="Threading\StaTaskScheduler.cs" />
-    <Compile Include="Threading\StaTestCase.cs" />
     <Compile Include="Threading\WpfFactAttribute.cs" />
     <Compile Include="Threading\WpfFactDiscoverer.cs" />
     <Compile Include="Threading\WpfTestCase.cs" />

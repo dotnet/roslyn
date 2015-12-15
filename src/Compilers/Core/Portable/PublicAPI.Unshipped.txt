@@ -47,6 +47,10 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.CompilationAc
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.CompilationEndActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.CompilationStartActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.ExecutionTime.get -> System.TimeSpan
+Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationActionsCount.get -> int
+Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockActionsCount.get -> int
+Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockEndActionsCount.get -> int
+Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockStartActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SemanticModelActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SymbolActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SyntaxNodeActionsCount.get -> int
@@ -87,6 +91,7 @@ abstract Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.Regi
 abstract Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 Microsoft.CodeAnalysis.Semantics.IOperation
 Microsoft.CodeAnalysis.Semantics.IOperation.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.IOperation.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.IOperation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.ConditionalChoice(Microsoft.CodeAnalysis.Semantics.IExpression condition, Microsoft.CodeAnalysis.Semantics.IExpression ifTrue, Microsoft.CodeAnalysis.Semantics.IExpression ifFalse, Microsoft.CodeAnalysis.ITypeSymbol resultType, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
@@ -96,22 +101,26 @@ Microsoft.CodeAnalysis.Semantics.ConditionalChoice.IfFalse.get -> Microsoft.Code
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.ConditionalChoice.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.ConditionalChoice.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.Assignment
 Microsoft.CodeAnalysis.Semantics.Assignment.Assignment(Microsoft.CodeAnalysis.Semantics.IReferenceExpression target, Microsoft.CodeAnalysis.Semantics.IExpression value, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.Assignment.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.Assignment.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.Assignment.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.Assignment.Expression.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment.CompoundAssignment(Microsoft.CodeAnalysis.Semantics.IReferenceExpression target, Microsoft.CodeAnalysis.Semantics.IExpression value, Microsoft.CodeAnalysis.Semantics.BinaryOperationKind binaryKind, Microsoft.CodeAnalysis.IMethodSymbol operatorMethod, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.CompoundAssignment.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.CompoundAssignment.Expression.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.IntegerLiteral(long value, Microsoft.CodeAnalysis.ITypeSymbol resultType, Microsoft.CodeAnalysis.SyntaxNode syntax) -> void
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.Spelling.get -> string
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.IntegerLiteral.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.IntegerLiteral.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.Binary
@@ -123,6 +132,7 @@ Microsoft.CodeAnalysis.Semantics.Binary.UsesOperatorMethod.get -> bool
 Microsoft.CodeAnalysis.Semantics.Binary.Operator.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.Binary.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.Binary.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.Binary.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.Binary.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.Binary.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.ArrayCreation
@@ -132,6 +142,7 @@ Microsoft.CodeAnalysis.Semantics.ArrayCreation.ElementValues.get -> Microsoft.Co
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.ResultType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.Kind.get -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.ArrayCreation.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.ArrayCreation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Semantics.IExpression
@@ -572,67 +583,69 @@ Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression
 Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression.Access.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.BlockStatement = 1 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.VariableDeclarationStatement = 2 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.SwitchStatement = 3 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.IfStatement = 4 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.LoopStatement = 5 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ContinueStatement = 6 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.BreakStatement = 7 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.YieldBreakStatement = 8 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.LabelStatement = 9 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.LabeledStatement = 10 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.GoToStatement = 11 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.EmptyStatement = 12 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ThrowStatement = 13 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ReturnStatement = 14 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.LockStatement = 15 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.TryStatement = 16 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.CatchHandler = 17 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.UsingWithDeclarationStatement = 18 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.UsingWithExpressionStatement = 19 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.YieldReturnStatement = 20 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.FixedStatement = 21 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.LocalFunctionStatement = 22 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ExpressionStatement = 23 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.LiteralExpression = 24 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ConversionExpression = 25 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.InvocationExpression = 26 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ArrayElementReferenceExpression = 27 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.PointerIndirectionReferenceExpression = 28 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.LocalReferenceExpression = 29 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ParameterReferenceExpression = 30 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.SyntheticLocalReferenceExpression = 31 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.FieldReferenceExpression = 32 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.MethodReferenceExpression = 33 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.PropertyReferenceExpression = 34 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.LateBoundMemberReferenceExpression = 35 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.UnaryOperatorExpression = 36 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.BinaryOperatorExpression = 37 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ConditionalChoiceExpression = 38 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.NullCoalescingExpression = 39 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.LambdaExpression = 40 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ObjectCreationExpression = 41 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.TypeParameterObjectCreationExpression = 42 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ArrayCreationExpression = 43 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.DefaultValueExpression = 44 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.InstanceReferenceExpression = 45 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.BaseClassInstanceReferenceExpression = 46 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ClassInstanceReferenceExpression = 47 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.IsExpression = 48 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.TypeOperationExpression = 49 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.AwaitExpression = 50 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.AddressOfExpression = 51 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.AssignmentExpression = 52 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.CompoundAssignmentExpression = 53 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ParenthesizedExpression = 54 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.UnboundLambdaExpression = 55 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.OmittedArgumentExpression = 56 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.StopStatement = 57 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.EndStatement = 58 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.WithStatement = 59 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.ConditionalAccessExpression = 60 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.IncrementExpression = 61 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.InvalidStatement = 1 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.BlockStatement = 2 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.VariableDeclarationStatement = 3 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.SwitchStatement = 4 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.IfStatement = 5 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.LoopStatement = 6 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ContinueStatement = 7 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.BreakStatement = 8 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.YieldBreakStatement = 9 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.LabelStatement = 10 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.LabeledStatement = 11 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.GoToStatement = 12 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.EmptyStatement = 13 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ThrowStatement = 14 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ReturnStatement = 15 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.LockStatement = 16 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.TryStatement = 17 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.CatchHandler = 18 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.UsingWithDeclarationStatement = 19 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.UsingWithExpressionStatement = 20 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.YieldReturnStatement = 21 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.FixedStatement = 22 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.LocalFunctionStatement = 23 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ExpressionStatement = 24 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.InvalidExpression = 25 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.LiteralExpression = 26 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ConversionExpression = 27 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.InvocationExpression = 28 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ArrayElementReferenceExpression = 29 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.PointerIndirectionReferenceExpression = 30 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.LocalReferenceExpression = 31 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ParameterReferenceExpression = 32 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.SyntheticLocalReferenceExpression = 33 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.FieldReferenceExpression = 34 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.MethodReferenceExpression = 35 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.PropertyReferenceExpression = 36 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.LateBoundMemberReferenceExpression = 37 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.UnaryOperatorExpression = 38 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.BinaryOperatorExpression = 39 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ConditionalChoiceExpression = 40 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.NullCoalescingExpression = 41 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.LambdaExpression = 42 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ObjectCreationExpression = 43 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.TypeParameterObjectCreationExpression = 44 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ArrayCreationExpression = 45 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.DefaultValueExpression = 46 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.InstanceReferenceExpression = 47 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.BaseClassInstanceReferenceExpression = 48 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ClassInstanceReferenceExpression = 49 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.IsExpression = 50 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.TypeOperationExpression = 51 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.AwaitExpression = 52 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.AddressOfExpression = 53 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.AssignmentExpression = 54 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.CompoundAssignmentExpression = 55 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ParenthesizedExpression = 56 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.UnboundLambdaExpression = 57 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.OmittedArgumentExpression = 58 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.StopStatement = 59 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.EndStatement = 60 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.WithStatement = 61 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.ConditionalAccessExpression = 62 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.IncrementExpression = 63 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OperationBlocks.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IOperation>

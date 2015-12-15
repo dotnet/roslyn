@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal interface ICompilerServerHost
     {
-        IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
         Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; }
         bool TryCreateCompiler(RunRequest request, out CommonCompiler compiler);
         bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers);

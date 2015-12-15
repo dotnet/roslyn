@@ -392,6 +392,67 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithInvalidDiagnosticLocation : DiagnosticAnalyzer
+        {
+            private readonly Location _invalidLocation;
+            private readonly ActionKind _actionKind;
+
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title1",
+                "Message {0}",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public enum ActionKind
+            {
+                Symbol,
+                CodeBlock,
+                Operation,
+                OperationBlockEnd,
+                Compilation,
+                CompilationEnd,
+                SyntaxTree
+            }
+
+            public AnalyzerWithInvalidDiagnosticLocation(SyntaxTree treeInAnotherCompilation, ActionKind actionKind)
+            {
+                _invalidLocation = treeInAnotherCompilation.GetRoot().GetLocation();
+                _actionKind = actionKind;
+            }
+
+            private void ReportDiagnostic(Action<Diagnostic> addDiagnostic, ActionKind actionKindBeingRun)
+            {
+                if (_actionKind == actionKindBeingRun)
+                {
+                    var diagnostic = Diagnostic.Create(Descriptor, _invalidLocation);
+                    addDiagnostic(diagnostic);
+                }
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationStartAction(cc =>
+                {
+                    cc.RegisterSymbolAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.Symbol), SymbolKind.NamedType);
+                    cc.RegisterCodeBlockAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.CodeBlock));
+                    cc.RegisterCompilationEndAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.CompilationEnd));
+
+                    cc.RegisterOperationBlockStartAction(oc =>
+                    {
+                        oc.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.Operation), Semantics.OperationKind.VariableDeclarationStatement);
+                        oc.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.OperationBlockEnd));
+                    });
+                });
+
+                context.RegisterSyntaxTreeAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.SyntaxTree));
+                context.RegisterCompilationAction(cc => ReportDiagnostic(cc.ReportDiagnostic, ActionKind.Compilation));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class AnalyzerThatThrowsInGetMessage : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -592,6 +653,58 @@ namespace Microsoft.CodeAnalysis
                 {
                     var diagnostic = Diagnostic.Create(Descriptor, symbolContext.Symbol.Locations[0]);
                     symbolContext.ReportDiagnostic(diagnostic);
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class OperationAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly ActionKind _actionKind;
+
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title1",
+                "{0} diagnostic",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public enum ActionKind
+            {
+                Operation,
+                OperationBlock,
+                OperationBlockEnd
+            }
+
+            public OperationAnalyzer(ActionKind actionKind)
+            {
+                _actionKind = actionKind;
+            }
+
+            private void ReportDiagnostic(Action<Diagnostic> addDiagnostic, Location location)
+            {
+                var diagnostic = Diagnostic.Create(Descriptor, location, _actionKind);
+                addDiagnostic(diagnostic);
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_actionKind == ActionKind.OperationBlockEnd)
+                {
+                    context.RegisterOperationBlockStartAction(oc =>
+                    {
+                        oc.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
+                    });
+                }
+                else if (_actionKind == ActionKind.Operation)
+                {
+                    context.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, c.Operation.Syntax.GetLocation()), Semantics.OperationKind.VariableDeclarationStatement);
+                }
+                else
+                {
+                    context.RegisterOperationBlockAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
                 }
             }
         }

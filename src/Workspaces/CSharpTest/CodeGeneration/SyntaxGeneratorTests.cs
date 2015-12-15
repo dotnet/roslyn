@@ -725,6 +725,124 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact]
+        public void TestOperatorDeclaration()
+        {
+            var parameterTypes = new[]
+            {
+                _emptyCompilation.GetSpecialType(SpecialType.System_Int32),
+                _emptyCompilation.GetSpecialType(SpecialType.System_String)
+            };
+            var parameters = parameterTypes.Select((t, i) => _g.ParameterDeclaration("p" + i, _g.TypeExpression(t))).ToList();
+            var returnType = _g.TypeExpression(SpecialType.System_Boolean);
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.Addition, parameters, returnType),
+                "bool operator +(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.BitwiseAnd, parameters, returnType),
+                "bool operator &(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.BitwiseOr, parameters, returnType),
+                "bool operator |(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.Decrement, parameters, returnType),
+                "bool operator --(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.Division, parameters, returnType),
+                "bool operator /(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.Equality, parameters, returnType),
+                "bool operator ==(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.ExclusiveOr, parameters, returnType),
+                "bool operator ^(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.False, parameters, returnType),
+                "bool operator false (System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.GreaterThan, parameters, returnType),
+                "bool operator>(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.GreaterThanOrEqual, parameters, returnType),
+                "bool operator >=(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.Increment, parameters, returnType),
+                "bool operator ++(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.Inequality, parameters, returnType),
+                "bool operator !=(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.LeftShift, parameters, returnType),
+                "bool operator <<(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.LessThan, parameters, returnType),
+                "bool operator <(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.LessThanOrEqual, parameters, returnType),
+                "bool operator <=(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.LogicalNot, parameters, returnType),
+                "bool operator !(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.Modulus, parameters, returnType),
+                "bool operator %(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.Multiply, parameters, returnType),
+                "bool operator *(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.OnesComplement, parameters, returnType),
+                "bool operator ~(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.RightShift, parameters, returnType),
+                "bool operator >>(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.Subtraction, parameters, returnType),
+                "bool operator -(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.True, parameters, returnType),
+                "bool operator true (System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.UnaryNegation, parameters, returnType),
+                "bool operator -(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.UnaryPlus, parameters, returnType),
+                "bool operator +(System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            // Conversion operators
+
+            VerifySyntax<ConversionOperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.ImplicitConversion, parameters, returnType),
+                "implicit operator bool (System.Int32 p0, System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<ConversionOperatorDeclarationSyntax>(
+                _g.OperatorDeclaration(OperatorKind.ExplicitConversion, parameters, returnType),
+                "explicit operator bool (System.Int32 p0, System.String p1)\r\n{\r\n}");
+        }
+
+        [Fact]
         public void TestConstructorDeclaration()
         {
             VerifySyntax<ConstructorDeclarationSyntax>(

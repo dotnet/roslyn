@@ -241,15 +241,11 @@ System.Console$$.WriteLine(message)
                       </Workspace>
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xml)
                 Dim hostDocument = workspace.Documents.Single()
-                Dim description As String = Nothing
-                Dim span As TextSpan
 
-                Assert.False(VsLanguageBlock.GetCurrentBlock(
+                Assert.Null(Await VsLanguageBlock.GetCurrentBlockAsync(
                          hostDocument.TextBuffer.CurrentSnapshot,
                          hostDocument.CursorPosition.Value,
-                         CancellationToken.None,
-                         description,
-                         span))
+                         CancellationToken.None))
             End Using
         End Function
 
@@ -263,18 +259,14 @@ System.Console$$.WriteLine(message)
                       </Workspace>
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xml)
                 Dim hostDocument = workspace.Documents.Single()
-                Dim description As String = Nothing
-                Dim span As TextSpan
 
-                Assert.True(VsLanguageBlock.GetCurrentBlock(
+                Dim tuple = Await VsLanguageBlock.GetCurrentBlockAsync(
                              hostDocument.TextBuffer.CurrentSnapshot,
                              hostDocument.CursorPosition.Value,
-                             CancellationToken.None,
-                             description,
-                             span))
+                             CancellationToken.None)
 
-                Assert.Equal(expectedDescription, description)
-                Assert.Equal(hostDocument.SelectedSpans.Single(), span)
+                Assert.Equal(expectedDescription, tuple.Item1)
+                Assert.Equal(hostDocument.SelectedSpans.Single(), tuple.Item2)
             End Using
         End Function
     End Class

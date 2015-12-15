@@ -309,8 +309,8 @@
     <Compile Include="Diagnostics\Analyzers\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicSimplifyTypeNamesDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\VisualBasicAnalyzerDriverService.vb" />
-    <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.vb" />
-    <Compile Include="DocumentationCommentFormatting\VisualBasicDocumentationCommentFormattingService.vb" />
+    <Compile Include="DocumentationComments\DocumentationCommentUtilities.vb" />
+    <Compile Include="DocumentationComments\VisualBasicDocumentationCommentFormattingService.vb" />
     <Compile Include="EditAndContinue\BreakpointSpans.vb" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.vb" />
     <Compile Include="EditAndContinue\SyntaxComparer.vb" />

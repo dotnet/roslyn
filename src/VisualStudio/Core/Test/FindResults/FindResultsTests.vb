@@ -146,6 +146,7 @@ using System.Threading;
 
                 Dim result = Await SymbolFinder.FindReferencesAsync(symbol, workspace.CurrentSolution, CancellationToken.None)
 
+                WpfTestCase.RequireWpfFact($"The {NameOf(Implementation.Library.FindResults.LibraryManager)} assumes it's on the VS UI thread and thus uses WaitAndGetResult")
                 Dim libraryManager = New LibraryManager(New MockServiceProvider(New MockComponentModel(workspace.ExportProvider)))
                 Dim findReferencesTree = libraryManager.CreateFindReferencesItems(workspace.CurrentSolution, result)
 

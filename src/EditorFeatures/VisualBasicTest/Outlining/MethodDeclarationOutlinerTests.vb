@@ -101,7 +101,7 @@ End Class
 "
 
             Await VerifyRegionsAsync(code,
-                Region("span", "Sub Foo(i As Integer) ...", autoCollapse:=True))
+                Region("span", "Sub Foo(ByVal i As Integer) ...", autoCollapse:=True))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
@@ -157,6 +157,23 @@ End Class
             Await VerifyRegionsAsync(code,
                 Region("span1", "' My ...", autoCollapse:=True),
                 Region("span2", "Sub Foo() Implements Bar.Baz ...", autoCollapse:=True))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function TestMethodDeclarationWithLineBreaks() As Task
+            Const code = "
+Class C
+    {|span:Public Function $$myFunction(myFunc1 As Func(Of System.String,
+                                                           System.String,
+                                                           System.String), myFunc2 As Func(Of System.String,
+                                                           System.String,
+                                                           System.String))
+    End Function|}
+End Class
+"
+
+            Await VerifyRegionsAsync(code,
+                Region("span", "Public Function myFunction(myFunc1 As Func(Of System.String, System.String, System.String), myFunc2 As Func(Of System.String, System.String, System.String)) ...", autoCollapse:=True))
         End Function
 
     End Class

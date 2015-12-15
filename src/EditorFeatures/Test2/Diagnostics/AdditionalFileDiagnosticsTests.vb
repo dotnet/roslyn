@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
 
                 Dim actual = updatedDocument.GetTextAsync().Result.ToString().Trim()
 
-                AssertEx.Equal("true", actual)
+                Assert.Equal("true", actual)
             End Using
         End Function
     End Class

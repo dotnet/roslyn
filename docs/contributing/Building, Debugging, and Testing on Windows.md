@@ -45,7 +45,8 @@ you're working on a particular area, you probably want to set the appropriate
 project as your startup project to ensure the right things are built and
 deployed.
 
-- **VisualStudioSetup**: this project builds Roslyn.VisualStudio.Setup.vsix. It
+- **VisualStudioSetup**: this project can be found inside the VisualStudio folder
+  from the Solution Explorer, and builds Roslyn.VisualStudio.Setup.vsix. It
   contains the core language services that provide C# and VB editing. It also
   contains the copy of the compiler that is used to drive IntelliSense and
   semantic analysis in Visual Studio. Although this is the copy of the compiler
@@ -53,7 +54,8 @@ deployed.
   compiler used to actually produce your final .exe or .dll when you do a
   build. If you're working on fixing an IDE bug, this is the project you want
   to use.
-- **CompilerExtension**: this project builds Roslyn.Compilers.Extension.vsix.
+- **CompilerExtension**: this project can be found inside the Compilers folder
+  from the Solution Explorer, and builds Roslyn.Compilers.Extension.vsix.
   This deploys a copy of the command line compilers that are used to do actual
   builds in the IDE. It only affects builds triggered from the Visual Studio
   experimental instance it's installed into, so it won't affect your regular
@@ -62,16 +64,21 @@ deployed.
   language features, you may wish to consider building both the
   CompilerExtension and VisualStudioSetup projects to ensure the real build and
   live analysis are synchronized.
-- **ExpressionEvaluatorPackage**: this project builds ExpressionEvaluatorPackage.vsix.
-  This deploys the expression evaluator and
+- **ExpressionEvaluatorPackage**: this project can be found inside the
+  ExpressionEvaluator\Setup folder from the Solution Explorer, and builds
+  ExpressionEvaluatorPackage.vsix. This deploys the expression evaluator and
   result providers, the components that are used by the debugger to parse and
   evaluate C# and VB expressions in the Watch window, Immediate window, and
   more. These components are only used when debugging.
-- **VisualStudioInteractiveWindow**: this project builds Microsoft.VisualStudio.VsInteractiveWindow.vsix.
+- **VisualStudioInteractiveWindow**: this project can be found inside the
+  Interactive folder from the Solution Explorer, and builds 
+  Microsoft.VisualStudio.VsInteractiveWindow.vsix.
   This includes the "base" interactive window experience that is shared by
   Roslyn, Python, and other languages. This code is core support only and
   doesn't include any language-specific logic.
-- **VisualStudioInteractiveSetup**: this project builds Roslyn.VisualStudio.Setup.Interactive.vsix.
+- **VisualStudioSetupInteractive**: this project can be found inside the
+  Interactive\Setup folder from the Solution Explorer, and builds
+  Roslyn.VisualStudio.Setup.Interactive.vsix.
   It deploys the Roslyn (i.e. C# and VB) specific parts of the interactive
   window. If you're working on the interactive experience, this is the project
   you want to use as your startup project.
@@ -90,6 +97,12 @@ installed, you'll see it marked as "Experimental" in Tools > Extensions and
 Updates to indicate you're running your experimental version. You can uninstall
 your version and go back to the originally installed version by choosing your
 version and clicking Uninstall.
+
+If you made changes to a Roslyn compiler and want to build any projects with it, you can either
+use the Visual Studio hive where your **CompilerExtension** is installed, or from
+command line, run msbuild with `/p:BootstrapBuildPath=YourBootstrapBuildPath`.
+`YourBootstrapBuildPath` could be any directory on your machine so long as it had
+csc and vbc inside it. You can check the cibuild.cmd and see how it is used.
 
 # Contributing
 

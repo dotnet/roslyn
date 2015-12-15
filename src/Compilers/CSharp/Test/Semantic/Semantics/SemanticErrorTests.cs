@@ -2239,6 +2239,28 @@ public class MyClass {
         }
 
         [Fact]
+        public void CS0118ERR_BadSKknown_02()
+        {
+            CreateCompilationWithMscorlib(@"
+using System;
+public class P {
+    public static void Main(string[] args) {
+#pragma warning disable 219
+        Action<args> a = null;
+        Action<a> b = null;
+    }
+}")
+                .VerifyDiagnostics(
+                    // (6,16): error CS0118: 'args' is a variable but is used like a type
+                    //         Action<args> a = null;
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "args").WithArguments("args", "variable", "type").WithLocation(6, 16),
+                    // (7,16): error CS0118: 'a' is a variable but is used like a type
+                    //         Action<a> b = null;
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "a").WithArguments("a", "variable", "type").WithLocation(7, 16));
+        }
+
+
+        [Fact]
         public void CS0118ERR_BadSKknown_CheckedUnchecked()
         {
             string source = @"
@@ -5958,6 +5980,25 @@ class MyClass
                 //    public int i;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("MyStruct.i", "0")
                 );
+        }
+
+        [Fact]
+        public void FieldAssignedInReferencedConstructor()
+        {
+            var text =
+@"struct S
+{
+    private readonly object _x;
+    S(object o)
+    {
+        _x = o;
+    }
+    S(object x, object y) : this(x ?? y)
+    {
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(); // No CS0171 for S._x
         }
 
         [Fact()]
@@ -15299,13 +15340,23 @@ class ErrorCS1676
     }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] {
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_NewlineInConst, Line = 11, Column = 31 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_CloseParenExpected, Line = 11, Column = 34 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 11, Column = 34 },
-                    // new ErrorDescription { Code = (int)ErrorCode.ERR_CantConvAnonMethNoParams, Line = 9, Column = 13 },
-                });
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (11,31): error CS1010: Newline in constant
+                //             Console.WriteLine(");
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(11, 31),
+                // (11,34): error CS1026: ) expected
+                //             Console.WriteLine(");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(11, 34),
+                // (11,34): error CS1002: ; expected
+                //             Console.WriteLine(");
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 34),
+                // (9,13): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'OutParam' because it has one or more out parameters
+                //         o = delegate  // CS1688
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, @"delegate  // CS1688
+        {
+            Console.WriteLine("");
+        }").WithArguments("OutParam").WithLocation(9, 13)
+                );
         }
 
         [Fact]
@@ -19709,6 +19760,28 @@ ftftftft";
         }
 
         [Fact]
+        public void CS0472WRN_NubExprIsConstBool_ConstructorInitializer()
+        {
+            var text =
+@"class A
+{
+    internal A(bool b)
+    {
+    }
+}
+class B : A
+{
+    B(int i) : base(i == null)
+    {
+    }
+}";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (9,21): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
+                //     B(int i) : base(i == null)
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "i == null").WithArguments("false", "int", "int?").WithLocation(9, 21));
+        }
+
+        [Fact]
         public void CS0612WRN_DeprecatedSymbol()
         {
             var text = @"
@@ -22058,8 +22131,19 @@ class Program
 ";
             // Used to assert.
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (8,10): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
+    // (8,10): error CS1513: } expected
+    //         {
+    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 10),
+    // (9,14): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
+    //             .ToString();
+    Diagnostic(ErrorCode.ERR_ObjectRequired, "ToString").WithArguments("object.ToString()").WithLocation(9, 14),
+    // (7,15): error CS1643: Not all code paths return a value in anonymous method of type 'Program.D'
+    //         D d = delegate
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, @"delegate
+        {
+            .ToString();
+        }").WithArguments("anonymous method", "Program.D").WithLocation(7, 15)
+                );
         }
 
         [WorkItem(543473, "DevDiv")]

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public sealed class LargeEncodedTextTests : TestBase
+    public sealed class LargeTextTests : TestBase
     {
         private static SourceText CreateSourceText(string s, Encoding encoding = null)
         {
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static SourceText CreateSourceText(Stream stream, Encoding encoding = null)
         {
-            return LargeEncodedText.Decode(stream, encoding ?? Encoding.UTF8, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: true);
+            return LargeText.Decode(stream, encoding ?? Encoding.UTF8, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: true);
         }
 
         private const string HelloWorld = "Hello, world!";
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void CopyToLargeTest()
         {
             // Tests CopyTo at the chunk boundaries
-            int targetLength = LargeEncodedText.ChunkSize * 2;
+            int targetLength = LargeText.ChunkSize * 2;
 
             using (MemoryStream stream = new MemoryStream())
             {
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 var text = SourceText.From(stream);
-                Assert.IsType(typeof(LargeEncodedText), text);
+                Assert.IsType(typeof(LargeText), text);
 
                 char[] buffer = new char[HelloWorld.Length];
                 for (int start = 0; start < text.Length; start += HelloWorld.Length)

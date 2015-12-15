@@ -3127,10 +3127,13 @@ namespace NS
             var text =
 @"[Attribute] class C { }
 ";
-            // (1,2): error CS0246: The type or namespace name 'Attribute' could not be found (are you missing a using directive or an assembly reference?)
-
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 1, Column = 2 });
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (1,2): error CS0246: The type or namespace name 'AttributeAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attribute] class C { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attribute").WithArguments("AttributeAttribute").WithLocation(1, 2),
+                // (1,2): error CS0246: The type or namespace name 'Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attribute] class C { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attribute").WithArguments("Attribute").WithLocation(1, 2));
         }
 
         [Fact]

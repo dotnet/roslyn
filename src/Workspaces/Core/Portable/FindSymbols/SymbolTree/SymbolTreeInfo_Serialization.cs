@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
-        private const string SerializationFormat = "1";
+        private const string SerializationFormat = "3";
 
         /// <summary>
         /// this is for a metadata reference in a solution

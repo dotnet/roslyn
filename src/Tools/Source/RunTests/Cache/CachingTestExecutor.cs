@@ -68,6 +68,7 @@ namespace RunTests.Cache
             return new TestResult(
                 exitCode: testResult.ExitCode,
                 assemblyPath: testResult.AssemblyName,
+                resultDir: resultsDir,
                 resultsFilePath: resultsFilePath,
                 commandLine: testResult.CommandLine,
                 elapsed: testResult.Elapsed,

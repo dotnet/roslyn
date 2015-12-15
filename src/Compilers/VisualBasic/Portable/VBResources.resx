@@ -5073,7 +5073,7 @@
                                   referenced metadata files. 
                                   import_list:namespace,...
 /langversion:&lt;number&gt;             Specify language version: 
-                                  9|9.0|10|10.0|11|11.0.
+                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 
@@ -5337,5 +5337,8 @@
   </data>
   <data name="ERR_InvalidPathMap" xml:space="preserve">
     <value>The pathmap option was incorrectly formatted.</value>
+  </data>
+  <data name="SyntaxTreeIsNotASubmission" xml:space="preserve">
+    <value>Syntax tree should be created from a submission.</value>
   </data>
 </root>

@@ -3,7 +3,7 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.DocumentationCommentFormatting
+namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
 {
     internal static class DocumentationCommentUtilities
     {

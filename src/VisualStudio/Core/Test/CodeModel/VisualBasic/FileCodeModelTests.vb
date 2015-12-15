@@ -178,6 +178,25 @@ End Namespace</Document>
             End Using
         End Function
 
+        <WorkItem(150349)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function NoChildrenForInvalidMembers() As Task
+            Dim code =
+<Code>
+Sub M()
+End Sub
+Function M() As Integer
+End Function
+Property P As Integer
+Event E()
+Class C
+End Class
+</Code>
+
+            Await TestChildren(code,
+                IsElement("C"))
+        End Function
+
 #Region "AddAttribute tests"
 
         Private Function TestAddAttributeWithSimplificationAsync(
@@ -196,6 +215,11 @@ End Namespace</Document>
         End Function
 
         Private Async Function TestAddAttributeWithBatchModeAsync(code As XElement, expectedCode As XElement, testOperation As Action(Of EnvDTE.FileCodeModel, Boolean), batch As Boolean) As Task
+            Roslyn.Test.Utilities.WpfTestCase.RequireWpfFact($"Test calls TestAddAttributeWithBatchModeAsync which means we're creating new CodeModel elements.")
+
+            ' NOTE: this method is the same as MyBase.TestOperation, but tells the lambda whether we are batching or not.
+            ' This is because the tests have different behavior up until EndBatch is called.
+
             Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
@@ -918,6 +942,7 @@ End Class
                 Dim buffer = state.Workspace.Documents.Single().TextBuffer
                 buffer.Replace(New Text.Span(0, 1), "c")
 
+                WpfTestCase.RequireWpfFact("Test requires FileCodeModel.EndBatch")
                 fileCodeModel.EndBatch()
 
                 Assert.Contains("Class C", buffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)

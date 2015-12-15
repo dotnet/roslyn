@@ -145,9 +145,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Dim result As EnvDTE.CodeElement = Nothing
 
             For Each candidateScope In candidateScopes
+                Roslyn.Test.Utilities.WpfTestCase.RequireWpfFact($"{NameOf(GetCodeElementAtCursor)} creates CodeElements and thus uses the affinited CleanableWeakComHandleTable")
+
                 Try
                     result = state.FileCodeModelObject.CodeElementFromPosition(cursorPosition, candidateScope)
-                Catch
+                Catch ex As COMException
                     ' Loop around and try the next candidate scope
                     result = Nothing
                 End Try

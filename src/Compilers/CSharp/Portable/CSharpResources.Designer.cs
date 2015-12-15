@@ -9765,6 +9765,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Syntax tree should be created from a submission..
+        /// </summary>
+        internal static string SyntaxTreeIsNotASubmission {
+            get {
+                return ResourceManager.GetString("SyntaxTreeIsNotASubmission", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; not found to remove.
         /// </summary>
         internal static string SyntaxTreeNotFoundTo {

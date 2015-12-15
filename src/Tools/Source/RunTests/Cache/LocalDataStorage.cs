@@ -53,7 +53,9 @@ namespace RunTests.Cache
                 var assemblyPath = Read(checksum, StorageKind.AssemblyPath);
                 var standardOutput = Read(checksum, StorageKind.StandardOutput);
                 var errorOutput = Read(checksum, StorageKind.ErrorOutput);
+
                 var resultsFilePath = GetStoragePath(checksum, StorageKind.ResultsFile);
+                var resultDir = Path.GetDirectoryName(resultsFilePath);
                 if (!File.Exists(resultsFilePath))
                 {
                     resultsFilePath = null;
@@ -62,6 +64,7 @@ namespace RunTests.Cache
                 testResult = new TestResult(
                     exitCode: int.Parse(exitCode),
                     assemblyPath: assemblyPath,
+                    resultDir: resultDir,
                     resultsFilePath: resultsFilePath,
                     commandLine: commandLine,
                     elapsed: TimeSpan.FromSeconds(0),

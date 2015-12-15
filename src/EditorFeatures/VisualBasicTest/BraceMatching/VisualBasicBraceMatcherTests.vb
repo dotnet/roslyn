@@ -369,5 +369,226 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
 
             Await TestInClassAsync(code, expected)
         End Function
+
+        <WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Async Function TestConditionalDirectiveWithSingleMatchingDirective() As Task
+            Dim code =
+<Text>Class C
+    Sub Test()
+#If$$ CHK Then
+
+#End If
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+            Dim expected =
+<Text>Class C
+    Sub Test()
+#If CHK Then
+
+[|#End If|]
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+
+            Await TestAsync(code, expected)
+        End Function
+
+        <WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Async Function TestConditionalDirectiveWithTwoMatchingDirectives() As Task
+            Dim code =
+<Text>Class C
+    Sub Test()
+#If$$ CHK Then
+#Else
+#End If
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+            Dim expected =
+<Text>Class C
+    Sub Test()
+#If CHK Then
+[|#Else|]
+#End If
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+
+            Await TestAsync(code, expected)
+        End Function
+
+        <WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Async Function TestConditionalDirectiveWithAllMatchingDirectives() As Task
+            Dim code =
+<Text>Class C
+    Sub Test()
+#If CHK Then
+#ElseIf RET Then
+#Else
+#End If$$
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+            Dim expected =
+<Text>Class C
+    Sub Test()
+[|#If|] CHK Then
+#ElseIf RET Then
+#Else
+#End If
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+
+            Await TestAsync(code, expected)
+        End Function
+
+        <WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Async Function TestRegionDirective() As Task
+            Dim code =
+<Text>Class C
+$$#Region "Public Methods"
+    Sub Test()
+    End Sub
+#End Region
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+            Dim expected =
+<Text>Class C
+#Region "Public Methods"
+    Sub Test()
+    End Sub
+[|#End Region|]
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+
+            Await TestAsync(code, expected)
+        End Function
+
+        <WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Async Function TestInterleavedDirectivesInner() As Task
+            Dim code =
+<Text>#Const CHK = True
+Module Program
+    Sub Main(args As String())
+#If CHK Then
+#Region$$ "Public Methods"
+        Console.Write(5)
+#ElseIf RET Then
+        Console.Write(5)
+#Else
+#End If
+    End Sub
+#End Region
+End Module
+</Text>.Value.Replace(vbLf, vbCrLf)
+            Dim expected =
+<Text>#Const CHK = True
+Module Program
+    Sub Main(args As String())
+#If CHK Then
+#Region "Public Methods"
+        Console.Write(5)
+#ElseIf RET Then
+        Console.Write(5)
+#Else
+#End If
+    End Sub
+[|#End Region|]
+End Module
+</Text>.Value.Replace(vbLf, vbCrLf)
+
+            Await TestAsync(code, expected)
+        End Function
+
+        <WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Async Function TestInterleavedDirectivesOuter() As Task
+            Dim code =
+<Text>#Const CHK = True
+Module Program
+    Sub Main(args As String())
+#If$$ CHK Then
+#Region "Public Methods"
+        Console.Write(5)
+#ElseIf RET Then
+        Console.Write(5)
+#Else
+#End If
+    End Sub
+#End Region
+End Module
+</Text>.Value.Replace(vbLf, vbCrLf)
+            Dim expected =
+<Text>#Const CHK = True
+Module Program
+    Sub Main(args As String())
+#If CHK Then
+#Region "Public Methods"
+        Console.Write(5)
+[|#ElseIf|] RET Then
+        Console.Write(5)
+#Else
+#End If
+    End Sub
+#End Region
+End Module
+</Text>.Value.Replace(vbLf, vbCrLf)
+
+            Await TestAsync(code, expected)
+        End Function
+
+        <WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Async Function TestUnmatchedDirective1() As Task
+            Dim code =
+<Text>Class C
+$$#Region "Public Methods"
+    Sub Test()
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+            Dim expected =
+<Text>Class C
+#Region "Public Methods"
+    Sub Test()
+
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+
+            Await TestAsync(code, expected)
+        End Function
+
+        <WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Async Function TestUnmatchedDirective2() As Task
+            Dim code =
+<Text>
+#Enable Warning$$
+Class C
+    Sub Test()
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+            Dim expected =
+<Text>
+#Enable Warning
+Class C
+    Sub Test()
+
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+
+            Await TestAsync(code, expected)
+        End Function
+
     End Class
 End Namespace

@@ -23,7 +23,7 @@ namespace RunTests
         public async Task<TestResult> RunTestAsync(string assemblyPath, CancellationToken cancellationToken)
         {
             try
-            { 
+            {
                 var assemblyName = Path.GetFileName(assemblyPath);
                 var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyPath), Constants.ResultsDirectoryName);
                 var resultsFilePath = Path.Combine(resultsDir, $"{assemblyName}.{(_options.UseHtml ? "html" : "xml")}");
@@ -101,6 +101,7 @@ namespace RunTests
                 return new TestResult(
                     exitCode: processOutput.ExitCode,
                     assemblyPath: assemblyPath,
+                    resultDir: resultsDir,
                     resultsFilePath: resultsFilePath,
                     commandLine: commandLine,
                     elapsed: span,
