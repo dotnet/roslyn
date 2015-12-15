@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var formatter = new Visitor(this, GetInternalBuilderOptions(options), GetPrimitiveOptions(options), GetTypeNameOptions(options), options.MemberDisplayFormat);
-            return formatter.FormatObject(obj);
+            var visitor = new Visitor(this, GetInternalBuilderOptions(options), GetPrimitiveOptions(options), GetTypeNameOptions(options), options.MemberDisplayFormat);
+            return visitor.FormatObject(obj);
         }
 
         protected virtual StackTraceRewriter StackTraceRewriter { get; } = new CommonStackTraceRewriter();
