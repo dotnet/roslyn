@@ -17,7 +17,7 @@
         <tags>$tags$</tags>
         <dependencies>
             <group targetFramework="dnxcore50">
-                <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />
+                <dependency id="Microsoft.CodeAnalysis.Compilers" version="[$version$]" />
                 <dependency id="System.AppContext" version="4.0.1-beta-23504" />
                 <dependency id="System.Collections" version="4.0.11-beta-23504" />
                 <dependency id="System.Collections.Immutable" version="1.1.38-beta-23504" />
