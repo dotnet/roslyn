@@ -139,6 +139,7 @@
     <Compile Include="Syntax\SyntaxNormalizerTests.vb" />
     <Compile Include="Syntax\SyntaxListTests.vb" />
     <Compile Include="Syntax\SyntaxRewriterTests.vb" />
+    <Compile Include="Syntax\SyntaxSubmissionsTests.vb" />
     <Compile Include="Syntax\SyntaxTokenFactoryTests.vb" />
     <Compile Include="Syntax\SyntaxTokenListTests.vb" />
     <Compile Include="Syntax\SyntaxTreeTests.vb" />

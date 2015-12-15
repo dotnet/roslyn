@@ -1222,6 +1222,61 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGlobalScriptMembers() As Task
+            Await VerifyItemExistsAsync(
+<Text>
+$$
+</Text>.Value, "Console", sourceCodeKind:=SourceCodeKind.Script)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGlobalScriptMembersAfterStatement() As Task
+            Await VerifyItemExistsAsync(
+<Text>
+Dim x = 1: $$
+</Text>.Value, "Console", sourceCodeKind:=SourceCodeKind.Script)
+
+            Await VerifyItemExistsAsync(
+<Text>
+Dim x = 1
+$$
+</Text>.Value, "Console", sourceCodeKind:=SourceCodeKind.Script)
+
+            Await VerifyItemIsAbsentAsync(
+<Text>
+Dim x = 1 $$
+</Text>.Value, "Console", sourceCodeKind:=SourceCodeKind.Script)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGlobalStatementMembersBeforeDirectives() As Task
+            Await VerifyItemIsAbsentAsync(
+<Text>
+$$
+
+#If DEBUG
+#End If
+</Text>.Value, "Console", sourceCodeKind:=SourceCodeKind.Script)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGlobalScriptMembersInsideDirectives() As Task
+            Await VerifyItemIsAbsentAsync(
+<Text>
+#If $$
+</Text>.Value, "Console", sourceCodeKind:=SourceCodeKind.Script)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGlobalScriptMembersAfterAnnotation() As Task
+            Await VerifyItemIsAbsentAsync(
+<Text><![CDATA[
+<Annotation>
+$$
+]]></Text>.Value, "Console", sourceCodeKind:=SourceCodeKind.Script)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoSharedMembers() As Task
             Dim test = <Text>
 Class C
