@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 if (options.ShowNamespaces)
                 {
                     var @namespace = nestedTypes.Last().Namespace;
-                    if (@namespace.Length > 0)
+                    if (@namespace != null)
                     {
                         builder.Append(@namespace + ".");
                     }

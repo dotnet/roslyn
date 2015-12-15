@@ -1,32 +1,80 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     public class PrintOptions
     {
-        public NumberRadix NumberRadix { get; set; } = NumberRadix.Decimal;
-        public MemberDisplayFormat MemberDisplayFormat { get; set; }
-        public bool EscapeNonPrintableCharacters { get; set; }
-        public int MaximumOutputLength { get; set; } = 1024;
-    }
+        private NumberRadix _numberRadix = NumberRadix.Decimal;
+        private MemberDisplayFormat _memberDisplayFormat;
+        private bool _escapeNonPrintableCharacters;
+        private int _maximumOutputLength = 1024;
 
-    public enum NumberRadix : byte
-    {
-        Decimal = 10,
-        Hexadecimal = 16,
-    }
-
-    internal static class NumberRadixExtensions
-    {
-        internal static bool IsValid(this NumberRadix radix)
+        public NumberRadix NumberRadix
         {
-            switch(radix)
+            get
             {
-                case NumberRadix.Decimal:
-                case NumberRadix.Hexadecimal:
-                    return true;
-                default:
-                    return false;
+                return _numberRadix;
+            }
+
+            set
+            {
+                if (!value.IsValid())
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _numberRadix = value;
+            }
+        }
+
+        public MemberDisplayFormat MemberDisplayFormat
+        {
+            get
+            {
+                return _memberDisplayFormat;
+            }
+
+            set
+            {
+                if (!value.IsValid())
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _memberDisplayFormat = value;
+            }
+        }
+
+        public bool EscapeNonPrintableCharacters
+        {
+            get
+            {
+                return _escapeNonPrintableCharacters;
+            }
+
+            set
+            {
+                _escapeNonPrintableCharacters = value;
+            }
+        }
+
+        public int MaximumOutputLength
+        {
+            get
+            {
+                return _maximumOutputLength;
+            }
+
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _maximumOutputLength = value;
             }
         }
     }

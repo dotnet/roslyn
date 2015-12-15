@@ -84,6 +84,7 @@
     <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatter.Options.cs" />
     <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatter.cs" />
     <Compile Include="Hosting\CommonStackTraceRewriter.cs" />
+    <Compile Include="Hosting\ObjectFormatter\NumberRadix.cs" />
     <Compile Include="Hosting\StackFrame.cs" />
     <Compile Include="Hosting\StackTraceRewriter.cs" />
     <Compile Include="Hosting\PrintOptions.cs" />
