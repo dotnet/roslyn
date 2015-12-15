@@ -91,8 +91,9 @@ namespace Roslyn.Utilities
 
             public Builder(IEnumerable<string> values)
             {
+                // TODO(cyrusn): Properly handle unicode normalization here.
                 var distinctValues = values.Where(v => v.Length > 0).Distinct(CaseInsensitiveComparison.Comparer).ToArray();
-                var charCount = Enumerable.Sum<string>(values,(Func<string, int>)(v => (int)v.Length));
+                var charCount = values.Sum(v => (int)v.Length);
 
                 _concatenatedLowerCaseWords = new char[charCount];
                 _wordSpans = new TextSpan[distinctValues.Length];
