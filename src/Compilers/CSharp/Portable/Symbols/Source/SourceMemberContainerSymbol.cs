@@ -468,6 +468,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var diagnostics = DiagnosticBag.GetInstance();
                             AfterMembersChecks(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
+
+                            // We may produce a SymbolDeclaredEvent for the enclosing type before events for its contained members
                             DeclaringCompilation.SymbolDeclaredEvent(this);
                             var thisThreadCompleted = state.NotePartComplete(CompletionPart.FinishMemberChecks);
                             Debug.Assert(thisThreadCompleted);
