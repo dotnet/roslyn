@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using static System.Math;
 
 namespace Roslyn.Utilities
@@ -61,7 +62,7 @@ namespace Roslyn.Utilities
             var array = ArrayPool<char>.GetArray(text.Length);
             for (int i = 0; i < text.Length; i++)
             {
-                array[i] = char.ToLower(text[i]);
+                array[i] = CaseInsensitiveComparison.ToLower(text[i]);
             }
 
             return array;

@@ -105,7 +105,7 @@ namespace Roslyn.Utilities
 
                     foreach (var ch in value)
                     {
-                        _concatenatedLowerCaseWords[characterIndex] = char.ToLower(ch);
+                        _concatenatedLowerCaseWords[characterIndex] = CaseInsensitiveComparison.ToLower(ch);
                         characterIndex++;
                     }
                 }

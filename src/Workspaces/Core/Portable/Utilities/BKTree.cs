@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using static System.Math;
 
@@ -82,7 +83,7 @@ namespace Roslyn.Utilities
             {
                 for (var i = 0; i < value.Length; i++)
                 {
-                    lowerCaseCharacters[i] = char.ToLower(value[i]);
+                    lowerCaseCharacters[i] = CaseInsensitiveComparison.ToLower(value[i]);
                 }
 
                 threshold = threshold ?? WordSimilarityChecker.GetThreshold(value);

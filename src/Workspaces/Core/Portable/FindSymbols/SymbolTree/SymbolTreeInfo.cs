@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
+using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -236,7 +237,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             GenerateNodes(assembly.GlobalNamespace, list);
 
             var spellChecker = new SpellChecker(list.Select(n => n.Name));
-
             return new SymbolTreeInfo(version, SortNodes(list), spellChecker);
         }
 
