@@ -60,7 +60,6 @@
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\Diagnostics\IRemoteHostDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioDiagnosticAnalyzerExecutor.cs" />
-    <Compile Include="Implementation\DefinitionContextTracker.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.AnalyzerAssemblyLoader.cs" />
     <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
@@ -154,6 +153,7 @@
     <Compile Include="Implementation\Versions\SemanticVersionTrackingService.cs" />
     <Compile Include="Implementation\ContainedLanguageRefactorNotifyService.cs" />
     <Compile Include="Implementation\VirtualMemoryNotificationListener.cs" />
+    <Compile Include="Implementation\VisualStudioCodeDefinitionWindowService.cs" />
     <Compile Include="Implementation\Watson\ErrorReportSettings.cs" />
     <Compile Include="Implementation\Watson\ExceptionInfo.cs" />
     <Compile Include="Implementation\Watson\NativeWin32Stubs.cs" />

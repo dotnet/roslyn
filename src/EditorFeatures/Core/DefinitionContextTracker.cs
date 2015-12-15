@@ -1,28 +1,25 @@
-﻿using Microsoft.CodeAnalysis.Editor;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.Text;
-using System.Collections.ObjectModel;
 using System.Threading;
-using Microsoft.CodeAnalysis.FindSymbols;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Shell.Interop;
-using System.Runtime.InteropServices;
-using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editor.Navigation;
-using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
+using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.CodeAnalysis.Editor
 {
     [Export(typeof(IWpfTextViewConnectionListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
@@ -30,14 +27,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal class DefinitionContextConnectionListener : IWpfTextViewConnectionListener
     {
         private readonly Dictionary<ITextView, CancellationTokenSource> _views = new Dictionary<ITextView, CancellationTokenSource>();
-        private readonly IVsCodeDefView _vsCodeDefView;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly ICodeDefinitionWindowService _codeDefinitionWindowService;
 
         [ImportingConstructor]
-        public DefinitionContextConnectionListener(IMetadataAsSourceFileService metadataAsSourceFileService, SVsServiceProvider serviceProvider)
+        public DefinitionContextConnectionListener(
+            IMetadataAsSourceFileService metadataAsSourceFileService,
+            ICodeDefinitionWindowService codeDefinitionWindowService)
         {
             _metadataAsSourceFileService = metadataAsSourceFileService;
-            _vsCodeDefView = (IVsCodeDefView)serviceProvider.GetService(typeof(SVsCodeDefView));
+            _codeDefinitionWindowService = codeDefinitionWindowService;
         }
 
         void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
@@ -75,12 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Cancel any pending update for this view
             _views[textView].Cancel();
 
-            // No point calculating the new context if the window isn't visible
-            if (_vsCodeDefView.IsVisible() != VSConstants.S_OK)
-            {
-                return;
-            }
-
             // See if we moved somewhere else in a projection that we care about
             var pointInRoslynSnapshot = caretPosition.Point.GetPoint(tb => tb.ContentType.IsOfType(ContentTypeNames.RoslynContentType), caretPosition.Affinity);
             if (pointInRoslynSnapshot == null)
@@ -95,24 +88,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var foregroundTaskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
 
-            var context = await Task.Run(
+            var locations = await Task.Run(
                 async () => await GetContextFromPoint(pointInRoslynSnapshot, foregroundTaskScheduler, cancellationToken).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(true);
 
-            if (context != null)
-            {
-                Marshal.ThrowExceptionForHR(_vsCodeDefView.SetContext(context));
-            }
+            _codeDefinitionWindowService.SetContext(locations);
         }
 
-        private async Task<Context> GetContextFromPoint(SnapshotPoint? pointInRoslynSnapshot, TaskScheduler foregroundTaskScheduler, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<CodeDefinitionWindowLocation>> GetContextFromPoint(SnapshotPoint? pointInRoslynSnapshot, TaskScheduler foregroundTaskScheduler, CancellationToken cancellationToken)
         {
             // TODO: Does this allocate too many tasks - should we switch to a queue like the classifier uses?
             await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
             var document = pointInRoslynSnapshot?.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return null;
+                return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
             }
 
             var workspace = document.Project.Solution.Workspace;
@@ -124,21 +114,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
 
-                    var builder = new ArrayBuilder<Location>();
+                    var builder = new ArrayBuilder<CodeDefinitionWindowLocation>();
                     foreach (var item in navigableItems)
                     {
                         if (navigationService.CanNavigateToPosition(workspace, item.Document.Id, item.SourceSpan.Start))
                         {
                             var text = await item.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                             var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
-                            builder.Add(new Location(item.DisplayString, item.Document.FilePath, linePositionSpan.Start.Line, linePositionSpan.Start.Character));
+                            builder.Add(new CodeDefinitionWindowLocation(item.DisplayString, item.Document.FilePath, linePositionSpan.Start.Line, linePositionSpan.Start.Character));
                         }
                     }
 
-                    return new Context(builder.ToImmutable());
+                    return builder.ToImmutable();
                 }
 
-                return null;
+                return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
             }
             else
             {
@@ -151,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 if (symbol == null)
                 {
-                    return null;
+                    return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
                 }
 
                 symbol = symbol.GetOriginalUnreducedDefinition();
@@ -176,10 +166,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 // Three choices here:
-                // 1. Another language (like Xaml) will take over via ISymbolNavigationService
+                // 1. Another language (like XAML) will take over via ISymbolNavigationService
                 // 2. There are locations in source, so we'll use those
                 // 3. There are no locations from source, so we'll try to generate a metadata as source file and use that
-                var results = new ArrayBuilder<Location>();
+                var results = new ArrayBuilder<CodeDefinitionWindowLocation>();
                 string filePath = null;
                 int lineNumber = 0;
                 int charOffset = 0;
@@ -193,7 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 if (wouldNavigate)
                 {
-                    results.Add(new Location(symbol.ToDisplayString(), filePath, lineNumber, charOffset));
+                    results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), filePath, lineNumber, charOffset));
                 }
                 else
                 {
@@ -203,98 +193,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         foreach (var declaration in sourceLocations)
                         {
                             var declarationLocation = declaration.GetLineSpan();
-                            results.Add(new Location(symbol.ToDisplayString(), declarationLocation.Path, declarationLocation.Span.Start.Line, declarationLocation.Span.Start.Character));
+                            results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationLocation.Path, declarationLocation.Span.Start.Line, declarationLocation.Span.Start.Character));
                         }
                     }
                     else
                     {
                         var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, cancellationToken).ConfigureAwait(false);
                         var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
-                        results.Add(new Location(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start.Line, identifierSpan.Start.Character));
+                        results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start.Line, identifierSpan.Start.Character));
                     }
                 }
 
-                return new Context(results.ToImmutable());
-            }
-        }
-
-        private struct Location
-        {
-            public string DisplayName { get; }
-            public string FilePath { get; }
-            public int Line { get; }
-            public int Character { get; }
-
-            public Location(string displayName, string filePath, int line, int character)
-            {
-                DisplayName = displayName;
-                FilePath = filePath;
-                Line = line;
-                Character = character;
-            }
-        }
-
-        private class Context : IVsCodeDefViewContext
-        {
-            private readonly ImmutableArray<Location> _locations = ImmutableArray<Location>.Empty;
-
-            public Context(ImmutableArray<Location> locations)
-            {
-                _locations = locations;
-            }
-
-            int IVsCodeDefViewContext.GetCount(out uint pcItems)
-            {
-                pcItems = (uint)_locations.Length;
-                return VSConstants.S_OK;
-            }
-
-            int IVsCodeDefViewContext.GetSymbolName(uint iItem, out string pbstrSymbolName)
-            {
-                var index = (int)iItem;
-                if (index < 0 || index >= _locations.Length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(iItem));
-                }
-
-                pbstrSymbolName = _locations[index].DisplayName;
-                return VSConstants.S_OK;
-            }
-
-            int IVsCodeDefViewContext.GetFileName(uint iItem, out string pbstrFilename)
-            {
-                var index = (int)iItem;
-                if (index < 0 || index >= _locations.Length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(iItem));
-                }
-
-                pbstrFilename = _locations[index].FilePath;
-                return VSConstants.S_OK;
-            }
-
-            int IVsCodeDefViewContext.GetLine(uint iItem, out uint piLine)
-            {
-                var index = (int)iItem;
-                if (index < 0 || index >= _locations.Length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(iItem));
-                }
-
-                piLine = (uint)_locations[index].Line;
-                return VSConstants.S_OK;
-            }
-
-            int IVsCodeDefViewContext.GetCol(uint iItem, out uint piCol)
-            {
-                var index = (int)iItem;
-                if (index < 0 || index >= _locations.Length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(iItem));
-                }
-
-                piCol = (uint)_locations[index].Character;
-                return VSConstants.S_OK;
+                return results.ToImmutable();
             }
         }
     }
