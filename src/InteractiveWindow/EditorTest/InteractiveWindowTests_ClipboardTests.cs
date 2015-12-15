@@ -1464,7 +1464,7 @@ System.Console.WriteLine();",
             Window.Operations.BreakLine();
             Window.InsertCode("222");
 
-            Window.Operations.CopyInputs();
+            Window.Operations.CopyCode();
             VerifyClipboardData("222",
                 "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 222}",
                 "[{\"content\":\"222\",\"kind\":2}]",
@@ -1475,7 +1475,7 @@ System.Console.WriteLine();",
             // > 1|11
             // > 222
             MoveCaretToPreviousPosition(7);
-            Window.Operations.CopyInputs();
+            Window.Operations.CopyCode();
             VerifyClipboardData("111\r\n",
                 "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par }",
                 "[{\"content\":\"111\\u000d\\u000a\",\"kind\":2}]",
@@ -1496,7 +1496,7 @@ System.Console.WriteLine();",
             // 1|11
             // > 222
             MoveCaretToPreviousPosition(7);
-            Window.Operations.CopyInputs();
+            Window.Operations.CopyCode();
             VerifyClipboardData(null, null, null);
         }
 
@@ -1517,7 +1517,7 @@ System.Console.WriteLine();",
             // > 222|
             Window.Operations.SelectAll();
             Window.Operations.SelectAll();
-            Window.Operations.CopyInputs();
+            Window.Operations.CopyCode();
             VerifyClipboardData("111\r\n222",
                 "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par 222}",
                 "[{\"content\":\"111\\u000d\\u000a\",\"kind\":2},{\"content\":\"222\",\"kind\":2}]");
@@ -1535,7 +1535,7 @@ System.Console.WriteLine();",
             // > 222|
             Window.Operations.SelectAll();
             Window.Operations.SelectAll();
-            Window.Operations.CopyInputs();
+            Window.Operations.CopyCode();
 
             VerifyClipboardData("111\r\n222",
                 "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 111\\par 222}",
@@ -1556,7 +1556,7 @@ System.Console.WriteLine();",
             var active = caret.Position.VirtualBufferPosition;
             selection.Mode = Text.Editor.TextSelectionMode.Box;
             selection.Select(anchor, active);
-            Window.Operations.CopyInputs();
+            Window.Operations.CopyCode();
 
             VerifyClipboardData("1\r\n2\r\n",
                 "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 1\\par 2}",
@@ -1582,7 +1582,7 @@ System.Console.WriteLine();",
             active = caret.Position.VirtualBufferPosition;
             selection.Mode = Text.Editor.TextSelectionMode.Stream;
             selection.Select(anchor, active);
-            Window.Operations.CopyInputs();
+            Window.Operations.CopyCode();
 
             VerifyClipboardData("22",
                 "{\\rtf\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 22}",
@@ -1607,7 +1607,7 @@ System.Console.WriteLine();",
             active = caret.Position.VirtualBufferPosition;
             selection.Mode = Text.Editor.TextSelectionMode.Stream;
             selection.Select(anchor, active);
-            Window.Operations.CopyInputs();
+            Window.Operations.CopyCode();
 
             VerifyClipboardData(null, null, null);
         }

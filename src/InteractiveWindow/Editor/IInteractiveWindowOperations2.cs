@@ -10,10 +10,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         void Copy();
 
         /// <summary>
-        /// Copies only user inputs to clipboard. 
+        /// Copies code from user inputs to clipboard. 
         /// If selection is empty, then copy from current line, otherwise copy from selected lines.
         /// </summary>
-        void CopyInputs();
+        void CopyCode();
 
         /// <summary>
         /// Delete Line; Delete all selected lines, or the current line if no selection.  

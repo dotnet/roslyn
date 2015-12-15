@@ -374,7 +374,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                         prgCmds[0].cmdf = !_window.IsResetting ? CommandEnabled : CommandDisabled;
                         prgCmds[0].cmdf |= (uint)OLECMDF.OLECMDF_DEFHIDEONCTXTMENU;
                         return VSConstants.S_OK;
-                    case CommandIds.CopyInputs:
+                    case CommandIds.CopyCode:
                         prgCmds[0].cmdf = _window.Operations is IInteractiveWindowOperations2 ? CommandEnabled : CommandDisabled;
                         return VSConstants.S_OK;
                     default:
@@ -423,12 +423,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     case CommandIds.HistoryNext: _window.Operations.HistoryNext(); return VSConstants.S_OK;
                     case CommandIds.HistoryPrevious: _window.Operations.HistoryPrevious(); return VSConstants.S_OK;
                     case CommandIds.ClearScreen: _window.Operations.ClearView(); return VSConstants.S_OK;
-                    case CommandIds.CopyInputs:
+                    case CommandIds.CopyCode:
                         {
                             var operation = _window.Operations as IInteractiveWindowOperations2;
                             if (operation != null)
                             {
-                                operation.CopyInputs();
+                                operation.CopyCode();
                             }
                             return VSConstants.S_OK;
                         }

@@ -2790,8 +2790,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            /// <summary>Implements <see cref="IInteractiveWindowOperations2.CopyInputs"/>.</summary>
-            public void CopyInputs()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations2.CopyCode"/>.</summary>
+            public void CopyCode()
             {
                 var selection = TextView.Selection;
                 NormalizedSnapshotSpanCollection spans;
