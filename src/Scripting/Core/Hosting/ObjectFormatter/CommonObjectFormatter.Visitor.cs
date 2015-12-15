@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 {
                     if (VisitedObjects.Add(obj))
                     {
-                        FormatArray(result, (Array)obj, inline: memberFormat != MemberDisplayFormat.SeparateLines);
+                        FormatArray(result, (Array)obj);
 
                         VisitedObjects.Remove(obj);
                     }
@@ -565,18 +565,23 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
             }
 
-            private void FormatArray(Builder result, Array array, bool inline)
+            private void FormatArray(Builder result, Array array)
             {
                 FormatCollectionHeader(result, array);
 
+                if (_memberDisplayFormat == MemberDisplayFormat.Hidden)
+                {
+                    return;
+                }
+
                 if (array.Rank > 1)
                 {
-                    FormatMultidimensionalArray(result, array, inline);
+                    FormatMultidimensionalArrayElements(result, array, inline: _memberDisplayFormat != MemberDisplayFormat.SeparateLines);
                 }
                 else
                 {
                     result.Append(' ');
-                    FormatSequenceMembers(result, (IEnumerable)array, inline);
+                    FormatSequenceMembers(result, array, inline: _memberDisplayFormat != MemberDisplayFormat.SeparateLines);
                 }
             }
 
@@ -649,7 +654,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 result.AppendGroupClosing(inline);
             }
 
-            private void FormatMultidimensionalArray(Builder result, Array array, bool inline)
+            private void FormatMultidimensionalArrayElements(Builder result, Array array, bool inline)
             {
                 Debug.Assert(array.Rank > 1);
 

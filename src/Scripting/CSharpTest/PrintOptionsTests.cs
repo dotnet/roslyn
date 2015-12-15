@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             var array = new[] { 1, 2, 3 };
 
             options.MemberDisplayFormat = MemberDisplayFormat.Hidden;
-            Assert.Equal("int[3] { 1, 2, 3 }", Formatter.FormatObject(array, options)); // TODO (acasey): seems wrong
+            Assert.Equal("int[3]", Formatter.FormatObject(array, options));
 
             options.MemberDisplayFormat = MemberDisplayFormat.SingleLine;
             Assert.Equal("int[3] { 1, 2, 3 }", Formatter.FormatObject(array, options));
