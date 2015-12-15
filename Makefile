@@ -1,5 +1,5 @@
 OS_NAME = $(shell uname -s)
-NUGET_PACKAGE_NAME = nuget.35
+NUGET_PACKAGE_NAME = nuget.38
 BUILD_CONFIGURATION = Debug
 BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
 
