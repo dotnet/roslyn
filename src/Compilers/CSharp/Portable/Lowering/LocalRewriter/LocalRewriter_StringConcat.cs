@@ -383,7 +383,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (ConcatExprCanBeOptimizedWithToString(operand.Type))
                         {
                             var toString = GetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
-                            return BoundCall.Synthesized(syntax, operand, toString);
+
+                            var type = (NamedTypeSymbol)operand.Type;
+                            var toStringMembers = type.GetMembers(toString.Name);
+                            foreach(var member in toStringMembers)
+                            {
+                                var toStringMethod = member as MethodSymbol;
+                                if (toStringMethod.GetLeastOverriddenMethod(type) == (object)toString)
+                                {
+                                    return BoundCall.Synthesized(syntax, operand, toStringMethod);
+                                }
+                            }
                         }
                     }
                 }
