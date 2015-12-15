@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return GetCompletionListAsync(this.CompletionProvider, document, position, triggerInfo, options);
         }
 
-        private async Task CheckResultsAsync(Document document, int position, string expectedItemOrNull, string expectedDescriptionOrNull, bool usePreviousCharAsTrigger, bool checkForAbsence, Glyph? glyph, int? MatchPriority)
+        private async Task CheckResultsAsync(Document document, int position, string expectedItemOrNull, string expectedDescriptionOrNull, bool usePreviousCharAsTrigger, bool checkForAbsence, Glyph? glyph, int? matchPriority)
         {
             var code = (await document.GetTextAsync()).ToString();
 

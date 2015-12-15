@@ -72,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isInQuery As Boolean,
             isInImportsDirective As Boolean,
             isCustomEventContext As Boolean,
+            inferredTypes As IEnumerable(Of ITypeSymbol),
             cancellationToken As CancellationToken
         )
 
@@ -91,7 +92,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
                 isNameOfContext:=isNameOfContext,
                 isInQuery:=isInQuery,
-                isInImportsDirective:=isInImportsDirective)
+                isInImportsDirective:=isInImportsDirective,
+                inferredTypes:=inferredTypes)
 
             Dim syntaxTree = semanticModel.SyntaxTree
 
@@ -126,7 +128,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
         End Function
 
-        Public Shared Async Function CreateContextAsync(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
+        Public Shared Function CreateContextAsync(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
+            Return CreateContextAsyncWorker(workspace, semanticModel, position, ComputeInferredTypes(workspace, semanticModel, position, cancellationToken), cancellationToken)
+        End Function
+
+        Public Shared Async Function CreateContextAsyncWorker(workspace As Workspace, semanticModel As SemanticModel, position As Integer, inferredTypes As IEnumerable(Of ITypeSymbol), cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
             Dim syntaxTree = semanticModel.SyntaxTree
             Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
@@ -152,11 +158,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isInQuery:=leftToken.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing,
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
                 isCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
+                inferredTypes:=inferredTypes,
                 cancellationToken:=cancellationToken)
         End Function
 
         Public Shared Function CreateContextAsync_Test(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
-            Return CreateContextAsync(Nothing, semanticModel, position, cancellationToken)
+            Dim inferenceService = New VisualBasicTypeInferenceService()
+            Dim inferredTypes = inferenceService.InferTypes(semanticModel, position, cancellationToken)
+            Return CreateContextAsyncWorker(Nothing, semanticModel, position, inferredTypes, cancellationToken)
         End Function
 
         Private Function ComputeEnclosingNamedType(cancellationToken As CancellationToken) As INamedTypeSymbol

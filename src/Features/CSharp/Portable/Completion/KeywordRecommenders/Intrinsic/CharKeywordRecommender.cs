@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -43,6 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
+        }
+
+        protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            return context.InferredTypes.Any(t => t.SpecialType == SpecialType.System_Char);
         }
     }
 }

@@ -1,18 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class ULongKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal class StringKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        public ULongKeywordRecommender()
-            : base(SyntaxKind.ULongKeyword)
+        public StringKeywordRecommender()
+            : base(SyntaxKind.StringKeyword)
         {
         }
 
@@ -26,17 +27,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsGlobalStatementContext ||
                 context.IsObjectCreationTypeContext ||
                 (context.IsGenericTypeArgumentContext && !context.TargetToken.Parent.HasAncestor<XmlCrefAttributeSyntax>()) ||
-                context.IsEnumBaseListContext ||
                 context.IsIsOrAsTypeContext ||
                 context.IsLocalVariableDeclarationContext ||
-                context.IsFixedVariableDeclarationContext ||
                 context.IsParameterTypeContext ||
                 context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
                 context.IsImplicitOrExplicitOperatorTypeContext ||
-                context.IsPrimaryFunctionExpressionContext ||
+                context.IsTypeOfExpressionContext ||
                 context.IsCrefContext ||
+                syntaxTree.IsDefaultExpressionContext(position, context.LeftToken, cancellationToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
-                syntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken) ||
                 context.IsDelegateReturnTypeContext ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
@@ -44,6 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
+        }
+
+        protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            return context.InferredTypes.Any(t => t.SpecialType == SpecialType.System_String);
         }
     }
 }

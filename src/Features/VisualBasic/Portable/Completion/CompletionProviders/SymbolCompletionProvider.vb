@@ -20,15 +20,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Recommender.GetRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken)
         End Function
 
-        Protected Overrides Function GetPreselectedSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Protected Overrides Async Function GetPreselectedSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
             Dim typeInferrer = context.GetLanguageService(Of ITypeInferenceService)()
             Dim inferredTypes = typeInferrer.InferTypes(context.SemanticModel, position, cancellationToken).ToSet()
             If inferredTypes Is Nothing OrElse Not inferredTypes.Any() Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
             End If
 
-            Dim symbols = Recommender.GetRecommendedSymbolsAtPosition(context.SemanticModel, position, context.Workspace, options, cancellationToken)
-            Return Task.FromResult(symbols.Where(Function(s) inferredTypes.Contains(s.GetSymbolType())))
+            Dim symbols = Await Recommender.GetRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken).ConfigureAwait(False)
+            Return symbols.Where(Function(s) inferredTypes.Contains(s.GetSymbolType()))
         End Function
 
         Protected Overrides Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan

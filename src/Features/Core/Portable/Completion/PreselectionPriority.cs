@@ -18,6 +18,21 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The matching algorithm will tend to prefer this item unless
         /// a dramatically better text-based match is available or relevant
+        /// items are marked with <see cref="Preselect"/> or <see cref="Prefer"/>.
+        /// 
+        /// With no filter text, this item (or the first item alphabetically 
+        /// with this priority) should always be selected unless other items
+        /// are marked with <see cref="Preselect"/> or <see cref="Prefer"/>.
+        /// 
+        /// This flag should be used when the user is more likely to want
+        /// to match certain items, but the IDE can't specifically guess what
+        /// item (like target type preselection).
+        /// </summary>
+        PreferLess = 1,
+
+        /// <summary>
+        /// The matching algorithm will tend to prefer this item unless
+        /// a dramatically better text-based match is available or relevant
         /// items are marked with <see cref="Preselect"/>.
         /// 
         /// With no filter text, this item (or the first item alphabetically 
@@ -28,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// to match certain items, but the IDE can't specifically guess what
         /// item (like target type preselection).
         /// </summary>
-        Prefer = 1,
+        Prefer = 2,
 
         /// <summary>
         /// The matching algorithm will tend to prefer this item unless
@@ -40,6 +55,6 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This is used for specific IDE scenarios like "Object creation preselection"
         /// or "Enum preselection" or "Completion list tag preselection".
         /// </summary>
-        Preselect = 2,
+        Preselect = 3,
     }
 }

@@ -6,13 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class ObjectKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal class DecimalKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        public ObjectKeywordRecommender()
-            : base(SyntaxKind.ObjectKeyword)
+        public DecimalKeywordRecommender()
+            : base(SyntaxKind.DecimalKeyword)
         {
         }
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var syntaxTree = context.SyntaxTree;
             return
-                context.IsNonAttributeExpressionContext ||
+                context.IsAnyExpressionContext ||
                 context.IsDefiniteCastTypeContext ||
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
@@ -28,13 +29,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 (context.IsGenericTypeArgumentContext && !context.TargetToken.Parent.HasAncestor<XmlCrefAttributeSyntax>()) ||
                 context.IsIsOrAsTypeContext ||
                 context.IsLocalVariableDeclarationContext ||
+                context.IsFixedVariableDeclarationContext ||
                 context.IsParameterTypeContext ||
                 context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
                 context.IsImplicitOrExplicitOperatorTypeContext ||
-                context.IsTypeOfExpressionContext ||
+                context.IsPrimaryFunctionExpressionContext ||
                 context.IsCrefContext ||
-                syntaxTree.IsDefaultExpressionContext(position, context.LeftToken, cancellationToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
+                syntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken) ||
                 context.IsDelegateReturnTypeContext ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
@@ -42,6 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
+        }
+
+        protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            return context.InferredTypes.Any(t => t.SpecialType == SpecialType.System_Decimal);
         }
     }
 }

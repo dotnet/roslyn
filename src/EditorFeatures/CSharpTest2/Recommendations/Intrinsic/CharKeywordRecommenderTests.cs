@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    public class DecimalKeywordRecommenderTests : KeywordRecommenderTests
+    public class CharKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtRoot_Interactive()
@@ -81,6 +82,21 @@ $$");
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var str = (($$)items) as string;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOuterConst()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    const $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterInnerConst()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"const $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -532,22 +548,6 @@ $$");
 @"sizeof($$"));
         }
 
-        [WorkItem(543819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543819")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInChecked()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"var a = checked($$"));
-        }
-
-        [WorkItem(543819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543819")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInUnchecked()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"var a = unchecked($$"));
-        }
-
         [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInObjectInitializerMemberContext()
@@ -598,6 +598,58 @@ class C { }
             await VerifyAbsenceAsync(@"class c { async async $$ }");
         }
 
+        [WorkItem(988025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInGenericMethodTypeParameterList1()
+        {
+            var markup = @"
+class Class1<T, D>
+{
+    public static Class1<T, D> Create() { return null; }
+}
+static class Class2
+{
+    public static void Test<T,D>(this Class1<T, D> arg)
+    {
+    }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        Class1<string, int>.Create().Test<$$
+    }
+}
+";
+            await VerifyKeywordAsync(markup);
+        }
+
+        [WorkItem(988025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInGenericMethodTypeParameterList2()
+        {
+            var markup = @"
+class Class1<T, D>
+{
+    public static Class1<T, D> Create() { return null; }
+}
+static class Class2
+{
+    public static void Test<T,D>(this Class1<T, D> arg)
+    {
+    }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        Class1<string, int>.Create().Test<string,$$
+    }
+}
+";
+            await VerifyKeywordAsync(markup);
+        }
+
         [WorkItem(1468, "https://github.com/dotnet/roslyn/issues/1468")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInCrefTypeParameter()
@@ -607,6 +659,21 @@ using System;
 /// <see cref=""List{$$}"" />
 class C { }
 ");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task Preselection()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Helper($$)
+    }
+    static void Helper(char x) { }
+}
+", matchPriority: (int)MatchPriority.PreferLess);
         }
     }
 }

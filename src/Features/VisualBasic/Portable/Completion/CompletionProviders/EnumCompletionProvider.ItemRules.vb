@@ -20,6 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
                 Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
             End Function
+
+            Public Overrides Function IsBetterPreselectedMatch(item As CompletionItem, other As CompletionItem, textTypedSoFar As String) As Boolean?
+                ' If both items are from enum preselection, no preference
+                Return False
+            End Function
         End Class
 
     End Class

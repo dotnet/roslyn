@@ -2304,7 +2304,7 @@ End Module]]></Document>)
             Using state = TestState.CreateVisualBasicTestState(
                            <Document><![CDATA[
 Enum E
-
+    A
 End Enum
 
 Module Program
@@ -2410,8 +2410,8 @@ End Class
 
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TargetTypePreselectionSetterValuey() As Task
-            Using state = TestState.CreateCSharpTestState(
+        Public Async Function TargetTypePreselectionSetterValue() As Task
+            Using state = TestState.CreateVisualBasicTestState(
                            <Document><![CDATA[
 Class Program
     Private Async As Integer
@@ -2426,7 +2426,7 @@ Class Program
 End Class]]></Document>)
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                Await state.AssertSelectedCompletionItem("value", isHardSelected:=True).ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("value", isHardSelected:=False).ConfigureAwait(True)
             End Using
         End Function
     End Class

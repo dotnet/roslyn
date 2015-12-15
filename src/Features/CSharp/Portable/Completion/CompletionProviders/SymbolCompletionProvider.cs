@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
 using System.Linq;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return ItemRules.Instance;
         }
 
-        protected override Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
             var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
@@ -96,11 +97,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 .ToSet();
             if (inferredTypes == null || !inferredTypes.Any())
             {
-                return SpecializedTasks.EmptyEnumerable<ISymbol>();
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
             }
 
-            var symbols = recommender.GetRecommendedSymbolsAtPosition(context.Workspace, context.SemanticModel, position, options, cancellationToken);
-            return Task.FromResult(symbols.Where(s => inferredTypes.Contains(s.GetSymbolType())));
+            var symbols = await recommender.GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken).ConfigureAwait(false);
+            return symbols.Where(s => inferredTypes.Contains(s.GetSymbolType()) && !IsInstrinsic(s));
+        }
+
+        private bool IsInstrinsic(ISymbol s)
+        {
+            var ts = s as ITypeSymbol;
+            return ts != null && ts.SpecialType != SpecialType.None;
         }
     }
 }

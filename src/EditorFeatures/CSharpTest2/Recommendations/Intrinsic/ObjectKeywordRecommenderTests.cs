@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    public class CharKeywordRecommenderTests : KeywordRecommenderTests
+    public class ObjectKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtRoot_Interactive()
@@ -48,39 +50,18 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterStackAlloc()
+        public async Task TestNotAfterStackAlloc()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"class C {
      int* foo = stackalloc $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInFixedStatement()
+        public async Task TestNotInFixedStatement()
         {
-            await VerifyKeywordAsync(
-@"fixed ($$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInDelegateReturnType()
-        {
-            await VerifyKeywordAsync(
-@"public delegate $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInCastType()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"var str = (($$"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInCastType2()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"var str = (($$)items) as string;"));
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"fixed ($$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -523,6 +504,34 @@ $$");
 @"new $$"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCastType()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var str = (($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCastType2()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var str = (($$)items) as string;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCastType3()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"return (LeafSegment)(object)$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInDelegateReturnType()
+        {
+            await VerifyKeywordAsync(
+@"public delegate $$");
+        }
+
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInTypeOf()
@@ -541,9 +550,9 @@ $$");
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInSizeOf()
+        public async Task TestNotInSizeOf()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"sizeof($$"));
         }
 
@@ -597,58 +606,6 @@ class C { }
             await VerifyAbsenceAsync(@"class c { async async $$ }");
         }
 
-        [WorkItem(988025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestInGenericMethodTypeParameterList1()
-        {
-            var markup = @"
-class Class1<T, D>
-{
-    public static Class1<T, D> Create() { return null; }
-}
-static class Class2
-{
-    public static void Test<T,D>(this Class1<T, D> arg)
-    {
-    }
-}
-class Program
-{
-    static void Main(string[] args)
-    {
-        Class1<string, int>.Create().Test<$$
-    }
-}
-";
-            await VerifyKeywordAsync(markup);
-        }
-
-        [WorkItem(988025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestInGenericMethodTypeParameterList2()
-        {
-            var markup = @"
-class Class1<T, D>
-{
-    public static Class1<T, D> Create() { return null; }
-}
-static class Class2
-{
-    public static void Test<T,D>(this Class1<T, D> arg)
-    {
-    }
-}
-class Program
-{
-    static void Main(string[] args)
-    {
-        Class1<string, int>.Create().Test<string,$$
-    }
-}
-";
-            await VerifyKeywordAsync(markup);
-        }
-
         [WorkItem(1468, "https://github.com/dotnet/roslyn/issues/1468")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInCrefTypeParameter()
@@ -658,6 +615,21 @@ using System;
 /// <see cref=""List{$$}"" />
 class C { }
 ");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task Preselection()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Helper($$)
+    }
+    static void Helper(object x) { }
+}
+", matchPriority: (int)MatchPriority.PreferLess);
         }
     }
 }

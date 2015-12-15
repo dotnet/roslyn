@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                                                    Return m.Kind = SymbolKind.Field AndAlso
                                                                       DirectCast(m, IFieldSymbol).IsConst AndAlso
                                                                       m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
-                                                               End Function))
+                                                               End Function).Concat(enumType))
 
         End Function
 
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim otherInstances = otherSymbols.Where(Function(s) enumType Is GetTypeFromSymbol(s))
 
-            Return Task.FromResult(otherInstances.Concat(enumType))
+            Return Task.FromResult(otherInstances) 'Concat(enumType))
         End Function
 
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
