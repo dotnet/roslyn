@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         public const string SingleIfStatementForm = nameof(SingleIfStatementForm);
     }
 
-    //[DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class InvokeDelegateWithConditionalAccessAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
@@ -92,6 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             ExpressionStatementSyntax expressionStatement,
             InvocationExpressionSyntax invocationExpression)
         {
+            var cancellationToken = syntaxContext.CancellationToken;
+
             // Look for the form:  "if (someExpr != null) someExpr()"
             if (condition.Left.IsKind(SyntaxKind.NullLiteralExpression) ||
                 condition.Right.IsKind(SyntaxKind.NullLiteralExpression))
@@ -100,8 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                     ? condition.Right
                     : condition.Left;
 
+                cancellationToken.ThrowIfCancellationRequested();
                 if (SyntaxFactory.AreEquivalent(expr, invocationExpression.Expression, topLevel: false))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     // Looks good!
                     var tree = syntaxContext.SemanticModel.SyntaxTree;
                     var additionalLocations = new List<Location>
@@ -135,6 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             ExpressionStatementSyntax expressionStatement,
             InvocationExpressionSyntax invocationExpression)
         {
+            var cancellationToken = syntaxContext.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+
             // look for the form "if (a != null)" or "if (null != a)"
             if (!ifStatement.Parent.IsKind(SyntaxKind.Block))
             {
@@ -191,6 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 return false;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             if (!Equals(declarator.Identifier.ValueText, conditionName.Identifier.ValueText))
             {
                 return false;
@@ -198,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             // Syntactically this looks good.  Now make sure that the local is a delegate type.
             var semanticModel = syntaxContext.SemanticModel;
-            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
 
             // Ok, we made a local just to check it for null and invoke it.  Looks like something
             // we can suggest an improvement for!
