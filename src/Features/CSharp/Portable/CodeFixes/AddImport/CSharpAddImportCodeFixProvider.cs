@@ -107,6 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         /// </summary>
         private const string CS1929 = "CS1929";
 
+        /// <summary>
+        /// Cannot convert method group 'X' to non-delegate type 'Y'. Did you intend to invoke the method?
+        /// </summary>
+        private const string CS0428 = "CS0428";
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get
@@ -127,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     CS1580,
                     CS1581,
                     CS1584,
-                    CS1929);
+                    CS1929,
+                    CS0428);
             }
         }
 
@@ -148,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             switch (diagnostic.Id)
             {
+                case CS0428:
                 case CS1061:
                     if (node.IsKind(SyntaxKind.ConditionalAccessExpression))
                     {

@@ -1896,6 +1896,53 @@ namespace A.C
 @"using lowercase ; namespace A { class A { static void Main ( string [ ] args ) { var a = new b ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestWithExistingIncompatibleExtension()
+        {
+            await TestAsync(
+@"using N;
+
+class C
+{
+    int x()
+    {
+        System.Collections.Generic.IEnumerable<int> x = null;
+        return x.[|Any|]
+    }
+}
+
+namespace N
+{
+    static class Extensions
+    {
+        public static void Any(this string s)
+        {
+        }
+    }
+}",
+@"using System.Linq;
+using N;
+
+class C
+{
+    int x()
+    {
+        System.Collections.Generic.IEnumerable<int> x = null;
+        return x.Any
+    }
+}
+
+namespace N
+{
+    static class Extensions
+    {
+        public static void Any(this string s)
+        {
+        }
+    }
+}");
+        }
+
         [WorkItem(1744, @"https://github.com/dotnet/roslyn/issues/1744")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestIncompleteCatchBlockInLambda()
