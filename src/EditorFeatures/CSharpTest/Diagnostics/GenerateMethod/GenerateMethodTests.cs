@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new GenerateMethodCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationIntoSameType()
         {
             await TestAsync(
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Foo(); } private void Foo() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationOffOfThis()
         {
             await TestAsync(
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { this.Foo(); } private void Foo() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationOffOfType()
         {
             await TestAsync(
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Class.Foo(); } private static void Foo() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationValueExpressionArg()
         {
             await TestAsync(
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Foo(0); } private void Foo(int v) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationMultipleValueExpressionArg()
         {
             await TestAsync(
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Foo(0, 0); } private void Foo(int v1, int v2) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationValueArg()
         {
             await TestAsync(
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method(int i) { Foo(i); } private void Foo(int i) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationNamedValueArg()
         {
             await TestAsync(
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method(int i) { Foo(bar: i); } private void Foo(int bar) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateAfterMethod()
         {
             await TestAsync(
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Foo(); } private void Foo() { throw new NotImplementedException(); } void NextMethod() { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInterfaceNaming()
         {
             await TestAsync(
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method(int i) { Foo(NextMethod()); } private void Foo(IFoo foo) { throw new NotImplementedException(); } IFoo NextMethod() { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestFuncArg0()
         {
             await TestAsync(
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method(int i) { Foo(NextMethod); } private void Foo(Func<string> nextMethod) { throw new NotImplementedException(); } string NextMethod() { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestFuncArg1()
         {
             await TestAsync(
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method(int i) { Foo(NextMethod); } private void Foo(Func<int,string> nextMethod) { throw new NotImplementedException(); } string NextMethod(int i) { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestActionArg()
         {
             await TestAsync(
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method(int i) { Foo(NextMethod); } private void Foo(Action nextMethod) { throw new NotImplementedException(); } void NextMethod() { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestActionArg1()
         {
             await TestAsync(
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         // Note: we only test type inference once.  This is just to verify that it's being used
         // properly by Generate Method.  The full wealth of type inference tests can be found
         // elsewhere and don't need to be repeated here.
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestTypeInference()
         {
             await TestAsync(
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         }
 
         [WorkItem(784793)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestOutRefArguments()
         {
             await TestAsync(
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Foo(out a, ref b); } private void Foo(out object a, ref object b) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMemberAccessArgumentName()
         {
             await TestAsync(
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         }
 
         [WorkItem(784793)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestParenthesizedArgumentName()
         {
             await TestAsync(
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         }
 
         [WorkItem(784793)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestCastedArgumentName()
         {
             await TestAsync(
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Foo((Bar)this.Baz); } private void Foo(Bar baz) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestNullableArgument()
         {
             await TestAsync(
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class C { void Method() { Foo((int?)1); } private void Foo(int? v) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestNullArgument()
         {
             await TestAsync(
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class C { void Method() { Foo(null); } private void Foo(object p) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestTypeofArgument()
         {
             await TestAsync(
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class C { void Method() { Foo(typeof(int)); } private void Foo(Type type) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDefaultArgument()
         {
             await TestAsync(
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class C { void Method() { Foo(default(int)); } private void Foo(int v) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestAsArgument()
         {
             await TestAsync(
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class C { unsafe void Method() { int a = 10; Foo(&a); } private unsafe void Foo(int* p) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateWithPointerReturn()
         {
             await TestAsync(
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         }
 
         [WorkItem(784793)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDuplicateNames()
         {
             await TestAsync(
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         }
 
         [WorkItem(784793)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDuplicateNamesWithNamedArgument()
         {
             await TestAsync(
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         // Note: we do not test the range of places where a delegate type can be inferred.  This is
         // just to verify that it's being used properly by Generate Method.  The full wealth of
         // delegate inference tests can be found elsewhere and don't need to be repeated here.
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleDelegate()
         {
             await TestAsync(
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Func<int,string,bool> f = Foo; } private bool Foo(int arg1, string arg2) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDelegateWithRefParameter()
         {
             await TestAsync(
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         //
         // add negative tests to verify that Generate Method doesn't show up in unexpected places.
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenericArgs1()
         {
             await TestAsync(
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Foo<int>(); } private void Foo<T>() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenericArgs2()
         {
             await TestAsync(
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method() { Foo<int,string>(); } private void Foo<T1,T2>() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenericArgsFromMethod()
         {
             await TestAsync(
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method<X,Y>(X x, Y y) { Foo(x); } private void Foo<X>(X x) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMultipleGenericArgsFromMethod()
         {
             await TestAsync(
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method<X,Y>(X x, Y y) { Foo(x, y); } private void Foo<X, Y>(X x, Y y) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMultipleGenericArgsFromMethod2()
         {
             await TestAsync(
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method<X,Y>(Func<X> x, Y[] y) { Foo(y, x); } private void Foo<Y, X>(Y[] y, Func<X> x) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenericArgThatIsTypeParameter()
         {
             await TestAsync(
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Program { void Main < T > ( T t ) { Foo < T > ( t ) ; } private void Foo < T > ( T t ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMultipleGenericArgsThatAreTypeParameters()
         {
             await TestAsync(
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Program { void Main < T , U > ( T t , U u ) { Foo < T , U > ( t , u ) ; } private void Foo < T , U > ( T t , U u ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoOuterThroughInstance()
         {
             await TestAsync(
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Outer { class Class { void Method(Outer o) { o.Foo(); } } private void Foo() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoOuterThroughClass()
         {
             await TestAsync(
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Outer { class Class { void Method(Outer o) { Outer.Foo(); } } private static void Foo() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoSiblingThroughInstance()
         {
             await TestAsync(
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method(Sibling s) { s.Foo(); } } class Sibling { internal void Foo() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoSiblingThroughClass()
         {
             await TestAsync(
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method(Sibling s) { Sibling.Foo(); } } class Sibling { internal static void Foo() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoInterfaceThroughInstance()
         {
             await TestAsync(
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"class Class { void Method(ISibling s) { s.Foo(); } } interface ISibling { void Foo(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoInterfaceThroughInstanceWithDelegate()
         {
             await TestAsync(
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 @"using System; class Class { void Method(ISibling s) { Func<int,string> f = s.Foo; } } interface ISibling { string Foo(int arg); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateAbstractIntoSameType()
         {
             await TestAsync(
@@ -403,7 +403,7 @@ index: 1);
         }
 
         [WorkItem(537906)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMethodReturningDynamic()
         {
             await TestAsync(
@@ -412,7 +412,7 @@ index: 1);
         }
 
         [WorkItem(537906)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMethodTakingDynamicArg()
         {
             await TestAsync(
@@ -421,7 +421,7 @@ index: 1);
         }
 
         [WorkItem(3203, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestNegativeWithNamedOptionalArg1()
         {
             await TestMissingAsync(
@@ -429,7 +429,7 @@ index: 1);
         }
 
         [WorkItem(537972)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestWithNamedOptionalArg2()
         {
             await TestAsync(
@@ -439,7 +439,7 @@ index: 1);
 namespace SyntaxError { class C1 { void Method(int num, string str) { } internal void Method(int num, string v) { throw new NotImplementedException(); } } class C2 { static void Method2() { (new C1()).Method(num: 5, ""hi""); } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestArgOrderInNamedArgs()
         {
             await TestAsync(
@@ -447,14 +447,14 @@ namespace SyntaxError { class C1 { void Method(int num, string str) { } internal
 @"using System; class Foo { static void Test() { (new Foo()). Method(3, 4, n1 : 5, n3 : 6, n2 : 7, n0 : 8); } private void Method(int v1, int v2, int n1, int n3, int n2, int n0) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestForMissingOptionalArg()
         {
             await TestMissingAsync(
 @"class Foo { static void Test ( ) { ( new Foo ( ) ) . [|Method|] ( s : ""hello"" , b : true ) ; } private void Method ( double n = 3.14 , string s , bool b ) { } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestNamingOfArgWithClashes()
         {
             await TestAsync(
@@ -462,7 +462,7 @@ namespace SyntaxError { class C1 { void Method(int num, string str) { } internal
 @"using System; class Foo { static int i = 32; static void Test() { (new Foo()).Method(s: ""hello"", i: 52); } private void Method(string s, int i) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestFixCountGeneratingIntoInterface()
         {
             await TestActionCountAsync(
@@ -471,7 +471,7 @@ count: 1);
         }
 
         [WorkItem(527278)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationOffOfBase()
         {
             await TestAsync(
@@ -479,7 +479,7 @@ count: 1);
 @"using System; class C3A { internal void M() { throw new NotImplementedException(); } } class C3 : C3A { public void C4() { base.M(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationWithinCtor()
         {
             await TestAsync(
@@ -487,7 +487,7 @@ count: 1);
 @"using System; class C1 { C1() { M(); } private void M() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationWithinBaseCtor()
         {
             await TestAsync(
@@ -496,14 +496,14 @@ count: 1);
         }
 
         [WorkItem(3095, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestForMultipleSmartTagsInvokingWithinCtor()
         {
             await TestMissingAsync(
 @"using System; class C1 { C1() { [|M|](); } private void M() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationWithinDestructor()
         {
             await TestAsync(
@@ -511,7 +511,7 @@ count: 1);
 @"using System; class C1 { ~C1() { M(); } private void M() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationWithinConditional()
         {
             await TestAsync(
@@ -519,7 +519,7 @@ count: 1);
 @"using System; class C4 { void A() { string s; if ((s = M()) == null) { } }  private string M() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoStaticClass()
         {
             await TestAsync(
@@ -527,7 +527,7 @@ count: 1);
 @"using System; class Bar { void Test() { Foo.M(); } } static class Foo { internal static void M() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoAbstractClass()
         {
             await TestAsync(
@@ -535,7 +535,7 @@ count: 1);
 @"using System; class Bar { void Test() { Foo.M(); } } abstract class Foo { internal static void M() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoAbstractClassThoughInstance1()
         {
             await TestAsync(
@@ -543,7 +543,7 @@ count: 1);
 @"using System; class C { void Test(Foo f) { f.M(); } } abstract class Foo { internal void M() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoAbstractClassThoughInstance2()
         {
             await TestAsync(
@@ -552,7 +552,7 @@ count: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoPartialClass1()
         {
             await TestAsync(
@@ -560,7 +560,7 @@ index: 1);
 @"using System; class Bar { void Test() { Foo.M(); } } partial class Foo { internal static void M() { throw new NotImplementedException(); } } partial class Foo { }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoPartialClass2()
         {
             await TestAsync(
@@ -568,7 +568,7 @@ index: 1);
 @"using System; partial class Foo { void Test() { Foo.M(); } private static void M() { throw new NotImplementedException(); } } partial class Foo { } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoStruct()
         {
             await TestAsync(
@@ -577,7 +577,7 @@ index: 1);
         }
 
         [WorkItem(527291)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationOffOfIndexer()
         {
             await TestAsync(
@@ -587,7 +587,7 @@ class Foo { internal void M() { throw new NotImplementedException(); } }");
         }
 
         [WorkItem(527292)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationWithinForEach()
         {
             await TestAsync(
@@ -600,7 +600,7 @@ void Test() { foreach (C8A c8a in this.GetItems()) { c8a.M(); } } }
 class C8A { internal void M() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationOffOfAnotherMethodCall()
         {
             await TestAsync(
@@ -608,7 +608,7 @@ class C8A { internal void M() { throw new NotImplementedException(); } }");
 @"using System; class C9 { C9A m_item = new C9A(); C9A GetItem() { return m_item; } void Test() { GetItem().M(); } } struct C9A {  internal void M() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationIntoNestedNamespaces()
         {
             await TestAsync(
@@ -617,7 +617,7 @@ namespace NS11A { namespace NS11B { class C11A { } } }",
 @"using System; namespace NS11X { namespace NS11Y { class C11 { void Test() { NS11A.NS11B.C11A.M(); } } } } namespace NS11A { namespace NS11B { class C11A { internal static void M() { throw new NotImplementedException(); } } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationIntoAliasedNamespaces()
         {
             await TestAsync(
@@ -637,7 +637,7 @@ namespace NS11A { namespace NS11B { class C11A { } } }",
 namespace NS11A {  namespace NS11B { class C11A { internal static void M() { throw new NotImplementedException(); } } } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationOnGlobalNamespace()
         {
             await TestAsync(
@@ -648,7 +648,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
         }
 
         [WorkItem(538353)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoAppropriatePart()
         {
             await TestAsync(
@@ -657,7 +657,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
         }
 
         [WorkItem(538541)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateWithVoidArgument()
         {
             await TestAsync(
@@ -666,7 +666,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
         }
 
         [WorkItem(538993)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateInLambda()
         {
             await TestAsync(
@@ -674,7 +674,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
 @"using System; class Program { static void Main(string[] args) { Func<int, int> f = x => Foo(x); } private static int Foo(int x) { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateInAnonymousMethod()
         {
             await TestAsync(
@@ -683,7 +683,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
         }
 
         [WorkItem(539024)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface1()
         {
             await TestAsync(
@@ -692,7 +692,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
         }
 
         [WorkItem(539024)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface2()
         {
             await TestAsync(
@@ -701,7 +701,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
         }
 
         [WorkItem(539024)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface3()
         {
             await TestAsync(
@@ -710,7 +710,7 @@ namespace NS13A { namespace NS13B { struct S13A { internal static void M() { thr
         }
 
         [WorkItem(539024)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface4()
         {
             await TestAsync(
@@ -720,7 +720,7 @@ index: 0);
         }
 
         [WorkItem(539024)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface5()
         {
             await TestAsync(
@@ -730,7 +730,7 @@ index: 0);
         }
 
         [WorkItem(539024)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface6()
         {
             await TestMissingAsync(
@@ -738,7 +738,7 @@ index: 0);
         }
 
         [WorkItem(539024)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface7()
         {
             await TestMissingAsync(
@@ -746,7 +746,7 @@ index: 0);
         }
 
         [WorkItem(539024)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface8()
         {
             await TestAsync(
@@ -755,7 +755,7 @@ index: 0);
         }
 
         [WorkItem(539024)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOffOfExplicitInterface9()
         {
             // TODO(cyrusn): It might be nice if we generated "Foo(T i)" here in the future.
@@ -765,7 +765,7 @@ index: 0);
         }
 
         [WorkItem(5016, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodWithArgumentFromBaseConstructorsArgument()
         {
             await TestAsync(
@@ -774,7 +774,7 @@ index: 0);
         }
 
         [WorkItem(5016, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodWithArgumentFromGenericConstructorsArgument()
         {
             await TestAsync(
@@ -782,7 +782,7 @@ index: 0);
 @"using System; class A<T> { public A(T t) { } } class B : A<int> { B() : base(M()) { } private static int M() { throw new NotImplementedException(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodWithVar()
         {
             await TestAsync(
@@ -791,7 +791,7 @@ index: 0);
         }
 
         [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestEscapedName()
         {
             await TestAsync(
@@ -800,7 +800,7 @@ index: 0);
         }
 
         [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestEscapedKeyword()
         {
             await TestAsync(
@@ -809,7 +809,7 @@ index: 0);
         }
 
         [WorkItem(539527)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter1()
         {
             await TestAsync(
@@ -818,7 +818,7 @@ index: 0);
         }
 
         [WorkItem(539527)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter2()
         {
             await TestAsync(
@@ -827,7 +827,7 @@ index: 0);
         }
 
         [WorkItem(539527)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter3()
         {
             await TestAsync(
@@ -836,7 +836,7 @@ index: 0);
         }
 
         [WorkItem(539527)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter4()
         {
             await TestAsync(
@@ -845,7 +845,7 @@ index: 0);
         }
 
         [WorkItem(539527)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter5()
         {
             await TestAsync(
@@ -854,7 +854,7 @@ index: 0);
         }
 
         [WorkItem(539596)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter6()
         {
             await TestAsync(
@@ -863,7 +863,7 @@ index: 0);
         }
 
         [WorkItem(539593)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter7()
         {
             await TestAsync(
@@ -872,7 +872,7 @@ index: 0);
         }
 
         [WorkItem(539593)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestUnmentionableTypeParameter8()
         {
             await TestAsync(
@@ -881,7 +881,7 @@ index: 0);
         }
 
         [WorkItem(539597)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestOddErrorType()
         {
             await TestAsync(
@@ -890,7 +890,7 @@ index: 0);
         }
 
         [WorkItem(539594)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenericOverloads()
         {
             await TestAsync(
@@ -899,7 +899,7 @@ index: 0);
         }
 
         [WorkItem(537929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInScript1()
         {
             await TestAsync(
@@ -908,7 +908,7 @@ index: 0);
 parseOptions: GetScriptOptions());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInTopLevelImplicitClass1()
         {
             await TestAsync(
@@ -916,7 +916,7 @@ parseOptions: GetScriptOptions());
 @"using System ; static void Main ( string [ ] args ) { Foo ( ) ; } void Foo ( ) { throw new NotImplementedException ( ) ; } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInNamespaceImplicitClass1()
         {
             await TestAsync(
@@ -934,7 +934,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539571)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimplification1()
         {
             await TestAsync(
@@ -943,7 +943,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539571)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimplification2()
         {
             await TestAsync(
@@ -952,7 +952,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539618)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestClashesWithMethod1()
         {
             await TestMissingAsync(
@@ -960,7 +960,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539618)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestClashesWithMethod2()
         {
             await TestMissingAsync(
@@ -968,7 +968,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539637)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestReservedParametername1()
         {
             await TestAsync(
@@ -977,7 +977,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539751)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestShadows1()
         {
             await TestMissingAsync(
@@ -985,7 +985,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539769)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestShadows2()
         {
             await TestMissingAsync(
@@ -993,7 +993,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539781)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInTopLevelMethod()
         {
             await TestAsync(
@@ -1002,7 +1002,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539823)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestLambdaReturnType()
         {
             await TestAsync(
@@ -1010,7 +1010,7 @@ parseOptions: GetScriptOptions());
 @"using System ; class C < T , R > { private static Func < T , R > g = null ; private static Func < T , R > f = ( T ) => { return Foo < T , R > ( g ) ; } ; private static R Foo < T1 , T2 > ( Func < T , R > g ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateWithThrow()
         {
             await TestAsync(
@@ -1018,7 +1018,7 @@ parseOptions: GetScriptOptions());
 @"using System ; using System . Collections . Generic ; using System . Linq ; class C { void M ( ) { throw F ( ) ; } private Exception F ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInDelegateConstructor()
         {
             await TestAsync(
@@ -1027,7 +1027,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539871)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDelegateScenario()
         {
             await TestMissingAsync(
@@ -1035,7 +1035,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539928)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInheritedTypeParameters1()
         {
             await TestAsync(
@@ -1044,7 +1044,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539928)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInheritedTypeParameters2()
         {
             await TestAsync(
@@ -1053,7 +1053,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539928)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInheritedTypeParameters3()
         {
             await TestAsync(
@@ -1062,7 +1062,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(538995)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestBug4777()
         {
             await TestAsync(
@@ -1071,7 +1071,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539856)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateOnInvalidInvocation()
         {
             await TestMissingAsync(
@@ -1079,7 +1079,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(539752)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMissingOnMultipleLambdaInferences()
         {
             await TestMissingAsync(
@@ -1087,7 +1087,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(540505)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestParameterTypeAmbiguity()
         {
             await TestAsync(
@@ -1096,7 +1096,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(541176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestTernaryWithBodySidesBroken1()
         {
             await TestAsync(
@@ -1105,7 +1105,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(541176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestTernaryWithBodySidesBroken2()
         {
             await TestAsync(
@@ -1113,7 +1113,7 @@ parseOptions: GetScriptOptions());
 @"using System; public class C { void Method ( ) { int a = 5 , b = 10 ; int x = a > b ? M ( a ) : M ( b ) ; } private int M ( int b ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestNotOnLeftOfAssign()
         {
             await TestMissingAsync(
@@ -1121,7 +1121,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(541405)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMissingOnImplementedInterfaceMethod()
         {
             await TestMissingAsync(
@@ -1129,7 +1129,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(541660)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDelegateNamedVar()
         {
             await TestAsync(
@@ -1138,7 +1138,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(540991)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestErrorVersusNamedTypeInSignature()
         {
             await TestMissingAsync(
@@ -1147,7 +1147,7 @@ Options.Regular);
         }
 
         [WorkItem(542529)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestTypeParameterConstraints1()
         {
             await TestAsync(
@@ -1156,7 +1156,7 @@ Options.Regular);
         }
 
         [WorkItem(542622)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestLambdaTypeParameters()
         {
             await TestAsync(
@@ -1165,7 +1165,7 @@ Options.Regular);
         }
 
         [WorkItem(542626)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMethodConstraints1()
         {
             await TestAsync(
@@ -1174,7 +1174,7 @@ Options.Regular);
         }
 
         [WorkItem(542627)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestCaptureMethodTypeParametersReferencedInOuterType1()
         {
             await TestAsync(
@@ -1183,7 +1183,7 @@ Options.Regular);
         }
 
         [WorkItem(542658)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestCaptureTypeParametersInConstraints()
         {
             await TestAsync(
@@ -1192,7 +1192,7 @@ Options.Regular);
         }
 
         [WorkItem(542659)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestConstraintOrder1()
         {
             await TestAsync(
@@ -1201,7 +1201,7 @@ Options.Regular);
         }
 
         [WorkItem(542678)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestConstraintOrder2()
         {
             await TestAsync(
@@ -1210,7 +1210,7 @@ Options.Regular);
         }
 
         [WorkItem(542674)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateStaticMethodInField()
         {
             await TestAsync(
@@ -1219,7 +1219,7 @@ Options.Regular);
         }
 
         [WorkItem(542680)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateIntoConstrainedTypeParameter()
         {
             await TestAsync(
@@ -1228,7 +1228,7 @@ Options.Regular);
         }
 
         [WorkItem(542750)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestCaptureOuterTypeParameter()
         {
             await TestAsync(
@@ -1237,7 +1237,7 @@ Options.Regular);
         }
 
         [WorkItem(542744)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestMostDerivedTypeParameter()
         {
             await TestAsync(
@@ -1246,7 +1246,7 @@ Options.Regular);
         }
 
         [WorkItem(543152)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestAnonymousTypeArgument()
         {
             await TestAsync(
@@ -1254,7 +1254,7 @@ Options.Regular);
 @"using System ; class C { void M ( ) { M ( new { x = 1 } ) ; } private void M ( object p ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestListOfAnonymousTypesArgument()
         {
             await TestAsync(
@@ -1263,7 +1263,7 @@ Options.Regular);
         }
 
         [WorkItem(543336)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateImplicitlyTypedArrays()
         {
             await TestAsync(
@@ -1272,7 +1272,7 @@ Options.Regular);
         }
 
         [WorkItem(543510)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenericArgWithMissingTypeParameter()
         {
             await TestMissingAsync(
@@ -1280,14 +1280,14 @@ Options.Regular);
         }
 
         [WorkItem(544334)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDuplicateWithErrorType()
         {
             await TestMissingAsync(
 @"using System ; class class1 { public void Test ( ) { [|Foo|] ( x ) ; } private void Foo ( object x ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestNoGenerationIntoEntirelyHiddenType()
         {
             await TestMissingAsync(
@@ -1308,7 +1308,7 @@ class D
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDoNotGenerateIntoHiddenRegion1()
         {
             await TestAsync(
@@ -1339,7 +1339,7 @@ class C
 }", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDoNotGenerateIntoHiddenRegion2()
         {
             await TestAsync(
@@ -1378,7 +1378,7 @@ class C
 }", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDoNotGenerateIntoHiddenRegion3()
         {
             await TestAsync(
@@ -1425,7 +1425,7 @@ class C
 }", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDoNotAddImportsIntoHiddenRegion()
         {
             await TestAsync(
@@ -1462,7 +1462,7 @@ class C
 
         [WorkItem(545397)]
         [WorkItem(784793)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestVarParameterTypeName()
         {
             await TestAsync(
@@ -1471,7 +1471,7 @@ class C
         }
 
         [WorkItem(545269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateInVenus1()
         {
             await TestMissingAsync(
@@ -1490,7 +1490,7 @@ class C
         }
 
         [WorkItem(538521)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInIterator1()
         {
             await TestAsync(
@@ -1499,7 +1499,7 @@ class C
         }
 
         [WorkItem(784793)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodMissingForAnyArgumentInInvocationHavingErrorTypeAndNotBelongingToEnclosingNamedType()
         {
             await TestAsync(
@@ -1531,7 +1531,7 @@ class Program
         }
 
         [WorkItem(907612)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodWithLambda()
         {
             await TestAsync(
@@ -1563,7 +1563,7 @@ class Program
         }
 
         [WorkItem(889349)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodForDifferentParameterName()
         {
             await TestAsync(
@@ -1597,7 +1597,7 @@ class C
         }
 
         [WorkItem(889349)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodForDifferentParameterNameCaseSensitive()
         {
             await TestAsync(
@@ -1631,7 +1631,7 @@ class C
         }
 
         [WorkItem(769760)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodForSameNamedButGenericUsage()
         {
             await TestAsync(
@@ -1673,7 +1673,7 @@ class Program
         }
 
         [WorkItem(910589)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodForNewErrorCodeCS7036()
         {
             await TestAsync(
@@ -1701,7 +1701,7 @@ class C
         }
 
         [WorkItem(934729)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodUnknownReturnTypeInLambda()
         {
             await TestAsync(
@@ -1730,7 +1730,7 @@ class C
         }
 
         [WorkItem(530177)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInUnsafeMethod()
         {
             await TestAsync(
@@ -1754,7 +1754,7 @@ class C {
         }
 
         [WorkItem(530177)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInUnsafeMethodWithPointerArray()
         {
             await TestAsync(
@@ -1782,7 +1782,7 @@ class C
         }
 
         [WorkItem(530177)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInUnsafeBlock()
         {
             await TestAsync(
@@ -1822,7 +1822,7 @@ class Program
         }
 
         [WorkItem(530177)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInUnsafeMethodNoPointersInParameterList()
         {
             await TestAsync(
@@ -1846,7 +1846,7 @@ class C {
         }
 
         [WorkItem(530177)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInUnsafeBlockNoPointers()
         {
             await TestAsync(
@@ -1886,7 +1886,7 @@ class Program
         }
 
         [WorkItem(530177)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodUnsafeReturnType()
         {
             await TestAsync(
@@ -1914,7 +1914,7 @@ class Program
         }
 
         [WorkItem(530177)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodUnsafeClass()
         {
             await TestAsync(
@@ -1942,7 +1942,7 @@ unsafe class Program
         }
 
         [WorkItem(530177)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodUnsafeNestedClass()
         {
             await TestAsync(
@@ -1976,7 +1976,7 @@ unsafe class Program
         }
 
         [WorkItem(530177)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodUnsafeNestedClass2()
         {
             await TestAsync(
@@ -2009,7 +2009,7 @@ class Program
 }", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestDoNotOfferMethodWithoutParenthesis()
         {
             await TestMissingAsync(
@@ -2017,7 +2017,7 @@ class Program
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf()
         {
             await TestAsync(
@@ -2045,7 +2045,7 @@ class C
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf2()
         {
             await TestAsync(
@@ -2073,7 +2073,7 @@ class C
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf3()
         {
             await TestAsync(
@@ -2101,7 +2101,7 @@ class C
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf4()
         {
             await TestAsync(
@@ -2147,7 +2147,7 @@ namespace Z
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf5()
         {
             await TestMissingAsync(
@@ -2161,7 +2161,7 @@ namespace Z
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf6()
         {
             await TestMissingAsync(
@@ -2176,7 +2176,7 @@ namespace Z
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf7()
         {
             await TestAsync(
@@ -2208,7 +2208,7 @@ class C
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf8()
         {
             await TestAsync(
@@ -2238,7 +2238,7 @@ class C
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf9()
         {
             await TestAsync(
@@ -2266,7 +2266,7 @@ class C
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf10()
         {
             await TestAsync(
@@ -2294,7 +2294,7 @@ class C
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf11()
         {
             await TestAsync(
@@ -2322,7 +2322,7 @@ class C
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf12()
         {
             await TestMissingAsync(
@@ -2343,7 +2343,7 @@ class C
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf13()
         {
             await TestAsync(
@@ -2383,7 +2383,7 @@ class C
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf14()
         {
             await TestAsync(
@@ -2423,7 +2423,7 @@ class C
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf15()
         {
             await TestAsync(
@@ -2463,7 +2463,7 @@ class C
         }
 
         [WorkItem(1032176)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInsideNameOf16()
         {
             await TestAsync(
@@ -2503,7 +2503,7 @@ class C
         }
 
         [WorkItem(1075289)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodForInaccessibleMethod()
         {
             await TestAsync(
@@ -2551,7 +2551,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1064748)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccessMissing()
         {
             await TestMissingAsync(
@@ -2559,7 +2559,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1064748)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess()
         {
             await TestAsync(
@@ -2568,7 +2568,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1064748)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess2()
         {
             await TestAsync(
@@ -2577,7 +2577,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1064748)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess3()
         {
             await TestAsync(
@@ -2586,7 +2586,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1064748)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess4()
         {
             await TestAsync(
@@ -2595,7 +2595,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1064748)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestTestGenerateMethodInConditionalAccess5()
         {
             await TestAsync(
@@ -2604,7 +2604,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1064748)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess6()
         {
             await TestAsync(
@@ -2613,7 +2613,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1064748)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess7()
         {
             await TestAsync(
@@ -2622,7 +2622,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1064748)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInConditionalAccess8()
         {
             await TestAsync(
@@ -2630,7 +2630,7 @@ namespace ConsoleApplication1
 @"using System ; class C { public E B { get ; private set ; } void Main ( C a ) { var x = a ? . B . C ( ) ; } public class E { internal object C ( ) { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInPropertyInitializer()
         {
             await TestAsync(
@@ -2638,7 +2638,7 @@ namespace ConsoleApplication1
 @"using System ; class Program { public int MyProperty { get ; } = y ( ) ; private static int y ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInExpressionBodiedMember()
         {
             await TestAsync(
@@ -2646,7 +2646,7 @@ namespace ConsoleApplication1
 @"using System ; class Program { public int Y => y ( ) ; private int y ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInExpressionBodiedMember2()
         {
             await TestAsync(
@@ -2654,7 +2654,7 @@ namespace ConsoleApplication1
 @"using System ; class C { public static C GetValue ( C p ) => x ( ) ; private static C x ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInExpressionBodiedMember3()
         {
             await TestAsync(
@@ -2662,7 +2662,7 @@ namespace ConsoleApplication1
 @"using System ; class C { public static C operator -- ( C p ) => x ( ) ; private static C x ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInDictionaryInitializer()
         {
             await TestAsync(
@@ -2670,7 +2670,7 @@ namespace ConsoleApplication1
 @"using System ; using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ key ( ) ] = 0 } ; } private static string key ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInDictionaryInitializer2()
         {
             await TestAsync(
@@ -2678,7 +2678,7 @@ namespace ConsoleApplication1
 @"using System ; using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = 0 , [ One ( ) ] = 1 , [ ""Two"" ] = 2 } ; } private static string One ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodInDictionaryInitializer3()
         {
             await TestAsync(
@@ -2687,7 +2687,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodWithConfigureAwaitFalse()
         {
             await TestAsync(
@@ -2696,7 +2696,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodWithMethodChaining()
         {
             await TestAsync(
@@ -2705,7 +2705,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodWithMethodChaining2()
         {
             await TestAsync(
@@ -2714,7 +2714,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(529480)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInCollectionInitializers1()
         {
             await TestAsync(
@@ -2723,7 +2723,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(529480)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInCollectionInitializers2()
         {
             await TestAsync(
@@ -2732,7 +2732,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(774321)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodEquivalenceKey()
         {
             await TestEquivalenceKeyAsync(
@@ -2741,7 +2741,7 @@ string.Format(FeaturesResources.GenerateMethodIn, "M1", "C"));
         }
 
         [WorkItem(5338, "https://github.com/dotnet/roslyn/issues/5338")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodLambdaOverload1()
         {
             await TestAsync(
@@ -2790,7 +2790,7 @@ class Class1
             }
 
             [WorkItem(774321)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateImplicitConversionGenericClass()
             {
                 await TestAsync(
@@ -2799,7 +2799,7 @@ class Class1
             }
 
             [WorkItem(774321)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateImplicitConversionClass()
             {
                 await TestAsync(
@@ -2808,7 +2808,7 @@ class Class1
             }
 
             [WorkItem(774321)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateImplicitConversionAwaitExpression()
             {
                 await TestAsync(
@@ -2817,7 +2817,7 @@ class Class1
             }
 
             [WorkItem(774321)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateImplicitConversionTargetTypeNotInSource()
             {
                 await TestAsync(
@@ -2826,7 +2826,7 @@ class Class1
             }
 
             [WorkItem(774321)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateExplicitConversionGenericClass()
             {
                 await TestAsync(
@@ -2835,7 +2835,7 @@ class Class1
             }
 
             [WorkItem(774321)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateExplicitConversionClass()
             {
                 await TestAsync(
@@ -2844,7 +2844,7 @@ class Class1
             }
 
             [WorkItem(774321)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateExplicitConversionAwaitExpression()
             {
                 await TestAsync(
@@ -2853,7 +2853,7 @@ class Class1
             }
 
             [WorkItem(774321)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public async Task TestGenerateExplicitConversionTargetTypeNotInSource()
             {
                 await TestAsync(

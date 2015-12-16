@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FullyQualif
             return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpFullyQualifyCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestTypeFromMultipleNamespaces1()
         {
             await TestAsync(
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FullyQualif
 @"class Class { System.Collections.IDictionary Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestTypeFromMultipleNamespaces2()
         {
             await TestAsync(
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FullyQualif
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericWithNoArgs()
         {
             await TestAsync(
@@ -42,7 +42,7 @@ index: 1);
 @"class Class { System.Collections.Generic.List Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericWithCorrectArgs()
         {
             await TestAsync(
@@ -50,7 +50,7 @@ index: 1);
 @"class Class { System.Collections.Generic.List<int> Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestSmartTagDisplayText()
         {
             await TestSmartTagTextAsync(
@@ -58,14 +58,14 @@ index: 1);
 "System.Collections.Generic.List");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericWithWrongArgs()
         {
             await TestMissingAsync(
 @"class Class { [|List<int,string>|] Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericInLocalDeclaration()
         {
             await TestAsync(
@@ -73,7 +73,7 @@ index: 1);
 @"class Class { void Foo() { System.Collections.Generic.List<int> a = new List<int>(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericItemType()
         {
             await TestAsync(
@@ -81,7 +81,7 @@ index: 1);
 @"using System.Collections.Generic; class Class { List<System.Int32> l; }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenerateWithExistingUsings()
         {
             await TestAsync(
@@ -89,7 +89,7 @@ index: 1);
 @"using System; class Class { System.Collections.Generic.List<int> Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenerateInNamespace()
         {
             await TestAsync(
@@ -97,7 +97,7 @@ index: 1);
 @"namespace N { class Class { System.Collections.Generic.List<int> Method() { Foo(); } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenerateInNamespaceWithUsings()
         {
             await TestAsync(
@@ -105,7 +105,7 @@ index: 1);
 @"namespace N { using System; class Class { System.Collections.Generic.List<int> Method() { Foo(); } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestExistingUsing()
         {
             await TestActionCountAsync(
@@ -117,21 +117,21 @@ count: 2);
 @"using System.Collections.Generic; class Class { System.Collections.IDictionary Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingIfUniquelyBound()
         {
             await TestMissingAsync(
 @"using System; class Class { [|String|] Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingIfUniquelyBoundGeneric()
         {
             await TestMissingAsync(
 @"using System.Collections.Generic; class Class { [|List<int>|] Method() { Foo(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestOnEnum()
         {
             await TestAsync(
@@ -139,7 +139,7 @@ count: 2);
 @"class Class { void Foo() { var a = A.Colors.Red; } } namespace A { enum Colors {Red, Green, Blue} }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestOnClassInheritance()
         {
             await TestAsync(
@@ -147,7 +147,7 @@ count: 2);
 @"class Class : A.Class2 { } namespace A { class Class2 { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestOnImplementedInterface()
         {
             await TestAsync(
@@ -155,7 +155,7 @@ count: 2);
 @"class Class : A.IFoo { } namespace A { interface IFoo { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAllInBaseList()
         {
             await TestAsync(
@@ -167,7 +167,7 @@ count: 2);
 @"class Class : B.IFoo, A.Class2 { } namespace A { class Class2 { } } namespace B { interface IFoo { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAttributeUnexpanded()
         {
             await TestAsync(
@@ -175,7 +175,7 @@ count: 2);
 @"[System.Obsolete]class Class { }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAttributeExpanded()
         {
             await TestAsync(
@@ -184,7 +184,7 @@ count: 2);
         }
 
         [WorkItem(527360)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestExtensionMethods()
         {
             await TestMissingAsync(
@@ -192,7 +192,7 @@ count: 2);
         }
 
         [WorkItem(538018)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAfterNew()
         {
             await TestAsync(
@@ -200,7 +200,7 @@ count: 2);
 @"class Class { void Foo() { List<int> l; l = new System.Collections.Generic.List<int>(); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestArgumentsInMethodCall()
         {
             await TestAsync(
@@ -208,7 +208,7 @@ count: 2);
 @"class Class { void Test() { Console.WriteLine(System.DateTime.Today); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestCallSiteArgs()
         {
             await TestAsync(
@@ -216,7 +216,7 @@ count: 2);
 @"class Class { void Test(System.DateTime dt) { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestUsePartialClass()
         {
             await TestAsync(
@@ -224,7 +224,7 @@ count: 2);
 @"namespace A { public class Class { B.PClass c; } } namespace B{ public partial class PClass { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericClassInNestedNamespace()
         {
             await TestAsync(
@@ -232,7 +232,7 @@ count: 2);
 @"namespace A { namespace B { class GenericClass<T> { } } } namespace C { class Class { A.B.GenericClass<int> c; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestBeforeStaticMethod()
         {
             await TestAsync(
@@ -241,7 +241,7 @@ count: 2);
         }
 
         [WorkItem(538136)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestBeforeNamespace()
         {
             await TestAsync(
@@ -250,7 +250,7 @@ count: 2);
         }
 
         [WorkItem(527395)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestSimpleNameWithLeadingTrivia()
         {
             await TestAsync(
@@ -260,7 +260,7 @@ compareTokens: false);
         }
 
         [WorkItem(527395)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericNameWithLeadingTrivia()
         {
             await TestAsync(
@@ -270,7 +270,7 @@ compareTokens: false);
         }
 
         [WorkItem(538740)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyTypeName()
         {
             await TestAsync(
@@ -279,7 +279,7 @@ compareTokens: false);
         }
 
         [WorkItem(538740)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyTypeName_NotForGenericType()
         {
             await TestMissingAsync(
@@ -287,7 +287,7 @@ compareTokens: false);
         }
 
         [WorkItem(538764)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyThroughAlias()
         {
             await TestAsync(
@@ -296,7 +296,7 @@ compareTokens: false);
         }
 
         [WorkItem(538763)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces1()
         {
             await TestAsync(
@@ -305,7 +305,7 @@ compareTokens: false);
         }
 
         [WorkItem(538763)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces2()
         {
             await TestAsync(
@@ -315,7 +315,7 @@ index: 1);
         }
 
         [WorkItem(539853)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task BugFix5950()
         {
             await TestAsync(
@@ -325,7 +325,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(540318)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAfterAlias()
         {
             await TestMissingAsync(
@@ -333,7 +333,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(540942)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingOnIncompleteStatement()
         {
             await TestMissingAsync(
@@ -341,7 +341,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(542643)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAssemblyAttribute()
         {
             await TestAsync(
@@ -350,14 +350,14 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(543388)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingOnAliasName()
         {
             await TestMissingAsync(
 @"using [|GIBBERISH|] = Foo . GIBBERISH ; class Program { static void Main ( string [ ] args ) { GIBBERISH x ; } } namespace Foo { public class GIBBERISH { } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingOnAttributeOverloadResolutionError()
         {
             await TestMissingAsync(
@@ -365,7 +365,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(544950)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestNotOnAbstractConstructor()
         {
             await TestMissingAsync(
@@ -373,7 +373,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(545774)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAttribute()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
@@ -385,7 +385,7 @@ input,
         }
 
         [WorkItem(546027)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGeneratePropertyFromAttribute()
         {
             await TestMissingAsync(
@@ -393,7 +393,7 @@ input,
         }
 
         [WorkItem(775448)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task ShouldTriggerOnCS0308()
         {
             // CS0308: The non-generic type 'A' cannot be used with type arguments
@@ -419,7 +419,7 @@ class Test
         }
 
         [WorkItem(947579)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task AmbiguousTypeFix()
         {
             await TestAsync(
@@ -440,7 +440,7 @@ namespace n2 { class A { }}");
         }
 
         [WorkItem(995857)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task NonPublicNamespaces()
         {
             await TestAsync(

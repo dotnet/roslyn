@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 {
     public class CodeRefactoringServiceTest
     {
-        [WpfFact]
+        [Fact]
         public async Task TestExceptionInComputeRefactorings()
         {
             await VerifyRefactoringDisabledAsync(new ErrorCases.ExceptionInCodeActions());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestExceptionInComputeRefactoringsAsync()
         {
             await VerifyRefactoringDisabledAsync(new ErrorCases.ExceptionInComputeRefactoringsAsync());

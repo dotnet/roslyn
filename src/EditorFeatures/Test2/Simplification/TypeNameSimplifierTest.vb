@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "Normal CSharp Tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyTypeName() As Task
             Dim input =
         <Workspace>
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyReceiver1() As Task
             Dim input =
         <Workspace>
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyReceiver2() As Task
             Dim input =
         <Workspace>
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType() As Task
             Dim input =
         <Workspace>
@@ -167,7 +167,7 @@ static class M
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType2() As Task
             ' Simplified type is in a different namespace.
 
@@ -238,7 +238,7 @@ static class M
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType3() As Task
             ' Simplified type is in a different namespace, whose names have been imported with a usings statement.
 
@@ -319,7 +319,7 @@ namespace R
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType4() As Task
             ' Highly nested type simplified to another highly nested type.
 
@@ -447,7 +447,7 @@ namespace R
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyNestedType5() As Task
             ' Name requiring multiple iterations of nested type simplification.
 
@@ -585,7 +585,7 @@ namespace R
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyStaticMemberAccess() As Task
             Dim input =
         <Workspace>
@@ -639,7 +639,7 @@ static class M
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -699,7 +699,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyAllNodes_SimplifyAliasStaticMemberAccess() As Task
             Dim input =
         <Workspace>
@@ -763,7 +763,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate1() As Task
             Dim input =
         <Workspace>
@@ -807,7 +807,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate2() As Task
             Dim input =
         <Workspace>
@@ -853,7 +853,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate3() As Task
             Dim input =
         <Workspace>
@@ -899,7 +899,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(552722)>
         Public Async Function TestSimplifyNot_Action() As Task
             Dim input =
@@ -943,7 +943,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(552722)>
         Public Async Function TestSimplifyNot_Func() As Task
             Dim input =
@@ -987,7 +987,7 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Inheritance() As Task
             Dim input =
         <Workspace>
@@ -1027,7 +1027,7 @@ class B : A
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyDoNothingWithFailedOverloadResolution() As Task
             Dim input =
         <Workspace>
@@ -1062,7 +1062,7 @@ class A
         End Function
 
         <WorkItem(609496)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpDoNotSimplifyNameInNamespaceDeclaration() As Task
             Dim input =
         <Workspace>
@@ -1086,7 +1086,7 @@ namespace System.Foo
         End Function
 
         <WorkItem(608197)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCS_EscapeAliasReplacementIfNeeded() As Task
             Dim input =
 <Workspace>
@@ -1120,7 +1120,7 @@ namespace System.Foo
         End Function
 
         <WorkItem(529989)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCS_AliasReplacementKeepsUnicodeEscaping() As Task
             Dim input =
 <Workspace>
@@ -1155,7 +1155,7 @@ namespace System.Foo
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_Simplify_Cast_Type_Name() As Task
             Dim input =
 <Workspace>
@@ -1195,7 +1195,7 @@ class C
 
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestAliasedNameWithMethod() As Task
             Dim input =
 <Workspace>
@@ -1235,7 +1235,7 @@ class Program
 
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(554010)>
         Public Async Function TestSimplificationForDelegateCreation() As Task
             Dim input =
@@ -1269,7 +1269,7 @@ class Test
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(554010)>
         Public Async Function TestSimplificationForDelegateCreation2() As Task
             Dim input =
@@ -1297,7 +1297,7 @@ class Test
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(576970)>
         Public Async Function TestCSRemoveThisWouldBeConsideredACast_1() As Task
             Dim input =
@@ -1337,7 +1337,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(576970)>
         Public Async Function TestCSRemoveThisWouldBeConsideredACast_2() As Task
             Dim input =
@@ -1377,7 +1377,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(576970)>
         Public Async Function TestCSRemoveThisWouldBeConsideredACast_3() As Task
             Dim input =
@@ -1427,7 +1427,7 @@ public class C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(50, "https://github.com/dotnet/roslyn/issues/50")>
         Public Async Function TestCSRemoveThisPreservesTrivia() As Task
             Dim input =
@@ -1464,7 +1464,7 @@ class C1
         End Function
 
         <WorkItem(649385)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect() As Task
 
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
@@ -1531,7 +1531,7 @@ class Program
 
         <WorkItem(734445)>
         <WorkItem(649385)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect_QualifiedTypeNames() As Task
 
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
@@ -1577,7 +1577,7 @@ class Program
         End Function
 
         <WorkItem(649385)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarDontSimplify() As Task
 
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
@@ -1639,7 +1639,7 @@ class Program
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameWhenParentHasSimplifyAnnotation() As Task
             Dim input =
         <Workspace>
@@ -1672,7 +1672,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameWithExplicitSimplifySpan_MutuallyExclusive() As Task
             Dim input =
         <Workspace>
@@ -1705,7 +1705,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameWithExplicitSimplifySpan_Inclusive() As Task
             Dim input =
         <Workspace>
@@ -1739,7 +1739,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameWithExplicitSimplifySpan_OverlappingPositive() As Task
             Dim input =
         <Workspace>
@@ -1772,7 +1772,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameWithExplicitSimplifySpan_OverlappingNegative() As Task
             Dim input =
         <Workspace>
@@ -1805,7 +1805,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification), WorkItem(864735)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification), WorkItem(864735)>
         Public Async Function TestBugFix864735_CSharp_SimplifyNameInIncompleteIsExpression() As Task
             Dim input =
         <Workspace>
@@ -1841,7 +1841,7 @@ class Program
         End Function
 
         <WorkItem(813566)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyQualifiedCref() As Task
             Dim input =
         <Workspace>
@@ -1875,7 +1875,7 @@ class Program
         End Function
 
         <WorkItem(838109)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyToGenericNameCSharp() As Task
             Dim input =
         <Workspace>
@@ -1935,7 +1935,7 @@ class E
         End Function
 
         <WorkItem(838109)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDoSimplifyToGenericName() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToGenericType, True}}
 
@@ -1996,7 +1996,7 @@ class E
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WpfFact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyAllNodes_SimplifyNestedType() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToBaseType, False}}
 
@@ -2058,7 +2058,7 @@ static class M
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WpfFact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyAwayThisExpression() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, LanguageNames.CSharp), True}}
 
@@ -2108,7 +2108,7 @@ class Program
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyTypeNameInCodeWithSyntaxErrors() As Task
             Dim input =
         <Workspace>
@@ -2151,7 +2151,7 @@ class C
 
             Await TestAsync(input, expected)
         End Function
-        <WpfFact, WorkItem(653601), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(653601), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCrefSimplification_1() As Task
             Dim input =
         <Workspace>
@@ -2195,7 +2195,7 @@ namespace A
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(653601), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(653601), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCrefSimplification_2() As Task
             Dim input =
         <Workspace>
@@ -2239,7 +2239,7 @@ namespace A
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(966633), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(966633), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_DontSimplifyNullableQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -2269,7 +2269,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(965240), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(965240), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_DontSimplifyOpenGenericNullable() As Task
             Dim input =
         <Workspace>
@@ -2307,7 +2307,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(1067214), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(1067214), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyTypeNameInExpressionBody_Property() As Task
             Dim input =
         <Workspace>
@@ -2341,7 +2341,7 @@ namespace N
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(1067214), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(1067214), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyTypeNameInExpressionBody_Method() As Task
             Dim input =
         <Workspace>
@@ -2375,7 +2375,7 @@ namespace N
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(2232, "https://github.com/dotnet/roslyn/issues/2232"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(2232, "https://github.com/dotnet/roslyn/issues/2232"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_DontSimplifyToPredefinedTypeNameInQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -2455,7 +2455,7 @@ class C
 
 #Region "Normal Visual Basic Tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyTypeName() As Task
             Dim input =
         <Workspace>
@@ -2485,7 +2485,7 @@ class C
         End Function
 
         <WorkItem(547117)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Array_1() As Task
             Dim input =
                     <Workspace>
@@ -2517,7 +2517,7 @@ class C
         End Function
 
         <WorkItem(547117)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Array_2() As Task
             Dim input =
                     <Workspace>
@@ -2549,7 +2549,7 @@ End Module
         End Function
 
         <WorkItem(547117)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Receiver1() As Task
             Dim input =
                     <Workspace>
@@ -2578,7 +2578,7 @@ End Class
         End Function
 
         <WorkItem(547117)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Receiver2() As Task
             Dim input =
                     <Workspace>
@@ -2606,7 +2606,7 @@ End Class
         End Function
 
         <WorkItem(547117)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestGetChanges_SimplifyTypeName_Receiver3() As Task
             Dim input =
                     <Workspace>
@@ -2637,7 +2637,7 @@ End Class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType() As Task
             Dim input =
         <Workspace>
@@ -2685,7 +2685,7 @@ End Class]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType2() As Task
             ' Simplified type is in a different namespace.
 
@@ -2741,7 +2741,7 @@ End Class</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType3() As Task
             ' Simplified type is in a different namespace, whose names have been imported with an Imports statement.
 
@@ -2805,7 +2805,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType4() As Task
             ' Highly nested type simplified to another highly nested type.
 
@@ -2899,7 +2899,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyNestedType5() As Task
             ' Name requiring multiple iterations of nested type simplification.
 
@@ -3001,7 +3001,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyStaticMemberAccess() As Task
             Dim input =
         <Workspace>
@@ -3043,7 +3043,7 @@ End Class</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -3091,7 +3091,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(551040), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyAllNodes_SimplifyAliasStaticMemberAccess() As Task
             Dim input =
         <Workspace>
@@ -3141,7 +3141,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate1_VB() As Task
             Dim input =
         <Workspace>
@@ -3179,7 +3179,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate2_VB() As Task
             Dim input =
         <Workspace>
@@ -3219,7 +3219,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(570986)>
         <WorkItem(552722)>
         Public Async Function TestSimplifyNot_Action_VB() As Task
@@ -3260,7 +3260,7 @@ End Namespace</text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyBaseInheritanceVB() As Task
             Dim input =
         <Workspace>
@@ -3299,7 +3299,7 @@ End Namespace</text>
         End Function
 
         <WorkItem(588099)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_EscapeReservedNamesInAttributes() As Task
             Dim input =
 <Workspace>
@@ -3344,7 +3344,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_OmitModuleNameInMemberAccess() As Task
             Dim input =
 <Workspace>
@@ -3395,7 +3395,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_OmitModuleNameInQualifiedName() As Task
             Dim input =
 <Workspace>
@@ -3449,7 +3449,7 @@ End Namespace
         End Function
 
         <WorkItem(601160)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestExpandMultilineLambdaWithImports() As Task
             Dim input =
 <Workspace>
@@ -3486,7 +3486,7 @@ End Module
         End Function
 
         <WorkItem(609496)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVB_DoNotReduceNamesInNamespaceDeclarations() As Task
             Dim input =
 <Workspace>
@@ -3510,7 +3510,7 @@ End Module
         End Function
 
         <WorkItem(608197)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVB_EscapeAliasReplacementIfNeeded() As Task
             Dim input =
 <Workspace>
@@ -3536,7 +3536,7 @@ End Module
         End Function
 
         <WorkItem(608197)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVB_NoNREForOmittedReceiverInWithBlock() As Task
             Dim input =
 <Workspace>
@@ -3576,7 +3576,7 @@ End Module
         End Function
 
         <WorkItem(639971)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestBugFix639971_VisualBasic_FalseUnnecessaryBaseQualifier() As Task
             Dim input =
 <Workspace>
@@ -3626,7 +3626,7 @@ End Class
         End Function
 
         <WorkItem(639971)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestBugFix639971_CSharp_FalseUnnecessaryBaseQualifier() As Task
             Dim input =
 <Workspace>
@@ -3687,7 +3687,7 @@ class D : C
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameWhenParentHasSimplifyAnnotation() As Task
             Dim input =
         <Workspace>
@@ -3716,7 +3716,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameWithExplicitSimplifySpan_MutuallyExclusive() As Task
             Dim input =
         <Workspace>
@@ -3745,7 +3745,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameWithExplicitSimplifySpan_Inclusive() As Task
             Dim input =
         <Workspace>
@@ -3775,7 +3775,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameWithExplicitSimplifySpan_OverlappingPositive() As Task
             Dim input =
         <Workspace>
@@ -3804,7 +3804,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameWithExplicitSimplifySpan_OverlappingNegative() As Task
             Dim input =
         <Workspace>
@@ -3834,7 +3834,7 @@ End Namespace
         End Function
 
         <WorkItem(769354)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyTypeNameInCrefCausesConflict() As Task
             Dim input =
         <Workspace>
@@ -3885,7 +3885,7 @@ End Class]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification), WorkItem(864735)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification), WorkItem(864735)>
         Public Async Function TestBugFix864735_VisualBasic_SimplifyNameInIncompleteIsExpression() As Task
             Dim input =
         <Workspace>
@@ -3917,7 +3917,7 @@ End Class
         End Function
 
         <WorkItem(813566)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestSimplifyQualifiedCref() As Task
             Dim input =
         <Workspace>
@@ -3949,7 +3949,7 @@ End Class]]>
         End Function
 
         <WorkItem(838109)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyToGenericName() As Task
             Dim input =
         <Workspace>
@@ -4001,7 +4001,7 @@ End Class
         End Function
 
         <WorkItem(838109)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DoSimplifyToGenericName() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToGenericType, True}}
 
@@ -4054,7 +4054,7 @@ End Class
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WpfFact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestDontSimplifyAllNodes_SimplifyNestedType() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToBaseType, False}}
 
@@ -4104,7 +4104,7 @@ End Class]]></text>
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WpfFact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(838109), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestDontSimplifyAwayMeExpression() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, LanguageNames.VisualBasic), True}}
 
@@ -4142,7 +4142,7 @@ End Class]]></text>
             Await TestAsync(input, expected, simplificationOption)
         End Function
 
-        <WpfFact, WorkItem(881746), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(881746), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_SimplyToAlias() As Task
 
             Dim input =
@@ -4179,7 +4179,7 @@ End Class]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(881746), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(881746), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyAlias() As Task
 
             Dim input =
@@ -4216,7 +4216,7 @@ End Class]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(966633), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(966633), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyNullableQualifiedName() As Task
             Dim input =
         <Workspace>
@@ -4250,7 +4250,7 @@ End Module]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(965240), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(965240), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyOpenGenericNullable() As Task
             Dim input =
         <Workspace>
@@ -4328,7 +4328,7 @@ End Module]]></text>
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, WorkItem(2232, "https://github.com/dotnet/roslyn/issues/2232"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, WorkItem(2232, "https://github.com/dotnet/roslyn/issues/2232"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DontSimplifyToPredefinedTypeNameInQualifiedName() As Task
             Dim input =
         <Workspace>

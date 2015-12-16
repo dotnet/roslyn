@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestCSharpLanguageDebugInfoCreateNameResolver()
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(" "))
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestSimpleNameInClass()
         {
             var text =
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(text, "Foo(int)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestSimpleNameInNamespace()
         {
             var text =
@@ -86,7 +86,7 @@ namespace N
             await TestAsync(text, "Foo(a)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestSimpleNameInGenericClassNamespace()
         {
             var text =
@@ -115,7 +115,7 @@ namespace N
             await TestAsync(text, "Foo(a)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestGenericNameInClassNamespace()
         {
             var text =
@@ -149,7 +149,7 @@ namespace N
             await TestAsync(text, "Foo<T>(a)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestOverloadsInSingleClass()
         {
             var text =
@@ -175,7 +175,7 @@ namespace N
             await TestAsync(text, "Foo(i)", "C.Foo(int)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestMethodsInMultipleClasses()
         {
             var text =
@@ -211,7 +211,7 @@ namespace N1
             await TestAsync(text, "Foo(i)", "N1.C.Foo(int)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestMethodsWithDifferentArityInMultipleClasses()
         {
             var text =
@@ -251,7 +251,7 @@ namespace N1
             await TestAsync(text, "Foo<T>(i)", "N1.C.Foo<T>(int)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestOverloadsWithMultipleParametersInSingleClass()
         {
             var text =
@@ -293,7 +293,7 @@ namespace N1
             await TestAsync(text, "Foo(__arglist)", "C.Foo(int)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task AccessorTests()
         {
             var text =
@@ -308,7 +308,7 @@ namespace N1
             await TestAsync(text, "Property3", "C.Property3");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task NegativeTests()
         {
             var text =
@@ -358,7 +358,7 @@ abstract class C
             await TestAsync(text, "");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestInstanceConstructors()
         {
             var text =
@@ -399,7 +399,7 @@ class G<T>
             await TestAsync(text, "Finalize", "G<T>.~G()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestStaticConstructors()
         {
             var text =
@@ -422,7 +422,7 @@ class G<T>
             await TestAsync(text, "C.cctor()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestAllConstructors()
         {
             var text =
@@ -447,7 +447,7 @@ class G<T>
             await TestAsync(text, "C(i)", "C.C(int)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestPartialMethods()
         {
             var text =
@@ -474,7 +474,7 @@ class G<T>
             await TestAsync(text, "M4", "C.M4()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestLeadingAndTrailingText()
         {
             var text =
@@ -493,7 +493,7 @@ class G<T>
             await TestAsync(text, "/*comment*/Foo(/* params */); /* comment", "C.Foo()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestEscapedKeywords()
         {
             var text =
@@ -512,7 +512,7 @@ class @foreach
             await TestAsync(text, "false");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestAliasQualifiedNames()
         {
             var text =
@@ -528,7 +528,7 @@ class C
             await TestAsync(text, "C.Foo(A::Q)", "C.Foo(D)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestNestedTypesAndNamespaces()
         {
             var text =
@@ -575,7 +575,7 @@ class C
             await TestAsync(text, "N5.C.Foo");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public async Task TestInterfaces()
         {
             var text =

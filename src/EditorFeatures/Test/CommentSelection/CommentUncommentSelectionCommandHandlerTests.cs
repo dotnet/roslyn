@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
         public void Create()
         {
             Assert.NotNull(

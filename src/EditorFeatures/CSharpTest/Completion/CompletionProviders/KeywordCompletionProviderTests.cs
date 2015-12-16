@@ -21,26 +21,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             return new KeywordCompletionProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task IsCommitCharacterTest()
         {
             await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar: "");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task IsTextualTriggerCharacterTest()
         {
             await TestCommonIsTextualTriggerCharacterAsync();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task SendEnterThroughToEditorTest()
         {
             await VerifySendEnterThroughToEnterAsync("$$", "class", sendThroughEnterEnabled: false, expected: false);
             await VerifySendEnterThroughToEnterAsync("$$", "class", sendThroughEnterEnabled: true, expected: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task InEmptyFile()
         {
             var markup = "$$";
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             await VerifyAnyItemExistsAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInInactiveCode()
         {
             var markup = @"class C
@@ -61,7 +61,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInCharLiteral()
         {
             var markup = @"class C
@@ -74,7 +74,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInUnterminatedCharLiteral()
         {
             var markup = @"class C
@@ -86,7 +86,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInUnterminatedCharLiteralAtEndOfFile()
         {
             var markup = @"class C
@@ -98,7 +98,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInString()
         {
             var markup = @"class C
@@ -111,7 +111,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInStringInDirective()
         {
             var markup = "#r \"$$\"";
@@ -119,7 +119,7 @@ $$
             await VerifyNoItemsExistAsync(markup, SourceCodeKind.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInUnterminatedString()
         {
             var markup = @"class C
@@ -131,7 +131,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInUnterminatedStringInDirective()
         {
             var markup = "#r \"$$\"";
@@ -139,7 +139,7 @@ $$
             await VerifyNoItemsExistAsync(markup, SourceCodeKind.Script);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInUnterminatedStringAtEndOfFile()
         {
             var markup = @"class C
@@ -151,7 +151,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInVerbatimString()
         {
             var markup = @"class C
@@ -166,7 +166,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInUnterminatedVerbatimString()
         {
             var markup = @"class C
@@ -180,7 +180,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInUnterminatedVerbatimStringAtEndOfFile()
         {
             var markup = @"class C
@@ -192,7 +192,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInSingleLineComment()
         {
             var markup = @"class C
@@ -205,7 +205,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInSingleLineCommentAtEndOfFile()
         {
             var markup = @"namespace A
@@ -215,7 +215,7 @@ $$
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task NotInMutliLineComment()
         {
             var markup = @"class C
@@ -231,7 +231,7 @@ $$
         }
 
         [WorkItem(968256)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task UnionOfItemsFromBothContexts()
         {
             var markup = @"<Workspace>

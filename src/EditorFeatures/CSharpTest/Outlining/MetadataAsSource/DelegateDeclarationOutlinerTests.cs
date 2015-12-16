@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
         internal override AbstractSyntaxOutliner CreateOutliner() => new MaSOutliners.DelegateDeclarationOutliner();
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task NoCommentsOrAttributes()
         {
             const string code = @"
@@ -24,7 +24,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
             await VerifyNoRegionsAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithAttributes()
         {
             const string code = @"
@@ -35,7 +35,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAndAttributes()
         {
             const string code = @"
@@ -48,7 +48,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAttributesAndModifiers()
         {
             const string code = @"

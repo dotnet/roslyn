@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     {
         internal override AbstractSyntaxOutliner CreateOutliner() => new CompilationUnitOutliner();
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestUsings()
         {
             const string code = @"
@@ -24,7 +24,7 @@ using System.Core;|}|}";
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestUsingAliases()
         {
             const string code = @"
@@ -37,7 +37,7 @@ using linq = System.Linq;|}|}";
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestExternAliases()
         {
             const string code = @"
@@ -48,7 +48,7 @@ extern alias Bar;|}|}";
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestExternAliasesAndUsings()
         {
             const string code = @"
@@ -61,7 +61,7 @@ using System.Core;|}|}";
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestExternAliasesAndUsingsWithLeadingTrailingAndNestedComments()
         {
             const string code = @"
@@ -82,7 +82,7 @@ using System.Core;|}|}
                 Region("span3", "// Foo ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestUsingsWithComments()
         {
             const string code = @"
@@ -96,7 +96,7 @@ using System.Core;|}|}";
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestExternAliasesWithComments()
         {
             const string code = @"
@@ -110,7 +110,7 @@ extern alias Bar;|}|}";
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestWithComments()
         {
             const string code = @"
@@ -121,7 +121,7 @@ $${|span1:// Foo
                 Region("span1", "// Foo ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestWithCommentsAtEnd()
         {
             const string code = @"
@@ -134,7 +134,7 @@ $${|hint1:using {|collapse1:System;|}|}
                 Region("span2", "// Foo ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         [WorkItem(539359)]
         public async Task TestUsingKeywordWithSpace()
         {

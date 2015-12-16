@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             return new CheckedStatementHighlighter();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample1_1()
         {
             await TestAsync(
@@ -35,7 +35,7 @@ while (true) {
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample1_2()
         {
             await TestAsync(

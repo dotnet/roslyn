@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             End If
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSimpleComment1() As Task
             Const code = "
 {|span:' $$Hello
@@ -44,7 +44,7 @@ End Class
                 Region("span", "' Hello ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSimpleComment2() As Task
             Const code = "
 {|span:' $$Hello
@@ -58,7 +58,7 @@ End Class
                 Region("span", "' Hello ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSimpleComment3() As Task
             Const code = "
 {|span:' $$Hello
@@ -72,7 +72,7 @@ End Class
                 Region("span", "' Hello ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSingleLineCommentGroupFollowedByDocumentationComment() As Task
             Const code = "
 {|span:' $$Hello

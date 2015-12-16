@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class ISemanticSnapshotExtensionTests
     {
-        [WpfFact]
+        [Fact]
         public async Task TryGetSymbolTouchingPositionOnLeadingTrivia()
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, fixer)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function Test_CSharpToVisualBasic1() As Task
             Dim input =
                 <Workspace>
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function Test_VisualBasicToCSharp1() As Task
             Dim input =
                 <Workspace>
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
         End Function
 
         <WorkItem(1083419)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestExtensionMethods1() As Task
             Dim input =
                 <Workspace>
@@ -164,7 +164,7 @@ namespace CSAssembly1
         End Function
 
         <WorkItem(1083419)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestExtensionMethods2() As Task
             Dim input =
                 <Workspace>
@@ -217,7 +217,7 @@ End Namespace
             Await TestAsync(input, expected, codeActionIndex:=0)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddProjectReference_CSharpToCSharp() As Task
             Dim input =
                 <Workspace>
@@ -262,7 +262,7 @@ namespace CSAssembly2
             Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="CSAssembly1")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddProjectReference_VBToVB() As Task
             Dim input =
                 <Workspace>
@@ -300,7 +300,7 @@ End Namespace
             Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="VBAssembly1")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddProjectReferenceMissingForCircularReference() As Task
             Dim input =
                 <Workspace>

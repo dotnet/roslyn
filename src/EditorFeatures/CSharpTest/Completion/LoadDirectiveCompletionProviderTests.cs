@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
             await VerifyItemIsAbsentAsync(markup, expected, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NetworkPath()
         {
             await VerifyItemExistsInScriptAsync(
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
                 @"\\");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NetworkPathAfterInitialBackslash()
         {
             await VerifyItemExistsInScriptAsync(
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
                 @"\\");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UpOneDirectoryNotShownAtRoot()
         {
             // after so many ".." we should be at the root drive an should no longer suggest the parent.  we can determine

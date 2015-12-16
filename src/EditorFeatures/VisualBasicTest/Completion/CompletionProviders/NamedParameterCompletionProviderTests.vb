@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return New NamedParameterCompletionProvider()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInObjectCreation() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -32,7 +32,7 @@ End Class
 </Text>.Value, "a:=")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInBaseConstructor() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -50,7 +50,7 @@ End Class
 </Text>.Value, "a:=")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAttributeConstructor() As Task
             Await VerifyItemIsAbsentAsync(
 <Text>
@@ -68,7 +68,7 @@ End Class
         End Function
 
         <WorkItem(546190)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAttributeNamedParameter1() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -83,7 +83,7 @@ End Class
 </Text>.Value, "x:=")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAttributeConstructorAfterComma() As Task
             Await VerifyItemIsAbsentAsync(
 <Text>
@@ -99,7 +99,7 @@ End Class
 </Text>.Value, "a:=")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInvocationExpression() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -111,7 +111,7 @@ End Class
 </Text>.Value, "a:=")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInvocationExpressionAfterComma() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -123,7 +123,7 @@ End Class
 </Text>.Value, "a:=")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInIndexers() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -146,7 +146,7 @@ End Module
 </Text>.Value, "i:=")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInDelegates() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -164,7 +164,7 @@ End Module
 </Text>.Value, "x:=")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInDelegateInvokeSyntax() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -182,7 +182,7 @@ End Module
 </Text>.Value, "x:=")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotAfterColonEquals() As Task
             Await VerifyNoItemsExistAsync(
 <Text>
@@ -194,7 +194,7 @@ End Class
 </Text>.Value)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInCollectionInitializers() As Task
             Await VerifyNoItemsExistAsync(
 <Text>
@@ -206,7 +206,7 @@ End Class
 </Text>.Value)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDontFilterYet() As Task
             Dim markup =
 <Text>
@@ -227,7 +227,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "character:=")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMethodOverloads() As Task
             Dim markup =
 <Text>
@@ -251,7 +251,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "b:=")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExistingNamedParamsAreFilteredOut() As Task
             Dim markup =
 <Text>
@@ -292,7 +292,7 @@ End Class
         End Function
 
         <WorkItem(546589)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitOnEquals() As Task
             Dim text = <Text>
 Module Program
@@ -315,7 +315,7 @@ End Module
             Await VerifyProviderCommitAsync(text, "args:=", expected, "="c, Nothing)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitOnColon() As Task
             Dim text = <Text>
 Module Program
@@ -338,7 +338,7 @@ End Module
             Await VerifyProviderCommitAsync(text, "args:=", expected, ":"c, Nothing)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitOnSpace() As Task
             Dim text = <Text>
 Module Program
@@ -361,7 +361,7 @@ End Module
             Await VerifyProviderCommitAsync(text, "args:=", expected, " "c, Nothing)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInTrivia() As Task
             Await VerifyNoItemsExistAsync(
 <Text>
@@ -374,7 +374,7 @@ End Class
         End Function
 
         <WorkItem(1041260)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestConditionalInvocation() As Task
             Await VerifyItemExistsAsync(
 <Text>
@@ -389,7 +389,7 @@ End Class
         End Function
 
         <WorkItem(1040247)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExclusivityCheckAfterComma() As Task
             Await VerifyAnyItemExistsAsync(
 <Text>

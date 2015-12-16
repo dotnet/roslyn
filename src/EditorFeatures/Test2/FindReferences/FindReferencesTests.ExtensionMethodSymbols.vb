@@ -5,7 +5,7 @@ Imports System.Threading.Tasks
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(541167)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestExtensionMethodToDelegateConversion() As Task
             Dim input =
 <Workspace>
@@ -28,7 +28,7 @@ class Program
         End Function
 
         <WorkItem(541697)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestReducedExtensionMethod1() As Task
             Dim input =
 <Workspace>
@@ -60,7 +60,7 @@ public static class MyExtension
         End Function
 
         <WorkItem(541697)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestReducedExtensionMethod2() As Task
             Dim input =
 <Workspace>
@@ -93,7 +93,7 @@ public static class MyExtension
 
 #Region "Normal Visual Basic Tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicFindReferencesOnExtensionMethod() As Task
             Dim input =
 <Workspace>

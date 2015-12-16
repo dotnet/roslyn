@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             return new AttributeNamedParameterCompletionProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SendEnterThroughToEditorTest()
         {
             const string markup = @"
@@ -43,7 +43,7 @@ public class TestAttribute : Attribute
             await VerifySendEnterThroughToEnterAsync(markup, "Color =", sendThroughEnterEnabled: true, expected: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitCharacterTest()
         {
             const string markup = @"
@@ -64,7 +64,7 @@ public class TestAttribute : Attribute
             await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SimpleAttributeUsage()
         {
             var markup = @"
@@ -85,7 +85,7 @@ public class TestAttribute : Attribute
             await VerifyItemExistsAsync(markup, "Color =");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterComma()
         {
             var markup = @"
@@ -108,7 +108,7 @@ public class TestAttribute : Attribute
         }
 
         [WorkItem(544345)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExistingItemsAreFiltered()
         {
             var markup = @"
@@ -131,7 +131,7 @@ public class TestAttribute : Attribute
             await VerifyItemIsAbsentAsync(markup, "Color =");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeConstructor()
         {
             var markup = @"
@@ -150,7 +150,7 @@ class Foo
             await VerifyItemExistsAsync(markup, "a:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AttributeConstructorAfterComma()
         {
             var markup = @"
@@ -170,7 +170,7 @@ class Foo
         }
 
         [WorkItem(545426)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestPropertiesInScript()
         {
             var markup = @"
@@ -193,7 +193,7 @@ class Foo
         }
 
         [WorkItem(1075278)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInComment()
         {
             var markup = @"

@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestTypeName1() As Task
             Await TestInMethodAsync(
                 className:="C(Of T)",
@@ -42,20 +42,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 expected:={[Class]("C")})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestImportsType() As Task
             Await TestAsync("Imports System.Console",
                 [Class]("Console"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestImportsAlias() As Task
             Await TestAsync("Imports M = System.Math",
                  [Class]("M"),
                  [Class]("Math"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestMSCorlibTypes() As Task
             Dim text = StringFromLines(
                 "Imports System",
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 [Class]("Console"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestConstructedGenericWithInvalidTypeArg() As Task
             Await TestInMethodAsync(
                 className:="C(Of T)",
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 expected:={[Class]("C")})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestMethodCall() As Task
             Await TestInMethodAsync(
                 className:="Program",
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 expected:={[Class]("Program")})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(538647)>
         Public Async Function TestRegression4315_VariableNamesClassifiedAsType() As Task
             Dim text = StringFromLines(
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Await TestAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(541267)>
         Public Async Function TestRegression7925_TypeParameterCantCastToMethod() As Task
             Dim text = StringFromLines(
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 TypeParameter("T1"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(541610)>
         Public Async Function TestRegression8394_AliasesShouldBeClassified1() As Task
             Dim text = StringFromLines(
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 [Class]("S"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(541610)>
         Public Async Function TestRegression8394_AliasesShouldBeClassified2() As Task
             Dim text = StringFromLines(
@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 [Interface]("D"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestConstructorNew1() As Task
             Dim text = StringFromLines(
                 "Class C",
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("New"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestConstructorNew2() As Task
             Dim text = StringFromLines(
                 "Class B",
@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("New"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestConstructorNew3() As Task
             Dim text = StringFromLines(
                 "Class C",
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("New"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestConstructorNew4() As Task
             Dim text = StringFromLines(
                 "Class C",
@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("New"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAlias() As Task
             Dim text = StringFromLines(
                 "Imports E = System.Exception",
@@ -220,13 +220,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <WorkItem(542685)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestOptimisticallyColorFromInDeclaration() As Task
             Await TestInExpressionAsync("From ", Keyword("From"))
         End Function
 
         <WorkItem(542685)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestOptimisticallyColorFromInAssignment() As Task
             Await TestInMethodAsync(<text><![CDATA[
                             Dim q = 3
@@ -235,13 +235,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <WorkItem(542685)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDontColorThingsOtherThanFromInDeclaration() As Task
             Await TestInExpressionAsync("Fro ")
         End Function
 
         <WorkItem(542685)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDontColorThingsOtherThanFromInAssignment() As Task
             Await TestInMethodAsync(<text><![CDATA[
                             Dim q = 3
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <WorkItem(542685)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDontColorFromWhenBoundInDeclaration() As Task
             Await TestInMethodAsync(<text><![CDATA[
                             Dim From = 3
@@ -259,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <WorkItem(542685)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestDontColorFromWhenBoundInAssignment() As Task
             Await TestInMethodAsync(<text><![CDATA[
                             Dim From = 3
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             ]]></text>.Value)
         End Function
 
-        <WpfFact, WorkItem(10507, "DevDiv_Projects/Roslyn"), Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, WorkItem(10507, "DevDiv_Projects/Roslyn"), Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestArraysInGetType() As Task
             Await TestInMethodAsync("GetType(System.Exception()",
                          [Class]("Exception"))
@@ -276,14 +276,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                          [Class]("Exception"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestNewOfInterface() As Task
             Await TestInMethodAsync("Dim a = New System.IDisposable()",
                          [Interface]("IDisposable"))
         End Function
 
         <WorkItem(543404)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestNewOfClassWithNoPublicConstructors() As Task
             Dim text = StringFromLines(
                 "Public Class C1",
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword1() As Task
             Dim text =
 <code>
@@ -317,7 +317,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword2() As Task
             Dim text =
 <code>
@@ -333,7 +333,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword3() As Task
             Dim text =
 <code>
@@ -349,7 +349,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword4() As Task
             Dim text =
 <code>
@@ -363,7 +363,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword5() As Task
             Dim text =
 <code>
@@ -377,7 +377,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword6() As Task
             Dim text =
 <code>
@@ -390,7 +390,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestAsyncKeyword7() As Task
             Dim text =
 <code>
@@ -403,7 +403,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword1() As Task
             Dim text =
 <code>
@@ -419,7 +419,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword2() As Task
             Dim text =
 <code>
@@ -435,7 +435,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword3() As Task
             Dim text =
 <code>
@@ -451,7 +451,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword4() As Task
             Dim text =
 <code>
@@ -465,7 +465,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword5() As Task
             Dim text =
 <code>
@@ -479,7 +479,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword6() As Task
             Dim text =
 <code>
@@ -492,7 +492,7 @@ End Class
         End Function
 
         <WorkItem(578145)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIteratorKeyword7() As Task
             Dim text =
 <code>
@@ -504,7 +504,7 @@ End Class
             Await TestAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestMyNamespace() As Task
             Dim text =
 <code>

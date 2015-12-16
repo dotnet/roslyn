@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDe
             return new MoveDeclarationNearReferenceCodeRefactoringProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMove1()
         {
             await TestAsync(
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDe
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMove2()
         {
             await TestAsync(
@@ -33,7 +33,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMove3()
         {
             await TestAsync(
@@ -42,7 +42,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMove4()
         {
             await TestAsync(
@@ -51,7 +51,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestAssign1()
         {
             await TestAsync(
@@ -60,7 +60,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestAssign2()
         {
             await TestAsync(
@@ -69,7 +69,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestAssign3()
         {
             await TestAsync(
@@ -78,7 +78,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMissing1()
         {
             await TestMissingAsync(
@@ -86,14 +86,14 @@ index: 0);
         }
 
         [WorkItem(538424)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMissingWhenReferencedInDeclaration()
         {
             await TestMissingAsync(
 @"class Program { static void Main ( ) { object [ ] [||]x = { x = null } ; x . ToString ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMissingWhenInDeclarationGroup()
         {
             await TestMissingAsync(
@@ -108,7 +108,7 @@ index: 0);
 @"class Program { void M() { { object x; [|object|] } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestFormatting()
         {
             await TestAsync(
@@ -132,7 +132,7 @@ index: 0,
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMissingInHiddenBlock1()
         {
             await TestMissingAsync(
@@ -149,7 +149,7 @@ compareTokens: false);
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMissingInHiddenBlock2()
         {
             await TestMissingAsync(
@@ -167,7 +167,7 @@ compareTokens: false);
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestAvailableInNonHiddenBlock1()
         {
             await TestAsync(
@@ -198,7 +198,7 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestAvailableInNonHiddenBlock2()
         {
             await TestAsync(
@@ -232,7 +232,7 @@ compareTokens: false);
         }
 
         [WorkItem(545435)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestWarnOnChangingScopes1()
         {
             await TestAsync(
@@ -241,7 +241,7 @@ compareTokens: false);
         }
 
         [WorkItem(545435)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestWarnOnChangingScopes2()
         {
             await TestAsync(
@@ -250,7 +250,7 @@ compareTokens: false);
         }
 
         [WorkItem(545840)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task InsertCastIfNecessary1()
         {
             await TestAsync(
@@ -297,7 +297,7 @@ compareTokens: false);
         }
 
         [WorkItem(545835)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task InsertCastIfNecessary2()
         {
             await TestAsync(
@@ -340,7 +340,7 @@ compareTokens: false);
         }
 
         [WorkItem(546267)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task MissingIfNotInDeclarationSpan()
         {
             await TestMissingAsync(

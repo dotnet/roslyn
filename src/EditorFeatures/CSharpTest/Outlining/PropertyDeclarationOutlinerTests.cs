@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     {
         internal override AbstractSyntaxOutliner CreateOutliner() => new PropertyDeclarationOutliner();
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestProperty()
         {
             const string code = @"
@@ -30,7 +30,7 @@ class C
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestPropertyWithLeadingComments()
         {
             const string code = @"
@@ -50,7 +50,7 @@ class C
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestPropertyWithWithExpressionBodyAndComments()
         {
             const string code = @"
