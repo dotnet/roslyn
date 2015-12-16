@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -69,18 +70,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         {
             var asyncToken = EmptyAsyncToken.Instance;
 
-            DateTime now = DateTime.UtcNow;
-            DateTime set = DateTime.UtcNow;
+            Stopwatch watch = Stopwatch.StartNew();
 
             _service.RegisterNotification(() =>
             {
-                set = DateTime.UtcNow;
+                watch.Stop();
                 _done = true;
             }, 50, asyncToken, CancellationToken.None);
 
             await PumpWait();
 
-            Assert.True(set.Subtract(now).TotalMilliseconds > 50);
+            Assert.False(watch.IsRunning);
+            Assert.True(watch.ElapsedMilliseconds >= 50);
             Assert.True(Empty(_service));
         }
 
