@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
+using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -16,11 +17,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         /// <summary>
         /// The list of nodes that represent symbols. The primary key into the sorting of this list is the name.
-        /// They are sorted case-insensitively with the <see cref="s_nodeSortComparer" />. Finding case-sensitive
+        /// They are sorted case-insensitively with the <see cref="s_totalComparer" />. Finding case-sensitive
         /// matches can be found by binary searching for something that matches insensitively, and then searching
         /// around that equivalence class for one that matches.
         /// </summary>
         private readonly IReadOnlyList<Node> _nodes;
+
+        /// <summary>
+        /// The spell checker we use for fuzzy match queries.
+        /// </summary>
+        private readonly SpellChecker _spellChecker;
+
+        private static readonly StringComparer s_caseInsensitiveComparer = CaseInsensitiveComparison.Comparer;
 
         // We first sort in a case insensitive manner.  But, within items that match insensitively, 
         // we then sort in a case sensitive manner.  This helps for searching as we'll walk all 
@@ -30,47 +38,35 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // they're searching for.  However, with this sort of comparison we now get 
         // "prop, prop, Prop, Prop".  Features can take advantage of that by caching their previous
         // result and reusing it when they see they're getting the same string again.
-        private static readonly Comparison<string> s_nodeSortComparer = (s1, s2) =>
+        private static readonly Comparison<string> s_totalComparer = (s1, s2) =>
         {
-            var diff = CaseInsensitiveComparison.Comparer.Compare(s1, s2);
+            var diff = s_caseInsensitiveComparer.Compare(s1, s2);
             return diff != 0
                 ? diff
                 : StringComparer.Ordinal.Compare(s1, s2);
         };
 
-        private static readonly StringComparer s_nodeEquals = CaseInsensitiveComparison.Comparer;
-
-        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes)
+        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, SpellChecker spellChecker)
         {
             _version = version;
             _nodes = orderedNodes;
+            _spellChecker = spellChecker;
         }
 
-        public int Count
-        {
-            get { return _nodes.Count; }
-        }
+        public int Count => _nodes.Count;
 
         public bool HasSymbols(string name, bool ignoreCase)
         {
             return FindNodes(name, GetComparer(ignoreCase)).Any();
         }
 
-        public IEnumerable<ISymbol> Find(IAssemblySymbol assembly, Func<string, bool> predicate, CancellationToken cancellationToken)
+        /// <summary>
+        /// Finds symbols in this assembly that match the provided name in a fuzzy manner.
+        /// </summary>
+        public IEnumerable<ISymbol> FuzzyFind(IAssemblySymbol assembly, string name, CancellationToken cancellationToken)
         {
-            for (int i = 0, n = _nodes.Count; i < n; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var node = _nodes[i];
-                if (predicate(node.Name))
-                {
-                    foreach (var symbol in Bind(i, assembly.GlobalNamespace, cancellationToken))
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        yield return symbol;
-                    }
-                }
-            }
+            var similarNames = _spellChecker.FindSimilarWords(name);
+            return similarNames.SelectMany(n => Find(assembly, n, ignoreCase: true, cancellationToken: cancellationToken));
         }
 
         /// <summary>
@@ -91,6 +87,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     yield return symbol;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Slow, linear scan of all the symbols in this assembly to look for matches.
+        /// </summary>
+        public IEnumerable<ISymbol> Find(IAssemblySymbol assembly, Func<string, bool> predicate, CancellationToken cancellationToken)
+        {
+            for (int i = 0, n = _nodes.Count; i < n; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var node = _nodes[i];
+                if (predicate(node.Name))
+                {
+                    foreach (var symbol in Bind(i, assembly.GlobalNamespace, cancellationToken))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        yield return symbol;
+                    }
                 }
             }
         }
@@ -117,10 +133,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 int position = startingPosition;
-                while (position > 0 && s_nodeEquals.Equals(_nodes[position - 1].Name, name))
+                while (position > 0 && s_caseInsensitiveComparer.Equals(_nodes[position - 1].Name, name))
                 {
                     position--;
-
                     if (comparer.Equals(_nodes[position].Name, name))
                     {
                         yield return position;
@@ -128,7 +143,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 position = startingPosition;
-                while (position + 1 < _nodes.Count && s_nodeEquals.Equals(_nodes[position + 1].Name, name))
+                while (position + 1 < _nodes.Count && s_caseInsensitiveComparer.Equals(_nodes[position + 1].Name, name))
                 {
                     position++;
                     if (comparer.Equals(_nodes[position].Name, name))
@@ -140,7 +155,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// Searches for a name in the ordered list that matches per the <see cref="s_nodeSortComparer" />.
+        /// Searches for a name in the ordered list that matches per the <see cref="s_caseInsensitiveComparer" />.
         /// </summary>
         private int BinarySearch(string name)
         {
@@ -151,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 int mid = min + ((max - min) >> 1);
 
-                var comparison =  s_nodeSortComparer(_nodes[mid].Name, name);
+                var comparison =  s_caseInsensitiveComparer.Compare(_nodes[mid].Name, name);
                 if (comparison < 0)
                 {
                     min = mid + 1;
@@ -221,7 +236,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var list = new List<Node>();
             GenerateNodes(assembly.GlobalNamespace, list);
 
-            return new SymbolTreeInfo(version, SortNodes(list));
+            var spellChecker = new SpellChecker(list.Select(n => n.Name));
+            return new SymbolTreeInfo(version, SortNodes(list), spellChecker);
         }
 
         private static Node[] SortNodes(List<Node> nodes)
@@ -263,7 +279,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static int CompareNodes(Node x, Node y, IReadOnlyList<Node> nodeList)
         {
-            var comp = s_nodeSortComparer(x.Name, y.Name);
+            var comp = s_totalComparer(x.Name, y.Name);
             if (comp == 0)
             {
                 if (x.ParentIndex != y.ParentIndex)
