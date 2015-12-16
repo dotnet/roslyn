@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
     *   1. pipe through options
     *   2. Design an options page to support tweaks to settings
     *       e.g: use var 'except' on primitive types, do not use var 'except' when type is apparent from rhs.
-    *   3. Refactor CSharp and VB implementations to common base class.
+    *   3. Refactoring to common base class.
+    *       a. UseImplicitType and UseExplicitType : AbstractCSharpUseTypingStyle
+    *       b. CSharp and VB implementations to AbstractUseTypingStyle
     */
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -27,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
     {
         // TODO: 
         // 1. localize title and message
-        // 2. tweak severity and custom tags -- need to have various levels of diagnostics to report based on option settings.
+        // 2. tweak severity and custom tags 
+        //      a. need to have various levels of diagnostics to report based on option settings.
         private static readonly DiagnosticDescriptor s_descriptorUseImplicitTyping = new DiagnosticDescriptor(
             id: IDEDiagnosticIds.UseImplicitTypingDiagnosticId,
             title: "Use implicit typing",
@@ -48,15 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
 
         public override void Initialize(AnalysisContext context)
         {
+            // TODO: check for generatedcode and bail.
+            // context.ConfigureGeneratedCodeAnalysis() See https://github.com/dotnet/roslyn/pull/7526
+
             context.RegisterSyntaxNodeAction(HandleVariableDeclaration, SyntaxKind.VariableDeclaration);
             context.RegisterSyntaxNodeAction(HandleForEachStatement, SyntaxKind.ForEachStatement);
-
         }
 
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
-            // TODO: check for generatedcode and bail.
-
             var variableDeclaration = (VariableDeclarationSyntax)context.Node;
 
             // var is applicable only for local variables.
@@ -84,38 +87,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
             }
         }
 
+        // TODO: move this helper to a common place.
         private bool IsTypeApparentFromRHS()
         {
-            // Factory Methods
-            // Generic methods with type parameters but not inferred
             // constructors of form = new TypeSomething();
-            // int.Parse, TextSpan.From static methods?
+            // object creation expression that contains a typename and not an anonymous object creation expression.
+
+            // invocation expression
+            // a. int.Parse, TextSpan.From static methods? 
+            // return type or 1 ref/out type matches some part of identifier name within a dotted name.
+            // also consider Generic method invocation with type parameters *and* not inferred
+            // c. Factory Methods
+
+            throw new NotImplementedException();
+        }
+
+        private bool IntrinsicTypeInDeclaration()
+        {
+            // Add support to not use var in place of intrinsic types
             throw new NotImplementedException();
         }
 
         private void HandleForEachStatement(SyntaxNodeAnalysisContext context)
         {
             var forEachStatement = (ForEachStatementSyntax)context.Node;
-            TextSpan diagnosticSpan;
+            var diagnostic = AnalyzeVariableDeclaration(forEachStatement, context.SemanticModel, context.CancellationToken);
 
-            var diagnostic = IsReplaceableByVar(forEachStatement.Type, context.SemanticModel, context.CancellationToken, out diagnosticSpan)
-                            ? Diagnostic.Create(s_descriptorUseImplicitTyping, forEachStatement.SyntaxTree.GetLocation(diagnosticSpan))
-                            : null;
-            
             // TODO: Check options and bail.
-
             if (diagnostic != null)
             {
                 context.ReportDiagnostic(diagnostic);
             }
         }
 
-        private Diagnostic AnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private Diagnostic AnalyzeVariableDeclaration(SyntaxNode declarationStatement,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
         {
             TextSpan diagnosticSpan;
+            TypeSyntax declaredType;
 
-            return IsReplaceableByVar(variableDeclaration.Type, semanticModel, cancellationToken, out diagnosticSpan)
-                ? Diagnostic.Create(s_descriptorUseImplicitTyping, variableDeclaration.SyntaxTree.GetLocation(diagnosticSpan))
+            if (declarationStatement.IsKind(SyntaxKind.VariableDeclaration))
+            {
+                declaredType = ((VariableDeclarationSyntax)declarationStatement).Type;
+            }
+            else if (declarationStatement.IsKind(SyntaxKind.ForEachStatement))
+            {
+                declaredType = ((ForEachStatementSyntax)declarationStatement).Type;
+            }
+            else
+            {
+                Debug.Assert(false, $"unhandled kind {declarationStatement.Kind().ToString()}");
+                return null;
+            }
+
+            return IsReplaceableByVar(declaredType, semanticModel, cancellationToken, out diagnosticSpan)
+                ? Diagnostic.Create(s_descriptorUseImplicitTyping, declarationStatement.SyntaxTree.GetLocation(diagnosticSpan))
                 : null;
         }
 
@@ -155,7 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
                     return false;
                 }
 
-                if (CheckAssignment(typeName, variableDeclaration.Variables.Single().Initializer, semanticModel, cancellationToken))
+                var variable = variableDeclaration.Variables.Single();
+                if (CheckAssignment(variable.Identifier, typeName, variable.Initializer, semanticModel, cancellationToken))
                 {
                     issueSpan = candidateIssueSpan;
                 }
@@ -168,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
             return issueSpan != default(TextSpan);
         }
 
-        private bool CheckAssignment(TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private bool CheckAssignment(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // var cannot be assigned null
             if (initializer.IsKind(SyntaxKind.NullLiteralExpression))
@@ -178,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
 
             // cannot use implicit typing on method group, anonymous function or on dynamic
             var declaredType = semanticModel.GetTypeInfo(typeName, cancellationToken).Type;
-            if (declaredType != null && 
+            if (declaredType != null &&
                     (declaredType.TypeKind == TypeKind.Delegate ||
                      declaredType.TypeKind == TypeKind.Dynamic))
             {
@@ -195,9 +223,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
 
             if (implicitlyConverted)
             {
+                return false;
                 // TODO, based on tests.
                 /*
-                *    string[] strings = { "a", "b" }; // doesn't work here. check all array initialization expressions.
+                *    object obj = 1;
                 */
             }
             else
@@ -211,7 +240,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
                 }
             }
 
-            // TODO: check for compound assignments? Not necessary because they do not have an EqualsValueClause?
+            // variables declared using var cannot be used further in the same initialization expression.
+            if (initializer.DescendantNodesAndSelf()
+                    .Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText.Equals(identifier.ValueText))
+                    .Any(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol?.IsKind(SymbolKind.Local) ?? false))
+            {
+                return false;
+            }
+
             return true;
         }
 

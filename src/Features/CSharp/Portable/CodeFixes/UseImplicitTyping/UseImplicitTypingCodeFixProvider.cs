@@ -26,8 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
             var span = context.Span;
             var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            var node = root.FindToken(span.Start).GetAncestors<SyntaxNode>().First(n => n.Span.Contains(span));
-            if (!(node.IsKind(SyntaxKind.PredefinedType) ||
+            var token = root.FindToken(span.Start);
+            if (!token.Span.IntersectsWith(span))
+            {
+                return;
+            }
+
+            var node = token.GetAncestors<SyntaxNode>().First(n => n.Span.Contains(span));
+            if (node == null ||
+                !(node.IsKind(SyntaxKind.PredefinedType) ||
                   node.IsKind(SyntaxKind.ArrayType) ||
                   node.IsKind(SyntaxKind.IdentifierName) ||
                   node.IsKind(SyntaxKind.GenericName) || 
