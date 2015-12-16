@@ -661,7 +661,7 @@ namespace System.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddEncLogEntry(int token, EncFuncCode code)
+        public void AddEncLogEntry(int token, EditAndContinueOperation code)
         {
             _encLogTable.Add(new EncLogRow
             {
