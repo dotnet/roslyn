@@ -771,10 +771,10 @@ struct S2
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default(CL1)").WithLocation(296, 15),
     // (301,19): warning CS8207: Expression is probably never null.
     //         var y32 = new CL1() ?? x32;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new CL1()").WithLocation(301, 19),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new CL1()").WithLocation(301, 19),
     // (306,19): warning CS8207: Expression is probably never null.
     //         var y33 = new { p = (object)null } ?? x33;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new { p = (object)null }").WithLocation(306, 19)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new { p = (object)null }").WithLocation(306, 19)
                 );
         }
 
@@ -1342,7 +1342,7 @@ public struct S2
     Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y11.F1").WithLocation(63, 16),
     // (70,16): warning CS8207: Expression is probably never null.
     //         return y12.F1 ?? new object(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "y12.F1").WithLocation(70, 16)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y12.F1").WithLocation(70, 16)
                 );
         }
 
@@ -1409,22 +1409,22 @@ class C
             c.VerifyDiagnostics(
     // (21,21): warning CS8207: Expression is probably never null.
     //         object z2 = x2 ?? new object();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2").WithLocation(21, 21),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(21, 21),
     // (26,22): warning CS8207: Expression is probably never null.
     //         object? x3 = M3() ?? M2();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(26, 22),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(26, 22),
     // (27,21): warning CS8207: Expression is probably never null.
     //         object z3 = x3 ?? new object();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x3").WithLocation(27, 21),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x3").WithLocation(27, 21),
     // (39,21): warning CS8201: Possible null reference assignment.
     //         object x5 = M2() ?? M2();
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M2() ?? M2()").WithLocation(39, 21),
     // (44,22): warning CS8207: Expression is probably never null.
     //         object? x6 = M3() ?? M3();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(44, 22),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(44, 22),
     // (45,21): warning CS8207: Expression is probably never null.
     //         object z6 = x6 ?? new object();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x6").WithLocation(45, 21)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x6").WithLocation(45, 21)
                 );
         }
 
@@ -1473,13 +1473,13 @@ class C
             c.VerifyDiagnostics(
     // (20,22): warning CS8207: Expression is probably never null.
     //         object? x2 = M3() ?? CL0.M1();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(20, 22),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(20, 22),
     // (21,21): warning CS8207: Expression is probably never null.
     //         object z2 = x2 ?? new object();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2").WithLocation(21, 21),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(21, 21),
     // (27,21): warning CS8207: Expression is probably never null.
     //         object z3 = x3 ?? new object();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x3").WithLocation(27, 21)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x3").WithLocation(27, 21)
                 );
         }
 
@@ -1554,7 +1554,7 @@ class C
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M2() : M2()").WithLocation(38, 22),
     // (44,21): warning CS8207: Expression is probably never null.
     //         object z6 = x6 ?? new object();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x6").WithLocation(44, 21)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x6").WithLocation(44, 21)
                 );
         }
 
@@ -1689,7 +1689,7 @@ class C
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x5").WithLocation(46, 21),
     // (53,21): warning CS8207: Expression is probably never null.
     //         object z6 = x6 ?? new object();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x6").WithLocation(53, 21)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x6").WithLocation(53, 21)
                 );
         }
 
@@ -1881,7 +1881,7 @@ class CL2
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y4").WithLocation(48, 18),
     // (58,13): warning CS8205: Result of the comparison is possibly always true.
     //         if (y5 != null)
-    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysTrue, "y5 != null").WithLocation(58, 13)
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "y5 != null").WithLocation(58, 13)
                 );
         }
 
@@ -1984,7 +1984,7 @@ class CL2
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y4").WithLocation(48, 18),
     // (58,13): warning CS8206: Result of the comparison is possibly always false.
     //         if (null == y5)
-    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse, "null == y5").WithLocation(58, 13)
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "null == y5").WithLocation(58, 13)
                 );
         }
 
@@ -2120,10 +2120,10 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2 ?? x2").WithLocation(15, 18),
     // (20,18): warning CS8207: Expression is probably never null.
     //         CL1 z3 = x3 ?? y3;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x3").WithLocation(20, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x3").WithLocation(20, 18),
     // (26,18): warning CS8207: Expression is probably never null.
     //         CL1 z4 = x4 ?? x4.M1();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x4").WithLocation(26, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(26, 18),
     // (26,24): warning CS8202: Possible dereference of a null reference.
     //         CL1 z4 = x4 ?? x4.M1();
     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(26, 24)
@@ -2177,10 +2177,10 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1?.M1()").WithLocation(10, 18),
     // (16,18): warning CS8207: Expression is probably never null.
     //         CL1 z2 = x2?.M1();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2").WithLocation(16, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(16, 18),
     // (22,18): warning CS8207: Expression is probably never null.
     //         CL1 z3 = x3?.M2();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x3").WithLocation(22, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x3").WithLocation(22, 18),
     // (22,18): warning CS8201: Possible null reference assignment.
     //         CL1 z3 = x3?.M2();
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3?.M2()").WithLocation(22, 18)
@@ -2250,19 +2250,19 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2 != null ? y2 : x2").WithLocation(15, 18),
     // (20,18): warning CS8205: Result of the comparison is possibly always true.
     //         CL1 z3 = x3 != null ? x3 : y3;
-    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysTrue, "x3 != null").WithLocation(20, 18),
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "x3 != null").WithLocation(20, 18),
     // (20,18): warning CS8201: Possible null reference assignment.
     //         CL1 z3 = x3 != null ? x3 : y3;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3 != null ? x3 : y3").WithLocation(20, 18),
     // (26,18): warning CS8205: Result of the comparison is possibly always true.
     //         CL1 z4 = x4 != null ? x4 : x4.M1();
-    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysTrue, "x4 != null").WithLocation(26, 18),
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "x4 != null").WithLocation(26, 18),
     // (26,36): warning CS8202: Possible dereference of a null reference.
     //         CL1 z4 = x4 != null ? x4 : x4.M1();
     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(26, 36),
     // (38,21): warning CS8205: Result of the comparison is possibly always true.
     //         string z6 = y6 != null ? y6 : x6.M2();
-    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysTrue, "y6 != null").WithLocation(38, 21),
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "y6 != null").WithLocation(38, 21),
     // (44,21): warning CS8201: Possible null reference assignment.
     //         string z7 = y7 != null ? y7 : x7.M2();
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y7 != null ? y7 : x7.M2()").WithLocation(44, 21)
@@ -2332,19 +2332,19 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2 == null ? x2 : y2").WithLocation(15, 18),
     // (20,18): warning CS8206: Result of the comparison is possibly always false.
     //         CL1 z3 = x3 == null ? y3 : x3;
-    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse, "x3 == null").WithLocation(20, 18),
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "x3 == null").WithLocation(20, 18),
     // (20,18): warning CS8201: Possible null reference assignment.
     //         CL1 z3 = x3 == null ? y3 : x3;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3 == null ? y3 : x3").WithLocation(20, 18),
     // (26,18): warning CS8206: Result of the comparison is possibly always false.
     //         CL1 z4 = x4 == null ? x4.M1() : x4;
-    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse, "x4 == null").WithLocation(26, 18),
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "x4 == null").WithLocation(26, 18),
     // (26,31): warning CS8202: Possible dereference of a null reference.
     //         CL1 z4 = x4 == null ? x4.M1() : x4;
     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(26, 31),
     // (38,21): warning CS8206: Result of the comparison is possibly always false.
     //         string z6 = y6 == null ? x6.M2() : y6;
-    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse, "y6 == null").WithLocation(38, 21),
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "y6 == null").WithLocation(38, 21),
     // (44,21): warning CS8201: Possible null reference assignment.
     //         string z7 = y7 == null ? x7.M2() : y7;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y7 == null ? x7.M2() : y7").WithLocation(44, 21)
@@ -2406,7 +2406,7 @@ class C
             c.VerifyDiagnostics(
     // (12,21): warning CS8207: Expression is probably never null.
     //         object z1 = y1 ?? x1;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "y1").WithLocation(12, 21)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y1").WithLocation(12, 21)
                 );
         }
 
@@ -2433,7 +2433,7 @@ class C
             c.VerifyDiagnostics(
     // (12,21): warning CS8205: Result of the comparison is possibly always true.
     //         object z1 = y1 != null ? y1 : x1;
-    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysTrue, "y1 != null").WithLocation(12, 21)
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "y1 != null").WithLocation(12, 21)
                 );
         }
 
@@ -2460,7 +2460,7 @@ class C
             c.VerifyDiagnostics(
     // (12,9): warning CS8207: Expression is probably never null.
     //         y1?.GetHashCode();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "y1").WithLocation(12, 9)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y1").WithLocation(12, 9)
                 );
         }
 
@@ -2496,7 +2496,7 @@ class C
             c.VerifyDiagnostics(
     // (13,13): warning CS8206: Result of the comparison is possibly always false.
     //         if (y1 == null)
-    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse, "y1 == null").WithLocation(13, 13)
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "y1 == null").WithLocation(13, 13)
                 );
         }
 
@@ -2613,10 +2613,10 @@ class CL1
             c.VerifyDiagnostics(
     // (11,13): warning CS8206: Result of the comparison is possibly always false.
     //         if (x1 == null) {} // 1
-    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse, "x1 == null").WithLocation(11, 13),
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "x1 == null").WithLocation(11, 13),
     // (23,13): warning CS8206: Result of the comparison is possibly always false.
     //         if (x2 == null) {} // 1
-    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse, "x2 == null").WithLocation(23, 13)
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "x2 == null").WithLocation(23, 13)
                 );
         }
 
@@ -3015,13 +3015,13 @@ struct S2
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2.F1").WithLocation(22, 14),
     // (34,14): warning CS8207: Expression is probably never null.
     //         x4 = y4.F2.F1 ?? x4;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "y4.F2.F1").WithLocation(34, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y4.F2.F1").WithLocation(34, 14),
     // (35,14): warning CS8201: Possible null reference assignment.
     //         x4 = y4.F2.F3;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y4.F2.F3").WithLocation(35, 14),
     // (42,14): warning CS8207: Expression is probably never null.
     //         x5 = u5.F1 ?? x5;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u5.F1").WithLocation(42, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u5.F1").WithLocation(42, 14),
     // (43,14): warning CS8201: Possible null reference assignment.
     //         x5 = u5.F3;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u5.F3").WithLocation(43, 14)
@@ -3215,10 +3215,10 @@ struct S2
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "new S1().F1").WithLocation(9, 14),
     // (19,14): warning CS8207: Expression is probably never null.
     //         x3 = new S1() {F1 = x3}.F1 ?? x3;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new S1() {F1 = x3}.F1").WithLocation(19, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new S1() {F1 = x3}.F1").WithLocation(19, 14),
     // (29,14): warning CS8207: Expression is probably never null.
     //         x5 = new S2().F2 ?? x5;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new S2().F2").WithLocation(29, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new S2().F2").WithLocation(29, 14)
                 );
         }
 
@@ -3377,73 +3377,73 @@ struct S1
             c.VerifyDiagnostics(
     // (10,14): warning CS8207: Expression is probably never null.
     //         x1 = y1.p1 ?? x1;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "y1.p1").WithLocation(10, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y1.p1").WithLocation(10, 14),
     // (11,14): warning CS8201: Possible null reference assignment.
     //         x1 = y1.p2;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1.p2").WithLocation(11, 14),
     // (19,14): warning CS8207: Expression is probably never null.
     //         x2 = u2.p2 ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u2.p2").WithLocation(19, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u2.p2").WithLocation(19, 14),
     // (20,14): warning CS8201: Possible null reference assignment.
     //         x2 = u2.p1;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u2.p1").WithLocation(20, 14),
     // (21,14): warning CS8207: Expression is probably never null.
     //         x2 = v2.p2 ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "v2.p2").WithLocation(21, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "v2.p2").WithLocation(21, 14),
     // (22,14): warning CS8201: Possible null reference assignment.
     //         x2 = v2.p1;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "v2.p1").WithLocation(22, 14),
     // (29,14): warning CS8207: Expression is probably never null.
     //         x3 = v3.p1 ?? x3;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "v3.p1").WithLocation(29, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "v3.p1").WithLocation(29, 14),
     // (30,14): warning CS8201: Possible null reference assignment.
     //         x3 = v3.p2;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "v3.p2").WithLocation(30, 14),
     // (38,14): warning CS8207: Expression is probably never null.
     //         x4 = u4.p0.p2 ?? x4;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4.p0.p2").WithLocation(38, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4.p0.p2").WithLocation(38, 14),
     // (39,14): warning CS8201: Possible null reference assignment.
     //         x4 = u4.p0.p1;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u4.p0.p1").WithLocation(39, 14),
     // (40,14): warning CS8207: Expression is probably never null.
     //         x4 = v4.p0.p2 ?? x4;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "v4.p0.p2").WithLocation(40, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "v4.p0.p2").WithLocation(40, 14),
     // (41,14): warning CS8201: Possible null reference assignment.
     //         x4 = v4.p0.p1;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "v4.p0.p1").WithLocation(41, 14),
     // (48,14): warning CS8207: Expression is probably never null.
     //         x5 = v5.p0.p1 ?? x5;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "v5.p0.p1").WithLocation(48, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "v5.p0.p1").WithLocation(48, 14),
     // (49,14): warning CS8201: Possible null reference assignment.
     //         x5 = v5.p0.p2;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "v5.p0.p2").WithLocation(49, 14),
     // (56,14): warning CS8207: Expression is probably never null.
     //         x6 = v6.p1 ?? x6;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "v6.p1").WithLocation(56, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "v6.p1").WithLocation(56, 14),
     // (57,14): warning CS8201: Possible null reference assignment.
     //         x6 = v6.p2;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "v6.p2").WithLocation(57, 14),
     // (65,14): warning CS8207: Expression is probably never null.
     //         x7 = u7.p0.p2 ?? x7;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u7.p0.p2").WithLocation(65, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u7.p0.p2").WithLocation(65, 14),
     // (66,14): warning CS8201: Possible null reference assignment.
     //         x7 = u7.p0.p1;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u7.p0.p1").WithLocation(66, 14),
     // (67,14): warning CS8207: Expression is probably never null.
     //         x7 = v7.p0.p2 ?? x7;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "v7.p0.p2").WithLocation(67, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "v7.p0.p2").WithLocation(67, 14),
     // (68,14): warning CS8201: Possible null reference assignment.
     //         x7 = v7.p0.p1;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "v7.p0.p1").WithLocation(68, 14),
     // (75,14): warning CS8207: Expression is probably never null.
     //         x8 = v8.p0.p1 ?? x8;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "v8.p0.p1").WithLocation(75, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "v8.p0.p1").WithLocation(75, 14),
     // (76,14): warning CS8201: Possible null reference assignment.
     //         x8 = v8.p0.p2;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "v8.p0.p2").WithLocation(76, 14),
     // (83,14): warning CS8207: Expression is probably never null.
     //         x9 = v9.p1 ?? x9;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "v9.p1").WithLocation(83, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "v9.p1").WithLocation(83, 14),
     // (84,14): warning CS8201: Possible null reference assignment.
     //         x9 = v9.p2;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "v9.p2").WithLocation(84, 14),
@@ -3539,7 +3539,7 @@ class CL1
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
     //         x3 = new {F1 = x3}.F1 ?? x3;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new {F1 = x3}.F1").WithLocation(14, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new {F1 = x3}.F1").WithLocation(14, 14)
                 );
         }
 
@@ -3567,7 +3567,7 @@ class C
             c.VerifyDiagnostics(
     // (14,9): warning CS8207: Expression is probably never null.
     //         this?.Test1();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "this").WithLocation(14, 9)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "this").WithLocation(14, 9)
                 );
         }
 
@@ -3743,7 +3743,7 @@ struct S1
     Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "P2").WithArguments("P2").WithLocation(22, 14),
     // (56,14): warning CS8207: Expression is probably never null.
     //         x5 = P5.F1 ?? x5;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "P5.F1").WithLocation(56, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "P5.F1").WithLocation(56, 14)
                 );
         }
 
@@ -4569,7 +4569,7 @@ class C
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
     //         x2 = new T2() ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new T2()").WithLocation(14, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new T2()").WithLocation(14, 14)
                 );
         }
 
@@ -4603,7 +4603,7 @@ class CL0
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
     //         x2 = new CL0((dynamic)0) ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new CL0((dynamic)0)").WithLocation(14, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new CL0((dynamic)0)").WithLocation(14, 14)
                 );
         }
 
@@ -4646,7 +4646,7 @@ class CL0
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
     //         x2 = x2[(dynamic)0] ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2[(dynamic)0]").WithLocation(14, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2[(dynamic)0]").WithLocation(14, 14)
                 );
         }
 
@@ -4818,7 +4818,7 @@ class CL0
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
     //         x2 = x2[(dynamic)0] ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2[(dynamic)0]").WithLocation(14, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2[(dynamic)0]").WithLocation(14, 14)
                 );
         }
 
@@ -4861,7 +4861,7 @@ class CL0
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
     //         x2 = x2[(dynamic)0] ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2[(dynamic)0]").WithLocation(14, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2[(dynamic)0]").WithLocation(14, 14)
                 );
         }
 
@@ -5066,7 +5066,7 @@ class CL0
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
     //         x2 = x2.M1((dynamic)0) ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2.M1((dynamic)0)").WithLocation(14, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2.M1((dynamic)0)").WithLocation(14, 14)
                 );
         }
 
@@ -5230,7 +5230,7 @@ class CL0
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
     //         x2 = x2.M1((dynamic)0) ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2.M1((dynamic)0)").WithLocation(14, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2.M1((dynamic)0)").WithLocation(14, 14)
                 );
         }
 
@@ -5271,7 +5271,7 @@ class CL0
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
     //         x2 = x2.M1((dynamic)0) ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2.M1((dynamic)0)").WithLocation(14, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2.M1((dynamic)0)").WithLocation(14, 14)
                 );
         }
 
@@ -5451,7 +5451,7 @@ class CL0
             c.VerifyDiagnostics(
     // (16,18): warning CS8207: Expression is probably never null.
     //         CL0 z2 = new CL0(x2) ?? y2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new CL0(x2)").WithLocation(16, 18)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new CL0(x2)").WithLocation(16, 18)
                 );
         }
 
@@ -5481,7 +5481,7 @@ class C
             c.VerifyDiagnostics(
     // (16,14): warning CS8207: Expression is probably never null.
     //         x2 = z2 ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "z2").WithLocation(16, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z2").WithLocation(16, 14)
                 );
         }
 
@@ -5510,7 +5510,7 @@ class C
             c.VerifyDiagnostics(
     // (15,14): warning CS8207: Expression is probably never null.
     //         x2 = $"{y2}" ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, @"$""{y2}""").WithLocation(15, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, @"$""{y2}""").WithLocation(15, 14)
                 );
         }
 
@@ -5539,7 +5539,7 @@ class C
             c.VerifyDiagnostics(
     // (15,14): warning CS8207: Expression is probably never null.
     //         x2 = new System.Action(Main) ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new System.Action(Main)").WithLocation(15, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new System.Action(Main)").WithLocation(15, 14)
                 );
         }
 
@@ -5594,7 +5594,7 @@ class C
             c.VerifyDiagnostics(
     // (15,14): warning CS8207: Expression is probably never null.
     //         x2 = typeof(C) ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "typeof(C)").WithLocation(15, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "typeof(C)").WithLocation(15, 14)
                 );
         }
 
@@ -5647,7 +5647,7 @@ class C
             c.VerifyDiagnostics(
     // (15,21): warning CS8207: Expression is probably never null.
     //         string z2 = x2 + y2 ?? "";
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2 + y2").WithLocation(15, 21)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2 + y2").WithLocation(15, 21)
                 );
         }
 
@@ -5748,7 +5748,7 @@ class CL2
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y1").WithArguments("y", "CL0 CL0.operator +(string x, CL0 y)").WithLocation(10, 24),
     // (11,18): warning CS8207: Expression is probably never null.
     //         CL0 u1 = z1 ?? new CL0();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "z1").WithLocation(11, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z1").WithLocation(11, 18),
     // (16,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL1.operator +(string x, CL1 y)'.
     //         CL1 z2 = x2 + y2;
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL1 CL1.operator +(string x, CL1 y)").WithLocation(16, 18),
@@ -5818,7 +5818,7 @@ class CL0
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z1").WithLocation(11, 18),
     // (17,18): warning CS8207: Expression is probably never null.
     //         CL0 u2 = z2 ?? new CL0();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "z2").WithLocation(17, 18)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z2").WithLocation(17, 18)
                 );
         }
 
@@ -6147,13 +6147,13 @@ class C
             c.VerifyDiagnostics(
     // (15,28): warning CS8207: Expression is probably never null.
     //         System.Action u2 = x2 + y2 ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2 + y2").WithLocation(15, 28),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2 + y2").WithLocation(15, 28),
     // (25,28): warning CS8207: Expression is probably never null.
     //         System.Action u4 = x4 + y4 ?? y4;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x4 + y4").WithLocation(25, 28),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4 + y4").WithLocation(25, 28),
     // (35,28): warning CS8207: Expression is probably never null.
     //         System.Action u6 = x6 + y6 ?? x6;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x6 + y6").WithLocation(35, 28),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x6 + y6").WithLocation(35, 28),
     // (40,28): warning CS8201: Possible null reference assignment.
     //         System.Action u7 = x7 + y7;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x7 + y7").WithLocation(40, 28),
@@ -6448,13 +6448,13 @@ class CL4 : CL3 {}
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(22, 18),
     // (28,18): warning CS8207: Expression is probably never null.
     //         CL3 v4 = u4 ?? new CL3();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4").WithLocation(28, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4").WithLocation(28, 18),
     // (44,22): warning CS8201: Possible null reference assignment.
     //         dynamic u7 = x7;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x7").WithLocation(44, 22),
     // (50,22): warning CS8207: Expression is probably never null.
     //         dynamic v8 = u8 ?? x8;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u8").WithLocation(50, 22),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u8").WithLocation(50, 22),
     // (55,21): warning CS8201: Possible null reference assignment.
     //         object u9 = x9;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x9").WithLocation(55, 21),
@@ -6469,13 +6469,13 @@ class CL4 : CL3 {}
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(CL4)x12").WithLocation(70, 19),
     // (76,22): warning CS8207: Expression is probably never null.
     //         object v13 = u13 ?? new object();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u13").WithLocation(76, 22),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u13").WithLocation(76, 22),
     // (87,22): warning CS8201: Possible null reference assignment.
     //         object u15 = x15;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x15").WithLocation(87, 22),
     // (93,22): warning CS8207: Expression is probably never null.
     //         object v16 = u16 ?? new object();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u16").WithLocation(93, 22)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u16").WithLocation(93, 22)
                 );
         }
 
@@ -6545,10 +6545,10 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(10, 21),
     // (11,18): warning CS8207: Expression is probably never null.
     //         CL0 v1 = u1 ?? new CL0(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
     // (12,18): warning CS8207: Expression is probably never null.
     //         CL0 w1 = x1 ?? new CL0(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18),
     // (16,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
     //         CL0 u2 = x2++;
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(16, 18),
@@ -6557,7 +6557,7 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2++").WithLocation(16, 18),
     // (17,18): warning CS8207: Expression is probably never null.
     //         CL0 v2 = x2 ?? new CL0();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2").WithLocation(17, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(17, 18),
     // (21,18): warning CS8201: Possible null reference assignment.
     //         CL1 u3 = --x3;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x3").WithLocation(21, 18),
@@ -6569,10 +6569,10 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4--").WithLocation(26, 19),
     // (27,18): warning CS8207: Expression is probably never null.
     //         CL1 v4 = u4 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 18),
     // (28,18): warning CS8207: Expression is probably never null.
     //         CL1 w4 = x4 ?? new CL1();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x4").WithLocation(28, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(28, 18),
     // (32,18): warning CS8201: Possible null reference assignment.
     //         CL1 u5 = --x5;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5").WithLocation(32, 18),
@@ -6652,7 +6652,7 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(10, 21),
     // (11,18): warning CS8207: Expression is probably never null.
     //         CL0 v1 = u1 ?? new CL0(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
     // (16,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
     //         CL0 u2 = x2++;
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(16, 18),
@@ -6667,7 +6667,7 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4--").WithLocation(26, 19),
     // (27,18): warning CS8207: Expression is probably never null.
     //         CL1 v4 = u4 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 18),
     // (32,18): warning CS8201: Possible null reference assignment.
     //         CL1 u5 = --x5;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5").WithLocation(32, 18),
@@ -6765,7 +6765,7 @@ class X4
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1[0]").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(10, 21),
     // (11,18): warning CS8207: Expression is probably never null.
     //         CL0 v1 = u1 ?? new CL0(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
     // (16,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
     //         CL0 u2 = x2[0]++;
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2[0]").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(16, 18),
@@ -6780,7 +6780,7 @@ class X4
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4[0]--").WithLocation(26, 19),
     // (27,18): warning CS8207: Expression is probably never null.
     //         CL1 v4 = u4 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 18),
     // (32,18): warning CS8201: Possible null reference assignment.
     //         CL1 u5 = --x5[0];
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5[0]").WithLocation(32, 18),
@@ -6835,7 +6835,7 @@ class C
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2++").WithLocation(16, 22),
     // (27,22): warning CS8207: Expression is probably never null.
     //         dynamic v4 = u4 ?? new object(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 22)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 22)
                 );
         }
 
@@ -6886,7 +6886,7 @@ class B : A
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "++x1").WithArguments("x", "C.implicit operator B(C x)").WithLocation(10, 17),
     // (11,16): warning CS8207: Expression is probably never null.
     //         B v1 = u1 ?? new B(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 16)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 16)
                 );
         }
 
@@ -6984,7 +6984,7 @@ class Convertible
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("c", "Convertible.implicit operator int(Convertible c)").WithLocation(10, 29),
     // (11,26): warning CS8207: Expression is probably never null.
     //         Convertible v1 = u1 ?? new Convertible(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 26)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 26)
                 );
         }
 
@@ -7029,10 +7029,10 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(10, 19),
     // (11,18): warning CS8207: Expression is probably never null.
     //         CL1 v1 = u1 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
     // (12,18): warning CS8207: Expression is probably never null.
     //         CL1 w1 = x1 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18)
                 );
         }
 
@@ -7077,10 +7077,10 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y1").WithArguments("y", "CL1 CL0.operator +(CL0 x, CL0 y)").WithLocation(10, 25),
     // (11,18): warning CS8207: Expression is probably never null.
     //         CL1 v1 = u1 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
     // (12,18): warning CS8207: Expression is probably never null.
     //         CL1 w1 = x1 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18)
                 );
         }
 
@@ -7145,10 +7145,10 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL1 CL0.operator +(CL0 x, CL0 y)").WithLocation(10, 19),
     // (11,18): warning CS8207: Expression is probably never null.
     //         CL1 v1 = u1 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
     // (12,18): warning CS8207: Expression is probably never null.
     //         CL1 w1 = x1 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18),
     // (17,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL0.operator +(CL0 x, CL0 y)'.
     //         CL0 u2 = x2 += y2;
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL1 CL0.operator +(CL0 x, CL0 y)").WithLocation(17, 18),
@@ -7253,10 +7253,10 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4 += y4").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(29, 19),
     // (30,18): warning CS8207: Expression is probably never null.
     //         CL0 v4 = u4 ?? new CL0(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4").WithLocation(30, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4").WithLocation(30, 18),
     // (31,18): warning CS8207: Expression is probably never null.
     //         CL0 w4 = x4 ?? new CL0(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x4").WithLocation(31, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(31, 18),
     // (36,9): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
     //         x5 += y5;
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x5 += y5").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(36, 9)
@@ -7352,13 +7352,13 @@ class CL1
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(10, 19),
     // (11,18): warning CS8207: Expression is probably never null.
     //         CL1 v1 = u1 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
     // (18,18): warning CS8207: Expression is probably never null.
     //         CL1 v2 = u2 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u2").WithLocation(18, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u2").WithLocation(18, 18),
     // (19,18): warning CS8207: Expression is probably never null.
     //         CL1 w2 = x2 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2").WithLocation(19, 18)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(19, 18)
                 );
         }
 
@@ -7428,13 +7428,13 @@ class CL3
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1[0]").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(10, 19),
     // (11,18): warning CS8207: Expression is probably never null.
     //         CL1 v1 = u1 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
     // (18,18): warning CS8207: Expression is probably never null.
     //         CL1 v2 = u2 ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u2").WithLocation(18, 18),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u2").WithLocation(18, 18),
     // (19,18): warning CS8207: Expression is probably never null.
     //         CL1 w2 = x2[0] ?? new CL1(); 
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2[0]").WithLocation(19, 18)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2[0]").WithLocation(19, 18)
                 );
         }
 
@@ -7555,16 +7555,16 @@ struct TS1
             c.VerifyDiagnostics(
     // (16,28): warning CS8207: Expression is probably never null.
     //         System.Action y1 = E1 ?? x1;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "E1").WithLocation(16, 28),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "E1").WithLocation(16, 28),
     // (20,14): warning CS8207: Expression is probably never null.
     //         y1 = z1.E1 ?? x1;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "z1.E1").WithLocation(20, 14),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z1.E1").WithLocation(20, 14),
     // (27,28): warning CS8207: Expression is probably never null.
     //         System.Action y3 = s3.E1 ?? x3;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "s3.E1").WithLocation(27, 28),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "s3.E1").WithLocation(27, 28),
     // (31,14): warning CS8207: Expression is probably never null.
     //         y3 = z3.E1 ?? x3;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "z3.E1").WithLocation(31, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z3.E1").WithLocation(31, 14)
                 );
         }
 
@@ -7727,10 +7727,10 @@ class CL1 {}
             c.VerifyDiagnostics(
     // (10,21): warning CS8207: Expression is probably never null.
     //         object y1 = x1 as object ?? new object();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x1 as object").WithLocation(10, 21),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1 as object").WithLocation(10, 21),
     // (15,21): warning CS8207: Expression is probably never null.
     //         object y2 = x2 as object ?? new object();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2 as object").WithLocation(15, 21),
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2 as object").WithLocation(15, 21),
     // (20,21): warning CS8201: Possible null reference assignment.
     //         object y3 = x3 as object;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3 as object").WithLocation(20, 21),
@@ -7781,7 +7781,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics(
     // (10,20): warning CS8207: Expression is probably never null.
     //         object x = await new D() ?? new object();
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "await new D()").WithLocation(10, 20)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "await new D()").WithLocation(10, 20)
                 );
         }
 
@@ -7874,7 +7874,7 @@ class UsePia
             compilation.VerifyDiagnostics(
     // (15,14): warning CS8207: Expression is probably never null.
     //         x2 = new ITest28() ?? x2;
-    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new ITest28()").WithLocation(15, 14)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new ITest28()").WithLocation(15, 14)
                 );
         }
 

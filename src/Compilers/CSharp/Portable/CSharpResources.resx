@@ -4714,22 +4714,22 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullReferenceArgument_Title" xml:space="preserve">
     <value>Possible null reference argument.</value>
   </data>
-  <data name="WRN_NullCheckIsProbablyAlwaysTrue" xml:space="preserve">
+  <data name="HDN_NullCheckIsProbablyAlwaysTrue" xml:space="preserve">
     <value>Result of the comparison is possibly always true.</value>
   </data>
-  <data name="WRN_NullCheckIsProbablyAlwaysTrue_Title" xml:space="preserve">
+  <data name="HDN_NullCheckIsProbablyAlwaysTrue_Title" xml:space="preserve">
     <value>Result of the comparison is possibly always true.</value>
   </data>
-  <data name="WRN_NullCheckIsProbablyAlwaysFalse" xml:space="preserve">
+  <data name="HDN_NullCheckIsProbablyAlwaysFalse" xml:space="preserve">
     <value>Result of the comparison is possibly always false.</value>
   </data>
-  <data name="WRN_NullCheckIsProbablyAlwaysFalse_Title" xml:space="preserve">
+  <data name="HDN_NullCheckIsProbablyAlwaysFalse_Title" xml:space="preserve">
     <value>Result of the comparison is possibly always false.</value>
   </data>
-  <data name="WRN_ExpressionIsProbablyNeverNull" xml:space="preserve">
+  <data name="HDN_ExpressionIsProbablyNeverNull" xml:space="preserve">
     <value>Expression is probably never null.</value>
   </data>
-  <data name="WRN_ExpressionIsProbablyNeverNull_Title" xml:space="preserve">
+  <data name="HDN_ExpressionIsProbablyNeverNull_Title" xml:space="preserve">
     <value>Expression is probably never null.</value>
   </data>
 </root>

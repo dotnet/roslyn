@@ -1327,8 +1327,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceReceiver = 8202,
         WRN_NullReferenceReturn = 8203,
         WRN_NullReferenceArgument = 8204,
-        WRN_NullCheckIsProbablyAlwaysTrue = 8205,
-        WRN_NullCheckIsProbablyAlwaysFalse = 8206,
-        WRN_ExpressionIsProbablyNeverNull = 8207,
+        HDN_NullCheckIsProbablyAlwaysTrue = 8205,
+        HDN_NullCheckIsProbablyAlwaysFalse = 8206,
+        HDN_ExpressionIsProbablyNeverNull = 8207,
     }
 }
