@@ -846,6 +846,16 @@ End Class"
                     AddInsideMethod("Dim banana As Integer = 4" + vbCrLf + "$$")), "banana")
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommandCompletionsInScript() As Task
+            Await VerifyItemExistsAsync(<text>#$$</text>.Value, "#R", sourceCodeKind:=SourceCodeKind.Script)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestReferenceCompletionsInScript() As Task
+            Await VerifyItemExistsAsync(<text>#r "$$"</text>.Value, "System.dll", sourceCodeKind:=SourceCodeKind.Script)
+        End Function
+
         <WorkItem(539300)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSharedMembersAfterMe1() As Task

@@ -86,7 +86,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Completion\CompletionProviders\ReplCommandCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\CSharpReplCommandCompletionProvider.cs" />
     <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.cs" />
     <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\FileSystem\ReferenceDirectiveCompletionProvider.cs" />

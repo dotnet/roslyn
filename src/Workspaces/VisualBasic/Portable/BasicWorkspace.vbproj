@@ -47,7 +47,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
