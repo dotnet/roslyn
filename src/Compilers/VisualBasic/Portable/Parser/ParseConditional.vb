@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 18978 - 18978
         ' .Parser::ParseConditionalCompilationStatement( [ bool SkippingMethodBody ] )
 
-        Friend Function ParseConditionalCompilationStatement() As DirectiveTriviaSyntax
+        Friend Function ParseConditionalCompilationStatement(startOfFile As Boolean) As DirectiveTriviaSyntax
             ' # may be actually scanned as a date literal. This is an error.
             If CurrentToken.Kind = SyntaxKind.DateLiteralToken OrElse
                 CurrentToken.Kind = SyntaxKind.BadToken Then
@@ -64,7 +64,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case SyntaxKind.ExclamationToken
 
-                    statement = ParseShebangDirective(hashToken)
+                    If startOfFile AndAlso Not hashToken.HasTrailingTrivia AndAlso IsScript() Then
+                        statement = ParseShebangDirective(hashToken)
+                    Else
+                        statement = ParseBadDirective(hashToken)
+                    End If
 
                 Case SyntaxKind.IdentifierToken
                     Select Case DirectCast(CurrentToken, IdentifierTokenSyntax).PossibleKeywordKind

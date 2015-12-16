@@ -693,6 +693,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return False
         End Function
 
+        Private Function IsAtStartOfFile() As Boolean
+            Return _lineBufferOffset = 0
+        End Function
+
         Private Function IsAtNewLine() As Boolean
             Return _lineBufferOffset = 0 OrElse IsNewLine(Peek(-1))
         End Function

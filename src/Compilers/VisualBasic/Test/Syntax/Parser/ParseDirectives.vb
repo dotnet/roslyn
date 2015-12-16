@@ -22,17 +22,32 @@ Public Class ParseDirectives
     End Sub
 
     Public Sub ParseShebangDirective()
+        ParseAndVerify("#!", TestOptions.Script)
+        ParseAndVerify("#!/usr/bin/env csharp", TestOptions.Script)
+        ParseAndVerify("#!/usr/bin/env csharp 'comment", TestOptions.Script)
+        ParseAndVerify("#!/usr/bin/env csharp """, TestOptions.Script)
+        ParseAndVerify("#!/usr/bin/env csharp $""", TestOptions.Script)
         ParseAndVerify(<![CDATA[
             #!/bin/tac -f
 
             Dim x = 12
-        ]]>)
+        ]]>, TestOptions.Script)
+        ParseAndVerify("# !/usr/bin/env csharp", TestOptions.Script,
+                       <errors><error id="30248" start="1" end="1"/></errors>)
+        ParseAndVerify("#/usr/bin/env csharp", TestOptions.Script,
+                       <errors><error id="30248" start="1" end="1"/></errors>)
+    End Sub
 
-        ParseAndVerify(<![CDATA[
-            #!
-
-            Dim x = 12
-        ]]>)
+    Public Sub ParseShebangDirectiveHasToBeAtTopOfTheFile()
+        ParseAndVerify(" #!/usr/bin/env csharp", TestOptions.Script,
+                       <errors><error id="30248" start="1" end="1"/></errors>)
+        ParseAndVerify("
+#!/use/bin/env csharp", TestOptions.Script,
+                       <errors><error id="30248" start="1" end="1"/></errors>)
+        ParseAndVerify(
+"Dim x = 12
+#!/use/bin/env csharp", TestOptions.Script,
+                       <errors><error id="30248" start="1" end="1"/></errors>)
     End Sub
 
     <Fact>
@@ -45,7 +60,7 @@ Public Class ParseDirectives
             #r "reference"
         ]]>,
         <errors>
-            <error id="36964" message="#R is only allowed in scripts" start="14" end="15"/>
+            <error id="36964" message="#R Is only allowed in scripts" start="14" end="15"/>
         </errors>)
     End Sub
 
@@ -59,7 +74,7 @@ Public Class ParseDirectives
             #load "load"
         ]]>,
         <errors>
-            <error id="36967" message="#Load is only allowed in scripts" start="14" end="18"/>
+            <error id="36967" message="#Load Is only allowed in scripts" start="14" end="18"/>
         </errors>)
     End Sub
 

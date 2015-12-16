@@ -10,8 +10,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SyntacticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Friend Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Tasks.Task(Of IEnumerable(Of ClassifiedSpan))
-            Using Workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code)
+        Friend Overrides Async Function GetClassificationSpansAsync(
+                code As String,
+                textSpan As TextSpan,
+                Optional parseOptions As ParseOptions = Nothing) As Tasks.Task(Of IEnumerable(Of ClassifiedSpan))
+            Using Workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code, parseOptions)
                 Dim document = Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim tree = Await document.GetSyntaxTreeAsync()
 
@@ -3747,6 +3750,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         Public Async Function TestShebangDirective() As Task
             Dim text = "#!/usr/bin/test"
             Await TestAsync(text,
+                            TestOptions.Script,
                             Comment("#"),
                             Comment("!"),
                             Comment("/usr/bin/test"))

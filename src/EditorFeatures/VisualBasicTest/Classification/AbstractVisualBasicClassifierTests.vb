@@ -65,7 +65,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Return ClassificationBuilder.VBXmlEntityReference(value)
         End Function
 
-        Friend MustOverride Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Task(Of IEnumerable(Of ClassifiedSpan))
+        Friend MustOverride Function GetClassificationSpansAsync(
+            code As String,
+            textSpan As TextSpan,
+            Optional parseOptions As ParseOptions = Nothing) As Task(Of IEnumerable(Of ClassifiedSpan))
 
         Protected Function GetText(tuple As Tuple(Of String, String)) As String
             Return "(" & tuple.Item1 & ", " & tuple.Item2 & ")"
@@ -83,27 +86,36 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             code As String,
             allCode As String,
             ParamArray expected As Tuple(Of String, String)()) As Task
+            Return TestAsync(code, allCode, Nothing, expected)
+        End Function
+
+        Protected Function TestAsync(
+            code As String,
+            allCode As String,
+            parseOptions As ParseOptions,
+            ParamArray expected As Tuple(Of String, String)()) As Task
 
             Dim start = allCode.IndexOf(code, StringComparison.Ordinal)
             Dim length = code.Length
             Dim span = New TextSpan(start, length)
-            Return TestAsync(code, allCode, span, expected)
+            Return TestAsync(code, allCode, span, parseOptions, expected)
         End Function
 
         Protected Function TestAsync(
                 code As String,
                 span As TextSpan,
                 ParamArray expected As Tuple(Of String, String)()) As Task
-            Return TestAsync(code, code, span, expected)
+            Return TestAsync(code, code, span, Nothing, expected)
         End Function
 
         Protected Async Function TestAsync(
             code As String,
             allCode As String,
             span As TextSpan,
+            parseOptions As ParseOptions,
             ParamArray expected As Tuple(Of String, String)()) As Task
 
-            Dim actual = (Await GetClassificationSpansAsync(allCode, span)).ToList()
+            Dim actual = (Await GetClassificationSpansAsync(allCode, span, parseOptions)).ToList()
             actual.Sort(Function(t1, t2) t1.TextSpan.Start - t2.TextSpan.Start)
 
             For i = 0 To Math.Max(expected.Length, actual.Count) - 1
@@ -132,6 +144,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             ParamArray expected As Tuple(Of String, String)()) As Task
 
             Return TestAsync(code, code, expected)
+        End Function
+
+        <DebuggerStepThrough()>
+        Protected Function TestAsync(
+            code As String,
+            parseOptions As ParseOptions,
+            ParamArray expected As Tuple(Of String, String)()) As Task
+
+            Return TestAsync(code, code, parseOptions, expected)
         End Function
 
         <DebuggerStepThrough()>
@@ -185,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 code & vbCrLf & "    End Sub" & vbCrLf & "End Class"
             Dim start = allCode.IndexOf(codeToClassify)
             Dim length = codeToClassify.Length
-            Await TestAsync(code, allCode, New TextSpan(start, length), expected)
+            Await TestAsync(code, allCode, New TextSpan(start, length), Nothing, expected)
         End Function
 
         <DebuggerStepThrough()>

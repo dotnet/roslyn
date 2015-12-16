@@ -12,8 +12,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SemanticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Friend Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Tasks.Task(Of IEnumerable(Of ClassifiedSpan))
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code)
+        Friend Overrides Async Function GetClassificationSpansAsync(
+                code As String,
+                textSpan As TextSpan,
+                Optional parseOptions As ParseOptions = Nothing) As Tasks.Task(Of IEnumerable(Of ClassifiedSpan))
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code, parseOptions)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
                 Dim service = document.GetLanguageService(Of IClassificationService)()

@@ -31,6 +31,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim restorePoint = CreateRestorePoint()
             Me._isScanningDirective = True
 
+            ' Stores whether the directive is at the beginning of file to handle #! directive.
+            Dim startOfFile = IsAtStartOfFile()
+
             ' since we do not have lookahead tokens, this just 
             ' resets current token to _lineBufferOffset 
             Me.GetNextTokenInState(ScannerState.VB)
@@ -50,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Else
                 Dim parser As New Parser(Me)
 
-                directiveTrivia = parser.ParseConditionalCompilationStatement()
+                directiveTrivia = parser.ParseConditionalCompilationStatement(startOfFile)
                 directiveTrivia = parser.ConsumeStatementTerminatorAfterDirective(directiveTrivia)
             End If
 
