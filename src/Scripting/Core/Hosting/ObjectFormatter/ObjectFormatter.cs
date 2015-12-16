@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         public abstract string FormatObject(object obj, PrintOptions options);
 
-        public abstract string FormatRaisedException(Exception e);
+        public abstract string FormatUnhandledException(Exception e);
     }
 }

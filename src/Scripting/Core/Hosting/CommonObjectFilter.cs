@@ -2,18 +2,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    public class CommonStackTraceRewriter : StackTraceRewriter
+    public class CommonObjectFilter : ObjectFilter
     {
-        public override IEnumerable<StackFrame> Rewrite(IEnumerable<StackFrame> frames)
+        public override IEnumerable<StackFrame> Filter(IEnumerable<StackFrame> frames)
         {
             foreach (var frame in frames)
             {
-                var method = frame.Method;
+                var method = frame.GetMethod();
+                if (IsHiddenMember(method))
+                {
+                    continue;
+                }
+
                 var type = method.DeclaringType;
 
                 // TODO (https://github.com/dotnet/roslyn/issues/5250): look for other types indicating that we're in Roslyn code
@@ -22,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     yield break;
                 }
 
-                // TODO: we don't want to include awaiter helpers, shouldn't they be marked by DebuggerHidden in FX?
+                // TODO (tomat): we don't want to include awaiter helpers, shouldn't they be marked by DebuggerHidden in FX?
                 if (IsTaskAwaiter(type) || IsTaskAwaiter(type.DeclaringType))
                 {
                     continue;
@@ -30,6 +37,27 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                 yield return frame;
             }
+        }
+
+        public override IEnumerable<MemberInfo> Filter(IEnumerable<MemberInfo> members)
+        {
+            return members.Where(m => !IsGeneratedMemberName(m.Name));
+        }
+
+        private bool IsHiddenMember(MemberInfo info)
+        {
+            while (info != null)
+            {
+                if (IsGeneratedMemberName(info.Name) || 
+                    info.GetCustomAttributes<DebuggerHiddenAttribute>().Any())
+                {
+                    return true;
+                }
+
+                info = info.DeclaringType?.GetTypeInfo();
+            }
+
+            return false;
         }
 
         private static bool IsTaskAwaiter(Type type)
@@ -47,5 +75,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             return false;
         }
+
+        protected virtual bool IsGeneratedMemberName(string name) => false;
     }
 }

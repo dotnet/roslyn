@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return visitor.FormatObject(obj);
         }
 
-        protected virtual StackTraceRewriter StackTraceRewriter { get; } = new CommonStackTraceRewriter();
+        protected virtual ObjectFilter Filter { get; } = new CommonObjectFilter();
 
         protected abstract CommonTypeNameFormatter TypeNameFormatter { get; }
         protected abstract CommonPrimitiveFormatter PrimitiveFormatter { get; }
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 useHexadecimalArrayBounds: printOptions.NumberRadix == NumberRadix.Hexadecimal,
                 showNamespaces: false);
 
-        public override string FormatRaisedException(Exception e)
+        public override string FormatUnhandledException(Exception e)
         {
             if (e == null)
             {
@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             builder.AppendLine(e.Message);
 
             var trace = new StackTrace(e, needFileInfo: true);
-            foreach (var frame in StackTraceRewriter.Rewrite(trace.GetFrames().Where(f => f.HasMethod()).Select(f => new StackFrame(f))))
+            foreach (var frame in Filter.Filter(trace.GetFrames()))
             {
-                var method = frame.Method;
+                var method = frame.GetMethod();
                 var methodDisplay = FormatMethodSignature(method);
 
                 if (methodDisplay == null)
@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 builder.Append("  + ");
                 builder.Append(methodDisplay);
 
-                var fileName = frame.FileName;
+                var fileName = frame.GetFileName();
                 if (fileName != null)
                 {
-                    builder.Append(string.Format(CultureInfo.CurrentUICulture, ScriptingResources.AtFileLine, fileName, frame.FileLineNumber));
+                    builder.Append(string.Format(CultureInfo.CurrentUICulture, ScriptingResources.AtFileLine, fileName, frame.GetFileLineNumber()));
                 }
 
                 builder.AppendLine();
@@ -97,20 +97,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// <returns>Null if the method is a compiler generated method that shouldn't be displayed to the user.</returns>
         internal virtual string FormatMethodSignature(MethodBase method)
         {
-            var declaringType = method.DeclaringType;
-
-            if (IsHiddenMember(declaringType.GetTypeInfo()) ||
-                IsHiddenMember(method) ||
-                method.GetCustomAttributes<DebuggerHiddenAttribute>().Any() ||
-                declaringType.GetTypeInfo().GetCustomAttributes<DebuggerHiddenAttribute>().Any())
-            {
-                return null;
-            }
-
-            var options = new CommonTypeNameFormatter.Options(useHexadecimalArrayBounds: false, showNamespaces: true);
-
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
+
+            var declaringType = method.DeclaringType;
+            var options = new CommonTypeNameFormatter.Options(useHexadecimalArrayBounds: false, showNamespaces: true);
 
             builder.Append(TypeNameFormatter.FormatTypeName(declaringType, options));
             builder.Append('.');
@@ -139,11 +130,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             return pooled.ToStringAndFree();
         }
-
-        /// <summary>
-        /// Returns true if the member shouldn't be displayed (e.g. it's a compiler generated field).
-        /// </summary>
-        protected abstract bool IsHiddenMember(MemberInfo member);
 
         protected abstract string FormatRefKind(ParameterInfo parameter);
     }
