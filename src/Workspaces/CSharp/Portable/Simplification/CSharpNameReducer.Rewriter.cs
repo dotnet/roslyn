@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -19,160 +19,72 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
             }
 
-            public override SyntaxNode VisitPredefinedType(PredefinedTypeSyntax node)
+            private SyntaxNode SimplifyVisit<TExpression>(
+                TExpression node,
+                Func<TExpression, SyntaxNode> baseVisit)
+                where TExpression : SyntaxNode
             {
                 bool oldAlwaysSimplify = this.alwaysSimplify;
-                if (!this.alwaysSimplify)
-                {
-                    this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
-                }
+                this.alwaysSimplify |= node.HasAnnotation(Simplifier.Annotation);
 
-                var result = SimplifyExpression(
-                    node,
-                    newNode: base.VisitPredefinedType(node),
-                    simplifier: SimplifyName);
+                var result = baseVisit(node);
 
                 this.alwaysSimplify = oldAlwaysSimplify;
 
                 return result;
+            }
+
+            private SyntaxNode SimplifyExpression<TExpression>(
+                TExpression node,
+                Func<TExpression, SyntaxNode> baseVisit)
+                where TExpression : SyntaxNode
+            {
+                return SimplifyVisit(node, n => SimplifyExpression(n, newNode: baseVisit(n), simplifier: SimplifyName));
+            }
+
+            public override SyntaxNode VisitPredefinedType(PredefinedTypeSyntax node)
+            {
+                return SimplifyExpression(node, base.VisitPredefinedType);
             }
 
             public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
-                if (!this.alwaysSimplify)
-                {
-                    this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
-                }
-
-                var result = SimplifyExpression(
-                    node,
-                    newNode: base.VisitAliasQualifiedName(node),
-                    simplifier: SimplifyName);
-
-                this.alwaysSimplify = oldAlwaysSimplify;
-
-                return result;
+                return SimplifyExpression(node, base.VisitAliasQualifiedName);
             }
 
             public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
-                if (!this.alwaysSimplify)
-                {
-                    this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
-                }
-
-                var result = SimplifyExpression(
-                    node,
-                    newNode: base.VisitQualifiedName(node),
-                    simplifier: SimplifyName);
-
-                this.alwaysSimplify = oldAlwaysSimplify;
-
-                return result;
+                return SimplifyExpression(node, base.VisitQualifiedName);
             }
 
             public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
-                if (!this.alwaysSimplify)
-                {
-                    this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
-                }
-
-                var result = SimplifyExpression(
-                    node,
-                    newNode: base.VisitMemberAccessExpression(node),
-                    simplifier: SimplifyName);
-
-                this.alwaysSimplify = oldAlwaysSimplify;
-
-                return result;
+                return SimplifyExpression(node, base.VisitMemberAccessExpression);
             }
 
             public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
-                if (!this.alwaysSimplify)
-                {
-                    this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
-                }
-
-                var result = SimplifyExpression(
-                    node,
-                    newNode: base.VisitIdentifierName(node),
-                    simplifier: SimplifyName);
-
-                this.alwaysSimplify = oldAlwaysSimplify;
-
-                return result;
+                return SimplifyExpression(node, base.VisitIdentifierName);
             }
 
             public override SyntaxNode VisitGenericName(GenericNameSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
-                if (!this.alwaysSimplify)
-                {
-                    this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
-                }
-
-                var result = SimplifyExpression(
-                    node,
-                    newNode: base.VisitGenericName(node),
-                    simplifier: SimplifyName);
-
-                this.alwaysSimplify = oldAlwaysSimplify;
-
-                return result;
+                return SimplifyExpression(node, base.VisitGenericName);
             }
 
             public override SyntaxNode VisitQualifiedCref(QualifiedCrefSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
-                if (!this.alwaysSimplify)
-                {
-                    this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
-                }
-
-                var result = SimplifyExpression(
-                    node,
-                    newNode: base.VisitQualifiedCref(node),
-                    simplifier: SimplifyName);
-
-                this.alwaysSimplify = oldAlwaysSimplify;
-
-                return result;
+                return SimplifyExpression(node, base.VisitQualifiedCref);
             }
 
             public override SyntaxNode VisitArrayType(ArrayTypeSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
-                if (!this.alwaysSimplify)
-                {
-                    this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
-                }
-
-                var result = base.VisitArrayType(node);
-
-                this.alwaysSimplify = oldAlwaysSimplify;
-
-                return result;
+                return SimplifyVisit(node, base.VisitArrayType);
             }
 
             public override SyntaxNode VisitNullableType(NullableTypeSyntax node)
             {
-                bool oldAlwaysSimplify = this.alwaysSimplify;
-                if (!this.alwaysSimplify)
-                {
-                    this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
-                }
-
-                var result = base.VisitNullableType(node);
-
-                this.alwaysSimplify = oldAlwaysSimplify;
-
-                return result;
+                return SimplifyVisit(node, base.VisitNullableType);
             }
 
             public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)

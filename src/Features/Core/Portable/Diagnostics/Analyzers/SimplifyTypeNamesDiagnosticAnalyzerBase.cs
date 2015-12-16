@@ -41,13 +41,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
+        private static readonly LocalizableString s_localizableTitleAddThisOrMe = new LocalizableResourceString(nameof(FeaturesResources.AddThisOrMeQualification), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly DiagnosticDescriptor s_descriptorAddThisOrMe = new DiagnosticDescriptor(IDEDiagnosticIds.AddThisOrMeDiagnosticId,
+                                                                    s_localizableTitleAddThisOrMe,
+                                                                    s_localizableMessage,
+                                                                    DiagnosticCategory.Style,
+                                                                    DiagnosticSeverity.Info,
+                                                                    isEnabledByDefault: true,
+                                                                    customTags: DiagnosticCustomTags.Unnecessary);
+
         private OptionSet _lazyDefaultOptionSet;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return ImmutableArray.Create(s_descriptorSimplifyNames, s_descriptorSimplifyMemberAccess, s_descriptorSimplifyThisOrMe);
+                return ImmutableArray.Create(s_descriptorSimplifyNames, s_descriptorSimplifyMemberAccess, s_descriptorSimplifyThisOrMe, s_descriptorAddThisOrMe);
             }
         }
 
@@ -104,6 +113,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 
                 case IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId:
                     descriptor = s_descriptorSimplifyThisOrMe;
+                    break;
+
+                case IDEDiagnosticIds.AddThisOrMeDiagnosticId:
+                    descriptor = s_descriptorAddThisOrMe;
                     break;
 
                 default:

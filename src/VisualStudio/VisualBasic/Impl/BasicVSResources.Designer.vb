@@ -324,5 +324,41 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Return ResourceManager.GetString("QualifyMemberAccessWithMe", resourceCulture)
             End Get
         End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Qualify member event access with &apos;Me&apos;.
+        '''</summary>
+        Friend Shared ReadOnly Property QualifyMemberEventAccessWithMe() As String
+            Get
+                Return ResourceManager.GetString("QualifyMemberEventAccessWithMe", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Qualify member field access with &apos;Me&apos;.
+        '''</summary>
+        Friend Shared ReadOnly Property QualifyMemberFieldAccessWithMe() As String
+            Get
+                Return ResourceManager.GetString("QualifyMemberFieldAccessWithMe", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Qualify member method access with &apos;Me&apos;.
+        '''</summary>
+        Friend Shared ReadOnly Property QualifyMemberMethodAccessWithMe() As String
+            Get
+                Return ResourceManager.GetString("QualifyMemberMethodAccessWithMe", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Qualify member property access with &apos;Me&apos;.
+        '''</summary>
+        Friend Shared ReadOnly Property QualifyMemberPropertyAccessWithMe() As String
+            Get
+                Return ResourceManager.GetString("QualifyMemberPropertyAccessWithMe", resourceCulture)
+            End Get
+        End Property
     End Class
 End Namespace

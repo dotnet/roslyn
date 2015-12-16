@@ -14,100 +14,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 MyBase.New(optionSet, cancellationToken)
             End Sub
 
-            Public Overrides Function VisitGenericName(node As GenericNameSyntax) As SyntaxNode
-                Dim oldAlwaysSimplify = Me._alwaysSimplify
-                If Not Me._alwaysSimplify Then
-                    Me._alwaysSimplify = node.HasAnnotation(Simplifier.Annotation)
-                End If
+            Private Function SimplifyVisit(Of TExpression As SyntaxNode)(
+                node As TExpression,
+                baseVisit As Func(Of TExpression, SyntaxNode)) As SyntaxNode
 
-                Dim result = SimplifyExpression(
-                    node,
-                    newNode:=MyBase.VisitGenericName(node),
-                    simplifier:=AddressOf SimplifyName)
+                Dim oldAlwaysSimplify = Me._alwaysSimplify
+                Me._alwaysSimplify = Me._alwaysSimplify OrElse node.HasAnnotation(Simplifier.Annotation)
+
+                Dim result = baseVisit(node)
 
                 Me._alwaysSimplify = oldAlwaysSimplify
 
                 Return result
+            End Function
+
+            Private Function DoSimplifyExpression(Of TExpression As ExpressionSyntax)(
+                node As TExpression,
+                baseVisit As Func(Of TExpression, SyntaxNode)) As SyntaxNode
+
+                Return SimplifyVisit(node, Function(n)
+                                               Return SimplifyExpression(n, newNode:=baseVisit(n), simplifier:=AddressOf SimplifyName)
+                                           End Function)
+            End Function
+
+            Public Overrides Function VisitGenericName(node As GenericNameSyntax) As SyntaxNode
+                Return DoSimplifyExpression(node, AddressOf MyBase.VisitGenericName)
             End Function
 
             Public Overrides Function VisitIdentifierName(node As IdentifierNameSyntax) As SyntaxNode
-                Dim oldAlwaysSimplify = Me._alwaysSimplify
-                If Not Me._alwaysSimplify Then
-                    Me._alwaysSimplify = node.HasAnnotation(Simplifier.Annotation)
-                End If
-
-                Dim result = SimplifyExpression(
-                    node,
-                    newNode:=MyBase.VisitIdentifierName(node),
-                    simplifier:=AddressOf SimplifyName)
-
-                Me._alwaysSimplify = oldAlwaysSimplify
-
-                Return result
+                Return DoSimplifyExpression(node, AddressOf MyBase.VisitIdentifierName)
             End Function
 
             Public Overrides Function VisitQualifiedName(node As QualifiedNameSyntax) As SyntaxNode
-                Dim oldAlwaysSimplify = Me._alwaysSimplify
-                If Not Me._alwaysSimplify Then
-                    Me._alwaysSimplify = node.HasAnnotation(Simplifier.Annotation)
-                End If
-
-                Dim result = SimplifyExpression(
-                    node,
-                    newNode:=MyBase.VisitQualifiedName(node),
-                    simplifier:=AddressOf SimplifyName)
-
-                Me._alwaysSimplify = oldAlwaysSimplify
-
-                Return result
+                Return DoSimplifyExpression(node, AddressOf MyBase.VisitQualifiedName)
             End Function
 
             Public Overrides Function VisitMemberAccessExpression(node As MemberAccessExpressionSyntax) As SyntaxNode
-                Dim oldAlwaysSimplify = Me._alwaysSimplify
-                If Not Me._alwaysSimplify Then
-                    Me._alwaysSimplify = node.HasAnnotation(Simplifier.Annotation)
-                End If
-
-                Dim result = SimplifyExpression(
-                    node,
-                    newNode:=MyBase.VisitMemberAccessExpression(node),
-                    simplifier:=AddressOf SimplifyName)
-
-                Me._alwaysSimplify = oldAlwaysSimplify
-
-                Return result
+                Return DoSimplifyExpression(node, AddressOf MyBase.VisitMemberAccessExpression)
             End Function
 
             Public Overrides Function VisitNullableType(node As NullableTypeSyntax) As SyntaxNode
-                Dim oldAlwaysSimplify = Me._alwaysSimplify
-                If Not Me._alwaysSimplify Then
-                    Me._alwaysSimplify = node.HasAnnotation(Simplifier.Annotation)
-                End If
-
-                Dim result = SimplifyExpression(
-                    node,
-                    newNode:=MyBase.VisitNullableType(node),
-                    simplifier:=AddressOf SimplifyName)
-
-                Me._alwaysSimplify = oldAlwaysSimplify
-
-                Return result
+                Return DoSimplifyExpression(node, AddressOf MyBase.VisitNullableType)
             End Function
 
             Public Overrides Function VisitArrayType(node As ArrayTypeSyntax) As SyntaxNode
-                Dim oldAlwaysSimplify = Me._alwaysSimplify
-                If Not Me._alwaysSimplify Then
-                    Me._alwaysSimplify = node.HasAnnotation(Simplifier.Annotation)
-                End If
-
-                Dim result = SimplifyExpression(
-                    node,
-                    newNode:=MyBase.VisitArrayType(node),
-                    simplifier:=AddressOf SimplifyName)
-
-                Me._alwaysSimplify = oldAlwaysSimplify
-
-                Return result
+                Return DoSimplifyExpression(node, AddressOf MyBase.VisitArrayType)
             End Function
 
         End Class

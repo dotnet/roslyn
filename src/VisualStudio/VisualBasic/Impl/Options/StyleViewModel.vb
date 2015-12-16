@@ -80,7 +80,10 @@ End Class
         Public Sub New(optionSet As OptionSet, serviceProvider As IServiceProvider)
             MyBase.New(optionSet, serviceProvider, LanguageNames.VisualBasic)
 
-            Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberAccessWithThisOrMe, BasicVSResources.QualifyMemberAccessWithMe, _mePreviewTrue, _mePreviewFalse, Me, optionSet))
+            Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberFieldAccessWithThisOrMe, BasicVSResources.QualifyMemberFieldAccessWithMe, _mePreviewTrue, _mePreviewFalse, Me, optionSet))
+            Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberPropertyAccessWithThisOrMe, BasicVSResources.QualifyMemberPropertyAccessWithMe, _mePreviewTrue, _mePreviewFalse, Me, optionSet))
+            Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberMethodAccessWithThisOrMe, BasicVSResources.QualifyMemberPropertyAccessWithMe, _mePreviewTrue, _mePreviewFalse, Me, optionSet))
+            Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberEventAccessWithThisOrMe, BasicVSResources.QualifyMemberEventAccessWithMe, _mePreviewTrue, _mePreviewFalse, Me, optionSet))
             Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, BasicVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, _intrinsicDeclarationPreviewTrue, _intrinsicDeclarationPreviewFalse, Me, optionSet))
             Me.Items.Add(New CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, BasicVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, _intrinsicMemberAccessPreviewTrue, _intrinsicMemberAccessPreviewFalse, Me, optionSet))
         End Sub

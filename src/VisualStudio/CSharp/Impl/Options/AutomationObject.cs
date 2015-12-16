@@ -445,10 +445,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value); }
         }
 
-        public int Style_QualifyMemberAccessWithThisOrMe
+        public int Style_QualifyMemberFieldAccessWithThisOrMe
         {
-            get { return GetBooleanOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe); }
-            set { SetBooleanOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, value); }
+            get { return GetBooleanOption(SimplificationOptions.QualifyMemberFieldAccessWithThisOrMe); }
+            set { SetBooleanOption(SimplificationOptions.QualifyMemberFieldAccessWithThisOrMe, value); }
+        }
+
+        public int Style_QualifyMemberPropertyAccessWithThisOrMe
+        {
+            get { return GetBooleanOption(SimplificationOptions.QualifyMemberPropertyAccessWithThisOrMe); }
+            set { SetBooleanOption(SimplificationOptions.QualifyMemberPropertyAccessWithThisOrMe, value); }
+        }
+
+        public int Style_QualifyMemberMethodAccessWithThisOrMe
+        {
+            get { return GetBooleanOption(SimplificationOptions.QualifyMemberMethodAccessWithThisOrMe); }
+            set { SetBooleanOption(SimplificationOptions.QualifyMemberMethodAccessWithThisOrMe, value); }
+        }
+
+        public int Style_QualifyMemberEventAccessWithThisOrMe
+        {
+            get { return GetBooleanOption(SimplificationOptions.QualifyMemberEventAccessWithThisOrMe); }
+            set { SetBooleanOption(SimplificationOptions.QualifyMemberEventAccessWithThisOrMe, value); }
         }
 
         public int Style_UseVarWhenDeclaringLocals

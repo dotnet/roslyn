@@ -204,4 +204,16 @@
   <data name="Option_GoToDefinition" xml:space="preserve">
     <value>Go to Definition</value>
   </data>
+  <data name="QualifyMemberEventAccessWithMe" xml:space="preserve">
+    <value>Qualify member event access with 'Me'</value>
+  </data>
+  <data name="QualifyMemberFieldAccessWithMe" xml:space="preserve">
+    <value>Qualify member field access with 'Me'</value>
+  </data>
+  <data name="QualifyMemberMethodAccessWithMe" xml:space="preserve">
+    <value>Qualify member method access with 'Me'</value>
+  </data>
+  <data name="QualifyMemberPropertyAccessWithMe" xml:space="preserve">
+    <value>Qualify member property access with 'Me'</value>
+  </data>
 </root>

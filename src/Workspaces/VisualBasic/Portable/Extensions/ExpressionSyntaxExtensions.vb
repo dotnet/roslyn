@@ -926,11 +926,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                               cancellationToken)
             ElseIf TypeOf (expression) Is NameSyntax Then
                 Dim name = DirectCast(expression, NameSyntax)
-                Return name.TryReduce(semanticModel,
-                                      replacementNode,
-                                      issueSpan,
-                                      optionSet,
-                                      cancellationToken)
+                Return name.TryNormalizeOrReduce(semanticModel,
+                                                 replacementNode,
+                                                 issueSpan,
+                                                 optionSet,
+                                                 cancellationToken)
             End If
 
             Return False
@@ -949,9 +949,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            If optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) AndAlso
-                 memberAccess.Expression.Kind() = SyntaxKind.MeExpression Then
-                Return False
+            If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) Then
+                ' if we can't resolve the symbol then nothing can be inferred
+                Dim nameSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, memberAccess.Name)
+                If nameSymbol Is Nothing Then
+                    Return False
+                End If
+
+                If (nameSymbol.IsKind(SymbolKind.Field) AndAlso optionSet.GetOption(SimplificationOptions.QualifyMemberFieldAccessWithThisOrMe, semanticModel.Language)) OrElse
+                   (nameSymbol.IsKind(SymbolKind.Property) AndAlso optionSet.GetOption(SimplificationOptions.QualifyMemberPropertyAccessWithThisOrMe, semanticModel.Language)) OrElse
+                   (nameSymbol.IsKind(SymbolKind.Method) AndAlso optionSet.GetOption(SimplificationOptions.QualifyMemberMethodAccessWithThisOrMe, semanticModel.Language)) OrElse
+                   (nameSymbol.IsKind(SymbolKind.Event) AndAlso optionSet.GetOption(SimplificationOptions.QualifyMemberEventAccessWithThisOrMe, semanticModel.Language)) Then
+
+                    Return False
+                End If
             End If
 
             If memberAccess.HasAnnotations(SpecialTypeAnnotation.Kind) Then
@@ -1149,6 +1160,64 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return True
+        End Function
+
+        <Extension>
+        Private Function TryNormalizeOrReduce(
+            name As NameSyntax,
+            semanticModel As SemanticModel,
+            <Out> ByRef replacementNode As ExpressionSyntax,
+            <Out> ByRef issueSpan As TextSpan,
+            optionSet As OptionSet,
+            cancellationToken As CancellationToken) As Boolean
+
+            If name.TryNormalize(semanticModel, replacementNode, issueSpan, optionSet) Then
+                Return True
+            End If
+
+            Return name.TryReduce(semanticModel, replacementNode, issueSpan, optionSet, cancellationToken)
+        End Function
+
+        <Extension>
+        Private Function TryNormalize(
+            name As NameSyntax,
+            semanticModel As SemanticModel,
+            <Out> ByRef replacementNode As ExpressionSyntax,
+            <Out> ByRef issueSpan As TextSpan,
+            optionSet As OptionSet) As Boolean
+
+            replacementNode = Nothing
+            issueSpan = Nothing
+
+            ' if we can't resolve the symbol then nothing can be inferred
+            Dim symbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, name)
+            If symbol Is Nothing Then
+                Return False
+            End If
+
+            ' if not shared and not already part of a `Me.` expression
+            If Not symbol.IsStatic AndAlso
+               TypeOf name Is SimpleNameSyntax AndAlso
+               If(TypeOf name.Parent Is MemberAccessExpressionSyntax, CType(name.Parent, MemberAccessExpressionSyntax).Expression?.Kind, SyntaxKind.None) <> SyntaxKind.MeExpression Then
+
+                If (symbol.IsKind(SymbolKind.Field) AndAlso optionSet.GetOption(SimplificationOptions.QualifyMemberFieldAccessWithThisOrMe, semanticModel.Language)) OrElse
+                   (symbol.IsKind(SymbolKind.Property) AndAlso optionSet.GetOption(SimplificationOptions.QualifyMemberPropertyAccessWithThisOrMe, semanticModel.Language)) OrElse
+                   (symbol.IsKind(SymbolKind.Method) AndAlso optionSet.GetOption(SimplificationOptions.QualifyMemberMethodAccessWithThisOrMe, semanticModel.Language)) OrElse
+                   (symbol.IsKind(SymbolKind.Event) AndAlso optionSet.GetOption(SimplificationOptions.QualifyMemberEventAccessWithThisOrMe, semanticModel.Language)) Then
+
+                    replacementNode =
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.MeExpression(),
+                            SyntaxFactory.Token(SyntaxKind.DotToken),
+                            CType(name, SimpleNameSyntax).WithLeadingTrivia().WithoutAnnotations(Simplifier.Annotation)).
+                        WithLeadingTrivia(name.GetLeadingTrivia())
+                    issueSpan = name.Span
+                    Return True
+                End If
+            End If
+
+            Return False
         End Function
 
         <Extension()>

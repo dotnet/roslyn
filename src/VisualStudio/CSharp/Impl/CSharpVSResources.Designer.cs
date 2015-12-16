@@ -637,6 +637,42 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Qualify member event access with &apos;this&apos;.
+        /// </summary>
+        internal static string QualifyMemberEventAccessWithThis {
+            get {
+                return ResourceManager.GetString("QualifyMemberEventAccessWithThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify member field access with &apos;this&apos;.
+        /// </summary>
+        internal static string QualifyMemberFieldAccessWithThis {
+            get {
+                return ResourceManager.GetString("QualifyMemberFieldAccessWithThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify member method access with &apos;this&apos;.
+        /// </summary>
+        internal static string QualifyMemberMethodAccessWithThis {
+            get {
+                return ResourceManager.GetString("QualifyMemberMethodAccessWithThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify member property access with &apos;this&apos;.
+        /// </summary>
+        internal static string QualifyMemberPropertyAccessWithThis {
+            get {
+                return ResourceManager.GetString("QualifyMemberPropertyAccessWithThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Set other spacing options.
         /// </summary>
         internal static string SetOtherSpacingOptions {

@@ -408,4 +408,16 @@
   <data name="NewLinesForBracesProperty" xml:space="preserve">
     <value>Place open brace on new line for properties, indexers, and events</value>
   </data>
+  <data name="QualifyMemberEventAccessWithThis" xml:space="preserve">
+    <value>Qualify member event access with 'this'</value>
+  </data>
+  <data name="QualifyMemberFieldAccessWithThis" xml:space="preserve">
+    <value>Qualify member field access with 'this'</value>
+  </data>
+  <data name="QualifyMemberMethodAccessWithThis" xml:space="preserve">
+    <value>Qualify member method access with 'this'</value>
+  </data>
+  <data name="QualifyMemberPropertyAccessWithThis" xml:space="preserve">
+    <value>Qualify member property access with 'this'</value>
+  </data>
 </root>

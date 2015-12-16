@@ -440,4 +440,7 @@
   <data name="DelegateInvocationCanBeSimplified" xml:space="preserve">
     <value>Delegate invocation can be simplified.</value>
   </data>
+  <data name="AddThisQualification" xml:space="preserve">
+    <value>Add 'this' qualification</value>
+  </data>
 </root>

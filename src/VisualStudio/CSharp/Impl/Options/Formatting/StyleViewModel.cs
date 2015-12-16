@@ -108,7 +108,10 @@ class Program
 
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
         {
-            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberAccessWithThisOrMe, CSharpVSResources.QualifyMemberAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberFieldAccessWithThisOrMe, CSharpVSResources.QualifyMemberFieldAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberPropertyAccessWithThisOrMe, CSharpVSResources.QualifyMemberPropertyAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberMethodAccessWithThisOrMe, CSharpVSResources.QualifyMemberPropertyAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberEventAccessWithThisOrMe, CSharpVSResources.QualifyMemberEventAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
             Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, s_intrinsicPreviewDeclarationTrue, s_intrinsicPreviewDeclarationFalse, this, optionSet));
             Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, s_intrinsicPreviewMemberAccessTrue, s_intrinsicPreviewMemberAccessFalse, this, optionSet));
             Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, CSharpVSResources.UseVarWhenGeneratingLocals, s_varPreviewTrue, s_varPreviewFalse, this, optionSet));
