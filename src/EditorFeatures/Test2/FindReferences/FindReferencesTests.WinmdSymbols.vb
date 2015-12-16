@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdCSInterfaceProjection() As Task
             Dim input =
 <Workspace>
@@ -41,7 +41,7 @@ namespace SampleComponent
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdVBInterfaceProjection() As Task
             Dim input =
 <Workspace>
@@ -81,7 +81,7 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdCSCollectionProjection() As Task
             Dim input =
 <Workspace>
@@ -123,7 +123,7 @@ namespace SampleComponent
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdVBCollectionProjection() As Task
             Dim input =
 <Workspace>
@@ -153,7 +153,7 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdCSEventProjection() As Task
             Dim input =
 <Workspace>
@@ -213,7 +213,7 @@ namespace SampleComponent
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdVBEventProjection() As Task
             Dim input =
 <Workspace>
@@ -266,7 +266,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdCSAllIsWellTest() As Task
             Dim input =
 <Workspace>
@@ -470,7 +470,7 @@ namespace SampleComponent
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdVBAllIsWellTest() As Task
             Dim input =
 <Workspace>

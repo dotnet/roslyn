@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
     Public Class OverriddenByGraphQueryTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestOverriddenByMethod1() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -50,7 +50,7 @@ class Foo : Base, IComparable
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestOverriddenByMethod2() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>

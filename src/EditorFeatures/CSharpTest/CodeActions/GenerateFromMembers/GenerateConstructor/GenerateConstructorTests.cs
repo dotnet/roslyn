@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
             return new GenerateConstructorCodeRefactoringProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestSingleField()
         {
             await TestAsync(
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestMultipleFields()
         {
             await TestAsync(
@@ -35,7 +35,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestSecondField()
         {
             await TestAsync(
@@ -44,7 +44,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestFieldAssigningConstructor()
         {
             await TestAsync(
@@ -53,7 +53,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestFieldAssigningConstructor2()
         {
             await TestAsync(
@@ -62,7 +62,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestDelegatingConstructor()
         {
             await TestAsync(
@@ -71,14 +71,14 @@ index: 0);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestMissingWithExistingConstructor()
         {
             await TestMissingAsync(
 @"using System . Collections . Generic ; class Z { [|int a ; string b ;|] public Z ( int a ) { this . a = a ; } public Z ( int a , string b ) { this . a = a ; this . b = b ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestMultipleProperties()
         {
             await TestAsync(
@@ -87,7 +87,7 @@ index: 1);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestMultiplePropertiesWithQualification()
         {
             await TestAsync(
@@ -96,7 +96,7 @@ index: 0);
 index: 0, options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestStruct()
         {
             await TestAsync(
@@ -105,7 +105,7 @@ index: 0, options: new Dictionary<OptionKey, object> { { new OptionKey(Simplific
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestStruct1()
         {
             await TestAsync(
@@ -114,7 +114,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestStruct2()
         {
             await TestAsync(
@@ -123,7 +123,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestStruct3()
         {
             await TestAsync(
@@ -132,7 +132,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenericType()
         {
             await TestAsync(
@@ -141,7 +141,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestSmartTagText1()
         {
             await TestSmartTagTextAsync(
@@ -149,7 +149,7 @@ index: 0);
 string.Format(FeaturesResources.GenerateConstructor, "Program", "bool, HashSet<string>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestSmartTagText2()
         {
             await TestSmartTagTextAsync(
@@ -157,7 +157,7 @@ string.Format(FeaturesResources.GenerateConstructor, "Program", "bool, HashSet<s
 string.Format(FeaturesResources.GenerateFieldAssigningConstructor, "Program", "bool, HashSet<string>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestSmartTagText3()
         {
             await TestSmartTagTextAsync(
@@ -166,7 +166,7 @@ string.Format(FeaturesResources.GenerateDelegatingConstructor, "Program", "bool,
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestContextualKeywordName()
         {
             await TestAsync(

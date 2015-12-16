@@ -16,7 +16,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class ExternalDiagnosticUpdateSourceTests
-        <WpfFact>
+        <Fact>
         Public Async Function TestExternalDiagnostics_SupportGetDiagnostics() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim waiter = New Waiter()
@@ -27,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestExternalDiagnostics_RaiseEvents() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim waiter = New Waiter()
@@ -55,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestExternalDiagnostics_DuplicatedError() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim waiter = New Waiter()
@@ -80,7 +80,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestBuildStartEvent() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim waiter = New Waiter()
@@ -108,13 +108,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Sub TestExternalBuildErrorCustomTags()
             Assert.Equal(1, ProjectExternalErrorReporter.CustomTags.Count)
             Assert.Equal(WellKnownDiagnosticTags.Telemetry, ProjectExternalErrorReporter.CustomTags(0))
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestExternalBuildErrorProperties() As Task
             Assert.Equal(1, DiagnosticData.PropertiesForBuildDiagnostic.Count)
 

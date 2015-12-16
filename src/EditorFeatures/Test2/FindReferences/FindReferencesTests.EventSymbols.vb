@@ -5,7 +5,7 @@ Imports System.Threading.Tasks
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(542443)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestEvent1() As Task
             Dim input =
 <Workspace>
@@ -40,7 +40,7 @@ public class MainClass
         End Function
 
         <WorkItem(542443)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestEvent2() As Task
             Dim input =
 <Workspace>
@@ -75,7 +75,7 @@ public class MainClass
         End Function
 
         <WorkItem(542443)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestEvent3() As Task
             Dim input =
 <Workspace>
@@ -110,7 +110,7 @@ public class MainClass
         End Function
 
         <WorkItem(542443)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestEvent4() As Task
             Dim input =
 <Workspace>
@@ -145,7 +145,7 @@ public class MainClass
         End Function
 
         <WorkItem(529819)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestEventCascading1() As Task
             Dim input =
 <Workspace>
@@ -164,7 +164,7 @@ End Class
         End Function
 
         <WorkItem(529819)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestEventCascading2() As Task
             Dim input =
 <Workspace>
@@ -183,7 +183,7 @@ End Class
         End Function
 
         <WorkItem(553324)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestEventParameterCascading() As Task
             Dim input =
 <Workspace>
@@ -204,7 +204,7 @@ End Module
         End Function
 
         <WorkItem(529804)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCrossAssemblyEventImplementation1() As Task
             Dim input =
 <Workspace>
@@ -237,7 +237,7 @@ class C : I
         End Function
 
         <WorkItem(529804)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCrossAssemblyEventImplementation2() As Task
             Dim input =
 <Workspace>

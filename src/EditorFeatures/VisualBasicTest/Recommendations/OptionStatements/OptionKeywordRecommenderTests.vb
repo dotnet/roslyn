@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OptionStatements
     Public Class OptionKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionInBlankFile()
             VerifyRecommendationsContain(<File>|</File>, "Option")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionAfterAnotherOptionStatement()
             VerifyRecommendationsContain(<File>
@@ -23,7 +23,7 @@ Option Strict On
 |</File>, "Option")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionAfterBlankLine()
             VerifyRecommendationsContain(<File>
@@ -32,7 +32,7 @@ Option Strict On
 |</File>, "Option")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionNotAfterImports()
             VerifyRecommendationsMissing(<File>
@@ -40,7 +40,7 @@ Imports Foo
 |</File>, "Option")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionNotAfterType()
             VerifyRecommendationsMissing(<File>
@@ -50,7 +50,7 @@ End Class
         End Sub
 
         <WorkItem(543008)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionNotAfterRegionKeyword()
             VerifyRecommendationsMissing(<File>

@@ -17,26 +17,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestEmptyFile() As Task
             Await CheckAsync(<content></content>, <content></content>, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestSingleImportsStatement() As Task
             Dim initial = <content>Imports A</content>
             Dim final = initial
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestMultipleClauses() As Task
             Dim initial = <content>Imports C, B, A</content>
             Dim final = <content>Imports A, B, C</content>
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestAliasesAtBottom() As Task
             Dim initial =
 <content>Imports A = B
@@ -54,7 +54,7 @@ Imports D = E
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestMultipleStatementsMultipleClauses() As Task
             Dim initial =
                 <content>Imports F
@@ -69,7 +69,7 @@ Imports F
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestSpecialCaseSystem() As Task
             Dim initial =
 <content>Imports M2
@@ -86,7 +86,7 @@ Imports M2
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestDoNotSpecialCaseSystem() As Task
             Dim initial =
 <content>Imports M2
@@ -104,7 +104,7 @@ Imports System.Linq
             Await CheckAsync(initial, final, False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestMissingNames() As Task
             Dim initial =
     <content>Imports B
@@ -119,7 +119,7 @@ Imports B
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestDoNotTouchCommentsAtBeginningOfFile1() As Task
             Dim initial =
 <content>' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -144,7 +144,7 @@ namespace B { }</content>
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestDoNotTouchCommentsAtBeginningOfFile2() As Task
             Dim initial =
 <content>'' Copyright (c) Microsoft Corporation.  All rights reserved. */
@@ -169,7 +169,7 @@ namespace B { }</content>
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestDoNotTouchCommentsAtBeginningOfFile3() As Task
             Dim initial =
 <content>' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -199,7 +199,7 @@ end namespace</content>
         End Function
 
         <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestDoTouchCommentsAtBeginningOfFile1() As Task
             Dim initial =
 <content>' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -223,7 +223,7 @@ namespace B { }</content>
         End Function
 
         <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestDoTouchCommentsAtBeginningOfFile2() As Task
             Dim initial =
 <content>'' Copyright (c) Microsoft Corporation.  All rights reserved. */
@@ -247,7 +247,7 @@ namespace B { }</content>
         End Function
 
         <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestDoTouchCommentsAtBeginningOfFile3() As Task
             Dim initial =
 <content>''' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -270,7 +270,7 @@ namespace B { }</content>
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestDoNotSortIfEndIfBlocks() As Task
             Dim initial =
 <content>Imports D
@@ -290,7 +290,7 @@ namespace D { }</content>
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestDuplicateUsings() As Task
             Dim initial =
 <content>Imports A
@@ -301,7 +301,7 @@ Imports A</content>
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestTrailingComments() As Task
             Dim initial =
 <content>Imports D '/*03*/
@@ -320,7 +320,7 @@ Imports D '/*03*/
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestInsideRegionBlock() As Task
             Dim initial =
     <content>#region Using directives
@@ -340,7 +340,7 @@ Imports C
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestNestedRegionBlock() As Task
             Dim initial =
 <content>Imports C
@@ -354,7 +354,7 @@ Imports B</content>
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestMultipleRegionBlocks() As Task
             Dim initial =
     <content>#region Using directives
@@ -370,7 +370,7 @@ Imports B
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestInterleavedNewlines() As Task
             Dim initial =
 <content>Imports B
@@ -393,7 +393,7 @@ end class</content>
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestInsideIfEndIfBlock() As Task
             Dim initial =
 <content>#if not X
@@ -412,7 +412,7 @@ Imports C
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestIfEndIfBlockAbove() As Task
             Dim initial =
 <content>#if not X
@@ -428,7 +428,7 @@ Imports E</content>
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestIfEndIfBlockMiddle() As Task
             Dim initial =
 <content>Imports D
@@ -447,7 +447,7 @@ Imports G</content>
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestIfEndIfBlockBelow() As Task
             Dim initial =
 <content>Imports D
@@ -463,7 +463,7 @@ Imports F
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestKorean() As Task
             Dim initial =
     <content>Imports 하
@@ -501,7 +501,7 @@ Imports 하
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestDoNotSpecialCaseSystem1() As Task
             Dim initial =
 <content>Imports B
@@ -529,7 +529,7 @@ Imports SystemZ
             Await CheckAsync(initial, final, False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         <WorkItem(538367)>
         Public Async Function TestXml() As Task
             Dim initial =
@@ -552,7 +552,7 @@ Imports <xmlns:zz="http://NextNamespace">
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestCaseSensitivity1() As Task
             Dim initial =
 <content>Imports Bb
@@ -644,7 +644,7 @@ Imports ああ
             Await CheckAsync(initial, final, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Async Function TestCaseSensitivity2() As Task
             Dim initial =
 <content>Imports あ

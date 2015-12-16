@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestIsAccessibleWithin_ProtectedInternal() As Task
             Dim workspace =
 <Workspace>
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Await TestIsAccessibleWithinAsync(workspace, False)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestIsAccessibleWithin_ProtectedInternal_InternalsVisibleTo() As Task
             Dim workspace =
 <Workspace>
@@ -74,7 +74,7 @@ public class Program { protected internal static int F; }
             Await TestIsAccessibleWithinAsync(workspace, True)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestIsAccessibleWithin_ProtectedInternal_WrongInternalsVisibleTo() As Task
             Dim workspace =
 <Workspace>
@@ -95,7 +95,7 @@ public class Program { protected internal static int F; }
             Await TestIsAccessibleWithinAsync(workspace, False)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestIsAccessibleWithin_PrivateInsideNestedType() As Task
             Dim workspace =
 <Workspace>
@@ -114,7 +114,7 @@ class Outer
             Await TestIsAccessibleWithinAsync(workspace, True)
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestIsAccessibleWithin_ProtectedInsideNestedType() As Task
             Dim workspace =
 <Workspace>

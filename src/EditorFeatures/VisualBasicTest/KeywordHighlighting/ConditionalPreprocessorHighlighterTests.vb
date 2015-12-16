@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New ConditionalPreprocessorHighlighter()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestConditionalPreprocessorSample1_1() As Task
             Await TestAsync(<Text>
 #Const Foo1 = 1
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
 [|#End If|]</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestConditionalPreprocessorSample1_2() As Task
             Await TestAsync(<Text>
 #Const Foo1 = 1
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
 [|#End If|]</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestConditionalPreprocessorSample1_3() As Task
             Await TestAsync(<Text>
 #Const Foo1 = 1
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
 [|#End If|]</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestConditionalPreprocessorSample1_4() As Task
             Await TestAsync(<Text>
 #Const Foo1 = 1
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
 [|#End If|]</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestConditionalPreprocessorSample1_5() As Task
             Await TestAsync(<Text>
 #Const Foo1 = 1
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
 [|#End If|]</Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestConditionalPreprocessorSample1_6() As Task
             Await TestAsync(<Text>
 #Const Foo1 = 1
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
         End Function
 
         <WorkItem(544469)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestConditionalWithMissingIf1() As Task
             Await TestAsync(<Text>
 #Const foo = _
@@ -92,7 +92,7 @@ True : #If foo Then
         End Function
 
         <WorkItem(544469)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestConditionalWithMissingIf2() As Task
             Await TestAsync(<Text>
 #Const foo = _

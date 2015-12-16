@@ -4,12 +4,12 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ForKeywordRecommenderTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ForInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "For")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ForInLambda()
             VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
@@ -17,14 +17,14 @@ Dim x = Sub()
         End Sub</MethodBody>, "For")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ForAfterStatement()
             VerifyRecommendationsContain(<MethodBody>
 Dim x
 |</MethodBody>, "For")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ForAfterExitKeyword()
             VerifyRecommendationsContain(<MethodBody>
 For
@@ -32,7 +32,7 @@ Exit |
 Loop</MethodBody>, "For")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ForAfterContinueKeyword()
             VerifyRecommendationsContain(<MethodBody>
 For
@@ -40,26 +40,26 @@ Continue |
 Loop</MethodBody>, "For")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ForNotAfterContinueKeywordOutsideLoop()
             VerifyRecommendationsMissing(<MethodBody>
 Continue |
 </MethodBody>, "For")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ForNotAfterExitKeywordOutsideLoop()
             VerifyRecommendationsMissing(<MethodBody>
 Exit |
 </MethodBody>, "For")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ForNotInSingleLineLambda()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Sub() |</MethodBody>, "For")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoForAfterExitInsideLambdaInsideLoop()
             VerifyRecommendationsMissing(<MethodBody>
 For Each i In foo
@@ -70,7 +70,7 @@ Next
 </MethodBody>, "For")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ForAfterExitInsideForLoopInsideLambda()
             VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
@@ -81,7 +81,7 @@ Dim x = Sub()
 </MethodBody>, "For")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ForNotAfterExitInsideForLoopInsideFinallyBlock()
             Dim code =
 <MethodBody>

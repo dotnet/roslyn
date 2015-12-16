@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpChangeToIEnumerableCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableObjectMethod()
         {
             var initial =
@@ -46,7 +46,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableTupleMethod()
         {
             var initial =
@@ -75,7 +75,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableListMethod()
         {
             var initial =
@@ -104,7 +104,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableGenericIEnumerableMethod()
         {
             var initial =
@@ -121,7 +121,7 @@ class Program
             await TestMissingAsync(initial);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableGenericIEnumeratorMethod()
         {
             var initial =
@@ -138,7 +138,7 @@ class Program
             await TestMissingAsync(initial);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableIEnumeratorMethod()
         {
             var initial =
@@ -155,7 +155,7 @@ class Program
             await TestMissingAsync(initial);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableIEnumerableMethod()
         {
             var initial =
@@ -172,7 +172,7 @@ class Program
             await TestMissingAsync(initial);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
         public async Task TestChangeToIEnumerableVoidMethod()
         {
             var initial =

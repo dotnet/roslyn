@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class SetExtensionTests
     {
-        [WpfFact]
+        [Fact]
         public void TestAddAll()
         {
             var set = new HashSet<string>() { "a", "b", "c" };
