@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool IsDynamic => _isDynamic;
 
-        public uint PdbAttributes => Cci.PdbWriter.DefaultLocalAttributesValue;
+        public LocalVariableAttributes PdbAttributes => LocalVariableAttributes.None;
 
         public ImmutableArray<TypedConstant> DynamicTransformFlags => _dynamicTransformFlags;
 

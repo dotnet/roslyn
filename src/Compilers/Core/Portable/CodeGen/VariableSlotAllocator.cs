@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string nameOpt,
             SynthesizedLocalKind kind,
             LocalDebugId id,
-            uint pdbAttributes,
+            LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags);
