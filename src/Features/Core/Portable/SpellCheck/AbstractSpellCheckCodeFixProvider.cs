@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var onlyConsiderGenerics = IsGeneric(nameNode);
             var results = new MultiDictionary<double, string>();
 
-            using (var editDistance = new EditDistance(nameText))
+            using (var similarityChecker = new WordSimilarityChecker(nameText))
             {
                 foreach (var item in completionList.Items)
                 {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
 
                     var candidateText = item.FilterText;
                     double matchCost;
-                    if (!editDistance.IsCloseMatch(candidateText, out matchCost))
+                    if (!similarityChecker.AreSimilar(candidateText, out matchCost))
                     {
                         continue;
                     }

@@ -149,13 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<ReferenceDirective>.Empty;
             }
 
-            var directives = new ReferenceDirective[directiveNodes.Count];
-            for (int i = 0; i < directives.Length; i++)
+            var directives = ArrayBuilder<ReferenceDirective>.GetInstance(directiveNodes.Count);
+            foreach (var directiveNode in directiveNodes)
             {
-                directives[i] = new ReferenceDirective(directiveNodes[i].File.ValueText, new SourceLocation(directiveNodes[i]));
+                directives.Add(new ReferenceDirective(directiveNode.File.ValueText, new SourceLocation(directiveNode)));
             }
-
-            return directives.AsImmutableOrNull();
+            return directives.ToImmutableAndFree();
         }
 
         private SingleNamespaceOrTypeDeclaration CreateScriptClass(

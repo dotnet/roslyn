@@ -76,10 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (allCompleted)
                             {
-                                if (_state.NotePartComplete(CompletionPart.MembersCompleted))
-                                {
-                                    DeclaringCompilation.SymbolDeclaredEvent(this);
-                                }
+                                _state.NotePartComplete(CompletionPart.MembersCompleted);
                                 break;
                             }
                             else

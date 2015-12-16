@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module SyntaxTreeExtensions
@@ -89,6 +90,17 @@ recurse:
         End Function
 
         <Extension()>
+        Public Function IsEntirelyWithinStringLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
+
+            If token.IsKind(SyntaxKind.StringLiteralToken) Then
+                Return token.SpanStart < position AndAlso position < token.Span.End OrElse AtEndOfIncompleteStringOrCharLiteral(token, position, """")
+            End If
+
+            Return False
+        End Function
+
+        <Extension()>
         Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
 
@@ -102,13 +114,18 @@ recurse:
                 Return True
             End If
 
+            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'", """")
+
+            Return AtEndOfIncompleteStringOrCharLiteral(token, position, lastChar)
+        End Function
+
+        Private Function AtEndOfIncompleteStringOrCharLiteral(token As SyntaxToken, position As Integer, lastChar As String) As Boolean
             ' Check if it's a token that was started, but not ended
             Dim startLength = 1
             If token.IsKind(SyntaxKind.CharacterLiteralToken) Then
                 startLength = 2
             End If
 
-            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'", """")
             Return _
                 position = token.Span.End AndAlso
                  (token.Span.Length = startLength OrElse
@@ -147,6 +164,47 @@ recurse:
             Dim trivia = syntaxTree.FindTriviaToLeft(position, cancellationToken)
 
             Return trivia.IsKind(SyntaxKind.SkippedTokensTrivia)
+        End Function
+
+        Private Function IsGlobalStatementContext(token As SyntaxToken, position As Integer) As Boolean
+            If Not token.IsLastTokenOfStatement() Then
+                Return False
+            End If
+
+            ' NB: Checks whether the caret is placed after a colon or an end of line.
+            ' Otherwise the typed expression would still be a part of the previous statement.
+            If Not token.HasTrailingTrivia OrElse token.HasAncestor(Of IncompleteMemberSyntax) Then
+                Return False
+            End If
+
+            For Each trivia In token.TrailingTrivia
+                If trivia.Span.Start > position Then
+                    Return False
+                ElseIf trivia.IsKind(SyntaxKind.ColonTrivia) Then
+                    Return True
+                ElseIf trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
+
+        <Extension()>
+        Public Function IsGlobalStatementContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            If Not syntaxTree.IsScript() Then
+                Return False
+            End If
+
+            Dim token As SyntaxToken = syntaxTree.FindTokenOnLeftOfPosition(
+                position, cancellationToken, includeDirectives:=True).GetPreviousTokenIfTouchingWord(position)
+
+            If token.IsKind(SyntaxKind.None) Then
+                Dim compilationUnit = TryCast(syntaxTree.GetRoot(cancellationToken), CompilationUnitSyntax)
+                Return compilationUnit Is Nothing OrElse compilationUnit.Imports.Count = 0
+            End If
+
+            Return IsGlobalStatementContext(token, position)
         End Function
 
         ''' <summary>

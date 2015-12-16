@@ -34,6 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsSingleLineStatementContext As Boolean
         Public ReadOnly IsMultiLineStatementContext As Boolean
 
+        Public ReadOnly IsGlobalStatementContext As Boolean
+
         Public ReadOnly IsTypeDeclarationKeywordContext As Boolean
         Public ReadOnly IsTypeMemberDeclarationKeywordContext As Boolean
         Public ReadOnly IsInterfaceMemberDeclarationKeywordContext As Boolean
@@ -97,6 +99,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Me.IsSingleLineStatementContext = isSingleLineStatementContext
             Me.IsMultiLineStatementContext = syntaxTree.IsMultiLineStatementStartContext(position, targetToken, cancellationToken)
+
+            Me.IsGlobalStatementContext = syntaxTree.IsGlobalStatementContext(position, cancellationToken)
 
             Me.IsTypeDeclarationKeywordContext = syntaxTree.IsTypeDeclarationKeywordContext(position, targetToken, cancellationToken)
             Me.IsTypeMemberDeclarationKeywordContext = syntaxTree.IsTypeMemberDeclarationKeywordContext(position, targetToken, cancellationToken)

@@ -2552,6 +2552,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestPreprocessorReference() As Task
+            Await TestInNamespaceAsync("#R ""Ref""",
+                                       PPKeyword("#"),
+                                       PPKeyword("R"),
+                                       [String]("""Ref"""))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorConst1() As Task
             Await TestInNamespaceAsync("#Const Foo = 1",
                             PPKeyword("#"),

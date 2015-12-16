@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             ISet<SyntaxKind> validModifiers,
             CancellationToken cancellationToken)
         {
-            if (!syntaxTree.IsInteractiveOrScript())
+            if (!syntaxTree.IsScript())
             {
                 return false;
             }
@@ -1375,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsGlobalStatementContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            if (!syntaxTree.IsInteractiveOrScript())
+            if (!syntaxTree.IsScript())
             {
                 return false;
             }
