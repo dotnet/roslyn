@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     int attributes;
                     local.GetAttributes(out attributes);
-                    if (attributes == Cci.PdbWriter.HiddenLocalAttributesValue)
+                    if (attributes == (int)LocalVariableAttributes.DebuggerHidden)
                     {
                         continue;
                     }

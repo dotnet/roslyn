@@ -713,12 +713,11 @@ namespace System.Reflection.Metadata.Ecma335
             });
         }
 
-        // TODO: enum LocalVariableAttributes
-        public int AddLocalVariable(ushort attributes, int index, StringIdx name)
+        public int AddLocalVariable(LocalVariableAttributes attributes, int index, StringIdx name)
         {
             _localVariableTable.Add(new LocalVariableRow
             {
-                Attributes = attributes,
+                Attributes = (ushort)attributes,
                 Index = (ushort)index,
                 Name = name
             });

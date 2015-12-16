@@ -71,7 +71,7 @@ namespace Microsoft.Cci
                         Debug.Assert(local.SlotIndex >= 0);
 
                         lastLocalVariableRid = _debugBuilderOpt.AddLocalVariable(
-                            attributes: (ushort)local.PdbAttributes,
+                            attributes: local.PdbAttributes,
                             index: local.SlotIndex,
                             name: _debugBuilderOpt.GetStringIndex(local.Name));
 
