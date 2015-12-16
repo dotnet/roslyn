@@ -37,8 +37,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static BinderFlags GetFlags(MethodSymbol owner, Binder enclosing)
+        {
+            var flags = enclosing.Flags;
+
+            var isUnsafe = (owner as LocalFunctionSymbol)?.IsUnsafe;
+            if (isUnsafe.HasValue)
+            {
+                // only modify unsafe flag if owner has an explicit way of specifying unsafe-ness
+                // (i.e. lambdas retain the unsafe-ness of the containing block)
+                flags = (flags & ~BinderFlags.UnsafeRegion) | (isUnsafe.Value ? BinderFlags.UnsafeRegion : 0);
+            }
+
+            return flags;
+        }
+
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
-            : base(enclosing)
+            : base(enclosing, GetFlags(owner, enclosing))
         {
             Debug.Assert((object)owner != null);
 
@@ -76,6 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected override SourceLocalSymbol LookupLocal(SyntaxToken nameToken)
+        {
+            return null;
+        }
+
+        protected override LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
         {
             return null;
         }
@@ -138,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
-            TypeSymbol returnType = _methodSymbol.ReturnType;
+            TypeSymbol returnType = (_methodSymbol as LocalFunctionSymbol)?.ReturnTypeIterator ?? _methodSymbol.ReturnType;
 
             if (!this.IsDirectlyInIterator)
             {

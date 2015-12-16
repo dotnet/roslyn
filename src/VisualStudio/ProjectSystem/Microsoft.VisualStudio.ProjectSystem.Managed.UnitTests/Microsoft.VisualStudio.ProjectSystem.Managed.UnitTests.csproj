@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C7EC63F8-F96A-4A8F-B879-D572516746B4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.VisualStudio</RootNamespace>
+    <AssemblyName>Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <SignAssembly>true</SignAssembly>
+    <OutDir>$(OutDir)\ProjectSystem\Tests</OutDir>
+    <Nonshipping>true</Nonshipping>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <CopyReferencesByDefault>false</CopyReferencesByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.VS.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.UnitTests" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.Build, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DeployTestDependencies\DeployTestDependencies.csproj">
+      <Project>{37ba82e6-9abd-4aca-aa26-2dfd39a359a5}</Project>
+      <Name>DeployTestDependencies</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.Managed\Microsoft.VisualStudio.ProjectSystem.Managed.csproj">
+      <Project>{6c6a41ce-72c5-4d77-8208-d01693f9bc88}</Project>
+      <Name>Microsoft.VisualStudio.ProjectSystem.Managed</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App.config">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Mocks\IActiveConfiguredProjectFactory.cs" />
+    <Compile Include="Mocks\IOrderPrecedenceMetadataViewFactory.cs" />
+    <Compile Include="Mocks\IThreadHandlingFactory.cs" />
+    <Compile Include="Mocks\PropertyPageData.cs" />
+    <Compile Include="Mocks\IUnconfiguredProjectCommonServicesFactory.cs" />
+    <Compile Include="Mocks\ProjectPropertiesFactory.cs" />
+    <Compile Include="Mocks\IProjectImageProviderFactory.cs" />
+    <Compile Include="Mocks\IProjectTreeProviderFactory.cs" />
+    <Compile Include="Mocks\IUnconfiguredProjectFactory.cs" />
+    <Compile Include="Mocks\IProjectDesignerServiceFactory.cs" />
+    <Compile Include="Moq\ReturnsExtensions.cs" />
+    <Compile Include="FuncWithOut.cs" />
+    <Compile Include="OrderPrecedenceImportCollectionExtensions.cs" />
+    <Compile Include="ProjectSystem\Designers\Imaging\ProjectImageProviderAggregatorTests.cs" />
+    <Compile Include="ProjectSystem\Designers\ProjectRootImageProjectTreeModifierTests.cs" />
+    <Compile Include="ProjectSystem\UnconfiguredProjectCommonServicesTests.cs" />
+    <Compile Include="Testing\ProjectSystemTraitDiscover.cs" />
+    <Compile Include="Testing\ProjectTreeParser\Delimiters.cs" />
+    <Compile Include="Testing\ProjectTreeParser\ProjectTreeFormatError.cs" />
+    <Compile Include="Testing\ProjectTreeParser\ProjectTreeFormatException.cs" />
+    <Compile Include="Testing\ProjectTreeParser\ProjectTreeParser.cs" />
+    <Compile Include="Testing\ProjectTreeParser\ProjectTreeParserTests.cs" />
+    <Compile Include="Testing\ProjectTreeWriterOptions.cs" />
+    <Compile Include="Testing\ProjectTreeParser\ProjectTreeParser.MutableProjectTree.cs" />
+    <Compile Include="Testing\ProjectTreeWriter.cs" />
+    <Compile Include="Testing\ProjectTreeParser\StringReader.cs" />
+    <Compile Include="Testing\ProjectTreeParser\Tokenizer.IdentifierParseOptions.cs" />
+    <Compile Include="Testing\ProjectTreeParser\Tokenizer.TokenType.cs" />
+    <Compile Include="Testing\ProjectTreeParser\Tokenizer.Token.cs" />
+    <Compile Include="Testing\ProjectTreeParser\Tokenizer.cs" />
+    <Compile Include="Trait.cs" />
+    <Compile Include="ProjectSystemTraitAttribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+</Project>

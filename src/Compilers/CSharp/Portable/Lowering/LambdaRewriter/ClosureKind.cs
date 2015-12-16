@@ -5,10 +5,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal enum ClosureKind
     {
         /// <summary>
-        /// The closure doesn't declare any variables. 
-        /// Display class is a singleton and may be shared with other top-level methods.
+        /// The closure doesn't declare any variables, and is never converted to a delegate.
+        /// Lambdas are emitted directly to the containing class as a static method.
         /// </summary>
         Static,
+
+        /// <summary>
+        /// The closure doesn't declare any variables, and is converted to a delegate at least once.
+        /// Display class is a singleton and may be shared with other top-level methods.
+        /// </summary>
+        Singleton,
 
         /// <summary>
         /// The closure only contains a reference to the containing class instance ("this").

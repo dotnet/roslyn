@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6C6A41CE-72C5-4D77-8208-D01693F9BC88}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.VisualStudio.ProjectSystem</RootNamespace>
+    <AssemblyName>Microsoft.VisualStudio.ProjectSystem.Managed</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <SignAssembly>true</SignAssembly>
+    <OutDir>$(OutDir)\ProjectSystem\</OutDir>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <CopyReferencesByDefault>false</CopyReferencesByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp.VS" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.CSharp.VS.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.Build, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ProjectSystem\Designers\Imaging\IProjectImageProvider.cs" />
+    <Compile Include="ProjectSystem\Designers\Imaging\ProjectImageKey.cs" />
+    <Compile Include="ProjectSystem\Designers\Imaging\ProjectImageProviderAggregator.cs" />
+    <Compile Include="ProjectSystem\Designers\ProjectRootImageProjectTreeModifier.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\GetCommandStatusResult.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\AbstractSingleNodeProjectCommand.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\AbstractProjectCommand.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\ProjectCommandAttribute.cs" />
+    <Compile Include="ProjectSystem\Designers\AbstractProjectTreeModifier.cs" />
+    <Compile Include="ProjectSystem\Designers\IProjectDesignerService.cs" />
+    <Compile Include="ProjectSystem\IUnconfiguredProjectCommonServices.cs" />
+    <Compile Include="ProjectSystem\ProjectCapability.cs" />
+    <Compile Include="ProjectSystem\Designers\AbstractAppDesignerFolderProjectTreeModifier.cs" />
+    <Compile Include="ProjectSystem\Designers\ProjectTreeExtensions.cs" />
+    <Compile Include="ProjectSystem\Designers\AbstractSpecialItemProjectTreeModifier.cs" />
+    <Compile Include="ProjectSystem\Rules\ProjectProperties.cs" />
+    <Compile Include="ProjectSystem\UnconfiguredProjectCommonServices.cs" />
+    <Compile Include="StringComparers.cs" />
+    <Compile Include="Threading\Tasks\TaskResult.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <XamlPropertyRule Include="ProjectSystem\Rules\CSharp.xaml">
+      <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
+      <SubType>Designer</SubType>
+    </XamlPropertyRule>
+    <XamlPropertyRule Include="ProjectSystem\Rules\General.xaml">
+      <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
+      <SubType>Designer</SubType>
+    </XamlPropertyRule>
+    <XamlPropertyRule Include="ProjectSystem\Rules\ProjectReference.xaml">
+      <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
+      <SubType>Designer</SubType>
+    </XamlPropertyRule>
+    <XamlPropertyRule Include="ProjectSystem\Rules\ResolvedAssemblyReference.xaml">
+      <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
+      <SubType>Designer</SubType>
+    </XamlPropertyRule>
+    <XamlPropertyRule Include="ProjectSystem\Rules\ResolvedCOMReference.xaml">
+      <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
+      <SubType>Designer</SubType>
+    </XamlPropertyRule>
+    <XamlPropertyRule Include="ProjectSystem\Rules\ResolvedProjectReference.xaml">
+      <Generator>MSBuild:GenerateRuleSourceFromXaml</Generator>
+      <SubType>Designer</SubType>
+    </XamlPropertyRule>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+</Project>

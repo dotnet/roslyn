@@ -97,6 +97,7 @@
     <Compile Include="Semantics\InterpolationTests.cs" />
     <Compile Include="Semantics\IteratorTests.cs" />
     <Compile Include="Semantics\LambdaTests.cs" />
+    <Compile Include="Semantics\LocalFunctionTests.cs" />
     <Compile Include="Semantics\LockTests.cs" />
     <Compile Include="Semantics\LookupPositionTests.cs" />
     <Compile Include="Semantics\LookupTests.cs" />

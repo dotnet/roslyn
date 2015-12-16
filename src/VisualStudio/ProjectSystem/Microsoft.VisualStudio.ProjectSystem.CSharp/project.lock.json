@@ -1,0 +1,257 @@
+{
+  "locked": false,
+  "version": 1,
+  "targets": {
+    ".NETFramework,Version=v4.6": {
+      "Microsoft.Composition/1.0.27": {
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        }
+      },
+      "Microsoft.Tpl.Dataflow/4.5.24": {
+        "compile": {
+          "lib/portable-net45+win8+wpa81/System.Threading.Tasks.Dataflow.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wpa81/System.Threading.Tasks.Dataflow.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Composition/14.0.50715-pre": {
+        "dependencies": {
+          "Microsoft.Composition": "[1.0.27, )",
+          "Microsoft.VisualStudio.Validation": "[14.0.50702, )",
+          "System.Collections.Immutable": "[1.1.36, )"
+        },
+        "compile": {
+          "lib/net451/Microsoft.VisualStudio.Composition.Configuration.dll": {},
+          "lib/net451/Microsoft.VisualStudio.Composition.dll": {}
+        },
+        "runtime": {
+          "lib/net451/Microsoft.VisualStudio.Composition.Configuration.dll": {},
+          "lib/net451/Microsoft.VisualStudio.Composition.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.ProjectSystem/14.0.50729-pre": {
+        "dependencies": {
+          "Microsoft.Composition": "[1.0.27, )",
+          "Microsoft.Tpl.Dataflow": "[4.5.24, )",
+          "Microsoft.VisualStudio.Composition": "[14.0.50715-pre, )",
+          "Microsoft.VisualStudio.SDK.VsixSuppression": "[14.0.50703, )",
+          "Microsoft.VisualStudio.Threading": "[14.0.50702, )",
+          "Microsoft.VisualStudio.Validation": "[14.0.50702, )",
+          "System.Collections.Immutable": "[1.1.36, )"
+        },
+        "compile": {
+          "lib/net451/Microsoft.VisualStudio.ProjectSystem.Interop.dll": {},
+          "lib/net451/Microsoft.VisualStudio.ProjectSystem.Utilities.v14.0.dll": {},
+          "lib/net451/Microsoft.VisualStudio.ProjectSystem.V14Only.dll": {},
+          "lib/net451/Microsoft.VisualStudio.ProjectSystem.VS.V14Only.dll": {}
+        },
+        "runtime": {
+          "lib/net451/Microsoft.VisualStudio.ProjectSystem.Interop.dll": {},
+          "lib/net451/Microsoft.VisualStudio.ProjectSystem.Utilities.v14.0.dll": {},
+          "lib/net451/Microsoft.VisualStudio.ProjectSystem.V14Only.dll": {},
+          "lib/net451/Microsoft.VisualStudio.ProjectSystem.VS.V14Only.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.ProjectSystem.SDK/14.0.50729-pre": {
+        "dependencies": {
+          "Microsoft.VisualStudio.ProjectSystem": "[14.0.50729-pre, )",
+          "Microsoft.VisualStudio.ProjectSystem.SDK.Tools": "[14.0.50729-pre, )"
+        }
+      },
+      "Microsoft.VisualStudio.ProjectSystem.SDK.Tools/14.0.50729-pre": {},
+      "Microsoft.VisualStudio.SDK.VsixSuppression/14.0.50703": {},
+      "Microsoft.VisualStudio.Threading/14.0.50702": {
+        "dependencies": {
+          "Microsoft.VisualStudio.Validation": "[14.0.50702, )"
+        },
+        "compile": {
+          "lib/net45/Microsoft.VisualStudio.Threading.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.VisualStudio.Threading.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Validation/14.0.50702": {
+        "compile": {
+          "lib/net45/Microsoft.VisualStudio.Validation.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.VisualStudio.Validation.dll": {}
+        }
+      },
+      "System.Collections.Immutable/1.1.36": {
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.Composition/1.0.27": {
+      "sha512": "pwu80Ohe7SBzZ6i69LVdzowp6V+LaVRzd5F7A6QlD42vQkX0oT7KXKWWPlM/S00w1gnMQMRnEdbtOV12z6rXdQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.xml",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.XML",
+        "License-Stable.rtf",
+        "Microsoft.Composition.nuspec",
+        "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp"
+      ]
+    },
+    "Microsoft.Tpl.Dataflow/4.5.24": {
+      "sha512": "6BE4Vu74+dkv5AkJd+UxW1sFMepMZOVlUoMZDUKqhc4Bf7pe7yySzCj6QrowUZbCqcDPwOiQsAgz3nXiLQSyMw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/portable-net45+win8+wp8+wpa81/System.Threading.Tasks.Dataflow.dll",
+        "lib/portable-net45+win8+wp8+wpa81/system.threading.tasks.dataflow.xml",
+        "lib/portable-net45+win8+wpa81/System.Threading.Tasks.Dataflow.dll",
+        "lib/portable-net45+win8+wpa81/system.threading.tasks.dataflow.xml",
+        "License-Stable.rtf",
+        "Microsoft.Tpl.Dataflow.nuspec",
+        "package/services/metadata/core-properties/3dd86853af3a4ae392f3331459714ce0.psmdcp"
+      ]
+    },
+    "Microsoft.VisualStudio.Composition/14.0.50715-pre": {
+      "sha512": "iW0ZItSqec+q0wmUHbFCDb/kxdKqa5LaoLYRso7sbnnx8DZst/WGc86ooxBg+P6imWVV69a5ABUAE14EIkDzHw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net45/Microsoft.VisualStudio.Composition.dll",
+        "lib/net45/Microsoft.VisualStudio.Composition.xml",
+        "lib/net451/Microsoft.VisualStudio.Composition.Configuration.dll",
+        "lib/net451/Microsoft.VisualStudio.Composition.Configuration.xml",
+        "lib/net451/Microsoft.VisualStudio.Composition.dll",
+        "lib/net451/Microsoft.VisualStudio.Composition.xml",
+        "Microsoft.VisualStudio.Composition.nuspec",
+        "package/services/metadata/core-properties/49476b50df234fd0aa965545b1ff4537.psmdcp"
+      ]
+    },
+    "Microsoft.VisualStudio.ProjectSystem/14.0.50729-pre": {
+      "sha512": "+JSSRR94Y+4abD+q1dEKH8oQngfGUjcg0n9T7OG3bYEiLACJBkm+TCdajskhOvlc0Q4kfPtm3Z/PCS7Ph3LH0g==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net451/Microsoft.VisualStudio.ProjectSystem.Interop.dll",
+        "lib/net451/Microsoft.VisualStudio.ProjectSystem.Interop.xml",
+        "lib/net451/Microsoft.VisualStudio.ProjectSystem.Utilities.v14.0.dll",
+        "lib/net451/Microsoft.VisualStudio.ProjectSystem.Utilities.v14.0.xml",
+        "lib/net451/Microsoft.VisualStudio.ProjectSystem.V14Only.dll",
+        "lib/net451/Microsoft.VisualStudio.ProjectSystem.V14Only.xml",
+        "lib/net451/Microsoft.VisualStudio.ProjectSystem.VS.V14Only.dll",
+        "lib/net451/Microsoft.VisualStudio.ProjectSystem.VS.V14Only.xml",
+        "Microsoft.VisualStudio.ProjectSystem.nuspec",
+        "package/services/metadata/core-properties/fe999f7ab0874e64b777f1794da9d9b4.psmdcp"
+      ]
+    },
+    "Microsoft.VisualStudio.ProjectSystem.SDK/14.0.50729-pre": {
+      "sha512": "hW9/MpuMxPHW4q2rPDIrgN/o2CpkUm+4E1+CIEDlh3LiXKUyVRRy79IpEaUW0txe4KgFZyB5NSYyVEYQLl3k2Q==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "Microsoft.VisualStudio.ProjectSystem.SDK.nuspec",
+        "package/services/metadata/core-properties/a93e83fc8f73442b87d4f9965d3fc30a.psmdcp",
+        "README.txt"
+      ]
+    },
+    "Microsoft.VisualStudio.ProjectSystem.SDK.Tools/14.0.50729-pre": {
+      "sha512": "0i4en63Z6RREy+ntj8mVO1tJ1Ei62oFVPMAnl/DIUp10972MWCb6ZisPYCxkXCTdziJq8r+KIHRQUsYJ7aU+7Q==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "build/Microsoft.VisualStudio.ProjectSystem.Sdk.Tasks.dll",
+        "build/Microsoft.VisualStudio.ProjectSystem.Sdk.Tasks.xml",
+        "build/Microsoft.VisualStudio.ProjectSystem.Sdk.Tools.targets",
+        "build/XamlPropertyRule.ContentType.xaml",
+        "build/XamlPropertyRule.xaml",
+        "content/ProjectProperties.cs.pp",
+        "Microsoft.VisualStudio.ProjectSystem.SDK.Tools.nuspec",
+        "package/services/metadata/core-properties/fd313fe67dbf4ade866edd89b9ac578e.psmdcp",
+        "README.txt"
+      ]
+    },
+    "Microsoft.VisualStudio.SDK.VsixSuppression/14.0.50703": {
+      "sha512": "lNXT1x3ts/dDcQBuEAvuO04AOvH5zlOWnxdPMnQmAk32oNqq8QZZ9sf2hHDhIAd4RhYHh5gjQ/8yqAP1V03KVw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "build/Microsoft.VisualStudio.SDK.VsixSuppression.targets",
+        "Microsoft.VisualStudio.SDK.VsixSuppression.nuspec",
+        "package/services/metadata/core-properties/d13cf0951f2743589e7f65ce5966d899.psmdcp"
+      ]
+    },
+    "Microsoft.VisualStudio.Threading/14.0.50702": {
+      "sha512": "dHdvEGfDv5PbGsCbtBtPkCsXkmPJcJTmnQ3m9V4JxqBCMJWO8N4Dyut4ssw46KKr8MS64RWiJSslPhDLiSfQDA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net45/Microsoft.VisualStudio.Threading.dll",
+        "lib/net45/Microsoft.VisualStudio.Threading.xml",
+        "Microsoft.VisualStudio.Threading.nuspec",
+        "package/services/metadata/core-properties/77685921fcf14c9593f228a4558113ac.psmdcp"
+      ]
+    },
+    "Microsoft.VisualStudio.Validation/14.0.50702": {
+      "sha512": "+fqBUMqpfk8b1BwegIalBHoNzfnJUWFI/qrOGD6xEfhEH+732zZGlzO3Kuci+wiVX1NCD6HW5jZDEePVejGHcg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net45/Microsoft.VisualStudio.Validation.dll",
+        "lib/net45/Microsoft.VisualStudio.Validation.xml",
+        "Microsoft.VisualStudio.Validation.nuspec",
+        "package/services/metadata/core-properties/bc0320ca467749b1ac7a79765ec3e8cb.psmdcp"
+      ]
+    },
+    "System.Collections.Immutable/1.1.36": {
+      "sha512": "MOlivTIeAIQPPMUPWIIoMCvZczjFRLYUWSYwqi1szu8QPyeIbsaPeI+hpXe1DzTxNwnRnmfYaoToi6kXIfSPNg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
+        "License-Stable.rtf",
+        "package/services/metadata/core-properties/c8b7b781850445db852bd2d848380ca6.psmdcp",
+        "System.Collections.Immutable.nuspec"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [],
+    ".NETFramework,Version=v4.6": []
+  }
+}
