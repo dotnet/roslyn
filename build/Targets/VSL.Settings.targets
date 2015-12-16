@@ -338,8 +338,10 @@
       $(BuildNumberSuffix.Split('.')[1].PadLeft(2,'0'))
     </BuildNumberPart2>
 
+    <!-- Only set when building RTM with no dependencies on pre-release packages
     <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
-    <NuGetPreReleaseVersion>$(NuGetReleaseVersion)-beta</NuGetPreReleaseVersion>
+    -->
+    <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta1</NuGetPreReleaseVersion>
     <NuGetPerBuildPreReleaseVersion Condition="'$(BuildNumberSuffix)' != ''">$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
   </PropertyGroup>
 
