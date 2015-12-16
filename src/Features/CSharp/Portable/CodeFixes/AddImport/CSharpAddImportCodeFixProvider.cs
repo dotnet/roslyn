@@ -112,6 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         /// </summary>
         private const string CS0428 = "CS0428";
 
+        /// <summary>
+        ///  There is no argument given that corresponds to the required formal parameter 'X' of 'Y'
+        /// </summary>
+        private const string CS7036 = "CS7036";
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get
@@ -133,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     CS1581,
                     CS1584,
                     CS1929,
-                    CS0428);
+                    CS0428,
+                    CS7036);
             }
         }
 
@@ -154,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             switch (diagnostic.Id)
             {
+                case CS7036:
                 case CS0428:
                 case CS1061:
                     if (node.IsKind(SyntaxKind.ConditionalAccessExpression))

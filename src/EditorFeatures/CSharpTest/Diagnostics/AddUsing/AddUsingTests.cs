@@ -2089,6 +2089,59 @@ class Test
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestExtensionWithIncompatibleInstance()
+        {
+            await TestAsync(
+@"using System.IO;
+
+namespace Namespace1
+{
+    static class StreamExtensions
+    {
+        public static void Write(this Stream stream, byte[] bytes)
+        {
+        }
+    }
+}
+
+namespace Namespace2
+{
+    class Foo
+    {
+        void Bar()
+        {
+            Stream stream = null;
+            stream.[|Write|](new byte[] { 1, 2, 3 });
+        }
+    }
+}",
+@"using System.IO;
+using Namespace1;
+
+namespace Namespace1
+{
+    static class StreamExtensions
+    {
+        public static void Write(this Stream stream, byte[] bytes)
+        {
+        }
+    }
+}
+
+namespace Namespace2
+{
+    class Foo
+    {
+        void Bar()
+        {
+            Stream stream = null;
+            stream.Write(new byte[] { 1, 2, 3 });
+        }
+    }
+}");
+        }
+
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
