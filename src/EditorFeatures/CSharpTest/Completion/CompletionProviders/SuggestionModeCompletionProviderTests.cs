@@ -567,20 +567,20 @@ class a
             using (var workspaceFixture = new CSharpTestWorkspaceFixture())
             {
                 var document1 = await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular);
-                CheckResults(document1, position, isBuilder);
+                await CheckResultsAsync(document1, position, isBuilder);
 
                 if (CanUseSpeculativeSemanticModel(document1, position))
                 {
                     var document2 = await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
-                    CheckResults(document2, position, isBuilder);
+                    await CheckResultsAsync(document2, position, isBuilder);
                 }
             }
         }
 
-        private void CheckResults(Document document, int position, bool isBuilder)
+        private async Task CheckResultsAsync(Document document, int position, bool isBuilder)
         {
             var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
-            var completionList = GetCompletionList(document, position, triggerInfo);
+            var completionList = await GetCompletionListAsync(document, position, triggerInfo);
 
             if (isBuilder)
             {

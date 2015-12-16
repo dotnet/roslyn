@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var extensionManager = workspace.Services.GetService<IExtensionManager>();
 
                 var results = new List<ClassifiedSpan>();
-                service.AddSemanticClassificationsAsync(document, textSpan,
+                await service.AddSemanticClassificationsAsync(document, textSpan,
                     extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
                     extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
-                    results, CancellationToken.None).Wait();
+                    results, CancellationToken.None);
 
                 return results;
             }

@@ -1752,7 +1752,7 @@ public class C
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim triggerInfo = CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()
 
-                Dim completionList = GetCompletionList(document, caretPosition, triggerInfo)
+                Dim completionList = Await GetCompletionListAsync(document, caretPosition, triggerInfo)
                 Assert.False(completionList.Items.Any(Function(c) c.DisplayText = "e"))
             End Using
         End Function

@@ -576,7 +576,7 @@ class d
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
 
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
                 var item = completionList.Items.First();
 
                 var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
@@ -752,7 +752,7 @@ class Container
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
 
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
 
                 if (completionList != null)
                 {

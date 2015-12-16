@@ -408,7 +408,7 @@ End Program</Document>
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim triggerInfo = CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()
 
-                Dim completionList = GetCompletionList(document, caretPosition, triggerInfo)
+                Dim completionList = Await GetCompletionListAsync(document, caretPosition, triggerInfo)
                 Assert.True(completionList Is Nothing OrElse completionList.IsExclusive, "Expected always exclusive")
             End Using
         End Function

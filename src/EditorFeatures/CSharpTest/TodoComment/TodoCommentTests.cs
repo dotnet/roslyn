@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
                 var document = workspace.Documents.First();
                 var documentId = document.Id;
                 var reasons = new InvocationReasons(PredefinedInvocationReasons.DocumentAdded);
-                worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), CancellationToken.None).Wait();
+                await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), CancellationToken.None);
 
                 var todoLists = worker.GetItems_TestingOnly(documentId);
                 var expectedLists = document.SelectedSpans;

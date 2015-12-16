@@ -213,11 +213,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 ArgumentException exception = null;
                 try
                 {
-                    context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), method, codeGenerationOptions).Wait();
+                    await context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), method, codeGenerationOptions);
                 }
-                catch (AggregateException e)
+                catch (ArgumentException e)
                 {
-                    exception = e.InnerException as ArgumentException;
+                    exception = e;
                 }
 
                 var expectedMessage = string.Format(WorkspacesResources.CannotCodeGenUnsupportedOperator, method.Name);

@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
                 var semanticClassifications = new List<ClassifiedSpan>();
                 var syntacticClassifications = new List<ClassifiedSpan>();
-                service.AddSemanticClassificationsAsync(document, textSpan,
+                await service.AddSemanticClassificationsAsync(document, textSpan,
                     extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
                     extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
-                    semanticClassifications, CancellationToken.None).Wait();
+                    semanticClassifications, CancellationToken.None);
                 service.AddSyntacticClassifications(syntaxTree, textSpan, syntacticClassifications, CancellationToken.None);
 
                 var classificationsSpans = new HashSet<TextSpan>();

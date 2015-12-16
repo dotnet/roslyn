@@ -645,7 +645,7 @@ End Interface
                 Dim document = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id)
                 Dim triggerInfo = New CompletionTriggerInfo()
 
-                Dim completionList = GetCompletionList(document, position, triggerInfo)
+                Dim completionList = Await GetCompletionListAsync(document, position, triggerInfo)
                 AssertEx.Any(completionList.Items, Function(c) c.DisplayText = "Workcover")
 
             End Using
