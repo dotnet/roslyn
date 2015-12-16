@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         internal TaggerContext(
             object state,
-            IEnumerable<DocumentSnapshotSpan> spansToTag,
+            IList<DocumentSnapshotSpan> spansToTag,
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags,
