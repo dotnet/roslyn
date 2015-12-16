@@ -357,9 +357,26 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return SpecialType.None;
         }
 
-        internal static ObjectDisplayOptions GetObjectDisplayOptions(bool useHexadecimalNumbers)
+        internal static ObjectDisplayOptions GetObjectDisplayOptions(bool useQuotes = false, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
         {
-            return useHexadecimalNumbers ? ObjectDisplayOptions.UseHexadecimalNumbers : ObjectDisplayOptions.None;
+            var options = ObjectDisplayOptions.None;
+
+            if (useQuotes)
+            {
+                options |= ObjectDisplayOptions.UseQuotes;
+            }
+
+            if (includeCodePoints)
+            {
+                options |= ObjectDisplayOptions.IncludeCodePoints;
+            }
+
+            if (useHexadecimalNumbers)
+            {
+                options |= ObjectDisplayOptions.UseHexadecimalNumbers;
+            }
+
+            return options;
         }
 
         // Parses

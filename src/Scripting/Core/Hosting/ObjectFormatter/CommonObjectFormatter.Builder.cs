@@ -28,11 +28,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 _currentLimit = Math.Min(_options.MaximumLineLength, _options.MaximumOutputLength);
             }
 
-            public bool LimitReached
-            {
-                get { return _sb.Length == _options.MaximumOutputLength; }
-            }
-
             public int Remaining
             {
                 get { return _options.MaximumOutputLength - _sb.Length; }

@@ -22,61 +22,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
             Return ObjectDisplay.FormatLiteral(value)
         End Function
 
-        Protected Overrides Function FormatLiteral(value As String, quote As Boolean, Optional useHexadecimalNumbers As Boolean = False) As String
-            Dim options = ObjectDisplayOptions.None
-            If quote Then
-                options = options Or ObjectDisplayOptions.UseQuotes
-            End If
-            If useHexadecimalNumbers Then
-                options = options Or ObjectDisplayOptions.UseHexadecimalNumbers
-            End If
+        Protected Overrides Function FormatLiteral(value As String, useQuotes As Boolean, Optional useHexadecimalNumbers As Boolean = False) As String
+            Dim options As ObjectDisplayOptions = GetObjectDisplayOptions(useQuotes:=useQuotes, useHexadecimalNumbers:=useHexadecimalNumbers)
             Return ObjectDisplay.FormatLiteral(value, options)
         End Function
 
-        Protected Overrides Function FormatLiteral(c As Char, quote As Boolean, Optional includeCodePoints As Boolean = False, Optional useHexadecimalNumbers As Boolean = False) As String
-            Dim options = ObjectDisplayOptions.None
-            If quote Then
-                options = options Or ObjectDisplayOptions.UseQuotes
-            End If
-            If includeCodePoints Then
-                options = options Or ObjectDisplayOptions.IncludeCodePoints
-            End If
-            If useHexadecimalNumbers Then
-                options = options Or ObjectDisplayOptions.UseHexadecimalNumbers
-            End If
+        Protected Overrides Function FormatLiteral(c As Char, useQuotes As Boolean, Optional includeCodePoints As Boolean = False, Optional useHexadecimalNumbers As Boolean = False) As String
+            Dim options As ObjectDisplayOptions = GetObjectDisplayOptions(useQuotes:=useQuotes, includeCodePoints:=includeCodePoints, useHexadecimalNumbers:=useHexadecimalNumbers)
             Return ObjectDisplay.FormatLiteral(c, options)
         End Function
 
         Protected Overrides Function FormatLiteral(value As SByte, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
         End Function
 
         Protected Overrides Function FormatLiteral(value As Byte, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
         End Function
 
         Protected Overrides Function FormatLiteral(value As Short, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
         End Function
 
         Protected Overrides Function FormatLiteral(value As UShort, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
         End Function
 
         Protected Overrides Function FormatLiteral(value As Integer, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
         End Function
 
         Protected Overrides Function FormatLiteral(value As UInteger, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
         End Function
 
         Protected Overrides Function FormatLiteral(value As Long, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
         End Function
 
         Protected Overrides Function FormatLiteral(value As ULong, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers))
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
         End Function
 
         Protected Overrides Function FormatLiteral(value As Double) As String

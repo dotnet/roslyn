@@ -16,81 +16,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
             return ObjectDisplay.FormatLiteral(value);
         }
 
-        protected override string FormatLiteral(string value, bool quote, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(string value, bool useQuotes, bool useHexadecimalNumbers = false)
         {
-            var options = ObjectDisplayOptions.None;
-            if (quote)
-            {
-                options |= ObjectDisplayOptions.UseQuotes;
-            }
-
-            if (useHexadecimalNumbers)
-            {
-                options |= ObjectDisplayOptions.UseHexadecimalNumbers;
-            }
-
+            var options = GetObjectDisplayOptions(useQuotes: useQuotes, useHexadecimalNumbers: useHexadecimalNumbers);
             return ObjectDisplay.FormatLiteral(value, options);
         }
 
-        protected override string FormatLiteral(char c, bool quote, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(char c, bool useQuotes, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
         {
-            var options = ObjectDisplayOptions.None;
-            if (quote)
-            {
-                options |= ObjectDisplayOptions.UseQuotes;
-            }
-
-            if (includeCodePoints)
-            {
-                options |= ObjectDisplayOptions.IncludeCodePoints;
-            }
-
-            if (useHexadecimalNumbers)
-            {
-                options |= ObjectDisplayOptions.UseHexadecimalNumbers;
-            }
-
+            var options = GetObjectDisplayOptions(useQuotes: useQuotes, includeCodePoints: includeCodePoints, useHexadecimalNumbers: useHexadecimalNumbers);
             return ObjectDisplay.FormatLiteral(c, options);
         }
 
         protected override string FormatLiteral(sbyte value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
         }
 
         protected override string FormatLiteral(byte value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
         }
 
         protected override string FormatLiteral(short value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
         }
 
         protected override string FormatLiteral(ushort value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
         }
 
         protected override string FormatLiteral(int value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
         }
 
         protected override string FormatLiteral(uint value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
         }
 
         protected override string FormatLiteral(long value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
         }
 
         protected override string FormatLiteral(ulong value, bool useHexadecimalNumbers = false)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
         }
 
         protected override string FormatLiteral(double value)

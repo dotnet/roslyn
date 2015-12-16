@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                         members[i].Append(result, inline ? "=" : ": ");
                     }
 
-                    if (result.LimitReached)
+                    if (result.Remaining <= 0)
                     {
                         break;
                     }
