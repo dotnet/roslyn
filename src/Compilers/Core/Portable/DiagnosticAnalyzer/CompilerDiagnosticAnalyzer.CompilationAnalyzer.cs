@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var diagnostic in diagnostics)
                 {
-                    if (locationFilter(diagnostic.Location) &&
-                        diagnostic.Severity != DiagnosticSeverity.Hidden)
+                    if (locationFilter(diagnostic.Location) /* &&
+                        diagnostic.Severity != DiagnosticSeverity.Hidden */)
                     {
                         var current = properties == null ? diagnostic : new CompilerDiagnostic(diagnostic, properties);
                         reportDiagnostic(current);

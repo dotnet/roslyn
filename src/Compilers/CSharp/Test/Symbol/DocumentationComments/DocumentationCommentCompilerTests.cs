@@ -5678,7 +5678,7 @@ public class C {} // CS1587
             CreateCompilationWithMscorlib(tree, options: compOptions).VerifyDiagnostics(
                 // (2,14): error CS1591: Warning as Error: Missing XML comment for publicly visible type or member 'C'
                 // public class C {} // CS1587
-                Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithWarningAsError(true));
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithWarningAsError(true).WithSeverity(DiagnosticSeverity.Error));
         }
 
         [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]

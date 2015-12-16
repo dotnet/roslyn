@@ -5444,12 +5444,15 @@ class Program
             {
                 var comp = CreateCompilationWithMscorlibAndSystemCore(source);
                 comp.VerifyDiagnostics(
-                    // (13,51): error CS1503: Argument 1: cannot convert from 'Program.A' to 'int'
+                    // (13,30): error CS1061: 'Task' does not contain a definition for 'Result' and no extension method 'Result' accepting a first argument of type 'Task' could be found (are you missing a using directive or an assembly reference?)
                     //             var list = tasks.Result.Select(t => X(t.Result)); // Wrong argument type for X.
-                    Diagnostic(ErrorCode.ERR_BadArgType, "t.Result").WithArguments("1", "Program.A", "int").WithLocation(13, 51),
-                    // (13,30): error CS1061: 'System.Threading.Tasks.Task' does not contain a definition for 'Result' and no extension method 'Result' accepting a first argument of type 'System.Threading.Tasks.Task' could be found (are you missing a using directive or an assembly reference?)
+                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Result").WithArguments("System.Threading.Tasks.Task", "Result").WithLocation(13, 30),
+                    // (13,51): hidden CS1503: Argument 1: cannot convert from 'Program.A' to 'int'
                     //             var list = tasks.Result.Select(t => X(t.Result)); // Wrong argument type for X.
-                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Result").WithArguments("System.Threading.Tasks.Task", "Result").WithLocation(13, 30));
+                    Diagnostic(ErrorCode.ERR_BadArgType, "t.Result").WithArguments("1", "Program.A", "int").WithLocation(13, 51).WithSeverity(DiagnosticSeverity.Hidden),
+                    // (13,30): hidden CS1061: 'Task' does not contain a definition for 'Result' and no extension method 'Result' accepting a first argument of type 'Task' could be found (are you missing a using directive or an assembly reference?)
+                    //             var list = tasks.Result.Select(t => X(t.Result)); // Wrong argument type for X.
+                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Result").WithArguments("System.Threading.Tasks.Task", "Result").WithLocation(13, 30).WithSeverity(DiagnosticSeverity.Hidden));
 
                 var tree = comp.SyntaxTrees.Single();
                 var model = comp.GetSemanticModel(tree);
