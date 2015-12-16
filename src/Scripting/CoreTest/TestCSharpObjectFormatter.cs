@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
                 maximumLineLength: _maximumLineLength,
                 maximumOutputLength: printOptions.MaximumOutputLength);
 
-        protected override CommonPrimitiveFormatter.Options GetPrimitiveOptions(PrintOptions printOptions) =>
-            new CommonPrimitiveFormatter.Options(printOptions.NumberRadix == NumberRadix.Hexadecimal, printOptions.EscapeNonPrintableCharacters, _omitStringQuotes);
+        protected override CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
+            new CommonPrimitiveFormatterOptions(printOptions.NumberRadix == NumberRadix.Hexadecimal, printOptions.EscapeNonPrintableCharacters, _omitStringQuotes);
     }
 }

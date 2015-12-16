@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             private readonly CommonObjectFormatter _formatter;
 
             private readonly BuilderOptions _builderOptions;
-            private CommonPrimitiveFormatter.Options _primitiveOptions;
-            private CommonTypeNameFormatter.Options _typeNameOptions;
+            private CommonPrimitiveFormatterOptions _primitiveOptions;
+            private CommonTypeNameFormatterOptions _typeNameOptions;
             private MemberDisplayFormat _memberDisplayFormat;
 
             private HashSet<object> _lazyVisitedObjects;
@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             public Visitor(
                 CommonObjectFormatter formatter, 
                 BuilderOptions builderOptions,
-                CommonPrimitiveFormatter.Options primitiveOptions,
-                CommonTypeNameFormatter.Options typeNameOptions,
+                CommonPrimitiveFormatterOptions primitiveOptions,
+                CommonTypeNameFormatterOptions typeNameOptions,
                 MemberDisplayFormat memberDisplayFormat)
             {
                 _formatter = formatter;
@@ -787,10 +787,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                                 else
                                 {
                                     MemberDisplayFormat oldMemberDisplayFormat = _memberDisplayFormat;
-                                    CommonPrimitiveFormatter.Options oldPrimitiveOptions = _primitiveOptions;
+                                    CommonPrimitiveFormatterOptions oldPrimitiveOptions = _primitiveOptions;
 
                                     _memberDisplayFormat = MemberDisplayFormat.Hidden;
-                                    _primitiveOptions = new CommonPrimitiveFormatter.Options(_primitiveOptions.UseHexadecimalNumbers, _primitiveOptions.IncludeCharacterCodePoints, omitStringQuotes: noQuotes);
+                                    _primitiveOptions = new CommonPrimitiveFormatterOptions(_primitiveOptions.UseHexadecimalNumbers, _primitiveOptions.IncludeCharacterCodePoints, omitStringQuotes: noQuotes);
 
                                     string _;
                                     FormatObjectRecursive(result, value, isRoot: false, debuggerDisplayName: out _);

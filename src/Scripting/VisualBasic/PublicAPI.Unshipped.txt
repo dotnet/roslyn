@@ -24,7 +24,7 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimit
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.NullLiteral() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.ArrayClosing() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.ArrayOpening() -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.FormatTypeName(type As System.Type, options As Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.Options) -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.FormatTypeName(type As System.Type, options As Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions) -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.GenericParameterClosing() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.GenericParameterOpening() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.GetPrimitiveTypeName(type As Microsoft.CodeAnalysis.SpecialType) -> String

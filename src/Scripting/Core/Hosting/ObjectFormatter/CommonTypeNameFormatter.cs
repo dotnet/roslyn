@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         protected abstract CommonPrimitiveFormatter PrimitiveFormatter { get; }
 
         // TODO (tomat): Use DebuggerDisplay.Type if specified?
-        public virtual string FormatTypeName(Type type, Options options)
+        public virtual string FormatTypeName(Type type, CommonTypeNameFormatterOptions options)
         {
             if (type == null)
             {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return FormatNonGenericTypeName(typeInfo, options);
         }
 
-        private static string FormatNonGenericTypeName(TypeInfo typeInfo, Options options)
+        private static string FormatNonGenericTypeName(TypeInfo typeInfo, CommonTypeNameFormatterOptions options)
         {
             if (options.ShowNamespaces)
             {
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return typeName;
         }
 
-        public virtual string FormatTypeArguments(Type[] typeArguments, Options options)
+        public virtual string FormatTypeArguments(Type[] typeArguments, CommonTypeNameFormatterOptions options)
         {
             if (typeArguments == null)
             {
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// <summary>
         /// Formats an array type name (vector or multidimensional).
         /// </summary>
-        public virtual string FormatArrayTypeName(Type arrayType, Array arrayOpt, Options options)
+        public virtual string FormatArrayTypeName(Type arrayType, Array arrayOpt, CommonTypeNameFormatterOptions options)
         {
             if (arrayType == null)
             {
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private void AppendArrayBound(StringBuilder sb, long bound, bool useHexadecimalNumbers)
         {
-            var options = new CommonPrimitiveFormatter.Options(useHexadecimalNumbers, includeCodePoints: false, omitStringQuotes: false);
+            var options = new CommonPrimitiveFormatterOptions(useHexadecimalNumbers, includeCodePoints: false, omitStringQuotes: false);
             var formatted = int.MinValue <= bound && bound <= int.MaxValue
                 ? PrimitiveFormatter.FormatPrimitive((int)bound, options)
                 : PrimitiveFormatter.FormatPrimitive(bound, options);
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             sb.Append(']');
         }
 
-        private string FormatGenericTypeName(TypeInfo typeInfo, Options options)
+        private string FormatGenericTypeName(TypeInfo typeInfo, CommonTypeNameFormatterOptions options)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             TypeInfo typeInfo, 
             Type[] genericArguments, 
             ref int genericArgIndex, 
-            Options options)
+            CommonTypeNameFormatterOptions options)
         {
             // generic arguments of all the outer types and the current type;
             int currentArgCount = (typeInfo.IsGenericTypeDefinition ? typeInfo.GenericTypeParameters.Length : typeInfo.GenericTypeArguments.Length) - genericArgIndex;

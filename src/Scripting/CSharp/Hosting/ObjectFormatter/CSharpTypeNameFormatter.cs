@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
             }
         }
 
-        public override string FormatTypeName(Type type, Options options)
+        public override string FormatTypeName(Type type, CommonTypeNameFormatterOptions options)
         {
             string stateMachineName;
             if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(type.Name, GeneratedNameKind.StateMachineType, out stateMachineName))

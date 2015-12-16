@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// <summary>
         /// Returns null if the type is not considered primitive in the target language.
         /// </summary>
-        public string FormatPrimitive(object obj, Options options)
+        public string FormatPrimitive(object obj, CommonPrimitiveFormatterOptions options)
         {
             if (ReferenceEquals(obj, VoidValue))
             {

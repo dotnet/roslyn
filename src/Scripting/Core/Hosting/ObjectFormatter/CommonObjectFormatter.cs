@@ -42,14 +42,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 maximumLineLength: int.MaxValue,
                 maximumOutputLength: printOptions.MaximumOutputLength);
 
-        protected virtual CommonPrimitiveFormatter.Options GetPrimitiveOptions(PrintOptions printOptions) =>
-            new CommonPrimitiveFormatter.Options(
+        protected virtual CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
+            new CommonPrimitiveFormatterOptions(
                 useHexadecimalNumbers: printOptions.NumberRadix == NumberRadix.Hexadecimal,
                 includeCodePoints: printOptions.EscapeNonPrintableCharacters, // TODO (acasey): not quite the same
                 omitStringQuotes: false);
 
-        protected virtual CommonTypeNameFormatter.Options GetTypeNameOptions(PrintOptions printOptions) =>
-            new CommonTypeNameFormatter.Options(
+        protected virtual CommonTypeNameFormatterOptions GetTypeNameOptions(PrintOptions printOptions) =>
+            new CommonTypeNameFormatterOptions(
                 useHexadecimalArrayBounds: printOptions.NumberRadix == NumberRadix.Hexadecimal,
                 showNamespaces: false);
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var builder = pooled.Builder;
 
             var declaringType = method.DeclaringType;
-            var options = new CommonTypeNameFormatter.Options(useHexadecimalArrayBounds: false, showNamespaces: true);
+            var options = new CommonTypeNameFormatterOptions(useHexadecimalArrayBounds: false, showNamespaces: true);
 
             builder.Append(TypeNameFormatter.FormatTypeName(declaringType, options));
             builder.Append('.');

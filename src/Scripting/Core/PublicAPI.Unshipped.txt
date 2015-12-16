@@ -8,13 +8,13 @@ Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Print(object v
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.PrintOptions.get -> Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
 Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter
 Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter
-Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatPrimitive(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options options) -> string
-Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options
-Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options.Options(bool useHexadecimalNumbers, bool includeCodePoints, bool omitStringQuotes) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatPrimitive(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatterOptions options) -> string
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatterOptions
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatterOptions.Options(bool useHexadecimalNumbers, bool includeCodePoints, bool omitStringQuotes) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.CommonStackTraceRewriter
 Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter
-Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.Options
-Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.Options.Options(bool useHexadecimalArrayBounds, bool showNamespaces) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions.Options(bool useHexadecimalArrayBounds, bool showNamespaces) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy.FullPath.get -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy.OriginalPath.get -> string
@@ -179,18 +179,18 @@ override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.ResolveMissingA
 override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.ResolveReference(string reference, string baseFilePath, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.PortableExecutableReference>
 override Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.GetHashCode() -> int
-readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options.IncludeCharacterCodePoints -> bool
-readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options.OmitStringQuotes -> bool
-readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options.UseHexadecimalNumbers -> bool
-readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.Options.ShowNamespaces -> bool
-readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.Options.UseHexadecimalArrayBounds -> bool
+readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatterOptions.IncludeCharacterCodePoints -> bool
+readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatterOptions.OmitStringQuotes -> bool
+readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatterOptions.UseHexadecimalNumbers -> bool
+readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions.ShowNamespaces -> bool
+readonly Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions.UseHexadecimalArrayBounds -> bool
 static Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver
 static Microsoft.CodeAnalysis.Scripting.ScriptOptions.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 static Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
-virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.GetPrimitiveOptions(Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions printOptions) -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.Options
-virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.GetTypeNameOptions(Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions printOptions) -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.Options
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.GetPrimitiveOptions(Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions printOptions) -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatterOptions
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.GetTypeNameOptions(Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions printOptions) -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.StackTraceRewriter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.StackTraceRewriter
-virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatArrayTypeName(System.Type arrayType, System.Array arrayOpt, Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.Options options) -> string
-virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatTypeArguments(System.Type[] typeArguments, Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.Options options) -> string
-virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatTypeName(System.Type type, Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.Options options) -> string
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatArrayTypeName(System.Type arrayType, System.Array arrayOpt, Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions options) -> string
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatTypeArguments(System.Type[] typeArguments, Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions options) -> string
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatTypeName(System.Type type, Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions options) -> string
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.StackTraceRewriter.Rewrite(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Scripting.Hosting.StackFrame> frames) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Scripting.Hosting.StackFrame>

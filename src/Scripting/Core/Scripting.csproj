@@ -79,9 +79,9 @@
     <Compile Include="Hosting\CommandLine\NotImplementedAnalyzerLoader.cs" />
     <Compile Include="Hosting\InteractiveScriptGlobals.cs" />
     <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.BuilderOptions.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CommonPrimitiveFormatter.Options.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonPrimitiveFormatterOptions.cs" />
     <Compile Include="Hosting\ObjectFormatter\CommonPrimitiveFormatter.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatter.Options.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatterOptions.cs" />
     <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatter.cs" />
     <Compile Include="Hosting\CommonObjectFilter.cs" />
     <Compile Include="Hosting\ObjectFormatter\NumberRadix.cs" />

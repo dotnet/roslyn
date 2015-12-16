@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         End Property
 
 
-        Public Overrides Function FormatTypeName(type As Type, options As Options) As String
+        Public Overrides Function FormatTypeName(type As Type, options As CommonTypeNameFormatterOptions) As String
             ' TODO (https://github.com/dotnet/roslyn/issues/3739): handle generated type names (e.g. state machines as in C#)
 
             Return MyBase.FormatTypeName(type, options)
