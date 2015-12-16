@@ -22371,13 +22371,13 @@ class Test
   }
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (7,41): error CS0246: The type or namespace name 'List<int>' could not be found (are you missing a using directive or an assembly reference?)
+                // (7,41): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
                 //     var d = (Action<List<int>>)delegate(List<int> t) {};
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<int>"),
-                // (7,21): error CS0246: The type or namespace name 'List<int>' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(7, 41),
+                // (7,21): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
                 //     var d = (Action<List<int>>)delegate(List<int> t) {};
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<int>")
-        );
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(7, 21)
+                );
         }
 
         [Fact]
