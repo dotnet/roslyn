@@ -1524,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node = node.Parent;
                 }
 
-                CSDiagnosticInfo info = NotFound(where, simpleName, arity, where.ToString(), diagnostics, aliasOpt, qualifierOpt, options);
+                CSDiagnosticInfo info = NotFound(where, simpleName, arity, simpleName, diagnostics, aliasOpt, qualifierOpt, options);
                 return new ExtendedErrorTypeSymbol(qualifierOpt ?? Compilation.Assembly.GlobalNamespace, simpleName, arity, info);
             }
 

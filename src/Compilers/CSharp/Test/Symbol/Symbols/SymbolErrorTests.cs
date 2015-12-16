@@ -2884,25 +2884,25 @@ class C<T>
             CreateCompilationWithMscorlib(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
                 // (1,14): error CS0234: The type or namespace name 'A' does not exist in the namespace 'N' (are you missing an assembly reference?)
                 // using NA = N.A;
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "A").WithArguments("A", "N"),
-                // (2,16): error CS0234: The type or namespace name 'B<object>' does not exist in the namespace 'N' (are you missing an assembly reference?)
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "A").WithArguments("A", "N").WithLocation(1, 14),
+                // (2,16): error CS0234: The type or namespace name 'B' does not exist in the namespace 'N' (are you missing an assembly reference?)
                 // using NB = C<N.B<object>>;
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "B<object>").WithArguments("B<object>", "N"),
-                // (8,7): error CS0234: The type or namespace name 'C<N.D>' does not exist in the namespace 'N' (are you missing an assembly reference?)
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "B<object>").WithArguments("B", "N").WithLocation(2, 16),
+                // (8,7): error CS0234: The type or namespace name 'C' does not exist in the namespace 'N' (are you missing an assembly reference?)
                 //     N.C<N.D> c;
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "C<N.D>").WithArguments("C<N.D>", "N"),
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "C<N.D>").WithArguments("C", "N").WithLocation(8, 7),
                 // (8,11): error CS0234: The type or namespace name 'D' does not exist in the namespace 'N' (are you missing an assembly reference?)
                 //     N.C<N.D> c;
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "D").WithArguments("D", "N"),
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "D").WithArguments("D", "N").WithLocation(8, 11),
                 // (6,8): warning CS0169: The field 'C<T>.a' is never used
                 //     NA a;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("C<T>.a"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("C<T>.a").WithLocation(6, 8),
                 // (7,8): warning CS0169: The field 'C<T>.b' is never used
                 //     NB b;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(7, 8),
                 // (8,14): warning CS0169: The field 'C<T>.c' is never used
                 //     N.C<N.D> c;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c"));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(8, 14));
         }
 
         [Fact]
