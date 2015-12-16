@@ -64,12 +64,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 });
             }
 
-            public override void Stop()
+            public override void DismissEditorSession()
             {
                 AssertIsForeground();
                 this.PresenterSession.ItemSelected -= OnPresenterSessionItemSelected;
                 this.PresenterSession.ItemCommitted -= OnPresenterSessionItemCommitted;
-                base.Stop();
+                base.DismissEditorSession();
+            }
+
+            public void CommitEditorSession()
+            {
+                AssertIsForeground();
+                this.PresenterSession.ItemCommitted -= OnPresenterSessionItemCommitted;
+                this.PresenterSession.Commit();
             }
 
             private SnapshotPoint GetCaretPointInViewBuffer()

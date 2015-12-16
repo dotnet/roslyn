@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             AssertIsForeground();
             if (this.sessionOpt != null)
             {
-                StopModelComputation();
+                StopComputationAndDismissPresentation();
             }
         }
     }

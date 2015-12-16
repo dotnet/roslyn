@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             AssertIsForeground();
             if (modelOpt == null)
             {
-                this.StopModelComputation();
+                this.StopComputationAndDismissPresentation();
             }
             else
             {
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // If the selected item is the builder, there's not actually any work to do to commit
             if (item.IsBuilder)
             {
-                this.StopModelComputation();
+                this.StopComputationAndDismissPresentation();
                 return;
             }
 

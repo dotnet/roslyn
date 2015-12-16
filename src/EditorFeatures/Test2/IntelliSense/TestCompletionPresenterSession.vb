@@ -78,5 +78,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub SelectNextPageItem() Implements ICompletionPresenterSession.SelectNextPageItem
             SetSelectedItem(GetFilteredItemAt(CompletionItems.IndexOf(SelectedItem) + s_itemsPerPage))
         End Sub
+
+        Public Sub Commit() Implements ICompletionPresenterSession.Commit
+            _testState.CurrentCompletionPresenterSession = Nothing
+        End Sub
     End Class
 End Namespace

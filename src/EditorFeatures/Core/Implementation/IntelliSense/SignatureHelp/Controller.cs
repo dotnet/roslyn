@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             AssertIsForeground();
             if (modelOpt == null)
             {
-                this.StopModelComputation();
+                this.StopComputationAndDismissPresentation();
             }
             else
             {
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             if (!this.TextView.GetCaretPoint(this.SubjectBuffer).HasValue)
             {
-                StopModelComputation();
+                StopComputationAndDismissPresentation();
                 return;
             }
 

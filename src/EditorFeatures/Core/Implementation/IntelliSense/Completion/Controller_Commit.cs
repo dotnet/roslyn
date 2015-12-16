@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // TODO(cyrusn): We still have a general reentrancy problem where calling into a custom
             // commit provider (or just calling into the editor) may cause something to call back
             // into us.  However, for now, we just hope that no such craziness will occur.
-            this.StopModelComputation();
+            var localSession = this.sessionOpt;
+            this.sessionOpt = null;
+            localSession.StopComputation();
 
             // NOTE(cyrusn): It is intentional that we get the undo history for the
             // surface buffer and not the subject buffer.
@@ -134,6 +136,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     formattingTransaction.Complete();
                 }
             }
+
+            localSession.CommitEditorSession();
+            localSession.DismissEditorSession();
 
             // Let the completion rules know that this item was committed.
             GetCompletionRules().CompletionItemCommitted(item);

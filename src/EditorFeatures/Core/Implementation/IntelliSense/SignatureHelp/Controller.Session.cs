@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 this.PresenterSession.ItemSelected += OnPresenterSessionItemSelected;
             }
 
-            public override void Stop()
+            public override void StopComputation()
             {
                 AssertIsForeground();
                 this.PresenterSession.ItemSelected -= OnPresenterSessionItemSelected;
-                base.Stop();
+                base.StopComputation();
             }
 
             private void OnPresenterSessionItemSelected(object sender, SignatureHelpItemEventArgs e)

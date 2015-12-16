@@ -36,21 +36,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         {
             AssertIsForeground();
             Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
-            Controller.StopModelComputation();
+            Controller.StopComputationAndDismissPresentation();
         }
 
-        public virtual void Stop()
+        public virtual void StopComputation()
         {
             AssertIsForeground();
             this.Computation.Stop();
-            this.PresenterSession.Dismissed -= OnPresenterSessionDismissed;
-            this.PresenterSession.Dismiss();
         }
 
         public TModel WaitForController()
         {
             AssertIsForeground();
             return Computation.WaitForController();
+        }
+
+        public virtual void DismissEditorSession()
+        {
+            AssertIsForeground();
+            this.PresenterSession.Dismissed -= OnPresenterSessionDismissed;
+            this.PresenterSession.Dismiss();
         }
     }
 }

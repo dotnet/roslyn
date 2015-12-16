@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // it.
             if (sessionOpt != null)
             {
-                this.StopModelComputation();
+                this.StopComputationAndDismissPresentation();
             }
 
             // Next create the session that represents that we now have a potential completion list.

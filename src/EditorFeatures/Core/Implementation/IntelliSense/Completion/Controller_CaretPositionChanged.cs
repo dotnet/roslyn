@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 // Completions hadn't even been computed yet or the caret is out of bounds.  
                 // Just cancel everything we're doing.
-                this.StopModelComputation();
+                this.StopComputationAndDismissPresentation();
             }
         }
 

@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         // this scenario.
         private bool _isDismissed;
 
+        private bool _callingEditorCommit;
+
         public CompletionPresenterSession(
             ICompletionBroker completionBroker,
             IGlyphService glyphService,
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                     debugTextView.HACK_StartCompletionSession(_editorSessionOpt);
                 }
 
-                _editorSessionOpt.Dismissed += (s, e) => OnEditorSessionDismissed();
+                _editorSessionOpt.Dismissed += OnEditorSessionDismissed;
 
                 // So here's the deal.  We cannot create the editor session and give it the right
                 // items (even though we know what they are).  Instead, the session will call
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
         }
 
-        private void OnEditorSessionDismissed()
+        private void OnEditorSessionDismissed(object sender, EventArgs e)
         {
             AssertIsForeground();
             this.Dismissed?.Invoke(this, new EventArgs());
@@ -116,7 +118,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         internal void OnCompletionItemCommitted(CompletionItem completionItem)
         {
             AssertIsForeground();
-            this.ItemCommitted?.Invoke(this, new CompletionItemEventArgs(completionItem));
+            if (!_callingEditorCommit)
+            {
+                this.ItemCommitted?.Invoke(this, new CompletionItemEventArgs(completionItem));
+            }
         }
 
         private void OnCompletionSetSelectionStatusChanged(object sender, ValueChangedEventArgs<CompletionSelectionStatus> eventArgs)
@@ -155,6 +160,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             _editorSessionOpt.Dismiss();
             _editorSessionOpt = null;
+        }
+
+        public void Commit()
+        {
+            _callingEditorCommit = true;
+            if (_editorSessionOpt != null)
+            {
+                _editorSessionOpt.Dismissed -= OnEditorSessionDismissed;
+                _editorSessionOpt.Commit();
+            }
+
+            _callingEditorCommit = false;
         }
 
         private bool ExecuteKeyboardCommand(IntellisenseKeyboardCommand command)
