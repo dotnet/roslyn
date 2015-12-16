@@ -164,6 +164,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public void Commit()
         {
+            // We've already populated the editor list with CompletionItems
+            // that will call us back when the editor commits (we did this
+            // in order to get notified of commits through double click)/
+            // Set a flag to avoid reentrancy.
             _callingEditorCommit = true;
             if (_editorSessionOpt != null)
             {
