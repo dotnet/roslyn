@@ -1524,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node = node.Parent;
                 }
 
-                CSDiagnosticInfo info = NotFound(where, simpleName, arity, simpleName, diagnostics, aliasOpt, qualifierOpt, options);
+                CSDiagnosticInfo info = NotFound(where, simpleName, arity, (where as NameSyntax)?.ErrorDisplayName() ?? simpleName, diagnostics, aliasOpt, qualifierOpt, options);
                 return new ExtendedErrorTypeSymbol(qualifierOpt ?? Compilation.Assembly.GlobalNamespace, simpleName, arity, info);
             }
 
@@ -1819,7 +1819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return diagnostics.Add(ErrorCode.ERR_AliasNotFound, location, whereText);
             }
 
-            if (whereText == "var" && !options.IsAttributeTypeLookup())
+            if ((where as IdentifierNameSyntax)?.Identifier.Text == "var" && !options.IsAttributeTypeLookup())
             {
                 var code = (where.Parent is QueryClauseSyntax) ? ErrorCode.ERR_TypeVarNotFoundRangeVariable : ErrorCode.ERR_TypeVarNotFound;
                 return diagnostics.Add(code, location);

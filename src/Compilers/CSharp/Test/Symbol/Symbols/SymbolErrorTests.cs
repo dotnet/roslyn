@@ -2882,15 +2882,15 @@ class C<T>
     N.C<N.D> c;
 }";
             CreateCompilationWithMscorlib(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+                // (2,16): error CS0234: The type or namespace name 'B<>' does not exist in the namespace 'N' (are you missing an assembly reference?)
+                // using NB = C<N.B<object>>;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "B<object>").WithArguments("B<>", "N").WithLocation(2, 16),
                 // (1,14): error CS0234: The type or namespace name 'A' does not exist in the namespace 'N' (are you missing an assembly reference?)
                 // using NA = N.A;
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "A").WithArguments("A", "N").WithLocation(1, 14),
-                // (2,16): error CS0234: The type or namespace name 'B' does not exist in the namespace 'N' (are you missing an assembly reference?)
-                // using NB = C<N.B<object>>;
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "B<object>").WithArguments("B", "N").WithLocation(2, 16),
-                // (8,7): error CS0234: The type or namespace name 'C' does not exist in the namespace 'N' (are you missing an assembly reference?)
+                // (8,7): error CS0234: The type or namespace name 'C<>' does not exist in the namespace 'N' (are you missing an assembly reference?)
                 //     N.C<N.D> c;
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "C<N.D>").WithArguments("C", "N").WithLocation(8, 7),
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "C<N.D>").WithArguments("C<>", "N").WithLocation(8, 7),
                 // (8,11): error CS0234: The type or namespace name 'D' does not exist in the namespace 'N' (are you missing an assembly reference?)
                 //     N.C<N.D> c;
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "D").WithArguments("D", "N").WithLocation(8, 11),
@@ -2902,7 +2902,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(7, 8),
                 // (8,14): warning CS0169: The field 'C<T>.c' is never used
                 //     N.C<N.D> c;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(8, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(8, 14)
+                );
         }
 
         [Fact]
