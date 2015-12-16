@@ -349,82 +349,78 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            if (pathToTool == null)
-            {
-                throw new ArgumentNullException(nameof(pathToTool));
-            }
-            if (responseFileCommands == null)
-            {
-                throw new ArgumentNullException(nameof(responseFileCommands));
-            }
-            if (commandLineCommands == null)
-            {
-                throw new ArgumentNullException(nameof(commandLineCommands));
-            }
-
-            if (ProvideCommandLineArgs)
-            {
-                CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
-                    .Select(arg => new TaskItem(arg)).ToArray();
-            }
-
-            if (SkipCompilerExecution)
-            {
-                return 0;
-            }
-
-            if (!UseSharedCompilation || !string.IsNullOrEmpty(ToolPath))
-            {
-                return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
-            }
-
-            using (_sharedCompileCts = new CancellationTokenSource())
-            {
-                try
+            try {
+                if (ProvideCommandLineArgs)
                 {
-                    CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
-                    CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
+                    CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
+                        .Select(arg => new TaskItem(arg)).ToArray();
+                }
 
-                    var buildPaths = new BuildPaths(
-                        clientDir: TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
-                        // MSBuild doesn't need the .NET SDK directory
-                        sdkDir: null,
-                        workingDir: CurrentDirectoryToUse());
+                if (SkipCompilerExecution)
+                {
+                    return 0;
+                }
 
-                    var responseTask = BuildClientShim.RunServerCompilation(
-                        Language,
-                        GetArguments(commandLineCommands, responseFileCommands).ToList(),
-                        buildPaths,
-                        keepAlive: null,
-                        libEnvVariable: LibDirectoryToUse(),
-                        cancellationToken: _sharedCompileCts.Token);
+                if (!UseSharedCompilation || !string.IsNullOrEmpty(ToolPath))
+                {
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                }
 
-                    responseTask.Wait(_sharedCompileCts.Token);
-
-                    var response = responseTask.Result;
-                    if (response != null)
+                using (_sharedCompileCts = new CancellationTokenSource())
+                {
+                    try
                     {
-                        ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
+                        CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
+                        CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
+
+                        var buildPaths = new BuildPaths(
+                            clientDir: TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
+                            // MSBuild doesn't need the .NET SDK directory
+                            sdkDir: null,
+                            workingDir: CurrentDirectoryToUse());
+
+                        var responseTask = BuildClientShim.RunServerCompilation(
+                            Language,
+                            GetArguments(commandLineCommands, responseFileCommands).ToList(),
+                            buildPaths,
+                            keepAlive: null,
+                            libEnvVariable: LibDirectoryToUse(),
+                            cancellationToken: _sharedCompileCts.Token);
+
+                        responseTask.Wait(_sharedCompileCts.Token);
+
+                        var response = responseTask.Result;
+                        if (response != null)
+                        {
+                            ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
+                        }
+                        else
+                        {
+                            ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                        }
                     }
-                    else
+                    catch (OperationCanceledException)
                     {
-                        ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                        ExitCode = 0;
+                    }
+                    catch (Exception e)
+                    {
+                        Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
+                        LogErrorOutput(e.ToString());
+                        ExitCode = -1;
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    ExitCode = 0;
-                }
-                catch (Exception e)
-                {
-                    Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                    LogErrorOutput(e.ToString());
-                    ExitCode = -1;
-                }
+                return ExitCode;
             }
-            return ExitCode;
+            catch (Exception e) when (DumpProc()) { }
+
+            return 0;
         }
 
+        private static bool DumpProc()
+        {
+            return false;
+        }
 
 
         /// <summary>
