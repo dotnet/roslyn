@@ -696,10 +696,10 @@ namespace Microsoft.CodeAnalysis.Emit
             PopulateEncLogTableRows(TableIndex.EventMap, previousSizes, deltaSizes);
             PopulateEncLogTableRows(TableIndex.PropertyMap, previousSizes, deltaSizes);
 
-            PopulateEncLogTableEventsOrProperties(_eventDefs, TokenTypeIds.Event, EncFuncCode.AddEvent, _eventMap, TokenTypeIds.EventMap);
-            PopulateEncLogTableFieldsOrMethods(_fieldDefs, TokenTypeIds.FieldDef, EncFuncCode.AddField);
-            PopulateEncLogTableFieldsOrMethods(_methodDefs, TokenTypeIds.MethodDef, EncFuncCode.AddMethod);
-            PopulateEncLogTableEventsOrProperties(_propertyDefs, TokenTypeIds.Property, EncFuncCode.AddProperty, _propertyMap, TokenTypeIds.PropertyMap);
+            PopulateEncLogTableEventsOrProperties(_eventDefs, TokenTypeIds.Event, EditAndContinueOperation.AddEvent, _eventMap, TokenTypeIds.EventMap);
+            PopulateEncLogTableFieldsOrMethods(_fieldDefs, TokenTypeIds.FieldDef, EditAndContinueOperation.AddField);
+            PopulateEncLogTableFieldsOrMethods(_methodDefs, TokenTypeIds.MethodDef, EditAndContinueOperation.AddMethod);
+            PopulateEncLogTableEventsOrProperties(_propertyDefs, TokenTypeIds.Property, EditAndContinueOperation.AddProperty, _propertyMap, TokenTypeIds.PropertyMap);
 
             PopulateEncLogTableParameters();
 
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private void PopulateEncLogTableEventsOrProperties<T>(
             DefinitionIndex<T> index,
             int tokenType,
-            EncFuncCode addCode,
+            EditAndContinueOperation addCode,
             EventOrPropertyMapIndex map,
             int mapTokenType)
             where T : ITypeDefinitionMember
@@ -744,14 +744,14 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 builder.AddEncLogEntry(
                     token: tokenType | index[member],
-                    code: EncFuncCode.Default);
+                    code: EditAndContinueOperation.Default);
             }
         }
 
         private void PopulateEncLogTableFieldsOrMethods<T>(
             DefinitionIndex<T> index,
             int tokenType,
-            EncFuncCode addCode)
+            EditAndContinueOperation addCode)
             where T : ITypeDefinitionMember
         {
             foreach (var member in index.GetRows())
@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 builder.AddEncLogEntry(
                     token: tokenType | index[member],
-                    code: EncFuncCode.Default);
+                    code: EditAndContinueOperation.Default);
             }
         }
 
@@ -778,11 +778,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 builder.AddEncLogEntry(
                     token: TokenTypeIds.MethodDef | _methodDefs[methodDef],
-                    code: EncFuncCode.AddParameter);
+                    code: EditAndContinueOperation.AddParameter);
 
                 builder.AddEncLogEntry(
                     token: TokenTypeIds.ParamDef | (parameterFirstId + i),
-                    code: EncFuncCode.Default);
+                    code: EditAndContinueOperation.Default);
             }
         }
 
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 builder.AddEncLogEntry(
                     token: tokenType | index[member],
-                    code: EncFuncCode.Default);
+                    code: EditAndContinueOperation.Default);
             }
         }
 
@@ -808,7 +808,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 builder.AddEncLogEntry(
                     token: tokenType | (firstRowId + i),
-                    code: EncFuncCode.Default);
+                    code: EditAndContinueOperation.Default);
             }
         }
 
