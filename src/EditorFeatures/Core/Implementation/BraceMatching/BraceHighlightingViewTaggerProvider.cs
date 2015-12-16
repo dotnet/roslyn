@@ -48,13 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 
         protected override Task ProduceTagsAsync(TaggerContext<BraceHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
-            var document = documentSnapshotSpan.Document;
-            if (!caretPosition.HasValue || document == null)
+            if (!caretPosition.HasValue)
             {
                 return SpecializedTasks.EmptyTask;
             }
 
-            return ProduceTagsAsync(context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value);
+            return ProduceTagsAsync(context, documentSnapshotSpan.Document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value);
         }
 
         internal async Task ProduceTagsAsync(TaggerContext<BraceHighlightTag> context, Document document, ITextSnapshot snapshot, int position)

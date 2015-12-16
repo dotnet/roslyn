@@ -21,12 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public static async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
             IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
         {
-            var document = spanToTag.Document;
-            if (document == null)
-            {
-                return;
-            }
-
             if (await TryClassifyContainingMemberSpan(context, spanToTag, classificationService, typeMap).ConfigureAwait(false))
             {
                 return;

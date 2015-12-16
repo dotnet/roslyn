@@ -92,9 +92,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             Debug.Assert(context.SpansToTag.IsSingle());
 
             var spanToTag = context.SpansToTag.Single();
-            var document = spanToTag.Document;
 
-            _classificationService = _classificationService ?? document.Project.LanguageServices.GetService<IEditorClassificationService>();
+            _classificationService = _classificationService ?? spanToTag.Document.Project.LanguageServices.GetService<IEditorClassificationService>();
 
             return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, _classificationService, _typeMap);
         }

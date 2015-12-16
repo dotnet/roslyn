@@ -103,35 +103,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                     var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
                     var snapshot = snapshotSpan.Snapshot;
 
-                    if (document != null)
+                    var outliningService = document.Project.LanguageServices.GetService<IOutliningService>();
+                    if (outliningService != null)
                     {
-                        var outliningService = document.Project.LanguageServices.GetService<IOutliningService>();
-                        if (outliningService != null)
+                        var regions = await outliningService.GetOutliningSpansAsync(document, cancellationToken).ConfigureAwait(false);
+                        if (regions != null)
                         {
-                            var regions = await outliningService.GetOutliningSpansAsync(document, cancellationToken).ConfigureAwait(false);
-                            if (regions != null)
+                            regions = GetMultiLineRegions(outliningService, regions, snapshotSpan.Snapshot);
+
+                            // Create the outlining tags.
+                            var tagSpans =
+                                from region in regions
+                                let spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan())
+                                let hintSpan = new SnapshotSpan(snapshot, region.HintSpan.ToSpan())
+                                let tag = new Tag(snapshot.TextBuffer,
+                                                  region.BannerText,
+                                                  hintSpan,
+                                                  region.AutoCollapse,
+                                                  region.IsDefaultCollapsed,
+                                                  _textEditorFactoryService,
+                                                  _projectionBufferFactoryService,
+                                                  _editorOptionsFactoryService)
+                                select new TagSpan<IOutliningRegionTag>(spanToCollapse, tag);
+
+                            foreach (var tagSpan in tagSpans)
                             {
-                                regions = GetMultiLineRegions(outliningService, regions, snapshotSpan.Snapshot);
-
-                                // Create the outlining tags.
-                                var tagSpans =
-                                    from region in regions
-                                    let spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan())
-                                    let hintSpan = new SnapshotSpan(snapshot, region.HintSpan.ToSpan())
-                                    let tag = new Tag(snapshot.TextBuffer,
-                                                      region.BannerText,
-                                                      hintSpan,
-                                                      region.AutoCollapse,
-                                                      region.IsDefaultCollapsed,
-                                                      _textEditorFactoryService,
-                                                      _projectionBufferFactoryService,
-                                                      _editorOptionsFactoryService)
-                                    select new TagSpan<IOutliningRegionTag>(spanToCollapse, tag);
-
-                                foreach (var tagSpan in tagSpans)
-                                {
-                                    context.AddTag(tagSpan);
-                                }
+                                context.AddTag(tagSpan);
                             }
                         }
                     }
