@@ -40,7 +40,7 @@ namespace System.Reflection.Metadata.Ecma335
         private struct MethodImplRow { public uint Class; public uint MethodBody; public uint MethodDecl; }
         private struct MethodSemanticsRow { public ushort Semantic; public uint Method; public uint Association; }
         private struct MethodSpecRow { public uint Method; public BlobIdx Instantiation; }
-        private struct MethodRow { public int Rva; public ushort ImplFlags; public ushort Flags; public StringIdx Name; public BlobIdx Signature; public uint ParamList; }
+        private struct MethodRow { public int BodyOffset; public ushort ImplFlags; public ushort Flags; public StringIdx Name; public BlobIdx Signature; public uint ParamList; }
         private struct ModuleRefRow { public StringIdx Name; }
         private struct NestedClassRow { public uint NestedClass; public uint EnclosingClass; }
         private struct ParamRow { public ushort Flags; public ushort Sequence; public StringIdx Name; }
@@ -538,7 +538,7 @@ namespace System.Reflection.Metadata.Ecma335
             MethodImplAttributes implAttributes,
             StringIdx name,
             BlobIdx signature,
-            int relativeVirtualAddress,
+            int bodyOffset,
             int paramList)
         {
             _methodDefTable.Add(new MethodRow
@@ -547,7 +547,7 @@ namespace System.Reflection.Metadata.Ecma335
                 ImplFlags = (ushort)implAttributes,
                 Name = name,
                 Signature = signature,
-                Rva = relativeVirtualAddress,
+                BodyOffset = bodyOffset,
                 ParamList = (uint)paramList
             });
         }
@@ -1181,13 +1181,13 @@ namespace System.Reflection.Metadata.Ecma335
         {
             foreach (MethodRow method in _methodDefTable)
             {
-                if (method.Rva == -1)
+                if (method.BodyOffset == -1)
                 {
                     writer.WriteUInt32(0);
                 }
                 else
                 {
-                    writer.WriteUInt32((uint)(methodBodyStreamRva + method.Rva));
+                    writer.WriteUInt32((uint)(methodBodyStreamRva + method.BodyOffset));
                 }
 
                 writer.WriteUInt16(method.ImplFlags);

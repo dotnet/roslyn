@@ -1865,7 +1865,7 @@ namespace Microsoft.Cci
                 DefineModuleImportScope();
             }
 
-            int[] methodBodyRvas = SerializeMethodBodies(ilBuilder, nativePdbWriterOpt);
+            int[] methodBodyOffsets = SerializeMethodBodies(ilBuilder, nativePdbWriterOpt);
 
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -1874,7 +1874,7 @@ namespace Microsoft.Cci
 
             ReportReferencesToAddedSymbols();
 
-            PopulateTables(methodBodyRvas, mappedFieldDataBuilder, managedResourceDataBuilder);
+            PopulateTables(methodBodyOffsets, mappedFieldDataBuilder, managedResourceDataBuilder);
 
             int debugEntryPointToken;
             if (IsFullMetadata)
@@ -1993,7 +1993,7 @@ namespace Microsoft.Cci
             }).ToImmutableArray();
         }
 
-        private void PopulateTables(int[] methodBodyRvas, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter)
+        private void PopulateTables(int[] methodBodyOffsets, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter)
         {
             var sortedGenericParameters = GetSortedGenericParameters();
 
@@ -2016,7 +2016,7 @@ namespace Microsoft.Cci
             this.PopulateManifestResourceTableRows(resourceWriter);
             this.PopulateMemberRefTableRows();
             this.PopulateMethodImplTableRows();
-            this.PopulateMethodTableRows(methodBodyRvas);
+            this.PopulateMethodTableRows(methodBodyOffsets);
             this.PopulateMethodSemanticsTableRows();
             this.PopulateMethodSpecTableRows();
             this.PopulateModuleRefTableRows();
@@ -2687,7 +2687,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void PopulateMethodTableRows(int[] methodBodyRvas)
+        private void PopulateMethodTableRows(int[] methodBodyOffsets)
         {
             var methodDefs = this.GetMethodDefs();
             builder.SetCapacity(TableIndex.MethodDef, methodDefs.Count);
@@ -2700,7 +2700,7 @@ namespace Microsoft.Cci
                     implAttributes: methodDef.GetImplementationAttributes(Context),
                     name: GetStringIndexForNameAndCheckLength(methodDef.Name, methodDef),
                     signature: GetMethodSignatureIndex(methodDef),
-                    relativeVirtualAddress: methodBodyRvas[i],
+                    bodyOffset: methodBodyOffsets[i],
                     paramList: GetParameterDefIndex(methodDef));
 
                 i++;
@@ -2962,7 +2962,7 @@ namespace Microsoft.Cci
             CustomDebugInfoWriter customDebugInfoWriter = (pdbWriterOpt != null) ? new CustomDebugInfoWriter(pdbWriterOpt) : null;
 
             var methods = this.GetMethodDefs();
-            int[] rvas = new int[methods.Count];
+            int[] bodyOffsets = new int[methods.Count];
 
             int lastLocalVariableRid = 0;
             int lastLocalConstantRid = 0;
@@ -2971,7 +2971,7 @@ namespace Microsoft.Cci
             foreach (IMethodDefinition method in methods)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                int rva;
+                int bodyOffset;
                 IMethodBody body;
                 int localSignatureRid;
 
@@ -2986,20 +2986,20 @@ namespace Microsoft.Cci
                         uint localSignatureToken = (localSignatureRid != 0) ? (uint)(0x11000000 | localSignatureRid) : 0;
 
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
-                        rva = this.SerializeMethodBody(body, ilWriter, localSignatureToken);
+                        bodyOffset = this.SerializeMethodBody(body, ilWriter, localSignatureToken);
 
                         pdbWriterOpt?.SerializeDebugInfo(body, localSignatureToken, customDebugInfoWriter);
                     }
                     else
                     {
-                        rva = 0;
+                        bodyOffset = 0;
                         localSignatureRid = 0;
                     }
                 }
                 else
                 {
                     // 0 is actually written to metadata when the row is serialized
-                    rva = -1;
+                    bodyOffset = -1;
                     body = null;
                     localSignatureRid = 0;
                 }
@@ -3009,12 +3009,12 @@ namespace Microsoft.Cci
                     SerializeMethodDebugInfo(body, methodRid, localSignatureRid, ref lastLocalVariableRid, ref lastLocalConstantRid);
                 }
 
-                rvas[methodRid - 1] = rva;
+                bodyOffsets[methodRid - 1] = bodyOffset;
 
                 methodRid++;
             }
 
-            return rvas;
+            return bodyOffsets;
         }
 
         private int SerializeMethodBody(IMethodBody methodBody, BlobBuilder ilWriter, uint localSignatureToken)
@@ -3026,24 +3026,24 @@ namespace Microsoft.Cci
             // Check if an identical method body has already been serialized. 
             // If so, use the RVA of the already serialized one.
             // Note that we don't need to rewrite the fake tokens in the body before looking it up.
-            int bodyRva;
-            if (isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyRva))
+            int bodyOffset;
+            if (isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyOffset))
             {
-                return bodyRva;
+                return bodyOffset;
             }
 
             if (isSmallBody)
             {
-                bodyRva = ilWriter.Position;
+                bodyOffset = ilWriter.Position;
                 ilWriter.WriteByte((byte)((ilLength << 2) | 2));
 
-                _smallMethodBodies.Add(methodBody.IL, bodyRva);
+                _smallMethodBodies.Add(methodBody.IL, bodyOffset);
             }
             else
             {
                 ilWriter.Align(4);
 
-                bodyRva = ilWriter.Position;
+                bodyOffset = ilWriter.Position;
 
                 ushort flags = (3 << 12) | 0x3;
                 if (numberOfExceptionHandlers > 0)
@@ -3069,7 +3069,7 @@ namespace Microsoft.Cci
                 SerializeMethodBodyExceptionHandlerTable(methodBody, numberOfExceptionHandlers, ilWriter);
             }
 
-            return bodyRva;
+            return bodyOffset;
         }
 
         /// <summary>
