@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind StringLiteralToken from a string value. </summary>
         ''' <param name="value">The string value to be represented by the returned token.</param>
         Public Shared Function Literal(value As String) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes), value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableStringCharacters), value)
         End Function
 
         ''' <summary> Creates a token with kind StringLiteralToken from the text and corresponding string value. </summary>
@@ -393,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind CharacterLiteralToken from a character value. </summary>
         ''' <param name="value">The character value to be represented by the returned token.</param>
         Public Shared Function Literal(value As Char) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes), value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableStringCharacters), value)
         End Function
 
         ''' <summary> Creates a token with kind CharacterLiteralToken from the text and corresponding character value. </summary>

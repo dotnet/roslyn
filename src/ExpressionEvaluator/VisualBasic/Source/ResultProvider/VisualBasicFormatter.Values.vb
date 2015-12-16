@@ -171,6 +171,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return ObjectDisplay.FormatLiteral(str, options)
         End Function
 
+        Friend Overrides ReadOnly Property QuotedStringOptions As ObjectDisplayOptions
+            Get
+                Return ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableStringCharacters
+            End Get
+        End Property
+
     End Class
 
 End Namespace
