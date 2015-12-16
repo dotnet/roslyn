@@ -61,9 +61,9 @@ namespace Roslyn.Utilities
             return FileNameUtilities.ChangeExtension(path, extension: null);
         }
 
-        internal static string GetFileName(string path)
+        internal static string GetFileName(string path, bool includeExtension = true)
         {
-            return FileNameUtilities.GetFileName(path);
+            return FileNameUtilities.GetFileName(path, includeExtension);
         }
 
         /// <summary>
