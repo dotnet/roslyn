@@ -5,21 +5,19 @@
     <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <ItemGroup Label="Redist">
-    <NuSpec Include="Microsoft.DiaSymReader.nuspec">
-      <Publishing>Shipping</Publishing>
-    </NuSpec>
+    <NuSpec Include="Microsoft.DiaSymReader.PortablePdb.nuspec" />
   </ItemGroup>
-  <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec-&gt;NuGet\%(Publishing)\$(NuGetVersionType)\%(Identity).$(NuGetVersion).nupkg">
+  <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec-&gt;NuGet\$(NuGetVersionType)\%(Identity).$(NuGetVersion).nupkg">
     <PropertyGroup>
       <NuGetArguments>-prop binaries=$(OutDir) -prop currentVersion="$(NuGetVersion)"</NuGetArguments>
-      <NuGetOutDir>$(OutDir)NuGet\%(NuSpec.Publishing)\$(NuGetVersionType)</NuGetOutDir>
+      <NuGetOutDir>$(OutDir)NuGet\$(NuGetVersionType)</NuGetOutDir>
     </PropertyGroup>
     <!-- clean our output directory -->
     <MakeDir Directories="$(NuGetOutDir)" Condition="!Exists('$(NuGetOutDir)')" />
     <!-- copy any extra content files (like EULAs) that we need to include -->
     <Copy SourceFiles="@(Content)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <!-- package! -->
-    <Exec Command='..\..\..\.nuget\NuGet Pack "$(MSBuildProjectDirectory)\%(NuSpec.Identity)" -BasePath $(OutDir) -OutputDirectory $(NuGetOutDir) $(NuGetArguments)' />
+    <Exec Command='$(NuGetToolPath) Pack "$(MSBuildProjectDirectory)\%(NuSpec.Identity)" -BasePath $(OutDir) -OutputDirectory $(NuGetOutDir) $(NuGetArguments)' />
   </Target>
   <Target Name="Clean">
     <RemoveDir Directories="$(OutDir)NuGet" />
