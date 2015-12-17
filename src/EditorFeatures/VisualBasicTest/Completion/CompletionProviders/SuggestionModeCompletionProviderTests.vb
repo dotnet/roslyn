@@ -321,20 +321,20 @@ End Class
                                  (Await workspaceFixture.GetWorkspaceAsync()).Options)
 
                 Dim document1 = Await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular)
-                CheckResults(document1, position, isBuilder, triggerInfo, options)
+                Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)
 
                 If CanUseSpeculativeSemanticModel(document1, position) Then
                     Dim document2 = Await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
-                    CheckResults(document2, position, isBuilder, triggerInfo, options)
+                    Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
                 End If
             End Using
 
         End Function
 
-        Private Sub CheckResults(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?, options As OptionSet)
+        Private Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?, options As OptionSet) As Task
             triggerInfo = If(triggerInfo, CompletionTriggerInfo.CreateTypeCharTriggerInfo("a"c))
 
-            Dim completionList = GetCompletionList(document, position, triggerInfo.Value, options)
+            Dim completionList = Await GetCompletionListAsync(document, position, triggerInfo.Value, options)
 
             If isBuilder Then
                 Assert.NotNull(completionList)
@@ -344,7 +344,7 @@ End Class
                     Assert.True(completionList.Builder Is Nothing, "group.Builder = " & If(completionList.Builder IsNot Nothing, completionList.Builder.DisplayText, "null"))
                 End If
             End If
-        End Sub
+        End Function
 
         Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New VisualBasicSuggestionModeCompletionProvider()

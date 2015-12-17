@@ -63,22 +63,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return GetCompletionService(document).GetCompletionRules();
         }
 
-        internal static CompletionList GetCompletionList(CompletionListProvider provider, Document document, int position, CompletionTriggerInfo triggerInfo, OptionSet options = null)
+        internal static async Task<CompletionList> GetCompletionListAsync(CompletionListProvider provider, Document document, int position, CompletionTriggerInfo triggerInfo, OptionSet options = null)
         {
             options = options ?? document.Project.Solution.Workspace.Options;
             var context = new CompletionListContext(document, position, triggerInfo, options, CancellationToken.None);
 
-            provider.ProduceCompletionListAsync(context).Wait();
+            await provider.ProduceCompletionListAsync(context);
 
             return new CompletionList(context.GetItems(), context.Builder, context.IsExclusive);
         }
 
-        internal CompletionList GetCompletionList(Document document, int position, CompletionTriggerInfo triggerInfo, OptionSet options = null)
+        internal Task<CompletionList> GetCompletionListAsync(Document document, int position, CompletionTriggerInfo triggerInfo, OptionSet options = null)
         {
-            return GetCompletionList(this.CompletionProvider, document, position, triggerInfo, options);
+            return GetCompletionListAsync(this.CompletionProvider, document, position, triggerInfo, options);
         }
 
-        private void CheckResults(Document document, int position, string expectedItemOrNull, string expectedDescriptionOrNull, bool usePreviousCharAsTrigger, bool checkForAbsence, Glyph? glyph)
+        private async Task CheckResultsAsync(Document document, int position, string expectedItemOrNull, string expectedDescriptionOrNull, bool usePreviousCharAsTrigger, bool checkForAbsence, Glyph? glyph)
         {
             var code = document.GetTextAsync().Result.ToString();
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo(triggerCharacter: code.ElementAt(position - 1));
             }
 
-            var completionList = GetCompletionList(document, position, triggerInfo);
+            var completionList = await GetCompletionListAsync(document, position, triggerInfo);
             var items = completionList == null ? default(ImmutableArray<CompletionItem>) : completionList.Items;
 
             if (checkForAbsence)
@@ -255,12 +255,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
 
             var document1 = await WorkspaceFixture.UpdateDocumentAsync(code, sourceCodeKind);
-            CheckResults(document1, position, expectedItemOrNull, expectedDescriptionOrNull, usePreviousCharAsTrigger, checkForAbsence, expectedGlyph);
+            await CheckResultsAsync(document1, position, expectedItemOrNull, expectedDescriptionOrNull, usePreviousCharAsTrigger, checkForAbsence, expectedGlyph);
 
             if (CanUseSpeculativeSemanticModel(document1, position))
             {
                 var document2 = await WorkspaceFixture.UpdateDocumentAsync(code, sourceCodeKind, cleanBeforeUpdate: false);
-                CheckResults(document2, position, expectedItemOrNull, expectedDescriptionOrNull, usePreviousCharAsTrigger, checkForAbsence, expectedGlyph);
+                await CheckResultsAsync(document2, position, expectedItemOrNull, expectedDescriptionOrNull, usePreviousCharAsTrigger, checkForAbsence, expectedGlyph);
             }
         }
 
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             var textBuffer = (await WorkspaceFixture.GetWorkspaceAsync()).Documents.Single().TextBuffer;
 
-            var items = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()).Items;
+            var items = (await GetCompletionListAsync(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var textBuffer = (await WorkspaceFixture.GetWorkspaceAsync()).Documents.Single().TextBuffer;
             var textSnapshot = textBuffer.CurrentSnapshot.AsText();
 
-            var items = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()).Items;
+            var items = (await GetCompletionListAsync(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             var completionRules = GetCompletionRules(document);
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
                 var triggerInfo = new CompletionTriggerInfo();
 
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
 
                 if (expectedSymbols >= 1)
                 {
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var document = solution.GetDocument(documentId);
 
                 var triggerInfo = new CompletionTriggerInfo();
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
                 var item = completionList.Items.FirstOrDefault(i => i.DisplayText == expectedItem);
                 Assert.Equal(expectedDescription, item.GetDescriptionAsync().Result.GetFullText());
             }
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var document = solution.GetDocument(currentContextDocumentId);
 
                 var triggerInfo = new CompletionTriggerInfo();
-                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
 
                 var item = completionList.Items.Single(c => c.DisplayText == expectedItem);
                 Assert.NotNull(item);
