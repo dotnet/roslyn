@@ -1896,6 +1896,7 @@ namespace A.C
 @"using lowercase ; namespace A { class A { static void Main ( string [ ] args ) { var a = new b ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ");
         }
 
+        [WorkItem(7443, "https://github.com/dotnet/roslyn/issues/7443")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestWithExistingIncompatibleExtension()
         {
@@ -2089,6 +2090,7 @@ class Test
 }");
         }
 
+        [WorkItem(7461, "https://github.com/dotnet/roslyn/issues/7461")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestExtensionWithIncompatibleInstance()
         {
