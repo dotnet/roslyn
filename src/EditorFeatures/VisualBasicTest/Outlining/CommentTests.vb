@@ -16,18 +16,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             End Get
         End Property
 
-        Friend Overrides Function GetRegionsAsync(document As Document, position As Integer) As Task(Of OutliningSpan())
-            Dim root = document.GetSyntaxRootAsync(CancellationToken.None).Result
+        Friend Overrides Async Function GetRegionsAsync(document As Document, position As Integer) As Task(Of OutliningSpan())
+            Dim root = Await document.GetSyntaxRootAsync()
             Dim trivia = root.FindTrivia(position, findInsideTrivia:=True)
 
             Dim token = trivia.Token
 
             If token.LeadingTrivia.Contains(trivia) Then
-                Return Task.FromResult(VisualBasicOutliningHelpers.CreateCommentsRegions(token.LeadingTrivia).ToArray())
+                Return CreateCommentsRegions(token.LeadingTrivia).ToArray()
             ElseIf token.TrailingTrivia.Contains(trivia) Then
-                Return Task.FromResult(VisualBasicOutliningHelpers.CreateCommentsRegions(token.TrailingTrivia).ToArray())
+                Return CreateCommentsRegions(token.TrailingTrivia).ToArray()
             Else
-                Return Task.FromResult(Contract.FailWithReturn(Of OutliningSpan())())
+                Return Contract.FailWithReturn(Of OutliningSpan())()
             End If
         End Function
 
