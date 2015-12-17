@@ -16,24 +16,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        internal override Task<OutliningSpan[]> GetRegionsAsync(Document document, int position)
+        internal override async Task<OutliningSpan[]> GetRegionsAsync(Document document, int position)
         {
-            var root = document.GetSyntaxRootAsync(CancellationToken.None).Result;
+            var root = await document.GetSyntaxRootAsync();
             var trivia = root.FindTrivia(position, findInsideTrivia: true);
 
             var token = trivia.Token;
 
             if (token.LeadingTrivia.Contains(trivia))
             {
-                return Task.FromResult(CSharpOutliningHelpers.CreateCommentRegions(token.LeadingTrivia).ToArray());
+                return CSharpOutliningHelpers.CreateCommentRegions(token.LeadingTrivia).ToArray();
             }
             else if (token.TrailingTrivia.Contains(trivia))
             {
-                return Task.FromResult(CSharpOutliningHelpers.CreateCommentRegions(token.TrailingTrivia).ToArray());
+                return CSharpOutliningHelpers.CreateCommentRegions(token.TrailingTrivia).ToArray();
             }
             else
             {
-                return Task.FromResult(Contract.FailWithReturn<OutliningSpan[]>());
+                return Contract.FailWithReturn<OutliningSpan[]>();
             }
         }
 
