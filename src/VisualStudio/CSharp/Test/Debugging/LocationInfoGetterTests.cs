@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestClass()
         {
             await TestAsync("class F$$oo { }", "Foo", 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668), WorkItem(538415)]
         public async Task TestMethod()
         {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 ", "Class.Method()", 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668)]
         public async Task TestNamespace()
         {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "Namespace.Class.Method()", 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668)]
         public async Task TestDottedNamespace()
         {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "Namespace.Another.Class.Method()", 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestNestedNamespace()
         {
             await TestAsync(
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "Namespace.Another.Class.Method()", 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668)]
         public async Task TestNestedType()
         {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "Outer.Inner.Quux()", 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668)]
         public async Task TestPropertyGetter()
         {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "Class.Property", 4);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668)]
         public async Task TestPropertySetter()
         {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "Class.Property", 9);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(538415)]
         public async Task TestField()
         {
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "Class.field", 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(543494)]
         public async Task TestLambdaInFieldInitializer()
         {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "Class.a", 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(543494)]
         public async Task TestMultipleFields()
         {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "Class.a2", 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestConstructor()
         {
             await TestAsync(
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 ", "C1.C1()", 3);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestDestructor()
         {
             await TestAsync(
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 ", "C1.~C1()", 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestOperator()
         {
             await TestAsync(
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 ", "N1.C1.+(C1 x, C1 y)", 2); // Old implementation reports "operator +" (rather than "+")...
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestConversionOperator()
         {
             await TestAsync(
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 ", "N1.C1.N1.C2(N1.C1 x)", 2); // Old implementation reports "explicit operator N1.C2" (rather than "N1.C2")...
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestEvent()
         {
             await TestAsync(
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 ", "C1.e1", 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TextExplicitInterfaceImplementation()
         {
             await TestAsync(
@@ -281,7 +281,7 @@ class C1
 ", "C1.M1()", 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TextIndexer()
         {
             await TestAsync(
@@ -298,7 +298,7 @@ class C1
 ", "C1.this[int x]", 4);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestParamsParameter()
         {
             await TestAsync(
@@ -309,7 +309,7 @@ class C1
 ", "C1.M1(params int[] x)", 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestArglistParameter()
         {
             await TestAsync(
@@ -320,7 +320,7 @@ class C1
 ", "C1.M1(__arglist)", 0); // Old implementation does not show "__arglist"...
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestRefAndOutParameters()
         {
             await TestAsync(
@@ -334,7 +334,7 @@ class C1
 ", "C1.M1( ref int x, out int y )", 2); // Old implementation did not show extra spaces around the parameters...
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestOptionalParameters()
         {
             await TestAsync(
@@ -348,7 +348,7 @@ class C1
 ", "C1.M1(int x =1)", 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestExtensionMethod()
         {
             await TestAsync(
@@ -361,7 +361,7 @@ class C1
 ", "C1.M1(this int x)", 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestGenericType()
         {
             await TestAsync(
@@ -372,7 +372,7 @@ class C1
 ", "C1.M1()", 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestGenericMethod()
         {
             await TestAsync(
@@ -383,7 +383,7 @@ class C1
 ", "C1.M1()", 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestGenericParameters()
         {
             await TestAsync(
@@ -394,7 +394,7 @@ class C1
 ", "C1.M1(C1<int, V> x, V y)", 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestMissingNamespace()
         {
             await TestAsync(
@@ -406,7 +406,7 @@ class C1
 }", "Class.a2", 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestMissingNamespaceName()
         {
             await TestAsync(
@@ -421,7 +421,7 @@ class C1
 }", "?.C1.M1()", 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestMissingClassName()
         {
             await TestAsync(
@@ -435,7 +435,7 @@ class C1
 }", "N1.M1()", 1); // Old implementation displayed "N1.?.M1", but we don't see a class declaration in the syntax tree...
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestMissingMethodName()
         {
             await TestAsync(
@@ -450,7 +450,7 @@ class C1
 }", "N1.C1", 4);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestMissingParameterList()
         {
             await TestAsync(
@@ -465,7 +465,7 @@ class C1
 }", "N1.C1.M1", 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TopLevelField()
         {
             await TestAsync(
@@ -473,7 +473,7 @@ class C1
 ", "f1", 0, new CSharpParseOptions(kind: SourceCodeKind.Script));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TopLevelMethod()
         {
             await TestAsync(
@@ -483,7 +483,7 @@ $$}
 ", "M1(int x)", 2, new CSharpParseOptions(kind: SourceCodeKind.Script));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TopLevelStatement()
         {
             await TestAsync(

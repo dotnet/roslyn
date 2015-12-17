@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return New ObjectCreationCompletionProvider()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(827897)>
         Public Async Function TestInYieldReturn() As Task
             Dim markup = <Text><![CDATA[
@@ -34,7 +34,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "EntryPointNotFoundException")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(827897)>
         Public Async Function TestInAsyncMethodReturnStatement() As Task
             Dim markup = <Text><![CDATA[
@@ -52,7 +52,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "EntryPointNotFoundException")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(892209)>
         Public Async Function TestUnwrapNullable() As Task
             Dim markup = <Text><![CDATA[
@@ -77,7 +77,7 @@ End Namespace
             Await VerifyItemExistsAsync(markup, "N.S")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInTrivia() As Task
             Dim markup = <Text><![CDATA[
 Public Class C

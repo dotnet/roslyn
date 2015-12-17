@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
 Public Class DiagnosticAnalyzerDriverTests
-    <WpfFact>
+    <Fact>
     Public Async Function DiagnosticAnalyzerDriverAllInOne() As Task
         Dim source = TestResource.AllInOneVisualBasicCode
         Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
@@ -25,7 +25,7 @@ Public Class DiagnosticAnalyzerDriverTests
         End Using
     End Function
 
-    <WpfFact, WorkItem(908658)>
+    <Fact, WorkItem(908658)>
     Public Async Function DiagnosticAnalyzerDriverVsAnalyzerDriverOnCodeBlock() As Task
         Dim methodNames As String() = {"Initialize", "AnalyzeCodeBlock"}
         Dim source = <file><![CDATA[
@@ -83,7 +83,7 @@ End Class
         diagnosticService.GetDiagnosticDescriptors(projectOpt:=Nothing)
     End Sub
 
-    <WpfFact>
+    <Fact>
     Public Async Function AnalyzerOptionsArePassedToAllAnalyzers() As Task
         Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(TestResource.AllInOneVisualBasicCode)
             Dim currentProject = workspace.CurrentSolution.Projects.Single()

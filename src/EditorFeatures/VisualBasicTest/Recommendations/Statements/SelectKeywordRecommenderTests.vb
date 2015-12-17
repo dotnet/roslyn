@@ -4,12 +4,12 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class SelectKeywordRecommenderTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SelectInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Select")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SelectInMultiLineLambda()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
@@ -19,7 +19,7 @@ End Sub
 
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SelectNotInSingleLineLambda()
             VerifyRecommendationsMissing(<ClassDeclaration>
 Private _member = Sub() |
@@ -27,12 +27,12 @@ Private _member = Sub() |
         End Sub
 
         <WorkItem(543396)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SelectInSingleLineIf()
             VerifyRecommendationsContain(<MethodBody>If True Then S|</MethodBody>, "Select")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SelectAfterExitInsideCase()
             Dim code =
 <MethodBody>
@@ -45,7 +45,7 @@ Select Case i
             VerifyRecommendationsContain(code, "Select")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SelectNotAfterExitInsideCaseInsideFinallyBlock()
             Dim code =
 <MethodBody>
@@ -60,7 +60,7 @@ Finally
             VerifyRecommendationsMissing(code, "Select")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SelectNotAfterExitInsideFinallyBlockInsideCase()
             Dim code =
 <MethodBody>

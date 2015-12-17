@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Return New AnalyzerFileReference(fullPath, _assemblyLoader)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestProjectCodeFix() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestDifferentLanguageProjectCodeFix() As Task
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">

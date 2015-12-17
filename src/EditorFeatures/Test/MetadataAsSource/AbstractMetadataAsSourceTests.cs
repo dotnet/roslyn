@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 {
                     var newDoc = metadataProject.AddDocument("MetadataSource", source);
                     metadataProject = newDoc.Project;
-                    references.Add(MetadataReference.CreateFromImage(metadataProject.GetCompilationAsync().Result.EmitToArray()));
+                    references.Add(MetadataReference.CreateFromImage((await metadataProject.GetCompilationAsync()).EmitToArray()));
                     metadataProject = metadataProject.RemoveDocument(newDoc.Id);
                 }
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 var metadataSymbolId = metadataSymbol.GetSymbolKey();
                 var generatedFile = context.GenerateSource(symbolName);
                 var generatedDocument = context.GetDocument(generatedFile);
-                var generatedCompilation = generatedDocument.Project.GetCompilationAsync().Result;
+                var generatedCompilation = await generatedDocument.Project.GetCompilationAsync();
                 var generatedSymbol = generatedCompilation.Assembly.GetTypeByMetadataName(symbolName);
                 Assert.False(generatedSymbol.Locations.Where(loc => loc.IsInSource).IsEmpty());
                 Assert.True(SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false).Equals(metadataSymbolId, generatedSymbol.GetSymbolKey()));

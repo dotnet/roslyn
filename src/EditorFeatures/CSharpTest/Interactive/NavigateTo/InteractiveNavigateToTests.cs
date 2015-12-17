@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             return workspace;
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NoItemsForEmptyFile()
         {
             using (var workspace = await SetupWorkspaceAsync())
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindClass()
         {
             using (var workspace = await SetupWorkspaceAsync("class Foo { }"))
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindNestedClass()
         {
             using (var workspace = await SetupWorkspaceAsync("class Foo { class Bar { internal class DogBed { } } }"))
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindMemberInANestedClass()
         {
             using (var workspace = await SetupWorkspaceAsync("class Foo { class Bar { class DogBed { public void Method() { } } } }"))
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindGenericClassWithConstraints()
         {
             using (var workspace = await SetupWorkspaceAsync("using System.Collections; class Foo<T> where T : IEnumerable { }"))
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindGenericMethodWithConstraints()
         {
             using (var workspace = await SetupWorkspaceAsync("using System; class Foo<U> { public void Bar<T>(T item) where T:IComparable<T> {} }"))
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindPartialClass()
         {
             using (var workspace = await SetupWorkspaceAsync("public partial class Foo { int a; } partial class Foo { int b; }"))
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindTypesInMetadata()
         {
             using (var workspace = await SetupWorkspaceAsync("using System; Class Program {FileStyleUriParser f;}"))
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindClassInNamespace()
         {
             using (var workspace = await SetupWorkspaceAsync("namespace Bar { class Foo { } }"))
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindStruct()
         {
             using (var workspace = await SetupWorkspaceAsync("struct Bar { }"))
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindEnum()
         {
             using (var workspace = await SetupWorkspaceAsync("enum Colors {Red, Green, Blue}"))
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindEnumMember()
         {
             using (var workspace = await SetupWorkspaceAsync("enum Colors {Red, Green, Blue}"))
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindConstField()
         {
             using (var workspace = await SetupWorkspaceAsync("class Foo { const int bar = 7;}"))
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindVerbatimIdentifier()
         {
             using (var workspace = await SetupWorkspaceAsync("class Foo { string @string; }"))
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindIndexer()
         {
             var program = @"class Foo { int[] arr; public int this[int i] { get { return arr[i]; } set { arr[i] = value; } } }";
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindEvent()
         {
             var program = "class Foo { public event EventHandler ChangedEventHandler; }";
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindAutoProperty()
         {
             using (var workspace = await SetupWorkspaceAsync("class Foo { int Bar { get; set; } }"))
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindMethod()
         {
             using (var workspace = await SetupWorkspaceAsync("class Foo { void DoSomething(); }"))
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindParameterizedMethod()
         {
             using (var workspace = await SetupWorkspaceAsync("class Foo { void DoSomething(int a, string b) {} }"))
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindConstructor()
         {
             using (var workspace = await SetupWorkspaceAsync("class Foo { public Foo(){} }"))
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindParameterizedConstructor()
         {
             using (var workspace = await SetupWorkspaceAsync("class Foo { public Foo(int i){} }"))
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindStaticConstructor()
         {
             using (var workspace = await SetupWorkspaceAsync("class Foo { static Foo(){} }"))
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindPartialMethods()
         {
             using (var workspace = await SetupWorkspaceAsync("partial class Foo { partial void Bar(); } partial class Foo { partial void Bar() { Console.Write(\"hello\"); } }"))
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindPartialMethodDefinitionOnly()
         {
             using (var workspace = await SetupWorkspaceAsync("partial class Foo { partial void Bar(); }"))
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindOverriddenMembers()
         {
             var program = "class Foo { public virtual string Name { get; set; } } class DogBed : Foo { public override string Name { get { return base.Name; } set {} } }";
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindInterface()
         {
             using (var workspace = await SetupWorkspaceAsync("public interface IFoo { }"))
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindDelegateInNamespace()
         {
             using (var workspace = await SetupWorkspaceAsync("namespace Foo { delegate void DoStuff(); }"))
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindLambdaExpression()
         {
             using (var workspace = await SetupWorkspaceAsync("using System; class Foo { Func<int, int> sqr = x => x*x; }"))
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task OrderingOfConstructorsAndTypes()
         {
             using (var workspace = await SetupWorkspaceAsync(@"
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task StartStopSanity()
         {
             // Verify that multiple calls to start/stop and dispose don't blow up
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task TermSplittingTest1()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task TermSplittingTest2()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task TermSplittingTest3()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task TermSplittingTest4()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task TermSplittingTest5()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task TermSplittingTest7()
         {
             ////Diff from dev10
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task TermSplittingTest8()
         {
             ////Diff from dev10

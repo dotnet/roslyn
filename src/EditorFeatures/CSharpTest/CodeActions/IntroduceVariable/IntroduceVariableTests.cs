@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             return new IntroduceVariableCodeRefactoringProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix1()
         {
             await TestAsync(
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix2()
         {
             await TestAsync(
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 3);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix3()
         {
             var code =
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestAsync(code, expected, index: 2, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix4()
         {
             var code =
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestAsync(code, expected, index: 3, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestFieldFix1()
         {
             var code =
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestFieldFix2()
         {
             var code =
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestAsync(code, expected, index: 1, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestConstFieldFix1()
         {
             var code =
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestConstFieldFix2()
         {
             var code =
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestAsync(code, expected, index: 1, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestConstructorFix1()
         {
             await TestAsync(
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestConstructorFix2()
         {
             await TestAsync(
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestParameterFix1()
         {
             await TestAsync(
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestParameterFix2()
         {
             await TestAsync(
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 1);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestAttributeFix1()
         {
             await TestAsync(
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestAttributeFix2()
         {
             await TestAsync(
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFixExistingName1()
         {
             await TestAsync(
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestFieldExistingName1()
         {
             var code =
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFixComplexName1()
         {
             await TestAsync(
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFixComplexName1NotVar()
         {
             await TestAsync(
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNameConflict1()
         {
             await TestAsync(
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNameConflict2()
         {
             await TestAsync(
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNameConflict2NotVar()
         {
             await TestAsync(
@@ -302,7 +302,7 @@ index: 0,
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNameVerbatimIdentifier1()
         {
             await TestAsync(
@@ -311,7 +311,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNameVerbatimIdentifier1NoVar()
         {
             await TestAsync(
@@ -321,7 +321,7 @@ index: 0,
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNameVerbatimIdentifier2()
         {
             await TestAsync(
@@ -329,7 +329,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
 @"static class G<T> { public class @class { } public static void Add(object t) { } static void Main() { var {|Rename:class1|} = new G<int>.@class(); G<int>.Add(class1); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNameVerbatimIdentifier2NoVar()
         {
             await TestAsync(
@@ -339,7 +339,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         }
 
         [WorkItem(540078)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestConstantField1()
         {
             await TestAsync(
@@ -372,7 +372,7 @@ compareTokens: false);
         }
 
         [WorkItem(540468)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestCantExtractMethodTypeParameterToField()
         {
             await TestAsync(
@@ -381,7 +381,7 @@ compareTokens: false);
         }
 
         [WorkItem(540468)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestCantExtractMethodTypeParameterToFieldCount()
         {
             await TestActionCountAsync(
@@ -401,7 +401,7 @@ index: 0);
         }
 
         [WorkItem(540486)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestFormattingOfIntroduceLocal()
         {
             await TestAsync(
@@ -424,7 +424,7 @@ index: 2,
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLocalConstant()
         {
             await TestAsync(
@@ -434,7 +434,7 @@ index: 2);
         }
 
         [WorkItem(542699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestFieldConstant()
         {
             await TestAsync(
@@ -444,7 +444,7 @@ index: 1);
         }
 
         [WorkItem(542781)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnExpressionStatement()
         {
             await TestMissingAsync(
@@ -459,7 +459,7 @@ index: 1);
         }
 
         [WorkItem(542780)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSingleQueryClause()
         {
             await TestAsync(
@@ -469,7 +469,7 @@ index: 0);
         }
 
         [WorkItem(542780)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSingleQuerySelectOrGroupByClause()
         {
             await TestAsync(
@@ -478,7 +478,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLinqQuery()
         {
             await TestAsync(
@@ -487,7 +487,7 @@ index: 0);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSingleQueryReplaceAll()
         {
             await TestAsync(
@@ -496,7 +496,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNestedQueryReplaceOne1()
         {
             await TestAsync(
@@ -505,7 +505,7 @@ index: 1);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNestedQueryReplaceAll1()
         {
             await TestAsync(
@@ -514,7 +514,7 @@ index: 0);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNestedQueryReplaceOne2()
         {
             await TestAsync(
@@ -523,7 +523,7 @@ index: 1);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNestedQueryReplaceAll2()
         {
             await TestAsync(
@@ -549,7 +549,7 @@ index: 1);
         }
 
         [WorkItem(543477)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestImplicitlyTypedArraysUsedInCheckedExpression()
         {
             await TestAsync(
@@ -558,7 +558,7 @@ index: 1);
         }
 
         [WorkItem(543832)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnGenericTypeParameter()
         {
             await TestMissingAsync(
@@ -566,7 +566,7 @@ index: 1);
         }
 
         [WorkItem(543941)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestAnonymousType1()
         {
             await TestAsync(
@@ -575,7 +575,7 @@ index: 1);
         }
 
         [WorkItem(544099)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnAttributeNameEquals()
         {
             await TestMissingAsync(
@@ -590,7 +590,7 @@ class M
         }
 
         [WorkItem(544162)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnRightOfDot()
         {
             await TestMissingAsync(
@@ -598,7 +598,7 @@ class M
         }
 
         [WorkItem(544209)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnAttributeNamedParameter()
         {
             await TestMissingAsync(
@@ -606,7 +606,7 @@ class M
         }
 
         [WorkItem(544264)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnVariableWrite()
         {
             await TestMissingAsync(
@@ -615,7 +615,7 @@ class M
 
         [WorkItem(544577)]
         [WorkItem(909152)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestExpressionTLambda()
         {
             await TestMissingAsync(
@@ -623,7 +623,7 @@ class M
         }
 
         [WorkItem(544915)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnTypeSyntax()
         {
             await TestMissingAsync(
@@ -631,7 +631,7 @@ class M
         }
 
         [WorkItem(544610)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task ParenthesizeIfParseChanges()
         {
             var code = @"
@@ -658,7 +658,7 @@ class C
             await TestAsync(code, expected, index: 2, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingInPartiallyHiddenMethod()
         {
             await TestMissingAsync(
@@ -673,7 +673,7 @@ class C
 }", parseOptions: Options.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInVisibleMethod()
         {
             await TestAsync(
@@ -703,7 +703,7 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingInFieldInPartiallyHiddenType()
         {
             await TestMissingAsync(
@@ -716,7 +716,7 @@ compareTokens: false);
 #line default", parseOptions: Options.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingInAttributeInPartiallyHiddenType()
         {
             await TestMissingAsync(
@@ -728,7 +728,7 @@ class Program
 #line default", parseOptions: Options.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingInConstructorInitializerInPartiallyHiddenType()
         {
             await TestMissingAsync(
@@ -743,7 +743,7 @@ class Program
 #line default", parseOptions: Options.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingInParameterInPartiallyHiddenType()
         {
             await TestMissingAsync(
@@ -758,7 +758,7 @@ class Program
 #line default", parseOptions: Options.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingInQueryInPartiallyHiddenType()
         {
             await TestMissingAsync(
@@ -778,7 +778,7 @@ class Program
 }", parseOptions: Options.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInVisibleQueryInHiddenType()
         {
             await TestAsync(
@@ -819,28 +819,28 @@ compareTokens: false,
 parseOptions: Options.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnNamespace()
         {
             await TestMissingAsync(
 @"class Program { void Main ( ) { [|System|] . Console . WriteLine ( 4 ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnType()
         {
             await TestMissingAsync(
 @"class Program { void Main ( ) { [|System . Console|] . WriteLine ( 4 ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnBase()
         {
             await TestMissingAsync(
 @"class Program { void Main ( ) { [|base|] . ToString ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestVenusGeneration1()
         {
             await TestMissingAsync(
@@ -857,7 +857,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestVenusGeneration2()
         {
             var code =
@@ -896,7 +896,7 @@ class Program
 }", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestVenusGeneration3()
         {
             var code =
@@ -920,7 +920,7 @@ class Program
         }
 
         [WorkItem(529795)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnNegatedLiteral()
         {
             await TestMissingAsync(
@@ -928,7 +928,7 @@ class Program
         }
 
         [WorkItem(546091)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNotOnInterfaceAttribute()
         {
             await TestMissingAsync(
@@ -936,7 +936,7 @@ class Program
         }
 
         [WorkItem(546095)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNotOnTypeOfInAttribute()
         {
             await TestMissingAsync(
@@ -944,7 +944,7 @@ class Program
         }
 
         [WorkItem(530109)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestPreferGenerateConstantField1()
         {
             await TestAsync(
@@ -953,7 +953,7 @@ class Program
         }
 
         [WorkItem(530109)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestPreferGenerateConstantField2()
         {
             await TestAsync(
@@ -963,7 +963,7 @@ index: 1);
         }
 
         [WorkItem(530109)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestPreferGenerateConstantField3()
         {
             await TestAsync(
@@ -973,7 +973,7 @@ index: 2);
         }
 
         [WorkItem(530109)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestPreferGenerateConstantField4()
         {
             await TestAsync(
@@ -983,7 +983,7 @@ index: 3);
         }
 
         [WorkItem(530109)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoGenerateConstantFieldIfAccessingLocal1()
         {
             await TestAsync(
@@ -993,7 +993,7 @@ index: 0);
         }
 
         [WorkItem(530109)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoGenerateConstantFieldIfAccessingLocal2()
         {
             await TestAsync(
@@ -1003,7 +1003,7 @@ index: 1);
         }
 
         [WorkItem(530109)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal1()
         {
             await TestAsync(
@@ -1012,7 +1012,7 @@ index: 1);
         }
 
         [WorkItem(530109)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal2()
         {
             await TestAsync(
@@ -1022,7 +1022,7 @@ index: 1);
         }
 
         [WorkItem(530109)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal3()
         {
             await TestAsync(
@@ -1032,7 +1032,7 @@ index: 2);
         }
 
         [WorkItem(530109)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal4()
         {
             await TestAsync(
@@ -1042,7 +1042,7 @@ index: 3);
         }
 
         [WorkItem(606347)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InsertNeededCast1()
         {
             await TestAsync(
@@ -1088,7 +1088,7 @@ compareTokens: false);
         }
 
         [WorkItem(606347)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InsertNeededCast1NotVar()
         {
             await TestAsync(
@@ -1134,7 +1134,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         }
 
         [WorkItem(606347), WorkItem(714632)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InsertNeededCast2()
         {
             await TestAsync(
@@ -1171,7 +1171,7 @@ compareTokens: false);
         }
 
         [WorkItem(546512)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInSwitchSection()
         {
             await TestAsync(
@@ -1181,7 +1181,7 @@ index: 2);
         }
 
         [WorkItem(530480)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLambdaParameter1()
         {
             await TestAsync(
@@ -1190,7 +1190,7 @@ index: 2);
         }
 
         [WorkItem(530480)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLambdaParameter2()
         {
             await TestAsync(
@@ -1199,7 +1199,7 @@ index: 2);
         }
 
         [WorkItem(530480)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLambdaParameter3()
         {
             await TestAsync(
@@ -1208,7 +1208,7 @@ index: 2);
         }
 
         [WorkItem(530480)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLambdaParameter4()
         {
             await TestAsync(
@@ -1217,7 +1217,7 @@ index: 2);
         }
 
         [WorkItem(530480)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLambdaParameter5()
         {
             await TestAsync(
@@ -1226,7 +1226,7 @@ index: 2);
         }
 
         [WorkItem(530721)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroVarInAction1()
         {
             await TestAsync(
@@ -1235,7 +1235,7 @@ index: 2);
         }
 
         [WorkItem(530919)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNullableOfPointerType()
         {
             await TestAsync(
@@ -1244,7 +1244,7 @@ index: 2);
         }
 
         [WorkItem(530919)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNullableOfPointerTypeNotVar()
         {
             await TestAsync(
@@ -1254,7 +1254,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         }
 
         [WorkItem(830885)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalRemovesUnnecessaryCast()
         {
             await TestAsync(
@@ -1263,7 +1263,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         }
 
         [WorkItem(655498)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task HandleParenthesizedExpression()
         {
             await TestAsync(
@@ -1296,7 +1296,7 @@ compareTokens: false);
         }
 
         [WorkItem(682683)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task DontRemoveParenthesesIfOperatorPrecedenceWouldBeBroken()
         {
             await TestAsync(
@@ -1325,7 +1325,7 @@ compareTokens: false);
         }
 
         [WorkItem(828108)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task UseNewSemanticModelForSimplification()
         {
             await TestAsync(
@@ -1361,7 +1361,7 @@ compareTokens: false);
         }
 
         [WorkItem(884961)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInCollectionInitializer()
         {
             await TestAsync(
@@ -1388,7 +1388,7 @@ compareTokens: false);
         }
 
         [WorkItem(884961)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInCollectionInitializerNoVar()
         {
             await TestAsync(
@@ -1416,7 +1416,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         }
 
         [WorkItem(854662)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInNestedCollectionInitializers()
         {
             await TestAsync(
@@ -1447,7 +1447,7 @@ compareTokens: false);
         }
 
         [WorkItem(884961)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInArrayInitializer()
         {
             await TestAsync(
@@ -1474,7 +1474,7 @@ compareTokens: false);
         }
 
         [WorkItem(884961)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestInArrayInitializerWithoutVar()
         {
             await TestAsync(
@@ -1502,7 +1502,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         }
 
         [WorkItem(1022447)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestFormattingOfIntroduceLocal2()
         {
             await TestAsync(
@@ -1538,7 +1538,7 @@ compareTokens: false);
         }
 
         [WorkItem(939259)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalWithTriviaInMultiLineStatements()
         {
             var code =
@@ -1568,7 +1568,7 @@ compareTokens: false);
         }
 
         [WorkItem(939259)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalWithTriviaInMultiLineStatements2()
         {
             var code =
@@ -1598,7 +1598,7 @@ compareTokens: false);
         }
 
         [WorkItem(1064803)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInStringInterpolation()
         {
             var code =
@@ -1624,7 +1624,7 @@ compareTokens: false);
         }
 
         [WorkItem(1037057)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalWithBlankLine()
         {
             await TestAsync(@"
@@ -1654,7 +1654,7 @@ class C
         }
 
         [WorkItem(1065661)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceVariableTextDoesntSpanLines()
         {
             await TestSmartTagTextAsync(@"
@@ -1673,7 +1673,7 @@ index: 2);
         }
 
         [WorkItem(1097147)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSmartNameForNullablesInConditionalAccessExpressionContext()
         {
             var code =
@@ -1701,7 +1701,7 @@ class C
         }
 
         [WorkItem(1097147)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSmartNameForNullablesInConditionalAccessExpressionContext2()
         {
             var code =
@@ -1729,7 +1729,7 @@ class C
         }
 
         [WorkItem(1097147)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSmartNameForNullablesInConditionalAccessExpressionContext3()
         {
             var code =
@@ -1775,7 +1775,7 @@ class B
         }
 
         [WorkItem(1097147)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestSmartNameForNullablesInConditionalAccessExpressionContext4()
         {
             var code =
@@ -1823,7 +1823,7 @@ class B
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethod()
         {
             var code =
@@ -1850,7 +1850,7 @@ class T
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceFieldInExpressionBodiedMethod()
         {
             var code =
@@ -1874,7 +1874,7 @@ class T
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedOperator()
         {
             var code =
@@ -1911,7 +1911,7 @@ class Complex
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceFieldInExpressionBodiedOperator()
         {
             var code =
@@ -1945,7 +1945,7 @@ class Complex
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceFieldInExpressionBodiedConversionOperator()
         {
             var code =
@@ -1983,7 +1983,7 @@ public struct DBBool
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceFieldInExpressionBodiedProperty()
         {
             var code =
@@ -2006,7 +2006,7 @@ class T
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedProperty()
         {
             var code =
@@ -2034,7 +2034,7 @@ class T
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceFieldInExpressionBodiedIndexer()
         {
             var code =
@@ -2058,7 +2058,7 @@ class SampleCollection<T>
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedIndexer()
         {
             var code =
@@ -2088,7 +2088,7 @@ class SampleCollection<T>
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestTrailingTriviaOnExpressionBodiedMethodRewrites()
         {
             var code =
@@ -2119,7 +2119,7 @@ class T
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestLeadingTriviaOnExpressionBodiedMethodRewrites()
         {
             var code =
@@ -2146,7 +2146,7 @@ class T
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestTriviaAroundArrowTokenInExpressionBodiedMemberSyntax()
         {
             var code =
@@ -2174,7 +2174,7 @@ class T
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
         {
             var code =
@@ -2203,7 +2203,7 @@ class TestClass
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
         {
             var code =
@@ -2225,7 +2225,7 @@ class TestClass
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
         {
             var code =
@@ -2253,7 +2253,7 @@ class TestClass
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
         {
             var code =
@@ -2279,7 +2279,7 @@ class TestClass
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedParenthesizedLambdaExpression()
         {
             var code =
@@ -2307,7 +2307,7 @@ class TestClass
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithExpressionBodiedParenthesizedLambdaExpression()
         {
             var code =
@@ -2333,7 +2333,7 @@ class TestClass
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
         [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
         {
             var code =
@@ -2361,7 +2361,7 @@ class TestClass
         }
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoConstantForInterpolatedStrings1()
         {
             var code =
@@ -2389,7 +2389,7 @@ class TestClass
         }
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestNoConstantForInterpolatedStrings2()
         {
             var code =
@@ -2419,7 +2419,7 @@ class TestClass
         }
 
         [WorkItem(909152)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnNullLiteral()
         {
             await TestMissingAsync(
@@ -2437,7 +2437,7 @@ class Test
         }
 
         [WorkItem(1130990)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InParentConditionalAccessExpressions()
         {
             var code =
@@ -2467,7 +2467,7 @@ class C
         }
 
         [WorkItem(1130990)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InParentConditionalAccessExpression2()
         {
             var code =
@@ -2498,7 +2498,7 @@ class C
 
         [WorkItem(1130990)]
         [WorkItem(3110, "https://github.com/dotnet/roslyn/issues/3110")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task MissingAcrossMultipleParentConditionalAccessExpressions()
         {
             await TestMissingAsync(
@@ -2514,7 +2514,7 @@ class C
         }
 
         [WorkItem(1130990)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task MissingOnInvocationExpressionInParentConditionalAccessExpressions()
         {
             await TestMissingAsync(
@@ -2530,7 +2530,7 @@ class C
         }
 
         [WorkItem(1130990)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task MissingOnMemberBindingExpressionInParentConditionalAccessExpressions()
         {
             await TestMissingAsync(
@@ -2545,7 +2545,7 @@ class C
         }
 
         [WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task HandleFormattableStringTargetTyping1()
         {
             const string code = CodeSnippets.FormattableStringType + @"
@@ -2581,7 +2581,7 @@ namespace N
         }
 
         [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InAutoPropertyInitializer()
         {
             var code =
@@ -2602,7 +2602,7 @@ class C
         }
 
         [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InAutoPropertyInitializer2()
         {
             var code =
@@ -2623,7 +2623,7 @@ class C
         }
 
         [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task BlockContextPreferredOverAutoPropertyInitializerContext()
         {
             var code =

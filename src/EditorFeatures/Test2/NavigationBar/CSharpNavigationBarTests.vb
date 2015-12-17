@@ -13,7 +13,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Partial Public Class CSharpNavigationBarTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545021)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545021)>
         Public Async Function TestGenericTypeVariance() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("C<in I, out O>", Glyph.InterfaceInternal, children:={}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545284)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545284)>
         Public Async Function TestGenericMember() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                      Item("Swap<T>(T lhs, T rhs)", Glyph.MethodPrivate)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023)>
         Public Async Function TestNestedClasses() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("C.Nested", Glyph.ClassPrivate, children:={}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023)>
         Public Async Function TestSelectedItemForNestedClass() As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Nothing, False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545019)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545019)>
         Public Async Function TestSelectedItemForEnumAfterComma() As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("A", Glyph.EnumMember), False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
         Public Async Function TestSelectedItemForFieldAfterSemicolon() As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("foo", Glyph.FieldPrivate), False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
         Public Async Function TestSelectedItemForFieldInType() As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("foo", Glyph.FieldPrivate), False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545267)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545267)>
         Public Async Function TestSelectedItemAtEndOfFile() As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("foo", Glyph.FieldPrivate), True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545012)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545012)>
         Public Async Function TestExplicitInterfaceImplementation() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("IDisposable.Dispose()", Glyph.MethodPrivate)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545007)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545007)>
         Public Async Function TestRefAndOutParameters() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M(out string foo, ref string bar)", Glyph.MethodPrivate)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545001)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545001)>
         Public Async Function TestOptionalParameter() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M(int i = 0)", Glyph.MethodPrivate)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545274)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545274)>
         Public Async Function TestProperties() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("Number", Glyph.PropertyPrivate)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
         Public Async Function TestEnum() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("C", Glyph.EnumMember)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
         Public Async Function TestDelegate() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("Foo", Glyph.DelegateInternal, children:={}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
         Public Async Function TestPartialClassWithFieldInOtherFile() As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("foo", Glyph.FieldPrivate, grayed:=True), True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100)>
         Public Async Function TestPartialClassWithBothPartialMethodParts1() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M()", Glyph.MethodPrivate, grayed:=True)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100)>
         Public Async Function TestPartialClassWithBothPartialMethodParts2() As Task
             Await AssertItemsAreAsync(
                 <Workspace>

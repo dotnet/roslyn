@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New DocumentationCommentOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestDocumentationCommentWithoutSummaryTag1() As Task
             Const code = "
 {|span:''' $$XML doc comment
@@ -28,7 +28,7 @@ End Class
                 Region("span", "''' XML doc comment ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestDocumentationCommentWithoutSummaryTag2() As Task
             Const code = "
 {|span:''' $$<param name=""syntaxTree""></param>|}
@@ -40,7 +40,7 @@ End Class
                 Region("span", "''' <param name=""syntaxTree""></param> ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestDocumentationComment() As Task
             Const code = "
 {|span:''' $$<summary>
@@ -54,7 +54,7 @@ End Class
                 Region("span", "''' <summary> Hello VB!", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestDocumentationCommentWithLongBannerText() As Task
             Dim code = "
 {|span:''' $$<summary>
@@ -68,7 +68,7 @@ End Class
                 Region("span", "''' <summary> " & New String("x"c, 106) & " ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestIndentedDocumentationComment() As Task
             Const code = "
     {|span:''' $$<summary>
@@ -82,7 +82,7 @@ End Class
                 Region("span", "''' <summary> Hello VB!", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestDocumentationCommentOnASingleLine() As Task
             Const code = "
 {|span:''' $$<summary>Hello VB!</summary>|}
@@ -94,7 +94,7 @@ End Class
                 Region("span", "''' <summary> Hello VB!", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestIndentedDocumentationCommentOnASingleLine() As Task
             Const code = "
     {|span:''' $$<summary>Hello VB!</summary>|}
@@ -106,7 +106,7 @@ End Class
                 Region("span", "''' <summary> Hello VB!", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestMultilineSummaryInDocumentationComment1() As Task
             Const code = "
 {|span:''' $$<summary>
@@ -121,7 +121,7 @@ End Class
                 Region("span", "''' <summary> Hello VB!", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestMultilineSummaryInDocumentationComment2() As Task
             Const code = "
 {|span:''' $$<summary>
@@ -138,7 +138,7 @@ End Class
         End Function
 
         <WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function CrefInSummary() As Task
             Const code = "
 Class C

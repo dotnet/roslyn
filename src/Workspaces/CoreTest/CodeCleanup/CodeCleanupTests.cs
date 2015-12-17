@@ -75,13 +75,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         }
 
         [Fact]
-        public void CodeCleaners_Annotation()
+        public async Task CodeCleaners_Annotation()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
             var annotation = new SyntaxAnnotation();
-            document = document.WithSyntaxRoot(document.GetSyntaxRootAsync().Result.WithAdditionalAnnotations(annotation));
+            document = document.WithSyntaxRoot((await document.GetSyntaxRootAsync()).WithAdditionalAnnotations(annotation));
 
-            var cleanDocument = CodeCleaner.CleanupAsync(document, annotation).Result;
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, annotation);
 
             Assert.Equal(document, cleanDocument);
         }

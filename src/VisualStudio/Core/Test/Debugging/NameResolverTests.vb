@@ -30,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestSimpleNameInClass() As Task
             Dim text =
 <text>
@@ -50,7 +50,7 @@ end class</text>.Value
             Await TestAsync(text, "Foo(Integer)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestSimpleNameInNamespace() As Tasks.Task
             Dim text =
 <text>
@@ -75,7 +75,7 @@ end namespace</text>.Value
             Await TestAsync(text, "Foo(a)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestSimpleNameInGenericClassNamespace() As Tasks.Task
             Dim text =
 <text>
@@ -101,7 +101,7 @@ end namespace</text>.Value
             Await TestAsync(text, "Foo(a)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestGenericNameInClassNamespace() As Task
             Dim text =
 <text>
@@ -132,7 +132,7 @@ end namespace</text>.Value
             Await TestAsync(text, "Foo(of T)(a)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestOverloadsInSingleClass() As Task
             Dim text =
 <text>
@@ -157,7 +157,7 @@ end class
             Await TestAsync(text, "Foo(i)", "C.Foo(Integer)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestMethodsInMultipleClasses() As Task
             Dim text =
 <text>
@@ -188,7 +188,7 @@ end namespace</text>.Value
             Await TestAsync(text, "Foo(i)", "N1.C.Foo(Integer)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestMethodsWithDifferentArityInMultipleClasses() As Task
             Dim text =
 <text>
@@ -223,7 +223,7 @@ end namespace</text>.Value
             Await TestAsync(text, "Foo(of T)(i)", "N1.C.Foo(Of T)(Integer)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestOverloadsWithMultipleParametersInSingleClass() As Task
             Dim text =
 <text>
@@ -256,7 +256,7 @@ end class</text>.Value
             Await TestAsync(text, "Foo(i, s, c)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestProperties() As Task
             Dim text =
 <text>
@@ -298,7 +298,7 @@ End Class</text>.Value
             Await TestAsync(text, "property5(j, i)", "C.Property5(Integer, String)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestNegativeTests() As Task
             Dim text =
 <text>
@@ -342,7 +342,7 @@ End Class</text>.Value
             Await TestAsync(text, "")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestInstanceConstructors() As Task
             Dim text =
 <text>
@@ -383,7 +383,7 @@ End Class</text>.Value
             Await TestAsync(text, "C.C()")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestStaticConstructors() As Task
             Dim text =
 <text>
@@ -408,7 +408,7 @@ end class</text>.Value
             Await TestAsync(text, "C.cctor()")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestAllConstructors() As Task
             Dim text =
 <text>
@@ -434,7 +434,7 @@ end class</text>.Value
             Await TestAsync(text, "C.C()")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestPartialMethods() As Task
             Dim text =
 <text>
@@ -466,7 +466,7 @@ End Class</text>.Value
             Await TestAsync(text, "M3(y)", "C.M3(Integer)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestLeadingAndTrailingText() As Task
             Dim text =
 <text>
@@ -481,7 +481,7 @@ End Class</text>.Value
             Await TestAsync(text, "Foo() ' comment", "C.Foo()")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestEscapedKeywords() As Task
             Dim text =
                 <text>
@@ -503,7 +503,7 @@ End Class</text>.Value
             Await TestAsync(text, "False", "[for].False()")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestGlobalQualifiedNames() As Task
             Dim text =
 <text>
@@ -518,7 +518,7 @@ End Class</text>.Value
             Await TestAsync(text, "C.Foo(Global.C)", "C.Foo(C)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestRootNamespaces() As Task
             Dim text =
 <text>
@@ -541,7 +541,7 @@ End Namespace</text>.Value
             Await TestWithRootNamespaceAsync("Root", text, "Root.Foo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestNestedTypesAndNamespaces() As Task
             Dim text =
 <text>
@@ -585,7 +585,7 @@ End Namespace</text>.Value
             Await TestAsync(text, "N5.C.Foo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Async Function TestInterfaces() As Task
             Dim text =
 <text>

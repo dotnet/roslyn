@@ -17,7 +17,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
     Public Class ReorderParametersViewModelTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function ReorderParameters_MethodWithTwoNormalParameters_UpDownArrowsNotOfferedWhenNoSelection() As Tasks.Task
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -46,7 +46,7 @@ class MyClass
             monitor.Detach()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function ReorderParameters_MethodWithTwoNormalParameters_OkButtonNotOfferedAfterPermutationsResultingInOriginalOrdering() As Tasks.Task
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -73,7 +73,7 @@ class MyClass
                 canMoveDown:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function ReorderParameters_MethodWithTwoNormalParameters_MoveFirstParameterDown() As Tasks.Task
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -108,7 +108,7 @@ class MyClass
             monitor.Detach()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function ReorderParameters_MethodWithTwoNormalParameters_MoveSecondParameterUp() As Tasks.Task
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -151,7 +151,7 @@ class MyClass
             monitor.Detach()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function ChangeSignature_ParameterDisplay_MultidimensionalArray() As Tasks.Task
             Dim markup = <Text><![CDATA[
 class MyClass

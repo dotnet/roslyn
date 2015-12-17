@@ -103,7 +103,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(539636)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub QualifyConflictingMethodInvocation()

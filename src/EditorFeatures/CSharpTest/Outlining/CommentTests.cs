@@ -16,28 +16,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        internal override Task<OutliningSpan[]> GetRegionsAsync(Document document, int position)
+        internal override async Task<OutliningSpan[]> GetRegionsAsync(Document document, int position)
         {
-            var root = document.GetSyntaxRootAsync(CancellationToken.None).Result;
+            var root = await document.GetSyntaxRootAsync();
             var trivia = root.FindTrivia(position, findInsideTrivia: true);
 
             var token = trivia.Token;
 
             if (token.LeadingTrivia.Contains(trivia))
             {
-                return Task.FromResult(CSharpOutliningHelpers.CreateCommentRegions(token.LeadingTrivia).ToArray());
+                return CSharpOutliningHelpers.CreateCommentRegions(token.LeadingTrivia).ToArray();
             }
             else if (token.TrailingTrivia.Contains(trivia))
             {
-                return Task.FromResult(CSharpOutliningHelpers.CreateCommentRegions(token.TrailingTrivia).ToArray());
+                return CSharpOutliningHelpers.CreateCommentRegions(token.TrailingTrivia).ToArray();
             }
             else
             {
-                return Task.FromResult(Contract.FailWithReturn<OutliningSpan[]>());
+                return Contract.FailWithReturn<OutliningSpan[]>();
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSimpleComment1()
         {
             const string code = @"
@@ -52,7 +52,7 @@ class C
                 Region("span", "// Hello ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSimpleComment2()
         {
             const string code = @"
@@ -68,7 +68,7 @@ class C
                 Region("span", "// Hello ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSimpleComment3()
         {
             const string code = @"
@@ -84,7 +84,7 @@ class C
                 Region("span", "// Hello ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSingleLineCommentGroupFollowedByDocumentationComment()
         {
             const string code = @"
@@ -101,7 +101,7 @@ class C
                 Region("span", "// Hello ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestMultilineComment1()
         {
             const string code = @"
@@ -116,7 +116,7 @@ class C
                 Region("span", "/* Hello ...", autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestMultilineCommentOnOneLine()
         {
             const string code = @"
@@ -132,7 +132,7 @@ class C
 
         [WorkItem(791)]
         [WorkItem(1108049)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestIncompleteMultilineCommentZeroSpace()
         {
             const string code = @"
@@ -144,7 +144,7 @@ class C
 
         [WorkItem(791)]
         [WorkItem(1108049)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestIncompleteMultilineCommentSingleSpace()
         {
             const string code = @"

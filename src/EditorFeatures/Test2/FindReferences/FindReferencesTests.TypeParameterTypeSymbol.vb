@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestTypeParameter1() As Task
             Dim input =
 <Workspace>
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestTypeParameter2() As Task
             Dim input =
 <Workspace>
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestTypeParameter3() As Task
             Dim input =
 <Workspace>
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestGenericTypeArgsWithStaticCalls() As Task
             Dim input =
 <Workspace>
@@ -89,7 +89,7 @@ class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestTypeParameterCaseSensitivity() As Task
             Dim input =
 <Workspace>
@@ -108,7 +108,7 @@ class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
         End Function
 
         <WorkItem(542598)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestMethodTypeParameterExplicitImplementation1() As Task
             Dim input =
 <Workspace>
@@ -130,7 +130,7 @@ class A : I
         End Function
 
         <WorkItem(542598)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestMethodTypeParameterExplicitImplementation2() As Task
             Dim input =
 <Workspace>
@@ -152,7 +152,7 @@ class A : I
         End Function
 
         <WorkItem(542598)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestMethodTypeParameterExplicitImplementation3() As Task
             Dim input =
 <Workspace>

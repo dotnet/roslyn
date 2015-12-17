@@ -56,8 +56,8 @@
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
@@ -157,6 +157,7 @@
     <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProvider.ItemRules.vb" />
     <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.ItemRules.vb" />
+    <Compile Include="Completion\KeywordRecommenders\PreprocessorDirectives\ReferenceDirectiveKeywordRecommender.vb" />
     <Compile Include="Completion\SuggestionMode\VisualBasicSuggestionModeCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.vb" />
     <Compile Include="Completion\KeywordRecommenders\AbstractKeywordRecommender.vb" />

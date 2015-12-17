@@ -7893,20 +7893,6 @@
         "System.Reflection.Metadata.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.1.1-beta-23504": {
-      "sha512": "vDYX8k4FLBn/9zINgv8wh7E1Z0HDtl3sUqJoLFpw6PG79iCBLDAToA9rpuy5uGeTfSBkJ8c8tT1Vc0CYQ2XtxA==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/dotnet5.2/System.Reflection.Metadata.dll",
-        "lib/dotnet5.2/System.Reflection.Metadata.xml",
-        "lib/portable-net45+win8/System.Reflection.Metadata.dll",
-        "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/cd4fb9ed81f440cc8c888f50341e5a3a.psmdcp",
-        "System.Reflection.Metadata.nuspec"
-      ]
-    },
     "System.Reflection.Primitives/4.0.1-beta-23504": {
       "sha512": "EDgC6JH5pR12f1fVkTbthDa/wnB3ntu1IlmIlokchhYT1CszoXLQ6oX5iMc0oyjg9dgFEDMaUgcNksrrIpxHuA==",
       "type": "Package",

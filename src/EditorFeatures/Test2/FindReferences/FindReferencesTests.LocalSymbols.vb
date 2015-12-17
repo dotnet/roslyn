@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocal() As Task
             Dim input =
 <Workspace>
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalInFieldInitializerLambda1() As Task
             Dim input =
 <Workspace>
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalInFieldInitializerLambda2() As Task
             Dim input =
 <Workspace>
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalCaseSensitivity() As Task
             Dim input =
 <Workspace>
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalCaseInsensitivity() As Task
             Dim input =
 <Workspace>
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(530636)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalInLambdaInField1() As Task
             Dim input =
 <Workspace>
@@ -123,7 +123,7 @@ End Module
         End Function
 
         <WorkItem(530636)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalInLambdaInField2() As Task
             Dim input =
 <Workspace>
@@ -138,7 +138,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(608210)>
         Public Async Function TestLocalInPropertyInitializer() As Task
             Dim input =
@@ -158,7 +158,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(2667, "https://github.com/dotnet/roslyn/issues/2667")>
         Public Async Function TestLocalWithWithStatement() As Task
             Dim input =
@@ -187,7 +187,7 @@ End Module
 
 
 #Region "FAR on collection initializers"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocal_CSharpNamedIdentifiersUsedInNestedColInit() As Task
             Dim input =
 <Workspace>
@@ -209,7 +209,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocal_VBNamedIdentifiersUsedInNestedColInit() As Task
             Dim input =
 <Workspace>
@@ -229,7 +229,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocal_CSharpNamedIdentifiersUsedInAVeryLongColInitExp() As Task
             Dim input =
 <Workspace>
@@ -249,7 +249,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocal_VBNamedIdentifiersUsedInAVeryLongColInitEx() As Task
             Dim input =
 <Workspace>

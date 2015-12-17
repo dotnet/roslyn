@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new GenerateEnumMemberCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestEmptyEnum()
         {
             await TestAsync(
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Red ; } } enum Color { Red } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithSingleMember()
         {
             await TestAsync(
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red , Blue } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithExistingComma()
         {
             await TestAsync(
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red , Blue , } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithMultipleMembers()
         {
             await TestAsync(
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Green ; } } enum Color { Red , Blue , Green } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithZero()
         {
             await TestAsync(
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 0 , Blue = 1 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithIntegralValue()
         {
             await TestAsync(
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 1 , Blue = 2 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithSingleBitIntegral()
         {
             await TestAsync(
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 2 , Blue = 4 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateIntoGeometricSequence()
         {
             await TestAsync(
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 1 , Yellow = 2 , Green = 4 , Blue = 8}");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithSimpleSequence1()
         {
             await TestAsync(
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 1 , Green = 2 , Blue = 3 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithSimpleSequence2()
         {
             await TestAsync(
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Green = 5 , Blue = 6 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithLeftShift0()
         {
             await TestAsync(
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Green = 1 << 0 , Blue = 1 << 1 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithLeftShift5()
         {
             await TestAsync(
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Green = 1 << 5 , Blue = 1 << 6 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithDifferentStyles()
         {
             await TestAsync(
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 2 , Green = 1 << 5 , Blue = 33 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestHex1()
         {
             await TestAsync(
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 0x1 , Blue = 0x2 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestHex9()
         {
             await TestAsync(
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 0x9 , Blue = 0xA } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestHexF()
         {
             await TestAsync(
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 0xF , Blue = 0x10 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithIntegerMaxValue()
         {
             await TestAsync(
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = int.MaxValue , Blue = int.MinValue } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestUnsigned16BitEnums()
         {
             await TestAsync(
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : ushort { Red = 65535 , Blue = 0 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateEnumMemberOfTypeLong()
         {
             await TestAsync(
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = long.MaxValue , Blue = long.MinValue } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithLongMaxValueInHex()
         {
             await TestAsync(
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
         }
 
         [WorkItem(528312)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithLongMinValueInHex()
         {
             await TestAsync(
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
         }
 
         [WorkItem(528312)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterPositiveLongInHex()
         {
             await TestAsync(
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = 0xFFFFFFFFFFFFFFFF , Green = 0x0 , Blue = 0x1 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterPositiveLongExprInHex()
         {
             await TestAsync(
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = 0x414 / 2 , Blue = 523 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithULongMaxValue()
         {
             await TestAsync(
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : ulong { Red = ulong.MaxValue , Blue = 0 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestNegativeRangeIn64BitSignedEnums()
         {
             await TestAsync(
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = -10 , Blue = -9 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateWithImplicitValues()
         {
             await TestAsync(
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red , Green , Yellow = -1 , Blue = 2 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateWithImplicitValues2()
         {
             await TestAsync(
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red , Green = 10 , Yellow , Blue }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestNoExtraneousStatementTerminatorBeforeCommentedMember()
         {
             await TestAsync(
@@ -277,7 +277,7 @@ enum Color
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestNoExtraneousStatementTerminatorBeforeCommentedMember2()
         {
             await TestAsync(
@@ -311,7 +311,7 @@ enum Color
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithMinValue()
         {
             await TestAsync(
@@ -319,7 +319,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = int.MinValue , Blue = -2147483647 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithMinValuePlusConstant()
         {
             await TestAsync(
@@ -327,7 +327,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = int.MinValue + 100 , Blue = -2147483547 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateAfterEnumWithByteMaxValue()
         {
             await TestAsync(
@@ -335,7 +335,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : byte { Red = 255 , Blue = 0 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateIntoBitshiftEnum1()
         {
             await TestAsync(
@@ -343,7 +343,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 1 << 1 , Green = 1 << 2 , Blue = 1 << 3 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateIntoBitshiftEnum2()
         {
             await TestAsync(
@@ -351,7 +351,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 2 >> 1 , Blue = 2 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestStandaloneReference()
         {
             await TestAsync(
@@ -359,7 +359,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = int.MinValue , Green = 1 , Blue = 2 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestCircularEnumsForErrorTolerance()
         {
             await TestAsync(
@@ -367,7 +367,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Circular . C ; } } enum Circular { A = B , B , C }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestEnumWithIncorrectValueForErrorTolerance()
         {
             await TestAsync(
@@ -375,7 +375,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Circular . B ; } } enum Circular : byte { A = -2 , B }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateIntoNewEnum()
         {
             await TestAsync(
@@ -383,7 +383,7 @@ compareTokens: false);
 @"class B : A { void Main ( ) { BaseColor . Blue ; } public new enum BaseColor { Yellow = 3 , Blue = 4 } } class A { public enum BaseColor { Red = 1, Green = 2 } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateIntoDerivedEnumMissingNewKeyword()
         {
             await TestAsync(
@@ -391,7 +391,7 @@ compareTokens: false);
 @"class B : A { void Main ( ) { BaseColor . Blue ; } public enum BaseColor { Yellow = 3 , Blue = 4 } } class A { public enum BaseColor { Red = 1, Green = 2 } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerateIntoBaseEnum()
         {
             await TestAsync(
@@ -399,7 +399,7 @@ compareTokens: false);
 @"class B : A { void Main ( ) { BaseColor . Blue ; } } class A { public enum BaseColor { Red = 1, Green = 2 , Blue = 3 } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestGenerationWhenMembersShareValues()
         {
             await TestAsync(
@@ -407,7 +407,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red , Green , Yellow = Green , Blue = 2 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestInvokeFromAddAssignmentStatement()
         {
             await TestAsync(
@@ -415,7 +415,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { int a = 1 ; a += Color . Blue ; } } enum Color { Red , Green = 10 , Yellow , Blue }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestFormatting()
         {
             await TestAsync(
@@ -446,7 +446,7 @@ compareTokens: false);
         }
 
         [WorkItem(540919)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestKeyword()
         {
             await TestAsync(
@@ -455,14 +455,14 @@ compareTokens: false);
         }
 
         [WorkItem(544333)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestNotAfterPointer()
         {
             await TestMissingAsync(
 @"struct MyStruct { public int MyField ; } class Program { static unsafe void Main ( string [ ] args ) { MyStruct s = new MyStruct ( ) ; MyStruct * ptr = & s ; var i1 = ( ( ) => & s ) -> [|M|] ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestMissingOnHiddenEnum()
         {
             await TestMissingAsync(
@@ -483,7 +483,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestMissingOnPartiallyHiddenEnum()
         {
             await TestMissingAsync(
@@ -508,7 +508,7 @@ class Program
         }
 
         [WorkItem(545903)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestNoOctal()
         {
             await TestAsync(
@@ -517,7 +517,7 @@ class Program
         }
 
         [WorkItem(546654)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestLastValueDoesNotHaveInitializer()
         {
             await TestAsync(

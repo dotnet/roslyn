@@ -10,7 +10,7 @@ Imports Xunit
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class IsKeywordRecommenderTests
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543384)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IsInCaseClause()
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
                 </MethodBody>, "Is")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543384)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoIsKeywordAfterCaseAfterCaseElse()
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
                 </MethodBody>, "Is")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543384)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IsInMiddleCaseClause()
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
                 </MethodBody>, "Is")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543384)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IsInFinalCaseClause()
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
                 </MethodBody>, "Is")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543384)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IsInExistingIsClause()
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         End Sub
 
         <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterEol()
             VerifyRecommendationsMissing(
 <MethodBody>
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         End Sub
 
         <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AfterExplicitLineContinuation()
             VerifyRecommendationsContain(
 <MethodBody>
