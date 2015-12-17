@@ -4744,5 +4744,59 @@ End Module
             CompileAndVerify(source, expectedOutput)
         End Sub
 
+        <Fact()>
+        Public Sub SubtractFromZero()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Module1
+  Sub Main()
+    Dim a As Integer? = 1
+    Dim b As Integer? = 0 - a
+    Console.WriteLine(String.Format("a: {0}, b: {1}", a, b))
+ End Sub
+End Module
+
+    </file>
+</compilation>, expectedOutput:="a: 1, b: -1").
+VerifyIL("Module1.Main",
+            <![CDATA[
+{
+  // Code size       71 (0x47)
+  .maxstack  3
+  .locals init (Integer? V_0, //a
+                Integer? V_1, //b
+                Integer? V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       "Sub Integer?..ctor(Integer)"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_000f:  brtrue.s   IL_001c
+  IL_0011:  ldloca.s   V_2
+  IL_0013:  initobj    "Integer?"
+  IL_0019:  ldloc.2
+  IL_001a:  br.s       IL_002a
+  IL_001c:  ldc.i4.0
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0024:  sub.ovf
+  IL_0025:  newobj     "Sub Integer?..ctor(Integer)"
+  IL_002a:  stloc.1
+  IL_002b:  ldstr      "a: {0}, b: {1}"
+  IL_0030:  ldloc.0
+  IL_0031:  box        "Integer?"
+  IL_0036:  ldloc.1
+  IL_0037:  box        "Integer?"
+  IL_003c:  call       "Function String.Format(String, Object, Object) As String"
+  IL_0041:  call       "Sub System.Console.WriteLine(String)"
+  IL_0046:  ret
+}
+                ]]>)
+
+        End Sub
+
     End Class
 End Namespace
