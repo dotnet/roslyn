@@ -1896,6 +1896,54 @@ namespace A.C
 @"using lowercase ; namespace A { class A { static void Main ( string [ ] args ) { var a = new b ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ");
         }
 
+        [WorkItem(7443, "https://github.com/dotnet/roslyn/issues/7443")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestWithExistingIncompatibleExtension()
+        {
+            await TestAsync(
+@"using N;
+
+class C
+{
+    int x()
+    {
+        System.Collections.Generic.IEnumerable<int> x = null;
+        return x.[|Any|]
+    }
+}
+
+namespace N
+{
+    static class Extensions
+    {
+        public static void Any(this string s)
+        {
+        }
+    }
+}",
+@"using System.Linq;
+using N;
+
+class C
+{
+    int x()
+    {
+        System.Collections.Generic.IEnumerable<int> x = null;
+        return x.Any
+    }
+}
+
+namespace N
+{
+    static class Extensions
+    {
+        public static void Any(this string s)
+        {
+        }
+    }
+}");
+        }
+
         [WorkItem(1744, @"https://github.com/dotnet/roslyn/issues/1744")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestIncompleteCatchBlockInLambda()
@@ -2038,6 +2086,60 @@ class Test
     {
         Action a = () => { IBindCtx };
         string a;        
+    }
+}");
+        }
+
+        [WorkItem(7461, "https://github.com/dotnet/roslyn/issues/7461")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestExtensionWithIncompatibleInstance()
+        {
+            await TestAsync(
+@"using System.IO;
+
+namespace Namespace1
+{
+    static class StreamExtensions
+    {
+        public static void Write(this Stream stream, byte[] bytes)
+        {
+        }
+    }
+}
+
+namespace Namespace2
+{
+    class Foo
+    {
+        void Bar()
+        {
+            Stream stream = null;
+            stream.[|Write|](new byte[] { 1, 2, 3 });
+        }
+    }
+}",
+@"using System.IO;
+using Namespace1;
+
+namespace Namespace1
+{
+    static class StreamExtensions
+    {
+        public static void Write(this Stream stream, byte[] bytes)
+        {
+        }
+    }
+}
+
+namespace Namespace2
+{
+    class Foo
+    {
+        void Bar()
+        {
+            Stream stream = null;
+            stream.Write(new byte[] { 1, 2, 3 });
+        }
     }
 }");
         }
