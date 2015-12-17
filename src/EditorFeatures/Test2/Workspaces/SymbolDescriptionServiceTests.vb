@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ' For String Literals GetTouchingWord returns Nothing, we still need this for Quick Info. Quick Info code does exactly the following.
             ' caveat: The comment above the previous line of code. Do not put the cursor at the end of the token.
             If commonSyntaxToken = Nothing Then
-                commonSyntaxToken = (Await document.GetSyntaxTreeAsync()).GetRoot().FindToken(cursorPosition)
+                commonSyntaxToken = (Await document.GetSyntaxRootAsync()).FindToken(cursorPosition)
             End If
 
             Dim semanticModel = Await document.GetSemanticModelAsync()

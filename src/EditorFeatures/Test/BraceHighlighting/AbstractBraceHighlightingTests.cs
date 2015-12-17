@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 var context = new TaggerContext<BraceHighlightTag>(
                     document, buffer.CurrentSnapshot,
                     new SnapshotPoint(buffer.CurrentSnapshot, testDocument.CursorPosition.Value));
-                provider.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait();
+                await provider.ProduceTagsAsync_ForTestingPurposesOnly(context);
 
                 var expectedHighlights = testDocument.SelectedSpans.Select(ts => ts.ToSpan()).OrderBy(s => s.Start).ToList();
                 var actualHighlights = context.tagSpans.Select(ts => ts.Span.Span).OrderBy(s => s.Start).ToList();

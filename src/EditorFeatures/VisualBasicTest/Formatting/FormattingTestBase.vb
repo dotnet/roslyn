@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                 Dim rules = formattingRuleProvider.CreateRule(document, 0).Concat(Formatter.GetDefaultFormattingRules(document))
 
                 Dim changes = Formatter.GetFormattedTextChanges(
-                    syntaxTree.GetRoot(CancellationToken.None),
+                    Await syntaxTree.GetRootAsync(),
                     workspace.Documents.First(Function(d) d.SelectedSpans.Any()).SelectedSpans,
                     workspace, workspace.Options, rules, CancellationToken.None)
                 AssertResult(expected, clonedBuffer, changes)

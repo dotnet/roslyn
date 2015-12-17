@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
         protected abstract bool IgnoreCase { get; }
         protected abstract bool CanFullyQualify(Diagnostic diagnostic, ref SyntaxNode node);
-        protected abstract SyntaxNode ReplaceNode(SyntaxNode node, string containerName, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, CancellationToken cancellationToken);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -96,10 +96,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
         }
 
-        private Task<Document> ProcessNode(Document document, SyntaxNode node, string containerName, CancellationToken cancellationToken)
+        private async Task<Document> ProcessNode(Document document, SyntaxNode node, string containerName, CancellationToken cancellationToken)
         {
-            var newRoot = this.ReplaceNode(node, containerName, cancellationToken);
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            var newRoot = await this.ReplaceNodeAsync(node, containerName, cancellationToken).ConfigureAwait(false);
+            return document.WithSyntaxRoot(newRoot);
         }
 
         internal async Task<IEnumerable<ISymbol>> GetMatchingTypesAsync(
