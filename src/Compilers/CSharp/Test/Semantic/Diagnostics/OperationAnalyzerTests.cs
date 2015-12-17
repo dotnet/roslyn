@@ -878,5 +878,40 @@ class C
                 Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{ 1, 2, 3, 4, 5, 6 }").WithLocation(28, 66)
             );
         }
+
+        [Fact]
+        public void VariableDeclarationCSharp()
+        {
+            const string source = @"
+public class C
+{
+    public void M1()
+    {
+#pragma warning disable CS0168, CS0219
+        int a1;
+        int b1, b2, b3;
+        int c1, c2, c3, c4;
+        C[] d1, d2, d3, d4 = { null, null };
+        int e1 = 1, e2, e3, e4 = 10;
+        int f1, f2, f3, ;
+        int g1, g2, g3, g4 =;
+#pragma warning restore CS0168, CS0219
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(12, 25),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(13, 29))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new VariableDeclarationTestAnalyzer() }, null, null, false,
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "int c1, c2, c3, c4;").WithLocation(9, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "C[] d1, d2, d3, d4 = { null, null };").WithLocation(10, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "d4 = { null, null }").WithLocation(10, 25),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "int e1 = 1, e2, e3, e4 = 10;").WithLocation(11, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "e1 = 1").WithLocation(11, 13),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "e4 = 10").WithLocation(11, 29),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "int f1, f2, f3, ;").WithLocation(12, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "int g1, g2, g3, g4 =;").WithLocation(13, 9));
+        }
     }
 }

@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         Argument,
         FieldInitializer,
         PropertyInitializer,
-        ArrayInitializer
+        ArrayInitializer,
+        VariableDeclaration
     }
 }

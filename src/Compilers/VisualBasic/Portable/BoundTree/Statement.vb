@@ -700,75 +700,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundLocalDeclarationBase
-        Implements IVariable
-
-        Protected MustOverride ReadOnly Property IInitialValue As IExpression Implements IVariable.InitialValue
-
-        Protected MustOverride ReadOnly Property IVariable As ILocalSymbol Implements IVariable.Variable
-    End Class
-
-    Partial Class BoundLocalDeclaration
-        Implements IVariableDeclarationStatement
-
-        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
-            Get
-                Return ImmutableArray.Create(Of IVariable)(Me)
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property IInitialValue As IExpression
-            Get
-                Return Me.InitializerOpt
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property IVariable As ILocalSymbol
-            Get
-                Return Me.LocalSymbol
-            End Get
-        End Property
-
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.VariableDeclarationStatement
-        End Function
-    End Class
-
-    Partial Class BoundAsNewLocalDeclarations
-        Implements IVariableDeclarationStatement
-
-        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
-            Get
-                Return Me.LocalDeclarations.As(Of IVariable)()
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property IInitialValue As IExpression
-            Get
-                Return Me.Initializer
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property IVariable As ILocalSymbol
-            Get
-                ' ZZZ Get clear about what's happening in the VB bound trees. BoundAsNewLocalDeclarations has multiple symbols and
-                ' inherits from BoundLocalDeclarationBase, which occurs multiply in BoundDimStatement.
-                Dim local As BoundLocalDeclaration = Me.LocalDeclarations.FirstOrDefault()
-                Return If(local IsNot Nothing, local.LocalSymbol, Nothing)
-            End Get
-        End Property
-
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.VariableDeclarationStatement
-        End Function
-    End Class
-
     Partial Class BoundDimStatement
         Implements IVariableDeclarationStatement
 
         Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
             Get
-                Return Me.LocalDeclarations.As(Of IVariable)()
+                Dim builder = ArrayBuilder(Of IVariable).GetInstance()
+                For Each base In Me.LocalDeclarations
+                    If base.Kind = BoundKind.LocalDeclaration Then
+                        Dim decl = DirectCast(base, BoundLocalDeclaration)
+                        builder.Add(New VariableDeclaration(decl.LocalSymbol, decl.InitializerOpt, decl.Syntax))
+                    ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
+                        Dim asNewDecls = DirectCast(base, BoundAsNewLocalDeclarations)
+                        For Each asNewDecl In asNewDecls.LocalDeclarations
+                            builder.Add(New VariableDeclaration(asNewDecl.LocalSymbol, asNewDecls.Initializer, asNewDecl.Syntax))
+                        Next
+                    End If
+                Next
+                Return builder.ToImmutableAndFree()
             End Get
         End Property
 

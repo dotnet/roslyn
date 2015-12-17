@@ -70,6 +70,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return base.Visit(node);
             }
+
+            // We skip visiting all `BoundLocalDeclaration` nodes in `BoundMultipleLocalDeclarations` 
+            // (but not their children), since they are not statements in this case.
+            public override BoundNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
+            {
+                foreach (var decl in node.LocalDeclarations)
+                {
+                    this.Visit(decl.DeclaredType);
+                    this.Visit(decl.InitializerOpt);
+                    this.VisitList(decl.ArgumentsOpt);
+                }
+                return null;
+            }
         }
     }
 

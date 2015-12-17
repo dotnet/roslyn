@@ -876,5 +876,64 @@ End Class
                 Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{Nothing, Nothing, Nothing, Nothing, Nothing, Nothing}").WithLocation(19, 29),
                 Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{1, 2, 3, 4, 5, 6}").WithLocation(24, 25))
         End Sub
+
+        <Fact>
+        Public Sub VariableDeclarationVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+#Disable Warning BC42024
+    Dim field1, field2, field3, field4 As Integer
+    Public Sub M1()
+        Dim a1 = 10
+        Dim b1 As New Integer, b2, b3, b4 As New Foo(1)         'too many
+        Dim c1, c2 As Integer, c3, c4 As Foo                    'too many
+        Dim d1() As Foo
+        Dim e1 As Integer = 10, e2 = {1, 2, 3}, e3, e4 As C     'too many
+        Dim f1 = 10, f2 = 11, f3 As Integer
+        Dim h1, h2, , h3 As Integer                             'too many
+        Dim i1, i2, i3, i4 As New UndefType                     'too many
+        Dim j1, j2, j3, j4 As UndefType                         'too many
+    End Sub
+#Enable Warning BC42024
+End Class
+
+Class Foo
+    Public Sub New(X As Integer)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_ExpectedIdentifier, "").WithLocation(11, 21),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(12, 35),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(12, 35),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(12, 35),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(12, 35),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(13, 31),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(13, 31),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(13, 31),
+                Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(13, 31))
+            comp.VerifyAnalyzerDiagnostics({New VariableDeclarationTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "a1").WithLocation(5, 13),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim b1 As New Integer, b2, b3, b4 As New Foo(1)").WithLocation(6, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "b1").WithLocation(6, 13),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "b2").WithLocation(6, 32),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "b3").WithLocation(6, 36),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "b4").WithLocation(6, 40),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim c1, c2 As Integer, c3, c4 As Foo").WithLocation(7, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim e1 As Integer = 10, e2 = {1, 2, 3}, e3, e4 As C").WithLocation(9, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "e1").WithLocation(9, 13),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "e2").WithLocation(9, 33),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "f1").WithLocation(10, 13),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "f2").WithLocation(10, 22),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim h1, h2, , h3 As Integer").WithLocation(11, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim i1, i2, i3, i4 As New UndefType").WithLocation(12, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim j1, j2, j3, j4 As UndefType").WithLocation(13, 9))
+        End Sub
     End Class
 End Namespace

@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     /// <summary>Analyzer used to test IArrayInitializer IOperations.</summary>
     public class ArrayInitializerTestAnalyzer : DiagnosticAnalyzer
     {
-        /// <summary>Diagnostic category "Reliability".</summary>
+        /// <summary>Diagnostic category "Maintainability".</summary>
         private const string Maintainability = "Maintainability";
 
         public static readonly DiagnosticDescriptor DoNotUseLargeListOfArrayInitializersDescriptor = new DiagnosticDescriptor(
@@ -679,6 +679,62 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
                  },
                  OperationKind.ArrayInitializer);
+        }
+
+        private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
+        }
+    }
+
+    /// <summary>Analyzer used to test IVariableDeclarationStatement IOperations.</summary>
+    public class VariableDeclarationTestAnalyzer : DiagnosticAnalyzer
+    {
+        /// <summary>Diagnostic category "Maintainability".</summary>
+        private const string Maintainability = "Maintainability";
+
+        public static readonly DiagnosticDescriptor TooManyLocalVarDeclarationsDescriptor = new DiagnosticDescriptor(
+            "TooManyLocalVarDeclarations",
+            "Too many local variable declarations",
+            "A declaration statement shouldn't have more than 3 variable declarations",
+            Maintainability,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor LocalVarInitialzedDeclarationDescriptor = new DiagnosticDescriptor(
+            "LocalVarInitialzedDeclaration",
+            "Local var initialzed at declaration",
+            "A local variable is imitialized at declaration.",
+            Maintainability,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(TooManyLocalVarDeclarationsDescriptor, LocalVarInitialzedDeclarationDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var declarationStatement = (IVariableDeclarationStatement)operationContext.Operation;
+                     if (declarationStatement.Variables.Length > 3)
+                     {
+                         Report(operationContext, declarationStatement.Syntax, TooManyLocalVarDeclarationsDescriptor);
+                     }
+
+                     foreach (var decl in declarationStatement.Variables)
+                     {
+                         if (decl.InitialValue != null && !decl.InitialValue.IsInvalid)
+                         {
+                             Report(operationContext, decl.Syntax, LocalVarInitialzedDeclarationDescriptor);
+                         }
+                     }
+                 },
+                 OperationKind.VariableDeclarationStatement);
         }
 
         private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)

@@ -44,6 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim objCreationExp = DirectCast(operation, IObjectCreationExpression)
                             Me.nodes.AddRange(objCreationExp.ConstructorArguments)
                             Me.nodes.AddRange(objCreationExp.MemberInitializers)
+                        Case OperationKind.VariableDeclarationStatement
+                            Dim VarDeclStmt = DirectCast(operation, IVariableDeclarationStatement)
                     End Select
                 End If
                 Return MyBase.Visit(node)

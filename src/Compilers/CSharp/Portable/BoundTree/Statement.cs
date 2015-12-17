@@ -310,20 +310,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.None;
     }
 
-    partial class BoundLocalDeclaration : IVariableDeclarationStatement, IVariable
+    partial class BoundLocalDeclaration : IVariableDeclarationStatement
     {
-        ImmutableArray<IVariable> IVariableDeclarationStatement.Variables => ImmutableArray.Create<IVariable>(this);
-
-        ILocalSymbol IVariable.Variable => this.LocalSymbol;
-
-        IExpression IVariable.InitialValue => this.InitializerOpt;
+        ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
+        {
+            get
+            {
+                var builder = ArrayBuilder<IVariable>.GetInstance(1);
+                builder.Add((IVariable)new VariableDeclaration(this.LocalSymbol, this.InitializerOpt, this.Syntax));
+                return builder.ToImmutableAndFree();
+            }
+        }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
     }
 
     partial class BoundMultipleLocalDeclarations : IVariableDeclarationStatement
     {
-        ImmutableArray<IVariable> IVariableDeclarationStatement.Variables => this.LocalDeclarations.As<IVariable>();
+        ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
+        {
+            get
+            {
+                var builder = ArrayBuilder<IVariable>.GetInstance(this.LocalDeclarations.Length);
+                foreach (var decl in this.LocalDeclarations)
+                {
+                    builder.Add((IVariable)new VariableDeclaration(decl.LocalSymbol, decl.InitializerOpt, decl.Syntax));
+                }
+                return builder.ToImmutableAndFree();
+            }
+        }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
     }

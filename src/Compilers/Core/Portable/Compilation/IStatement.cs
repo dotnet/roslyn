@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a local variable declaration.
     /// </summary>
-    public interface IVariable
+    public interface IVariable : IOperation
     {
         /// <summary>
         /// Variable declared by the declaration.
