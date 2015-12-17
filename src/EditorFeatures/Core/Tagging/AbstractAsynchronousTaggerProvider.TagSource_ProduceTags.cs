@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     var context = new TaggerContext<TTag>(
                         this.State, spansToTag, caretPoint, this.AccumulatedTextChanges, oldTagTrees, cancellationToken);
-                    ProduceTagsAsync(context).Wait();
+                    ProduceTagsAsync(context).Wait(cancellationToken);
 
                     ProcessContext(spansToTag, oldTagTrees, context);
                 }
