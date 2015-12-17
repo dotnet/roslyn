@@ -450,9 +450,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._capturedValue = capturedValue
             End Sub
 
-            Public ReadOnly Property ConstantValue As Object Implements IExpression.ConstantValue
+            Public ReadOnly Property ConstantValue As [Optional](Of Object) Implements IExpression.ConstantValue
                 Get
-                    Return Nothing
+                    Return New [Optional](Of Object)()
                 End Get
             End Property
 

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
@@ -15,9 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         OperationKind IOperation.Kind => this.ExpressionKind;
 
         bool IOperation.IsInvalid => this.HasErrors;
-          
-        object IExpression.ConstantValue => this.ConstantValue?.Value;
 
+        Optional<object> IExpression.ConstantValue
+        {
+            get
+            {
+                ConstantValue value = this.ConstantValue;
+                return value != null ? new Optional<object>(value.Value) : default(Optional<object>);
+            }
+        }
         SyntaxNode IOperation.Syntax => this.Syntax;
         
         protected virtual OperationKind ExpressionKind => OperationKind.None;
