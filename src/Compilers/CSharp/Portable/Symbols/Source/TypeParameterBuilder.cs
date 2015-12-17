@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// A context for binding type parameter symbols.
+    /// A context for binding type parameter symbols of named types.
     /// </summary>
     internal sealed class TypeParameterBuilder
     {
@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ToLocations(builders),
                 ToSyntaxRefs(builders));
 
+            // SPEC: A type parameter [of a type] cannot have the same name as the type itself.
             if (result.Name == result.ContainingSymbol.Name)
             {
                 diagnostics.Add(ErrorCode.ERR_TypeVariableSameAsParent, result.Locations[0], result.Name);
