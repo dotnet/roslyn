@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private async Task CheckResultsAsync(Document document, int position, string expectedItemOrNull, string expectedDescriptionOrNull, bool usePreviousCharAsTrigger, bool checkForAbsence, Glyph? glyph)
         {
-            var code = document.GetTextAsync().Result.ToString();
+            var code = (await document.GetTextAsync()).ToString();
 
             CompletionTriggerInfo triggerInfo = new CompletionTriggerInfo();
 
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var completionRules = GetCompletionRules(document);
             var commitChar = commitCharOpt ?? '\t';
 
-            var text = document.GetTextAsync().Result;
+            var text = await document.GetTextAsync();
 
             if (commitChar == '\t' || completionRules.IsCommitCharacter(firstItem, commitChar, textTypedSoFar))
             {
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     AssertEx.Any(completionList.Items, c => CompareItems(c.DisplayText, expectedItem));
 
                     // Throw if multiple to indicate a bad test case
-                    var description = completionList.Items.Single(c => CompareItems(c.DisplayText, expectedItem)).GetDescriptionAsync().Result;
+                    var description = await completionList.Items.Single(c => CompareItems(c.DisplayText, expectedItem)).GetDescriptionAsync();
 
                     if (expectedSymbols == 1)
                     {
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var triggerInfo = new CompletionTriggerInfo();
                 var completionList = await GetCompletionListAsync(document, position, triggerInfo);
                 var item = completionList.Items.FirstOrDefault(i => i.DisplayText == expectedItem);
-                Assert.Equal(expectedDescription, item.GetDescriptionAsync().Result.GetFullText());
+                Assert.Equal(expectedDescription, (await item.GetDescriptionAsync()).GetFullText());
             }
         }
 
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 Assert.NotNull(item);
                 if (expectedDescription != null)
                 {
-                    var actualDescription = item.GetDescriptionAsync().Result.GetFullText();
+                    var actualDescription = (await item.GetDescriptionAsync()).GetFullText();
                     Assert.Equal(expectedDescription, actualDescription);
                 }
             }
