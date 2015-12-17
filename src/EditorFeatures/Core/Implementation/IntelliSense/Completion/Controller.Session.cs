@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             #endregion
 
+            private bool alreadyCommitted;
+            private bool alreadyDismissed;
+
             public Session(Controller controller, ModelComputation<Model> computation, CompletionRules completionRules, ICompletionPresenterSession presenterSession)
                 : base(controller, computation, presenterSession)
             {
@@ -72,6 +75,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             public override void DismissEditorSession()
             {
                 AssertIsForeground();
+                Contract.ThrowIfTrue(alreadyDismissed, "This session has already been dismissed");
+                Contract.ThrowIfTrue(alreadyCommitted, "This session has already been committed");
+                alreadyDismissed = true;
+
                 this.DisconnectFromPresenter();
                 base.DismissEditorSession();
             }
@@ -85,6 +92,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             public void CommitEditorSession()
             {
                 AssertIsForeground();
+                Contract.ThrowIfTrue(alreadyDismissed, "This session has already been dismissed");
+                Contract.ThrowIfTrue(alreadyCommitted, "This session has already been committed");
+                alreadyCommitted = true;
+
                 this.DisconnectFromPresenter();
                 this.PresenterSession.Commit();
             }
