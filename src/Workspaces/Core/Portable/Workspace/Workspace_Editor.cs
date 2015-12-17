@@ -429,10 +429,13 @@ namespace Microsoft.CodeAnalysis
                     // We don't have the old text or version.  And we don't want to retrieve them
                     // just yet (as that would cause blocking in this synchronous method).  So just
                     // make a simple loader to do that for us later when requested.
-
+                    //
                     // keep open document text alive by using PreserveIdentity
+                    //
+                    // Note: we pass along the newText here so that clients can easily get the text
+                    // of an opened document just by calling TryGetText without any blocking.
                     currentSolution = oldSolution.WithDocumentTextLoader(documentId, 
-                        new ReuseVersionLoader(oldDocument.State, newText), PreservationMode.PreserveIdentity);
+                        new ReuseVersionLoader(oldDocument.State, newText), newText, PreservationMode.PreserveIdentity);
                 }
 
                 var newSolution = this.SetCurrentSolution(currentSolution);
@@ -456,7 +459,6 @@ namespace Microsoft.CodeAnalysis
             private readonly SourceText _newText;
 
             public ReuseVersionLoader(DocumentState oldDocumentState, SourceText newText)
-                : base(newText)
             {
                 _oldDocumentState = oldDocumentState;
                 _newText = newText;

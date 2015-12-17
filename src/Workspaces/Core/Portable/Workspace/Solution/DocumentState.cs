@@ -359,6 +359,11 @@ namespace Microsoft.CodeAnalysis
 
         public new DocumentState UpdateText(TextLoader loader, PreservationMode mode)
         {
+            return UpdateText(loader, textOpt: null, mode: mode);
+        }
+
+        internal DocumentState UpdateText(TextLoader loader, SourceText textOpt, PreservationMode mode)
+        {
             if (loader == null)
             {
                 throw new ArgumentNullException(nameof(loader));
@@ -367,10 +372,6 @@ namespace Microsoft.CodeAnalysis
             var newTextSource = mode == PreservationMode.PreserveIdentity
                 ? CreateStrongText(loader, this.Id, this.solutionServices, reportInvalidDataException: true)
                 : CreateRecoverableText(loader, this.Id, this.solutionServices, reportInvalidDataException: true);
-
-            var sourceTextOpt = mode == PreservationMode.PreserveIdentity
-                ? loader.GetOptionalSourceText()
-                : null;
 
             // Only create the ValueSource for creating the SyntaxTree if this is a Document that
             // supports SyntaxTrees.  There's no point in creating the async lazy and holding onto
@@ -391,7 +392,7 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices,
                 this.info,
                 _options,
-                sourceTextOpt: sourceTextOpt,
+                sourceTextOpt: textOpt,
                 textSource: newTextSource,
                 treeSource: newTreeSource);
         }

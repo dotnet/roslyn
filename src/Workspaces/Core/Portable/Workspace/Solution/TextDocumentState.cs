@@ -189,6 +189,11 @@ namespace Microsoft.CodeAnalysis
 
         public async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
+            if (sourceTextOpt != null)
+            {
+                return sourceTextOpt;
+            }
+
             var textAndVersion = await this.textAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return textAndVersion.Text;
         }
@@ -264,13 +269,10 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(loader, this.Id, this.solutionServices, reportInvalidDataException: false)
                 : CreateRecoverableText(loader, this.Id, this.solutionServices, reportInvalidDataException: false);
 
-            var sourceTextOpt = mode == PreservationMode.PreserveIdentity
-                ? loader.GetOptionalSourceText()
-                : null;
             return new TextDocumentState(
                 this.solutionServices,
                 this.info,
-                sourceTextOpt,
+                sourceTextOpt: null,
                 textAndVersionSource: newTextSource);
         }
 

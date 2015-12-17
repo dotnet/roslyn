@@ -12,21 +12,10 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class TextLoader
     {
-        private readonly SourceText _sourceTextOpt;
-
         /// <summary>
         /// Load a text and a version of the document in the workspace.
         /// </summary>
         public abstract Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken);
-
-        public TextLoader()
-        {
-        }
-
-        internal TextLoader(SourceText sourceTextOpt)
-        {
-            _sourceTextOpt = sourceTextOpt;
-        }
 
         /// <summary>
         /// Creates a new TextLoader from an already existing source text and version.
@@ -70,11 +59,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return Task.FromResult(_textAndVersion);
             }
-        }
-
-        internal SourceText GetOptionalSourceText()
-        {
-            return _sourceTextOpt;
         }
 
         private class TextContainerLoader : TextLoader
