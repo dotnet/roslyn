@@ -311,7 +311,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     .Where(s => s.Document != null)
                     .ToList();
 
-                Debug.Assert(spansAndDocumentsToTag.Count > 0);
                 return spansAndDocumentsToTag;
             }
 
@@ -326,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     snapshotToDocumentMap[span.Snapshot] = document;
                 }
 
-                // document can be null if the buffer the given span is part of is not part of our workspace.
+                // The document cannot be null because these cases were filtered out above
                 return new DocumentSnapshotSpan(document, span);
             }
 
