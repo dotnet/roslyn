@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Syntax
     /// </summary>
     public interface ICompilationUnitSyntax
     {
+        SyntaxList<SyntaxNode> Members { get; }
+
         SyntaxToken EndOfFileToken { get; }
     }
 }

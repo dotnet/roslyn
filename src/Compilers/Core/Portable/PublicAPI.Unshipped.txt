@@ -650,6 +650,7 @@ Microsoft.CodeAnalysis.SourceFileResolver.SourceFileResolver(System.Collections.
 Microsoft.CodeAnalysis.StrongNameProvider.StrongNameProvider() -> void
 Microsoft.CodeAnalysis.Syntax.ICompilationUnitSyntax
 Microsoft.CodeAnalysis.Syntax.ICompilationUnitSyntax.EndOfFileToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.Syntax.ICompilationUnitSyntax.Members.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode>
 abstract Microsoft.CodeAnalysis.Diagnostic.IsSuppressed.get -> bool
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.EnableConcurrentExecution() -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.OperationKind> operationKinds) -> void

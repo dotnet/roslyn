@@ -14,6 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Get
         End Property
 
+        Private ReadOnly Property ICompilationUnitSyntax_Members As SyntaxList(Of SyntaxNode) Implements ICompilationUnitSyntax.Members
+            Get
+                Return Me.Members
+            End Get
+        End Property
+
         ''' <summary> 
         ''' Returns #r directives specified in the compilation. 
         ''' </summary>       
