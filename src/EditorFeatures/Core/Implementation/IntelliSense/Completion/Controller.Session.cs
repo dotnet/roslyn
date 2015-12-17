@@ -64,19 +64,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 });
             }
 
+            /// <summary>
+            /// Dismisses the editor completion list.
+            /// 
+            /// NOTE: If calling this, do not call <see cref="CommitEditorSession"/>.
+            /// </summary>
             public override void DismissEditorSession()
             {
                 AssertIsForeground();
-                this.PresenterSession.ItemSelected -= OnPresenterSessionItemSelected;
-                this.PresenterSession.ItemCommitted -= OnPresenterSessionItemCommitted;
+                this.DisconnectFromPresenter();
                 base.DismissEditorSession();
             }
 
+            /// <summary>
+            /// Commits and dismisses the underlying editor completion list.
+            /// 
+            /// NOTE: If calling this, do not call <see cref="DismissEditorSession"/>.
+            /// Committing the editor list will implicitly dismiss it.
+            /// </summary>
             public void CommitEditorSession()
             {
                 AssertIsForeground();
-                this.PresenterSession.ItemCommitted -= OnPresenterSessionItemCommitted;
+                this.DisconnectFromPresenter();
                 this.PresenterSession.Commit();
+            }
+
+            private void DisconnectFromPresenter()
+            {
+                this.PresenterSession.ItemSelected -= OnPresenterSessionItemSelected;
+                this.PresenterSession.ItemCommitted -= OnPresenterSessionItemCommitted;
             }
 
             private SnapshotPoint GetCaretPointInViewBuffer()

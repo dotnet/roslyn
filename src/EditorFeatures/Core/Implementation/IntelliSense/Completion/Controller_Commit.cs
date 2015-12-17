@@ -32,6 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // TODO(cyrusn): We still have a general reentrancy problem where calling into a custom
             // commit provider (or just calling into the editor) may cause something to call back
             // into us.  However, for now, we just hope that no such craziness will occur.
+            //
+            // The editor's completion list has a "Committed" event that some extensions subscribe to.
+            // To make sure that event is raised, we stop our computation, perform our buffer edits,
+            // and then call the "Commit" method on the list the editor gives us, which will raise 
+            // the event and dismiss the list. This order (buffer edit, event, list dismissmal)
+            // matches the behavior under the shims. 
+            // Here, we keep a reference to our session as a local to avoid reentrancy when
+            // we ask the session to commit at the end of this method.
             var localSession = this.sessionOpt;
             this.sessionOpt = null;
             localSession.StopComputation();
@@ -138,7 +146,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             localSession.CommitEditorSession();
-            localSession.DismissEditorSession();
 
             // Let the completion rules know that this item was committed.
             GetCompletionRules().CompletionItemCommitted(item);
