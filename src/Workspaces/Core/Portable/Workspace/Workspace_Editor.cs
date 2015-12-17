@@ -456,6 +456,7 @@ namespace Microsoft.CodeAnalysis
             private readonly SourceText _newText;
 
             public ReuseVersionLoader(DocumentState oldDocumentState, SourceText newText)
+                : base(newText)
             {
                 _oldDocumentState = oldDocumentState;
                 _newText = newText;
@@ -475,8 +476,7 @@ namespace Microsoft.CodeAnalysis
         {
             // if the supplied text is the same as the previous text, then also use same version
             // otherwise use new version
-            return oldText.ContentEquals(
-                newText)
+            return oldText.ContentEquals(newText)
                 ? TextAndVersion.Create(newText, version, filePath)
                 : TextAndVersion.Create(newText, version.GetNewerVersion(), filePath);
         }

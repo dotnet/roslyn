@@ -16,16 +16,19 @@ namespace Microsoft.CodeAnalysis
         protected SolutionServices solutionServices;
         protected DocumentInfo info;
 
-        protected ValueSource<TextAndVersion> textSource;
+        protected readonly SourceText sourceTextOpt;
+        protected ValueSource<TextAndVersion> textAndVersionSource;
 
         protected TextDocumentState(
             SolutionServices solutionServices,
             DocumentInfo info,
-            ValueSource<TextAndVersion> textSource)
+            SourceText sourceTextOpt,
+            ValueSource<TextAndVersion> textAndVersionSource)
         {
             this.solutionServices = solutionServices;
             this.info = info;
-            this.textSource = textSource;
+            this.sourceTextOpt = sourceTextOpt;
+            this.textAndVersionSource = textAndVersionSource;
         }
 
         public DocumentId Id
@@ -65,7 +68,8 @@ namespace Microsoft.CodeAnalysis
             return new TextDocumentState(
                 solutionServices: services,
                 info: info,
-                textSource: textSource);
+                sourceTextOpt: null,
+                textAndVersionSource: textSource);
         }
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
@@ -75,7 +79,8 @@ namespace Microsoft.CodeAnalysis
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException)
         {
-            return new AsyncLazy<TextAndVersion>(c => LoadTextAsync(loader, documentId, services, reportInvalidDataException, c), cacheResult: true);
+            return new AsyncLazy<TextAndVersion>(
+                c => LoadTextAsync(loader, documentId, services, reportInvalidDataException, c), cacheResult: true);
         }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
@@ -141,8 +146,14 @@ namespace Microsoft.CodeAnalysis
 
         public bool TryGetText(out SourceText text)
         {
+            if (this.sourceTextOpt != null)
+            {
+                text = sourceTextOpt;
+                return true;
+            }
+
             TextAndVersion textAndVersion;
-            if (this.textSource.TryGetValue(out textAndVersion))
+            if (this.textAndVersionSource.TryGetValue(out textAndVersion))
             {
                 text = textAndVersion.Text;
                 return true;
@@ -157,14 +168,14 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetTextVersion(out VersionStamp version)
         {
             // try fast path first
-            var versionable = this.textSource as ITextVersionable;
+            var versionable = this.textAndVersionSource as ITextVersionable;
             if (versionable != null)
             {
                 return versionable.TryGetTextVersion(out version);
             }
 
             TextAndVersion textAndVersion;
-            if (this.textSource.TryGetValue(out textAndVersion))
+            if (this.textAndVersionSource.TryGetValue(out textAndVersion))
             {
                 version = textAndVersion.Version;
                 return true;
@@ -178,13 +189,13 @@ namespace Microsoft.CodeAnalysis
 
         public async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
-            var textAndVersion = await this.textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var textAndVersion = await this.textAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return textAndVersion.Text;
         }
 
         public SourceText GetText(CancellationToken cancellationToken)
         {
-            var textAndVersion = this.textSource.GetValue(cancellationToken);
+            var textAndVersion = this.textAndVersionSource.GetValue(cancellationToken);
             return textAndVersion.Text;
         }
 
@@ -198,13 +209,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             TextAndVersion textAndVersion;
-            if (this.textSource.TryGetValue(out textAndVersion))
+            if (this.textAndVersionSource.TryGetValue(out textAndVersion))
             {
                 return textAndVersion.Version;
             }
             else
             {
-                textAndVersion = await this.textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                textAndVersion = await this.textAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 return textAndVersion.Version;
             }
         }
@@ -223,7 +234,8 @@ namespace Microsoft.CodeAnalysis
             return new TextDocumentState(
                 this.solutionServices,
                 this.info,
-                newTextSource);
+                sourceTextOpt: null,
+                textAndVersionSource: newTextSource);
         }
 
         public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
@@ -248,20 +260,24 @@ namespace Microsoft.CodeAnalysis
             }
 
             // don't blow up on non-text documents.
-            var newTextSource = (mode == PreservationMode.PreserveIdentity)
+            var newTextSource = mode == PreservationMode.PreserveIdentity
                 ? CreateStrongText(loader, this.Id, this.solutionServices, reportInvalidDataException: false)
                 : CreateRecoverableText(loader, this.Id, this.solutionServices, reportInvalidDataException: false);
 
+            var sourceTextOpt = mode == PreservationMode.PreserveIdentity
+                ? loader.GetOptionalSourceText()
+                : null;
             return new TextDocumentState(
                 this.solutionServices,
                 this.info,
-                textSource: newTextSource);
+                sourceTextOpt,
+                textAndVersionSource: newTextSource);
         }
 
         private VersionStamp GetNewerVersion()
         {
             TextAndVersion textAndVersion;
-            if (this.textSource.TryGetValue(out textAndVersion))
+            if (this.textAndVersionSource.TryGetValue(out textAndVersion))
             {
                 return textAndVersion.Version.GetNewerVersion();
             }
@@ -271,7 +287,7 @@ namespace Microsoft.CodeAnalysis
 
         public virtual async Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
         {
-            TextAndVersion textAndVersion = await this.textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            TextAndVersion textAndVersion = await this.textAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return textAndVersion.Version;
         }
     }

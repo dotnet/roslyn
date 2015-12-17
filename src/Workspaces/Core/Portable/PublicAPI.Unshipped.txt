@@ -28,6 +28,7 @@ Microsoft.CodeAnalysis.Editing.OperatorKind.UnaryPlus = 25 -> Microsoft.CodeAnal
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.RemoveNode(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxRemoveOptions options) -> void
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.OperatorDeclaration(Microsoft.CodeAnalysis.IMethodSymbol method, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Project.IsSubmission.get -> bool
+Microsoft.CodeAnalysis.TextLoader.TextLoader() -> void
 Microsoft.CodeAnalysis.Workspace.UpdateReferencesAfterAdd() -> void
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ArrayCreationExpression(Microsoft.CodeAnalysis.SyntaxNode elementType, Microsoft.CodeAnalysis.SyntaxNode size) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ArrayCreationExpression(Microsoft.CodeAnalysis.SyntaxNode elementType, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> elements) -> Microsoft.CodeAnalysis.SyntaxNode
