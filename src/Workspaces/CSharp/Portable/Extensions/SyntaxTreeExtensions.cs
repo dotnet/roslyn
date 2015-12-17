@@ -15,11 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxTreeExtensions
     {
-        public static bool IsInteractiveOrScript(this SyntaxTree syntaxTree)
-        {
-            return syntaxTree.Options.Kind != SourceCodeKind.Regular;
-        }
-
         public static ISet<SyntaxKind> GetPrecedingModifiers(
             this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {

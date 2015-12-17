@@ -4943,5 +4943,30 @@ struct S1
                 );
         }
 
+        [Fact, WorkItem(7262, "https://github.com/dotnet/roslyn/issues/7262")]
+        public void TruncatePrecisionOnCast()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+        float temp1 = (float)(23334800f / 5.5f);
+        System.Console.WriteLine((int)temp1);
+
+        const float temp2 = (float)(23334800f / 5.5f);
+        System.Console.WriteLine((int)temp2);
+
+        System.Console.WriteLine((int)(23334800f / 5.5f));
+}
+}
+";
+            var expectedOutput =
+@"4242691
+4242691
+4242691";
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        }
     }
 }

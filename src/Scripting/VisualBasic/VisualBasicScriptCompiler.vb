@@ -32,8 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
         End Property
 
         Public Overrides Function IsCompleteSubmission(tree As SyntaxTree) As Boolean
-            ' TODO: https://github.com/dotnet/roslyn/issues/5235
-            Return True
+            Return SyntaxFactory.IsCompleteSubmission(tree)
         End Function
 
         Public Overrides Function ParseSubmission(text As SourceText, cancellationToken As CancellationToken) As SyntaxTree

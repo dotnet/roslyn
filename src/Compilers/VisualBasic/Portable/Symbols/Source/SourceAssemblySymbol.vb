@@ -1193,6 +1193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                    DeclaringCompilation.Options.CryptoPublicKey.IsEmpty AndAlso
                    Identity.HasPublicKey AndAlso
                    Not IsDelaySigned AndAlso
+                   Not DeclaringCompilation.Options.PublicSign AndAlso
                    Not StrongNameKeys.CanSign Then
 
                     ' Since the container always contains both keys, the problem is that the key file didn't contain private key.

@@ -1,45 +1,68 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
+using Microsoft.CodeAnalysis;
 using static System.Math;
 
 namespace Roslyn.Utilities
 {
+    ///<summary>
+    /// NOTE: Only use if you truly need an edit distance.  If you just want to compare words, use
+    /// the <see cref="SpellChecker"/> type instead.
+    ///
+    /// Implementation of the Damerau-Levenshtein edit distance algorithm from:
+    /// An Extension of the String-to-String Correction Problem:
+    /// Published in Journal of the ACM (JACM)
+    /// Volume 22 Issue 2, April 1975.
+    ///
+    /// Important, unlike many edit distance algorithms out there, this one implements a true metric
+    /// that satisfies the triangle inequality.  (Unlike the "Optimal String Alignment" or "Restricted
+    /// string edit distance" solutions which do not).  This means this edit distance can be used in
+    /// other domains that require the triangle inequality (like BKTrees).
+    ///
+    /// Specifically, this implementation satisfies the following inequality: D(x, y) + D(y, z) >= D(x, z)
+    /// (where D is the edit distance).
+    ///</summary> 
     internal class EditDistance : IDisposable
     {
-        private string originalText;
-        private char[] originalTextArray;
-        private int threshold;
+        // Our edit distance algorithm makes use of an 'infinite' value.  A value so high that it 
+        // could never participate in an edit distance (and effectively means the path through it
+        // is dead).
+        //
+        // We do *not* represent this with "int.MaxValue" due to the presence of certain addition
+        // operations in the edit distance algorithm. These additions could cause int.MaxValue
+        // to roll over to a very negative value (which would then look like the lowest cost
+        // path).
+        //
+        // So we pick a value that is both effectively larger than any possible edit distance,
+        // and also has no chance of overflowing.
+        private const int Infinity = int.MaxValue >> 1;
 
-        // Cache the result of the last call to IsCloseMatch.  We'll often be called with the same
-        // value multiple times in a row, so we can avoid expensive computation by returning the
-        // same value immediately.
-        private ValueTuple<string, bool, double> lastIsCloseMatchResult;
+        public const int BeyondThreshold = int.MaxValue;
 
-        public EditDistance(string text, int? threshold = null)
+        private string _source;
+        private char[] _sourceLowerCaseCharacters;
+
+        public EditDistance(string text)
         {
-            originalText = text;
-            originalTextArray = ConvertToLowercaseArray(text);
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
 
-            // We only allow fairly close matches (in order to prevent too many
-            // spurious hits).  A reasonable heuristic for this is the Log_2(length) (rounded 
-            // down).  
-            //
-            // Strings length 1-3 : 1 edit allowed.
-            //         length 4-7 : 2 edits allowed.
-            //         length 8-15: 3 edits allowed.
-            //
-            // and so forth.
-            this.threshold = threshold ?? Max(1, (int)Log(text.Length, 2));
+            _source = text;
+            _sourceLowerCaseCharacters = ConvertToLowercaseArray(text);
         }
 
         private static char[] ConvertToLowercaseArray(string text)
         {
-            var array = Pool<char>.GetArray(text.Length);
+            var array = ArrayPool<char>.GetArray(text.Length);
             for (int i = 0; i < text.Length; i++)
             {
-                array[i] = char.ToLower(text[i]);
+                array[i] = CaseInsensitiveComparison.ToLower(text[i]);
             }
 
             return array;
@@ -47,572 +70,586 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            Pool<char>.ReleaseArray(originalTextArray);
-            originalText = null;
-            originalTextArray = null;
+            ArrayPool<char>.ReleaseArray(this._sourceLowerCaseCharacters);
+            _source = null;
+            _sourceLowerCaseCharacters = null;
         }
 
-        public static int GetEditDistance(string s, string t, int? threshold = null)
+        public static int GetEditDistance(string source, string target, int threshold = int.MaxValue)
         {
-            using (var editDistance = new EditDistance(s, threshold))
+            using (var editDistance = new EditDistance(source))
             {
-                return editDistance.GetEditDistance(t);
+                return editDistance.GetEditDistance(target, threshold);
             }
         }
 
-        public int GetEditDistance(string other)
+        public static int GetEditDistance(char[] source, char[] target, int threshold = int.MaxValue)
         {
-            var otherCharacterArray = ConvertToLowercaseArray(other);
+            return GetEditDistance(new ArraySlice<char>(source), new ArraySlice<char>(target), threshold);
+        }
 
+        public int GetEditDistance(string target, int threshold = int.MaxValue)
+        {
+            if (this._sourceLowerCaseCharacters == null)
+            {
+                throw new ObjectDisposedException(nameof(EditDistance));
+            }
+
+            var targetLowerCaseCharacters = ConvertToLowercaseArray(target);
             try
             {
-                // Swap the strings so the first is always the shortest.  This helps ensure some
-                // nice invariants in the code that walks both strings below.
-                return originalText.Length <= other.Length
-                    ? GetEditDistance(originalTextArray, otherCharacterArray, originalText.Length, other.Length, threshold)
-                    : GetEditDistance(otherCharacterArray, originalTextArray, other.Length, originalText.Length, threshold);
+                return GetEditDistance(
+                    new ArraySlice<char>(_sourceLowerCaseCharacters, 0, _source.Length),
+                    new ArraySlice<char>(targetLowerCaseCharacters, 0, target.Length),
+                    threshold);
             }
             finally
             {
-                Pool<char>.ReleaseArray(otherCharacterArray);
+                ArrayPool<char>.ReleaseArray(targetLowerCaseCharacters);
             }
         }
 
-        private static int GetEditDistance(
-            char[] shortString, char[] longString,
-            int shortLength, int longLength,
-            int costThreshold)
+        private const int MaxMatrixPoolDimension = 64;
+        private static readonly ObjectPool<int[,]> s_matrixPool = new ObjectPool<int[,]>(() => InitializeMatrix(new int[64, 64]));
+
+        private static int[,] GetMatrix(int width, int height)
         {
-            // Note: shortLength and longLength values will mutate and represent the lengths 
-            // of the portions of the arrays we want to compare.
-            //
-            // Also note: shortLength will always be smaller or equal to longLength.
-            Debug.Assert(shortLength <= longLength);
+            if (width > MaxMatrixPoolDimension || height > MaxMatrixPoolDimension)
+            {
+                return InitializeMatrix(new int[width, height]);
+            }
 
-            // Optimized version of the restricted string edit distance algorithm:
-            // see https://en.wikipedia.org/wiki/Edit_distance.
-            //
-            // The optimized version uses insights from Ukonnen to greatly diminish the amount
-            // of work that needs to be done. http://www.cs.helsinki.fi/u/ukkonen/InfCont85.PDF
-            //
-            // First, because we only need the distance, and don't need the path, we can do the 
-            // standard approach of not requiring a full matrix to store all our edit distances.
-            // 
-            // Second, because a threshold is provided, we only need to search the values in
-            // matrix that are within threshold distance away from the diagonal.  Any paths
-            // outside that diagonal would necessarily have an edit distance that was greater
-            // than the threshold and thus can be avoided.  i.e. if we have a matrix like
-            //
-#if false
-            -------------
-            | abcdefghij|
-            |m          |
-            |n          |
-            |o          |
-            -------------
+            return s_matrixPool.Allocate();
+        }
 
-            Then the two relevant diagonals are
+        private static int[,] InitializeMatrix(int[,] matrix)
+        {
+            // All matrices share the following in common:
+            //
+            // ------------------
+            // |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            // |∞ 0 1 2 3 4 5 6 7
+            // |∞ 1
+            // |∞ 2
+            // |∞ 3
+            // |∞ 4
+            // |∞ 5
+            // |∞ 6
+            // |∞ 7
+            //
+            // So we initialize this once when the matrix is created.  For pooled arrays we only
+            // have to do this once, and it will retain this layout for all future computations.
 
-            -------------
-            | abcdefghij|
-            |m\      \  |
-            |n \      \ |
-            |o  \      \|
-            -------------
 
-            And we can cap the search past the diagonals based on the threshold.  For larger strings
-            with a small threshold, this can be very valuable.  For example, if we had 10 char strings
-            with a threshold of 2, we'd only have to search
+            var width = matrix.GetLength(0);
+            var height = matrix.GetLength(1);
 
-            -------------
-            | abcdefghij|
-            |m\**       |
-            |n*\**      |
-            |o**\**     |
-            |p **\**    |
-            |q  **\**   |
-            |r   **\**  |
-            |s    **\** |
-            |t     **\**|
-            |u      **\*|
-            |v       **\|
-            -------------
+            for (int i = 0; i < width; i++)
+            {
+                matrix[i, 0] = Infinity;
 
-            Which greatly decreases the search space.  Any items outside of this range will necessarily
-            have a higher cost than our threshold and thus don't even need to be considered.
+                if (i < width - 1)
+                {
+                    matrix[i + 1, 1] = i;
+                }
+            }
 
-#endif
+            for (int j = 0; j < height; j++)
+            {
+                matrix[0, j] = Infinity;
+
+                if (j < height - 1)
+                {
+                    matrix[1, j + 1] = j;
+                }
+            }
+
+            return matrix;
+        }
+
+        private static void ReleaseMatrix(int[,] matrix)
+        {
+            if (matrix.GetLength(0) <= MaxMatrixPoolDimension && matrix.GetLength(1) <= MaxMatrixPoolDimension)
+            {
+                s_matrixPool.Free(matrix);
+            }
+        }
+
+        public static int GetEditDistance(ArraySlice<char> source, ArraySlice<char> target, int threshold  = int.MaxValue)
+        {
+            return source.Length <= target.Length
+                ? GetEditDistanceWorker(source, target, threshold)
+                : GetEditDistanceWorker(target, source, threshold);
+        }
+
+        private static ObjectPool<Dictionary<char, int>> s_dictionaryPool = new ObjectPool<Dictionary<char, int>>(() => new Dictionary<char, int>());
+
+        private static int GetEditDistanceWorker(ArraySlice<char> source, ArraySlice<char> target, int threshold)
+        {
+            // Note: sourceLength will always be smaller or equal to targetLength.
             //
-            // Third, instead of taking the swapping approach often found in algorithms that 
-            // go a row at a time through the matrix, we can take avantage of the fact that
-            // we know we're always sweeping the matrix from top to bottom and from left to
-            // right.  In that case, as we're producing new row values, we can store it in 
-            // the existing row.  However, we make sure to just keep around the values we're
-            // about to overwrite so we can use them as we continue to populate the row.
-            // This optimization is explained in more detail below.
-            //
-            // Note: because we do look for characater twiddling, we do need to keep around
-            // a single previous row as well.  But this means keeping around two rows instead
-            // of three.
-            //
-            // Fourth, we do fast scans to see if our strings share any common prefix/suffix
-            // portions.  These portions of the string correspond to a 0 edit cost.  We then
-            // only have to do the string edit distance on the portion of the strings that
-            // don't match.
-            //
-            // Fifth, to avoid lots of overhead indexing into strings and converting their
-            // characters to lowercase, we do a prepass over the string and convert it to
-            // a lowercase char array.  We also pool these arrays to avoid the allocations.
-            // By doing this, we only need to convert characters once, and we can then 
-            // access the characters extremely quickly from the array.
-            //
-            // Sixth, we optimize for the case where we will be comparing a single string
-            // against many potential match strings.  We cache the information about the 
-            // single string (such as it's lower-case char array) so that we don't have to
-            // recompute it.
-            //
-            // With all these changes we see an improvement of about 20x when computing the
-            // edit distance for strings.  In practical terms, what was 4 seconds of searching
-            // for results becomes around 0.2 seconds.
+            // Also Note: sourceLength and targetLength values will mutate and represent the lengths 
+            // of the portions of the arrays we want to compare.  However, even after mutation, hte
+            // invariant htat sourceLength is <= targetLength will remain.
+            Debug.Assert(source.Length <= target.Length);
 
             // First:
-            // Determine the common prefix/suffix portions of the strings.
-            while (shortLength > 0 && shortString[shortLength - 1] == longString[longLength - 1])
+            // Determine the common prefix/suffix portions of the strings.  We don't even need to 
+            // consider them as they won't add anything to the edit cost.
+            while (source.Length > 0 && source[source.Length - 1] == target[target.Length - 1])
             {
-                shortLength--;
-                longLength--;
+                source.SetLength(source.Length - 1);
+                target.SetLength(target.Length - 1);
             }
 
-            var startIndex = 0;
-            while (startIndex < shortLength && shortString[startIndex] == longString[startIndex])
+            while (source.Length > 0 && source[0] == target[0])
             {
-                startIndex++;
-                shortLength--;
-                longLength--;
+                source.MoveStartForward(amount: 1);
+                target.MoveStartForward(amount: 1);
             }
 
-            // 'shortLength' and 'longLength' are now the lengths of the substrings of our strings that we
+            // 'sourceLength' and 'targetLength' are now the lengths of the substrings of our strings that we
             // want to compare. 'startIndex' is the starting point of the substrings in both array.
-
-            // If we've matched all of the 'short' string in the prefix and suffix of 'longString'. then the edit
-            // distance is just whatever operations we have to create the remaining longString substring.
             //
-            // Note: we don't have to check if longLength is 0.  That's because longLength being zero would
-            // necessarily mean that shortLength is 0.
-            if (shortLength == 0)
+            // If we've matched all of the 'source' string in the prefix and suffix of 'target'. then the edit
+            // distance is just whatever operations we have to create the remaining target substring.
+            //
+            // Note: we don't have to check if targetLength is 0.  That's because targetLength being zero would
+            // necessarily mean that sourceLength is 0.
+            var sourceLength = source.Length;
+            var targetLength = target.Length;
+            if (sourceLength == 0)
             {
-                return longLength;
+                return targetLength <= threshold ? targetLength : BeyondThreshold;
             }
 
-            // The is the minimum number of edits we'd have to make.  i.e. if  'shortString' and 
-            // 'longString' are the same length, then we might not need to make any edits.  However,
-            // if longString has length 10 and shortString has length 7, then we're going to have to
-            // make at least 3 edits.
-
-            var minimumEditCount = longLength - shortLength;
+            // The is the minimum number of edits we'd have to make.  i.e. if  'source' and 
+            // 'target' are the same length, then we might not need to make any edits.  However,
+            // if target has length 10 and source has length 7, then we're going to have to
+            // make at least 3 edits no matter what.
+            var minimumEditCount = targetLength - sourceLength;
             Debug.Assert(minimumEditCount >= 0);
-
-            // If our threshold is greater than the number of edits it would take to just produce 'longString'
-            // then just cap the threshold.  In the code below 'threshold' acts as the diagonal
-            // we don't have to look outside of.  By capping the threshold here we make the math
-            // easy below.
-            if (costThreshold > longLength)
-            {
-                costThreshold = longLength;
-            }
 
             // If the number of edits we'd have to perform is greater than our threshold, then
             // there's no point in even continuing.
-            if (minimumEditCount > costThreshold)
+            if (minimumEditCount > threshold)
             {
-                return int.MaxValue;
+                return BeyondThreshold;
             }
 
-            //  The matrix we are virtually simulating here is indexed in the following fashion:
+            // Say we want to find the edit distance between "sunday" and "saturday".  Our initial
+            // matrix will be:
             //
-            //      i<- 0 1 2 3 4 5 6 7
-            //    j     X l m R e a d e
-            //    ^  
-            //    0 X
-            //    1 m
-            //    2 l
-            //    3 R
-            //    4 e
-            //    5 a
-            //    6 d
-            //    7 e
-            //    8 r
+            // (Note: for purposes of this explanation we will not be trimming off the common 
+            // prefix/suffix of the strings.  That optimization does not affect any of the 
+            // remainder of the explanation).
             //
-            //          It will be virtually initialized with the following values.  These represent the
-            //          initial 'left' and 'above' values for the algorithm below
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 
+            //    a |∞ 2
+            //    t |∞ 3
+            //    u |∞ 4
+            //    r |∞ 5
+            //    d |∞ 6
+            //    a |∞ 7
+            //    y |∞ 8
             //
-            //      i<-|0 1 2 3 4 5 6 7
-            //    j    |X l m R e a d e
-            //    ^   0|1 2 3 4 5 6 7 8
-            //    -----+---------------
-            //    0 X 1|
-            //    1 m 2|
-            //    2 l 3|
-            //    3 R 4|
-            //    4 e 5|
-            //    5 a 6|
-            //    6 d 7|
-            //    7 e 8|
-            //    8 r 9|
+            // Note that the matrix will always be square, or a rectangle that is taller htan it is 
+            // longer.  Our 'source' is at the top, and our 'target' is on the left.  The edit distance
+            // between any prefix of 'source' and any prefix of 'target' can then be found in 
+            // the unfilled area of the matrix.  Specifically, if we have source.substring(0, m) and
+            // target.substring(0, n), then the edit distance for them can be found at matrix position
+            // (m+1, n+1).  This is why the 1'th row and 1'th column can be prefilled.  They represent
+            // the cost to go from the empty target to the full source or the empty source to the full
+            // target (respectively).  So, if we wanted to know the edit distance between "sun" and 
+            // "sat", we'd look at (3+1, 3+1).  It then follows that our final edit distance between
+            // the full source and target is in the lower right corner of this matrix.
             //
-            //          We'll then proceed a column at a time from left to right producing the new column values.
-            //          In the absense of twiddles we can note something useful:  The value for any given (i,j) we
-            //          are computing is only dependent on (i - 1, j), (i, j-1), and (i - 1, j - 1).  These correspond,
-            //          respectively, to the costs to delete, insert, or change/keep a character.  In traditional 
-            //          implementations we could accomplish this by having an array for the column we are generating
-            //          and having an array for the previous column as well.  
+            // If we fill out the matrix fully we'll get:
             //          
-            //          However, we can be a bit smarter and use a single array.  How?  Well, instead of writing 
-            //          the new values into a new column, we can write it right back into the column we're currently
-            //          traversing.  After all, if we're writing into (i, j), then (i-1, j) is just the current value
-            //          in the cell.  (i, j-1) is the value in the cell right above us that we just computed before 
-            //          this cell.  And (i-1, j-1) is the value in the cell right above *before* we computed the 
-            //          new value for it.  The only trickiness is we have to store the value of the cell above us
-            //          in a temporary before we overwrite it.  Now we have access to all three values we need to
-            //          compute the new (i,j) value.
+            //           s u n d a y <-- source
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 0 1 2 3 4 5 
+            //    a |∞ 2 1 1 2 3 3 4 
+            //    t |∞ 3 2 2 2 3 4 4 
+            //    u |∞ 4 3 2 3 3 4 5 
+            //    r |∞ 5 4 3 3 4 4 5 
+            //    d |∞ 6 5 4 4 3 4 5 
+            //    a |∞ 7 6 5 5 4 3 4 
+            //    y |∞ 8 7 6 6 5 4 3 <--
+            //                     ^
+            //                     |
             //
-            //          Note, we do something similar for twiddling. However, because a twiddle cost is "1 + (i-2, j-2)"
-            //          we need to keep around our i-2 values.  We can't do that if we're overwriting all the values
-            //          in the column.  So we do keep around one additional column for the i-2 generation.
+            // So in this case, the edit distance is 3.  Or, specifically, the edits:
             //
-            //          With our heuristic of Log_2(length) changes allowed this will end up producing the following
-            //          set of values:
+            //      Sunday -> Replace("n", "r") -> 
+            //      Surday -> Insert("a") ->
+            //      Saurday -> Insert("t") ->
+            //      Saturday
             //
-            //      i<- 0 1 2 3 4 5 6 7
-            //    j    |X l m R e a d e
-            //    ^   0|1 2 3 4 5 6 7 8
-            //    -----+---------------
-            //    0 X 1|0 1 2
-            //    1 m 2|1 1 1 2 
-            //    2 l 3|2 1 1 2 3 
-            //    3 R 4|3 2 2 1 2 3 
-            //    4 e 5|  3 3 2 1 2 3 
-            //    5 a 6|    4 3 2 1 2 3
-            //    6 d 7|      4 3 2 1 2
-            //    7 e 8|        4 3 2 1
-            //    8 r 9|          4 3 2
             //
-            //          Note that we've avoid examining 30 elements in the matrix (out of 8*9=72), or roughly
-            //          40%. 
+            // Now: in the case where we want to know what the edit distance actually is (for example
+            // when making a BKTree), we must fill out this entire array to get the true edit distance.
+            //
+            // However, in some cases we can do a bit better.  For example, if a client only wants to
+            // the edit distance *when the edit distance will be less than some threshold* then we do
+            // not need to examine the entire matrix.  We only want to examine until the point where
+            // we realize that, no matter what, our final edit distance will be more than that threshold
+            // (at which point we can return early).
+            //
+            // Some things are trivially easy to check.  First, the edit distance between two strings is at
+            // *best* the difference of their lengths.  i.e. if i have "aa" and "aaaaa" then the edit
+            // distance is 3 (the difference of 5 and 2).  If our threshold is less then 3 then there
+            // is no way these two strings could match.  So we can leave early if we can tell it would
+            // simply be impossible to get an edit distance within the specified threshold.
+            //
+            // Second, let's look at our matrix again:
+            //
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 
+            //    a |∞ 2
+            //    t |∞ 3
+            //    u |∞ 4
+            //    r |∞ 5
+            //    d |∞ 6
+            //    a |∞ 7
+            //    y |∞ 8           *
+            //
+            // We want to know what the value is at *, and we want to stop as early as possible if it
+            // is greater than our threshold.
+            //
+            // Given the edit distance rules we observe edit distance at any point (i,j) in the matrix will
+            // always be greater than or equal to the value in (i-1, j-1).  i.e. the edit distance of
+            // any two strings is going to be *at best* equal to the edit distance of those two strings
+            // without their final characters.  If their final characters are the same, they'll ahve the
+            // same edit distance.  If they are different, the edit distance will be greater.  Given 
+            // that we know the final edit distance is in the lower right, we can discover something 
+            // useful in the matrix.
+            //
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 
+            //    a |∞ 2
+            //    t |∞ 3 `
+            //    u |∞ 4   `
+            //    r |∞ 5     `
+            //    d |∞ 6       `
+            //    a |∞ 7         `
+            //    y |∞ 8           *
+            //
+            // The slashes are the "bottom" diagonal leading to the lower right.  The value in the 
+            // lower right will be strictly equal to or greater than any value on this diagonal.  
+            // Thus, if that value exceeds the threshold, we know we can stop immediately as the 
+            // total edit distance must be greater than the threshold.
+            //
+            // We can use similar logic to avoid even having to examine more of the matrix when we
+            // have a threshold. First, consider the same diagonal.
+            // 
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1
+            //    a |∞ 2
+            //    t |∞ 3 `
+            //    u |∞ 4   `       x
+            //    r |∞ 5     `     |
+            //    d |∞ 6       `   |
+            //    a |∞ 7         ` |
+            //    y |∞ 8           *
+            //
+            // And then consider a point above that diagonal (indicated by x).  In the example
+            // above, the edit distance to * from 'x' will be (x+4).  If, for example, threshold
+            // was '2', then it would be impossible for the path from 'x' to provide a good
+            // enough edit distance *ever*.   Similarly:
+            //
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1
+            //    a |∞ 2
+            //    t |∞ 3 `
+            //    u |∞ 4   `
+            //    r |∞ 5     `
+            //    d |∞ 6       `
+            //    a |∞ 7         `
+            //    y |∞ 8     y - - *
+            //
+            // Here we see that the final edit distance will be "y+3".  Again, if the edit 
+            // distance threshold is less than 3, then no path from y will provide a good
+            // enough edit distance.
+            //
+            // So, if we had an edit distance threshold of 3, then the range around that
+            // bottom diagonal that we should consider checking is:
+            //
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 | |
+            //    a |∞ 2 | | |
+            //    t |∞ 3 ` | | |
+            //    u |∞ 4 - ` | | |
+            //    r |∞ 5 - - ` | | |
+            //    d |∞ 6 - - - ` | |
+            //    a |∞ 7   - - - ` |
+            //    y |∞ 8     - - - *
+            //
+            // Now, also consider that it will take a minimum of targetLength-sourceLength edits 
+            // just to move to the lower diagonal from the upper diagonal.  That leaves
+            // 'threshold - (targetLength - sourceLength)' edits remaining.  In this example, that
+            // means '3 - (8 - 6)' = 1.  Because of this our lower diagonal offset is capped at:
+            //
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 | |
+            //    a |∞ 2 | | |
+            //    t |∞ 3 ` | | |
+            //    u |∞ 4 - ` | | |
+            //    r |∞ 5   - ` | | |
+            //    d |∞ 6     - ` | |
+            //    a |∞ 7       - ` |
+            //    y |∞ 8         - *
+            //
+            // If we mark the upper diagonal appropriately we see the matrix as:
+            //
+            //           s u n d a y
+            //      ----------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6
+            //    s |∞ 1 ` |
+            //    a |∞ 2   ` |
+            //    t |∞ 3 `   ` |
+            //    u |∞ 4 - `   ` |
+            //    r |∞ 5   - `   ` |
+            //    d |∞ 6     - `   `
+            //    a |∞ 7       - `  
+            //    y |∞ 8         - *
+            //
+            // Or, effectively, we only need to examine 'threshold - (targetLength - sourceLength)' 
+            // above and below the diagonals.
+            //
+            // In practice, when a threshold is provided it is normally capped at '2'.  Given that,
+            // the most around the diagonal we'll ever have to check is +/- 2 elements.  i.e. with
+            // strings of length 10 we'd only check:
+            // 
+            //           a b c d e f g h i j
+            //      ------------------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6 7 8 9 10
+            //    m |∞ 1 * * *
+            //    n |∞ 2 * * * *
+            //    o |∞ 3 * * * * *
+            //    p |∞ 4   * * * * *
+            //    q |∞ 5     * * * * *
+            //    r |∞ 6       * * * * *
+            //    s |∞ 7         * * * * *
+            //    t |∞ 8           * * * * *
+            //    u |∞ 9             * * * *
+            //    v |∞10               * * *
+            //
+            // or 10+18+16=44.  Or only 44%. if our threshold is two and our strings differ by length 
+            // 2 then we have:
+            //
+            //           a b c d e f g h
+            //      --------------------
+            //      |∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞ ∞
+            //      |∞ 0 1 2 3 4 5 6 7 8
+            //    m |∞ 1 *
+            //    n |∞ 2 * *
+            //    o |∞ 3 * * *
+            //    p |∞ 4   * * *
+            //    q |∞ 5     * * *
+            //    r |∞ 6       * * *
+            //    s |∞ 7         * * *
+            //    t |∞ 8           * * *
+            //    u |∞ 9             * * 
+            //    v |∞10               *  
+            //
+            // Then we examine 8+8+8=24 out of 80, or only 30% of the matrix.  As the strings
+            // get larger, the savings increase as well.
 
-            var costArray = Pool<int>.GetArray(longLength);
-            var previousCostArray = Pool<int>.GetArray(longLength);
+            // --------------------------------------------------------------------------------
+
+            // The highest cost it can be to convert a source to target is targetLength.  i.e.
+            // changing all the characters in source to target (which would be be 'sourceLength'
+            // changes), and then adding all the missing characters in 'target' (which is
+            // 'targetLength' - 'sourceLength' changes).  Combined that's 'targetLength'.  
+            //
+            // So we can just cap our threshold here.  This makes some of the walking code 
+            // below simpler.
+            threshold = Math.Min(threshold, targetLength);
+
+            var offset = threshold - minimumEditCount;
+            Debug.Assert(offset >= 0);
+
+            var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
+            var characterToLastSeenIndex_inSource = s_dictionaryPool.AllocateAndClear();
 
             try
             {
-                // here we are setting the initial 'left' array:
-
-                //      i<-|
-                //    j    |
-                //    ^   0|
-                //    -----+ 
-                //    0 X 1|
-                //    1 m 2|
-                //    2 l 3|
-                //    3 R 4|
-                //    4 e 5|
-                //    5 a 6|
-                //    6 d 7|
-                //    7 e 8|
-                //    8 r 9|
-                //
-                // This is the cost to go from an empty string to the longString, and is essentially
-                // the cost of inserting all the characters.  By doing this, we have access to 'left'
-                // values as we actualy walk through each column.
-                for (var i = 0; i < longLength; i++)
+                for (int i = 1; i <= sourceLength; i++)
                 {
-                    costArray[i] = i + 1;
-                }
+                    var lastMatchIndex_inTarget = 0;
+                    var sourceChar = source[i - 1];
 
-                // We only need to bother even checking the threshold if it's lower than the 
-                // cost of just creating all of t.
-                var checkThreshold = costThreshold < longLength;
+                    // Determinethe portion of the column we actually want to examine.
+                    var jStart = Math.Max(1, i - offset);
+                    var jEnd = Math.Min(targetLength, i + minimumEditCount + offset);
 
-                // Some complicated indices here.  We effectively only want to walk the portion
-                // of the matrix that is 'offset' around the diagonal.  So as we're walking
-                // we check if we're getting past the offset, and if so, we bump our indices
-                // to skip the values we don't need to check.
-
-                var offset = costThreshold - minimumEditCount;
-
-                var jFrom = 0;
-                var jTo = costThreshold;
-
-                var currentShortCharacter = shortString[startIndex];
-                var editDistance = 0;
-
-                // Walk the matrix from left to right, one column at a time.
-                for (int i = 0; i < shortLength; i++)
-                {
-                    // Keep track of the previous character in 'shortString'.  We'll need it for
-                    // the twiddle check.
-                    var previousShortCharacter = currentShortCharacter;
-                    currentShortCharacter = shortString[startIndex + i];
-
-                    var currentLongCharacter = longString[startIndex];
-
-                    // as we start going past the offset increase where we start looking within 
-                    // 'longString'.
-                    if (i > offset)
+                    // If we're examining only a subportion of the column, then we need to make sure
+                    // that the values outside that range are set to Infinity.  That way we don't
+                    // consider them when we look through edit paths from above (for this column) or 
+                    // from the left (for the next column).
+                    if (jStart > 1)
                     {
-                        jFrom++;
+                        matrix[i + 1, jStart] = Infinity;
                     }
 
-                    // Keep incrementing jTo (so the length of our window stays the same) as long
-                    // as it wouldn't go past the length of the string we want to check.
-                    if (jTo < longLength)
+                    if (jEnd < targetLength)
                     {
-                        jTo++;
+                        matrix[i + 1, jEnd + 2] = Infinity;
                     }
 
-                    // Note: we're just setting 'editDistance' here so that it is the initial
-                    // 'above' value when we start processing this column.  The above values
-                    // are very simple if we're processing the entire column:
-                    // 
-                    //       i<- 0 1 2 3 4 5 6 7
-                    //     j    |X l m R e a d e
-                    //     ^   0|1 2 3 4 5 6 7 8    <-- above values
-                    //
-                    // i.e. they're just equal to i+1.  However, if we're only processing
-                    // a part of a column, then the 'above' value doesn't exist.  In this case 
-                    //
-                    //      3 R 4|3 2 2 1 2 3 4 
-                    //      4 e 5|4 3 3 2 1 2 3 ?    <-- No value above when we're starting at ?
-                    //
-                    // This is because we can't actually have an edit that comes in through
-                    // the top of the column.  This edit would necessarily be more costly 
-                    // than our threshold.  To handle this, we simply set the edit distance
-                    // to int.Max.  This will make the 'above' value int.Max, and it means
-                    // we'll never pick it as our path.
-                    editDistance = jFrom == 0 ? i + 1 : int.MaxValue;
-
-                    // 'aboveLeft' is computed in a similar fashion, but doesn't have this same
-                    // problem.  In the case where we're at the top aboveLeft is simply i.  And
-                    // in a case where we're starting in the middle of the column, by construction,
-                    // we'll always have the aboveLeft value in location in the column right above
-                    // where we're starting at.
-                    var aboveLeftEditDistance = jFrom == 0 ? i : costArray[jFrom - 1];
-
-                    var nextTwiddleCost = 0;
-                    for (var j = jFrom; j < jTo; j++)
+                    for (int j = jStart; j <= jEnd; j++)
                     {
-                        // Note: any acceses into costArray *before* we write into it represent values of 
-                        // (i-1,*).  Once we write into it that value will represent (i, *).
+                        var targetChar = target[j - 1];
 
-                        // As we move down the column our previously written edit distance becomes the 
-                        // 'above' value for the next computation.  i.e. the value we previously wrote 
-                        // into (i, j) is now at (i, j-1).
-                        var aboveEditDistance = editDistance;
+                        var i1 = GetValue(characterToLastSeenIndex_inSource, targetChar);
+                        var j1 = lastMatchIndex_inTarget;
 
-                        // Initialize the editDistance for (i,j) to be the edit distance for
-                        // (i-1, j-1).  If they match on characters, we'll keep this edit distance.
-                        // If they differ, then we'll check what gives us the cheapest edit distance.
-                        editDistance = aboveLeftEditDistance;
-
-                        // before we overwrite the current cost at (i,j), keep track of the value
-                        // of (i-1, j).  At this point:
-                        //
-                        //  1) editDistance corresponds to      (i-1, j-1) 
-                        //  2) aboveEditDistance corresponds to (i, j-1)
-                        //  3) leftEditDistance corresponds to   (i-1, j)
-                        var leftEditDistance = costArray[j];
-
-                        var currentTwiddleCost = nextTwiddleCost;
-                        nextTwiddleCost = previousCostArray[j];
-                        previousCostArray[j] = editDistance;
-
-                        var previousLongCharacter = currentLongCharacter;
-                        currentLongCharacter = longString[startIndex + j];
-
-                        if (currentShortCharacter != currentLongCharacter)
+                        var matched = sourceChar == targetChar;
+                        if (matched)
                         {
-                            // Because the characters didn't match, our edit distance is the min of:
-                            // "(i-1,j-1) + 1"   "(i-1,j) + 1"   "(i, j-1) + 1"
-                            //
-                            // No matter what we have to add one, so we always do that below.
-                            // So now we just need to compare (i-1,j-1)   (i-1,j)   and    (i, j-1)
-                            //
-                            // editDistance was already set to (i-1,j-1) above.  So all we need to do
-                            // is compare that to (i-1,j) and (i, j-1)  and pick the smallest.
-
-                            if (leftEditDistance < editDistance)
-                            {
-                                // (i-1,j) < (i-1,j-1)
-                                editDistance = leftEditDistance;
-                            }
-
-                            if (aboveEditDistance < editDistance)
-                            {
-                                // (i,j-1) < (i-1,j-1) && (i-1, j)
-                                editDistance = aboveEditDistance;
-                            }
-
-                            // We're always one greater than the min edit distance for inserting/deleting/changing.
-                            editDistance++;
-
-                            // Check for twiddles if we're past the first row and column.
-                            if (i != 0 && j != 0 && currentShortCharacter == previousLongCharacter && previousShortCharacter == currentLongCharacter)
-                            {
-                                currentTwiddleCost++;
-                                if (currentTwiddleCost < editDistance)
-                                {
-                                    editDistance = currentTwiddleCost;
-                                }
-                            }
+                            lastMatchIndex_inTarget = j;
                         }
 
-                        costArray[j] = editDistance;
-
-                        // Keep track of what is in (i-1, j) now.  The next time through this loop
-                        // it will be (i-1, j-1) (hence 'aboveLeft').
-                        aboveLeftEditDistance = leftEditDistance;
+                        matrix[i + 1, j + 1] = Min(
+                            matrix[i, j] + (matched ? 0 : 1),
+                            matrix[i + 1, j] + 1,
+                            matrix[i, j + 1] + 1,
+                            matrix[i1, j1] + (i - i1 - 1) + 1 + (j - j1 - 1));
                     }
 
+                    characterToLastSeenIndex_inSource[sourceChar] = i;
+
                     // Recall that minimumEditCount is simply the difference in length of our two
-                    // strings.  So costArray[i] is the cost for the upper-left diagonal of the
-                    // matrix.  costArray[i+minimumEditCount] is the cost for the lower right diagonal.
+                    // strings.  So matrix[i+1,i+1] is the cost for the upper-left diagonal of the
+                    // matrix.  matrix[i+1,i+1+minimumEditCount] is the cost for the lower right diagonal.
                     // Here we are simply getting the lowest cost edit of hese two substrings so far.
                     // If this lowest cost edit is greater than our threshold, then there is no need 
                     // to proceed.
-                    if (checkThreshold && (costArray[i + minimumEditCount] > costThreshold))
+                    if (matrix[i + 1, i + minimumEditCount + 1] > threshold)
                     {
-                        return int.MaxValue;
+                        return BeyondThreshold;
                     }
                 }
 
-                return editDistance;
+                return matrix[sourceLength + 1, targetLength + 1];
             }
             finally
             {
-                Pool<int>.ReleaseArray(costArray);
-                Pool<int>.ReleaseArray(previousCostArray);
+                ReleaseMatrix(matrix);
+                s_dictionaryPool.Free(characterToLastSeenIndex_inSource);
             }
         }
 
-        public static bool IsCloseMatch(string originalText, string candidateText)
+        private static string ToString(int[,] matrix, int width, int height)
         {
-            double dummy;
-            return IsCloseMatch(originalText, candidateText, out dummy);
-        }
-
-        /// <summary>
-        /// Returns true if 'value1' and 'value2' are likely a misspelling of each other.
-        /// Returns false otherwise.  If it is a likely misspelling a matchCost is provided
-        /// to help rank the match.  Lower costs mean it was a better match.
-        /// </summary>
-        public static bool IsCloseMatch(string originalText, string candidateText, out double matchCost)
-        {
-            using (var editDistance = new EditDistance(originalText))
+            var sb = new StringBuilder();
+            for (var j = 0; j < height; j++)
             {
-                return editDistance.IsCloseMatch(candidateText, out matchCost);
-            }
-        }
-
-        public bool IsCloseMatch(string candidateText, out double matchCost)
-        {
-            if (this.originalText.Length < 3)
-            {
-                // If we're comparing strings that are too short, we'll find 
-                // far too many spurious hits.  Don't even both in this case.
-                matchCost = double.MaxValue;
-                return false;
-            }
-
-            if (lastIsCloseMatchResult.Item1 == candidateText)
-            {
-                matchCost = lastIsCloseMatchResult.Item3;
-                return lastIsCloseMatchResult.Item2;
-            }
-
-            var result = IsCloseMatchWorker(candidateText, out matchCost);
-            lastIsCloseMatchResult = ValueTuple.Create(candidateText, result, matchCost);
-            return result;
-        }
-
-        private bool IsCloseMatchWorker(string candidateText, out double matchCost)
-        {
-            matchCost = double.MaxValue;
-
-            // If the two strings differ by more characters than the cost threshold, then there's 
-            // no point in even computing the edit distance as it would necessarily take at least
-            // that many additions/deletions.
-            if (Math.Abs(originalText.Length - candidateText.Length) <= threshold)
-            {
-                matchCost = GetEditDistance(candidateText);
-            }
-
-            if (matchCost > threshold)
-            {
-                // it had a high cost.  However, the string the user typed was contained
-                // in the string we're currently looking at.  That's enough to consider it
-                // although we place it just at the threshold (i.e. it's worse than all
-                // other matches).
-                if (candidateText.IndexOf(originalText, StringComparison.OrdinalIgnoreCase) >= 0)
+                for (var i = 0; i < width; i++)
                 {
-                    matchCost = threshold;
+                    var v = matrix[i + 2, j + 2];
+                    sb.Append((v == Infinity ? "∞" : v.ToString()) + " ");
                 }
+                sb.AppendLine();
             }
 
-            if (matchCost > threshold)
-            {
-                return false;
-            }
-
-            matchCost += Penalty(candidateText, this.originalText);
-            return true;
+            return sb.ToString().Trim();
         }
 
-        private static double Penalty(string candidateText, string originalText)
+        private static int GetValue(Dictionary<char, int> da, char c)
         {
-            int lengthDifference = Math.Abs(originalText.Length - candidateText.Length);
-            if (lengthDifference != 0)
-            {
-                // For all items of the same edit cost, we penalize those that are 
-                // much longer than the original text versus those that are only 
-                // a little longer.
-                //
-                // Note: even with this penalty, all matches of cost 'X' will all still
-                // cost less than matches of cost 'X + 1'.  i.e. the penalty is in the 
-                // range [0, 1) and only serves to order matches of the same cost.
-                double penalty = 1.0 - (1.0 / lengthDifference);
-                return penalty;
-            }
-
-            return 0;
+            int value;
+            return da.TryGetValue(c, out value) ? value : 0;
         }
 
-        internal static class Pool<T>
+        private static int Min(int v1, int v2, int v3, int v4)
         {
-            private const int MaxPooledArraySize = 256;
+            Debug.Assert(v1 >= 0);
+            Debug.Assert(v2 >= 0);
+            Debug.Assert(v3 >= 0);
+            Debug.Assert(v4 >= 0);
 
-            // Keep around a few arrays of size 256 that we can use for operations without
-            // causing lots of garbage to be created.  If we do compare items larger than
-            // that, then we will just allocate and release those arrays on demand.
-            private static ObjectPool<T[]> s_pool = new ObjectPool<T[]>(() => new T[MaxPooledArraySize]);
-
-            public static T[] GetArray(int size)
+            var min = v1;
+            if (v2 < min)
             {
-                if (size <= MaxPooledArraySize)
-                {
-                    var array = s_pool.Allocate();
-                    Array.Clear(array, 0, array.Length);
-                    return array;
-                }
-
-                return new T[size];
+                min = v2;
             }
 
-            public static void ReleaseArray(T[] array)
+            if (v3 < min)
             {
-                if (array.Length <= MaxPooledArraySize)
-                {
-                    s_pool.Free(array);
-                }
+                min = v3;
+            }
+
+            if (v4 < min)
+            {
+                min = v4;
+            }
+
+            Debug.Assert(min >= 0);
+            return min;
+        }
+
+        private static void SetValue(int[,] matrix, int i, int j, int val)
+        {
+            // Matrix is -1 based, so we add 1 to both i and j to make it
+            // possible to index into the actual storage.
+            matrix[i + 1, j + 1] = val;
+        }
+    }
+
+    internal static class ArrayPool<T>
+    {
+        private const int MaxPooledArraySize = 256;
+
+        // Keep around a few arrays of size 256 that we can use for operations without
+        // causing lots of garbage to be created.  If we do compare items larger than
+        // that, then we will just allocate and release those arrays on demand.
+        private static ObjectPool<T[]> s_pool = new ObjectPool<T[]>(() => new T[MaxPooledArraySize]);
+
+        public static T[] GetArray(int size)
+        {
+            if (size <= MaxPooledArraySize)
+            {
+                var array = s_pool.Allocate();
+                Array.Clear(array, 0, array.Length);
+                return array;
+            }
+
+            return new T[size];
+        }
+
+        public static void ReleaseArray(T[] array)
+        {
+            if (array.Length <= MaxPooledArraySize)
+            {
+                s_pool.Free(array);
             }
         }
     }

@@ -166,9 +166,8 @@ NewLines("Class Foo \n Function F() As [|List(Of Integer, String, Boolean)|] \n 
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestGenericWithWrongArgs2() As Task
-            Await TestAsync(
-NewLines("Class Foo \n Function F() As [|List(Of Integer, String)|] \n End Function \n End Class"),
-NewLines("Imports System.Collections.Generic \n Class Foo \n Function F() As SortedList(Of Integer, String) \n End Function \n End Class"))
+            Await TestMissingAsync(
+NewLines("Class Foo \n Function F() As [|List(Of Integer, String)|] \n End Function \n End Class"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
