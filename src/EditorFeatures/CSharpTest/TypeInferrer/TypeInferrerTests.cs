@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
 
         protected override async Task TestWorkerAsync(Document document, TextSpan textSpan, string expectedType, bool useNodeStartPosition)
         {
-            var root = (await document.GetSyntaxTreeAsync()).GetRoot();
+            var root = await document.GetSyntaxRootAsync();
             var node = FindExpressionSyntaxFromSpan(root, textSpan);
             var typeInference = document.GetLanguageService<ITypeInferenceService>();
 

@@ -138,7 +138,7 @@ text;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
 
-                var completionList = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
+                var completionList = await GetCompletionListAsync(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 var optionService = workspace.Services.GetService<IOptionService>();
@@ -206,7 +206,7 @@ text;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
 
-                var completionList = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
+                var completionList = await GetCompletionListAsync(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 var completionService = document.Project.LanguageServices.GetService<ICompletionService>();

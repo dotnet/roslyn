@@ -161,8 +161,8 @@ End Class</text>
 
                 Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
 
-                Dim tree = Await document.GetSyntaxTreeAsync()
-                Dim iterator = tree.GetRoot().DescendantNodesAndSelf()
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim iterator = root.DescendantNodesAndSelf()
 
                 Dim options = document.Project.Solution.Workspace.Options _
                                       .WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, True)

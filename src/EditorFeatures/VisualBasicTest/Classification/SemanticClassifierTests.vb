@@ -24,10 +24,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Dim classifiers = service.GetDefaultSyntaxClassifiers()
                 Dim extensionManager = workspace.Services.GetService(Of IExtensionManager)
 
-                service.AddSemanticClassificationsAsync(document, textSpan,
+                Await service.AddSemanticClassificationsAsync(document, textSpan,
                     extensionManager.CreateNodeExtensionGetter(classifiers, Function(c) c.SyntaxNodeTypes),
                     extensionManager.CreateTokenExtensionGetter(classifiers, Function(c) c.SyntaxTokenKinds),
-                    result, CancellationToken.None).Wait()
+                    result, CancellationToken.None)
 
                 Return result
             End Using
