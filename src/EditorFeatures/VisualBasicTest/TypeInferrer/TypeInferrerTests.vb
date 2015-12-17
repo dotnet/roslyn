@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TypeInferrer
         End Sub
 
         Protected Overrides Async Function TestWorkerAsync(document As Document, textSpan As TextSpan, expectedType As String, useNodeStartPosition As Boolean) As Task
-            Dim root = (Await document.GetSyntaxTreeAsync()).GetRoot()
+            Dim root = Await document.GetSyntaxRootAsync()
             Dim node = FindExpressionSyntaxFromSpan(root, textSpan)
             Dim typeInference = document.GetLanguageService(Of ITypeInferenceService)()
 
