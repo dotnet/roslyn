@@ -57,8 +57,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     fixAllContext.CancellationToken.ThrowIfCancellationRequested();
 
-                    var tasks = documentsAndDiagnosticsToFixMap.Keys.Select(d => AddDocumentFixesAsync(d, documentsAndDiagnosticsToFixMap[d], fixesBag.Add, fixAllContext))
-                                                                    .ToArray();
+                    var documents = documentsAndDiagnosticsToFixMap.Keys;
+                    var tasks = documents.Select(d => AddDocumentFixesAsync(d, documentsAndDiagnosticsToFixMap[d], fixesBag.Add, fixAllContext))
+                                         .ToArray();
                     await Task.WhenAll(tasks).ConfigureAwait(false);
                 }
 
@@ -134,8 +135,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, fixAllContext.CancellationToken))
                 {
-                    var tasks = projectsAndDiagnosticsToFixMap.Keys.Select(p => AddProjectFixesAsync(p, projectsAndDiagnosticsToFixMap[p], fixesBag.Add, fixAllContext))
-                                                                   .ToArray();
+                    var projects = projectsAndDiagnosticsToFixMap.Keys;
+                    var tasks = projects.Select(p => AddProjectFixesAsync(p, projectsAndDiagnosticsToFixMap[p], fixesBag.Add, fixAllContext))
+                                        .ToArray();
                     await Task.WhenAll(tasks).ConfigureAwait(false);
                 }
 
