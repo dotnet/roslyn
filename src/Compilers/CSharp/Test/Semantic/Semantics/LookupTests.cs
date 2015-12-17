@@ -1424,6 +1424,7 @@ class Q : P
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
         }
 
+        [Fact]
         public void TestLookupVerbatimVar()
         {
             var source = "class C { public static void Main() { @var v = 1; } }";
