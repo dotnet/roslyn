@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // the event and dismiss the list. This order (buffer edit, event, list dismissmal)
             // matches the behavior under the shims. 
             // Here, we keep a reference to our session as a local to avoid reentrancy when
-            // we ask the session to commit at the end of this method.
+            // we ask the session to commit at the end of this method (which will also dismiss the list).
             var localSession = this.sessionOpt;
             this.sessionOpt = null;
             localSession.StopComputation();
