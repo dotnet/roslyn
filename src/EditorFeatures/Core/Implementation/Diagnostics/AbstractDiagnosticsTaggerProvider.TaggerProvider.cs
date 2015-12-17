@@ -74,13 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     return;
                 }
-
-                var document = spanToTag.Document;
-                if (document == null)
-                {
-                    return;
-                }
-
+                
                 // Producing tags is simple.  We just grab the diagnostics we were already told about,
                 // and we convert them to tag spans.
                 object id;
@@ -99,8 +93,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     return;
                 }
-
-                var project = document.Project;
 
                 var requestedSnapshot = spanToTag.SnapshotSpan.Snapshot;
                 var requestedSpan = spanToTag.SnapshotSpan;

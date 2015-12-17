@@ -306,23 +306,27 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var snapshotToDocumentMap = new Dictionary<ITextSnapshot, Document>();
                 var spansToTag = _dataSource.GetSpansToTag(_textViewOpt, _subjectBuffer);
 
-                var spansAndDocumentsToTag = spansToTag.Select(span =>
-                {
-                    Document document = null;
-                    if (!snapshotToDocumentMap.TryGetValue(span.Snapshot, out document))
-                    {
-                        CheckSnapshot(span.Snapshot);
+                var spansAndDocumentsToTag = spansToTag
+                    .Select(span => CreateDocumentSnapshotSpan(span, snapshotToDocumentMap))
+                    .Where(s => s.Document != null)
+                    .ToList();
 
-                        document = span.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                        snapshotToDocumentMap[span.Snapshot] = document;
-                    }
-
-                    // document can be null if the buffer the given span is part of is not part of our workspace.
-                    return new DocumentSnapshotSpan(document, span);
-                }).ToList();
-
-                Debug.Assert(spansAndDocumentsToTag.Count > 0);
                 return spansAndDocumentsToTag;
+            }
+
+            private DocumentSnapshotSpan CreateDocumentSnapshotSpan(SnapshotSpan span, Dictionary<ITextSnapshot, Document> snapshotToDocumentMap)
+            {
+                Document document = null;
+                if (!snapshotToDocumentMap.TryGetValue(span.Snapshot, out document))
+                {
+                    CheckSnapshot(span.Snapshot);
+
+                    document = span.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    snapshotToDocumentMap[span.Snapshot] = document;
+                }
+
+                // The document cannot be null because these cases were filtered out above
+                return new DocumentSnapshotSpan(document, span);
             }
 
             [Conditional("DEBUG")]

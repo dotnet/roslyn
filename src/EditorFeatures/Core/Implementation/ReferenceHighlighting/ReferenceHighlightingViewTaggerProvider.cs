@@ -89,10 +89,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             }
 
             var document = context.SpansToTag.First(vt => vt.SnapshotSpan.Snapshot == caretPosition.Snapshot).Document;
-            if (document == null)
-            {
-                return SpecializedTasks.EmptyTask;
-            }
 
             // Don't produce tags if the feature is not enabled.
             if (!workspace.Options.GetOption(FeatureOnOffOptions.ReferenceHighlighting, document.Project.Language))
@@ -128,21 +124,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             {
                 var result = new List<ITagSpan<NavigableHighlightTag>>();
 
-                if (document != null)
+                var documentHighlightsService = document.Project.LanguageServices.GetService<IDocumentHighlightsService>();
+                if (documentHighlightsService != null)
                 {
-                    var documentHighlightsService = document.Project.LanguageServices.GetService<IDocumentHighlightsService>();
-                    if (documentHighlightsService != null)
+                    // We only want to search inside documents that correspond to the snapshots
+                    // we're looking at
+                    var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
+                    var documentHighlightsList = await documentHighlightsService.GetDocumentHighlightsAsync(document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                    if (documentHighlightsList != null)
                     {
-                        // We only want to search inside documents that correspond to the snapshots
-                        // we're looking at
-                        var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
-                        var documentHighlightsList = await documentHighlightsService.GetDocumentHighlightsAsync(document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
-                        if (documentHighlightsList != null)
+                        foreach (var documentHighlights in documentHighlightsList)
                         {
-                            foreach (var documentHighlights in documentHighlightsList)
-                            {
-                                await AddTagSpansAsync(context, solution, result, documentHighlights).ConfigureAwait(false);
-                            }
+                            await AddTagSpansAsync(context, solution, result, documentHighlights).ConfigureAwait(false);
                         }
                     }
                 }

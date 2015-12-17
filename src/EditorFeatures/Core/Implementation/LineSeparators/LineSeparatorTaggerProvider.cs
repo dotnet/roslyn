@@ -49,10 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         {
             var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
-            if (document == null)
-            {
-                return;
-            }
 
             var options = document.Project.Solution.Workspace.Options;
             if (!options.GetOption(FeatureOnOffOptions.LineSeparator, document.Project.Language))

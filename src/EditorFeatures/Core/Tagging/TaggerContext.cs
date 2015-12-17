@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Text;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
@@ -54,12 +56,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         internal TaggerContext(
             object state,
-            IEnumerable<DocumentSnapshotSpan> spansToTag,
+            IList<DocumentSnapshotSpan> spansToTag,
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(spansToTag.All(s => s.Document != null));
+
             this.State = state;
             this.SpansToTag = spansToTag;
             this.CaretPosition = caretPosition;

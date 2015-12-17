@@ -56,10 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         {
             var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
-            if (document == null)
-            {
-                return;
-            }
 
             var options = document.Project.Solution.Workspace.Options;
             if (!options.GetOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language))
