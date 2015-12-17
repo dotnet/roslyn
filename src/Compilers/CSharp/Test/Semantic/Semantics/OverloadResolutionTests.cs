@@ -525,7 +525,7 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("P.M2(System.Func<int>, 
         {
             // We should ensure that we do not report "no method M takes n parameters" if in fact
             // there is any method M that could take n parameters.
-            TestAllErrors(
+            var source =
 @"
 class C
 {
@@ -535,16 +535,17 @@ class C
     {
         J(123.0, 456.0m);
     }
-}",
-"'J' error CS0411: The type arguments for method 'C.J<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly."
-
-);
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (8,9): error CS0411: The type arguments for method 'C.J<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         J(123.0, 456.0m);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "J").WithArguments("C.J<T>(T, T)").WithLocation(8, 9));
         }
 
         [Fact]
         public void TestLambdaErrorReporting()
         {
-            TestAllErrors(
+            var source =
 @"
 using System;
 class C
@@ -591,14 +592,61 @@ class C
 
         K(z=>{ Console.WriteLine(z == string.Empty, z - 4.5); });
     }
-}",
-          "'ToStrign' error CS1061: 'string' does not contain a definition for 'ToStrign' and no extension method 'ToStrign' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)",
-          "'y / 4.5' error CS0019: Operator '/' cannot be applied to operands of type 'string' and 'double'",
-          "'y == string.Empty' error CS0019: Operator '==' cannot be applied to operands of type 'int' and 'string'",
-          "'z - 4.5' error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'double'",
-          "'z == string.Empty' error CS0019: Operator '==' cannot be applied to operands of type 'double' and 'string'"
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (26,36): error CS1061: 'string' does not contain a definition for 'ToStrign' and no extension method 'ToStrign' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         J(x=>{ Console.WriteLine(x.ToStrign(), x.Length, x * 2); });
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToStrign").WithArguments("string", "ToStrign").WithLocation(26, 36),
+                // (30,34): error CS0019: Operator '==' cannot be applied to operands of type 'int' and 'string'
+                //         J(y=>{ Console.WriteLine(y == string.Empty, y / 4.5); });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y == string.Empty").WithArguments("==", "int", "string").WithLocation(30, 34),
+                // (30,53): error CS0019: Operator '/' cannot be applied to operands of type 'string' and 'double'
+                //         J(y=>{ Console.WriteLine(y == string.Empty, y / 4.5); });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y / 4.5").WithArguments("/", "string", "double").WithLocation(30, 53),
+                // (45,53): error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'double'
+                //         K(z=>{ Console.WriteLine(z == string.Empty, z - 4.5); });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "z - 4.5").WithArguments("-", "string", "double").WithLocation(45, 53),
+                // (45,34): error CS0019: Operator '==' cannot be applied to operands of type 'double' and 'string'
+                //         K(z=>{ Console.WriteLine(z == string.Empty, z - 4.5); });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "z == string.Empty").WithArguments("==", "double", "string").WithLocation(45, 34));
+        }
 
-);
+        [Fact]
+        public void TestRefOutAnonymousDelegate()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+class p
+{
+    static void Foo<T>(ref Func<T,T> a) { }
+    static void Bar<T>(out Func<T, T> a) { a = null; }
+
+    static void Foo2<T>(ref Expression<Func<T,T>> a) { }
+    static void Bar2<T>(out Expression<Func<T, T>> a) { a = null; }
+
+    static void Main()
+    {
+        Foo<string>(x => x);
+        Bar<string>(x => x);
+        Foo2<string>(x => x);
+        Bar2<string>(x => x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (14,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Func<string, string>'
+                //         Foo<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Func<string, string>").WithLocation(14, 21),
+                // (15,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Func<string, string>'
+                //         Bar<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Func<string, string>").WithLocation(15, 21),
+                // (16,22): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Expression<Func<string, string>>'
+                //         Foo2<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Linq.Expressions.Expression<System.Func<string, string>>").WithLocation(16, 22),
+                // (17,22): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Expression<Func<string, string>>'
+                //         Bar2<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Linq.Expressions.Expression<System.Func<string, string>>").WithLocation(17, 22));
         }
 
 
@@ -628,7 +676,7 @@ class C
         }
 
         [Fact]
-        private void TestConstraintViolationApplicabilityErrors()
+        public void TestConstraintViolationApplicabilityErrors()
         {
             // The rules for constraint satisfaction during overload resolution are a bit odd. If a constraint
             // *on a formal parameter type* is not met then the candidate is not applicable. But if a constraint
@@ -640,7 +688,7 @@ class C
             // error to report. We only report the violation on the formal parameter if the constraint
             // is not violated on the method type parameter.
 
-            TestAllErrors(
+            var source =
 @"
 class C
 {
@@ -709,20 +757,35 @@ class C
     static void Test4(object x) {}
     static void Test5<Y>(Y y, N<Y> ny) { }
     static void Test6<Z>(N<Z> nz) where Z : struct {}
-}",
-"'ny' error CS0453: The type 'Y' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'",
-"'Test1<string>' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'C.Test1<U>(U, C.N<U>)'",
-"'Test2' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'V' in the generic type or method 'C.Test2<V>(V, C.N<V>)'",
-"'Test4' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'X' in the generic type or method 'C.Test4<X>(X)'",
-"'Test5' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'",
-"'string' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'",
-"'Test6<L<string>>' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'");
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (67,36): error CS0453: The type 'Y' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
+                //     static void Test5<Y>(Y y, N<Y> ny) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ny").WithArguments("C.N<T>", "T", "Y").WithLocation(67, 36),
+                // (17,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'C.Test1<U>(U, C.N<U>)'
+                //         Test1<string>(s, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test1<string>").WithArguments("C.Test1<U>(U, C.N<U>)", "U", "string").WithLocation(17, 9),
+                // (21,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'V' in the generic type or method 'C.Test2<V>(V, C.N<V>)'
+                //         Test2(s, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test2").WithArguments("C.Test2<V>(V, C.N<V>)", "V", "string").WithLocation(21, 9),
+                // (36,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'X' in the generic type or method 'C.Test4<X>(X)'
+                //         Test4(s);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test4").WithArguments("C.Test4<X>(X)", "X", "string").WithLocation(36, 9),
+                // (47,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
+                //         Test5(s, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test5").WithArguments("C.N<T>", "T", "string").WithLocation(47, 9),
+                // (58,17): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'
+                //         Test6<L<string>>(null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("C.L<S>", "S", "string").WithLocation(58, 17),
+                // (58,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'
+                //         Test6<L<string>>(null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test6<L<string>>").WithArguments("C.L<S>", "S", "string").WithLocation(58, 9));
         }
         [Fact]
 
-        private void TestBug9583()
+        public void TestBug9583()
         {
-            TestErrors(
+            var source =
 @"
 class C
 {
@@ -731,15 +794,17 @@ class C
         Foo();
     }
     static void Foo<T>(params T[] x) { }
-}",
-
-"'Foo' error CS0411: The type arguments for method 'C.Foo<T>(params T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.");
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'C.Foo<T>(params T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Foo();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Foo").WithArguments("C.Foo<T>(params T[])").WithLocation(6, 9));
         }
 
         [Fact]
         public void TestMoreOverloadResolutionErrors()
         {
-            TestErrors(@"
+            var source = @"
 class C 
 { 
     static void VoidReturning() {}
@@ -748,15 +813,18 @@ class C
         byte b = new byte(1);
         System.Console.WriteLine(VoidReturning());
     }
-}",
-"'byte' error CS1729: 'byte' does not contain a constructor that takes 1 arguments",
-//"'System.Console.WriteLine' error CS1502: The best overloaded method match for 'System.Console.WriteLine(bool)' has some invalid arguments",  //specifically omitted by roslyn
-"'VoidReturning()' error CS1503: Argument 1: cannot convert from 'void' to 'bool'"
-               );
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,22): error CS1729: 'byte' does not contain a constructor that takes 1 arguments
+                //         byte b = new byte(1);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "byte").WithArguments("byte", "1").WithLocation(7, 22),
+                // (8,34): error CS1503: Argument 1: cannot convert from 'void' to 'bool'
+                //         System.Console.WriteLine(VoidReturning());
+                Diagnostic(ErrorCode.ERR_BadArgType, "VoidReturning()").WithArguments("1", "void", "bool").WithLocation(8, 34));
         }
         [Fact]
 
-        private void TestBug6156()
+        public void TestBug6156()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -804,7 +872,7 @@ class Out2 : Ref2
 
 
 
-        private void TestGenericMethods()
+        public void TestGenericMethods()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -828,7 +896,7 @@ class C
         [Fact]
 
 
-        private void TestDelegateBetterness()
+        public void TestDelegateBetterness()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -890,7 +958,7 @@ class C
         }
         [Fact]
 
-        private void TestTieBreakers()
+        public void TestTieBreakers()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -1162,7 +1230,7 @@ class Test2
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
 
-        private void TestBaseAccessForAbstractMembers()
+        public void TestBaseAccessForAbstractMembers()
         {
             // Tests:
             // Override virtual member with abstract member – override this abstract member in further derived class
@@ -1217,7 +1285,7 @@ class Base4<U, V> : Base3<U, V>
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
 
-        private void TestBaseAccessForAbstractMembers1()
+        public void TestBaseAccessForAbstractMembers1()
         {
             // Tests:
             // Override virtual member with abstract member – override this abstract member in further derived class
@@ -1244,7 +1312,7 @@ class Base2<A, B> : Base<A, B>
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
 
-        private void TestBaseAccessForAbstractMembers2()
+        public void TestBaseAccessForAbstractMembers2()
         {
             var source = @"
 namespace A

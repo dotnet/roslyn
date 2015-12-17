@@ -1422,9 +1422,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class XmlNamespaceImportsBinder
         Inherits Binder
 
-        Private ReadOnly _namespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition)
+        Private ReadOnly _namespaces As IReadOnlyDictionary(Of String, XmlNamespaceAndImportsClausePosition)
 
-        Public Sub New(containingBinder As Binder, namespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition))
+        Public Sub New(containingBinder As Binder, namespaces As IReadOnlyDictionary(Of String, XmlNamespaceAndImportsClausePosition))
             MyBase.New(containingBinder)
             Debug.Assert(namespaces IsNot Nothing)
             Debug.Assert(namespaces.Count > 0)

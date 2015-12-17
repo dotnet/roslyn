@@ -44,14 +44,12 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>false</Optimize>
     <DebugType>full</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.Features.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.Features.xml</DocumentationFile>
@@ -310,8 +308,8 @@
     <Compile Include="Diagnostics\Analyzers\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicSimplifyTypeNamesDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\VisualBasicAnalyzerDriverService.vb" />
-    <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.vb" />
-    <Compile Include="DocumentationCommentFormatting\VisualBasicDocumentationCommentFormattingService.vb" />
+    <Compile Include="DocumentationComments\DocumentationCommentUtilities.vb" />
+    <Compile Include="DocumentationComments\VisualBasicDocumentationCommentFormattingService.vb" />
     <Compile Include="EditAndContinue\BreakpointSpans.vb" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.vb" />
     <Compile Include="EditAndContinue\SyntaxComparer.vb" />

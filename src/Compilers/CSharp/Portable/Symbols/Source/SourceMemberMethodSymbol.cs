@@ -390,10 +390,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsAsync)
             {
-                state.NotePartComplete(CompletionPart.StartAsyncMethodChecks);
-                if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
+                if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
                 {
-                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                    if (IsPartialDefinition) DeclaringCompilation.SymbolDeclaredEvent(this);
+                    state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
+                }
+                else
+                {
+                    state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
                 }
 
                 return;
@@ -431,10 +435,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
             {
                 AddDeclarationDiagnostics(diagnostics);
-                if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
-                {
-                    DeclaringCompilation.SymbolDeclaredEvent(this);
-                }
+                if (IsPartialDefinition) DeclaringCompilation.SymbolDeclaredEvent(this);
+                state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
             }
             else
             {
@@ -916,6 +918,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (IsAbstract && IsVirtual)
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this);
+            }
+            else if (IsAbstract && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.AbstractKeyword));
+            }
+            else if (IsVirtual && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.VirtualKeyword));
             }
             else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {

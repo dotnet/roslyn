@@ -31,6 +31,10 @@
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:CodeAnalysisColors.CheckBoxTextBrushKey}}"/>
             </Style>
 
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource ForegroundText}"/>
+            </Style>
+
             <Path
             x:Key="XShapePath"
             Width="10"
@@ -141,7 +145,7 @@
                            Padding="0,3,0,12"
                            TextWrapping="Wrap" 
                            Width="Auto"
-                           Foreground="{StaticResource ForegroundText}" FontStyle="Italic"
+                           FontStyle="Italic"
                            Visibility="{Binding ShouldShowInstructions, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 
                 <!-- Settings -->
@@ -155,7 +159,8 @@
 
                 <!-- Summary: Includes the number of references to be updated and any conflict information -->
                 
-                <TextBlock Text="{Binding Path=SearchText}" Margin="0,12,0,0" Foreground="{StaticResource ForegroundText}"/>
+                <TextBlock Text="{Binding Path=SearchText}"
+                           Margin="0,12,0,0"/>
                 
                 <StackPanel Margin="0,8,0,0">
                     <StackPanel.Style>

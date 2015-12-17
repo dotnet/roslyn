@@ -43,11 +43,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         private const string TypeElementName = "Type";
 
         private const string BinaryOperatorAttributeName = "binaryoperator";
+        private const string DirectCastAttributeName = "directcast";
         private const string FullNameAttributeName = "fullname";
         private const string ImplicitAttributeName = "implicit";
         private const string LineAttributeName = "line";
         private const string NameAttributeName = "name";
         private const string RankAttributeName = "rank";
+        private const string TryCastAttributeName = "trycast";
         private const string TypeAttributeName = "type";
         private const string VariableKindAttributeName = "variablekind";
 
@@ -226,6 +228,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             return new AttributeInfo(RankAttributeName, rank.ToString());
         }
 
+        private AttributeInfo SpecialCastKindAttribute(SpecialCastKind? specialCastKind = null)
+        {
+            switch (specialCastKind)
+            {
+                case SpecialCastKind.DirectCast:
+                    return new AttributeInfo(DirectCastAttributeName, "yes");
+                case SpecialCastKind.TryCast:
+                    return new AttributeInfo(TryCastAttributeName, "yes");
+                default:
+                    return AttributeInfo.Empty;
+            }
+        }
+
         private AttributeInfo TypeAttribute(string typeName)
         {
             if (string.IsNullOrWhiteSpace(typeName))
@@ -296,9 +311,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             return Tag(BoundElementName);
         }
 
-        protected IDisposable CastTag()
+        protected IDisposable CastTag(SpecialCastKind? specialCastKind = null)
         {
-            return Tag(CastElementName);
+            return Tag(CastElementName, SpecialCastKindAttribute(specialCastKind));
         }
 
         protected IDisposable CharTag()

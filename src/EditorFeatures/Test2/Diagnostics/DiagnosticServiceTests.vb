@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -512,6 +513,40 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         <WpfFact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub TestOperationAnalyzers()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document FilePath="Test.cs">
+                                   class Foo { void M() { int x = 0; } }
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                For Each actionKind As OperationAnalyzer.ActionKind In [Enum].GetValues(GetType(OperationAnalyzer.ActionKind))
+                    Dim project = workspace.CurrentSolution.Projects.Single
+                    Dim analyzer = New OperationAnalyzer(actionKind)
+                    Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                    project = project.AddAnalyzerReference(analyzerReference)
+
+                    Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                    Assert.Equal(1, descriptorsMap.Count)
+
+                    Dim document = project.Documents.Single()
+                    Dim diagnostics = diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                    Assert.Equal(1, diagnostics.Count())
+                    Dim diagnostic = diagnostics.First()
+                    Assert.Equal(OperationAnalyzer.Descriptor.Id, diagnostic.Id)
+                    Dim expectedMessage = String.Format(OperationAnalyzer.Descriptor.MessageFormat.ToString(), actionKind)
+                    Assert.Equal(diagnostic.Message, expectedMessage)
+                Next actionKind
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestStatelessCodeBlockEndedAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -718,7 +753,7 @@ class AnonymousFunctions
         End Sub
 
         <WpfFact, WorkItem(1083854), Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub TestStatefulCompilationAnalyzer()
+        Public Async Function TestStatefulCompilationAnalyzer() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
@@ -733,17 +768,17 @@ class AnonymousFunctions
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference)
 
-                Dim projectDiagnostics = DiagnosticProviderTestUtilities.GetProjectDiagnostics(workspaceAnalyzerOpt:=Nothing, project:=project)
+                Dim projectDiagnostics = Await DiagnosticProviderTestUtilities.GetProjectDiagnosticsAsync(workspaceAnalyzerOpt:=Nothing, project:=project)
                 Assert.Equal(1, projectDiagnostics.Count())
                 Dim diagnostic = projectDiagnostics.Single()
                 Assert.Equal(StatefulCompilationAnalyzer.Descriptor.Id, diagnostic.Id)
                 Dim expectedMessage = String.Format(StatefulCompilationAnalyzer.Descriptor.MessageFormat.ToString(), 1)
                 Assert.Equal(expectedMessage, diagnostic.GetMessage)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, WorkItem(248, "https://github.com/dotnet/roslyn/issues/248"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub TestStatefulCompilationAnalyzer_2()
+        Public Async Function TestStatefulCompilationAnalyzer_2() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
@@ -761,18 +796,18 @@ class AnonymousFunctions
                 ' Make couple of dummy invocations to GetDocumentDiagnostics.
                 Dim document = project.Documents.Single()
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
-                Dim documentDiagnostics = DiagnosticProviderTestUtilities.GetDocumentDiagnostics(workspaceAnalyzerOpt:=Nothing, document:=document, span:=fullSpan)
-                documentDiagnostics = DiagnosticProviderTestUtilities.GetDocumentDiagnostics(workspaceAnalyzerOpt:=Nothing, document:=document, span:=fullSpan)
+                Dim documentDiagnostics = Await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(workspaceAnalyzerOpt:=Nothing, document:=document, span:=fullSpan)
+                documentDiagnostics = Await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(workspaceAnalyzerOpt:=Nothing, document:=document, span:=fullSpan)
 
                 ' Verify that the eventual compilation end diagnostics (and hence the analyzer state) is not affected by prior document analysis.
-                Dim projectDiagnostics = DiagnosticProviderTestUtilities.GetProjectDiagnostics(workspaceAnalyzerOpt:=Nothing, project:=project)
+                Dim projectDiagnostics = Await DiagnosticProviderTestUtilities.GetProjectDiagnosticsAsync(workspaceAnalyzerOpt:=Nothing, project:=project)
                 Assert.Equal(1, projectDiagnostics.Count())
                 Dim diagnostic = projectDiagnostics.Single()
                 Assert.Equal(StatefulCompilationAnalyzer.Descriptor.Id, diagnostic.Id)
                 Dim expectedMessage = String.Format(StatefulCompilationAnalyzer.Descriptor.MessageFormat.ToString(), 1)
                 Assert.Equal(expectedMessage, diagnostic.GetMessage)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, WorkItem(1042914), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestPartialTypeInGeneratedCode()
@@ -846,7 +881,7 @@ class AnonymousFunctions
                     Dim document = project.GetDocument(diagnostic.DocumentId)
                     If document.Name = "Test1.cs" Then
                         file1HasDiag = True
-                    ElseIf document.Name = "Test2.cs"
+                    ElseIf document.Name = "Test2.cs" Then
                         file2HasDiag = True
                     End If
                 Next

@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -421,12 +422,8 @@ namespace N
             ImmutableArray<byte> pdbBytes;
             CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
-
             var type = assembly.GetType("Type`1");
-
-            bool sawInvalidIdentifier;
-            var typeName = CSharpFormatter.Instance.GetTypeName(new TypeAndCustomInfo((TypeImpl)type), escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
-            Assert.True(sawInvalidIdentifier);
+            var typeName = type.GetTypeName();
             Assert.Equal("Type<<>Mangled>", typeName);
         }
     }

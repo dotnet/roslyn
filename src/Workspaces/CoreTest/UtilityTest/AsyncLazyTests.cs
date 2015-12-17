@@ -134,14 +134,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore((lazy, ct) => lazy.GetValueAsync(ct).Result, includeSynchronousComputation: false);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
-        public void CancellationDuringInlinedComputationFromGetValueStillCachesResult()
-        {
-            CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: true);
-            CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: false);
-        }
-
         private static void CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore(Func<AsyncLazy<object>, CancellationToken, object> doGetValue, bool includeSynchronousComputation)
         {
             int computations = 0;
@@ -189,18 +181,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void SynchronousRequestShouldCacheValueWithSynchronousComputeFunction()
         {
             var lazy = new AsyncLazy<object>(c => { throw new Exception("The asynchronous compute function should never be called."); }, c => new object(), cacheResult: true);
-
-            var firstRequestResult = lazy.GetValue(CancellationToken.None);
-            var secondRequestResult = lazy.GetValue(CancellationToken.None);
-
-            Assert.Same(secondRequestResult, firstRequestResult);
-        }
-
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
-        public void SynchronousRequestShouldCacheValueWithAsynchronousComputeFunction()
-        {
-            var lazy = new AsyncLazy<object>(c => Task.FromResult(new object()), cacheResult: true);
 
             var firstRequestResult = lazy.GetValue(CancellationToken.None);
             var secondRequestResult = lazy.GetValue(CancellationToken.None);

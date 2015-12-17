@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
             return builder;
         }
 
-        private ArrayBuilder()
+        internal ArrayBuilder()
         {
             _items = new List<T>();
         }

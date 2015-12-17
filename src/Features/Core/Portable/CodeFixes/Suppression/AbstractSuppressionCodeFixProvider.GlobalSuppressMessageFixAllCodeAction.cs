@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     foreach (var diagnostic in diagnostics)
                     {
                         Contract.ThrowIfFalse(!diagnostic.IsSuppressed);
-                        suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(suppressionsRoot, targetSymbol, diagnostic, workspace, cancellationToken);
+                        suppressionsRoot = await Fixer.AddGlobalSuppressMessageAttributeAsync(suppressionsRoot, targetSymbol, diagnostic, workspace, cancellationToken).ConfigureAwait(false);
                     }
                 }
 

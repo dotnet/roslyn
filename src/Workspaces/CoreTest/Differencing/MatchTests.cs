@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
                 x2 = new TestNode(1, 2),
                 y2 = new TestNode(1, 3));
 
-            var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[] 
+            var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[]
             {
                 KeyValuePair.Create(x1, x2),
                 KeyValuePair.Create(y1, x2),

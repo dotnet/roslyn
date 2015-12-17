@@ -1353,8 +1353,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // It is allow to update a regular method to an async method or an iterator.
                 // The only restriction is a presence of an active statement in the method body
                 // since the debugger does not support remapping active statements to a different method.
-                if (oldStateMachineKind == StateMachineKind.None && newStateMachineKind != StateMachineKind.None )
-                {                    
+                if (oldStateMachineKind == StateMachineKind.None && newStateMachineKind != StateMachineKind.None)
+                {
                     diagnostics.Add(new RudeEditDiagnostic(
                         RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
                         GetDiagnosticSpan(IsMethod(newBody) ? newBody : newBody.Parent, EditKind.Update)));
@@ -2694,10 +2694,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     // rude edit: Editing a field/property initializer of a partial type.
                     diagnostics.Add(new RudeEditDiagnostic(
-                                        RudeEditKind.PartialTypeInitializerUpdate, 
+                                        RudeEditKind.PartialTypeInitializerUpdate,
                                         newDeclaration.Span,
                                         newDeclaration,
-                                        new[] { GetTopLevelDisplayName(newDeclaration, EditKind.Update)}));
+                                        new[] { GetTopLevelDisplayName(newDeclaration, EditKind.Update) }));
                     return false;
                 }
 

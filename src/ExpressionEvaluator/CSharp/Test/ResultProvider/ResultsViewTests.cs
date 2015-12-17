@@ -733,7 +733,7 @@ class C : A<B>
                         DkmEvaluationResultFlags.Expandable));
                 moreChildren = GetChildren(moreChildren[0]);
                 Verify(moreChildren,
-                    EvalResult("F", "null", "object", "new System.Linq.SystemCore_EnumerableDebugView<B>(o).Items[0].F"));
+                    EvalResult("F", "null", "object", "(new System.Linq.SystemCore_EnumerableDebugView<B>(o).Items[0]).F"));
             }
         }
 
@@ -1408,7 +1408,9 @@ class C : IEnumerable
             }
         }
 
-        [Fact, WorkItem(1145125, "DevDiv")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem(1145125, "DevDiv")]
+        [WorkItem(5666, "https://github.com/dotnet/roslyn/issues/5666")]
         public void GetEnumerableException()
         {
             var source =
@@ -1694,7 +1696,7 @@ class C
                         "[0]",
                         "{{ x = 1, y = 1 }}",
                         "<>f__AnonymousType0<int, int>",
-                        $"new System.Linq.SystemCore_EnumerableDebugView<<>f__AnonymousType0<int, int>>({expr}).Items[0]",
+                        null,
                         DkmEvaluationResultFlags.Expandable));
 
                 name = expr + ", results";
@@ -1706,7 +1708,7 @@ class C
                         "[0]",
                         "{{ x = 1, y = 1 }}",
                         "<>f__AnonymousType0<int, int>",
-                        $"new System.Linq.SystemCore_EnumerableDebugView<<>f__AnonymousType0<int, int>>({expr}).Items[0]",
+                        null,
                         DkmEvaluationResultFlags.Expandable));
             }
         }

@@ -25,7 +25,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
         End Function
 
         Private Function ProduceTags(workspace As TestWorkspace, buffer As ITextBuffer, position As Integer) As IEnumerable(Of ITagSpan(Of BraceHighlightTag))
-            Dim view As New Mock(Of ITextView)
+            WpfTestCase.RequireWpfFact($"{NameOf(BraceHighlightingTests)}.{NameOf(ProduceTags)} creates asynchronous taggers")
+
             Dim producer = New BraceHighlightingViewTaggerProvider(
                 workspace.GetService(Of IBraceMatchingService),
                 workspace.GetService(Of IForegroundNotificationService),
@@ -39,8 +40,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
-        Public Sub TestParens()
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Module Module1",
+        Public Async Function TestParens() As Tasks.Task
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync("Module Module1",
                              "    Function Foo(x As Integer) As Integer",
                              "    End Function",
                              "End Module")
@@ -70,12 +71,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
                 result = ProduceTags(workspace, buffer, 46)
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(32, 33), Span.FromBounds(45, 46))))
             End Using
-        End Sub
+        End Function
 
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
-        Public Sub TestNestedTouchingItems()
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(
+        Public Async Function TestNestedTouchingItems() As Tasks.Task
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(
                 "Module Module1",
                 "    <SomeAttr(New With {.name = ""test""})>  ",
                 "    Sub Foo()",
@@ -146,11 +147,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
                 result = ProduceTags(workspace, buffer, 58)
                 Assert.True(result.IsEmpty)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
-        Public Sub TestUnnestedTouchingItems()
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Module Module1",
+        Public Async Function TestUnnestedTouchingItems() As Tasks.Task
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync("Module Module1",
                      "    Dim arr()() As Integer",
                      "End Module")
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
@@ -185,11 +186,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
                 result = ProduceTags(workspace, buffer, 32)
                 Assert.True(result.IsEmpty)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
-        Public Sub TestAngles()
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Module Module1",
+        Public Async Function TestAngles() As Tasks.Task
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync("Module Module1",
                      "    <Attribute()>",
                      "    Sub Foo()",
                      "        Dim x = 2 > 3",
@@ -251,6 +252,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
                 result = ProduceTags(workspace, buffer, 36 + line6start)
                 Assert.True(result.IsEmpty)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

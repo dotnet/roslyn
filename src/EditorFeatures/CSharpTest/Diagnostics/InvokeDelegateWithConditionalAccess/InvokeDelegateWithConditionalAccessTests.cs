@@ -1,4 +1,6 @@
-﻿using System;
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void Test1()
+        public async Task Test1()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
     System.Action a;
@@ -48,9 +50,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void TestInvertedIf()
+        public async Task TestInvertedIf()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
     System.Action a;
@@ -75,9 +77,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void TestIfWithNoBraces()
+        public async Task TestIfWithNoBraces()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
     System.Action a;
@@ -100,9 +102,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void TestWithComplexExpression()
+        public async Task TestWithComplexExpression()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
     System.Action a;
@@ -129,9 +131,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void TestMissingWithElseClause()
+        public async Task TestMissingWithElseClause()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class C
 {
     System.Action a;
@@ -148,9 +150,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void TestMissingWithMultipleVariables()
+        public async Task TestMissingWithMultipleVariables()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class C
 {
     System.Action a;
@@ -167,9 +169,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void TestMissingIfUsedOutside()
+        public async Task TestMissingIfUsedOutside()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class C
 {
     System.Action a;
@@ -187,9 +189,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void TestSimpleForm1()
+        public async Task TestSimpleForm1()
         {
-            Test(
+            await TestAsync(
 @"
 using System;
 
@@ -218,9 +220,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void TestInElseClause1()
+        public async Task TestInElseClause1()
         {
-            Test(
+            await TestAsync(
 @"
 using System;
 
@@ -258,9 +260,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void TestInElseClause2()
+        public async Task TestInElseClause2()
         {
-            Test(
+            await TestAsync(
 @"
 using System;
 
@@ -293,9 +295,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void TestTrivia1()
+        public async Task TestTrivia1()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
     System.Action a;
@@ -321,9 +323,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public void TestTrivia2()
+        public async Task TestTrivia2()
         {
-            Test(
+            await TestAsync(
 @"class C
 {
     System.Action a;

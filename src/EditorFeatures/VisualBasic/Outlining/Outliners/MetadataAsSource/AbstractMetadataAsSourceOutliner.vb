@@ -18,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining.MetadataAsSource
             Dim startPosition = If(firstComment.HasValue,
                                    firstComment.Value.SpanStart,
                                    startToken.SpanStart)
+
             Dim endPosition = endToken.SpanStart
 
             ' TODO (tomescht): Mark the regions to be collapsed by default.
@@ -25,9 +26,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining.MetadataAsSource
                 Dim hintTextEndToken = GetHintTextEndToken(node)
 
                 spans.Add(New OutliningSpan(TextSpan.FromBounds(startPosition, endPosition),
-                                              TextSpan.FromBounds(startPosition, hintTextEndToken.Span.End),
-                                              VisualBasicOutliningHelpers.Ellipsis,
-                                              autoCollapse:=True))
+                                            TextSpan.FromBounds(startPosition, hintTextEndToken.Span.End),
+                                            Ellipsis,
+                                            autoCollapse:=True))
             End If
         End Sub
 

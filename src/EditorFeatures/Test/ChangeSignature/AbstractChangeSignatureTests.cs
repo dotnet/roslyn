@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             throw new NotSupportedException();
         }
 
-        public void TestChangeSignatureViaCodeAction(
+        public async Task TestChangeSignatureViaCodeActionAsync(
             string markup,
             bool expectedCodeAction = true,
             bool isCancelled = false,
@@ -32,24 +33,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
             if (expectedCodeAction)
             {
-                using (var workspace = CreateWorkspaceFromFile(markup, parseOptions: null, compilationOptions: null))
+                using (var workspace = await CreateWorkspaceFromFileAsync(markup, parseOptions: null, compilationOptions: null))
                 {
                     var optionsService = workspace.Services.GetService<IChangeSignatureOptionsService>() as TestChangeSignatureOptionsService;
                     optionsService.IsCancelled = isCancelled;
                     optionsService.UpdatedSignature = updatedSignature;
 
                     var codeIssueOrRefactoring = GetCodeRefactoring(workspace);
-                    TestActions(workspace, expectedCode, index, codeIssueOrRefactoring.Actions.ToList(),
+                    await TestActionsAsync(workspace, expectedCode, index, codeIssueOrRefactoring.Actions.ToList(),
                         conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: true);
                 }
             }
             else
             {
-                TestMissing(markup, parseOptions: null);
+                await TestMissingAsync(markup, parseOptions: null);
             }
         }
 
-        public void TestChangeSignatureViaCommand(
+        public async Task TestChangeSignatureViaCommandAsync(
             string languageName,
             string markup,
             bool expectedSuccess = true,
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             bool verifyNoDiagnostics = false,
             ParseOptions parseOptions = null)
         {
-            using (var testState = new ChangeSignatureTestState(markup, languageName, parseOptions))
+            using (var testState = await ChangeSignatureTestState.CreateAsync(markup, languageName, parseOptions))
             {
                 testState.TestChangeSignatureOptionsService.IsCancelled = false;
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
@@ -86,17 +87,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 if (expectedUpdatedInvocationDocumentCode != null)
                 {
                     var updatedInvocationDocument = result.UpdatedSolution.GetDocument(testState.InvocationDocument.Id);
-                    var updatedCode = updatedInvocationDocument.GetTextAsync(CancellationToken.None).Result.ToString();
+                    var updatedCode = (await updatedInvocationDocument.GetTextAsync()).ToString();
                     Assert.Equal(expectedUpdatedInvocationDocumentCode, updatedCode);
                 }
 
                 if (verifyNoDiagnostics)
                 {
-                    var diagnostics = testState.InvocationDocument.GetSemanticModelAsync().Result.GetDiagnostics();
+                    var diagnostics = (await testState.InvocationDocument.GetSemanticModelAsync()).GetDiagnostics();
 
                     if (diagnostics.Length > 0)
                     {
-                        Assert.True(false, CreateDiagnosticsString(diagnostics, updatedSignature, totalParameters, testState.InvocationDocument.GetTextAsync().Result.ToString()));
+                        Assert.True(false, CreateDiagnosticsString(diagnostics, updatedSignature, totalParameters, (await testState.InvocationDocument.GetTextAsync()).ToString()));
                     }
                 }
             }
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         /// </summary>
         /// <param name="signaturePartCounts">A four element array containing [s, m, n, p] as 
         /// described above.</param>
-        public void TestAllSignatureChanges(string languageName, string markup, int[] signaturePartCounts, ParseOptions parseOptions = null)
+        public async Task TestAllSignatureChangesAsync(string languageName, string markup, int[] signaturePartCounts, ParseOptions parseOptions = null)
         {
             Assert.Equal(signaturePartCounts.Length, 4);
             Assert.True(signaturePartCounts[0] == 0 || signaturePartCounts[0] == 1);
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
             foreach (var signature in GetAllSignatureSpecifications(signaturePartCounts))
             {
-                TestChangeSignatureViaCommand(
+                await TestChangeSignatureViaCommandAsync(
                     languageName,
                     markup,
                     expectedSuccess: true,

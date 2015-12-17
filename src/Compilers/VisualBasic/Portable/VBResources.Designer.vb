@@ -12163,6 +12163,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Syntax tree should be created from a submission..
+        '''</summary>
+        Friend ReadOnly Property SyntaxTreeIsNotASubmission() As String
+            Get
+                Return ResourceManager.GetString("SyntaxTreeIsNotASubmission", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to SyntaxTree &apos;{0}&apos; not found to remove.
         '''</summary>
         Friend ReadOnly Property SyntaxTreeNotFoundToRemove() As String

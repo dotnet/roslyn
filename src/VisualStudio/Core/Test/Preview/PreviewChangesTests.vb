@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -16,8 +17,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(GetType(StubVsEditorAdaptersFactoryService)))
 
         <WpfFact>
-        Public Sub TestListStructure()
-            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(<text>
+        Public Async Function TestListStructure() As Task
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(<text>
 Class C
 {
     void Foo()
@@ -53,10 +54,10 @@ Class C
 
                 AssertTreeStructure(expectedItems, topLevelList)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, WorkItem(1036455)>
-        Public Sub TestListStructure_AddedDeletedDocuments()
+        Public Async Function TestListStructure_AddedDeletedDocuments() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -73,7 +74,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, exportProvider:=_exportProvider)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml, exportProvider:=_exportProvider)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -113,11 +114,11 @@ Class C
 
                 AssertTreeStructure(expectedItems, topLevelList)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestCheckedItems()
-            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(<text>
+        Public Async Function TestCheckedItems() As Task
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(<text>
 Class C
 {
     void Foo()
@@ -142,6 +143,7 @@ Class C
                     workspace.CurrentSolution,
                     componentModel)
 
+                WpfTestCase.RequireWpfFact("Test explicitly creates an IWpfTextView")
                 Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
                 Dim textView = textEditorFactory.CreateTextView()
 
@@ -156,10 +158,10 @@ Class C
                 Dim finalText = previewEngine.FinalSolution.GetDocument(documentId).GetTextAsync().Result.ToString()
                 Assert.Equal(document.GetTextAsync().Result.ToString(), finalText)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, WorkItem(1036455)>
-        Public Sub TestCheckedItems_AddedDeletedDocuments()
+        Public Async Function TestCheckedItems_AddedDeletedDocuments() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -177,7 +179,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, exportProvider:=_exportProvider)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml, exportProvider:=_exportProvider)
                 Dim docId = workspace.Documents.First().Id
                 Dim document = workspace.CurrentSolution.GetDocument(docId)
 
@@ -205,6 +207,7 @@ Class C
                     workspace.CurrentSolution,
                     componentModel)
 
+                WpfTestCase.RequireWpfFact("Test explicitly creates an IWpfTextView")
                 Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
                 Dim textView = textEditorFactory.CreateTextView()
 
@@ -236,10 +239,10 @@ Class C
                 Dim finalNotRemovedDocText = finalSolution.GetDocument(removedDocumentId2).GetTextAsync().Result.ToString()
                 Assert.Equal("// This file will just escape deletion!", finalNotRemovedDocText)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestLinkedFileChangesMergedAndDeduplicated()
+        Public Async Function TestLinkedFileChangesMergedAndDeduplicated() As Task
 
             Dim workspaceXml = <Workspace>
                                    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj1">
@@ -259,7 +262,7 @@ End Class
                                    </Project>
                                </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, , exportProvider:=_exportProvider)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml, , exportProvider:=_exportProvider)
                 Dim documentId1 = workspace.Documents.Where(Function(d) d.Project.Name = "VBProj1").Single().Id
                 Dim document1 = workspace.CurrentSolution.GetDocument(documentId1)
 
@@ -298,7 +301,7 @@ End Class
 
                 AssertTreeStructure(expectedItems, topLevelList)
             End Using
-        End Sub
+        End Function
 
         Private Sub AssertTreeStructure(expectedItems As List(Of Tuple(Of String, Integer)), topLevelList As ChangeList)
             Dim outChangeList As Object = Nothing

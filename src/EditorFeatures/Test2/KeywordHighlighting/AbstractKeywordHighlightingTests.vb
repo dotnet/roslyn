@@ -18,8 +18,8 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
     Public MustInherit Class AbstractKeywordHighlightingTests
-        Protected Sub VerifyHighlights(test As XElement, Optional optionIsEnabled As Boolean = True)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+        Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(test)
                 Dim testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim buffer = testDocument.TextBuffer
                 Dim snapshot = testDocument.InitialTextSnapshot
@@ -27,6 +27,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 Dim document As Document = workspace.CurrentSolution.Projects.First.Documents.First
 
                 workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language, optionIsEnabled)
+
+                WpfTestCase.RequireWpfFact($"{NameOf(AbstractKeywordHighlightingTests)}.VerifyHighlightsAsync creates asynchronous taggers")
 
                 Dim highlightingService = workspace.GetService(Of IHighlightingService)()
                 Dim tagProducer = New HighlighterViewTaggerProvider(
@@ -51,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
                 AssertEx.Equal(expectedTags, producedTags)
             End Using
-        End Sub
+        End Function
 
     End Class
 

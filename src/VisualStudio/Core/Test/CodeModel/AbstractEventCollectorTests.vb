@@ -85,7 +85,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End If
         End Sub
 
-        Friend Sub Test(code As XElement, change As XElement, ParamArray expectedEvents As Action(Of CodeModelEvent, ICodeModelService)())
+        Friend Async Function TestAsync(code As XElement, change As XElement, ParamArray expectedEvents As Action(Of CodeModelEvent, ICodeModelService)()) As Threading.Tasks.Task
             Dim definition =
 <Workspace>
     <Project Language=<%= LanguageName %> CommonReferences="true">
@@ -94,16 +94,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim codeModelService = project.LanguageServices.GetService(Of ICodeModelService)()
                 Assert.NotNull(codeModelService)
 
                 Dim codeDocument = workspace.CurrentSolution.GetDocument(workspace.Documents(0).Id)
-                Dim codeTree = codeDocument.GetSyntaxTreeAsync().Result
+                Dim codeTree = Await codeDocument.GetSyntaxTreeAsync()
 
                 Dim changeDocument = workspace.CurrentSolution.GetDocument(workspace.Documents(1).Id)
-                Dim changeTree = changeDocument.GetSyntaxTreeAsync().Result
+                Dim changeTree = Await changeDocument.GetSyntaxTreeAsync()
 
                 Dim collectedEvents = codeModelService.CollectCodeModelEvents(codeTree, changeTree)
                 Assert.NotNull(collectedEvents)
@@ -114,7 +114,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     expectedEvent(collectedEvent, codeModelService)
                 Next
             End Using
-        End Sub
+        End Function
 
     End Class
 End Namespace

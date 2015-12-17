@@ -119,13 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return null;
             }
 
-            string value;
-            if (!diagnostic.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out value))
-            {
-                return null;
-            }
-
-            if (value == WellKnownDiagnosticTags.Build && _blueSquiggleForBuildDiagnostic)
+            if (diagnostic.IsBuildDiagnostic() && _blueSquiggleForBuildDiagnostic)
             {
                 return PredefinedErrorTypeNames.CompilerError;
             }

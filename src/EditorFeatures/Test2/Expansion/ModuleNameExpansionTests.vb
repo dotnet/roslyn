@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
@@ -9,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
         Inherits AbstractExpansionTest
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Sub ExpandModuleNameForSimpleName()
+        Public Async Function TestExpandModuleNameForSimpleName() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -50,11 +51,11 @@ Namespace N
 End Namespace
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Sub ExpandModuleNameForQualifiedNameWithMissingModuleName()
+        Public Async Function TestExpandModuleNameForQualifiedNameWithMissingModuleName() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -95,11 +96,11 @@ Namespace N
 End Namespace
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Sub ExpandModuleNameForMemberAccessWithMissingModuleName()
+        Public Async Function TestExpandModuleNameForMemberAccessWithMissingModuleName() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -140,11 +141,11 @@ Namespace N
 End Namespace
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Sub ExpandAndOmitModuleNameWhenConflicting()
+        Public Async Function TestExpandAndOmitModuleNameWhenConflicting() As Task
             Dim input =
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -182,11 +183,11 @@ Namespace X
 End Namespace
                 </code>
 
-            Test(input, expected, useLastProject:=true)
-        End Sub
+            Await TestAsync(input, expected, useLastProject:=True)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Sub ExpandModuleNameForSimpleNameRoundtrip()
+        Public Async Function TestExpandModuleNameForSimpleNameRoundtrip() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -227,11 +228,11 @@ Namespace N
 End Namespace
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
-        Public Sub ExpandModuleNameForQualifiedNameWithMissingModuleNameRoundtrip()
+        Public Async Function TestExpandModuleNameForQualifiedNameWithMissingModuleNameRoundtrip() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -272,8 +273,8 @@ Namespace N
 End Namespace
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
     End Class
 End Namespace

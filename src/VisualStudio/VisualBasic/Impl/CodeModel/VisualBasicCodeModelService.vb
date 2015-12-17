@@ -56,14 +56,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private Shared ReadOnly s_externalNameFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable)
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeName)
 
         Private Shared ReadOnly s_externalfullNameFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions:=SymbolDisplayMemberOptions.IncludeContainingType,
-                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable)
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeName)
 
         Private Shared ReadOnly s_setTypeFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
@@ -430,25 +432,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                    TypeOf container Is EnumBlockSyntax
         End Function
 
-        Private Shared Iterator Function GetChildMemberNodes(container As SyntaxNode) As IEnumerable(Of SyntaxNode)
+        Private Shared Function IsNamespaceOrTypeDeclaration(node As SyntaxNode) As Boolean
+            Return node.Kind() = SyntaxKind.NamespaceBlock OrElse
+                   TypeOf node Is TypeBlockSyntax OrElse
+                   TypeOf node Is EnumBlockSyntax OrElse
+                   TypeOf node Is DelegateStatementSyntax
+        End Function
+
+        Private Shared Iterator Function GetChildMemberNodes(container As SyntaxNode) As IEnumerable(Of DeclarationStatementSyntax)
             If TypeOf container Is CompilationUnitSyntax Then
                 For Each member In DirectCast(container, CompilationUnitSyntax).Members
-                    Yield member
+                    If IsNamespaceOrTypeDeclaration(member) Then
+                        Yield DirectCast(member, DeclarationStatementSyntax)
+                    End If
                 Next
             ElseIf TypeOf container Is NamespaceBlockSyntax Then
-
                 For Each member In DirectCast(container, NamespaceBlockSyntax).Members
-                    Yield member
+                    If IsNamespaceOrTypeDeclaration(member) Then
+                        Yield DirectCast(member, DeclarationStatementSyntax)
+                    End If
                 Next
             ElseIf TypeOf container Is TypeBlockSyntax Then
-
                 For Each member In DirectCast(container, TypeBlockSyntax).Members
-                    Yield member
+                    If member.Kind() <> SyntaxKind.NamespaceBlock AndAlso TypeOf member Is DeclarationStatementSyntax Then
+                        Yield DirectCast(member, DeclarationStatementSyntax)
+                    End If
                 Next
             ElseIf TypeOf container Is EnumBlockSyntax Then
-
                 For Each member In DirectCast(container, EnumBlockSyntax).Members
-                    Yield member
+                    If member.Kind() = SyntaxKind.EnumMemberDeclaration Then
+                        Yield DirectCast(member, DeclarationStatementSyntax)
+                    End If
                 Next
             End If
         End Function
@@ -456,7 +470,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private Shared Function NodeIsSupported(test As Boolean, node As SyntaxNode) As Boolean
             Return Not test OrElse IsNameableNode(node)
         End Function
-
 
         ''' <summary>
         ''' Retrieves the members of a specified <paramref name="container"/> node. The members that are
@@ -3567,6 +3580,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             If typeSymbol Is Nothing Then
                 Dim parsedTypeName = SyntaxFactory.ParseTypeName(fullName)
+
+                ' Check to see if the name we parsed has any skipped text. If it does, don't bother trying to
+                ' speculatively bind it because we'll likely just get the wrong thing since we found a bunch
+                ' of non-sensical tokens.
+
+                ' NOTE: There appears to be a VB parser issue where "ContainsSkippedText" does not return true
+                ' even when there is clearly skipped token trivia present. We work around this by for a particularly
+                ' common case by checking whether the trailing trivia contains any skipped token trivia.
+                ' https://github.com/dotnet/roslyn/issues/7182 has been filed for the parser issue.
+
+                If parsedTypeName.ContainsSkippedText OrElse
+                   parsedTypeName.GetTrailingTrivia().Any(SyntaxKind.SkippedTokensTrivia) Then
+
+                    Return Nothing
+                End If
 
                 ' If we couldn't get the name, we just grab the first tree in the compilation to
                 ' speculatively bind at position zero. However, if there *aren't* any trees, we fork the
