@@ -268,7 +268,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(expected, testObject.DocComment);
         }
 
-        [ConditionalWpfFact(typeof(x86), Skip = "636860")]
+        [ConditionalFact(typeof(x86), Skip = "636860")]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public async Task Overloads_Count()
         {

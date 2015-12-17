@@ -36,14 +36,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             Return workspace
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestNoItemsForEmptyFile() As Task
             Using worker = Await SetupWorkspaceAsync()
                 Assert.Empty(_aggregator.GetItems("Hello"))
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindClass() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindVerbatimClass() As Task
             Using worker = Await SetupWorkspaceAsync("Class [Class]", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindNestedClass() As Task
             Using worker = Await SetupWorkspaceAsync("Class Alpha", "Class Beta", "Class Gamma", "End Class", "End Class", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindMemberInANestedClass() As Task
             Using worker = Await SetupWorkspaceAsync("Class Alpha", "Class Beta", "Class Gamma", "Sub DoSomething()", "End Sub", "End Class", "End Class", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindGenericConstrainedClass() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo(Of M As IComparable)", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindGenericConstrainedMethod() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo(Of M As IComparable)", "Public Sub Bar(Of T As IComparable)()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindPartialClass() As Task
             Using worker = Await SetupWorkspaceAsync("Partial Public Class Foo", "Private a As Integer", "End Class", "Partial Class Foo", "Private b As Integer", "End Class")
 
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindClassInNamespace() As Task
             Using worker = Await SetupWorkspaceAsync("Namespace Bar", "Class Foo", "End Class", "End Namespace")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindStruct() As Task
             Using worker = Await SetupWorkspaceAsync("Structure Bar", "End Structure")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupStruct, StandardGlyphItem.GlyphItemFriend)
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindEnum() As Task
             Using worker = Await SetupWorkspaceAsync("Enum Colors", "Red", "Green", "Blue", "End Enum")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnum, StandardGlyphItem.GlyphItemFriend)
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindEnumMember() As Task
             Using worker = Await SetupWorkspaceAsync("Enum Colors", "Red", "Green", "Blue", "End Enum")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnumMember, StandardGlyphItem.GlyphItemPublic)
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindField1() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Private Bar As Integer", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindField2() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Private Bar As Integer", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindField3() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Private Bar As Integer", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindVerbatimField() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Private [string] As String", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindConstField() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Private Const bar As String = ""bar""", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupConstant, StandardGlyphItem.GlyphItemPrivate)
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindIndexer() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Private arr As Integer()",
                                        "Default Public Property Item(ByVal i As Integer) As Integer",
@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo), WorkItem(780993)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo), WorkItem(780993)>
         Public Async Function TestFindEvent() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Public Event Bar as EventHandler", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEvent, StandardGlyphItem.GlyphItemPublic)
@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindNormalProperty() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Property Name As String",
                                           "Get", "Return String.Empty", "End Get",
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindAutoImplementedProperty() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Property Name As String", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic)
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindMethod() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Private Sub DoSomething()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindVerbatimMethod() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Private Sub [Sub]()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindParameterizedMethod() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Private Sub DoSomething(ByVal i As Integer, s As String)", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindConstructor() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Sub New()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindStaticConstructor() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Shared Sub New()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindDestructor() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Implements IDisposable",
                                        "Public Sub Dispose() Implements IDisposable.Dispose", "End Sub",
@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindPartialMethods() As Task
             Using worker = Await SetupWorkspaceAsync("Partial Class Foo", "Partial Private Sub Bar()", "End Sub", "End Class",
                                        "Partial Class Foo", "Private Sub Bar()", "End Sub", "End Class")
@@ -324,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindPartialMethodDefinitionOnly() As Task
             Using worker = Await SetupWorkspaceAsync("Partial Class Foo", "Partial Private Sub Bar()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindPartialMethodImplementationOnly() As Task
             Using worker = Await SetupWorkspaceAsync("Partial Class Foo", "Private Sub Bar()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
@@ -342,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindOverriddenMethods() As Task
             Using worker = Await SetupWorkspaceAsync("Class BaseFoo", "Public Overridable Sub Bar()", "End Sub", "End Class",
                                        "Class DerivedFoo", "Inherits BaseFoo", "Public Overrides Sub Bar()", "MyBase.Bar()", "End Sub", "End Class")
@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestDottedPattern1() As Task
             Using workspace = Await SetupWorkspaceAsync("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
@@ -372,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestDottedPattern2() As Task
             Using workspace = Await SetupWorkspaceAsync("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
@@ -385,7 +385,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestDottedPattern3() As Task
             Using workspace = Await SetupWorkspaceAsync("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
@@ -399,7 +399,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestDottedPattern4() As Task
             Using workspace = Await SetupWorkspaceAsync("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestDottedPattern5() As Task
             Using workspace = Await SetupWorkspaceAsync("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
@@ -427,7 +427,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestDottedPattern6() As Task
             Using workspace = Await SetupWorkspaceAsync("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem)
@@ -438,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestDottedPattern7() As Task
             Using workspace = Await SetupWorkspaceAsync("namespace Foo", "namespace Bar", "class Baz(of X, Y, Z)", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
@@ -452,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindInterface() As Task
             Using worker = Await SetupWorkspaceAsync("Public Interface IFoo", "End Interface")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupInterface, StandardGlyphItem.GlyphItemPublic)
@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindDelegateInNamespace() As Task
             Using worker = Await SetupWorkspaceAsync("Namespace Foo", "Delegate Sub DoStuff()", "End Namespace")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupDelegate, StandardGlyphItem.GlyphItemFriend)
@@ -470,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindLambdaExpression() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Dim sqr As Func(Of Integer, Integer) = Function(x) x*x", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
@@ -479,7 +479,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindModule() As Task
             Using worker = Await SetupWorkspaceAsync("Module ModuleTest", "End Module")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupModule, StandardGlyphItem.GlyphItemFriend)
@@ -488,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindLineContinuationMethod() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Public Sub Bar(x as Integer,", "y as Integer)", "End Sub")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
@@ -497,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindArray() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "Private itemArray as object()", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
@@ -506,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindClassAndMethodWithSameName() As Task
             Using worker = Await SetupWorkspaceAsync("Class Foo", "End Class",
                                        "Class Test", "Private Sub Foo()", "End Sub", "End Class")
@@ -523,7 +523,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindMethodNestedInGenericTypes() As Task
             Using worker = Await SetupWorkspaceAsync("Class A(Of T)", "Class B", "Structure C(Of U)", "Sub M()", "End Sub", "End Structure", "End Class", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Function
 
         <WorkItem(1111131)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindClassInNamespaceWithGlobalPrefix() As Task
             Using worker = Await SetupWorkspaceAsync("Namespace Global.MyNS", "Public Class C", "End Class", "End Namespace")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
@@ -543,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Function
 
         <WorkItem(1121267)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestFindClassInGlobalNamespace() As Task
             Using worker = Await SetupWorkspaceAsync("Namespace Global", "Public Class C(Of T)", "End Class", "End Namespace")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
@@ -553,7 +553,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Function
 
         <WorkItem(1834, "https://github.com/dotnet/roslyn/issues/1834")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestConstructorNotParentedByTypeBlock() As Task
             Using worker = Await SetupWorkspaceAsync("Module Program", "End Module", "Public Sub New()", "End Sub")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupModule, StandardGlyphItem.GlyphItemFriend)
@@ -563,7 +563,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Async Function TestStartStopSanity() As Task
             ' Verify that multiple calls to start/stop don't blow up
             Using worker = Await SetupWorkspaceAsync("Public Class Foo", "End Class")

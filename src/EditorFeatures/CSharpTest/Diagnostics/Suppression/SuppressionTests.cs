@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
                     return Tuple.Create<DiagnosticAnalyzer, ISuppressionFixProvider>(null, new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirective()
                 {
                     await TestAsync(
@@ -81,7 +81,7 @@ class Class
 }}");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestMultilineStatementPragmaWarningDirective()
                 {
                     await TestAsync(
@@ -107,7 +107,7 @@ class Class
 }}");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveWithExistingTrivia()
                 {
                     await TestAsync(
@@ -136,7 +136,7 @@ class Class
 }}");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestMultipleInstancesOfPragmaWarningDirective()
                 {
                     await TestAsync(
@@ -210,7 +210,7 @@ class Class
                     }
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestErrorAndWarningScenario()
                 {
                     await TestAsync(
@@ -237,7 +237,7 @@ class Class
                 }
 
                 [WorkItem(956453)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestWholeFilePragmaWarningDirective()
                 {
                     await TestAsync(
@@ -248,7 +248,7 @@ class Class {{ void Method() {{ int x = 0; }} }}
                 }
 
                 [WorkItem(970129)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionAroundSingleToken()
                 {
                     await TestAsync(
@@ -279,7 +279,7 @@ class Program
                 }
 
                 [WorkItem(1066576)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveAroundTrivia1()
                 {
                     await TestAsync(
@@ -318,7 +318,7 @@ class Class
                 }
 
                 [WorkItem(1066576)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveAroundTrivia2()
                 {
                     await TestAsync(
@@ -329,7 +329,7 @@ class Class
                 }
 
                 [WorkItem(1066576)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveAroundTrivia3()
                 {
                     await TestAsync(
@@ -340,7 +340,7 @@ class Class
                 }
 
                 [WorkItem(1066576)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveAroundTrivia4()
                 {
                     await TestAsync(
@@ -361,7 +361,7 @@ class C {{ }}
                 }
 
                 [WorkItem(1066576)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveAroundTrivia5()
                 {
                     await TestAsync(
@@ -378,7 +378,7 @@ class C3 {{ }}");
                 }
 
                 [WorkItem(1066576)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestPragmaWarningDirectiveAroundTrivia6()
                 {
                     await TestAsync(
@@ -406,7 +406,7 @@ class C3 { } // comment
                         new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestHiddenDiagnosticCannotBeSuppressed()
                 {
                     await TestMissingAsync(
@@ -457,7 +457,7 @@ int Method()
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestInfoDiagnosticSuppressed()
                 {
                     await TestAsync(
@@ -519,7 +519,7 @@ class Class
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestErrorDiagnosticCanBeSuppressed()
                 {
                     await TestAsync(
@@ -584,7 +584,7 @@ class Class
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestDiagnosticWithBadIdSuppressed()
                 {
                     // Diagnostics with bad/invalid ID are not reported.
@@ -673,7 +673,7 @@ class Class
                     return Tuple.Create<DiagnosticAnalyzer, ISuppressionFixProvider>(null, new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestCompilerDiagnosticsCannotBeSuppressed()
                 {
                     // Another test verifies we have a pragma warning action for this source, this verifies there are no other suppression actions.
@@ -697,7 +697,7 @@ class Class
                         new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestHiddenDiagnosticsCannotBeSuppressed()
                 {
                     await TestMissingAsync(
@@ -784,7 +784,7 @@ class Class
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnSimpleType()
                 {
                     await TestAsync(
@@ -824,7 +824,7 @@ using System;
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnNamespace()
                 {
                     await TestAsync(
@@ -870,7 +870,7 @@ using System;
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnTypeInsideNamespace()
                 {
                     await TestAsync(
@@ -922,7 +922,7 @@ namespace N1
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnNestedType()
                 {
                     await TestAsync(
@@ -974,7 +974,7 @@ namespace N
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnMethod()
                 {
                     await TestAsync(
@@ -1026,7 +1026,7 @@ namespace N
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnOverloadedMethod()
                 {
                     await TestAsync(
@@ -1122,7 +1122,7 @@ namespace N
 ");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnGenericMethod()
                 {
                     await TestAsync(
@@ -1174,7 +1174,7 @@ namespace N
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnProperty()
                 {
                     await TestAsync(
@@ -1226,7 +1226,7 @@ namespace N
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnField()
                 {
                     await TestAsync(
@@ -1305,7 +1305,7 @@ enum E
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnField2()
                 {
                     await TestAsync(
@@ -1339,7 +1339,7 @@ class Class
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionOnEvent()
                 {
                     await TestAsync(
@@ -1401,7 +1401,7 @@ class Class
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionWithExistingGlobalSuppressionsDocument()
                 {
                     var initialMarkup = @"<Workspace>
@@ -1440,7 +1440,7 @@ class Class { }
                     await TestAsync(initialMarkup, expectedText);
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionWithExistingGlobalSuppressionsDocument2()
                 {
                     // Own custom file named GlobalSuppressions.cs
@@ -1476,7 +1476,7 @@ class Class { }
                     await TestAsync(initialMarkup, expectedText);
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestSuppressionWithExistingGlobalSuppressionsDocument3()
                 {
                     // Own custom file named GlobalSuppressions.cs + existing GlobalSuppressions2.cs with global suppressions

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New DisabledTextTriviaOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestDisabledIf() As Task
             Const code = "
 #If False
@@ -25,7 +25,7 @@ Blah|}
                 Region("span", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestDisabledElse() As Task
             Const code = "
 #If True
@@ -39,7 +39,7 @@ Blah|}
                 Region("span", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestDisabledElseIf() As Task
             Const code = "
 #If True

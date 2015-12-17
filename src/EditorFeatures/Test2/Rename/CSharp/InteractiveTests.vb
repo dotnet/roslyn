@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class InteractiveTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingTopLevelMethodsSupported()
             Using result = RenameEngineResult.Create(

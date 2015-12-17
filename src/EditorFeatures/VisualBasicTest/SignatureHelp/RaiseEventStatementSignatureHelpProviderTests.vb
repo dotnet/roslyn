@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
 #Region "Regular tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestRaiseEvent() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -39,7 +39,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestRaiseEvent_NoDerivedEvents() As Task
             Dim markup = <a><![CDATA[
 Class B
@@ -63,7 +63,7 @@ End Class
         End Function
 
         <WorkItem(543558)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestRaiseEvent_Shared() As Task
             Dim markup = <a><![CDATA[
 Class C
@@ -82,7 +82,7 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestRaiseEvent_NoInstanceInSharedContext() As Task
             Dim markup = <a><![CDATA[
 Class C

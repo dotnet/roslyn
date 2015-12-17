@@ -55,11 +55,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public int Count => _nodes.Count;
 
-        public bool HasSymbols(string name, bool ignoreCase)
-        {
-            return FindNodes(name, GetComparer(ignoreCase)).Any();
-        }
-
         /// <summary>
         /// Finds symbols in this assembly that match the provided name in a fuzzy manner.
         /// </summary>
@@ -182,26 +177,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return -1;
-        }
-
-        public bool HasSymbols(Func<string, bool> predicate, CancellationToken cancellationToken)
-        {
-            string lastName = null;
-
-            foreach (var node in _nodes)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (node.Name != (object)lastName
-                    && predicate(node.Name))
-                {
-                    return true;
-                }
-
-                lastName = node.Name;
-            }
-
-            return false;
         }
 
         #region Construction

@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalVariableOnDeclaration() As Task
             Dim input =
 <Workspace>
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestDynamicFunctionOnDefinition() As Task
             Dim input =
 <Workspace>

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     {
         public class VisualBasic
         {
-            [WpfFact, WorkItem(530123), Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Fact, WorkItem(530123), Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
             public async Task TestGenerateTypeInModule()
             {
                 var metadataSource = @"
@@ -32,7 +32,7 @@ End Module");
             }
 
             [WorkItem(530526)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
             public async Task BracketedIdentifierSimplificationTest()
             {
                 var expected = $@"#Region ""{FeaturesResources.Assembly} mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
@@ -65,7 +65,7 @@ End Namespace";
                 }
             }
 
-            [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
             public void ExtractXMLFromDocComment()
             {
                 var docCommentText = @"''' <summary>

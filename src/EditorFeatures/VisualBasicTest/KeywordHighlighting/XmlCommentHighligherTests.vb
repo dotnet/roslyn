@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New XmlCommentHighlighter()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestXmlLiteralSample3_1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -28,7 +28,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestXmlLiteralSample3_2() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -45,7 +45,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Async Function TestXmlLiteralSample3_3() As Task
             Await TestAsync(<Text><![CDATA[
 Class C

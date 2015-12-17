@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateAlways() As Task
 
             Dim markup = <Text><![CDATA[
@@ -48,7 +48,7 @@ End Class
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateNever() As Task
 
             Dim markup = <Text><![CDATA[
@@ -77,7 +77,7 @@ End Class
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateAdvanced() As Task
 
             Dim markup = <Text><![CDATA[
@@ -115,7 +115,7 @@ End Class
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateMixed() As Task
 
             Dim markup = <Text><![CDATA[
@@ -150,7 +150,7 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAttributeConstructor_OnInvocation() As Task
             Dim markup = <Text><![CDATA[
 Class SomethingAttribute
@@ -174,7 +174,7 @@ End Class
             Await TestAsync(markupWithPositionAndOptSpan:=markup, expectedOrderedItemsOrNull:=expectedOrderedItems)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAttributeConstructor_CurrentParameterName() As Task
             Dim markup = <Text><![CDATA[
 Class SomethingAttribute
@@ -193,7 +193,7 @@ End Class
         End Function
 
         <WorkItem(1094379)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestAttributeSigHelpWithNoArgumentList() As Task
             Dim markup = "
 Imports System

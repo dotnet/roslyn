@@ -1243,7 +1243,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Private Function DeleteMember(document As Document, node As SyntaxNode) As Document
             Dim text = document.GetTextAsync(CancellationToken.None) _
-                               .WaitAndGetResult(CancellationToken.None)
+                               .WaitAndGetResult_CodeModel(CancellationToken.None)
 
             Dim deletionEnd = node.FullSpan.End
             Dim deletionStart = node.SpanStart
@@ -1298,7 +1298,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return Delete(document, declarator)
             Else
                 Dim newDeclarator = declarator.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
-                Return document.ReplaceNodeAsync(declarator, newDeclarator, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Return document.ReplaceNodeAsync(declarator, newDeclarator, CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None)
             End If
         End Function
 
@@ -1311,7 +1311,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return Delete(document, declaration)
             Else
                 Dim newDeclaration = declaration.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
-                Return document.ReplaceNodeAsync(declaration, newDeclaration, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Return document.ReplaceNodeAsync(declaration, newDeclaration, CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None)
             End If
         End Function
 
@@ -1325,7 +1325,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim spanEnd = attributeList.FullSpan.End
 
                 Dim text = document.GetTextAsync(CancellationToken.None) _
-                                   .WaitAndGetResult(CancellationToken.None)
+                                   .WaitAndGetResult_CodeModel(CancellationToken.None)
 
                 text = text.Replace(TextSpan.FromBounds(spanStart, spanEnd), String.Empty)
 
@@ -1334,7 +1334,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim newAttributeList = attributeList.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine)
 
                 Return document.ReplaceNodeAsync(attributeList, newAttributeList, CancellationToken.None) _
-                               .WaitAndGetResult(CancellationToken.None)
+                               .WaitAndGetResult_CodeModel(CancellationToken.None)
             End If
         End Function
 
@@ -1343,7 +1343,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Dim newArgumentList = argumentList.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
 
             Return document.ReplaceNodeAsync(argumentList, newArgumentList, CancellationToken.None) _
-                           .WaitAndGetResult(CancellationToken.None)
+                           .WaitAndGetResult_CodeModel(CancellationToken.None)
         End Function
 
         Private Overloads Function Delete(document As Document, node As ParameterSyntax) As Document
@@ -1351,7 +1351,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Dim newParameterList = parameterList.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
 
             Return document.ReplaceNodeAsync(parameterList, newParameterList, CancellationToken.None) _
-                           .WaitAndGetResult(CancellationToken.None)
+                           .WaitAndGetResult_CodeModel(CancellationToken.None)
         End Function
 
         Public Overrides Function IsValidExternalSymbol(symbol As ISymbol) As Boolean
@@ -4064,7 +4064,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             Dim text = document.GetTextAsync(cancellationToken) _
-                               .WaitAndGetResult(cancellationToken)
+                               .WaitAndGetResult_CodeModel(cancellationToken)
 
             text = text.Replace(position, 0, textToInsert)
 
@@ -4109,7 +4109,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             Dim text = document.GetTextAsync(cancellationToken) _
-                               .WaitAndGetResult(cancellationToken)
+                               .WaitAndGetResult_CodeModel(cancellationToken)
 
             If methodStatement.HandlesClause.Events.Count = 1 Then
                 ' Easy case, delete the whole clause

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
             End If
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestSimpleInstanceProperty_VisualBasicToCSharp() As Task
             Dim input =
         <Workspace>

@@ -14,7 +14,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ExtractInterface
     Public Class ExtractInterfaceViewModelTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_InterfaceNameIsSameAsPassedIn() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -39,7 +39,7 @@ class $$MyClass
             monitor.Detach()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FileNameHasExpectedExtension() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -53,7 +53,7 @@ class $$MyClass
             Assert.Equal("IMyClass.cs", viewModel.FileName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_GeneratedNameInGlobalNamespace() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -67,7 +67,7 @@ class $$MyClass
             Assert.Equal("IMyClass", viewModel.GeneratedName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_GeneratedNameInNestedNamespaces() As Task
             Dim markup = <Text><![CDATA[
 namespace Outer
@@ -87,7 +87,7 @@ namespace Outer
             Assert.Equal("Outer.Inner.IMyClass", viewModel.GeneratedName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_GeneratedNameWithTypeParameters() As Task
             Dim markup = <Text><![CDATA[
 namespace Outer
@@ -110,7 +110,7 @@ namespace Outer
             Assert.Equal("Outer.Inner.IMyClassChanged<X, Y>", viewModel.GeneratedName)
         End Function
 
-        <WpfFact>
+        <Fact>
         <WorkItem(716122), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_GeneratedNameIsGeneratedFromTrimmedInterfaceName() As Task
             Dim markup = <Text><![CDATA[
@@ -130,7 +130,7 @@ namespace Ns
             Assert.Equal("Ns.IC2", viewModel.GeneratedName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_MembersCheckedByDefault() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -144,7 +144,7 @@ class $$MyClass
             Assert.True(viewModel.MemberContainers.Single().IsChecked)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_InterfaceNameChangesUpdateGeneratedName() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -165,7 +165,7 @@ class $$MyClass
             monitor.Detach()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_InterfaceNameChangesUpdateFileName() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -186,7 +186,7 @@ class $$MyClass
             monitor.Detach()
         End Function
 
-        <WpfFact>
+        <Fact>
         <WorkItem(716122), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FileNameIsGeneratedFromTrimmedInterfaceName() As Task
             Dim markup = <Text><![CDATA[
@@ -200,7 +200,7 @@ public class C$$
             Assert.Equal("IC2.cs", viewModel.FileName)
         End Function
 
-        <WpfFact>
+        <Fact>
         <WorkItem(716122), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_InterfaceNameIsTrimmedOnSubmit() As Task
             Dim markup = <Text><![CDATA[
@@ -215,7 +215,7 @@ public class C$$
             Assert.True(submitSucceeded, String.Format("Submit failed unexpectedly."))
         End Function
 
-        <WpfFact>
+        <Fact>
         <WorkItem(716122), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FileNameIsTrimmedOnSubmit() As Task
             Dim markup = <Text><![CDATA[
@@ -230,7 +230,7 @@ public class C$$
             Assert.True(submitSucceeded, String.Format("Submit failed unexpectedly."))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FileNameChangesDoNotUpdateInterfaceName() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -251,7 +251,7 @@ class $$MyClass
             monitor.Detach()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_SuccessfulCommit() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -266,7 +266,7 @@ class $$MyClass
             Assert.True(submitSucceeded, String.Format("Submit failed unexpectedly."))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_SuccessfulCommit_NonemptyStrictSubsetOfMembersSelected() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -286,7 +286,7 @@ class $$MyClass
             Assert.True(submitSucceeded, String.Format("Submit failed unexpectedly."))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FailedCommit_InterfaceNameConflict() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -301,7 +301,7 @@ class $$MyClass
             Assert.False(submitSucceeded)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FailedCommit_InterfaceNameNotAnIdentifier() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -317,7 +317,7 @@ class $$MyClass
             Assert.False(submitSucceeded)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FailedCommit_BadFileExtension() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -333,7 +333,7 @@ class $$MyClass
             Assert.False(submitSucceeded)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FailedCommit_BadFileName() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -349,7 +349,7 @@ class $$MyClass
             Assert.False(submitSucceeded)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FailedCommit_BadFileName2() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -365,7 +365,7 @@ class $$MyClass
             Assert.False(submitSucceeded)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_FailedCommit_NoMembersSelected() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -381,7 +381,7 @@ class $$MyClass
             Assert.False(submitSucceeded)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_MemberDisplay_Method() As Task
             Dim markup = <Text><![CDATA[
 using System;
@@ -396,7 +396,7 @@ class $$MyClass
             Assert.Equal("Foo<T>(T, CorrelationManager, ref int, [int?], [string], params int[])", viewModel.MemberContainers.Single().MemberName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_MemberDisplay_Property() As Task
             Dim markup = <Text><![CDATA[
 using System;
@@ -413,7 +413,7 @@ class $$MyClass
             Assert.Equal("Foo", viewModel.MemberContainers.Where(Function(c) c.MemberSymbol.IsKind(SymbolKind.Property)).Single().MemberName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_MemberDisplay_Indexer() As Task
             Dim markup = <Text><![CDATA[
 using System;
@@ -426,7 +426,7 @@ class $$MyClass
             Assert.Equal("this[int?, [string]]", viewModel.MemberContainers.Where(Function(c) c.MemberSymbol.IsKind(SymbolKind.Property)).Single().MemberName)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_MembersSorted() As Task
             Dim markup = <Text><![CDATA[
 public class $$MyClass

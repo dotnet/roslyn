@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
 {
     public partial class AddAsyncTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AwaitInVoidMethodWithModifiers()
         {
             var initial =
@@ -41,7 +41,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AwaitInTaskMethodNoModifiers()
         {
             var initial =
@@ -70,7 +70,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AwaitInTaskMethodWithModifiers()
         {
             var initial =
@@ -99,7 +99,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AwaitInLambdaFunction()
         {
             var initial =
@@ -130,7 +130,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AwaitInLambdaAction()
         {
             var initial =
@@ -159,7 +159,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task BadAwaitInNonAsyncMethod()
         {
             var initial =
@@ -184,7 +184,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task BadAwaitInNonAsyncMethod2()
         {
             var initial =
@@ -209,7 +209,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task BadAwaitInNonAsyncMethod3()
         {
             var initial =
@@ -234,7 +234,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task BadAwaitInNonAsyncMethod4()
         {
             var initial =
@@ -259,7 +259,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task BadAwaitInNonAsyncMethod5()
         {
             var initial =
@@ -282,7 +282,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task BadAwaitInNonAsyncMethod6()
         {
             var initial =
@@ -305,7 +305,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task BadAwaitInNonAsyncMethod7()
         {
             var initial =
@@ -328,7 +328,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task BadAwaitInNonAsyncMethod8()
         {
             var initial =
@@ -351,7 +351,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task BadAwaitInNonAsyncMethod9()
         {
             var initial =
@@ -374,7 +374,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task BadAwaitInNonAsyncMethod10()
         {
             var initial =
@@ -397,7 +397,7 @@ class Program
             await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AwaitInMember()
         {
             var code =
@@ -410,7 +410,7 @@ class Program
             await TestMissingAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AddAsyncInDelegate()
         {
             await TestAsync(
@@ -418,7 +418,7 @@ class Program
 @"using System ; using System . Threading . Tasks ; class Program { private async void method ( ) { string content = await Task < String > . Run ( async delegate ( ) { await Task . Delay ( 1000 ) ; return ""Test"" ; } ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AddAsyncInDelegate2()
         {
             await TestAsync(
@@ -426,7 +426,7 @@ class Program
 @"using System ; using System . Threading . Tasks ; class Program { private void method ( ) { string content = await Task < String > . Run ( async delegate ( ) { await Task . Delay ( 1000 ) ; return ""Test"" ; } ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AddAsyncInDelegate3()
         {
             await TestAsync(
@@ -435,7 +435,7 @@ class Program
         }
 
         [WorkItem(6477, @"https://github.com/dotnet/roslyn/issues/6477")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task NullNodeCrash()
         {
             await TestMissingAsync(

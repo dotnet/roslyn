@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
                 new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(), new RemoveUnnecessaryUsingsCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNoReferences()
         {
             await TestAsync(
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
 @"class Program { static void Main ( string [ ] args ) { } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestIdentifierReferenceInTypeContext()
         {
             await TestAsync(
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
 @"using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestGenericReferenceInTypeContext()
         {
             await TestAsync(
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { List < int > list ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMultipleReferences()
         {
             await TestAsync(
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
 @"using System ; using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { List < int > list ; DateTime d ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestExtensionMethodReference()
         {
             await TestAsync(
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
         }
 
         [WorkItem(541827)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestExtensionMethodLinq()
         {
             // NOTE: Intentionally not running this test with Script options, because in Script,
@@ -100,7 +100,7 @@ namespace SomeNS
 }|]");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAliasQualifiedAliasReference()
         {
             await TestAsync(
@@ -108,7 +108,7 @@ namespace SomeNS
 @"using G = System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { G :: List < int > list ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestQualifiedAliasReference()
         {
             await TestAsync(
@@ -116,7 +116,7 @@ namespace SomeNS
 @"using G = System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { G . List < int > list ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUnusedUsings()
         {
             await TestAsync(
@@ -124,7 +124,7 @@ namespace SomeNS
 @"namespace N { using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUsedUsings()
         {
             await TestAsync(
@@ -133,7 +133,7 @@ namespace SomeNS
         }
 
         [WorkItem(712656)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUsedUsings2()
         {
             await TestAsync(
@@ -141,21 +141,21 @@ namespace SomeNS
 @"using System ; namespace N { using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } } class F { DateTime d ; } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAttribute()
         {
             await TestMissingAsync(
 @"[|using SomeNamespace ; [ SomeAttr ] class Foo { } namespace SomeNamespace { public class SomeAttrAttribute : System . Attribute { } } |]");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAttributeArgument()
         {
             await TestMissingAsync(
 @"[|using foo ; [ SomeAttribute ( typeof ( SomeClass ) ) ] class Program { static void Main ( ) { } } public class SomeAttribute : System . Attribute { public SomeAttribute ( object f ) { } } namespace foo { public class SomeClass { } } |]");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveAllWithSurroundingPreprocessor()
         {
             await TestAsync(
@@ -186,7 +186,7 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveFirstWithSurroundingPreprocessor()
         {
             await TestAsync(
@@ -220,7 +220,7 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveAllWithSurroundingPreprocessor2()
         {
             await TestAsync(
@@ -257,7 +257,7 @@ compareTokens: false);
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveOneWithSurroundingPreprocessor2()
         {
             await TestAsync(
@@ -298,7 +298,7 @@ compareTokens: false);
         }
 
         [WorkItem(541817)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestComments8718()
         {
             await TestAsync(
@@ -355,7 +355,7 @@ compareTokens: false);
         }
 
         [WorkItem(528609)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestComments()
         {
             await TestAsync(
@@ -379,7 +379,7 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUnusedUsing()
         {
             await TestAsync(
@@ -401,7 +401,7 @@ compareTokens: false);
         }
 
         [WorkItem(541827)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestSimpleQuery()
         {
             await TestAsync(
@@ -409,7 +409,7 @@ compareTokens: false);
 @"using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = from a in args where a . Length > 21 select a ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUsingStaticClassAccessField1()
         {
             await TestAsync(
@@ -418,14 +418,14 @@ compareTokens: false);
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUsingStaticClassAccessField2()
         {
             await TestMissingAsync(
 @"[|using static SomeNS . Foo ; class Program { static void Main ( ) { var q = x ; } } namespace SomeNS { static class Foo { public static int x ; } } |]");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUsingStaticClassAccessMethod1()
         {
             await TestAsync(
@@ -434,7 +434,7 @@ compareTokens: false);
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUsingStaticClassAccessMethod2()
         {
             await TestMissingAsync(
@@ -442,7 +442,7 @@ compareTokens: false);
         }
 
         [WorkItem(8846, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUnusedTypeImportIsRemoved()
         {
             await TestAsync(
@@ -478,7 +478,7 @@ namespace SomeNS
         }
 
         [WorkItem(541817)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveTrailingComment()
         {
             await TestAsync(
@@ -504,7 +504,7 @@ compareTokens: false);
         }
 
         [WorkItem(541914)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemovingUnbindableUsing()
         {
             await TestAsync(
@@ -513,7 +513,7 @@ compareTokens: false);
         }
 
         [WorkItem(541937)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAliasInUse()
         {
             await TestMissingAsync(
@@ -536,7 +536,7 @@ namespace Foo
         }
 
         [WorkItem(541914)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveUnboundUsing()
         {
             await TestAsync(
@@ -545,7 +545,7 @@ namespace Foo
         }
 
         [WorkItem(542016)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestLeadingNewlines1()
         {
             await TestAsync(
@@ -571,7 +571,7 @@ compareTokens: false);
         }
 
         [WorkItem(542016)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveLeadingNewLines2()
         {
             await TestAsync(
@@ -603,7 +603,7 @@ compareTokens: false);
         }
 
         [WorkItem(542134)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestImportedTypeUsedAsGenericTypeArgument()
         {
             await TestMissingAsync(
@@ -629,7 +629,7 @@ public class Program
         }
 
         [WorkItem(542723)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveCorrectUsing1()
         {
             await TestAsync(
@@ -639,7 +639,7 @@ parseOptions: null);
         }
 
         [WorkItem(542723)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestRemoveCorrectUsing2()
         {
             await TestMissingAsync(
@@ -647,7 +647,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestSpan()
         {
             await TestSpansAsync(
@@ -662,7 +662,7 @@ parseOptions: null);
         }
 
         [WorkItem(543000)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMissingWhenErrorsWouldBeGenerated()
         {
             await TestMissingAsync(
@@ -670,7 +670,7 @@ parseOptions: null);
         }
 
         [WorkItem(544976)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMissingWhenMeaningWouldChangeInLambda()
         {
             await TestMissingAsync(
@@ -709,7 +709,7 @@ namespace Y
         }
 
         [WorkItem(544976)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestCasesWithLambdas1()
         {
             // NOTE: Y is used when speculatively binding "x => x.Foo()".  As such, it is marked as
@@ -749,7 +749,7 @@ namespace Y
         }
 
         [WorkItem(545646)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestCasesWithLambdas2()
         {
             await TestMissingAsync(
@@ -783,7 +783,7 @@ namespace N
         }
 
         [WorkItem(545741)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMissingOnAliasedVar()
         {
             await TestMissingAsync(
@@ -791,7 +791,7 @@ namespace N
         }
 
         [WorkItem(546115)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestBrokenCode()
         {
             await TestMissingAsync(
@@ -809,7 +809,7 @@ public class QueryExpressionTest
         }
 
         [WorkItem(530980)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestReferenceInCref()
         {
             // parsing doc comments as simple trivia; System is unnecessary
@@ -827,7 +827,7 @@ public class QueryExpressionTest
         }
 
         [WorkItem(751283)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUnusedUsingOverLinq()
         {
             await TestAsync(

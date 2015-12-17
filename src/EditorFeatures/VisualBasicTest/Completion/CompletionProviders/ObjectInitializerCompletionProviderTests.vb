@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await BaseVerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNothingToShow() As Task
             Dim text = <a>Public Class C
 End Class
@@ -38,7 +38,7 @@ End Class</a>.Value
         End Function
 
         <WorkItem(530075)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInArgumentList() As Task
             Dim text = <a>Public Class C
     Property A As Integer
@@ -53,7 +53,7 @@ End Class</a>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOneItem() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -68,7 +68,7 @@ End Program</a>.Value
             Await VerifyItemExistsAsync(text, "bar")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestFieldAndProperty() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -85,7 +85,7 @@ End Program</a>.Value
             Await VerifyItemExistsAsync(text, "foo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestFieldAndPropertyBaseTypes() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -106,7 +106,7 @@ End Program</a>.Value
             Await VerifyItemExistsAsync(text, "foo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMembersFromObjectInitializerSyntax() As Task
             Dim text = <a>Public Class C
 End Class
@@ -128,7 +128,7 @@ End Program</a>.Value
             Await VerifyItemExistsAsync(text, "foo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOneItemAfterComma() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -145,7 +145,7 @@ End Program</a>.Value
             Await VerifyItemIsAbsentAsync(text, "foo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNothingLeftToShow() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -161,7 +161,7 @@ End Program</a>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestWithoutAsClause() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -178,7 +178,7 @@ End Program</a>.Value
             Await VerifyItemExistsAsync(text, "foo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestWithoutAsClauseNothingLeftToShow() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -195,7 +195,7 @@ End Program</a>.Value
         End Function
 
         <WorkItem(544326)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInactiveInRValue() As Task
             Dim text = <a>Class C
     Public X As Long = 1
@@ -210,7 +210,7 @@ End Module</a>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBackingFields() As Task
             Dim text = <a>Class C
     Public Property Foo As Integer
@@ -224,7 +224,7 @@ End Class</a>.Value
             Await VerifyItemIsAbsentAsync(text, "_Foo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestReadOnlyPropertiesAreNotPresentOnLeftSide() As Task
             Dim text = <a>Class C
     Public Property Foo As Integer
@@ -244,7 +244,7 @@ End Class</a>.Value
         End Function
 
         <WorkItem(545881)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoReadonlyFieldsOrProperties() As Task
             Dim text = <a>Module M
     Sub Main()
@@ -256,7 +256,7 @@ End Module
         End Function
 
         <WorkItem(545844)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoParameterizedProperties() As Task
             Dim text = <a>Module M
     Module M
@@ -269,7 +269,7 @@ End Module
         End Function
 
         <WorkItem(545844)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestShowParameterizedPropertiesWithAllOptionalArguments() As Task
             Dim text = <a>Imports System
 Public Class AImpl
@@ -292,7 +292,7 @@ End Class</a>.Value
         End Function
 
         <WorkItem(545844)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDoNotShowParameterizedPropertiesWithSomeMandatoryArguments() As Task
             Dim text = <a>Imports System
 Public Class AImpl
@@ -315,7 +315,7 @@ End Class</a>.Value
         End Function
 
         <WorkItem(545844)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestParameterizedPropertiesWithParamArrays() As Task
             Dim text = <a>Option Strict On
 Class C
@@ -344,7 +344,7 @@ End Class
         End Function
 
         <WorkItem(530491)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestObjectInitializerOnInterface() As Task
             Dim text = <a><![CDATA[Option Strict On
 Imports System.Runtime.InteropServices
@@ -369,7 +369,7 @@ End Class
             Await VerifyItemExistsAsync(text, "c")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function IsCommitCharacterTest() As Threading.Tasks.Task
             Const code = "
 Public Class C
@@ -385,7 +385,7 @@ End Program"
             Await VerifyCommonCommitCharactersAsync(code, textTypedSoFar:="")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestIsExclusive() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -413,7 +413,7 @@ End Program</Document>
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SendEnterThroughToEditorTest() As Threading.Tasks.Task
             Const code = "
 Public Class C

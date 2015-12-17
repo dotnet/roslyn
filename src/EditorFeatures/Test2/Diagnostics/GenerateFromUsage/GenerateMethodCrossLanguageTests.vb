@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateMethod
             End If
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleInstanceMethod_CSharpToVisualBasic() As System.Threading.Tasks.Task
             Dim input =
         <Workspace>
@@ -58,7 +58,7 @@ end class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleStaticMethod_CSharpToVisualBasic() As System.Threading.Tasks.Task
             Dim input =
         <Workspace>
@@ -95,7 +95,7 @@ end class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestParameters_CSharpToVisualBasic() As System.Threading.Tasks.Task
             Dim input =
         <Workspace>
@@ -137,7 +137,7 @@ end class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestExplicitInterface_CSharpToVisualBasic() As Task
             Dim input =
         <Workspace>
@@ -171,7 +171,7 @@ end class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestDelegate_CSharpToVisualBasic() As Task
             Dim input =
         <Workspace>
@@ -213,7 +213,7 @@ end class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestAbstractMethod_CSharpToVisualBasic() As Task
             Dim input =
         <Workspace>
@@ -249,7 +249,7 @@ end class
             Await TestAsync(input, expected, codeActionIndex:=1)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleInstanceMethod_VisualBasicToCSharp() As Task
             Dim input =
         <Workspace>
@@ -288,7 +288,7 @@ end class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestIntoNestedType_CSharpToVisualBasic() As Task
             Dim input =
         <Workspace>
@@ -329,7 +329,7 @@ end class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestIntoNestedGenericType_CSharpToVisualBasic() As Task
             Dim input =
         <Workspace>
@@ -370,7 +370,7 @@ end class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestIntoNestedType_VisualBasicToCSharp() As Task
             Dim input =
         <Workspace>
@@ -415,7 +415,7 @@ end class
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestIntoNestedGenericType_VisualBasicToCSharp() As Task
             Dim input =
         <Workspace>
@@ -461,7 +461,7 @@ end class
         End Function
 
         <WorkItem(608827)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function GenerateMethodUsingTypeConstraint_SingleNamedType() As Task
             Dim input =
         <Workspace>

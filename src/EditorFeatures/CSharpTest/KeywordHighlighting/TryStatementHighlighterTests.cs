@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             return new TryStatementHighlighter();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample1_1()
         {
             await TestAsync(
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample1_2()
         {
             await TestAsync(
@@ -52,7 +52,7 @@ finally {
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample1_3()
         {
             await TestAsync(
@@ -71,7 +71,7 @@ finally {
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample1_4()
         {
             await TestAsync(
@@ -90,7 +90,7 @@ finally {
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExceptionFilter1()
         {
             await TestAsync(
@@ -109,7 +109,7 @@ finally {
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExceptionFilter2()
         {
             await TestAsync(
@@ -128,7 +128,7 @@ finally {
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExceptionFilter3()
         {
             await TestAsync(

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
                 new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new SimplifyTypeNamesCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyGenericName()
         {
             await TestAsync(
@@ -50,7 +50,7 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias0()
         {
             await TestAsync(
@@ -80,7 +80,7 @@ namespace Root
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias00()
         {
             await TestAsync(
@@ -104,7 +104,7 @@ namespace Root
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias()
         {
             var source =
@@ -133,7 +133,7 @@ class A
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias1()
         {
             await TestAsync(
@@ -157,7 +157,7 @@ class A
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias2()
         {
             await TestAsync(
@@ -181,7 +181,7 @@ namespace Root
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias3()
         {
             await TestAsync(
@@ -211,7 +211,7 @@ namespace Root
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias4()
         {
             await TestAsync(
@@ -229,7 +229,7 @@ class A
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias5()
         {
             await TestAsync(
@@ -253,7 +253,7 @@ namespace Root
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias6()
         {
             await TestAsync(
@@ -277,7 +277,7 @@ namespace Root
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias7()
         {
             await TestAsync(
@@ -307,7 +307,7 @@ namespace Root
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias8()
         {
             await TestAsync(
@@ -338,7 +338,7 @@ namespace Root
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoAliases()
         {
             await TestAsync(
@@ -366,7 +366,7 @@ namespace Root
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoAliases2()
         {
             await TestAsync(
@@ -394,7 +394,7 @@ namespace Root
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoAliasesConflict()
         {
             await TestMissingAsync(
@@ -411,7 +411,7 @@ namespace Root
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoAliasesConflict2()
         {
             await TestAsync(
@@ -439,7 +439,7 @@ namespace Root
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task AliasInSiblingNamespace()
         {
             var content =
@@ -458,7 +458,7 @@ namespace Root
             await TestMissingAsync(content);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task KeywordInt32()
         {
             var source =
@@ -480,7 +480,7 @@ class A
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Keywords()
         {
             var builtInTypeMap = new Dictionary<string, string>()
@@ -517,7 +517,7 @@ class A
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeName()
         {
             var content =
@@ -531,7 +531,7 @@ class A
             await TestMissingAsync(content);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeName1()
         {
             var source =
@@ -568,7 +568,7 @@ namespace Root
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeName2()
         {
             await TestAsync(
@@ -588,7 +588,7 @@ namespace System
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeName3()
         {
             await TestAsync(
@@ -618,7 +618,7 @@ namespace N1
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeName4()
         {
             // this is failing since we can't speculatively bind namespace yet
@@ -649,7 +649,7 @@ namespace N1
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeName5()
         {
             await TestAsync(
@@ -679,7 +679,7 @@ namespace N1
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeName6()
         {
             var content =
@@ -701,7 +701,7 @@ namespace N1
             await TestMissingAsync(content);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeName7()
         {
             var source =
@@ -735,7 +735,7 @@ namespace N1
             await TestActionCountAsync(source, 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyGenericTypeName1()
         {
             var content =
@@ -750,7 +750,7 @@ namespace N1
             await TestMissingAsync(content);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyGenericTypeName2()
         {
             var source =
@@ -804,7 +804,7 @@ namespace N1
 }", fixAllActionEquivalenceKey: fixAllActionId);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyGenericTypeName4()
         {
             var content =
@@ -821,7 +821,7 @@ namespace N1
             await TestMissingAsync(content);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyGenericTypeName5()
         {
             var source =
@@ -858,7 +858,7 @@ namespace N1
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyGenericTypeName6()
         {
             await TestAsync(
@@ -943,7 +943,7 @@ namespace N1
 }", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Array1()
         {
             await TestAsync(
@@ -989,7 +989,7 @@ namespace N1
             ////}", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Array2()
         {
             await TestAsync(
@@ -1014,7 +1014,7 @@ namespace N1
         }
 
         [WorkItem(995168), WorkItem(1073099)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf1()
         {
             await TestMissingAsync(
@@ -1029,7 +1029,7 @@ class Program
         }
 
         [WorkItem(995168)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf2()
         {
             await TestMissingAsync(
@@ -1044,7 +1044,7 @@ class Program
         }
 
         [WorkItem(995168), WorkItem(1073099)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf3()
         {
             await TestMissingAsync(
@@ -1059,7 +1059,7 @@ class Program
         }
 
         [WorkItem(995168), WorkItem(1073099)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf4()
         {
             await TestAsync(
@@ -1093,7 +1093,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyTypeNameInsideNameOf()
         {
             await TestAsync(
@@ -1118,7 +1118,7 @@ class Program
         }
 
         [WorkItem(995168)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyCrefAliasPredefinedType()
         {
             await TestAsync(
@@ -1146,7 +1146,7 @@ class Program
         }
 
         [WorkItem(538727)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias1()
         {
             var content =
@@ -1163,7 +1163,7 @@ namespace N1
         }
 
         [WorkItem(538727)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias2()
         {
             await TestAsync(
@@ -1188,7 +1188,7 @@ namespace N1
         }
 
         [WorkItem(538727)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias3()
         {
             await TestAsync(
@@ -1219,7 +1219,7 @@ namespace Outer
         }
 
         [WorkItem(538727)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias4()
         {
             await TestAsync(
@@ -1252,7 +1252,7 @@ namespace Outer
         }
 
         [WorkItem(544631)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias5()
         {
             var content =
@@ -1274,7 +1274,7 @@ namespace N
         }
 
         [WorkItem(919815)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyReturnTypeOnMethodCallToAlias()
         {
             await TestAsync(
@@ -1296,7 +1296,7 @@ class A
         }
 
         [WorkItem(538949)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyComplexGeneric1()
         {
             await TestMissingAsync(
@@ -1311,7 +1311,7 @@ interface I<T> { }");
         }
 
         [WorkItem(538949)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyComplexGeneric2()
         {
             await TestMissingAsync(
@@ -1326,7 +1326,7 @@ interface I<T> { }");
         }
 
         [WorkItem(538991)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyMissingOnGeneric()
         {
             var content =
@@ -1339,7 +1339,7 @@ interface I<T> { }");
         }
 
         [WorkItem(539000)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyMissingOnUnmentionableTypeParameter1()
         {
             var content =
@@ -1357,7 +1357,7 @@ interface I<T> { }");
             await TestMissingAsync(content);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyErrorTypeParameter()
         {
             await TestMissingAsync(
@@ -1370,7 +1370,7 @@ class C
 
         [WorkItem(539000)]
         [WorkItem(838109)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyUnmentionableTypeParameter2()
         {
             await TestMissingAsync(
@@ -1387,7 +1387,7 @@ class C
         }
 
         [WorkItem(539000)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyUnmentionableTypeParameter2_1()
         {
             await TestMissingAsync(
@@ -1403,7 +1403,7 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestGlobalAlias()
         {
             await TestAsync(
@@ -1413,7 +1413,7 @@ index: 0);
         }
 
         [WorkItem(541748)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnErrorInScript()
         {
             await TestMissingAsync(
@@ -1581,7 +1581,7 @@ compareTokens: false);
         }
 
         [WorkItem(542100)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestPreventSimplificationThatWouldCauseConflict()
         {
             await TestAsync(
@@ -1593,7 +1593,7 @@ compareTokens: false);
         }
 
         [WorkItem(541929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType1()
         {
             await TestMissingAsync(
@@ -1601,7 +1601,7 @@ compareTokens: false);
         }
 
         [WorkItem(541929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType2()
         {
             await TestAsync(
@@ -1610,7 +1610,7 @@ compareTokens: false);
         }
 
         [WorkItem(541929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType3()
         {
             await TestMissingAsync(
@@ -1618,14 +1618,14 @@ compareTokens: false);
         }
 
         [WorkItem(541929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType4()
         {
             await TestMissingAsync(@"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program <X > . Inner < >|] ) ) ] void Foo ( ) { } } } ");
         }
 
         [WorkItem(541929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType5()
         {
             await TestMissingAsync(
@@ -1633,7 +1633,7 @@ compareTokens: false);
         }
 
         [WorkItem(541929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType6()
         {
             await TestMissingAsync(
@@ -1641,7 +1641,7 @@ compareTokens: false);
         }
 
         [WorkItem(541929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType1()
         {
             await TestAsync(
@@ -1651,7 +1651,7 @@ index: 0);
         }
 
         [WorkItem(541929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType2()
         {
             await TestAsync(
@@ -1661,7 +1661,7 @@ index: 0);
         }
 
         [WorkItem(541929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType3()
         {
             await TestAsync(
@@ -1671,7 +1671,7 @@ index: 0);
         }
 
         [WorkItem(541929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType4()
         {
             await TestAsync(
@@ -1681,7 +1681,7 @@ index: 0);
         }
 
         [WorkItem(541929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType5()
         {
             await TestAsync(
@@ -1691,7 +1691,7 @@ index: 0);
         }
 
         [WorkItem(541929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnNonOpenType6()
         {
             await TestMissingAsync(
@@ -1699,7 +1699,7 @@ index: 0);
         }
 
         [WorkItem(542650)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestWithInterleavedDirective1()
         {
             await TestMissingAsync(
@@ -1724,7 +1724,7 @@ class B
         }
 
         [WorkItem(542719)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestGlobalMissing1()
         {
             await TestMissingAsync(
@@ -1732,7 +1732,7 @@ class B
         }
 
         [WorkItem(544615)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMissingOnAmbiguousCast()
         {
             await TestMissingAsync(
@@ -1740,7 +1740,7 @@ class B
         }
 
         [WorkItem(544616)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task ParenthesizeIfParseChanges()
         {
             await TestAsync(
@@ -1765,7 +1765,7 @@ class C
         }
 
         [WorkItem(544974)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplification1()
         {
             await TestAsync(
@@ -1775,7 +1775,7 @@ index: 0);
         }
 
         [WorkItem(544974)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplification3()
         {
             await TestAsync(
@@ -1784,7 +1784,7 @@ index: 0);
         }
 
         [WorkItem(544974)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplification4()
         {
             await TestAsync(
@@ -1793,7 +1793,7 @@ index: 0);
         }
 
         [WorkItem(544977)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplification5()
         {
             await TestAsync(
@@ -1819,7 +1819,7 @@ class Program
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMissingNullableSimplificationInsideCref()
         {
             await TestMissingAsync(
@@ -1831,7 +1831,7 @@ class A { }");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMissingNullableSimplificationInsideCref2()
         {
             await TestMissingAsync(
@@ -1842,7 +1842,7 @@ class A { }");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMissingNullableSimplificationInsideCref3()
         {
             await TestMissingAsync(
@@ -1853,7 +1853,7 @@ class A { }");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualTypeParameter()
         {
             await TestAsync(
@@ -1870,7 +1870,7 @@ class C<T> {  }");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMissingNullableSimplificationInsideCref5()
         {
             await TestMissingAsync(
@@ -1884,7 +1884,7 @@ class A
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualType()
         {
             await TestAsync(
@@ -1901,7 +1901,7 @@ class A { }");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualType_AsTypeArgument()
         {
             await TestAsync(
@@ -1918,7 +1918,7 @@ class C<T> { }");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMissingNullableSimplificationInsideCref8()
         {
             await TestMissingAsync(
@@ -1932,7 +1932,7 @@ class A
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplificationInsideCref()
         {
             await TestAsync(
@@ -1953,7 +1953,7 @@ struct A
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplificationInsideCref2()
         {
             await TestAsync(
@@ -1978,7 +1978,7 @@ class A
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplificationInsideCref3()
         {
             await TestAsync(
@@ -2003,7 +2003,7 @@ class A
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplificationInsideCref4()
         {
             await TestAsync(
@@ -2027,7 +2027,7 @@ class A
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestColorColorCase1()
         {
             await TestAsync(
@@ -2035,14 +2035,14 @@ class A
 @"using N ; namespace N { class Color { public static void Foo ( ) { } public void Bar ( ) { } } } class Program { Color Color ; void Main ( ) { Color . Foo ( ) ; } } ", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestColorColorCase2()
         {
             await TestMissingAsync(
 @"using N ; namespace N { class Color { public static void Foo ( ) { } public void Bar ( ) { } } } class Program { Color Color ; void Main ( ) { [|Color . Foo |]( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAliasQualifiedType()
         {
             var source =
@@ -2066,7 +2066,7 @@ class Program
             await TestMissingAsync(source, GetScriptOptions());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyExpression()
         {
             await TestAsync(
@@ -2091,7 +2091,7 @@ class Program
         }
 
         [WorkItem(551040)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyStaticMemberAccess()
         {
             var source =
@@ -2131,7 +2131,7 @@ static class M
         }
 
         [WorkItem(551040)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyNestedType()
         {
             var source =
@@ -2177,7 +2177,7 @@ class M
         }
 
         [WorkItem(568043)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DontSimplifyNamesWhenThereAreParseErrors()
         {
             var markup =
@@ -2199,7 +2199,7 @@ class Program
         }
 
         [WorkItem(566749)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMethodGroups1()
         {
             await TestMissingAsync(@"
@@ -2215,7 +2215,7 @@ class Program
         }
 
         [WorkItem(566749)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMethodGroups2()
         {
             await TestMissingAsync(@"
@@ -2231,7 +2231,7 @@ class Program
         }
 
         [WorkItem(554010)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMethodGroups3()
         {
             await TestAsync(@"
@@ -2256,7 +2256,7 @@ class Program
         }
 
         [WorkItem(578686)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task FixAllOccurrences1()
         {
             await TestAsync(
@@ -2315,7 +2315,7 @@ namespace C
         }
 
         [WorkItem(578686)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DontUseAlias1()
         {
             await TestMissingAsync(
@@ -2353,7 +2353,7 @@ namespace NoAlias{
         }
 
         [WorkItem(577169)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SuitablyReplaceNullables1()
         {
             await TestMissingAsync(
@@ -2370,7 +2370,7 @@ class Program
         }
 
         [WorkItem(577169)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SuitablyReplaceNullables2()
         {
             await TestMissingAsync(
@@ -2387,7 +2387,7 @@ class Program
         }
 
         [WorkItem(608190)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_608190()
         {
             await TestMissingAsync(
@@ -2414,7 +2414,7 @@ struct S
         }
 
         [WorkItem(608190)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_608190_1()
         {
             await TestMissingAsync(
@@ -2441,7 +2441,7 @@ struct S
         }
 
         [WorkItem(608932)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_608932()
         {
             await TestMissingAsync(
@@ -2471,7 +2471,7 @@ namespace X
         }
 
         [WorkItem(635933)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_635933()
         {
             await TestMissingAsync(@"
@@ -2506,7 +2506,7 @@ class C<T> : B
         }
 
         [WorkItem(547246)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task CodeIssueAtRightSpan()
         {
             var code = @"
@@ -2530,7 +2530,7 @@ class Program
         }
 
         [WorkItem(579172)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_579172()
         {
             await TestMissingAsync(
@@ -2543,7 +2543,7 @@ class C<T, S>
         }
 
         [WorkItem(633182)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_633182()
         {
             await TestMissingAsync(
@@ -2559,7 +2559,7 @@ class C
         }
 
         [WorkItem(627102)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_627102()
         {
             await TestMissingAsync(
@@ -2593,7 +2593,7 @@ class C<T> : B
         }
 
         [WorkItem(629572)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DoNotIncludeAliasNameIfLastTargetNameIsTheSame_1()
         {
             var code = @"
@@ -2629,7 +2629,7 @@ class Program
         }
 
         [WorkItem(629572)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DoNotIncludeAliasNameIfLastTargetNameIsTheSame_2()
         {
             var code = @"
@@ -2665,7 +2665,7 @@ class Program
         }
 
         [WorkItem(736377)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DontSimplifyTypeNameBrokenCode()
         {
             await TestMissingAsync(
@@ -2687,7 +2687,7 @@ class Program
         }
 
         [WorkItem(813385)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DontSimplifyAliases()
         {
             await TestMissingAsync(
@@ -2701,7 +2701,7 @@ class C
         }
 
         [WorkItem(825541)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task ShowOnlyRelevantSpanForReductionOfGenericName()
         {
             var code = @"
@@ -2732,7 +2732,7 @@ namespace A
         }
 
         [WorkItem(878773)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task DontSimplifyAttributeNameWithJustAttribute()
         {
             await TestMissingAsync(
@@ -2745,7 +2745,7 @@ class Attribute : System.Attribute
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task ThisQualificationOption()
         {
             await TestMissingAsync(
@@ -2762,7 +2762,7 @@ class C
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue1()
         {
             await TestAsync(
@@ -2784,7 +2784,7 @@ class C
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue2()
         {
             await TestAsync(
@@ -2806,7 +2806,7 @@ class C
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_Default_1()
         {
             await TestAsync(
@@ -2830,7 +2830,7 @@ class C
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_Default_2()
         {
             await TestAsync(
@@ -2852,7 +2852,7 @@ class C
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_Default_3()
         {
             await TestAsync(
@@ -2877,7 +2877,7 @@ class C
 
         [WorkItem(942568)]
         [WorkItem(954536)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_1()
         {
             await TestMissingAsync(
@@ -2894,7 +2894,7 @@ class C
 
         [WorkItem(942568)]
         [WorkItem(954536)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_2()
         {
             await TestAsync(
@@ -2920,7 +2920,7 @@ class C
 
         [WorkItem(942568)]
         [WorkItem(954536)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_3()
         {
             await TestMissingAsync(
@@ -2936,7 +2936,7 @@ class C
         }
 
         [WorkItem(954536)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_4()
         {
             await TestAsync(
@@ -2962,7 +2962,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptio
         }
 
         [WorkItem(954536)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_5()
         {
             await TestMissingAsync(
@@ -2977,7 +2977,7 @@ class C
         }
 
         [WorkItem(954536)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_6()
         {
             await TestAsync(
@@ -3001,7 +3001,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptio
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_1()
         {
             await TestMissingAsync(
@@ -3018,7 +3018,7 @@ class C
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_2()
         {
             await TestMissingAsync(
@@ -3035,7 +3035,7 @@ class C
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_3()
         {
             await TestMissingAsync(
@@ -3052,7 +3052,7 @@ class C
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInMemberAccess_Default_1()
         {
             await TestAsync(
@@ -3074,7 +3074,7 @@ class C
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInMemberAccess_Default_2()
         {
             await TestAsync(
@@ -3098,7 +3098,7 @@ class C
         }
 
         [WorkItem(956667)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInMemberAccess_Default_3()
         {
             await TestMissingAsync(
@@ -3119,7 +3119,7 @@ class C2
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInMemberAccess_NonDefault_1()
         {
             await TestMissingAsync(
@@ -3136,7 +3136,7 @@ class C
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInMemberAccess_NonDefault_2()
         {
             await TestMissingAsync(
@@ -3152,7 +3152,7 @@ class C
         }
 
         [WorkItem(965208)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyDiagnosticId()
         {
             var source =
@@ -3209,7 +3209,7 @@ class C
         }
 
         [WorkItem(1019276)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTypeNameDoesNotAddUnnecessaryParens()
         {
             await TestAsync(
@@ -3241,7 +3241,7 @@ class Program
         }
 
         [WorkItem(1068445)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTypeNameInPropertyLambda()
         {
             await TestAsync(
@@ -3261,7 +3261,7 @@ class Program
         }
 
         [WorkItem(1068445)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTypeNameInMethodLambda()
         {
             await TestAsync(
@@ -3275,7 +3275,7 @@ class Program
         }
 
         [WorkItem(1068445)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTypeNameInIndexerLambda()
         {
             await TestAsync(

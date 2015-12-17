@@ -17,47 +17,47 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         Inherits AbstractContainedLanguageCodeSupportTests
 
 #Region "IsValid Tests"
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_1() As Task
             Await AssertValidIdAsync("field")
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_Escaped() As Task
             Await AssertValidIdAsync("[field]")
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_EscapedKeyword() As Task
             Await AssertValidIdAsync("[Class]")
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_ContainsNumbers() As Task
             Await AssertValidIdAsync("abc123")
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_Keyword() As Task
             Await AssertNotValidIdAsync("Class")
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_StartsWithNumber() As Task
             Await AssertNotValidIdAsync("123abc")
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_Punctuation() As Task
             Await AssertNotValidIdAsync("abc.abc")
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_TypeChar() As Task
             Await AssertValidIdAsync("abc$")
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestIsValidId_TypeCharInMiddle() As Task
             Await AssertNotValidIdAsync("abc$abc")
         End Function
@@ -65,7 +65,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
 #Region "GetBaseClassName Tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetBaseClassName_NonexistingClass() As Task
             Dim code As String = <text>Class c
 End Class</text>.Value
@@ -78,7 +78,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetBaseClassName_DerivedFromObject() As Task
             Dim code As String = <text>Class C
 End Class</text>.Value
@@ -91,7 +91,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetBaseClassName_DerivedFromFrameworkType() As Task
             Dim code As String = <text>
 Imports System
@@ -107,7 +107,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetBaseClassName_DerivedFromUserDefinedType() As Task
             Dim code As String = <text>
 Class B
@@ -124,7 +124,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetBaseClassName_FullyQualifiedNames() As Task
             Dim code As String = <text>
 Namespace N
@@ -143,7 +143,7 @@ End Namespace</text>.Value
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetBaseClassName_MinimallyQualifiedNames() As Task
             Dim code As String = <text>
 Namespace N
@@ -162,7 +162,7 @@ End Namespace</text>.Value
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetBaseClassName_EscapedKeyword() As Task
             Dim code As String = <text>
 Class [Class]
@@ -183,7 +183,7 @@ End Class
 
 #Region "CreateUniqueEventName Tests"
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestCreateUniqueEventName_ButtonClick() As Task
             Dim code As String = <text>
 Public Partial Class _Default
@@ -207,7 +207,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestCreateUniqueEventName_NameCollisionWithEventHandler() As Task
             Dim code As String = <text>
 Public Partial Class _Default
@@ -235,7 +235,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestCreateUniqueEventName_NameCollisionWithOtherMembers() As Task
             Dim code As String = <text>
 Public Partial Class _Default
@@ -261,7 +261,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestCreateUniqueEventName_NameCollisionFromPartialClass() As Task
             Dim code As String = <text>
 Public Partial Class _Default
@@ -288,7 +288,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestCreateUniqueEventName_NameCollisionFromBaseClass() As Task
             Dim code As String = <text>
 Public Partial Class _Default
@@ -321,7 +321,7 @@ End Class</text>.Value
 
 #Region "GetCompatibleEventHandlers"
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetCompatibleEventHandlers_EventDoesntExist() As Task
             Dim code As String = <text>
 Imports System
@@ -350,7 +350,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetCompatibleEventHandlers_ObjTypeNameIsWrong() As Task
             Dim code As String = <text>
 Imports System
@@ -381,7 +381,7 @@ End Class</text>.Value
         End Function
 
         ' To Do: Investigate - this feels wrong. when Handles Clause exists
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetCompatibleEventHandlers_MatchExists() As Task
             Dim code As String = <text>
 Imports System
@@ -412,7 +412,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetCompatibleEventHandlers_MatchesExist() As Task
             Dim code As String = <text>
 Imports System
@@ -451,7 +451,7 @@ End Class</text>.Value
 
 #Region "GetEventHandlerMemberId"
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetEventHandlerMemberId_HandlerExists() As Task
             Dim code As String = <text>
 Imports System
@@ -485,7 +485,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetEventHandlerMemberId_CantFindHandler() As Task
             Dim code As String = <text>
 Imports System
@@ -519,7 +519,7 @@ End Class</text>.Value
 
 #Region "EnsureEventHandler"
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestEnsureEventHandler_HandlerExists() As Task
             Dim code As String = <text>
 Imports System
@@ -562,7 +562,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestEnsureEventHandler_GenerateNewHandler() As Task
             Dim code As String = <text>
 Imports System
@@ -606,7 +606,7 @@ End Sub</text>.NormalizedValue
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(850035)>
         Public Async Function TestEnsureEventHandler_WithHandlesAndNullObjectName() As Task
             Dim code As String = "
@@ -652,7 +652,7 @@ End Sub"
 #End Region
 
 #Region "GetMemberNavigationPoint"
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetMemberNavigationPoint() As Task
             Dim code As String = <text>
 Imports System
@@ -703,7 +703,7 @@ End Class</text>.Value
 #End Region
 
 #Region "GetMembers"
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetMembers_EventHandlersWrongParamType() As Task
             Dim code As String = <text>
 Imports System
@@ -725,7 +725,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetMembers_EventHandlersWrongParamCount() As Task
             Dim code As String = <text>
 Imports System
@@ -747,7 +747,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetMembers_EventHandlersWrongReturnType() As Task
             Dim code As String = <text>
 Imports System
@@ -770,7 +770,7 @@ End Class</text>.Value
         End Function
 
         ' To Do: Investigate, this returns the method even if handles is missing. that ok?
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetMembers_EventHandlers() As Task
             Dim code As String = <text>
 Imports System
@@ -796,7 +796,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetMembers_UserFunctions() As Task
             Dim code As String = <text>
 Imports System
@@ -823,7 +823,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestGetMembers_Events() As Task
             Dim code As String = <text>
 Imports System
@@ -850,7 +850,7 @@ End Class</text>.Value
 
 #Region "OnRenamed (TryRenameElement)"
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestTryRenameElement_ResolvableMembers() As Task
             Dim code As String = <text>
 Imports System
@@ -875,7 +875,7 @@ End Class</text>.Value
         End Function
 
         ' To Do: Who tests the fully qualified names and their absence?
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestTryRenameElement_UnresolvableMembers() As Task
             Dim code As String = <text>
 Imports System
@@ -899,7 +899,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestTryRenameElement_ResolvableClass() As Task
             Dim code As String = <text>Public Partial Class Foo
 
@@ -919,7 +919,7 @@ End Class</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestTryRenameElement_ResolvableNamespace() As Task
             Dim code As String = <text>Namespace Foo
 End Namespace</text>.Value
@@ -938,7 +938,7 @@ End Namespace</text>.Value
             End Using
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestTryRenameElement_Button() As Task
             Dim code As String = <text>
 Imports System

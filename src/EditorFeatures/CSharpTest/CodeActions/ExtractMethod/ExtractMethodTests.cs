@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         }
 
         [WorkItem(540799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestPartialSelection()
         {
             await TestAsync(
@@ -25,7 +25,7 @@ index: 0);
         }
 
         [WorkItem(540796)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestReadOfDataThatDoesNotFlowIn()
         {
             await TestAsync(
@@ -35,14 +35,14 @@ index: 0);
         }
 
         [WorkItem(540819)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnGoto()
         {
             await TestMissingAsync(@"delegate int del ( int i ) ; class C { static void Main ( string [ ] args ) { del q = x => { [|goto label2 ; return x * x ;|] } ; label2 : return ; } } ");
         }
 
         [WorkItem(540819)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestOnStatementAfterUnconditionalGoto()
         {
             await TestAsync(
@@ -51,7 +51,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnNamespace()
         {
             await TestAsync(
@@ -59,7 +59,7 @@ index: 0);
 @"class Program { void Main ( ) { {|Rename:NewMethod|} ( ) ; } private static void NewMethod ( ) { System . Console . WriteLine ( 4 ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnType()
         {
             await TestAsync(
@@ -67,7 +67,7 @@ index: 0);
 @"class Program { void Main ( ) { {|Rename:NewMethod|} ( ) ; } private static void NewMethod ( ) { System . Console . WriteLine ( 4 ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestMissingOnBase()
         {
             await TestAsync(
@@ -76,7 +76,7 @@ index: 0);
         }
 
         [WorkItem(545623)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestOnActionInvocation()
         {
             await TestAsync(
@@ -85,7 +85,7 @@ index: 0);
         }
 
         [WorkItem(529841), WorkItem(714632)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DisambiguateCallSiteIfNecessary1()
         {
             await TestAsync(
@@ -126,7 +126,7 @@ compareTokens: false);
         }
 
         [WorkItem(529841), WorkItem(714632)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DisambiguateCallSiteIfNecessary2()
         {
             await TestAsync(
@@ -168,7 +168,7 @@ compareTokens: false);
 
         [WorkItem(530709)]
         [WorkItem(632182)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DontOverparenthesize()
         {
             await TestAsync(
@@ -229,7 +229,7 @@ parseOptions: Options.Regular);
         }
 
         [WorkItem(632182)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task DontOverparenthesizeGenerics()
         {
             await TestAsync(
@@ -290,7 +290,7 @@ parseOptions: Options.Regular);
         }
 
         [WorkItem(984831)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task PreserveCommentsBeforeDeclaration_1()
         {
             await TestAsync(
@@ -334,7 +334,7 @@ compareTokens: false);
         }
 
         [WorkItem(984831)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task PreserveCommentsBeforeDeclaration_2()
         {
             await TestAsync(
@@ -386,7 +386,7 @@ compareTokens: false);
         }
 
         [WorkItem(984831)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task PreserveCommentsBeforeDeclaration_3()
         {
             await TestAsync(

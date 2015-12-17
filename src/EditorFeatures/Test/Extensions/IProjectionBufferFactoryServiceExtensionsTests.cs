@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class IProjectionBufferFactoryServiceExtensionsTests
     {
-        [WpfFact]
+        [Fact]
         public void TestCreateElisionBufferWithoutIndentation()
         {
             var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void TestCreateProjectionBuffer()
         {
             var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.Equal(lines[3].GetText(), "  line 4");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestCreateProjectionBufferWithoutIndentation()
         {
             var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;

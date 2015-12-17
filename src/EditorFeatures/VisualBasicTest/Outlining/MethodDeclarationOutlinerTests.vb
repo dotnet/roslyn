@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New MethodDeclarationOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSub() As Task
             Const code = "
 Class C
@@ -26,7 +26,7 @@ End Class
                 Region("span", "Sub Foo() ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithGenericTypeParameter() As Task
             Const code = "
 Class C
@@ -39,7 +39,7 @@ End Class
                 Region("span", "Sub Foo(Of T)() ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithGenericTypeParameterAndSingleConstraint() As Task
             Const code = "
 Class C
@@ -52,7 +52,7 @@ End Class
                 Region("span", "Sub Foo(Of T As Class)() ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithGenericTypeParameterAndMultipleConstraint() As Task
             Const code = "
 Class C
@@ -65,7 +65,7 @@ End Class
                 Region("span", "Sub Foo(Of T As {Class, New})() ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestPrivateSub() As Task
             Const code = "
 Class C
@@ -78,7 +78,7 @@ End Class
                 Region("span", "Private Sub Foo() ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithByRefParameter() As Task
             Const code = "
 Class C
@@ -91,7 +91,7 @@ End Class
                 Region("span", "Sub Foo(ByRef i As Integer) ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithByValParameter() As Task
             Const code = "
 Class C
@@ -104,7 +104,7 @@ End Class
                 Region("span", "Sub Foo(ByVal i As Integer) ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithOptionalParameter() As Task
             Const code = "
 Class C
@@ -117,7 +117,7 @@ End Class
                 Region("span", "Sub Foo(Optional i As Integer = 1) ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithHandlesClause() As Task
             Const code = "
 Class C
@@ -130,7 +130,7 @@ End Class
                 Region("span", "Sub Foo() Handles Bar.Baz ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithImplementsClause() As Task
             Const code = "
 Class C
@@ -143,7 +143,7 @@ End Class
                 Region("span", "Sub Foo() Implements Bar.Baz ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithComments() As Task
             Const code = "
 Class C

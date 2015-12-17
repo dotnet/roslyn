@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class DeclarationConflictTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenFields()
             Using result = RenameEngineResult.Create(
@@ -24,7 +24,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenFieldAndMethod()
             Using result = RenameEngineResult.Create(
@@ -45,7 +45,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenTwoMethodsWithSameSignature()
             Using result = RenameEngineResult.Create(
@@ -68,7 +68,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenTwoParameters()
             Using result = RenameEngineResult.Create(
@@ -88,7 +88,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictBetweenMethodsWithDifferentSignatures()
             Using result = RenameEngineResult.Create(
@@ -110,7 +110,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543245)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenTwoLocals()
@@ -133,7 +133,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543245)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLocalAndParameter()
@@ -155,7 +155,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(545859)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenQueryVariableAndParameter()
@@ -177,7 +177,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(545859)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenTwoQueryVariables()
@@ -200,7 +200,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543654)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLambdaParametersInsideMethod()
@@ -224,7 +224,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543654)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLambdaParametersInFieldInitializer()
@@ -246,7 +246,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543654)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictBetweenLambdaParameterAndField()
@@ -267,7 +267,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543407)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabels()
@@ -294,7 +294,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543308)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenMethodsDifferingByByRef()
@@ -319,7 +319,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543308)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenMethodsDifferingByOptional()
@@ -344,7 +344,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(543308)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictBetweenMethodsDifferingByArity()
@@ -368,7 +368,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(546902)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenImplicitlyDeclaredLocalAndNamespace()
@@ -392,7 +392,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(529556)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenImplicitlyDeclaredLocalAndAndGlobalFunction()
@@ -421,7 +421,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(542217)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenAliases()
@@ -448,7 +448,7 @@ End Namespace
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(530125)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenImplicitVariableAndClass()
@@ -476,7 +476,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(530038)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenEquallyNamedAlias()
@@ -508,7 +508,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(610120)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenEquallyNamedPropertyAndItsParameter_1()
@@ -535,7 +535,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(610120)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenEquallyNamedPropertyAndItsParameter_2()
@@ -588,7 +588,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(610120)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenEquallyNamedPropertyAndItsParameter_3()
@@ -615,7 +615,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(608198), WorkItem(798375)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictInFieldInitializerOfFieldAndModuleNameResolvedThroughFullQualification()
@@ -636,7 +636,7 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(528706)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableNotBindingToTypeAnyMore()
@@ -668,7 +668,7 @@ End Namespace
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(530476)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableAndRangeVariable_1()
@@ -701,7 +701,7 @@ End Namespace
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(530476)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableAndRangeVariable_2()
@@ -734,7 +734,7 @@ End Namespace
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(530476)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableAndRangeVariable_3()
@@ -769,7 +769,7 @@ End Namespace
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(530476)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableAndRangeVariable_4()
@@ -803,7 +803,7 @@ End Namespace
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(530476)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForUsingVariableAndRangeVariable_1()
@@ -836,7 +836,7 @@ End Namespace
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(530476)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForUsingVariableAndRangeVariable_2()
@@ -897,7 +897,7 @@ End Namespace
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForCatchVariable_1()
             Using result = RenameEngineResult.Create(
@@ -925,7 +925,7 @@ End Namespace
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(529986)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParametersInTypeDeclaration()
@@ -944,7 +944,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(529986)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParametersInMethodDeclaration_1()
@@ -965,7 +965,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(529986)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParametersInMethodDeclaration_2()
@@ -986,7 +986,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(529986)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParameterAndMember_1()
@@ -1007,7 +1007,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(529986)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParameterAndMember_2()
@@ -1027,7 +1027,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <WorkItem(658437)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenEscapedForEachControlVariableAndQueryRangeVariable()
@@ -1059,7 +1059,7 @@ End Module
         End Sub
 
         <WorkItem(658801)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_OverridingImplicitlyUsedMethod()
             Using result = RenameEngineResult.Create(
@@ -1102,7 +1102,7 @@ End Class
         End Sub
 
         <WorkItem(682669)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_OverridingImplicitlyUsedMethod_1()
             Using result = RenameEngineResult.Create(
@@ -1145,7 +1145,7 @@ End Class
         End Sub
 
         <WorkItem(682669)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_OverridingImplicitlyUsedMethod_2()
             Using result = RenameEngineResult.Create(
@@ -1186,7 +1186,7 @@ End Class
         End Sub
 
         <WorkItem(851604)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictInsideSimpleArgument()
             Using result = RenameEngineResult.Create(
                 <Workspace>

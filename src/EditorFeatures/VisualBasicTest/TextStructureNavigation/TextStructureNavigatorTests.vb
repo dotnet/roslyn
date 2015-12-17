@@ -12,7 +12,7 @@ Imports Microsoft.VisualStudio.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavigation
     Public Class TextStructureNavigatorTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Async Function TestEmpty() As Task
             Await AssertExtentAsync(
                 String.Empty,
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
                 start:=8, length:=6)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Async Function TestNewLine() As Task
             Await AssertExtentAsync(
                 "Module Module1" & vbCrLf & vbCrLf & "End Module",

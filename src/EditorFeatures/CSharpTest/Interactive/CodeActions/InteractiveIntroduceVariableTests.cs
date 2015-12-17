@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             return TestAsync(initial, expected, Options.Script, index, compareTokens);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix1()
         {
             await TestAsync(
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix2()
         {
             await TestAsync(
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 3);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestFieldFix1()
         {
             var code =
@@ -50,7 +50,7 @@ int i = V + (1 + 1);";
             await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestFieldFix2()
         {
             var code =
@@ -63,7 +63,7 @@ int i = V + V;";
             await TestAsync(code, expected, index: 1, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestParameterFix1()
         {
             await TestAsync(
@@ -72,7 +72,7 @@ int i = V + V;";
                 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestParameterFix2()
         {
             await TestAsync(
@@ -81,7 +81,7 @@ int i = V + V;";
                 index: 1);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestAttributeFix1()
         {
             await TestAsync(
@@ -90,7 +90,7 @@ int i = V + V;";
                 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestAttributeFix2()
         {
             await TestAsync(
@@ -100,7 +100,7 @@ int i = V + V;";
         }
 
         [WorkItem(541287)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestBlockFormatting()
         {
             await TestAsync(
@@ -134,7 +134,7 @@ compareTokens: false);
         }
 
         [WorkItem(546465)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestPreserveTrivia()
         {
             await TestAsync(

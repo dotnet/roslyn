@@ -52,7 +52,7 @@ delegate void D();
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAssemblyLevelAttribute() As Task
             Dim code =
 <Code>
