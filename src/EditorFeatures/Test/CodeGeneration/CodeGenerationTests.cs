@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var @namespace = CodeGenerationSymbolFactory.CreateNamespaceSymbol(name, imports, members);
-                context.Result = context.Service.AddNamespaceAsync(context.Solution, (INamespaceSymbol)context.GetDestination(), @namespace, codeGenerationOptions).Result;
+                context.Result = await context.Service.AddNamespaceAsync(context.Solution, (INamespaceSymbol)context.GetDestination(), @namespace, codeGenerationOptions);
             }
         }
 
@@ -68,11 +68,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     constantValue);
                 if (!addToCompilationUnit)
                 {
-                    context.Result = context.Service.AddFieldAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), field, codeGenerationOptions).Result;
+                    context.Result = await context.Service.AddFieldAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), field, codeGenerationOptions);
                 }
                 else
                 {
-                    var newRoot = context.Service.AddField(context.Document.GetSyntaxRootAsync().Result, field, codeGenerationOptions);
+                    var newRoot = context.Service.AddField(await context.Document.GetSyntaxRootAsync(), field, codeGenerationOptions);
                     context.Result = context.Document.WithSyntaxRoot(newRoot);
                 }
             }
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     statements,
                     baseConstructorArguments: baseArguments,
                     thisConstructorArguments: thisArguments);
-                context.Result = context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), ctor, codeGenerationOptions).Result;
+                context.Result = await context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), ctor, codeGenerationOptions);
             }
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     parameterSymbols,
                     parsedStatements,
                     handlesExpressions: handlesExpressions);
-                context.Result = context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), method, codeGenerationOptions).Result;
+                context.Result = await context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), method, codeGenerationOptions);
             }
         }
 
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     parameterSymbols,
                     parsedStatements));
 
-                context.Result = context.Service.AddMembersAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), methods.ToArray(), codeGenerationOptions).Result;
+                context.Result = await context.Service.AddMembersAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), methods.ToArray(), codeGenerationOptions);
             }
         }
 
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     isImplicit,
                     parsedStatements);
 
-                context.Result = context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), method, codeGenerationOptions).Result;
+                context.Result = await context.Service.AddMethodAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), method, codeGenerationOptions);
             }
         }
 
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var parsedStatements = context.ParseStatements(statements);
                 var oldSyntax = context.GetSelectedSyntax<SyntaxNode>(true);
                 var newSyntax = context.Service.AddStatements(oldSyntax, parsedStatements, codeGenerationOptions);
-                context.Result = context.Document.WithSyntaxRoot(context.Document.GetSyntaxRootAsync().Result.ReplaceNode(oldSyntax, newSyntax));
+                context.Result = context.Document.WithSyntaxRoot((await context.Document.GetSyntaxRootAsync()).ReplaceNode(oldSyntax, newSyntax));
             }
         }
 
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var oldMemberSyntax = context.GetSelectedSyntax<SyntaxNode>(true);
                 var newMemberSyntax = context.Service.AddParameters(oldMemberSyntax, parameterSymbols, codeGenerationOptions);
-                context.Result = context.Document.WithSyntaxRoot(context.Document.GetSyntaxRootAsync().Result.ReplaceNode(oldMemberSyntax, newMemberSyntax));
+                context.Result = context.Document.WithSyntaxRoot((await context.Document.GetSyntaxRootAsync()).ReplaceNode(oldMemberSyntax, newMemberSyntax));
             }
         }
 
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     name,
                     typeParameters,
                     parameterSymbols);
-                context.Result = context.Service.AddNamedTypeAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), type, codeGenerationOptions).Result;
+                context.Result = await context.Service.AddNamedTypeAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), type, codeGenerationOptions);
             }
         }
 
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     addMethod,
                     removeMethod,
                     raiseMethod);
-                context.Result = context.Service.AddEventAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), @event, codeGenerationOptions).Result;
+                context.Result = await context.Service.AddEventAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), @event, codeGenerationOptions);
             }
         }
 
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     getAccessor,
                     setAccessor,
                     isIndexer);
-                context.Result = context.Service.AddPropertyAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), property, codeGenerationOptions).Result;
+                context.Result = await context.Service.AddPropertyAsync(context.Solution, (INamedTypeSymbol)context.GetDestination(), property, codeGenerationOptions);
             }
         }
 
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             {
                 var memberSymbols = GetSymbols(members, context);
                 var type = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(null, accessibility, modifiers, typeKind, name, typeParameters, baseType, interfaces, specialType, memberSymbols);
-                context.Result = context.Service.AddNamedTypeAsync(context.Solution, (INamespaceSymbol)context.GetDestination(), type, codeGenerationOptions).Result;
+                context.Result = await context.Service.AddNamedTypeAsync(context.Solution, (INamespaceSymbol)context.GetDestination(), type, codeGenerationOptions);
             }
         }
 
@@ -569,22 +569,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var projectId = ProjectId.CreateNewId();
                 var documentId = DocumentId.CreateNewId(projectId);
 
-                var semanticModel = context.Solution
+                var semanticModel = await context.Solution
                     .AddProject(projectId, "GenerationSource", "GenerationSource", TestContext.GetLanguage(symbolSource))
                     .AddDocument(documentId, "Source.cs", symbolSource)
                     .GetDocument(documentId)
-                    .GetSemanticModelAsync().Result;
+                    .GetSemanticModelAsync();
 
                 var symbol = context.GetSelectedSymbol<INamespaceOrTypeSymbol>(destSpan, semanticModel);
                 var destination = context.GetDestination();
                 if (destination.IsType)
                 {
                     var members = onlyGenerateMembers ? symbol.GetMembers().ToArray() : new[] { symbol };
-                    context.Result = context.Service.AddMembersAsync(context.Solution, (INamedTypeSymbol)destination, members, codeGenerationOptions).Result;
+                    context.Result = await context.Service.AddMembersAsync(context.Solution, (INamedTypeSymbol)destination, members, codeGenerationOptions);
                 }
                 else
                 {
-                    context.Result = context.Service.AddNamespaceOrTypeAsync(context.Solution, (INamespaceSymbol)destination, symbol, codeGenerationOptions).Result;
+                    context.Result = await context.Service.AddNamespaceOrTypeAsync(context.Solution, (INamespaceSymbol)destination, symbol, codeGenerationOptions);
                 }
             }
         }
