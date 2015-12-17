@@ -3783,7 +3783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;If&apos;, &apos;ElseIf&apos;, &apos;Else&apos;, &apos;Const&apos;, &apos;Region&apos;, &apos;ExternalSource&apos;, &apos;ExternalChecksum&apos;, &apos;Enable&apos;, &apos;Disable&apos;, &apos;End&apos;, &apos;Load&apos;, or &apos;R&apos; expected..
+        '''  Looks up a localized string similar to &apos;If&apos;, &apos;ElseIf&apos;, &apos;Else&apos;, &apos;Const&apos;, &apos;Region&apos;, &apos;ExternalSource&apos;, &apos;ExternalChecksum&apos;, &apos;Enable&apos;, &apos;Disable&apos;, &apos;End&apos;, &apos;Load&apos;, &apos;!&apos;, or &apos;R&apos; expected..
         '''</summary>
         Friend ReadOnly Property ERR_ExpectedConditionalDirective() As String
             Get
@@ -9754,6 +9754,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_SharedStructMemberCannotSpecifyNew() As String
             Get
                 Return ResourceManager.GetString("ERR_SharedStructMemberCannotSpecifyNew", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to #! directive should appear as the first directive in the script file without any whitespace..
+        '''</summary>
+        Friend ReadOnly Property ERR_ShebangOnlyAllowedAtStartOfFile() As String
+            Get
+                Return ResourceManager.GetString("ERR_ShebangOnlyAllowedAtStartOfFile", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to #! directive is only allowed is script code..
+        '''</summary>
+        Friend ReadOnly Property ERR_ShebangOnlyAllowedInScripts() As String
+            Get
+                Return ResourceManager.GetString("ERR_ShebangOnlyAllowedInScripts", resourceCulture)
             End Get
         End Property
         

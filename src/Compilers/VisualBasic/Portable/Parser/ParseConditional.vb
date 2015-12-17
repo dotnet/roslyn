@@ -7,17 +7,18 @@
 ' // Parse a line containing a conditional compilation directive.
 Imports System.Globalization
 Imports System.Text
+Imports Microsoft.CodeAnalysis.Collections
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         ' File: Parser.cpp
         ' Lines: 18978 - 18978
         ' .Parser::ParseConditionalCompilationStatement( [ bool SkippingMethodBody ] )
 
-        Friend Function ParseConditionalCompilationStatement(startOfFile As Boolean) As DirectiveTriviaSyntax
+        Friend Function ParseConditionalCompilationStatement(isAtStartOfFile As Boolean) As DirectiveTriviaSyntax
             ' # may be actually scanned as a date literal. This is an error.
             If CurrentToken.Kind = SyntaxKind.DateLiteralToken OrElse
                 CurrentToken.Kind = SyntaxKind.BadToken Then
@@ -64,8 +65,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case SyntaxKind.ExclamationToken
 
-                    If startOfFile AndAlso Not hashToken.HasTrailingTrivia AndAlso IsScript() Then
+                    If isAtStartOfFile AndAlso Not hashToken.HasTrailingTrivia AndAlso IsScript Then
                         statement = ParseShebangDirective(hashToken)
+                    ElseIf Not IsScript Then
+                        statement = ParseBadDirective(hashToken, ERRID.ERR_ShebangOnlyAllowedInScripts)
+                    ElseIf Not isAtStartOfFile Then
+                        statement = ParseBadDirective(hashToken, ERRID.ERR_ShebangOnlyAllowedAtStartOfFile)
                     Else
                         statement = ParseBadDirective(hashToken)
                     End If
@@ -473,22 +478,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseShebangDirective(hashToken As PunctuationSyntax) As ShebangDirectiveTriviaSyntax
-            Dim builder = New StringBuilder()
+            Dim builder = PooledStringBuilder.GetInstance()
             Debug.Assert(CurrentToken.Kind = SyntaxKind.ExclamationToken,
                          NameOf(ParseShebangDirective) & " called with wrong token")
             Dim exclamationToken = DirectCast(CurrentToken, PunctuationSyntax)
             GetNextToken()
 
             ' Eat tokens until the end of line.
-            While CurrentToken.Kind <> SyntaxKind.EndOfLineTrivia AndAlso
-                    CurrentToken.Kind <> SyntaxKind.EndOfFileToken AndAlso
-                    CurrentToken.Kind <> SyntaxKind.StatementTerminatorToken
-                builder.Append(CurrentToken.ToFullString())
+            While CurrentToken.Kind <> SyntaxKind.EndOfFileToken AndAlso
+                  CurrentToken.Kind <> SyntaxKind.StatementTerminatorToken
+                builder.Builder.Append(CurrentToken.ToFullString())
                 GetNextToken()
             End While
 
 
-            exclamationToken = exclamationToken.AddTrailingTrivia(SyntaxFactory.CommentTrivia(builder.ToString()))
+            exclamationToken = exclamationToken.AddTrailingTrivia(SyntaxFactory.CommentTrivia(builder.ToStringAndFree()))
             Return SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken)
         End Function
 
@@ -510,11 +514,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.LoadDirectiveTrivia(hashToken, loadKeyword, file)
         End Function
 
-        Private Shared Function ParseBadDirective(hashToken As PunctuationSyntax) As BadDirectiveTriviaSyntax
+        Private Shared Function ParseBadDirective(
+                hashToken As PunctuationSyntax,
+                Optional errorId As ERRID = ERRID.ERR_ExpectedConditionalDirective) As BadDirectiveTriviaSyntax
             Dim badDirective = InternalSyntaxFactory.BadDirectiveTrivia(hashToken)
 
             If Not badDirective.ContainsDiagnostics Then
-                badDirective = ReportSyntaxError(badDirective, ERRID.ERR_ExpectedConditionalDirective)
+                badDirective = ReportSyntaxError(badDirective, errorId)
             End If
 
             Return badDirective

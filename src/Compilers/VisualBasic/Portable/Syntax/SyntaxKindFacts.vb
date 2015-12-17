@@ -70,8 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SyntaxKind.EnableKeyword,
                     SyntaxKind.DisableKeyword,
                     SyntaxKind.ExternalSourceKeyword,
-                    SyntaxKind.ExternalChecksumKeyword,
-                    SyntaxKind.ExclamationToken
+                    SyntaxKind.ExternalChecksumKeyword
                     Return True
                 Case Else
                     Return False
@@ -155,7 +154,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             SyntaxKind.LetKeyword,
             SyntaxKind.LibKeyword,
             SyntaxKind.LikeKeyword,
-            SyntaxKind.LoadKeyword,
             SyntaxKind.LongKeyword,
             SyntaxKind.LoopKeyword,
             SyntaxKind.MeKeyword,

@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
                         ClassifyDirectiveSyntax(DirectCast(trivia.GetStructure(), DirectiveTriviaSyntax))
                     Case SyntaxKind.ShebangDirectiveTrivia
-                        ClassifyShebangDirective(trivia.GetStructure(), ClassificationTypeNames.Comment)
+                        ClassifyShebangDirective(trivia.GetStructure())
                     Case SyntaxKind.SkippedTokensTrivia
                         ClassifySkippedTokens(DirectCast(trivia.GetStructure(), SkippedTokensTriviaSyntax))
                 End Select
@@ -140,15 +140,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End If
         End Sub
 
-        Private Sub ClassifyShebangDirective(directiveSyntax As SyntaxNode, classificationType As String)
+        Private Sub ClassifyShebangDirective(directiveSyntax As SyntaxNode)
             If Not _textSpan.OverlapsWith(directiveSyntax.Span) Then
                 Return
             End If
 
-            For Each child As SyntaxNodeOrToken In directiveSyntax.DescendantTokens()
-                If child.IsToken Then
-                    AddClassification(child.AsToken(), classificationType)
-                End If
+            For Each child As SyntaxToken In directiveSyntax.DescendantTokens()
+                AddClassification(child, ClassificationTypeNames.Comment)
             Next
 
             For Each trailingTrivia In directiveSyntax.GetTrailingTrivia()

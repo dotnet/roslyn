@@ -99,8 +99,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Next
         End Sub
 
-        Friend Sub VerifyRecommendationsMissing(options As ParseOptions, testSource As XElement, ParamArray recommentations As String())
-            Assert.NotEmpty(recommentations)
+        Friend Sub VerifyRecommendationsMissing(options As ParseOptions, testSource As XElement, ParamArray recommendations As String())
+            Assert.NotEmpty(recommendations)
 
             Dim source = ConvertTestSourceTag(testSource)
 
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
                                       .OrderBy(Function(recommendation) recommendation) _
                                       .ToArray()
 
-            For Each recommendation In recommentations
+            For Each recommendation In recommendations
                 Assert.DoesNotContain(recommendation, recommendedKeywords)
             Next
         End Sub

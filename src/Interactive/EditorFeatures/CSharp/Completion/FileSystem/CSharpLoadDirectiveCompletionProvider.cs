@@ -16,10 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
     {
         private static readonly Regex s_directiveRegex = new Regex(@"#load\s+(""[^""]*""?)", RegexOptions.Compiled);
 
-        protected override string[] AllowableExtensions()
-        {
-            return new[] { ".csx" };
-        }
+        protected override string[] AllowableExtensions => new[] { ".csx" };
 
         protected override Match GetDirectiveMatch(string lineText)
         {

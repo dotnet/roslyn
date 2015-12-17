@@ -3971,16 +3971,18 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function TestShebangDirective() As Task
             Dim text = <Code>#!/usr/bin</Code>
-
             Dim expected = text
+            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value)
 
+            text = <Code>#! /usr/bin </Code>
+            expected = text
             Await AssertFormatLf2CrLfAsync(text.Value, expected.Value)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function TestLoadDirective() As Task
-            Dim text = <Code>#Load           "filename"</Code>
-            Dim expected = <Code>#Load "filename"</Code>
+            Dim text = <Code>#Load           "filename" 'comment</Code>
+            Dim expected = <Code>#Load "filename" 'comment</Code>
 
             Await AssertFormatLf2CrLfAsync(text.Value, expected.Value)
         End Function

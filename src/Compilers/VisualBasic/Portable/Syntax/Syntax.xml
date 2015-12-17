@@ -9446,7 +9446,7 @@ Unify Enum declarations with other block type declarations.
     </node-structure>
 
     <node-structure name="ShebangDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
-      <description>Represents a #! directive appearning at the beginning of scripts.</description>
+      <description>Represents a #! directive appearing at the beginning of scripts.</description>
       <node-kind name="ShebangDirectiveTrivia"></node-kind>
 
       <child name="ExclamationToken" kind="ExclamationToken"/>

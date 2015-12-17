@@ -17,8 +17,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             Return s_directiveRegex.Match(lineText)
         End Function
 
-        Protected Overrides Function AllowableExtensions() As String()
-            Return {".vbx"}
-        End Function
+        Protected Overrides ReadOnly Property AllowableExtensions As String() = {".vbx"}
     End Class
 End Namespace

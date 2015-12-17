@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 
         protected abstract Match GetDirectiveMatch(string lineText);
 
-        protected abstract string[] AllowableExtensions();
+        protected abstract string[] AllowableExtensions { get; }
 
         public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
                 Glyph.OpenFolder,
                 Glyph.CSharpFile,
                 searchPaths: searchPaths,
-                allowableExtensions: AllowableExtensions(),
+                allowableExtensions: AllowableExtensions,
                 itemRules: ItemRules.Instance);
 
             var pathThroughLastSlash = this.GetPathThroughLastSlash(text, position, quotedPathGroup);

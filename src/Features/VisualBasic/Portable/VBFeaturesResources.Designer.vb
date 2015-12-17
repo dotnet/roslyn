@@ -2631,6 +2631,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Under unix a #! directive specifies program that runs the script. For example (#!/usr/bin/env vbi)..
+        '''</summary>
+        Friend ReadOnly Property ShebangKeywordToolTip() As String
+            Get
+                Return ResourceManager.GetString("ShebangKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Join clause.
         '''</summary>
         Friend ReadOnly Property SimpleJoinClause() As String
