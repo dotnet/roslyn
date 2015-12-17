@@ -2555,7 +2555,7 @@ namespace ConsoleApplication46
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             var completionList = await GetCompletionListAsync(provider, document, testDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
 
-            var oldTree = await document.GetSyntaxTreeAsync(CancellationToken.None);
+            var oldTree = await document.GetSyntaxTreeAsync();
 
             provider.Commit(completionList.Items.First(i => i.DisplayText == "ToString()"), testDocument.GetTextView(), testDocument.GetTextBuffer(), testDocument.TextBuffer.CurrentSnapshot, ' ');
             var newTree = await workspace.CurrentSolution.GetDocument(testDocument.Id).GetSyntaxTreeAsync();
