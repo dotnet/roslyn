@@ -5,7 +5,7 @@ Imports System.Threading.Tasks
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(539174)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasic_OperatorError1() As Task
             Dim input =
 <Workspace>
@@ -22,7 +22,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpFindReferencesOnUnaryOperatorOverload() As Task
             Dim input =
 <Workspace>
@@ -43,7 +43,7 @@ class A
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpFindReferencesOnUnaryOperatorOverloadFromDefinition() As Task
             Dim input =
 <Workspace>
@@ -64,7 +64,7 @@ class A
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpFindReferencesOnBinaryOperatorOverload() As Task
             Dim input =
 <Workspace>
@@ -84,7 +84,7 @@ class A
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpFindReferencesOnBinaryOperatorOverloadFromDefinition() As Task
             Dim input =
 <Workspace>
@@ -104,7 +104,7 @@ class A
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicFindReferencesOnUnaryOperatorOverload() As Task
             Dim input =
 <Workspace>
@@ -126,7 +126,7 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicFindReferencesOnUnaryOperatorOverloadFromDefinition() As Task
             Dim input =
 <Workspace>
@@ -148,7 +148,7 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicFindReferencesOnBinaryOperatorOverload() As Task
             Dim input =
 <Workspace>
@@ -169,7 +169,7 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicFindReferencesOnBinaryOperatorOverloadFromDefinition() As Task
             Dim input =
 <Workspace>

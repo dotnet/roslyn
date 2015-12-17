@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim context = New TaggerContext(Of NavigableHighlightTag)(
                     document, snapshot, New SnapshotPoint(snapshot, caretPosition))
-                tagProducer.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait()
+                Await tagProducer.ProduceTagsAsync_ForTestingPurposesOnly(context)
 
                 Dim producedTags = From tag In context.tagSpans
                                    Order By tag.Span.Start

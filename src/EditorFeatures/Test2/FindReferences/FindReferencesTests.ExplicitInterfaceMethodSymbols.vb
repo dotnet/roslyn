@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
 
         <WorkItem(538972)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestExplicitMethod1() As Task
             Dim input =
 <Workspace>
@@ -28,7 +28,7 @@ class C : I
         End Function
 
         <WorkItem(538972)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestExplicitMethod2() As Task
             Dim input =
 <Workspace>
@@ -49,7 +49,7 @@ class C : I
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestExplicitMethodAndInheritance() As Task
             Dim input =
 <Workspace>

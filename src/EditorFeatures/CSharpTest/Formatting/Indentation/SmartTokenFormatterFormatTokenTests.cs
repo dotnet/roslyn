@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public class SmartTokenFormatterFormatTokenTests : FormatterTestsBase
     {
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmptyFile1()
         {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 0);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EmptyFile2()
         {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 0);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace1()
         {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 0);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace2()
         {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 0);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Namespace3()
         {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 0);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class1()
         {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 4);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class2()
         {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 4);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Class3()
         {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 4);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Method1()
         {
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Method2()
         {
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Method3()
         {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Property1()
         {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Property2()
         {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Event1()
         {
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Event2()
         {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Indexer1()
         {
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Indexer2()
         {
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 8);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block1()
         {
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block2()
         {
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 0);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block3()
         {
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task Block4()
         {
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ArrayInitializer1()
         {
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 indentationLine: 6);
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(537827)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ArrayInitializer3()
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedSpace: 12);
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(543142)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task EnterWithTrailingWhitespace()
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         [WorkItem(9216, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task OpenBraceWithBaseIndentation()
         {
             var markup = @"
@@ -447,7 +447,7 @@ $${
         }
 
         [WorkItem(9216, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void CloseBraceWithBaseIndentation()
         {
             var markup = @"
@@ -467,7 +467,7 @@ $$}
         }
 
         [WorkItem(766159)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TestPreprocessor()
         {
             var code = @"
@@ -483,7 +483,7 @@ class C
         }
 
         [WorkItem(766159)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TestRegion()
         {
             var code = @"
@@ -499,7 +499,7 @@ class C
         }
 
         [WorkItem(766159)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TestEndRegion()
         {
             var code = @"
@@ -517,7 +517,7 @@ class C
         }
 
         [WorkItem(777467)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TestSelect()
         {
             var code = @"
@@ -539,7 +539,7 @@ class Program
         }
 
         [WorkItem(777467)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task TestWhere()
         {
             var code = @"

@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
                 End Function
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirective() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -97,7 +97,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective1() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -136,7 +136,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective2() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -181,7 +181,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective3() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -226,7 +226,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective4() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -265,7 +265,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective5() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -304,7 +304,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective6() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -346,7 +346,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineStatementPragmaWarningDirective7() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -388,7 +388,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveWithExistingTrivia() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -430,7 +430,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(970129)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionAroundSingleToken() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -478,7 +478,7 @@ End Module]]>
                 End Function
 
                 <WorkItem(1066576)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia1() As Task
                     Dim source = <![CDATA[
 Class C
@@ -524,7 +524,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(1066576)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia2() As Task
                     Dim source = <![CDATA['''[|<summary></summary>|]]]>
                     Dim expected = <![CDATA[#Disable Warning BC42312
@@ -535,7 +535,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(1066576)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia3() As Task
                     Dim source = <![CDATA[   '''[|<summary></summary>|]   ]]>
                     Dim expected = <![CDATA[#Disable Warning BC42312
@@ -546,7 +546,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(1066576)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia4() As Task
                     Dim source = <![CDATA[
 
@@ -567,7 +567,7 @@ Class C : End Class
                 End Function
 
                 <WorkItem(1066576)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia5() As Task
                     Dim source = <![CDATA[class C1 : End Class
 '''<summary><see [|cref="abc"|]/></summary>
@@ -584,7 +584,7 @@ Class C3 : End Class]]>
                 End Function
 
                 <WorkItem(1066576)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia6() As Task
                     Dim source = <![CDATA[class C1 : End Class
 Class C2 : End Class [|'''|]
@@ -606,7 +606,7 @@ Class C3 : End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestHiddenDiagnosticCannotBeSuppressed() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -651,7 +651,7 @@ End Class]]>
 
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestInfoDiagnosticSuppressed() As Task
 
                     Dim source = <![CDATA[
@@ -724,7 +724,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestDiagnosticWithBadIdSuppressed() As Task
 
                     ' Diagnostics with bad/invalid ID are not reported.
@@ -768,7 +768,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestWarningDiagnosticWithNameMatchingKeywordSuppressed() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -831,7 +831,7 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestErrorDiagnosticCanBeSuppressed() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -888,7 +888,7 @@ End Class]]>
 
 
                 <WorkItem(730770)>
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestCompilerDiagnosticsCannotBeSuppressed() As Task
 
                     Dim source = <![CDATA[
@@ -908,7 +908,7 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestHiddenDiagnosticsCannotBeSuppressed() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -978,7 +978,7 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionOnSimpleType() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1013,7 +1013,7 @@ End Class"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionOnNamespace() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1053,7 +1053,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionOnTypeInsideNamespace() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1097,7 +1097,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionOnNestedType() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1141,7 +1141,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionOnMethod() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1185,7 +1185,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionOnOverloadedMethod() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1237,7 +1237,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionOnGenericMethod() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1289,7 +1289,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionOnProperty() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1337,7 +1337,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionOnField() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1369,7 +1369,7 @@ End Class"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionOnEvent() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1449,7 +1449,7 @@ End Class"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionWithExistingGlobalSuppressionsDocument() As Task
                     Dim source =
                     <Workspace>
@@ -1488,7 +1488,7 @@ End Class]]>
                     Await TestAsync(source.ToString(), expected)
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionWithExistingGlobalSuppressionsDocument2() As Task
                     ' Own custom file named GlobalSuppressions.cs
                     Dim source =
@@ -1524,7 +1524,7 @@ End Class
                     Await TestAsync(source.ToString(), expected)
                 End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestSuppressionWithExistingGlobalSuppressionsDocument3() As Task
                     ' Own custom file named GlobalSuppressions.vb + existing GlobalSuppressions2.vb with global suppressions
                     Dim source =

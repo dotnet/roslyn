@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
 {
     public class SpanExtensionsTest
     {
-        [WpfFact]
+        [Fact]
         public void ConvertToTextSpan()
         {
             Action<int, int> del = (start, length) =>

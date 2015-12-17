@@ -5,7 +5,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     Public Class RuleSetDocumentExtensionsTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub AdjustSingleNonExistentRule()
             Dim startingRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">
@@ -25,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Assert.Equal(expectedRuleSet.Value, document.Element("RuleSet").Value)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub AdjustSingleExistentRule()
             Dim startingRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Assert.Equal(expectedRuleSet.Value, document.Element("RuleSet").Value)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub AdjustSingleRuleUnderDifferentAnalyzer()
             Dim startingRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">
@@ -74,7 +74,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Assert.Equal(expectedRuleSet.Value, document.Element("RuleSet").Value)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub AdjustMultipleRules()
             Dim startingRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">
@@ -103,7 +103,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Assert.Equal(expectedRuleSet.Value, document.Element("RuleSet").Value)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub RemoveSingleNonExistentRule()
             Dim startingRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">
@@ -122,7 +122,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Assert.Equal(expectedRuleSet.Value, document.Element("RuleSet").Value)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub RemoveSingleExistentRule()
             Dim startingRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">
@@ -144,7 +144,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Assert.Equal(expectedRuleSet.Value, document.Element("RuleSet").Value)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub RemoveMultipleRules()
             Dim startingRuleSet =
                 <RuleSet Name="MyRules" Description="A bunch of rules">

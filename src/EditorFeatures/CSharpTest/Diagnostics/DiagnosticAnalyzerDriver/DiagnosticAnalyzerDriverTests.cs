@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
 {
     public class DiagnosticAnalyzerDriverTests
     {
-        [WpfFact]
+        [Fact]
         public async Task DiagnosticAnalyzerDriverAllInOne()
         {
             var source = TestResource.AllInOneCSharpCode;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             }
         }
 
-        [WpfFact, WorkItem(908658)]
+        [Fact, WorkItem(908658)]
         public async Task DiagnosticAnalyzerDriverVsAnalyzerDriverOnCodeBlock()
         {
             var methodNames = new string[] { "Initialize", "AnalyzeCodeBlock" };
@@ -126,7 +126,7 @@ class C
             Assert.True(exceptions.Count == 0);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzerOptionsArePassedToAllAnalyzers()
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(TestResource.AllInOneCSharpCode, TestOptions.Regular))
@@ -161,7 +161,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task AnalyzerCreatedAtCompilationLevelNeedNotBeCompilationAnalyzer()
         {
             var source = @"x";
@@ -212,7 +212,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task CodeBlockAnalyzersOnlyAnalyzeExecutableCode()
         {
             var source = @"

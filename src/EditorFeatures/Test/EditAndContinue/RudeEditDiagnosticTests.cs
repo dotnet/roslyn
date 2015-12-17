@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
 {
     public class RudeEditDiagnosticTests
     {
-        [WpfFact]
+        [Fact]
         public void ToDiagnostic()
         {
             var tree = SyntaxFactory.ParseCompilationUnit("class C { }").SyntaxTree;

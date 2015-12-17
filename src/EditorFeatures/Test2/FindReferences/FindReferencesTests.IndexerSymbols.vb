@@ -5,7 +5,7 @@ Imports System.Threading.Tasks
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(529629)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_Indexer1() As Task
             Dim input =
 <Workspace>
@@ -31,7 +31,7 @@ class D
         End Function
 
         <WorkItem(529629)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_Indexer1() As Task
             Dim input =
 <Workspace>
@@ -58,7 +58,7 @@ end class
         End Function
 
         <WorkItem(545577)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_Indexer2() As Task
             Dim input =
 <Workspace>
@@ -81,7 +81,7 @@ End Class
         End Function
 
         <WorkItem(650779)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_Indexer3() As Task
             Dim input =
 <Workspace>
@@ -111,7 +111,7 @@ End Class
         End Function
 
         <WorkItem(661362)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestBasic_Indexer4() As Task
             Dim input =
 <Workspace>

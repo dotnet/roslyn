@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
             var actions = new List<CodeAction>();
             var context = new CodeFixContext(document, diagnostics[0], (a, d) => actions.Add(a), CancellationToken.None);
-            _codeFixProvider.RegisterCodeFixesAsync(context).Wait();
+            await _codeFixProvider.RegisterCodeFixesAsync(context);
 
             // There should only be one code action
             Assert.Equal(1, actions.Count);

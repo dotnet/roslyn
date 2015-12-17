@@ -2,17 +2,17 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class IfDirectiveKeywordRecommenderTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashIfInFile()
             VerifyRecommendationsContain(<File>|</File>, "#If")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashIfInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "#If")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInEnumBlockMemberDeclaration()
             VerifyRecommendationsMissing(<File>
                                              Enum foo
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         End Sub
 
         <WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterHashRegion()
             VerifyRecommendationsMissing(<File>
                                          Class C

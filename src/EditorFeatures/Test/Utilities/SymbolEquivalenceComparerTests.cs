@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
             WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>()));
 
-        [WpfFact]
+        [Fact]
         public async Task TestArraysAreEquivalent()
         {
             var csharpCode =
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestArraysInDifferentLanguagesAreEquivalent()
         {
             var csharpCode =
@@ -162,7 +162,7 @@ end class";
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestFields()
         {
             var csharpCode1 =
@@ -218,7 +218,7 @@ class Type2
         }
 
         [WorkItem(538124)]
-        [WpfFact]
+        [Fact]
         public async Task TestFieldsAcrossLanguages()
         {
             var csharpCode1 =
@@ -268,7 +268,7 @@ end class";
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestFieldsInGenericTypes()
         {
             var code =
@@ -317,7 +317,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithDifferentReturnTypeNotEquivalent()
         {
             var csharpCode1 =
@@ -344,7 +344,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithDifferentNamesAreNotEquivalent()
         {
             var csharpCode1 =
@@ -371,7 +371,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithDifferentAritiesAreNotEquivalent()
         {
             var csharpCode1 =
@@ -398,7 +398,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithDifferentParametersAreNotEquivalent()
         {
             var csharpCode1 =
@@ -425,7 +425,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithDifferentTypeParameters()
         {
             var csharpCode1 =
@@ -454,7 +454,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithSameParameters()
         {
             var csharpCode1 =
@@ -483,7 +483,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsWithDifferentParameterNames()
         {
             var csharpCode1 =
@@ -512,7 +512,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsAreEquivalentOutToRef()
         {
             var csharpCode1 =
@@ -539,7 +539,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsNotEquivalentRemoveOut()
         {
             var csharpCode1 =
@@ -566,7 +566,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsAreEquivalentIgnoreParams()
         {
             var csharpCode1 =
@@ -595,7 +595,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsNotEquivalentDifferentParameterTypes()
         {
             var csharpCode1 =
@@ -622,7 +622,7 @@ class D
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsAcrossLanguages()
         {
             var csharpCode1 =
@@ -669,7 +669,7 @@ end class";
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestMethodsInGenericTypesAcrossLanguages()
         {
             var csharpCode1 =
@@ -716,7 +716,7 @@ end class";
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestObjectAndDynamicAreNotEqualNormally()
         {
             var csharpCode1 =
@@ -738,7 +738,7 @@ end class";
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestObjectAndDynamicAreEqualInSignatures()
         {
             var csharpCode1 =
@@ -769,7 +769,7 @@ end class";
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestUnequalGenericsInSignatures()
         {
             var csharpCode1 =
@@ -804,7 +804,7 @@ class Type1
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestGenericsWithDynamicAndObjectInSignatures()
         {
             var csharpCode1 =
@@ -841,7 +841,7 @@ class Type1
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestDynamicAndUnrelatedTypeInSignatures()
         {
             var csharpCode1 =
@@ -876,7 +876,7 @@ class Type1
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestNamespaces()
         {
             var csharpCode1 =
@@ -949,7 +949,7 @@ class Type1
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestNamedTypesEquivalent()
         {
             var csharpCode1 =
@@ -997,7 +997,7 @@ class Type2<Y>
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestNamedTypesDifferentIfNameChanges()
         {
             var csharpCode1 =
@@ -1024,7 +1024,7 @@ class Type2
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestNamedTypesDifferentIfTypeKindChanges()
         {
             var csharpCode1 =
@@ -1051,7 +1051,7 @@ class Type1
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestNamedTypesDifferentIfArityChanges()
         {
             var csharpCode1 =
@@ -1078,7 +1078,7 @@ class Type1<T>
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestNamedTypesDifferentIfContainerDifferent()
         {
             var csharpCode1 =
@@ -1113,7 +1113,7 @@ class Other
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestAliasedTypes1()
         {
             var csharpCode1 =
@@ -1149,7 +1149,7 @@ class Type1
         }
 
         [WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")]
-        [WpfFact]
+        [Fact]
         public async Task TestRefVersusOut()
         {
             var csharpCode1 =
@@ -1189,7 +1189,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestCSharpReducedExtensionMethodsAreEquivalent()
         {
             var code = @"
@@ -1255,7 +1255,7 @@ class Test
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestVisualBasicReducedExtensionMethodsAreEquivalent()
         {
             var code = @"
@@ -1331,7 +1331,7 @@ End Class
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestDifferentModules()
         {
             var csharpCode =
@@ -1358,7 +1358,7 @@ End Class
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void AssemblyComparer1()
         {
             var references = new[] { TestReferences.NetFx.v4_0_30319.mscorlib };
@@ -1418,7 +1418,7 @@ End Class
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void CustomModifiers_Methods1()
         {
             const string ilSource = @"

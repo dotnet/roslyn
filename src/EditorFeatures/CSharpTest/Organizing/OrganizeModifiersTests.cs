@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 {
     public class OrganizeModifiersTests : AbstractOrganizerTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestTypes1()
         {
             var initial =
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestTypes2()
         {
             var initial =
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestTypes3()
         {
             var initial =
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestTypes4()
         {
             var initial =
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             await CheckAsync(initial, final);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task TestTypes5()
         {
             var initial =

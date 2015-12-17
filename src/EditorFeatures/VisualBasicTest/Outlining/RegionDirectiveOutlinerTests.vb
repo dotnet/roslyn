@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New RegionDirectiveOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function BrokenRegion() As Task
             Const code = "
 $$#Region ""Foo""
@@ -22,7 +22,7 @@ $$#Region ""Foo""
             Await VerifyNoRegionsAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function SimpleRegion() As Task
             Const code = "
 {|span:$$#Region ""Foo""
@@ -33,7 +33,7 @@ $$#Region ""Foo""
                 Region("span", "Foo", autoCollapse:=False, isDefaultCollapsed:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function RegionWithNoBanner1() As Task
             Const code = "
 {|span:$$#Region
@@ -44,7 +44,7 @@ $$#Region ""Foo""
                 Region("span", "#Region", autoCollapse:=False, isDefaultCollapsed:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function RegionWithNoBanner2() As Task
             Const code = "
 {|span:$$#Region """"
@@ -56,7 +56,7 @@ $$#Region ""Foo""
         End Function
 
         <WorkItem(537984)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function RegionEndOfFile() As Task
             Const code = "
 Class C

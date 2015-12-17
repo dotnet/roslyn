@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.ImportsKeywordRecommender
     Public Class OptionKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImportsInBlankFile()
             VerifyRecommendationsContain(<File>|</File>, "Imports")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImportsAfterAnotherImportsStatement()
             VerifyRecommendationsContain(<File>
@@ -23,7 +23,7 @@ Imports Bar
 |</File>, "Imports")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImportsAfterXmlImports()
             VerifyRecommendationsContain(<File>
@@ -31,7 +31,7 @@ Imports &lt;xmlns:test="http://tempuri.org"&gt;
 |</File>, "Imports")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImportsAfterBlankLineAfterImports()
             VerifyRecommendationsContain(<File>
@@ -40,7 +40,7 @@ Imports Bar
 |</File>, "Imports")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImportsAfterBlankLineAfterXmlImports()
             VerifyRecommendationsContain(<File>
@@ -49,7 +49,7 @@ Imports &lt;xmlns:test="http://tempuri.org"&gt;
 |</File>, "Imports")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImportsAfterOptionStatement()
             VerifyRecommendationsContain(<File>
@@ -57,7 +57,7 @@ Option Strict On
 |</File>, "Imports")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImportsAfterBlankLineAfterOptionStatement()
             VerifyRecommendationsContain(<File>
@@ -66,7 +66,7 @@ Option Strict On
 |</File>, "Imports")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImportsNotBeforeOptionStatement()
             VerifyRecommendationsMissing(<File>
@@ -75,7 +75,7 @@ Option Strict On
 </File>, "Imports")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImportsNotAfterType()
             VerifyRecommendationsMissing(<File>

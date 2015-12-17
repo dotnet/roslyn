@@ -16,105 +16,105 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Implem
                 Nothing, New ImplementAbstractClassCodeFixProvider)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestSimpleCases() As Task
             Await TestAsync(
                 NewLines("Public MustInherit Class Foo \n Public MustOverride Sub Foo(i As Integer) \n Protected MustOverride Function Bar(s As String, ByRef d As Double) As Boolean \n End Class \n Public Class [|Bar|] \n Inherits Foo \n End Class"),
                 NewLines("Imports System \n Public MustInherit Class Foo \n Public MustOverride Sub Foo(i As Integer) \n Protected MustOverride Function Bar(s As String, ByRef d As Double) As Boolean \n End Class \n Public Class Bar \n Inherits Foo \n Public Overrides Sub Foo(i As Integer) \n Throw New NotImplementedException() \n End Sub \n Protected Overrides Function Bar(s As String, ByRef d As Double) As Boolean \n Throw New NotImplementedException() \n End Function \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalIntParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As Integer = 3) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As Integer = 3) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As Integer = 3) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalTrueParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As Boolean = True) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As Boolean = True) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As Boolean = True) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalFalseParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As Boolean = False) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As Boolean = False) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As Boolean = False) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalStringParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As String = ""a"") \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As String = ""a"") \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As String = ""a"") \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalCharParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As Char = ""c""c) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As Char = ""c""c) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As Char = ""c""c) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalLongParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As Long = 3) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As Long = 3) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As Long = 3) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalShortParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As Short = 3) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As Short = 3) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As Short = 3) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalUShortParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As UShort = 3) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As UShort = 3) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As UShort = 3) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalNegativeIntParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As Integer = -3) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As Integer = -3) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As Integer = -3) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalUIntParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As UInteger = 3) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As UInteger = 3) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As UInteger = 3) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalULongParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As ULong = 3) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As ULong = 3) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As ULong = 3) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalDecimalParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As Decimal = 3) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As Decimal = 3) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As Decimal = 3) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalDoubleParameter() As Task
             Await TestAsync(
                 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As Double = 3) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
                 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As Double = 3) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As Double = 3) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalStructParameter() As Task
             Await TestAsync(
                 NewLines("Structure S \n End Structure \n MustInherit Class b \n Public MustOverride Sub g(Optional x As S = Nothing) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Implem
         End Function
 
         <WorkItem(916114)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalNullableStructParameter() As Task
             Await TestAsync(
 NewLines("Structure S \n End Structure \n MustInherit Class b \n Public MustOverride Sub g(Optional x As S? = Nothing) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
@@ -130,14 +130,14 @@ NewLines("Imports System \n Structure S \n End Structure \n MustInherit Class b 
         End Function
 
         <WorkItem(916114)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalNullableIntParameter() As Task
             Await TestAsync(
 NewLines("MustInherit Class b \n Public MustOverride Sub g(Optional x As Integer? = Nothing, Optional y As Integer? = 5) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
 NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Optional x As Integer? = Nothing, Optional y As Integer? = 5) \n End Class \n Class c \n Inherits b \n Public Overrides Sub g(Optional x As Integer? = Nothing, Optional y As Integer? = 5) \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalClassParameter() As Task
             Await TestAsync(
                 NewLines("Class S \n End Class \n MustInherit Class b \n Public MustOverride Sub g(Optional x As S = Nothing) \n End Class \n Class [|c|] \n Inherits b \n End Class"),
@@ -145,7 +145,7 @@ NewLines("Imports System \n MustInherit Class b \n Public MustOverride Sub g(Opt
         End Function
 
         <WorkItem(544641)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestClassStatementTerminators1() As Task
             Await TestAsync(
 NewLines("Imports System \n MustInherit Class D \n MustOverride Sub Foo() \n End Class \n Class [|C|] : Inherits D : End Class"),
@@ -153,7 +153,7 @@ NewLines("Imports System \n MustInherit Class D \n MustOverride Sub Foo() \n End
         End Function
 
         <WorkItem(544641)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestClassStatementTerminators2() As Task
             Await TestAsync(
 NewLines("Imports System \n MustInherit Class D \n MustOverride Sub Foo() \n End Class \n Class [|C|] : Inherits D : Implements IDisposable : End Class"),
@@ -161,14 +161,14 @@ NewLines("Imports System \n MustInherit Class D \n MustOverride Sub Foo() \n End
         End Function
 
         <WorkItem(530737)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestRenameTypeParameters() As Task
             Await TestAsync(
 NewLines("MustInherit Class A(Of T) \n MustOverride Sub Foo(Of S As T)() \n End Class \n Class [|C(Of S)|] \n Inherits A(Of S) \n End Class"),
 NewLines("Imports System \n MustInherit Class A(Of T) \n MustOverride Sub Foo(Of S As T)() \n End Class \n Class C(Of S) \n Inherits A(Of S) \n Public Overrides Sub Foo(Of S1 As S)() \n Throw New NotImplementedException() \n End Sub \n End Class"))
         End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestFormattingInImplementAbstractClass() As Task
             Await TestAsync(
 <Text>Imports System

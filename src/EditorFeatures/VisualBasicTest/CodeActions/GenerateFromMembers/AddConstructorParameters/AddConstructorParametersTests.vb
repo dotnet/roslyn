@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.G
         End Function
 
         <WorkItem(530592)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Async Function TestAdd1() As Task
             Await TestAsync(
 NewLines("Class Program \n [|Private i As Integer \n Private s As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
@@ -26,7 +26,7 @@ NewLines("Class Program \n Private i As Integer \n Private s As String \n Public
         End Function
 
         <WorkItem(530592)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Async Function TestAddOptional1() As Task
             Await TestAsync(
 NewLines("Class Program \n [|Private i As Integer \n Private s As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
@@ -35,7 +35,7 @@ index:=1)
         End Function
 
         <WorkItem(530592)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Async Function TestAddToConstructorWithMostMatchingParameters1() As Task
             Await TestAsync(
 NewLines("Class Program \n [|Private i As Integer \n Private s As String \n Private b As Boolean|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, s As String) \n Me.New(i) \n Me.s = s \n End Sub \n End Class"),
@@ -43,7 +43,7 @@ NewLines("Class Program \n Private i As Integer \n Private s As String \n Privat
         End Function
 
         <WorkItem(530592)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Async Function TestAddOptionalToConstructorWithMostMatchingParameters1() As Task
             Await TestAsync(
 NewLines("Class Program \n [|Private i As Integer \n Private s As String \n Private b As Boolean|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, s As String) \n Me.New(i) \n Me.s = s \n End Sub \n End Class"),

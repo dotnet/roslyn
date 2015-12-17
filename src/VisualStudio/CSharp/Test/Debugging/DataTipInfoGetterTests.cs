@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestCSharpLanguageDebugInfoGetDataTipSpanAndText()
         {
             await TestAsync("class [|C$$|] { }");
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync("delegate void [|C$$|] ();"); // Without the space, that position is actually on the open paren.
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task Test1()
         {
             await TestAsync(
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task Test2()
         {
             await TestAsync(
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task Test3()
         {
             await TestAsync(
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task Test4()
         {
             await TestAsync(
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task Test5()
         {
             await TestAsync(
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task Test6()
         {
             await TestNoDataTipAsync(
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task Test7()
         {
             await TestAsync(
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task Test8()
         {
             await TestNoDataTipAsync(
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestVar()
         {
             await TestAsync(
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "int");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestVariableType()
         {
             await TestAsync(
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestVariableIdentifier()
         {
             await TestAsync(
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WorkItem(539910)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestLiterals()
         {
             await TestAsync(
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "int");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestNonExpressions()
         {
             await TestNoDataTipAsync(
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestParameterIdentifier()
         {
             await TestAsync(
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WorkItem(942699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestCatchIdentifier()
         {
             await TestAsync(
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestEvent()
         {
             await TestAsync(
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestMethod()
         {
             await TestAsync(
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestTypeParameter()
         {
             await TestAsync("class C<T, [|$$U|], V> { }");
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task UsingAlias()
         {
             await TestAsync(
@@ -317,7 +317,7 @@ static class Static
         }
 
         [WorkItem(540921)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestForEachIdentifier()
         {
             await TestAsync(
@@ -333,7 +333,7 @@ static class Static
         }
 
         [WorkItem(546328)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestProperty()
         {
             await TestAsync(
@@ -362,7 +362,7 @@ static class Static
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestQueryIdentifier()
         {
             await TestAsync( // From
@@ -407,7 +407,7 @@ static class Static
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
         public async Task TestConditionalAccessExpression()
         {
             var sourceTemplate = @"
@@ -479,7 +479,7 @@ class D
             await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
         public async Task TestConditionalAccessExpression_Trivia()
         {
             var sourceTemplate = @"

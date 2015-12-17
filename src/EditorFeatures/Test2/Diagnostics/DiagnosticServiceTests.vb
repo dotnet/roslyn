@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub TestEmptyProjectAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub TestNameCollisionOnDisplayNames()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub TestProjectAnalyzerMessages()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub TestGlobalAnalyzerGroup()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDuplicateFileAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDuplicateImageAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -483,7 +483,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1167439), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, WorkItem(1167439), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledNoCrash()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -752,7 +752,7 @@ class AnonymousFunctions
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1083854), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, WorkItem(1083854), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestStatefulCompilationAnalyzer() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">

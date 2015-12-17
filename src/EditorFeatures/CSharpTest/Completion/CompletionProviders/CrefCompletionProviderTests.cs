@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameCref()
         {
             var text = @"using System;
@@ -59,7 +59,7 @@ namespace Foo
             await VerifyItemExistsAsync(text, "AccessViolationException");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task QualifiedCref()
         {
             var text = @"using System;
@@ -75,7 +75,7 @@ namespace Foo
             await VerifyItemExistsAsync(text, "foo");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CrefArgumentList()
         {
             var text = @"using System;
@@ -92,7 +92,7 @@ namespace Foo
             await VerifyItemExistsAsync(text, "int");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CrefTypeParameterInArgumentList()
         {
             var text = @"using System;
@@ -108,7 +108,7 @@ namespace Foo
             await VerifyItemExistsAsync(text, "Q");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion), WorkItem(530887)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion), WorkItem(530887)]
         public async Task PrivateMember()
         {
             var text = @"using System;
@@ -128,7 +128,7 @@ namespace Foo
             await VerifyItemExistsAsync(text, "Private");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterSingleQuote()
         {
             var text = @"using System;
@@ -143,7 +143,7 @@ namespace Foo
         }
 
         [WorkItem(531315)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EscapePredefinedTypeName()
         {
             var text = @"using System;
@@ -155,7 +155,7 @@ class @void { }
 
         [WorkItem(531345)]
         [WorkItem(598159)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowParameterNames()
         {
             var text = @"/// <see cref=""C.$$""/>
@@ -173,7 +173,7 @@ class C
         }
 
         [WorkItem(531345)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowTypeParameterNames()
         {
             var text = @"/// <see cref=""C$$""/>
@@ -189,7 +189,7 @@ class C<TFoo>
         }
 
         [WorkItem(531156)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowConstructors()
         {
             var text = @"using System;
@@ -211,7 +211,7 @@ class C<T>
         }
 
         [WorkItem(598679)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoParamsModifier()
         {
             var text = @"/// <summary>
@@ -229,7 +229,7 @@ class C
         }
 
         [WorkItem(607773)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UnqualifiedTypes()
         {
             var text = @"
@@ -241,7 +241,7 @@ class C { }
         }
 
         [WorkItem(607773)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitUnqualifiedTypes()
         {
             var text = @"
@@ -259,7 +259,7 @@ class C { }
         }
 
         [WorkItem(642285)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestOperators()
         {
             var text = @"
@@ -291,7 +291,7 @@ class Test
         }
 
         [WorkItem(641096)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SuggestIndexers()
         {
             var text = @"
@@ -310,7 +310,7 @@ class Program
         }
 
         [WorkItem(531315)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitEscapedPredefinedTypeName()
         {
             var text = @"using System;
@@ -326,7 +326,7 @@ class @void { }
         }
 
         [WorkItem(598159)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task RefOutModifiers()
         {
             var text = @"/// <summary>
@@ -344,7 +344,7 @@ class C
         }
 
         [WorkItem(673587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedNamespaces()
         {
             var text = @"namespace N
@@ -374,7 +374,7 @@ class Program
         }
 
         [WorkItem(730338)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PermitTypingTypeParameters()
         {
             var text = @"
@@ -392,7 +392,7 @@ class C { }
         }
 
         [WorkItem(730338)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PermitTypingParameterTypes()
         {
             var text = @"
@@ -415,7 +415,7 @@ class C
             await VerifyProviderCommitAsync(text, "foo(int)", expected, '(', "foo");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CrefCompletionSpeculatesOutsideTrivia()
         {
             var text = @"
@@ -434,7 +434,7 @@ class C
                 var provider = new CrefCompletionProvider();
                 var hostDocument = workspace.DocumentWithCursor;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var completionList = GetCompletionList(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
+                var completionList = await GetCompletionListAsync(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
             }
         }
 

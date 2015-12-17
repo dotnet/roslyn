@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             return base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence, experimental, glyph);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IsCommitCharacterTest()
         {
             await VerifyCommonCommitCharactersAsync("class C { void M() { System.Console.$$", textTypedSoFar: "");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IsTextualTriggerCharacterTest()
         {
             await TestCommonIsTextualTriggerCharacterAsync();
@@ -41,33 +41,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             await VerifyTextualTriggerCharacterAsync("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SendEnterThroughToEditorTest()
         {
             await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: false, expected: false);
             await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: true, expected: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation1()
         {
             await VerifyItemIsAbsentAsync(@"System.Console.$$", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation2()
         {
             await VerifyItemIsAbsentAsync(@"using System;
 Console.$$", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation3()
         {
             await VerifyItemIsAbsentAsync(@"using System.Console.$$", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation4()
         {
             await VerifyItemIsAbsentAsync(@"class C {
@@ -76,7 +76,7 @@ System.Console.$$
 #endif", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation5()
         {
             await VerifyItemIsAbsentAsync(@"class C {
@@ -85,7 +85,7 @@ System.Console.$$
 #endif", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation6()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -94,7 +94,7 @@ class C {
 // Console.$$", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation7()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -103,7 +103,7 @@ class C {
 /*  Console.$$   */", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation8()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -112,7 +112,7 @@ class C {
 /// Console.$$", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation9()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -125,7 +125,7 @@ class C {
 }", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation10()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -136,19 +136,19 @@ class C {
         /**  Console.$$   */", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation11()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("string s = \"Console.$$")), @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation12()
         {
             await VerifyItemIsAbsentAsync(@"[assembly: System.Console.$$]", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation13()
         {
             var content = @"[Console.$$]
@@ -157,13 +157,13 @@ class CL {}";
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation14()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<[Console.$$]T> {}"), @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation15()
         {
             var content = @"class CL {
@@ -173,13 +173,13 @@ class CL {}";
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation16()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<Console.$$"), @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation17()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -192,7 +192,7 @@ class Program {
 }", @"Main");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation18()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -206,7 +206,7 @@ class Program {
 }", @"Main");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation19()
         {
             await VerifyItemIsAbsentAsync(@"using System;
@@ -219,7 +219,7 @@ class Program {
 }", @"SByte");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsideMethodBody()
         {
             await VerifyItemExistsAsync(@"using System;
@@ -230,13 +230,13 @@ class C {
         Console.$$", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingDirectiveGlobal()
         {
             await VerifyItemExistsAsync(@"using global::$$;", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsideAccessor()
         {
             await VerifyItemExistsAsync(@"using System;
@@ -249,7 +249,7 @@ class C {
             Console.$$", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldInitializer()
         {
             await VerifyItemExistsAsync(@"using System;
@@ -258,7 +258,7 @@ class C {
     int i = Console.$$", @"Beep");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldInitializer2()
         {
             await VerifyItemExistsAsync(@"
@@ -266,7 +266,7 @@ class C {
     object i = $$", @"System");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ImportedProperty()
         {
             await VerifyItemExistsAsync(@"using System.Collections.Generic;
@@ -277,7 +277,7 @@ class C {
        new List<string>().$$", @"Capacity");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldInitializerWithProperty()
         {
             await VerifyItemExistsAsync(@"using System.Collections.Generic;
@@ -285,7 +285,7 @@ class C {
     int i =  new List<string>().$$", @"Count");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task StaticMethods()
         {
             await VerifyItemExistsAsync(@"using System;
@@ -297,13 +297,13 @@ class C {
 ", @"Method");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EndOfFile()
         {
             await VerifyItemExistsAsync(@"static class E { public static void Method() { E.$$", @"Method");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedStaticFields()
         {
             var code = @"class A { public static int X; }

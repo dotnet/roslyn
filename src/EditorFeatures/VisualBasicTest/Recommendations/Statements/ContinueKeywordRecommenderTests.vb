@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ContinueKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ContinueNotInMethodBody()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Continue")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ContinueInForLoop()
             VerifyRecommendationsContain(<MethodBody>
@@ -24,7 +24,7 @@ For i = 1 To 10
 Next</MethodBody>, "Continue")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ContinueInForEachLoop()
             VerifyRecommendationsContain(<MethodBody>
@@ -33,7 +33,7 @@ For Each i In j
 Next</MethodBody>, "Continue")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ContinueInWhileLoop()
             VerifyRecommendationsContain(<MethodBody>
@@ -42,7 +42,7 @@ While True
 End While</MethodBody>, "Continue")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ContinueInDoWhileLoop()
             VerifyRecommendationsContain(<MethodBody>
@@ -51,7 +51,7 @@ Do While True
 Loop</MethodBody>, "Continue")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ContinueInLoopWhileLoop()
             VerifyRecommendationsContain(<MethodBody>
@@ -60,7 +60,7 @@ Do
 Loop While True</MethodBody>, "Continue")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ContinueInInfiniteDoWhileLoop()
             VerifyRecommendationsContain(<MethodBody>
@@ -69,7 +69,7 @@ Do
 Loop</MethodBody>, "Continue")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ContinueNotInLambda()
             VerifyRecommendationsMissing(<MethodBody>
@@ -80,7 +80,7 @@ Dim x = Function()
 Loop</MethodBody>, "Continue")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ContinueInClassDeclarationLambda()
             VerifyRecommendationsContain(<ClassDeclaration>
@@ -92,7 +92,7 @@ Dim _x = Function()
 </ClassDeclaration>, "Continue")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ContinueNotInSingleLineLambdaInMethodBody()
             VerifyRecommendationsMissing(<MethodBody>

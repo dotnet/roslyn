@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class AsyncLazyTests
     {
+        // This probably shouldn't need WpfFact, but the failure is being tracked by https://github.com/dotnet/roslyn/issues/7438
         [WpfFact, Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void CancellationDuringInlinedComputationFromGetValueStillCachesResult()
         {

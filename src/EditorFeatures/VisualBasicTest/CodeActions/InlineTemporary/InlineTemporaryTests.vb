@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
             Return New InlineTemporaryCodeRefactoringProvider()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestNotWithNoInitializer1() As Task
             Dim code =
 <MethodBody>
@@ -24,7 +24,7 @@ Console.WriteLine(i)
             Await TestMissingAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestNotWithNoInitializer2() As Task
             Dim code =
 <MethodBody>
@@ -35,7 +35,7 @@ Console.WriteLine(j)
             Await TestMissingAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestNotWithNoInitializer3() As Task
             Dim code =
 <MethodBody>
@@ -46,7 +46,7 @@ Console.WriteLine(k)
             Await TestMissingAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestNotWithNoReference1() As Task
             Dim code =
 <MethodBody>
@@ -57,7 +57,7 @@ Console.WriteLine(0)
             Await TestMissingAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestNotWithNoReference2() As Task
             Dim code =
 <MethodBody>
@@ -68,7 +68,7 @@ Console.WriteLine(i)
             Await TestMissingAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestNotWithNoReference3() As Task
             Dim code =
 <MethodBody>
@@ -79,7 +79,7 @@ Console.WriteLine(i + j)
             Await TestMissingAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestNotOnField() As Task
             Dim code =
 <ClassDeclaration>
@@ -93,7 +93,7 @@ End Sub
             Await TestMissingAsync(code)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestSingleDeclarator() As Task
             Dim code =
 <MethodBody>
@@ -109,7 +109,7 @@ Console.WriteLine(0)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestSingleDeclaratorDontRemoveLeadingTrivia1() As Task
             Dim code =
 <File>
@@ -144,7 +144,7 @@ End Class
         End Function
 
         <WorkItem(545259)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestSingleDeclaratorDontRemoveLeadingTrivia2() As Task
             Dim code =
 <File>
@@ -175,7 +175,7 @@ End Class
         End Function
 
         <WorkItem(540330)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestSingleDeclaratorDontMoveNextStatement() As Task
             Dim code =
 <File>
@@ -200,7 +200,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestSingleDeclaratorInPropertyGetter() As Task
             Dim code =
 <PropertyGetter>
@@ -216,7 +216,7 @@ Console.WriteLine(0)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestTwoDeclarators1() As Task
             Dim code =
 <MethodBody>
@@ -233,7 +233,7 @@ Console.WriteLine(0)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestTwoDeclarators2() As Task
             Dim code =
 <MethodBody>
@@ -250,7 +250,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestThreeDeclarators1() As Task
             Dim code =
 <MethodBody>
@@ -267,7 +267,7 @@ Console.WriteLine(0)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestThreeDeclarators2() As Task
             Dim code =
 <MethodBody>
@@ -284,7 +284,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestThreeDeclarators3() As Task
             Dim code =
 <MethodBody>
@@ -302,7 +302,7 @@ Console.WriteLine(2)
         End Function
 
         <WorkItem(545704)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestThreeDeclarators4() As Task
             Dim code =
 <MethodBody>
@@ -322,7 +322,7 @@ Call New Integer.ToString()
         End Function
 
         <WorkItem(16601, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoNextDeclarator() As Task
             Dim code =
 <MethodBody>
@@ -337,7 +337,7 @@ Dim y = CType(Sub() Console.WriteLine(), Action)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestTwoNames1() As Task
             Dim code =
 <MethodBody>
@@ -354,7 +354,7 @@ Console.WriteLine(New String(" "c, 10))
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestTwoNames2() As Task
             Dim code =
 <MethodBody>
@@ -371,7 +371,7 @@ Console.WriteLine(New String(" "c, 10))
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestThreeNames1() As Task
             Dim code =
 <MethodBody>
@@ -388,7 +388,7 @@ Console.WriteLine(New String(" "c, 10))
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestThreeNames2() As Task
             Dim code =
 <MethodBody>
@@ -405,7 +405,7 @@ Console.WriteLine(New String(" "c, 10))
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestThreeNames3() As Task
             Dim code =
 <MethodBody>
@@ -422,7 +422,7 @@ Console.WriteLine(New String(" "c, 10))
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoExpression1() As Task
             Dim code =
 <MethodBody>
@@ -442,7 +442,7 @@ Console.WriteLine(0 + j * k)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoExpression2() As Task
             Dim code =
 <MethodBody>
@@ -479,7 +479,7 @@ Console.Write(New Int32 + 10)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoExpressionAsParenthesized() As Task
             Dim code =
 <MethodBody>
@@ -499,7 +499,7 @@ Console.WriteLine(i + j * (2 + 3))
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoMemberAccess1() As Task
             Dim code =
 <MethodBody>
@@ -515,7 +515,7 @@ Console.WriteLine(New String(" "c, 10).Length)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoMemberAccess2() As Task
             Dim code =
 <MethodBody>
@@ -532,7 +532,7 @@ Console.WriteLine(("a" &amp; "b").Length)
         End Function
 
         <WorkItem(540374)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoMemberAccess3() As Task
             Dim code =
 <MethodBody>
@@ -566,7 +566,7 @@ Call New Int32().ToString
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoMemberAccess5() As Task
             Dim code =
 <ClassDeclaration>
@@ -594,7 +594,7 @@ End Sub
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoMemberAccess6() As Task
             Dim code =
 <ClassDeclaration>
@@ -623,7 +623,7 @@ End Sub
         End Function
 
         <WorkItem(542060)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoMemberAccess7() As Task
             Dim code =
 <MethodBody>
@@ -640,7 +640,7 @@ Console.WriteLine((From x In "ABC" Select x).First())
         End Function
 
         <WorkItem(546726)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoMemberAccess8() As Task
             Dim code =
 <MethodBody>
@@ -656,7 +656,7 @@ Call New List(Of Integer)().ToString()
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast1() As Task
             Dim code =
 <ClassDeclaration>
@@ -686,7 +686,7 @@ End Sub
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast2() As Task
             Dim code =
 <ClassDeclaration>
@@ -716,7 +716,7 @@ End Sub
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast3() As Task
             Dim code =
 <ClassDeclaration>
@@ -746,7 +746,7 @@ End Sub
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast4() As Task
             Dim code =
 <ClassDeclaration>
@@ -776,7 +776,7 @@ End Sub
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast5() As Task
             Dim code =
 <ClassDeclaration>
@@ -808,7 +808,7 @@ End Sub
 
         <WorkItem(544981)>
         <WorkItem(568917)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast6() As Task
             Dim code =
 <File>
@@ -837,7 +837,7 @@ End Class
         End Function
 
         <WorkItem(544982)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast7() As Task
             Dim code =
 <File>
@@ -869,7 +869,7 @@ End Module
 
         <WorkItem(545130)>
         <WorkItem(568917)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast8() As Task
             Dim code =
 <File>
@@ -896,7 +896,7 @@ End Class
         End Function
 
         <WorkItem(545162)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast9() As Task
             Dim code =
 <File>
@@ -923,7 +923,7 @@ End Module
         End Function
 
         <WorkItem(545177)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast10() As Task
             Dim code =
 <File>
@@ -951,7 +951,7 @@ End Module
 
         <WorkItem(545600)>
         <WorkItem(568917)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast11() As Task
             Dim code =
 <File>
@@ -990,7 +990,7 @@ End Class
         End Function
 
         <WorkItem(545601)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast12() As Task
             Dim code =
 <File>
@@ -1019,7 +1019,7 @@ End Module
         End Function
 
         <WorkItem(568917)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineWithCast13() As Task
             Dim code =
 <File>
@@ -1052,7 +1052,7 @@ End Module
         End Function
 
         <WorkItem(546700)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoExpressionHole1() As Task
             Dim code =
 <MethodBody>
@@ -1068,7 +1068,7 @@ Dim x = &lt;x &lt;%= Sub() If True Then Else %&gt;/&gt;
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoExpressionHole2() As Task
             Dim code =
 <MethodBody>
@@ -1084,7 +1084,7 @@ Dim x = &lt;x &lt;%= Sub() If True Then Else %&gt;/&gt;
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineLambda1() As Task
             Dim code =
 <MethodBody>
@@ -1100,7 +1100,7 @@ Dim i = (Function() 1).Invoke()
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineLambda2() As Task
             Dim code =
 <MethodBody>
@@ -1120,7 +1120,7 @@ Dim i = Function()
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineInsideLambda() As Task
             Dim code =
 <MethodBody>
@@ -1140,7 +1140,7 @@ Dim f As Func(Of Integer) = Function()
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineIntoLambda() As Task
             Dim code =
 <MethodBody>
@@ -1160,7 +1160,7 @@ Dim f As Func(Of Integer) = Function()
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInlineTrailingComment() As Task
             Dim code =
 <MethodBody>
@@ -1178,7 +1178,7 @@ Console.WriteLine((1 + 1) * 2)
         End Function
 
         <WorkItem(545544)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontRemoveLineBreakAfterComment() As Task
             Dim code =
 <MethodBody>
@@ -1195,7 +1195,7 @@ Dim y = 1
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestRemoveTrailingColon() As Task
             Dim code =
 <MethodBody>
@@ -1212,7 +1212,7 @@ Console.WriteLine((1 + 1) * j)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast1() As Task
             Dim code =
 <MethodBody>
@@ -1228,7 +1228,7 @@ Dim j As Integer = 1 + 1
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast2() As Task
             Dim code =
 <MethodBody>
@@ -1246,7 +1246,7 @@ Console.WriteLine(j)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast3() As Task
             Dim code =
 <MethodBody>
@@ -1265,7 +1265,7 @@ Dim y As Action = Sub()
         End Function
 
         <WorkItem(543215)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast4() As Task
             Dim code =
 <ClassDeclaration>
@@ -1292,7 +1292,7 @@ End Sub
         End Function
 
         <WorkItem(543280)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast5() As Task
             Dim code =
 <File>
@@ -1323,7 +1323,7 @@ End Module
         End Function
 
         <WorkItem(544973)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast6() As Task
             Dim code =
 <File>
@@ -1356,7 +1356,7 @@ End Module
         End Function
 
         <WorkItem(545975)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast7() As Task
             Dim code =
 <File>
@@ -1383,7 +1383,7 @@ End Module
         End Function
 
         <WorkItem(545846)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast8() As Task
             Dim markup =
 <File>
@@ -1412,7 +1412,7 @@ End Module
         End Function
 
         <WorkItem(545624), WorkItem(799045)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInsertUnnecessaryCast9() As Task
             Dim markup =
 <File>
@@ -1443,7 +1443,7 @@ End Module
         End Function
 
         <WorkItem(530068)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontInsertUnnecessaryCast10() As Task
             Dim markup =
 <File>
@@ -1475,7 +1475,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCallIfNecessary1() As Task
             Dim code =
 <MethodBody>
@@ -1491,7 +1491,7 @@ Call New Exception().ToString
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCallIfNecessary2() As Task
             Dim code =
 <MethodBody>
@@ -1507,7 +1507,7 @@ Call New Exception().ToString
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCallIfNecessary3() As Task
             Dim code =
 <MethodBody>
@@ -1523,7 +1523,7 @@ Call (Sub() Exit Sub)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCallIfNecessary4() As Task
             Dim code =
 <MethodBody>
@@ -1539,7 +1539,7 @@ Call (From x in "abc").Distinct()
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCallIfNecessary5() As Task
             Dim code =
 <MethodBody>
@@ -1555,7 +1555,7 @@ Call "abc".ToLower()
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCallIfNecessary6() As Task
             Dim code =
 <MethodBody>
@@ -1571,7 +1571,7 @@ Call 1.ToString()
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCallIfNecessary7() As Task
             Dim code =
 <MethodBody>
@@ -1587,7 +1587,7 @@ Call (1 + 1).ToString()
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCallIfNecessary8() As Task
             Dim code =
 <MethodBody>
@@ -1604,7 +1604,7 @@ Call New Exception().Message.ToString
         End Function
 
         <WorkItem(542819)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCallIfNecessary9() As Task
             Dim code =
 <MethodBody>
@@ -1621,7 +1621,7 @@ Call If(True, 1, 2).ToString
         End Function
 
         <WorkItem(542819)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCallIfNecessary10() As Task
             Dim code =
 <MethodBody>
@@ -1638,7 +1638,7 @@ Call If(Nothing, "").ToString
         End Function
 
         <WorkItem(542667)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary1() As Task
             Dim code =
 <MethodBody>
@@ -1655,7 +1655,7 @@ Dim a = (From y In "" Select y), b
         End Function
 
         <WorkItem(542667)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary2() As Task
             Dim code =
 <MethodBody>
@@ -1672,7 +1672,7 @@ Dim a = Nothing, b = From y In "" Select y
         End Function
 
         <WorkItem(542667)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary3() As Task
             Dim code =
 <MethodBody>
@@ -1688,7 +1688,7 @@ Dim a = CType((Function() From y In "" Select y), Func(Of IEnumerable(Of Char)))
         End Function
 
         <WorkItem(542096)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary4() As Task
             Dim code =
 <MethodBody>
@@ -1705,7 +1705,7 @@ Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" 
         End Function
 
         <WorkItem(542096)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary5() As Task
             Dim code =
 <MethodBody>
@@ -1722,7 +1722,7 @@ Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" 
         End Function
 
         <WorkItem(542096)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary6() As Task
             Dim code =
 <ModuleDeclaration>
@@ -1750,7 +1750,7 @@ End Sub
         End Function
 
         <WorkItem(542795)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary7() As Task
             Dim code =
 <ModuleDeclaration>
@@ -1777,7 +1777,7 @@ End Sub
         End Function
 
         <WorkItem(542667)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary8() As Task
             Dim code =
 <MethodBody>
@@ -1794,7 +1794,7 @@ Dim a = (From y In "" Select y Order By y), b
         End Function
 
         <WorkItem(542795)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary9() As Task
             Dim code =
 <ModuleDeclaration>
@@ -1821,7 +1821,7 @@ End Sub
         End Function
 
         <WorkItem(542840)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary10() As Task
             Dim code =
 <MethodBody>
@@ -1838,7 +1838,7 @@ Dim y = (New Collections.ArrayList())(0)
         End Function
 
         <WorkItem(542842)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary11() As Task
             Dim code =
 <MethodBody>
@@ -1855,7 +1855,7 @@ Dim a As Action = (Sub() If True Then Dim x), b = a
         End Function
 
         <WorkItem(542667)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary12() As Task
             Dim code =
 <MethodBody>
@@ -1872,7 +1872,7 @@ Dim a = (From y In "" Select y Order By y Ascending), b
         End Function
 
         <WorkItem(542840)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary13() As Task
             Dim code =
 <MethodBody>
@@ -1889,7 +1889,7 @@ Dim y = (New Collections.ArrayList)(0)
         End Function
 
         <WorkItem(542931)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary14() As Task
             Dim code =
 <MethodBody>
@@ -1906,7 +1906,7 @@ Dim p = From y In "", z In (From x In "") Distinct
         End Function
 
         <WorkItem(542989)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary15() As Task
             Dim code =
 <MethodBody>
@@ -1923,7 +1923,7 @@ Dim y = (From x In "" Group By x Into Count)(0)
         End Function
 
         <WorkItem(542990)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary16() As Task
             Dim code =
 <MethodBody>
@@ -1940,7 +1940,7 @@ Dim y As String = (Function() Console.ReadLine)()
         End Function
 
         <WorkItem(542997)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary17() As Task
             Dim code =
 <MethodBody>
@@ -1957,7 +1957,7 @@ Dim q = From x In "" Select z = (Sub() Return) Distinct
         End Function
 
         <WorkItem(542997)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary18() As Task
             Dim code =
 <MethodBody>
@@ -1976,7 +1976,7 @@ Dim q = From x In "" Select z = (Sub() Return) _
         End Function
 
         <WorkItem(542997)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary19() As Task
             Dim code =
 <MethodBody>
@@ -1993,7 +1993,7 @@ Dim q = From x In "" Select z = Sub() Return
         End Function
 
         <WorkItem(529694)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary20() As Task
             Dim code =
 <MethodBody>
@@ -2018,7 +2018,7 @@ End With
         End Function
 
         <WorkItem(545571)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary21() As Task
             Dim code =
 <MethodBody>
@@ -2035,7 +2035,7 @@ Call (Sub() Exit Sub).Invoke()
         End Function
 
         <WorkItem(545849)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary22() As Task
             Dim code =
 <MethodBody>
@@ -2054,7 +2054,7 @@ Console.WriteLine(y.Rank)
         End Function
 
         <WorkItem(531578)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary23() As Task
             Dim code =
 <File>
@@ -2093,7 +2093,7 @@ End Module
         End Function
 
         <WorkItem(531582)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary24() As Task
             Dim code =
 <MethodBody>
@@ -2116,7 +2116,7 @@ End Select
         <WorkItem(549182)>
         <WorkItem(549191)>
         <WorkItem(545730)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestUnparenthesizeIfNecessary1() As Task
             Dim code =
 <File>
@@ -2149,7 +2149,7 @@ End Module
         End Function
 
         <WorkItem(542985)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestAddExplicitArgumentListIfNecessary1() As Task
             Dim code =
 <ModuleDeclaration>
@@ -2182,7 +2182,7 @@ End Function
         End Function
 
         <WorkItem(542985)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestAddExplicitArgumentListIfNecessary2() As Task
             Dim code =
 <ModuleDeclaration>
@@ -2215,7 +2215,7 @@ End Function
         End Function
 
         <WorkItem(542985)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestAddExplicitArgumentListIfNecessary3() As Task
             Dim code =
 <ModuleDeclaration>
@@ -2250,7 +2250,7 @@ End Property
         End Function
 
         <WorkItem(545174)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestAddExplicitArgumentListIfNecessary4() As Task
             Dim code =
 <ModuleDeclaration>
@@ -2276,7 +2276,7 @@ End Module
         End Function
 
         <WorkItem(529542)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestAddExplicitArgumentListIfNecessary5() As Task
             Dim code =
 <ModuleDeclaration>
@@ -2304,7 +2304,7 @@ End Module
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_Assignment() As Task
             Dim code =
 <MethodBody>
@@ -2323,7 +2323,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_AddAssignment() As Task
             Dim code =
 <MethodBody>
@@ -2342,7 +2342,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_SubtractAssignment() As Task
             Dim code =
 <MethodBody>
@@ -2361,7 +2361,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_MultiplyAssignment() As Task
             Dim code =
 <MethodBody>
@@ -2380,7 +2380,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_DivideAssignment1() As Task
             Dim code =
 <MethodBody>
@@ -2399,7 +2399,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_IntegerDivideAssignment() As Task
             Dim code =
 <MethodBody>
@@ -2418,7 +2418,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_ConcatenateAssignment() As Task
             Dim code =
 <MethodBody>
@@ -2437,7 +2437,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_LeftShiftAssignment() As Task
             Dim code =
 <MethodBody>
@@ -2456,7 +2456,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_RightShiftAssignment() As Task
             Dim code =
 <MethodBody>
@@ -2475,7 +2475,7 @@ Console.WriteLine(1)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_PowerAssignment() As Task
             Dim code =
 <MethodBody>
@@ -2495,7 +2495,7 @@ Console.WriteLine(1)
         End Function
 
         <WorkItem(529627)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_ByRefLiteral() As Task
             Dim code =
 <File>
@@ -2531,7 +2531,7 @@ End Module
         End Function
 
         <WorkItem(545342)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConflict_UsedBeforeDeclaration() As Task
 
             Dim code =
@@ -2559,7 +2559,7 @@ End Module
 
         <WorkItem(545398)>
         <WorkItem(568917)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCorrectCastsForAssignmentStatement1() As Task
             Dim code =
 <File>
@@ -2589,7 +2589,7 @@ End Module
 
         <WorkItem(545398)>
         <WorkItem(568917)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCorrectCastsForAssignmentStatement2() As Task
             Dim code =
 <File>
@@ -2618,7 +2618,7 @@ End Module
         End Function
 
         <WorkItem(545398)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInsertCorrectCastsForAssignmentStatement3() As Task
             Dim code =
 <File>
@@ -2647,7 +2647,7 @@ End Module
         End Function
 
         <WorkItem(545539)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontOverparenthesizeXmlAttributeAccessExpression() As Task
             Dim code =
 <File>
@@ -2676,7 +2676,7 @@ End Module
         End Function
 
         <WorkItem(546069)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestBrokenVariableDeclarator() As Task
             Dim code =
 <File>
@@ -2692,7 +2692,7 @@ End Module
         End Function
 
         <WorkItem(546658)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontInlineInUnterminatedBlock() As Task
             Dim markup =
 <File>
@@ -2722,7 +2722,7 @@ End Module
         End Function
 
         <WorkItem(547152)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded1() As Task
             Dim code =
 <File>
@@ -2756,7 +2756,7 @@ End Module
         End Function
 
         <WorkItem(531473)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded2() As Task
             Dim code =
 <File>
@@ -2791,7 +2791,7 @@ End Module
         End Function
 
         <WorkItem(531473)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded3() As Task
             Dim code =
 <File>
@@ -2826,7 +2826,7 @@ End Module
         End Function
 
         <WorkItem(547153)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded4() As Task
             Dim code =
 <File>
@@ -2861,7 +2861,7 @@ End Module
         End Function
 
         <WorkItem(531584)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded5() As Task
             Dim code =
 <File>
@@ -2898,7 +2898,7 @@ End Module
         End Function
 
         <WorkItem(601123)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded6() As Task
             Dim code =
 <File>
@@ -2949,7 +2949,7 @@ End Module
         End Function
 
         <WorkItem(580495)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded01() As Task
             Dim code =
 <File>
@@ -2976,7 +2976,7 @@ End Module
         End Function
 
         <WorkItem(607520)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded02() As Task
             Dim code =
 <File>
@@ -3003,7 +3003,7 @@ End Module
         End Function
 
         <WorkItem(607520)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded03() As Task
             Dim code =
 <File>
@@ -3028,7 +3028,7 @@ End Module
         End Function
 
         <WorkItem(621407)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded04() As Task
             Dim code =
 <File>
@@ -3054,7 +3054,7 @@ End Module
         End Function
 
         <WorkItem(608208)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded05() As Task
             Dim code =
 <File>
@@ -3080,7 +3080,7 @@ End Module
         End Function
 
         <WorkItem(621407)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded06() As Task
             Dim code =
 <File>
@@ -3106,7 +3106,7 @@ End Module
         End Function
 
         <WorkItem(621407)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded06_1() As Task
             Dim code =
 <File>
@@ -3132,7 +3132,7 @@ End Module
         End Function
 
         <WorkItem(608995)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeLambdaIfNeeded07() As Task
             Dim code =
 <File>
@@ -3158,7 +3158,7 @@ End Module
         End Function
 
         <WorkItem(588344)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeXmlLiteralExpressionIfNeeded() As Task
             Dim code =
 <File>
@@ -3185,7 +3185,7 @@ End Module
         End Function
 
         <WorkItem(608204)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeQueryExpressionIfFollowedBySelect() As Task
             Dim code =
 <File>
@@ -3214,7 +3214,7 @@ End Module
         End Function
 
         <WorkItem(635364)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeQueryExpressionIfFollowedBySelect_635364() As Task
             Dim code =
 <File>
@@ -3249,7 +3249,7 @@ End Module
         End Function
 
         <WorkItem(635373)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeQueryExpressionIfFollowedBySelect_635373() As Task
             Dim code =
 <File>
@@ -3288,7 +3288,7 @@ End Module
         End Function
 
         <WorkItem(608202)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeQueryExpressionIfEndingWithDistinct() As Task
             Dim code =
 <File>
@@ -3325,7 +3325,7 @@ End Module
         End Function
 
         <WorkItem(530129)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConvertsDelegateInvocationToLabel() As Task
             Dim code =
 <File>
@@ -3357,7 +3357,7 @@ End Module
         End Function
 
         <WorkItem(529796)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConvertExtensionMethodInvocationToPlainStaticMethodInvocationIfNecessaryToKeepCorrectOverloadResolution() As Task
             Dim code =
 <File>
@@ -3420,7 +3420,7 @@ End Module
         End Function
 
         <WorkItem(601907)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeContextualKeywordAfterQueryEndingWithXmlDocumentEvenWithMultipleEmptyLines() As Task
             Dim code =
 <File>
@@ -3465,7 +3465,7 @@ End Module
         End Function
 
         <WorkItem(530903)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineTempShouldParenthesizeExpressionIfNeeded() As Task
             Dim code =
 <File>
@@ -3493,7 +3493,7 @@ End Module
         End Function
 
         <WorkItem(530945)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineTempShouldParenthesizeLambdaExpressionIfNeeded() As Task
             Dim code =
 <File>
@@ -3525,7 +3525,7 @@ End Module
         End Function
 
         <WorkItem(530926)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineTempShouldNotAddUnnecessaryCallKeyword() As Task
             Dim code =
 <File>
@@ -3550,7 +3550,7 @@ End Module
         End Function
 
         <WorkItem(529833)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineTempChangesSymbolInfoForInlinedExpression() As Task
             Dim code =
 <File>
@@ -3584,7 +3584,7 @@ End Module
         End Function
 
         <WorkItem(529833)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineTempWithUserDefinedOperator() As Task
             Dim code =
 <File>
@@ -3635,7 +3635,7 @@ End Class
         End Function
 
         <WorkItem(529833)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineTempWithUserDefinedOperator2() As Task
             Dim code =
 <File>
@@ -3686,7 +3686,7 @@ End Class
         End Function
 
         <WorkItem(529840)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestBugfix_529840_DetectSemanticChangesAtInlineSite() As Task
             Dim code =
 <File>
@@ -3736,7 +3736,7 @@ End Class
         End Function
 
         <WorkItem(718152)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestBugfix_718152_DontRemoveParenthesisForAwaitExpression() As Task
             Dim code =
 <File>
@@ -3771,7 +3771,7 @@ End Class
         End Function
 
         <WorkItem(718152)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestBugfix_718152_RemoveParenthesisForAwaitExpression() As Task
             Dim code =
 <File>
@@ -3809,7 +3809,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestNameOfExpressionAtStartOfStatement() As Task
             Dim code =
 <File>
@@ -3833,7 +3833,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestSimpleConditionalAccess() As Task
             Dim code =
 <File>
@@ -3866,7 +3866,7 @@ End Class
         End Function
 
         <WorkItem(1025, "https://github.com/dotnet/roslyn/issues/1025")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConditionalAccessWithConversion() As Task
             Dim code =
 <File>
@@ -3890,7 +3890,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestConditionalAccessWithConditionalExpression() As Task
             Dim code =
 <File>
@@ -4026,7 +4026,7 @@ End Class]]>
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestXmlLiteral() As Task
             Dim code =
 <File>
@@ -4053,7 +4053,7 @@ End Class
         End Function
 
         <WorkItem(2671, "https://github.com/dotnet/roslyn/issues/2671")>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestReplaceReferencesInWithBlocks() As Task
             Dim code =
 <MethodBody>
@@ -4074,7 +4074,7 @@ End With
         End Function
 
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontParenthesizeInterpolatedStringWithNoInterpolation() As Task
             Dim code =
 <MethodBody>
@@ -4091,7 +4091,7 @@ Dim s2 = AscW($"hello")
         End Function
 
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestDontParenthesizeInterpolatedStringWithInterpolation() As Task
             Dim code =
 <MethodBody>
@@ -4110,7 +4110,7 @@ Dim s2 = AscW($"hello {x}")
         End Function
 
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineFormattableStringIntoCallSiteRequiringFormattableString() As Task
             Dim code = "
 Imports System
@@ -4143,7 +4143,7 @@ End Class
         End Function
 
         <WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestInlineFormattableStringIntoCallSiteWithFormattableStringOverload() As Task
             Dim code = "
 Imports System

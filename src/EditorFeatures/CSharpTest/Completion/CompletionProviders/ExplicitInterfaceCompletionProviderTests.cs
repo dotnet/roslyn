@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new ExplicitInterfaceCompletionProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExplicitInterfaceMember()
         {
             var markup = @"
@@ -42,7 +42,7 @@ class Bar : IFoo
         }
 
         [WorkItem(709988)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitOnNotParen()
         {
             var markup = @"
@@ -71,7 +71,7 @@ class Bar : IFoo
         }
 
         [WorkItem(709988)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitOnParen()
         {
             var markup = @"

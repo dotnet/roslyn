@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         End Function
 
         <WorkItem(529682)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestAggregateFunctionInAggregateClause() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Linq
@@ -40,7 +40,7 @@ End Module
 
 #Region "EditorBrowsable tests"
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_FunctionAggregation_BrowsableStateAlways() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -79,7 +79,7 @@ End Module
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_FunctionAggregation_BrowsableStateNever() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -118,7 +118,7 @@ End Module
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_FunctionAggregation_BrowsableStateAdvanced() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -166,7 +166,7 @@ End Module
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_FunctionAggregation_BrowsableStateMixed() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic

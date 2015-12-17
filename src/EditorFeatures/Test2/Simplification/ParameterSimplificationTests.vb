@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function CSharp_ParameterCanBeSimplified() As System.Threading.Tasks.Task
             Dim code = <![CDATA[
 using System;
@@ -53,7 +53,7 @@ class C
             Await TestDocumentSimplificationAsync(code.Value, expected.Value)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function CSharp_ParameterCannotBeSimplified() As System.Threading.Tasks.Task
             Dim code = <![CDATA[
 using System;

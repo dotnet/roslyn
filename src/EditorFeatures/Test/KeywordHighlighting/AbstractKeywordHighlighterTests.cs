@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 // ancestor node.
                 var highlighter = CreateHighlighter();
 
-                var root = document.GetSyntaxRootAsync().Result;
+                var root = await document.GetSyntaxRootAsync();
 
                 for (int i = 0; i <= cursorSpan.Length; i++)
                 {

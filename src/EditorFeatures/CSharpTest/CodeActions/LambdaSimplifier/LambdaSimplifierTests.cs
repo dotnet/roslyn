@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
             return new LambdaSimplifierCodeRefactoringProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll1()
         {
             await TestAsync(
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance1()
         {
             await TestAsync(
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance2()
         {
             await TestAsync(
@@ -41,28 +41,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance3()
         {
             await TestMissingAsync(
 @"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<string, string> f); object Quux(object o); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance4()
         {
             await TestMissingAsync(
 @"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<object, object> f); string Quux(string o); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixCoContravariance5()
         {
             await TestMissingAsync(
 @"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<object, string> f); object Quux(string o); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll2()
         {
             await TestAsync(
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll3()
         {
             await TestAsync(
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixAll4()
         {
             await TestAsync(
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestFixOneOrAll()
         {
             await TestAsync(
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
         }
 
         [WorkItem(542562)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnAmbiguity1()
         {
             await TestMissingAsync(
@@ -124,7 +124,7 @@ class A
         }
 
         [WorkItem(627092)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnLambdaWithDynamic_1()
         {
             await TestMissingAsync(
@@ -159,7 +159,7 @@ class C<T>
         }
 
         [WorkItem(627092)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnLambdaWithDynamic_2()
         {
             await TestMissingAsync(
@@ -199,7 +199,7 @@ class Casd<T>
         }
 
         [WorkItem(544625)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task ParenthesizeIfParseChanges()
         {
             var code = @"
@@ -238,7 +238,7 @@ class C
         }
 
         [WorkItem(545856)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestWarningOnSideEffects()
         {
             await TestAsync(
@@ -247,7 +247,7 @@ class C
         }
 
         [WorkItem(545994)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestNonReturnBlockSyntax()
         {
             await TestAsync(
