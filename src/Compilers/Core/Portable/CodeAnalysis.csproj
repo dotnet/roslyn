@@ -74,6 +74,7 @@
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
+    <Compile Include="Syntax\ICompilationUnitSyntax.cs" />
     <Compile Include="Text\LargeTextWriter.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />
     <Compile Include="Text\StringTextWriter.cs" />
