@@ -71,6 +71,14 @@ SimplificationOptions.QualifyFieldAccess)
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function QualifyFieldAccess_NotSuggestedOnInstance() As Task
+            Await TestMissingAsyncWithOption(
+"Class C : Dim i As Integer : Sub M(c As C) : c.[|i|] = 1 : End Sub : End Class",
+SimplificationOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function QualifyFieldAccess_NotSuggestedOnBase() As Task
             Await TestMissingAsyncWithOption("
 Class Base
@@ -141,6 +149,14 @@ SimplificationOptions.QualifyPropertyAccess)
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function QualifyPropertyAccess_NotSuggestedOnInstance() As Task
+            Await TestMissingAsyncWithOption(
+"Class C : Property i As Integer : Sub M(c As C) : c.[|i|] = 1 : End Sub : End Class",
+SimplificationOptions.QualifyPropertyAccess)
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function QualifyPropertyAccess_NotSuggestedOnBase() As Task
             Await TestMissingAsyncWithOption("
 Class Base
@@ -160,7 +176,7 @@ SimplificationOptions.QualifyPropertyAccess)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function QualifyPropertyAccess_NotSuggestedOnShared() As Task
             Await TestMissingAsyncWithOption(
-"Class C : Shared i As Integer : Sub M() : [|i|] = 1 : End Sub : End Class",
+"Class C : Shared Property i As Integer : Sub M() : [|i|] = 1 : End Sub : End Class",
 SimplificationOptions.QualifyPropertyAccess)
         End Function
 
@@ -237,6 +253,14 @@ SimplificationOptions.QualifyMethodAccess)
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function QualifyMethodAccess_NotSuggestedOnInstance() As Task
+            Await TestMissingAsyncWithOption(
+"Class C : Sub M(c As C) : c.[|M|]() : End Sub : End Class",
+SimplificationOptions.QualifyMethodAccess)
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function QualifyMethodAccess_NotSuggestedOnBase() As Task
             Await TestMissingAsyncWithOption("
 Class Base
@@ -278,6 +302,22 @@ Class C
     Event e As EventHandler
     Sub Handler(sender As Object, args As EventArgs)
         AddHandler Me.e, AddressOf Handler
+    End Function
+End Class",
+SimplificationOptions.QualifyEventAccess)
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function QualifyEventAccess_NotSuggestedOnInstance() As Task
+            Await TestMissingAsyncWithOption("
+Imports System
+Class C
+    Event e As EventHandler
+    Sub M(c As C)
+        AddHandler c.[|e|], AddressOf Handler
+    End Sub
+    Sub Handler(sender As Object, args As EventArgs)
     End Function
 End Class",
 SimplificationOptions.QualifyEventAccess)
