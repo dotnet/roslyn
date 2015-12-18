@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Threading;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -21,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
                                                                     DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
-
-        private OptionSet _lazyDefaultOptionSet;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptorQualifyMemberAccess);
 
@@ -55,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
                 return;
             }
 
-            var optionSet = GetOptionSet(context.Options);
+            var optionSet = context.Options.GetOptionSet();
             if (optionSet == null)
             {
                 return;
@@ -76,22 +72,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
             {
                 context.ReportDiagnostic(Diagnostic.Create(s_descriptorQualifyMemberAccess, context.Operation.Syntax.GetLocation()));
             }
-        }
-
-        private OptionSet GetOptionSet(AnalyzerOptions analyzerOptions)
-        {
-            var workspaceOptions = analyzerOptions as WorkspaceAnalyzerOptions;
-            if (workspaceOptions != null)
-            {
-                return workspaceOptions.Workspace.Options;
-            }
-
-            if (_lazyDefaultOptionSet == null)
-            {
-                Interlocked.CompareExchange(ref _lazyDefaultOptionSet, new OptionSet(null), null);
-            }
-
-            return _lazyDefaultOptionSet;
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
