@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Qualify
 {
@@ -50,6 +52,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Qualify
                     node.WithLeadingTrivia())
                 .WithLeadingTrivia(node.GetLeadingTrivia());
             return qualifiedAccess;
+        }
+
+        private class QualifyMemberAccessCodeAction : CodeAction.DocumentChangeAction
+        {
+            public QualifyMemberAccessCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id)
+                : base(title, createChangedDocument, id)
+            {
+            }
         }
     }
 }

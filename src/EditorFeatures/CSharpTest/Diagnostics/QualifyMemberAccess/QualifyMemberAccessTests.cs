@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.QualifyMemb
             return TestAsync(code, expected, options: Option(option, true));
         }
 
+        private Task TestMissingAsyncWithOption(string code, PerLanguageOption<bool> option)
+        {
+            return TestMissingAsync(code, options: Option(option, true));
+        }
+
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_LHS()
@@ -72,6 +77,24 @@ SimplificationOptions.QualifyFieldAccess);
             await TestAsyncWithOption(
 @"class Class { string s; void M() { var x = [|s|]?.ToString(); } }",
 @"class Class { string s; void M() { var x = this.s?.ToString(); } }",
+SimplificationOptions.QualifyFieldAccess);
+        }
+
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyFieldAccess_NotSuggestedOnBase()
+        {
+            await TestMissingAsyncWithOption(
+@"class Base { protected int i; } class Derived : Base { void M() { [|i|] = 1; } }",
+SimplificationOptions.QualifyFieldAccess);
+        }
+
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyFieldAccess_NotSuggestedOnStatic()
+        {
+            await TestMissingAsyncWithOption(
+@"class C { static int i; void M() { [|i|] = 1; } }",
 SimplificationOptions.QualifyFieldAccess);
         }
 
@@ -127,6 +150,24 @@ SimplificationOptions.QualifyPropertyAccess);
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_NotSuggestedOnBase()
+        {
+            await TestMissingAsyncWithOption(
+@"class Base { protected int i { get; set; } } class Derived : Base { void M() { [|i|] = 1; } }",
+SimplificationOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_NotSuggestedOnStatic()
+        {
+            await TestMissingAsyncWithOption(
+@"class C { static int i { get; set; } void M() { [|i|] = 1; } }",
+SimplificationOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_VoidCallWithArguments()
         {
             await TestAsyncWithOption(
@@ -136,7 +177,7 @@ SimplificationOptions.QualifyMethodAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_AsReturn()
         {
             await TestAsyncWithOption(
@@ -146,7 +187,7 @@ SimplificationOptions.QualifyMethodAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_ChainedAccess()
         {
             await TestAsyncWithOption(
@@ -156,7 +197,7 @@ SimplificationOptions.QualifyMethodAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_ConditionalAccess()
         {
             await TestAsyncWithOption(
@@ -166,7 +207,7 @@ SimplificationOptions.QualifyMethodAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_EventSubscription1()
         {
             await TestAsyncWithOption(
@@ -176,7 +217,7 @@ SimplificationOptions.QualifyMethodAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7584"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_EventSubscription2()
         {
             await TestAsyncWithOption(
@@ -187,6 +228,24 @@ SimplificationOptions.QualifyMethodAccess);
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyMethodAccess_NotSuggestedOnBase()
+        {
+            await TestMissingAsyncWithOption(
+@"class Base { protected void Method() { } } class Derived : Base { void M() { [|Method|](); } }",
+SimplificationOptions.QualifyMethodAccess);
+        }
+
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyMethodAccess_NotSuggestedOnStatic()
+        {
+            await TestMissingAsyncWithOption(
+@"class C { static void Method() { } void M() { [|Method|](); } }",
+SimplificationOptions.QualifyMethodAccess);
+        }
+
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccess_EventSubscription()
         {
             await TestAsyncWithOption(
@@ -196,7 +255,17 @@ SimplificationOptions.QualifyEventAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyEventAccessAsProperty_EventSubscription()
+        {
+            await TestAsyncWithOption(
+@"using System; class C { event EventHandler e { add { } remove { } } void Handler(object sender, EventArgs args) { [|e|] += Handler; } }",
+@"using System; class C { event EventHandler e { add { } remove { } } void Handler(object sender, EventArgs args) { this.e += Handler; } }",
+SimplificationOptions.QualifyEventAccess);
+        }
+
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccess_InvokeEvent1()
         {
             await TestAsyncWithOption(
@@ -206,7 +275,7 @@ SimplificationOptions.QualifyEventAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccess_InvokeEvent2()
         {
             await TestAsyncWithOption(
@@ -216,12 +285,30 @@ SimplificationOptions.QualifyEventAccess);
         }
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccess_InvokeEvent3()
         {
             await TestAsyncWithOption(
 @"using System; class C { event EventHandler e; void OnSomeEvent() { [|e|]?.Invoke(this, new EventArgs()); } }",
 @"using System; class C { event EventHandler e; void OnSomeEvent() { this.e?.Invoke(this, new EventArgs()); } }",
+SimplificationOptions.QualifyEventAccess);
+        }
+
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyEventAccess_NotSuggestedOnBase()
+        {
+            await TestMissingAsyncWithOption(
+@"using System; class Base { protected event EventHandler e; } class Derived : Base { void Handler(object sender, EventArgs args) { [|e|] += Handler; } }",
+SimplificationOptions.QualifyEventAccess);
+        }
+
+        [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyEventAccess_NotSuggestedOnStatic()
+        {
+            await TestMissingAsyncWithOption(
+@"using System; class C { static event EventHandler e; } void Handler(object sender, EventArgs args) { [|e|] += Handler; } }",
 SimplificationOptions.QualifyEventAccess);
         }
     }

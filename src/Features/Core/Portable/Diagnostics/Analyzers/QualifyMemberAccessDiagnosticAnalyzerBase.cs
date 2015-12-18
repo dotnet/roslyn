@@ -3,7 +3,9 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
 {
@@ -25,17 +27,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptorQualifyMemberAccess);
 
         protected abstract ImmutableArray<TLanguageKindEnum> GetSupportedSyntaxKinds();
-        protected abstract string GetLanguageName();
-        protected abstract bool IsCandidate(SyntaxNode node);
+        protected abstract bool IsAlreadyQualifiedMemberAccess(SyntaxNode node);
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeNode, GetSupportedSyntaxKinds());
+            context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReferenceExpression, OperationKind.PropertyReferenceExpression, OperationKind.MethodBindingExpression);
         }
 
-        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            if (!IsCandidate(context.Node))
+            var memberReference = (IMemberReferenceExpression)context.Operation;
+            if (memberReference.Instance == null)
+            {
+                return;
+            }
+
+            if (IsAlreadyQualifiedMemberAccess(memberReference.Instance.Syntax))
             {
                 return;
             }
@@ -46,15 +53,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
                 return;
             }
 
-            var symbol = context.SemanticModel.GetSymbolInfo(context.Node).Symbol;
-            if (symbol == null)
+            if (memberReference.Member == null)
             {
                 return;
             }
 
-            if (!SimplificationHelpers.ShouldSimplifyMemberAccessExpression(symbol, GetLanguageName(), optionSet))
+            if (memberReference.Member.ContainingSymbol != memberReference.Instance.ResultType)
             {
-                context.ReportDiagnostic(Diagnostic.Create(s_descriptorQualifyMemberAccess, context.Node.GetLocation()));
+                return;
+            }
+
+            var language = context.Operation.Syntax.Language;
+            if (!SimplificationHelpers.ShouldSimplifyMemberAccessExpression(memberReference.Member, language, optionSet))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(s_descriptorQualifyMemberAccess, context.Operation.Syntax.GetLocation()));
             }
         }
 
