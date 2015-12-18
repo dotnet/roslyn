@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -267,7 +268,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundFieldAccess : IFieldReferenceExpression
     {
         IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
-       
+
+        ISymbol IMemberReferenceExpression.Member => this.FieldSymbol;
+
         IFieldSymbol IFieldReferenceExpression.Field => this.FieldSymbol;
 
         protected override OperationKind ExpressionKind => OperationKind.FieldReferenceExpression;
@@ -275,10 +278,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundPropertyAccess : IPropertyReferenceExpression
     {
-        IPropertySymbol IPropertyReferenceExpression.Property => this.PropertySymbol;
-       
         IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
-       
+
+        ISymbol IMemberReferenceExpression.Member => this.PropertySymbol;
+
+        IPropertySymbol IPropertyReferenceExpression.Property => this.PropertySymbol;
+
         protected override OperationKind ExpressionKind => OperationKind.PropertyReferenceExpression;
     }
 

@@ -213,6 +213,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Instance of the class or struct. Null if the reference is to a static/shared member.
         /// </summary>
         IExpression Instance { get; }
+
+        /// <summary>
+        /// The member symbol that is referenced.
+        /// </summary>
+        ISymbol Member { get; }
     }
 
     /// <summary>
