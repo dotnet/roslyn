@@ -319,11 +319,6 @@ namespace Roslyn.Test.Utilities
             Assert.False(true, string.Format(format, args));
         }
 
-        public static void Null<T>(T @object, string message = null)
-        {
-            Assert.True(AssertEqualityComparer<T>.IsNull(@object), message);
-        }
-
         public static void NotNull<T>(T @object, string message = null)
         {
             Assert.False(AssertEqualityComparer<T>.IsNull(@object), message);
