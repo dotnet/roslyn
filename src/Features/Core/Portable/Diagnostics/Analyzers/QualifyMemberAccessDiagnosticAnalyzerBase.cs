@@ -62,11 +62,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
                 return;
             }
 
-            if (memberReference.Member.ContainingSymbol != memberReference.Instance.ResultType)
-            {
-                return;
-            }
-
             var language = context.Operation.Syntax.Language;
             if (!SimplificationHelpers.ShouldSimplifyMemberAccessExpression(memberReference.Member, language, optionSet))
             {
