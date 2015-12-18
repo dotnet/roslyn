@@ -32,16 +32,16 @@ Contents
 
 Traditionally, compilers are black boxes -- source code goes in one end, magic happens in the middle, and object files or assemblies come out the other end. As compilers perform their magic, they build up deep understanding of the code they are processing, but that knowledge is unavailable to anyone but the compiler implementation wizards.  The information is promptly forgotten after the translated output is produced.
 
-For decades, this world view has served us well, but it is no longer sufficient. Increasingly we rely on integrated development environment (IDE) features such as IntelliSense, refactoring, intelligent rename, “Find all references,” and “Go to definition” to increase our productivity. We rely on code analysis tools to improve our code quality and code generators to aid in application construction. As these tools get smarter, they need access to more and more of the deep code knowledge that only compilers possess. This is the core mission of the .NET Compiler Platform (“Roslyn”): opening up the black boxes and allowing tools and end users to share in the wealth of information compilers have about our code. Instead of being opaque source-code-in and object-code-out translators, through the .NET Compiler Platform (“Roslyn”), compilers become platforms—APIs that you can use for code related tasks in your tools and applications.
+For decades, this world view has served us well, but it is no longer sufficient. Increasingly we rely on integrated development environment (IDE) features such as IntelliSense, refactoring, intelligent rename, “Find all references,” and “Go to definition” to increase our productivity. We rely on code analysis tools to improve our code quality and code generators to aid in application construction. As these tools get smarter, they need access to more and more of the deep code knowledge that only compilers possess. This is the core mission of Roslyn: opening up the black boxes and allowing tools and end users to share in the wealth of information compilers have about our code. Instead of being opaque source-code-in and object-code-out translators, through Roslyn, compilers become platforms—APIs that you can use for code related tasks in your tools and applications.
 
 The transition to compilers as platforms dramatically lowers the barrier to entry for creating code focused tools and applications. It creates many opportunities for innovation in areas such as meta-programming, code generation and transformation, interactive use of the C# and VB languages, and embedding of C# and VB in domain specific languages.
 
-The .NET Compiler Platform (“Roslyn”) SDK Preview includes the latest drafts of new language object models for code generation, analysis, and refactoring. We hope to include drafts of API support for scripting and interactive use of C# and Visual Basic in a future preview. This document provides a conceptual overview of the .NET Compiler Platform (“Roslyn”). Further details can be found in the walkthroughs and samples included in the SDK Preview.
+Roslyn SDK Preview includes the latest drafts of new language object models for code generation, analysis, and refactoring. We hope to include drafts of API support for scripting and interactive use of C# and Visual Basic in a future preview. This document provides a conceptual overview of Roslyn. Further details can be found in the walkthroughs and samples included in the SDK Preview.
 
 ## Exposing the Compiler APIs
 ### Compiler Pipeline Functional Areas
 
-The .NET Compiler Platform (“Roslyn”) exposes the C# and Visual Basic compiler’s code analysis to you as a consumer by providing an API layer that mirrors a traditional compiler pipeline.
+Roslyn exposes the C# and Visual Basic compiler’s code analysis to you as a consumer by providing an API layer that mirrors a traditional compiler pipeline.
 
 ![compiler pipeline](images/compiler-pipeline.png)
 
@@ -55,11 +55,11 @@ Corresponding to each of those phases, an object model is surfaced that allows a
 
 Each compiler combines these components together as a single end-to-end whole.
 
-To ensure that the public Compiler APIs are sufficient for building world-class IDE features, the language services that will be used to power the C# and VB experiences in Visual Studio vNext have been rebuilt using them. For instance, the code outlining and formatting features use the syntax trees, the Object Browser and navigation features use the symbol table, refactorings and Go to Definition use the semantic model, and Edit and Continue uses all of these, including the Emit API. These experiences may be previewed on Visual Studio 2013 through the “Roslyn” End-User Preview. This preview is required in order to build and test applications build on top of the .NET Compiler Platform (“Roslyn”) SDK meant for integration into Visual Studio though the .NET Compiler Platform (“Roslyn”) APIs can be used in your own applications independently of Visual Studio without requiring the End-User Preview.
+To ensure that the public Compiler APIs are sufficient for building world-class IDE features, the language services that will be used to power the C# and VB experiences in Visual Studio vNext have been rebuilt using them. For instance, the code outlining and formatting features use the syntax trees, the Object Browser and navigation features use the symbol table, refactorings and Go to Definition use the semantic model, and Edit and Continue uses all of these, including the Emit API. These experiences may be previewed on Visual Studio 2013 through the “Roslyn” End-User Preview. This preview is required in order to build and test applications build on top of Roslyn SDK meant for integration into Visual Studio though Roslyn APIs can be used in your own applications independently of Visual Studio without requiring the End-User Preview.
 
 ### API Layers
 
-The .NET Compiler Platform (“Roslyn”) consists of two main layers of APIs – the Compiler APIs and Workspaces APIs.
+Roslyn consists of two main layers of APIs – the Compiler APIs and Workspaces APIs.
 
 ![api layers](images/alex-api-layers.png)
 
@@ -243,4 +243,4 @@ The following diagram is a representation of how the Workspace relates to the ho
 
 ## Summary
 
-The .NET Compiler Platform (“Roslyn”) exposes a set of Compiler APIs and Workspaces APIs that provides rich information about your source code and that has full fidelity with the C# and Visual Basic languages.  The transition to compilers as a platform dramatically lowers the barrier to entry for creating code focused tools and applications. It creates many opportunities for innovation in areas such as meta-programming, code generation and transformation, interactive use of the C# and VB languages, and embedding of C# and VB in domain specific languages.  
+Roslyn exposes a set of Compiler APIs and Workspaces APIs that provides rich information about your source code and that has full fidelity with the C# and Visual Basic languages.  The transition to compilers as a platform dramatically lowers the barrier to entry for creating code focused tools and applications. It creates many opportunities for innovation in areas such as meta-programming, code generation and transformation, interactive use of the C# and VB languages, and embedding of C# and VB in domain specific languages.  
