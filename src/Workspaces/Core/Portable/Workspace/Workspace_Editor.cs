@@ -408,8 +408,6 @@ namespace Microsoft.CodeAnalysis
                 var oldDocument = oldSolution.GetDocument(documentId);
                 var oldDocumentState = oldDocument.State;
 
-                AddToOpenDocumentMap(documentId);
-
                 var newText = textContainer.CurrentText;
                 var currentSolution = oldSolution;
 
@@ -439,6 +437,11 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var newSolution = this.SetCurrentSolution(currentSolution);
+
+                // add id to open doc list after updating current solution so document does not claim to be open
+                // until the new text is available.
+                AddToOpenDocumentMap(documentId);
+
                 SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
 
                 var newDoc = newSolution.GetDocument(documentId);
