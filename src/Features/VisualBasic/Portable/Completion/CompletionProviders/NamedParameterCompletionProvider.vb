@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                         CompletionUtilities.GetTextChangeSpan(text, position),
                         position,
                         {parameter}.ToList(),
-                        VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken),
+                        Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False),
                         rules:=ItemRules.Instance))
             Next
         End Function

@@ -17,15 +17,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
     Friend Class VisualBasicRecommendationService
         Inherits AbstractRecommendationService
 
-        Protected Overrides Function GetRecommendedSymbolsAtPositionWorker(
+        Protected Overrides Async Function GetRecommendedSymbolsAtPositionWorkerAsync(
             workspace As Workspace,
             semanticModel As SemanticModel,
             position As Integer,
             options As OptionSet,
             cancellationToken As CancellationToken
-        ) As Tuple(Of IEnumerable(Of ISymbol), AbstractSyntaxContext)
+        ) As Tasks.Task(Of Tuple(Of IEnumerable(Of ISymbol), AbstractSyntaxContext))
 
-            Dim context = VisualBasicSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken)
+            Dim context = Await VisualBasicSyntaxContext.CreateContextAsync(workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
 
             Dim filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language)
             Dim symbols = GetSymbolsWorker(context, filterOutOfScopeLocals, cancellationToken)

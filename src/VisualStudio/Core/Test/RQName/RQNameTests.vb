@@ -251,9 +251,10 @@ class G<T>
                 Dim doc = workspace.Documents.Single()
 
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
-                Dim token = (Await workspaceDoc.GetSyntaxTreeAsync()).GetTouchingWord(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
+                Dim tree = Await workspaceDoc.GetSyntaxTreeAsync()
+                Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
 
-                Dim symbol = SymbolFinder.FindSymbolAtPosition(Await workspaceDoc.GetSemanticModelAsync(), token.SpanStart, workspace, CancellationToken.None)
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(Await workspaceDoc.GetSemanticModelAsync(), token.SpanStart, workspace).ConfigureAwait(False)
                 If symbol Is Nothing Then
                     symbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
                 End If

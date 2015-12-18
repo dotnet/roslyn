@@ -824,7 +824,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim semanticModel = Await document.GetSemanticModelAsync()
                 Dim position As Integer = hostDocument.CursorPosition.Value
-                Dim symbol = SymbolFinder.FindSymbolAtPosition(semanticModel, position, workspace, CancellationToken.None)
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, position, workspace).ConfigureAwait(False)
                 Assert.True(symbol IsNot Nothing, $"Could not find symbol as position, {position}")
 
                 Dim libraryService = document.Project.LanguageServices.GetService(Of ILibraryService)
@@ -862,7 +862,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim semanticModel = Await document.GetSemanticModelAsync()
                 Dim position As Integer = hostDocument.CursorPosition.Value
-                Dim symbol = SymbolFinder.FindSymbolAtPosition(semanticModel, position, workspace, CancellationToken.None)
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, position, workspace).ConfigureAwait(False)
                 Assert.True(symbol IsNot Nothing, $"Could not find symbol as position, {position}")
 
                 Dim libraryService = document.Project.LanguageServices.GetService(Of ILibraryService)

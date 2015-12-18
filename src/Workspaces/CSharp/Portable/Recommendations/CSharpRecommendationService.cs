@@ -6,6 +6,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
     [ExportLanguageService(typeof(IRecommendationService), LanguageNames.CSharp), Shared]
     internal class CSharpRecommendationService : AbstractRecommendationService
     {
-        protected override Tuple<IEnumerable<ISymbol>, AbstractSyntaxContext> GetRecommendedSymbolsAtPositionWorker(
+        protected override Task<Tuple<IEnumerable<ISymbol>, AbstractSyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var context = CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language);
             symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation);
 
-            return Tuple.Create<IEnumerable<ISymbol>, AbstractSyntaxContext>(symbols, context);
+            return Task.FromResult(Tuple.Create<IEnumerable<ISymbol>, AbstractSyntaxContext>(symbols, context));
         }
 
         private static IEnumerable<ISymbol> GetSymbolsWorker(

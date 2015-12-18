@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     // in C# there can only be one using with the same alias name in the same block (top of file of namespace). 
                     // It's ok to redefine the alias in different blocks.
                     var location = renamedSymbol.Locations.Single();
-                    var token = location.SourceTree.GetTouchingToken(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true);
+                    var token = await location.SourceTree.GetTouchingTokenAsync(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
                     var currentUsing = (UsingDirectiveSyntax)token.Parent.Parent.Parent;
 
                     var namespaceDecl = token.Parent.GetAncestorsOrThis(n => n.Kind() == SyntaxKind.NamespaceDeclaration).FirstOrDefault();
@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 else if (renamedSymbol.Kind == SymbolKind.TypeParameter)
                 {
                     var location = renamedSymbol.Locations.Single();
-                    var token = location.SourceTree.GetTouchingToken(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true);
+                    var token = await location.SourceTree.GetTouchingTokenAsync(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
                     var currentTypeParameter = token.Parent;
 
                     foreach (var typeParameter in ((TypeParameterListSyntax)currentTypeParameter.Parent).Parameters)
@@ -956,7 +956,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
         }
 
-        public IEnumerable<Location> ComputeImplicitReferenceConflicts(ISymbol renameSymbol, ISymbol renamedSymbol, IEnumerable<ReferenceLocation> implicitReferenceLocations, CancellationToken cancellationToken)
+        public async Task<IEnumerable<Location>> ComputeImplicitReferenceConflictsAsync(ISymbol renameSymbol, ISymbol renamedSymbol, IEnumerable<ReferenceLocation> implicitReferenceLocations, CancellationToken cancellationToken)
         {
             // Handle renaming of symbols used for foreach
             bool implicitReferencesMightConflict = renameSymbol.Kind == SymbolKind.Property &&
@@ -974,12 +974,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     foreach (var implicitReferenceLocation in implicitReferenceLocations)
                     {
-                        var token = implicitReferenceLocation.Location.SourceTree.GetTouchingToken(implicitReferenceLocation.Location.SourceSpan.Start, cancellationToken, false);
+                        var token = await implicitReferenceLocation.Location.SourceTree.GetTouchingTokenAsync(
+                            implicitReferenceLocation.Location.SourceSpan.Start, cancellationToken, findInsideTrivia: false).ConfigureAwait(false);
 
                         switch (token.Kind())
                         {
                             case SyntaxKind.ForEachKeyword:
-                                return SpecializedCollections.SingletonEnumerable<Location>(((ForEachStatementSyntax)token.Parent).Expression.GetLocation());
+                                return SpecializedCollections.SingletonEnumerable(((ForEachStatementSyntax)token.Parent).Expression.GetLocation());
                         }
                     }
                 }

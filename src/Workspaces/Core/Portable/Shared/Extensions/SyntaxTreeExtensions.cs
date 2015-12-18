@@ -2,6 +2,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,26 +20,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// Returns the identifier, keyword, contextual keyword or preprocessor keyword touching this
         /// position, or a token of Kind = None if the caret is not touching either.
         /// </summary>
-        public static SyntaxToken GetTouchingWord(
+        public static Task<SyntaxToken> GetTouchingWordAsync(
             this SyntaxTree syntaxTree,
             int position,
             ISyntaxFactsService syntaxFacts,
             CancellationToken cancellationToken,
             bool findInsideTrivia = false)
         {
-            return GetTouchingToken(syntaxTree, position, syntaxFacts.IsWord, cancellationToken, findInsideTrivia);
+            return GetTouchingTokenAsync(syntaxTree, position, syntaxFacts.IsWord, cancellationToken, findInsideTrivia);
         }
 
-        public static SyntaxToken GetTouchingToken(
+        public static Task<SyntaxToken> GetTouchingTokenAsync(
             this SyntaxTree syntaxTree,
             int position,
             CancellationToken cancellationToken,
             bool findInsideTrivia = false)
         {
-            return GetTouchingToken(syntaxTree, position, _ => true, cancellationToken, findInsideTrivia);
+            return GetTouchingTokenAsync(syntaxTree, position, _ => true, cancellationToken, findInsideTrivia);
         }
 
-        public static SyntaxToken GetTouchingToken(
+        public static async Task<SyntaxToken> GetTouchingTokenAsync(
             this SyntaxTree syntaxTree,
             int position,
             Predicate<SyntaxToken> predicate,
@@ -52,7 +53,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return default(SyntaxToken);
             }
 
-            var token = syntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia);
+            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(position, findInsideTrivia);
 
             if ((token.Span.Contains(position) || token.Span.End == position) && predicate(token))
             {
@@ -127,10 +129,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return lineVisibility == LineVisibility.Hidden || lineVisibility == LineVisibility.BeforeFirstLineDirective;
         }
 
-        public static bool IsBeforeFirstToken(
+        public static async Task<bool> IsBeforeFirstTokenAsync(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var firstToken = syntaxTree.GetRoot(cancellationToken).GetFirstToken(includeZeroWidth: true, includeSkipped: true);
+            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var firstToken = root.GetFirstToken(includeZeroWidth: true, includeSkipped: true);
 
             return position <= firstToken.SpanStart;
         }

@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 else
                 {
                     var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                    var symbol = SymbolFinder.FindSymbolAtPosition(semanticModel,
+                    var symbol = SymbolFinder.FindSymbolAtPositionAsync(semanticModel,
                                                                    triggerPoint.Value.Position,
                                                                    document.Project.Solution.Workspace,
                                                                    bindLiteralsToUnderlyingType: true,
-                                                                   cancellationToken: cancellationToken);
+                                                                   cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
 
                     if (symbol == null)
                     {

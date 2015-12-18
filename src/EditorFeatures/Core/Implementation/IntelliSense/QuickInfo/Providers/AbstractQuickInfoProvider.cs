@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.GetTouchingToken(position, cancellationToken, findInsideTrivia: true);
+            var token = await tree.GetTouchingTokenAsync(position, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
-            QuickInfoItem state;
-            if ((state = await GetQuickInfoItemAsync(document, token, position, cancellationToken).ConfigureAwait(false)) != null)
+            var state = await GetQuickInfoItemAsync(document, token, position, cancellationToken).ConfigureAwait(false);
+            if (state != null)
             {
                 return state;
             }

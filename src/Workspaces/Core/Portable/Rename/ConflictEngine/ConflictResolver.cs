@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return conflictResolution.ReplacementTextValid && renamedSymbol != null && renamedSymbol.Locations.Any(loc => loc.IsInSource);
         }
 
-        private static void AddImplicitConflicts(
+        private static async Task AddImplicitConflictsAsync(
             ISymbol renamedSymbol,
             ISymbol originalSymbol,
             IEnumerable<ReferenceLocation> implicitReferenceLocations,
@@ -150,11 +150,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // the location of the implicit reference defines the language rules to check.
                 // E.g. foreach in C# using a MoveNext in VB that is renamed to MOVENEXT (within VB)
                 var renameRewriterService = implicitReferenceLocationsPerLanguage.First().Document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
-                var implicitConflicts = renameRewriterService.ComputeImplicitReferenceConflicts(
+                var implicitConflicts = await renameRewriterService.ComputeImplicitReferenceConflictsAsync(
                     originalSymbol,
                     renamedSymbol,
                     implicitReferenceLocationsPerLanguage,
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
 
                 foreach (var implicitConflict in implicitConflicts)
                 {
