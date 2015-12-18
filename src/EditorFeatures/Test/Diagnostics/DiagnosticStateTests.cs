@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     public class DiagnosticStateTests : TestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void SerializationTest_Document()
+        public async Task SerializationTest_Document()
         {
             using (var workspace = new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, workspaceKind: "DiagnosticTest"))
             {
@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 var original = new DiagnosticIncrementalAnalyzer.AnalysisData(version1, version2, diagnostics.ToImmutableArray());
                 var state = new DiagnosticIncrementalAnalyzer.DiagnosticState("Test", VersionStamp.Default, LanguageNames.CSharp);
-                state.PersistAsync(document, original, CancellationToken.None).Wait();
+                await state.PersistAsync(document, original, CancellationToken.None);
 
-                var recovered = state.TryGetExistingDataAsync(document, CancellationToken.None).Result;
+                var recovered = await state.TryGetExistingDataAsync(document, CancellationToken.None);
 
                 Assert.Equal(original.TextVersion, recovered.TextVersion);
                 Assert.Equal(original.DataVersion, recovered.DataVersion);
