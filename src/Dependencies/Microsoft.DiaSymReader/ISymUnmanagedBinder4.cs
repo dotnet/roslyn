@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 namespace Microsoft.DiaSymReader
 {
     [ComImport]
-    [Guid("ACCEE350-89AF-4ccb-8B40-1C2C4C6F9434")]
+    [Guid("F1DC5735-F877-48C9-BBE7-2A5486E84D7C")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [ComVisible(false)]
-    public interface ISymUnmanagedBinder2 : ISymUnmanagedBinder
+    public interface ISymUnmanagedBinder4 : ISymUnmanagedBinder3
     {
         #region ISymUnmanagedBinder methods
 
@@ -46,6 +46,8 @@ namespace Microsoft.DiaSymReader
 
         #endregion
 
+        #region ISymUnmanagedBinder2 methods
+
         /// <summary>
         /// Given a metadata interface and a file name, returns the 
         /// <see cref="ISymUnmanagedReader"/> interface that will read the debugging symbols associated
@@ -62,11 +64,74 @@ namespace Microsoft.DiaSymReader
         /// <param name="searchPolicy">Search policy.</param>
         /// <param name="reader">The new reader instance.</param>
         [PreserveSig]
-        int GetReaderForFile2(
+        new int GetReaderForFile2(
             [MarshalAs(UnmanagedType.Interface)]object metadataImporter,
             [MarshalAs(UnmanagedType.LPWStr)]string fileName,
             [MarshalAs(UnmanagedType.LPWStr)]string searchPath,
             SymUnmanagedSearchPolicy searchPolicy,
             [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedReader reader);
+
+        #endregion
+
+        #region ISymUnmanagedBinder3 methods
+
+        [PreserveSig]
+        new int GetReaderFromCallback(
+            [In, MarshalAs(UnmanagedType.Interface)] object metadataImporter,
+            [MarshalAs(UnmanagedType.LPWStr)]string fileName,
+            [MarshalAs(UnmanagedType.LPWStr)]string searchPath,
+            SymUnmanagedSearchPolicy searchPolicy,
+            [In, MarshalAs(UnmanagedType.Interface)] object callback, // IDiaLoadCallback(2)
+            [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedReader reader);
+
+        #endregion
+
+        #region ISymUnmanagedBinder4 methods
+
+        /// <summary>
+        /// Creates a new <see cref="ISymUnmanagedReader"/> for the specified PDB file.
+        /// </summary>
+        /// <param name="metadataImportProvider">
+        /// Provider of a metadata importer for the corresponding PE file.
+        /// The importer is only constructed if the operation performed on the SymReader requires access
+        /// to the metadata.
+        /// </param>
+        /// <param name="pdbFilePath">PDB file path.</param>
+        /// <param name="reader">The new reader instance.</param>
+        /// <returns>
+        /// E_INVALIDARG
+        ///   <paramref name="metadataImportProvider"/> is null, or
+        ///   <paramref name="pdbFilePath"/> is null or empty.
+        /// Another error code describing failure to open the file.
+        /// </returns>
+        [PreserveSig]
+        int GetReaderFromPdbFile(
+            [MarshalAs(UnmanagedType.Interface)]IMetadataImportProvider metadataImportProvider,
+            [MarshalAs(UnmanagedType.LPWStr)]string pdbFilePath,
+            [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedReader reader);
+
+        /// <summary>
+        /// Creates a new <see cref="ISymUnmanagedReader"/> for the specified PDB file.
+        /// </summary>
+        /// <param name="metadataImportProvider">
+        /// Provider of a metadata importer for the corresponding PE file.
+        /// The importer is only constructed if the operation performed on the SymReader requires access
+        /// to the metadata.
+        /// </param>
+        /// <param name="stream">PDB stream.</param>
+        /// <param name="reader">The new reader instance.</param>
+        /// <returns>
+        /// E_INVALIDARG
+        ///   <paramref name="metadataImportProvider"/> is null, or
+        ///   <paramref name="stream"/> is null.
+        /// Another error code describing failure to open the file.
+        /// </returns>
+        [PreserveSig]
+        int GetReaderFromPdbStream(
+            [MarshalAs(UnmanagedType.Interface)]IMetadataImportProvider metadataImportProvider,
+            [MarshalAs(UnmanagedType.Interface)]object stream,
+            [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedReader reader);
+
+        #endregion
     }
 }
