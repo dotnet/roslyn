@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("arg")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("arg", state.GetCurrentViewLineText())
@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, True)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, True)
                 state.SendTypeChars("arg")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("arg", state.GetCurrentViewLineText())
@@ -75,7 +75,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, True)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, True)
                 state.SendTypeChars("x")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionSession()
@@ -105,7 +105,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, True)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, True)
                 state.SendTypeChars("bar")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("bar")
@@ -138,7 +138,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("foo")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("foo")
@@ -179,7 +179,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionItemsContainAll("variable1", "variable2")
@@ -205,7 +205,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionItemsContainAll("variable1", "variable2")
@@ -231,7 +231,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionItemsContainNone("variable1")
@@ -258,7 +258,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionItemsContainNone("variable1")
@@ -285,7 +285,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionItemsContainNone("variable1")
@@ -312,7 +312,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionItemsContainNone("variable1")
@@ -337,7 +337,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("new string(")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSignatureHelpSession()
@@ -365,7 +365,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("something(")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSignatureHelpSession()
@@ -394,7 +394,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("something<int>(")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSignatureHelpSession()
@@ -420,7 +420,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 Await VerifyCompletionAndDotAfter("q", state)
                 Await VerifyCompletionAndDotAfter("OOO", state)
             End Using
@@ -448,7 +448,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("STATICI")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionItemsContainNone("STATICINT")
@@ -474,7 +474,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, False)
                 state.SendTypeChars("1")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertNoCompletionSession()
@@ -628,7 +628,7 @@ $$</Document>
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, True)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, True)
                 state.SendTypeChars("arg")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("arg", state.GetCurrentViewLineText())
@@ -658,7 +658,7 @@ $$</Document>
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, True)
+            Using state = Await TestState.CreateCSharpTestStateAsync(text, True)
                 state.SendTypeChars("arg")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("123123123123123123123123123 + arg", state.GetCurrentViewLineText())

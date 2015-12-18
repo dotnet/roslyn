@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
@@ -116,12 +118,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             SetupImmediateWindowProjectionBuffer();
         }
 
-        internal bool TryInitialize()
+        internal Task<bool> TryInitializeAsync()
         {
-            return this.TrySetContext(_isImmediateWindow);
+            return this.TrySetContextAsync(_isImmediateWindow);
         }
 
-        private bool TrySetContext(
+        private async Task<bool> TrySetContextAsync(
             bool isImmediateWindow)
         {
             // Get the workspace, and from there, the solution and document containing this buffer.
@@ -179,23 +181,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 forkedSolution = forkedSolution.WithDocumentText(link, _projectionBuffer.CurrentSnapshot.AsText(), PreservationMode.PreserveIdentity);
             }
 
+            _textView.TextBuffer.ChangeContentType(_contentType, null);
+            var bufferGraph = _bufferGraphFactoryService.CreateBufferGraph(_projectionBuffer);
+            _debuggerTextView = new DebuggerTextView(_textView, bufferGraph, this.InImmediateWindow);
+
             // Put it into a new workspace, and open it and its related documents
             // with the projection buffer as the text.
             _workspace = new DebuggerIntelliSenseWorkspace(forkedSolution);
-            _workspace.OpenDocument(document.Id, _projectionBuffer.AsTextContainer());
+            await _workspace.OpenDocumentAsync(document.Id, _projectionBuffer.AsTextContainer()).ConfigureAwait(false);
             foreach (var link in document.GetLinkedDocumentIds())
             {
-                _workspace.OpenDocument(link, _projectionBuffer.AsTextContainer());
+                await _workspace.OpenDocumentAsync(link, _projectionBuffer.AsTextContainer()).ConfigureAwait(false);
             }
 
-            // Start getting the compilation so the PartialSolution will be ready when the user starts typing in the window
-            document.Project.GetCompilationAsync(System.Threading.CancellationToken.None);
-
-            _textView.TextBuffer.ChangeContentType(_contentType, null);
-
-            var bufferGraph = _bufferGraphFactoryService.CreateBufferGraph(_projectionBuffer);
-
-            _debuggerTextView = new DebuggerTextView(_textView, bufferGraph, this.InImmediateWindow);
+            // Start getting the compilation so the PartialSolution will be ready when the user 
+            // starts typing in the window.  Do this in a fire-and-forget manner since we don't care
+            // about the result, and we don't want to block the user from proceeding and interacting
+            // with the immediate window. 
+            var ignore = document.Project.GetCompilationAsync(CancellationToken.None);
             return true;
         }
 
