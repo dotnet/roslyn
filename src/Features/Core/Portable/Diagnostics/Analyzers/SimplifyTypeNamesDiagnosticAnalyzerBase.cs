@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
@@ -41,8 +40,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
-        private OptionSet _lazyDefaultOptionSet;
-
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
@@ -55,29 +52,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 
         protected abstract bool CanSimplifyTypeNameExpressionCore(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken);
 
-        private OptionSet GetOptionSet(AnalyzerOptions analyzerOptions)
-        {
-            var workspaceOptions = analyzerOptions as WorkspaceAnalyzerOptions;
-            if (workspaceOptions != null)
-            {
-                return workspaceOptions.Workspace.Options;
-            }
-
-            if (_lazyDefaultOptionSet == null)
-            {
-                Interlocked.CompareExchange(ref _lazyDefaultOptionSet, new OptionSet(null), null);
-            }
-
-            return _lazyDefaultOptionSet;
-        }
-
         protected abstract string GetLanguageName();
 
         protected bool TrySimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, AnalyzerOptions analyzerOptions, out Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             diagnostic = default(Diagnostic);
 
-            var optionSet = GetOptionSet(analyzerOptions);
+            var optionSet = analyzerOptions.GetOptionSet();
             string diagnosticId;
 
             TextSpan issueSpan;
