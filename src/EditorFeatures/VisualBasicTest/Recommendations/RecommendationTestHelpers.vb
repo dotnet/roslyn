@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
         End Function
 
         Private Async Function GetRecommendedKeywordStringsAsync(source As String, position As Integer) As Tasks.Task(Of IEnumerable(Of String))
-            Dim keywowrds = Await GetRecommendedKeywordsAsync(source, position).ConfigureAwait(False)
+            Dim keywords = Await GetRecommendedKeywordsAsync(source, position).ConfigureAwait(False)
             Return keywords.Select(Function(k) k.Keyword)
         End Function
 

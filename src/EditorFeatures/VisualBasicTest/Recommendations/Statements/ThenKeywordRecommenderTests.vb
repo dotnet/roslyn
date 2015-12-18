@@ -4,14 +4,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
     Public Class ThenKeywordRecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterHashIf()
-            VerifyRecommendationsMissing(<File>#If |</File>, "Then")
-        End Sub
+        Public Async Function NotAfterHashIfTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>#If |</File>, "Then")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterHashIfExpression()
-            VerifyRecommendationsContain(<File>#If True |</File>, "Then")
-        End Sub
-
+        Public Async Function AfterHashIfExpressionTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>#If True |</File>, "Then")
+        End Function
     End Class
 End Namespace

@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ty
 
         <WorkItem(543270)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoTypesInDelegateCreation()
+        Public Async Function NoTypesInDelegateCreation() As Task
             Dim code =
 <File>
 Module Program
@@ -66,11 +66,11 @@ Module Program
 End Module
 </File>
 
-            VerifyRecommendationsMissing(code, _keywordList)
-        End Sub
+            Await VerifyRecommendationsMissingAsync(code, _keywordList)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoTypesInInheritsStatement()
+        Public Async Function NoTypesInInheritsStatement() As Task
             Dim code =
 <File>
 Class C
@@ -78,11 +78,11 @@ Class C
 End Class
 </File>
 
-            VerifyRecommendationsMissing(code, _keywordList)
-        End Sub
+            Await VerifyRecommendationsMissingAsync(code, _keywordList)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoTypesInImplementsStatement()
+        Public Async Function NoTypesInImplementsStatement() As Task
             Dim code =
 <File>
 Class C
@@ -90,8 +90,8 @@ Class C
 End Class
 </File>
 
-            VerifyRecommendationsMissing(code, _keywordList)
-        End Sub
+            Await VerifyRecommendationsMissingAsync(code, _keywordList)
+        End Function
 
     End Class
 End Namespace

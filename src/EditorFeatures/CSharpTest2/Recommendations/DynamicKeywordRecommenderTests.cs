@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public DynamicKeywordRecommenderTests()
         {
             this.keywordText = "dynamic";
-            this.RecommendKeywords = (position, context) => _recommender.RecommendKeywords(position, context, CancellationToken.None);
+            this.RecommendKeywords = (position, context) => _recommender.RecommendKeywordsAsync(position, context, CancellationToken.None);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
