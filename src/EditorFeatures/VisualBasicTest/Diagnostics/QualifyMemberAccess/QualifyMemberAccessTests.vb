@@ -71,6 +71,15 @@ SimplificationOptions.QualifyFieldAccess)
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function QualifyFieldAccess_OnAutoPropertyBackingField() As Task
+            Await TestAsyncWithOption(
+"Class C : Property I As Integer : Sub M() : [|_I|] = 1 : End Sub : End Class",
+"Class C : Property I As Integer : Sub M() : Me._I = 1 : End Sub : End Class",
+SimplificationOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function QualifyFieldAccess_NotSuggestedOnInstance() As Task
             Await TestMissingAsyncWithOption(
 "Class C : Dim i As Integer : Sub M(c As C) : c.[|i|] = 1 : End Sub : End Class",
@@ -99,6 +108,22 @@ SimplificationOptions.QualifyFieldAccess)
         Public Async Function QualifyFieldAccess_NotSuggestedOnShared() As Task
             Await TestMissingAsyncWithOption(
 "Class C : Shared i As Integer : Sub M() : [|i|] = 1 : End Sub : End Class",
+SimplificationOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function QualifyFieldAccess_NotSuggestedOnSharedWithMe() As Task
+            Await TestMissingAsyncWithOption(
+"Class C : Shared i As Integer : Sub M() : Me.[|i|] = 1 : End Sub : End Class",
+SimplificationOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function QualifyFieldAccess_NotSuggestedInModule() As Task
+            Await TestMissingAsyncWithOption(
+"Module C : Dim i As Integer : Sub M() : [|i|] = 1 : End Sub : End Module",
 SimplificationOptions.QualifyFieldAccess)
         End Function
 
