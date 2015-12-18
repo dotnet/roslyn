@@ -423,7 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             HashSet<DiagnosticInfo> localUseSiteDiagnostics = useSiteDiagnostics;
-            var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteDiagnostics), sym);
+            var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteDiagnostics), sym,
+                                        canDigThroughNullable: true); // System.Nullable is public
             useSiteDiagnostics = localUseSiteDiagnostics;
             return (object)result == null;
         }
@@ -452,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// traversal stops and that type is returned from this method. Otherwise if traversal
         /// completes without the predicate returning true for any type, this method returns null.
         /// </summary>
-        public static TypeSymbol VisitType<T>(this TypeSymbol type, Func<TypeSymbol, T, bool, bool> predicate, T arg)
+        public static TypeSymbol VisitType<T>(this TypeSymbol type, Func<TypeSymbol, T, bool, bool> predicate, T arg, bool canDigThroughNullable =  false)
         {
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
@@ -477,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = containingType.VisitType(predicate, arg);
+                                var result = containingType.VisitType(predicate, arg, canDigThroughNullable);
                                 if ((object)result != null)
                                 {
                                     return result;
@@ -496,6 +497,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return current;
                 }
 
+                TypeSymbolWithAnnotations next;
+
                 switch (current.TypeKind)
                 {
                     case TypeKind.Error:
@@ -511,7 +514,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Delegate:
                         foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
                         {
-                            var result = typeArg.TypeSymbol.VisitType(predicate, arg);
+                            // Let's try to avoid early resolution of nullable types
+                            var result = (canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : typeArg.TypeSymbol).VisitType(predicate, arg, canDigThroughNullable);
                             if ((object)result != null)
                             {
                                 return result;
@@ -520,16 +524,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return null;
 
                     case TypeKind.Array:
-                        current = ((ArrayTypeSymbol)current).ElementType.TypeSymbol;
-                        continue;
+                        next = ((ArrayTypeSymbol)current).ElementType;
+                        break;
 
                     case TypeKind.Pointer:
-                        current = ((PointerTypeSymbol)current).PointedAtType.TypeSymbol;
-                        continue;
+                        next = ((PointerTypeSymbol)current).PointedAtType;
+                        break;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(current.TypeKind);
                 }
+
+                // Let's try to avoid early resolution of nullable types
+                current = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : next.TypeSymbol;
             }
         }
 

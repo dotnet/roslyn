@@ -52,3 +52,26 @@ For the purpose of flow analysis, a trackable expression is considered to be nul
 
 When expression is used as a receiver of a conditional access (?./?[]). 
 For the purpose of flow analysis, a trackable expression is considered to be not null before the access is evaluated. ~~If, according to flow analysis, the expression has a not null value before the receiver is evaluated, a warning is reported that the receiver is never null.~~ Result of the operator is considered to be not null for the purpose of the flow analysis only if both, the receiver and the access are considered to be not null.
+
+Right now, some overriding cases can be ambiguous because constraints are not specified on an overriding method, but rather inherited from the overridden method. For example:
+```
+class A
+{
+    public virtual void M1<T>(T? x) where T : struct 
+    { 
+    }
+
+    public virtual void M1<T>(T? x) where T : class 
+    { 
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x)
+    {
+    }
+} 
+```
+
+Current implementation doesn't detect this ambiguity case and simply grabs the first applicable candidate for overriding, always in in declaration order, I assume.
