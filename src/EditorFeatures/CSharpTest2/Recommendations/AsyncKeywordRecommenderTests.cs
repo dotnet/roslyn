@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -8,50 +9,50 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class AsyncKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void MethodDeclaration1()
+        public async Task TestMethodDeclaration1()
         {
-            VerifyKeyword(@"class C
+            await VerifyKeywordAsync(@"class C
 {
     $$
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void MethodDeclaration2()
+        public async Task TestMethodDeclaration2()
         {
-            VerifyKeyword(@"class C
+            await VerifyKeywordAsync(@"class C
 {
     public $$
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void MethodDeclaration3()
+        public async Task TestMethodDeclaration3()
         {
-            VerifyKeyword(@"class C
+            await VerifyKeywordAsync(@"class C
 {
     $$ public void foo() { }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void MethodDeclarationInGlobalStatement1()
+        public async Task TestMethodDeclarationInGlobalStatement1()
         {
             const string text = @"$$";
-            VerifyKeyword(SourceCodeKind.Script, text);
+            await VerifyKeywordAsync(SourceCodeKind.Script, text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void MethodDeclarationInGlobalStatement2()
+        public async Task TestMethodDeclarationInGlobalStatement2()
         {
             const string text = @"public $$";
-            VerifyKeyword(SourceCodeKind.Script, text);
+            await VerifyKeywordAsync(SourceCodeKind.Script, text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void ExpressionContext()
+        public async Task TestExpressionContext()
         {
-            VerifyKeyword(@"class C
+            await VerifyKeywordAsync(@"class C
 {
     void foo()
     {
@@ -61,9 +62,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInParameter()
+        public async Task TestNotInParameter()
         {
-            VerifyAbsence(@"class C
+            await VerifyAbsenceAsync(@"class C
 {
     void foo($$)
     {
@@ -72,9 +73,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void BeforeLambda()
+        public async Task TestBeforeLambda()
         {
-            VerifyKeyword(@"
+            await VerifyKeywordAsync(@"
 class Program
 {
     static void Main(string[] args)
@@ -85,9 +86,9 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotIfAlreadyAsync2()
+        public async Task TestNotIfAlreadyAsync2()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 class Program
 {
     static void Main(string[] args)
@@ -99,9 +100,9 @@ class Program
 
         [WorkItem(578061)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInNamespace()
+        public async Task TestNotInNamespace()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 namespace Foo
 {
     $$
@@ -110,9 +111,9 @@ namespace Foo
 
         [WorkItem(578069)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterPartialInNamespace()
+        public async Task TestNotAfterPartialInNamespace()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 namespace Foo
 {
     partial $$
@@ -121,9 +122,9 @@ namespace Foo
 
         [WorkItem(578750)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterPartialInClass()
+        public async Task TestNotAfterPartialInClass()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 class Foo
 {
     partial $$
