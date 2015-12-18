@@ -44,8 +44,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim objCreationExp = DirectCast(operation, IObjectCreationExpression)
                             Me.nodes.AddRange(objCreationExp.ConstructorArguments)
                             Me.nodes.AddRange(objCreationExp.MemberInitializers)
-                        Case OperationKind.VariableDeclarationStatement
-                            Dim VarDeclStmt = DirectCast(operation, IVariableDeclarationStatement)
+                        Case OperationKind.SwitchSection
+                            ' "Case Else" clause is not a bound node, so it needs to be added explicitly.
+                            Dim caseClauses = DirectCast(operation, ICase).Clauses
+                            If caseClauses.IsSingle Then
+                                Dim caseClause = caseClauses(0)
+                                If caseClause.CaseKind = CaseKind.Default Then
+                                    Me.nodes.Add(caseClause)
+                                End If
+                            End If
                     End Select
                 End If
                 Return MyBase.Visit(node)

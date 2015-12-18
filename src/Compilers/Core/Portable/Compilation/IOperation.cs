@@ -110,6 +110,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         FieldInitializer,
         PropertyInitializer,
         ArrayInitializer,
-        VariableDeclaration
+        VariableDeclaration,
+        SwitchSection,
+        SingleValueCaseClause,
+        RelationalCaseClause,
+        RangeCaseClause
     }
 }

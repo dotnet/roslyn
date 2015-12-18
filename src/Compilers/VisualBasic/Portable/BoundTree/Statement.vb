@@ -90,12 +90,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private Shared CaseElseMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundCaseStatement, ICaseClause)
+
         Private ReadOnly Property IClauses As ImmutableArray(Of ICaseClause) Implements ICase.Clauses
             Get
                 ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses, 
                 ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
                 If Me.CaseStatement.CaseClauses.IsEmpty AndAlso Me.CaseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
-                    Return ImmutableArray.Create(CaseElseClause)
+                    Dim caseElse = CaseElseMappings.GetValue(Me.CaseStatement, Function(stmt) New CaseElse(stmt))
+                    Return ImmutableArray.Create(caseElse)
                 End If
 
                 Return Me.CaseStatement.CaseClauses.As(Of ICaseClause)()
@@ -103,13 +106,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
+            Return OperationKind.SwitchSection
         End Function
 
-        Private Shared CaseElseClause As ICaseClause = New CaseElse
-
         Private Class CaseElse
-            Implements ICaseClause
+            Implements ISingleValueCaseClause
+
+            Private _boundCaseStatement As BoundCaseStatement
+
+            Public Sub New(boundCaseStatement As BoundCaseStatement)
+                _boundCaseStatement = boundCaseStatement
+            End Sub
+
+            Public ReadOnly Property Equality As BinaryOperationKind Implements ISingleValueCaseClause.Equality
+                Get
+                    Return BinaryOperationKind.None
+                End Get
+            End Property
+
+            Public ReadOnly Property Value As IExpression Implements ISingleValueCaseClause.Value
+                Get
+                    Return Nothing
+                End Get
+            End Property
+
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return _boundCaseStatement.HasErrors
+                End Get
+            End Property
+
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                Get
+                    Return OperationKind.SingleValueCaseClause
+                End Get
+            End Property
+
+            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                Get
+                    Return _boundCaseStatement.Syntax
+                End Get
+            End Property
+
             Private ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseKind
                 Get
                     Return CaseKind.Default
@@ -122,7 +160,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundCaseClause
         Implements ICaseClause
 
-        Protected MustOverride ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseKind
+
+        Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
+            Get
+                Return Me.HasErrors
+            End Get
+        End Property
+
+        Private ReadOnly Property ISyntax As SyntaxNode Implements IOperation.Syntax
+            Get
+                Return Me.Syntax
+            End Get
+        End Property
+
+        Protected MustOverride ReadOnly Property IKind As OperationKind Implements IOperation.Kind
+
+        Protected MustOverride ReadOnly Property ICaseKind As CaseKind Implements ICaseClause.CaseKind
     End Class
 
     Partial Class BoundSimpleCaseClause
@@ -170,7 +223,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property ICaseClass As CaseKind
+        Protected Overrides ReadOnly Property IKind As OperationKind
+            Get
+                Return OperationKind.SingleValueCaseClause
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property ICaseKind As CaseKind
             Get
                 Return CaseKind.SingleValue
             End Get
@@ -214,7 +273,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property ICaseClass As CaseKind
+        Protected Overrides ReadOnly Property IKind As OperationKind
+            Get
+                Return OperationKind.RangeCaseClause
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property ICaseKind As CaseKind
             Get
                 Return CaseKind.Range
             End Get
@@ -248,7 +313,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property ICaseClass As CaseKind
+        Protected Overrides ReadOnly Property IKind As OperationKind
+            Get
+                Return OperationKind.RelationalCaseClause
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property ICaseKind As CaseKind
             Get
                 Return CaseKind.Relational
             End Get

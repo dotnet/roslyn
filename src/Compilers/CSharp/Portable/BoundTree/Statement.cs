@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
@@ -157,6 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImmutableArray<ICaseClause> ICase.Clauses => this.BoundSwitchLabels.As<ICaseClause>();
 
         ImmutableArray<IStatement> ICase.Body => this.Statements.As<IStatement>();
+
+        protected override OperationKind StatementKind => OperationKind.SwitchSection;
     }
 
     partial class BoundSwitchLabel : ISingleValueCaseClause
@@ -201,6 +204,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         CaseKind ICaseClause.CaseKind => this.ExpressionOpt != null ? CaseKind.SingleValue : CaseKind.Default;
+
+        OperationKind IOperation.Kind => OperationKind.SingleValueCaseClause;
+
+        bool IOperation.IsInvalid => this.HasErrors;
+
+        SyntaxNode IOperation.Syntax => this.Syntax;
     }
 
     partial class BoundTryStatement : ITryStatement

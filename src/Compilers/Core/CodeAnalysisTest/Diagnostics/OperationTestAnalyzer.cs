@@ -742,4 +742,69 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
         }
     }
+
+    /// <summary>Analyzer used to test ICase and ICaseClause.</summary>
+    public class CaseTestAnalyzer : DiagnosticAnalyzer
+    {
+        /// <summary>Diagnostic category "Maintainability".</summary>
+        private const string Maintainability = "Maintainability";
+
+        public static readonly DiagnosticDescriptor HasDefaultCaseDescriptor = new DiagnosticDescriptor(
+            "HasDefaultCase",
+            "Has Default Case",
+            "A default case clause is encountered",
+            Maintainability,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MultipleCaseClausesDescriptor = new DiagnosticDescriptor(
+            "MultipleCaseClauses",
+            "Multiple Case Clauses",
+            "A switch section has multiple case clauses",
+            Maintainability,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(HasDefaultCaseDescriptor, MultipleCaseClausesDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     switch (operationContext.Operation.Kind)
+                     {
+                         case OperationKind.SingleValueCaseClause:
+                         case OperationKind.RelationalCaseClause:
+                         case OperationKind.RangeCaseClause:
+                             var caseClause = (ICaseClause)operationContext.Operation;
+                             if (caseClause.CaseKind == CaseKind.Default)
+                             {
+                                 Report(operationContext, caseClause.Syntax, HasDefaultCaseDescriptor);
+                             }
+                             break;
+                         case OperationKind.SwitchSection:
+                             var switchSection = (ICase)operationContext.Operation;
+                             if (!switchSection.IsInvalid && switchSection.Clauses.Length > 1)
+                             {
+                                 Report(operationContext, switchSection.Syntax, MultipleCaseClausesDescriptor);
+                             }
+                             break;
+                     }
+                 },
+                 OperationKind.SwitchSection,
+                 OperationKind.SingleValueCaseClause,
+                 OperationKind.RangeCaseClause,
+                 OperationKind.RelationalCaseClause);
+        }
+
+        private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
+        }
+    }
 }

@@ -913,5 +913,72 @@ public class C
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "int f1, f2, f3, ;").WithLocation(12, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "int g1, g2, g3, g4 =;").WithLocation(13, 9));
         }
+
+        [Fact]
+        public void CaseCSharp()
+        {
+            const string source = @"class C
+{
+    public void M1(int x, int y)
+    {
+        switch (x)
+        {
+            case 1:
+            case 10:
+                break;
+            default:
+                break;
+        }
+
+        switch (y)
+        {
+            case 1:
+                break;
+            case 1000:
+            default:
+                break;
+        }
+
+        switch (x)
+        {
+            case 1:
+                break;
+            case 1000:
+                break;
+        }
+
+        switch (y)
+        {
+            default:
+                break;
+        }
+
+        switch (y) { }
+
+        switch (x)
+        {
+            case :
+            case 1000:
+                break;
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(37, 20),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, ":").WithLocation(41, 18))
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CaseTestAnalyzer() }, null, null, false,
+                Diagnostic(CaseTestAnalyzer.MultipleCaseClausesDescriptor.Id,
+@"case 1:
+            case 10:
+                break;").WithLocation(7, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "default:").WithLocation(10, 13),
+                Diagnostic(CaseTestAnalyzer.MultipleCaseClausesDescriptor.Id,
+@"case 1000:
+            default:
+                break;").WithLocation(18, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "default:").WithLocation(19, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "default:").WithLocation(33, 13));
+        }
     }
 }

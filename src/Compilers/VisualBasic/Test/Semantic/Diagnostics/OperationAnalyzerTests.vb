@@ -940,5 +940,112 @@ End Class
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "k3").WithLocation(14, 32),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "k4").WithLocation(14, 36))
         End Sub
+        <Fact>
+        Public Sub CaseVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M1(x As Integer)
+        Select Case x
+            Case 1, 2
+                Exit Select
+            Case = 10
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case = 1000
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 10 To 500
+                Exit Select
+            Case = 1000
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1, 980 To 985
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1 to 3, 980 To 985
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case > 100000
+                Exit Select
+        End Select   
+
+        Select Case x
+            Case Else
+                Exit Select
+        End Select     
+
+        Select Case x
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case
+                Exit Select
+        End Select   
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case =
+                Exit Select
+        End Select  
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case 2 to
+                Exit Select
+        End Select  
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(60, 17),
+                                   Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(68, 1),
+                                   Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(74, 22))
+            comp.VerifyAnalyzerDiagnostics({New CaseTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(CaseTestAnalyzer.MultipleCaseClausesDescriptor.Id,
+"Case 1, 2
+                Exit Select").WithLocation(4, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "Case Else").WithLocation(8, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "Case Else").WithLocation(17, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "Case Else").WithLocation(26, 13),
+                Diagnostic(CaseTestAnalyzer.MultipleCaseClausesDescriptor.Id,
+"Case 1, 980 To 985
+                Exit Select").WithLocation(31, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "Case Else").WithLocation(33, 13),
+                Diagnostic(CaseTestAnalyzer.MultipleCaseClausesDescriptor.Id,
+"Case 1 to 3, 980 To 985
+                Exit Select").WithLocation(38, 13),
+                Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "Case Else").WithLocation(50, 13))
+        End Sub
     End Class
 End Namespace
