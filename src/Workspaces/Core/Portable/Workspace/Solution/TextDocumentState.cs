@@ -16,6 +16,20 @@ namespace Microsoft.CodeAnalysis
         protected SolutionServices solutionServices;
         protected DocumentInfo info;
 
+        /// <summary>
+        /// A direct reference to our source text.  This is only kept around in speicalized scenarios.
+        /// Specifically, we keep this around when a document is opened.  By providing this we can allow
+        /// clients to easily get to the text of the document in a non-blocking fashion if that's all
+        /// that they need.
+        ///
+        /// Note: this facility does not extend to getting the version as well.  That's because the
+        /// version of a document depends on both the current source contents and the contents from 
+        /// the previous version of the document.  (i.e. if the contents are the same, then we will
+        /// preserve the same version, otherwise we'll move the version forward).  Because determining
+        /// the version depends on comparing text, and because getting the old text may block, we 
+        /// do not have the ability to know the version of the document up front, and instead can
+        /// only retrieve is asynchronously through <see cref="textAndVersionSource"/>.
+        /// </summary> 
         protected readonly SourceText sourceTextOpt;
         protected ValueSource<TextAndVersion> textAndVersionSource;
 
