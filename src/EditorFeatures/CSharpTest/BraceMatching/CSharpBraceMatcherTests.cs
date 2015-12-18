@@ -699,5 +699,53 @@ public class C
 
             await TestAsync(code, expected);
         }
+
+        [WorkItem(7534, "https://github.com/dotnet/roslyn/issues/7534")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        public async Task TestUnmatchedConditionalDirective()
+        {
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {#if$$
+
+    }
+}";
+            var expected = @"
+class Program
+{
+    static void Main(string[] args)
+    {#if
+
+    }
+}";
+
+            await TestAsync(code, expected);
+        }
+
+        [WorkItem(7534, "https://github.com/dotnet/roslyn/issues/7534")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        public async Task TestUnmatchedConditionalDirective2()
+        {
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {#else$$
+
+    }
+}";
+            var expected = @"
+class Program
+{
+    static void Main(string[] args)
+    {#else
+
+    }
+}";
+
+            await TestAsync(code, expected);
+        }
     }
 }

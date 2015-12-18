@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [WorkItem(2771, "https://github.com/dotnet/roslyn/issues/2771")]
-        [Fact]
+        [Fact(Skip = "This test is flaky under low memory conditions; it fails in StringBuilder.ToString in the parser")]
         public void TestBinary()
         {
             // Apparently this fixed seed exposed a bug at some point

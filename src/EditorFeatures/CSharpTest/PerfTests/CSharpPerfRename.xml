@@ -10,7 +10,8 @@
 
 <TaoTest xmlns="http://microsoft.com/schemas/VSLanguages/TAO">
   <InitTest>
-    <StartTarget />
+    <EnsureCodeMarker />
+    <StartTarget DontResetOptions="true" />
     <OpenProject ProjectFile="$(WorkingDir)\..\..\Closed\Test\Solutions\SuperSecrit\SuperSecrit.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
     <OpenFile FileName="SuperSecrit\AllFeaturesLarge.cs"/>
     <GoToLine LineNumber="1"/>
