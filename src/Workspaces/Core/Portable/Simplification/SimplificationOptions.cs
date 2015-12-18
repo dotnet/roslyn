@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         public static Option<bool> AllowSimplificationToBaseType { get; } = new Option<bool>(NonPerLanguageFeatureName, "AllowSimplificationToBaseType", true);
 
         /// <summary>
-        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in member access expressions.
+        /// This option says if we should simplify away the <see langword="this"/> or <see langword="Me"/> in member access expressions.
         /// </summary>
         [Obsolete]
         public static PerLanguageOption<bool> QualifyMemberAccessWithThisOrMe { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMemberAccessWithThisOrMe", defaultValue: false);
