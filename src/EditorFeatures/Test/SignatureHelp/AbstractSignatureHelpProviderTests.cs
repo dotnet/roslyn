@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = testWorkspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
                 var document = testWorkspace.CurrentSolution.GetDocument(documentId);
-                var code = document.GetTextAsync().Result.ToString();
+                var code = (await document.GetTextAsync()).ToString();
 
                 IList<TextSpan> textSpans = null;
 
