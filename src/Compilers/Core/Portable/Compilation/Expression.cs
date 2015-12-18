@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public bool IsInvalid => Condition == null || Condition.IsInvalid || IfTrue == null || IfTrue.IsInvalid || IfFalse == null || IfFalse.IsInvalid;
 
-        public object ConstantValue => null;
+        public Optional<object> ConstantValue => default(Optional<object>);
     }
 
     public sealed class Assignment : IExpressionStatement
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public bool IsInvalid => Target == null || Target.IsInvalid || Value == null || Value.IsInvalid;
 
-            public object ConstantValue => null;
+            public Optional<object> ConstantValue => default(Optional<object>);
         }
     }
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public bool IsInvalid => Target == null || Target.IsInvalid || Value == null || Value.IsInvalid;
 
-            public object ConstantValue => null;
+            public Optional<object> ConstantValue => default(Optional<object>);
 
             public bool UsesOperatorMethod => this.Operator != null;
         }
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public bool IsInvalid => false;
 
-        public object ConstantValue => _value;
+        public Optional<object> ConstantValue => new Optional<object>(_value);
 
         public SyntaxNode Syntax { get; }
     }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public bool IsInvalid => false;
 
-        public object ConstantValue => _value.Value;
+        public Optional<object> ConstantValue => new Optional<object>(_value.Value);
 
         public SyntaxNode Syntax { get; }
     }
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public bool IsInvalid => Left == null || Left.IsInvalid || Right == null || Right.IsInvalid;
 
-        public object ConstantValue => null;
+        public Optional<object> ConstantValue => default(Optional<object>);
 
         public SyntaxNode Syntax { get; }
     }
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return false;
         }
 
-        public object ConstantValue => null;
+        public Optional<object> ConstantValue => default(Optional<object>);
 
         private class DimensionInitializer : IDimensionArrayInitializer
         {
