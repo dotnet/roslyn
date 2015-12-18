@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundThisReference : IInstanceReferenceExpression
     {
-        bool IInstanceReferenceExpression.IsExplicit => true;
+        bool IInstanceReferenceExpression.IsExplicit => this.Syntax.IsKind(SyntaxKind.ThisExpression);
 
         IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
 
