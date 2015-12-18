@@ -703,21 +703,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundDimStatement
         Implements IVariableDeclarationStatement
 
+        Private Shared VariablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundDimStatement, IVariable())
+
         Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
             Get
-                Dim builder = ArrayBuilder(Of IVariable).GetInstance()
-                For Each base In Me.LocalDeclarations
-                    If base.Kind = BoundKind.LocalDeclaration Then
-                        Dim decl = DirectCast(base, BoundLocalDeclaration)
-                        builder.Add(New VariableDeclaration(decl.LocalSymbol, decl.InitializerOpt, decl.Syntax))
-                    ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
-                        Dim asNewDecls = DirectCast(base, BoundAsNewLocalDeclarations)
-                        For Each asNewDecl In asNewDecls.LocalDeclarations
-                            builder.Add(New VariableDeclaration(asNewDecl.LocalSymbol, asNewDecls.Initializer, asNewDecl.Syntax))
-                        Next
-                    End If
-                Next
-                Return builder.ToImmutableAndFree()
+                Dim variables = VariablesMappings.GetValue(Me, Function(dimStmt)
+                                                                   Dim arrBuilder = ArrayBuilder(Of IVariable).GetInstance()
+                                                                   For Each base In dimStmt.LocalDeclarations
+                                                                       If base.Kind = BoundKind.LocalDeclaration Then
+                                                                           Dim decl = DirectCast(base, BoundLocalDeclaration)
+                                                                           arrBuilder.Add(New VariableDeclaration(decl.LocalSymbol, decl.InitializerOpt, decl.Syntax))
+                                                                       ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
+                                                                           Dim asNewDecls = DirectCast(base, BoundAsNewLocalDeclarations)
+                                                                           For Each asNewDecl In asNewDecls.LocalDeclarations
+                                                                               arrBuilder.Add(New VariableDeclaration(asNewDecl.LocalSymbol, asNewDecls.Initializer, asNewDecl.Syntax))
+                                                                           Next
+                                                                       End If
+                                                                   Next
+                                                                   Return arrBuilder.ToArrayAndFree()
+                                                               End Function
+                                                               )
+                Dim immBuilder = ArrayBuilder(Of IVariable).GetInstance(variables.Length)
+                immBuilder.AddRange(variables)
+                Return immBuilder.ToImmutableAndFree()
             End Get
         End Property
 

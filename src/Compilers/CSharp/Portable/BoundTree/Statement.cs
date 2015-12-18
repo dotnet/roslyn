@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return ImmutableArray<IStatement>.Empty;
             }
-            
+
             return ImmutableArray.Create<IStatement>(statement);
         }
     }
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
     }
 
-    partial class BoundSwitchStatement: ISwitchStatement
+    partial class BoundSwitchStatement : ISwitchStatement
     {
         IExpression ISwitchStatement.Value => this.BoundExpression;
 
@@ -239,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.FixedStatement;
     }
 
-    partial class BoundUsingStatement: IUsingWithDeclarationStatement, IUsingWithExpressionStatement
+    partial class BoundUsingStatement : IUsingWithDeclarationStatement, IUsingWithExpressionStatement
     {
         IVariableDeclarationStatement IUsingWithDeclarationStatement.Variables => this.DeclarationsOpt;
 
@@ -312,12 +313,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundLocalDeclaration : IVariableDeclarationStatement
     {
+        private static readonly ConditionalWeakTable<BoundLocalDeclaration, IVariable> s_variablesMappings =
+            new ConditionalWeakTable<BoundLocalDeclaration, IVariable>();
+
         ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
         {
             get
             {
                 var builder = ArrayBuilder<IVariable>.GetInstance(1);
-                builder.Add((IVariable)new VariableDeclaration(this.LocalSymbol, this.InitializerOpt, this.Syntax));
+                var variable = s_variablesMappings.GetValue(this, decl => new VariableDeclaration(decl.LocalSymbol, decl.InitializerOpt, decl.Syntax));
+                builder.Add(variable);
                 return builder.ToImmutableAndFree();
             }
         }
@@ -327,16 +332,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundMultipleLocalDeclarations : IVariableDeclarationStatement
     {
+        private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, IVariable[]> s_variablesMappings =
+            new ConditionalWeakTable<BoundMultipleLocalDeclarations, IVariable[]>();
+
         ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
         {
             get
             {
-                var builder = ArrayBuilder<IVariable>.GetInstance(this.LocalDeclarations.Length);
-                foreach (var decl in this.LocalDeclarations)
-                {
-                    builder.Add((IVariable)new VariableDeclaration(decl.LocalSymbol, decl.InitializerOpt, decl.Syntax));
-                }
-                return builder.ToImmutableAndFree();
+                var variables = s_variablesMappings.GetValue(this,
+                    multiDecls =>
+                    {
+                        var arrBuilder = ArrayBuilder<IVariable>.GetInstance(multiDecls.LocalDeclarations.Length);
+                        foreach (var decl in multiDecls.LocalDeclarations)
+                        {
+                            arrBuilder.Add((IVariable)new VariableDeclaration(decl.LocalSymbol, decl.InitializerOpt, decl.Syntax));
+                        }
+                        return arrBuilder.ToArrayAndFree();
+                    });
+                var immBuilder = ArrayBuilder<IVariable>.GetInstance(variables.Length);
+                immBuilder.AddRange(variables);
+                return immBuilder.ToImmutableAndFree();
             }
         }
 

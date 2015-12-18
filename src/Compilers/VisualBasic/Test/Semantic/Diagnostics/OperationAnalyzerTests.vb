@@ -895,6 +895,7 @@ Class C
         Dim h1, h2, , h3 As Integer                             'too many
         Dim i1, i2, i3, i4 As New UndefType                     'too many
         Dim j1, j2, j3, j4 As UndefType                         'too many
+        Dim k1 As Integer, k2, k3, k4 As New Foo(1)             'too many
     End Sub
 #Enable Warning BC42024
 End Class
@@ -933,7 +934,11 @@ End Class
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "f2").WithLocation(10, 22),
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim h1, h2, , h3 As Integer").WithLocation(11, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim i1, i2, i3, i4 As New UndefType").WithLocation(12, 9),
-                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim j1, j2, j3, j4 As UndefType").WithLocation(13, 9))
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim j1, j2, j3, j4 As UndefType").WithLocation(13, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim k1 As Integer, k2, k3, k4 As New Foo(1)").WithLocation(14, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "k2").WithLocation(14, 28),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "k3").WithLocation(14, 32),
+                Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitialzedDeclarationDescriptor.Id, "k4").WithLocation(14, 36))
         End Sub
     End Class
 End Namespace
