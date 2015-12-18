@@ -12417,7 +12417,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Possible null reference argument..
+        ///   Looks up a localized string similar to Possible null reference argument for parameter &apos;{0}&apos; in &apos;{1}&apos;..
         /// </summary>
         internal static string WRN_NullReferenceArgument {
             get {

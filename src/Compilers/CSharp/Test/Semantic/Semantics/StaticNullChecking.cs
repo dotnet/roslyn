@@ -757,9 +757,9 @@ struct S2
     // (274,20): warning CS8201: Possible null reference assignment.
     //         x27[x27] = y27;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y27").WithLocation(274, 20),
-    // (280,13): warning CS8204: Possible null reference argument.
+    // (280,13): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL1.this[CL1 x].get'.
     //         x28[y28] = z28;
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y28").WithLocation(280, 13),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y28").WithArguments("x", "CL1 CL1.this[CL1 x].get").WithLocation(280, 13),
     // (286,15): warning CS8201: Possible null reference assignment.
     //         z29 = x29[1];
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x29[1]").WithLocation(286, 15),
@@ -879,9 +879,9 @@ class CL1
 ", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
-    // (12,12): warning CS8204: Possible null reference argument.
+    // (12,12): warning CS8204: Possible null reference argument for parameter 'p' in 'void C.M1(CL1 p)'.
     //         M1(x1);
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithLocation(12, 12),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("p", "void C.M1(CL1 p)").WithLocation(12, 12),
     // (19,12): error CS0165: Use of unassigned local variable 'x2'
     //         M1(x2);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(19, 12),
@@ -897,30 +897,99 @@ class CL1
     // (40,16): warning CS8201: Possible null reference assignment.
     //         M3(out x5);
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x5").WithLocation(40, 16),
-    // (48,16): warning CS8204: Possible null reference argument.
+    // (48,16): warning CS8204: Possible null reference argument for parameter 'p' in 'void C.M4(ref CL1 p)'.
     //         M4(ref x6);
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x6").WithLocation(48, 16),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x6").WithArguments("p", "void C.M4(ref CL1 p)").WithLocation(48, 16),
     // (56,18): warning CS8201: Possible null reference assignment.
     //         CL1 u7 = x7;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x7").WithLocation(56, 18),
-    // (65,24): warning CS8204: Possible null reference argument.
+    // (65,24): warning CS8204: Possible null reference argument for parameter 'p1' in 'void C.M6(CL1 p1, CL1 p2)'.
     //         M6(p2: x8, p1: y8);
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y8").WithLocation(65, 24),
-    // (72,16): warning CS8204: Possible null reference argument.
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y8").WithArguments("p1", "void C.M6(CL1 p1, CL1 p2)").WithLocation(65, 24),
+    // (72,16): warning CS8204: Possible null reference argument for parameter 'p1' in 'void C.M7(params CL1[] p1)'.
     //         M7(x9, y9);
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y9").WithLocation(72, 16),
-    // (77,12): warning CS8204: Possible null reference argument.
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y9").WithArguments("p1", "void C.M7(params CL1[] p1)").WithLocation(72, 16),
+    // (77,12): warning CS8204: Possible null reference argument for parameter 'p1' in 'void C.M7(params CL1[] p1)'.
     //         M7(x10, y10);
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x10").WithLocation(77, 12),
-    // (84,12): warning CS8204: Possible null reference argument.
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x10").WithArguments("p1", "void C.M7(params CL1[] p1)").WithLocation(77, 12),
+    // (84,12): warning CS8204: Possible null reference argument for parameter 'p1' in 'void C.M8(CL1 p1, params CL1[] p2)'.
     //         M8(x11, y11, z11);
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x11").WithLocation(84, 12),
-    // (84,22): warning CS8204: Possible null reference argument.
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x11").WithArguments("p1", "void C.M8(CL1 p1, params CL1[] p2)").WithLocation(84, 12),
+    // (84,22): warning CS8204: Possible null reference argument for parameter 'p2' in 'void C.M8(CL1 p1, params CL1[] p2)'.
     //         M8(x11, y11, z11);
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "z11").WithLocation(84, 22),
-    // (89,16): warning CS8204: Possible null reference argument.
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "z11").WithArguments("p2", "void C.M8(CL1 p1, params CL1[] p2)").WithLocation(84, 22),
+    // (89,16): warning CS8204: Possible null reference argument for parameter 'p2' in 'void C.M8(CL1 p1, params CL1[] p2)'.
     //         M8(p2: x12, p1: y12);
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x12").WithLocation(89, 16)
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x12").WithArguments("p2", "void C.M8(CL1 p1, params CL1[] p2)").WithLocation(89, 16)
+                );
+        }
+
+        [Fact]
+        public void PassingParameters_2()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 x1)
+    {
+        var y1 = new CL0() { [null] = x1 };
+    }
+}
+
+class CL0
+{
+    public CL0 this[CL0 x]
+    {
+        get { return x; }
+        set { }
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,31): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.this[CL0 x].get'.
+    //         var y1 = new CL0() { [null] = x1 };
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("x", "CL0 CL0.this[CL0 x].get").WithLocation(10, 31)
+                );
+        }
+
+        [Fact]
+        public void PassingParameters_3()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 x1)
+    {
+        var y1 = new CL0() { null };
+    }
+}
+
+class CL0 : System.Collections.IEnumerable 
+{
+    public void Add(CL0 x)
+    {
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,30): warning CS8204: Possible null reference argument for parameter 'x' in 'void CL0.Add(CL0 x)'.
+    //         var y1 = new CL0() { null };
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("x", "void CL0.Add(CL0 x)").WithLocation(10, 30)
                 );
         }
 
@@ -1122,7 +1191,7 @@ struct S1
         }
 
         [Fact]
-        public void TargetingUnannotatedAPIs()
+        public void TargetingUnannotatedAPIs_01()
         {
             CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
 public class CL0 
@@ -1278,6 +1347,409 @@ public struct S2
         }
 
         [Fact]
+        public void TargetingUnannotatedAPIs_02()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+public class CL0 
+{
+    public static object M1() { return new object(); }
+}
+", options: TestOptions.DebugDll);
+
+            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+class C 
+{
+    static void Main()
+    {
+    }
+
+    public static object? M2() { return null; }
+    public static object M3() { return new object(); }
+
+    void Test1()
+    {
+        object? x1 = CL0.M1() ?? M2();
+        object y1 = x1;
+        object z1 = x1 ?? new object();
+    }
+
+    void Test2()
+    {
+        object? x2 = CL0.M1() ?? M3();
+        object z2 = x2 ?? new object();
+    }
+
+    void Test3()
+    {
+        object? x3 = M3() ?? M2();
+        object z3 = x3 ?? new object();
+    }
+
+    void Test4()
+    {
+        object? x4 = CL0.M1() ?? CL0.M1();
+        object y4 = x4;
+        object z4 = x4 ?? new object();
+    }
+
+    void Test5()
+    {
+        object x5 = M2() ?? M2();
+    }
+
+    void Test6()
+    {
+        object? x6 = M3() ?? M3();
+        object z6 = x6 ?? new object();
+    }
+}
+
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+
+            c.VerifyDiagnostics(
+    // (21,21): warning CS8207: Expression is probably never null.
+    //         object z2 = x2 ?? new object();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2").WithLocation(21, 21),
+    // (26,22): warning CS8207: Expression is probably never null.
+    //         object? x3 = M3() ?? M2();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(26, 22),
+    // (27,21): warning CS8207: Expression is probably never null.
+    //         object z3 = x3 ?? new object();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x3").WithLocation(27, 21),
+    // (39,21): warning CS8201: Possible null reference assignment.
+    //         object x5 = M2() ?? M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M2() ?? M2()").WithLocation(39, 21),
+    // (44,22): warning CS8207: Expression is probably never null.
+    //         object? x6 = M3() ?? M3();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(44, 22),
+    // (45,21): warning CS8207: Expression is probably never null.
+    //         object z6 = x6 ?? new object();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x6").WithLocation(45, 21)
+                );
+        }
+
+        [Fact]
+        public void TargetingUnannotatedAPIs_03()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+public class CL0 
+{
+    public static object M1() { return new object(); }
+}
+", options: TestOptions.DebugDll);
+
+            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+class C 
+{
+    static void Main()
+    {
+    }
+
+    public static object? M2() { return null; }
+    public static object M3() { return new object(); }
+
+    void Test1()
+    {
+        object? x1 = M2() ?? CL0.M1();
+        object y1 = x1;
+        object z1 = x1 ?? new object();
+    }
+
+    void Test2()
+    {
+        object? x2 = M3() ?? CL0.M1();
+        object z2 = x2 ?? new object();
+    }
+
+    void Test3()
+    {
+        object? x3 = M2() ?? M3();
+        object z3 = x3 ?? new object();
+    }
+}
+
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+
+            c.VerifyDiagnostics(
+    // (20,22): warning CS8207: Expression is probably never null.
+    //         object? x2 = M3() ?? CL0.M1();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(20, 22),
+    // (21,21): warning CS8207: Expression is probably never null.
+    //         object z2 = x2 ?? new object();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2").WithLocation(21, 21),
+    // (27,21): warning CS8207: Expression is probably never null.
+    //         object z3 = x3 ?? new object();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x3").WithLocation(27, 21)
+                );
+        }
+
+        [Fact]
+        public void TargetingUnannotatedAPIs_04()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+public class CL0 
+{
+    public static object M1() { return new object(); }
+}
+", options: TestOptions.DebugDll);
+
+            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+class C 
+{
+    static void Main()
+    {
+    }
+
+    public static object? M2() { return null; }
+    public static object M3() { return new object(); }
+    public static bool M4() {return false;}
+
+    void Test1()
+    {
+        object x1 = M4() ? CL0.M1() : M2();
+    }
+
+    void Test2()
+    {
+        object? x2 = M4() ? CL0.M1() : M3();
+        object y2 = x2;
+        object z2 = x2 ?? new object();
+    }
+
+    void Test3()
+    {
+        object x3 =  M4() ? M3() : M2();
+    }
+
+    void Test4()
+    {
+        object? x4 =  M4() ? CL0.M1() : CL0.M1();
+        object y4 = x4;
+        object z4 = x4 ?? new object();
+    }
+
+    void Test5()
+    {
+        object x5 =  M4() ? M2() : M2();
+    }
+
+    void Test6()
+    {
+        object? x6 =  M4() ? M3() : M3();
+        object z6 = x6 ?? new object();
+    }
+}
+
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+
+            c.VerifyDiagnostics(
+    // (14,21): warning CS8201: Possible null reference assignment.
+    //         object x1 = M4() ? CL0.M1() : M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? CL0.M1() : M2()").WithLocation(14, 21),
+    // (26,22): warning CS8201: Possible null reference assignment.
+    //         object x3 =  M4() ? M3() : M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M3() : M2()").WithLocation(26, 22),
+    // (38,22): warning CS8201: Possible null reference assignment.
+    //         object x5 =  M4() ? M2() : M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M2() : M2()").WithLocation(38, 22),
+    // (44,21): warning CS8207: Expression is probably never null.
+    //         object z6 = x6 ?? new object();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x6").WithLocation(44, 21)
+                );
+        }
+
+        [Fact]
+        public void TargetingUnannotatedAPIs_05()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+public class CL0 
+{
+    public static object M1() { return new object(); }
+}
+", options: TestOptions.DebugDll);
+
+            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+class C 
+{
+    static void Main()
+    {
+    }
+
+    public static object? M2() { return null; }
+    public static object M3() { return new object(); }
+    public static bool M4() {return false;}
+
+    void Test1()
+    {
+        object x1 = M4() ? M2() : CL0.M1();
+    }
+
+    void Test2()
+    {
+        object? x2 = M4() ? M3() : CL0.M1();
+        object y2 = x2;
+        object z2 = x2 ?? new object();
+    }
+
+    void Test3()
+    {
+        object x3 =  M4() ? M2() : M3();
+    }
+}
+
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+
+            c.VerifyDiagnostics(
+    // (14,21): warning CS8201: Possible null reference assignment.
+    //         object x1 = M4() ? M2() : CL0.M1();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M2() : CL0.M1()").WithLocation(14, 21),
+    // (26,22): warning CS8201: Possible null reference assignment.
+    //         object x3 =  M4() ? M2() : M3();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M2() : M3()").WithLocation(26, 22)
+                );
+        }
+
+        [Fact]
+        public void TargetingUnannotatedAPIs_06()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+public class CL0 
+{
+    public static object M1() { return new object(); }
+}
+", options: TestOptions.DebugDll);
+
+            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+class C 
+{
+    static void Main()
+    {
+    }
+
+    public static object? M2() { return null; }
+    public static object M3() { return new object(); }
+    public static bool M4() {return false;}
+
+    void Test1()
+    {
+        object? x1;
+        if (M4()) x1 = CL0.M1(); else x1 = M2();
+        object y1 = x1;
+    }
+
+    void Test2()
+    {
+        object? x2;
+        if (M4()) x2 = CL0.M1(); else x2 = M3();
+        object y2 = x2;
+        object z2 = x2 ?? new object();
+    }
+
+    void Test3()
+    {
+        object? x3;
+        if (M4()) x3 = M3(); else x3 = M2();
+        object y3 = x3;
+    }
+
+    void Test4()
+    {
+        object? x4;
+        if (M4()) x4 = CL0.M1(); else x4 = CL0.M1();
+        object y4 = x4;
+        object z4 = x4 ?? new object();
+    }
+
+    void Test5()
+    {
+        object? x5;
+        if (M4()) x5 = M2(); else x5 = M2();
+        object y5 = x5;
+    }
+
+    void Test6()
+    {
+        object? x6;
+        if (M4()) x6 = M3(); else x6 = M3();
+        object z6 = x6 ?? new object();
+    }
+}
+
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+
+            c.VerifyDiagnostics(
+    // (16,21): warning CS8201: Possible null reference assignment.
+    //         object y1 = x1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(16, 21),
+    // (31,21): warning CS8201: Possible null reference assignment.
+    //         object y3 = x3;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(31, 21),
+    // (46,21): warning CS8201: Possible null reference assignment.
+    //         object y5 = x5;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x5").WithLocation(46, 21),
+    // (53,21): warning CS8207: Expression is probably never null.
+    //         object z6 = x6 ?? new object();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x6").WithLocation(53, 21)
+                );
+        }
+
+        [Fact]
+        public void TargetingUnannotatedAPIs_07()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+public class CL0 
+{
+    public static object M1() { return new object(); }
+}
+", options: TestOptions.DebugDll);
+
+            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+class C 
+{
+    static void Main()
+    {
+    }
+
+    public static object? M2() { return null; }
+    public static object M3() { return new object(); }
+    public static bool M4() {return false;}
+
+    void Test1()
+    {
+        object? x1;
+        if (M4()) x1 = M2(); else x1 = CL0.M1();
+        object y1 = x1;
+    }
+
+    void Test2()
+    {
+        object? x2;
+        if (M4()) x2 = M3(); else x2 = CL0.M1();
+        object y2 = x2;
+        object z2 = x2 ?? new object();
+    }
+
+    void Test3()
+    {
+        object? x3;
+        if (M4()) x3 = M2(); else x3 = M3();
+        object y3 = x3;
+    }
+}
+
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+
+            c.VerifyDiagnostics(
+    // (16,21): warning CS8201: Possible null reference assignment.
+    //         object y1 = x1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(16, 21),
+    // (31,21): warning CS8201: Possible null reference assignment.
+    //         object y3 = x3;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(31, 21)
+                );
+        }
+
+        [Fact]
         public void ReturningValues()
         {
             CSharpCompilation c = CreateCompilationWithMscorlib(@"
@@ -1387,8 +1859,8 @@ class CL1
 
 class CL2
 {
-    public static bool operator == (CL2 x, CL2 y) { return false; }
-    public static bool operator != (CL2 x, CL2 y) { return false; }
+    public static bool operator == (CL2? x, CL2? y) { return false; }
+    public static bool operator != (CL2? x, CL2? y) { return false; }
     public override bool Equals(object obj) { return false; }
     public override int GetHashCode() { return 0; }
 }
@@ -1490,8 +1962,8 @@ class CL1
 
 class CL2
 {
-    public static bool operator == (CL2 x, CL2 y) { return false; }
-    public static bool operator != (CL2 x, CL2 y) { return false; }
+    public static bool operator == (CL2? x, CL2? y) { return false; }
+    public static bool operator != (CL2? x, CL2? y) { return false; }
     public override bool Equals(object obj) { return false; }
     public override int GetHashCode() { return 0; }
 }
@@ -1757,6 +2229,12 @@ class C
         const string? y6 = """";
         string z6 = y6 != null ? y6 : x6.M2();
     }
+
+    void Test7(CL1 x7)
+    {
+        const string? y7 = null;
+        string z7 = y7 != null ? y7 : x7.M2();
+    }
 }
 
 class CL1
@@ -1785,9 +2263,9 @@ class CL1
     // (38,21): warning CS8205: Result of the comparison is possibly always true.
     //         string z6 = y6 != null ? y6 : x6.M2();
     Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysTrue, "y6 != null").WithLocation(38, 21),
-    // (38,21): warning CS8201: Possible null reference assignment.
-    //         string z6 = y6 != null ? y6 : x6.M2();
-    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y6 != null ? y6 : x6.M2()").WithLocation(38, 21)
+    // (44,21): warning CS8201: Possible null reference assignment.
+    //         string z7 = y7 != null ? y7 : x7.M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y7 != null ? y7 : x7.M2()").WithLocation(44, 21)
                 );
         }
 
@@ -1833,6 +2311,12 @@ class C
         const string? y6 = """";
         string z6 = y6 == null ? x6.M2() : y6;
     }
+
+    void Test7(CL1 x7)
+    {
+        const string? y7 = null;
+        string z7 = y7 == null ? x7.M2() : y7;
+    }
 }
 
 class CL1
@@ -1861,9 +2345,9 @@ class CL1
     // (38,21): warning CS8206: Result of the comparison is possibly always false.
     //         string z6 = y6 == null ? x6.M2() : y6;
     Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse, "y6 == null").WithLocation(38, 21),
-    // (38,21): warning CS8201: Possible null reference assignment.
-    //         string z6 = y6 == null ? x6.M2() : y6;
-    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y6 == null ? x6.M2() : y6").WithLocation(38, 21)
+    // (44,21): warning CS8201: Possible null reference assignment.
+    //         string z7 = y7 == null ? x7.M2() : y7;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y7 == null ? x7.M2() : y7").WithLocation(44, 21)
                 );
         }
 
@@ -1896,6 +2380,123 @@ class CL1
 ", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact(Skip = "Unexpected warning on the second ToString(). The state of 'y1' is changed to nullable by the NullCoalescingOperator.")]
+        public void ConditionalBranching_09()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(object x1, object? y1)
+    {
+        y1 = x1;
+        y1.ToString();
+        object z1 = y1 ?? x1;
+        y1.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,21): warning CS8207: Expression is probably never null.
+    //         object z1 = y1 ?? x1;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "y1").WithLocation(12, 21)
+                );
+        }
+
+        [Fact(Skip = "Unexpected warning on the second ToString(). The state of 'y1' is changed to nullable by the conditional expression.")]
+        public void ConditionalBranching_10()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(object x1, object? y1)
+    {
+        y1 = x1;
+        y1.ToString();
+        object z1 = y1 != null ? y1 : x1;
+        y1.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,21): warning CS8205: Result of the comparison is possibly always true.
+    //         object z1 = y1 != null ? y1 : x1;
+    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysTrue, "y1 != null").WithLocation(12, 21)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_11()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(object x1, object? y1)
+    {
+        y1 = x1;
+        y1.ToString();
+        y1?.GetHashCode();
+        y1.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,9): warning CS8207: Expression is probably never null.
+    //         y1?.GetHashCode();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "y1").WithLocation(12, 9)
+                );
+        }
+
+        [Fact(Skip = "Unexpected warning on the second ToString(). The state of 'y1' is changed to nullable by the 'if' statement.")]
+        public void ConditionalBranching_12()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(object x1, object? y1)
+    {
+        y1 = x1;
+        y1.ToString();
+
+        if (y1 == null)
+        {
+            System.Console.WriteLine(1);
+        }
+        else
+        {
+            System.Console.WriteLine(2);
+        }
+
+        y1.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (13,13): warning CS8206: Result of the comparison is possibly always false.
+    //         if (y1 == null)
+    Diagnostic(ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse, "y1 == null").WithLocation(13, 13)
                 );
         }
 
@@ -1960,9 +2561,9 @@ class CL1
     // (29,18): warning CS8201: Possible null reference assignment.
     //             y2 = x2;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2").WithLocation(29, 18),
-    // (30,19): warning CS8204: Possible null reference argument.
+    // (30,19): warning CS8204: Possible null reference argument for parameter 'x' in 'void CL1.M2(CL1 x)'.
     //             y2.M2(x2);
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithLocation(30, 19),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "void CL1.M2(CL1 x)").WithLocation(30, 19),
     // (34,24): warning CS8203: Possible null reference return.
     //                 return x2;
     Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x2").WithLocation(34, 24)
@@ -2259,6 +2860,38 @@ class CL1
 
             // TODO: Should probably get warnings about CL1?[] assigned to a CL1[] variable.
             c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Array_05()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1()
+    {
+        var u1 = new [] { 1, 2 };
+        var z1 = u1.Length;
+    }
+
+    void Test2()
+    {
+        var u2 = new [] { 1, 2 };
+        u2 = null;
+        var z2 = u2.Length;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (18,18): warning CS8202: Possible dereference of a null reference.
+    //         var z2 = u2.Length;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2").WithLocation(18, 18)
                 );
         }
 
@@ -2590,6 +3223,41 @@ struct S2
         }
 
         [Fact]
+        public void Structs_04()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+}
+
+struct TS2
+{
+    System.Action? E2;
+
+    TS2(System.Action x2)
+    {
+        this = new TS2();
+        System.Action z2 = E2;
+        System.Action y2 = E2 ?? x2;
+    }
+
+    void Dummy()
+    {
+        E2 = null;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (15,28): warning CS8201: Possible null reference assignment.
+    //         System.Action z2 = E2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "E2").WithLocation(15, 28)
+                );
+        }
+
+        [Fact]
         public void AnonymousTypes_01()
         {
             CSharpCompilation c = CreateCompilationWithMscorlib(@"
@@ -2837,9 +3505,9 @@ class CL1
     // (25,29): error CS0269: Use of unassigned out parameter 'x3'
     //         var y3 = new { p1 = x3 };
     Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x3").WithArguments("x3").WithLocation(25, 29),
-    // (27,29): warning CS8204: Possible null reference argument.
+    // (27,29): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL1.M1(CL1 x)'.
     //                       z3.M1(y3.p1);
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y3.p1").WithLocation(27, 29)
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y3.p1").WithArguments("x", "CL1 CL1.M1(CL1 x)").WithLocation(27, 29)
                 );
         }
 
@@ -3874,6 +4542,3339 @@ class C
     // (22,28): warning CS8203: Possible null reference return.
     //                     return null; // 2
     Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(22, 28)
+                );
+        }
+
+        [Fact]
+        public void NewT_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1<T1>(T1 x1) where T1 : class, new()
+    {
+        x1 = new T1();
+    }
+
+    void Test2<T2>(T2 x2) where T2 : class, new()
+    {
+        x2 = new T2() ?? x2;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (14,14): warning CS8207: Expression is probably never null.
+    //         x2 = new T2() ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new T2()").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicObjectCreation_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        x1 = new CL0((dynamic)0);
+    }
+
+    void Test2(CL0 x2)
+    {
+        x2 = new CL0((dynamic)0) ?? x2;
+    }
+}
+
+class CL0
+{
+    public CL0(int x) {}
+    public CL0(long x) {}
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (14,14): warning CS8207: Expression is probably never null.
+    //         x2 = new CL0((dynamic)0) ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new CL0((dynamic)0)").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicIndexerAccess_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        x1 = x1[(dynamic)0];
+    }
+
+    void Test2(CL0 x2)
+    {
+        x2 = x2[(dynamic)0] ?? x2;
+    }
+}
+
+class CL0
+{
+    public CL0 this[int x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+
+    public CL0 this[long x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (14,14): warning CS8207: Expression is probably never null.
+    //         x2 = x2[(dynamic)0] ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2[(dynamic)0]").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicIndexerAccess_02()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        dynamic y1 = x1[(dynamic)0];
+    }
+
+    void Test2(CL0 x2)
+    {
+        dynamic y2 = x2[(dynamic)0] ?? x2;
+    }
+}
+
+class CL0
+{
+    public CL0? this[int x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+
+    public CL0 this[long x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (9,22): warning CS8201: Possible null reference assignment.
+    //         dynamic y1 = x1[(dynamic)0];
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1[(dynamic)0]").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        public void DynamicIndexerAccess_03()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        dynamic y1 = x1[(dynamic)0];
+    }
+
+    void Test2(CL0 x2)
+    {
+        dynamic y2 = x2[(dynamic)0] ?? x2;
+    }
+}
+
+class CL0
+{
+    public CL0 this[int x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+
+    public CL0? this[long x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (9,22): warning CS8201: Possible null reference assignment.
+    //         dynamic y1 = x1[(dynamic)0];
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1[(dynamic)0]").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        public void DynamicIndexerAccess_04()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        dynamic y1 = x1[(dynamic)0];
+    }
+
+    void Test2(CL0 x2)
+    {
+        dynamic y2 = x2[(dynamic)0] ?? x2;
+    }
+}
+
+class CL0
+{
+    public CL0? this[int x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+
+    public CL0? this[long x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (9,22): warning CS8201: Possible null reference assignment.
+    //         dynamic y1 = x1[(dynamic)0];
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1[(dynamic)0]").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        public void DynamicIndexerAccess_05()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        x1 = x1[(dynamic)0];
+    }
+
+    void Test2(CL0 x2)
+    {
+        x2 = x2[(dynamic)0] ?? x2;
+    }
+}
+
+class CL0
+{
+    public int this[int x]
+    {
+        get { return x; }
+        set { }
+    }
+
+    public int this[long x]
+    {
+        get { return (int)x; }
+        set { }
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (14,14): warning CS8207: Expression is probably never null.
+    //         x2 = x2[(dynamic)0] ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2[(dynamic)0]").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicIndexerAccess_06()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        x1 = x1[(dynamic)0];
+    }
+
+    void Test2(CL0 x2)
+    {
+        x2 = x2[(dynamic)0] ?? x2;
+    }
+}
+
+class CL0
+{
+    public int this[int x]
+    {
+        get { return x; }
+        set { }
+    }
+
+    public long this[long x]
+    {
+        get { return x; }
+        set { }
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (14,14): warning CS8207: Expression is probably never null.
+    //         x2 = x2[(dynamic)0] ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2[(dynamic)0]").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicIndexerAccess_07()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(dynamic x1)
+    {
+        x1 = x1[0];
+    }
+
+    void Test2(dynamic x2)
+    {
+        x2 = x2[0] ?? x2;
+    }
+}
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void DynamicIndexerAccess_08()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1<T>(CL0<T> x1)
+    {
+        x1 = x1[(dynamic)0];
+    }
+
+    void Test2<T>(CL0<T> x2)
+    {
+        x2 = x2[(dynamic)0] ?? x2;
+    }
+}
+
+class CL0<T>
+{
+    public T this[int x]
+    {
+        get { return default(T); }
+        set { }
+    }
+
+    public long this[long x]
+    {
+        get { return x; }
+        set { }
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void DynamicIndexerAccess_09()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1, dynamic y1)
+    {
+        x1[(dynamic)0] = y1;
+    }
+
+    void Test2(CL0 x2, dynamic? y2, CL1 z2)
+    {
+        x2[(dynamic)0] = y2;
+        z2[0] = y2;
+    }
+}
+
+class CL0
+{
+    public CL0 this[int x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+
+    public CL0 this[long x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+}
+
+class CL1
+{
+    public dynamic this[int x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+}
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (15,17): warning CS8201: Possible null reference assignment.
+    //         z2[0] = y2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2").WithLocation(15, 17)
+                );
+        }
+
+        [Fact]
+        public void DynamicIndexerAccess_10()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0? x1)
+    {
+        x1 = x1[(dynamic)0];
+    }
+
+    void Test2(CL0? x2)
+    {
+        x2 = x2[0];
+    }
+}
+
+class CL0
+{
+    public CL0 this[int x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+
+    public CL0 this[long x]
+    {
+        get { return new CL0(); }
+        set { }
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (9,14): warning CS8202: Possible dereference of a null reference.
+    //         x1 = x1[(dynamic)0];
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(9, 14),
+    // (14,14): warning CS8202: Possible dereference of a null reference.
+    //         x2 = x2[0];
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        x1 = x1.M1((dynamic)0);
+    }
+
+    void Test2(CL0 x2)
+    {
+        x2 = x2.M1((dynamic)0) ?? x2;
+    }
+}
+
+class CL0
+{
+    public CL0 M1(int x)
+    {
+        return new CL0(); 
+    }
+
+    public CL0 M1(long x)
+    {
+        return new CL0(); 
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (14,14): warning CS8207: Expression is probably never null.
+    //         x2 = x2.M1((dynamic)0) ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2.M1((dynamic)0)").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_02()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        dynamic y1 = x1.M1((dynamic)0);
+    }
+
+    void Test2(CL0 x2)
+    {
+        dynamic y2 = x2.M1((dynamic)0) ?? x2;
+    }
+}
+
+class CL0
+{
+    public CL0? M1(int x)
+    {
+        return new CL0(); 
+    }
+
+    public CL0  M1(long x)
+    {
+        return new CL0(); 
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (9,22): warning CS8201: Possible null reference assignment.
+    //         dynamic y1 = x1.M1((dynamic)0);
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1.M1((dynamic)0)").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_03()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        dynamic y1 = x1.M1((dynamic)0);
+    }
+
+    void Test2(CL0 x2)
+    {
+        dynamic y2 = x2.M1((dynamic)0) ?? x2;
+    }
+}
+
+class CL0
+{
+    public CL0 M1(int x)
+    {
+        return new CL0(); 
+    }
+
+    public CL0? M1(long x)
+    {
+        return new CL0(); 
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (9,22): warning CS8201: Possible null reference assignment.
+    //         dynamic y1 = x1.M1((dynamic)0);
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1.M1((dynamic)0)").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_04()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        dynamic y1 = x1.M1((dynamic)0);
+    }
+
+    void Test2(CL0 x2)
+    {
+        dynamic y2 = x2.M1((dynamic)0) ?? x2;
+    }
+}
+
+class CL0
+{
+    public CL0? M1(int x)
+    {
+        return new CL0(); 
+    }
+
+    public CL0? M1(long x)
+    {
+        return new CL0(); 
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (9,22): warning CS8201: Possible null reference assignment.
+    //         dynamic y1 = x1.M1((dynamic)0);
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1.M1((dynamic)0)").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_05()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        x1 = x1.M1((dynamic)0);
+    }
+
+    void Test2(CL0 x2)
+    {
+        x2 = x2.M1((dynamic)0) ?? x2;
+    }
+}
+
+class CL0
+{
+    public int M1(int x)
+    {
+        return x; 
+    }
+
+    public int M1(long x)
+    {
+        return (int)x; 
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (14,14): warning CS8207: Expression is probably never null.
+    //         x2 = x2.M1((dynamic)0) ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2.M1((dynamic)0)").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_06()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0 x1)
+    {
+        x1 = x1.M1((dynamic)0);
+    }
+
+    void Test2(CL0 x2)
+    {
+        x2 = x2.M1((dynamic)0) ?? x2;
+    }
+}
+
+class CL0
+{
+    public int M1(int x)
+    {
+        return x; 
+    }
+
+    public long M1(long x)
+    {
+        return x; 
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (14,14): warning CS8207: Expression is probably never null.
+    //         x2 = x2.M1((dynamic)0) ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2.M1((dynamic)0)").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_07()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(dynamic x1)
+    {
+        x1 = x1.M1(0);
+    }
+
+    void Test2(dynamic x2)
+    {
+        x2 = x2.M1(0) ?? x2;
+    }
+}
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_08()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1<T>(CL0<T> x1)
+    {
+        x1 = x1.M1((dynamic)0);
+    }
+
+    void Test2<T>(CL0<T> x2)
+    {
+        x2 = x2.M1((dynamic)0) ?? x2;
+    }
+}
+
+class CL0<T>
+{
+    public T M1(int x)
+    {
+        return default(T); 
+    }
+    public long M1(long x)
+    {
+        return x; 
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void DynamicInvocation_09()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(CL0? x1)
+    {
+        x1 = x1.M1((dynamic)0);
+    }
+
+    void Test2(CL0? x2)
+    {
+        x2 = x2.M1(0);
+    }
+}
+
+class CL0
+{
+    public CL0 M1(int x)
+    {
+        return new CL0(); 
+    }
+
+    public CL0 M1(long x)
+    {
+        return new CL0(); 
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (9,14): warning CS8202: Possible dereference of a null reference.
+    //         x1 = x1.M1((dynamic)0);
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(9, 14),
+    // (14,14): warning CS8202: Possible dereference of a null reference.
+    //         x2 = x2.M1(0);
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DynamicMemberAccess_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1(dynamic x1)
+    {
+        x1 = x1.M1;
+    }
+
+    void Test2(dynamic x2)
+    {
+        x2 = x2.M1 ?? x2;
+    }
+
+    void Test3(dynamic? x3)
+    {
+        dynamic y3 = x3.M1;
+    }
+}
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (19,22): warning CS8202: Possible dereference of a null reference.
+    //         dynamic y3 = x3.M1;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x3").WithLocation(19, 22)
+                );
+        }
+
+        [Fact]
+        public void DynamicObjectCreationExpression_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {}
+
+    void Test1()
+    {
+        dynamic? x1 = null;
+        CL0 y1 = new CL0(x1);
+    }
+
+    void Test2(CL0 y2)
+    {
+        dynamic? x2 = null;
+        CL0 z2 = new CL0(x2) ?? y2;
+    }
+}
+
+class CL0
+{
+    public CL0(int x)
+    {
+    }
+
+    public CL0(long x)
+    {
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (16,18): warning CS8207: Expression is probably never null.
+    //         CL0 z2 = new CL0(x2) ?? y2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new CL0(x2)").WithLocation(16, 18)
+                );
+        }
+
+        [Fact]
+        public void NameOf_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(string x1, string? y1)
+    {
+        x1 = nameof(y1);
+    }
+
+    void Test2(string x2, string? y2)
+    {
+        string? z2 = nameof(y2);
+        x2 = z2 ?? x2;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (16,14): warning CS8207: Expression is probably never null.
+    //         x2 = z2 ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "z2").WithLocation(16, 14)
+                );
+        }
+
+        [Fact]
+        public void StringInterpolation_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(string x1, string? y1)
+    {
+        x1 = $""{y1}"";
+    }
+
+    void Test2(string x2, string? y2)
+    {
+        x2 = $""{y2}"" ?? x2;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (15,14): warning CS8207: Expression is probably never null.
+    //         x2 = $"{y2}" ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, @"$""{y2}""").WithLocation(15, 14)
+                );
+        }
+
+        [Fact]
+        public void DelegateCreation_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(System.Action x1)
+    {
+        x1 = new System.Action(Main);
+    }
+
+    void Test2(System.Action x2)
+    {
+        x2 = new System.Action(Main) ?? x2;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (15,14): warning CS8207: Expression is probably never null.
+    //         x2 = new System.Action(Main) ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new System.Action(Main)").WithLocation(15, 14)
+                );
+        }
+
+        [Fact]
+        public void Base_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Base
+{
+    public virtual void Test() {}
+}
+
+class C : Base
+{
+    static void Main()
+    {
+    }
+
+    public override void Test()
+    {
+        base.Test();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void TypeOf_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(System.Type x1)
+    {
+        x1 = typeof(C);
+    }
+
+    void Test2(System.Type x2)
+    {
+        x2 = typeof(C) ?? x2;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (15,14): warning CS8207: Expression is probably never null.
+    //         x2 = typeof(C) ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "typeof(C)").WithLocation(15, 14)
+                );
+        }
+
+        [Fact]
+        public void Default_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(C x1)
+    {
+        x1 = default(C);
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics( 
+    // (10,14): warning CS8201: Possible null reference assignment.
+    //         x1 = default(C);
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default(C)").WithLocation(10, 14)
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(string? x1, string? y1)
+    {
+        string z1 = x1 + y1;
+    }
+
+    void Test2(string? x2, string? y2)
+    {
+        string z2 = x2 + y2 ?? """";
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (15,21): warning CS8207: Expression is probably never null.
+    //         string z2 = x2 + y2 ?? "";
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2 + y2").WithLocation(15, 21)
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_02()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(dynamic? x1, dynamic? y1)
+    {
+        dynamic z1 = x1 + y1;
+    }
+
+    void Test2(dynamic? x2, dynamic? y2)
+    {
+        dynamic z2 = x2 + y2 ?? """";
+    }
+}
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_03()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(string? x1, CL0? y1)
+    {
+        CL0? z1 = x1 + y1;
+        CL0 u1 = z1 ?? new CL0();
+    }
+
+    void Test2(string? x2, CL1? y2)
+    {
+        CL1 z2 = x2 + y2;
+    }
+
+    void Test3(string x3, CL0? y3, CL2 z3)
+    {
+        CL2 u3 = x3 + y3 + z3;
+    }
+
+    void Test4(string x4, CL1 y4, CL2 z4)
+    {
+        CL2 u4 = x4 + y4 + z4;
+    }
+}
+
+class CL0 
+{
+
+    public static CL0 operator + (string? x, CL0 y)
+    {
+        return y;
+    }
+}
+
+class CL1 
+{
+
+    public static CL1? operator + (string x, CL1? y)
+    {
+        return y;
+    }
+}
+
+class CL2 
+{
+
+    public static CL2 operator + (CL0 x, CL2 y)
+    {
+        return y;
+    }
+
+    public static CL2 operator + (CL1 x, CL2 y)
+    {
+        return y;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,24): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator +(string x, CL0 y)'.
+    //         CL0? z1 = x1 + y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y1").WithArguments("y", "CL0 CL0.operator +(string x, CL0 y)").WithLocation(10, 24),
+    // (11,18): warning CS8207: Expression is probably never null.
+    //         CL0 u1 = z1 ?? new CL0();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "z1").WithLocation(11, 18),
+    // (16,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL1.operator +(string x, CL1 y)'.
+    //         CL1 z2 = x2 + y2;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL1 CL1.operator +(string x, CL1 y)").WithLocation(16, 18),
+    // (16,18): warning CS8201: Possible null reference assignment.
+    //         CL1 z2 = x2 + y2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2 + y2").WithLocation(16, 18),
+    // (21,23): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator +(string x, CL0 y)'.
+    //         CL2 u3 = x3 + y3 + z3;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y3").WithArguments("y", "CL0 CL0.operator +(string x, CL0 y)").WithLocation(21, 23),
+    // (26,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL2 CL2.operator +(CL1 x, CL2 y)'.
+    //         CL2 u4 = x4 + y4 + z4;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4 + y4").WithArguments("x", "CL2 CL2.operator +(CL1 x, CL2 y)").WithLocation(26, 18)
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_04()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0? x1, CL0? y1)
+    {
+        CL0? z1 = x1 && y1;
+        CL0 u1 = z1;
+    }
+
+    void Test2(CL0 x2, CL0? y2)
+    {
+        CL0? z2 = x2 && y2;
+        CL0 u2 = z2 ?? new CL0();
+    }
+}
+
+class CL0
+{
+    public static CL0 operator &(CL0 x, CL0? y)
+    {
+        return new CL0();
+    }
+
+    public static bool operator true(CL0 x)
+    {
+        return false;
+    }
+
+    public static bool operator false(CL0 x)
+    {
+        return false;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator false(CL0 x)'.
+    //         CL0? z1 = x1 && y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "bool CL0.operator false(CL0 x)").WithLocation(10, 19),
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator &(CL0 x, CL0 y)'.
+    //         CL0? z1 = x1 && y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0 CL0.operator &(CL0 x, CL0 y)").WithLocation(10, 19),
+    // (11,18): warning CS8201: Possible null reference assignment.
+    //         CL0 u1 = z1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z1").WithLocation(11, 18),
+    // (17,18): warning CS8207: Expression is probably never null.
+    //         CL0 u2 = z2 ?? new CL0();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "z2").WithLocation(17, 18)
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_05()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0? x1, CL0? y1)
+    {
+        CL0? z1 = x1 && y1;
+    }
+}
+
+class CL0
+{
+    public static CL0 operator &(CL0? x, CL0 y)
+    {
+        return new CL0();
+    }
+
+    public static bool operator true(CL0 x)
+    {
+        return false;
+    }
+
+    public static bool operator false(CL0 x)
+    {
+        return false;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator false(CL0 x)'.
+    //         CL0? z1 = x1 && y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "bool CL0.operator false(CL0 x)").WithLocation(10, 19),
+    // (10,25): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator &(CL0 x, CL0 y)'.
+    //         CL0? z1 = x1 && y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y1").WithArguments("y", "CL0 CL0.operator &(CL0 x, CL0 y)").WithLocation(10, 25)
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_06()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0? x1, CL0? y1)
+    {
+        CL0? z1 = x1 && y1;
+    }
+}
+
+class CL0
+{
+    public static CL0 operator &(CL0? x, CL0? y)
+    {
+        return new CL0();
+    }
+
+    public static bool operator true(CL0 x)
+    {
+        return false;
+    }
+
+    public static bool operator false(CL0? x)
+    {
+        return false;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_07()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0? x1, CL0? y1)
+    {
+        CL0? z1 = x1 || y1;
+    }
+}
+
+class CL0
+{
+    public static CL0 operator |(CL0? x, CL0? y)
+    {
+        return new CL0();
+    }
+
+    public static bool operator true(CL0 x)
+    {
+        return false;
+    }
+
+    public static bool operator false(CL0? x)
+    {
+        return false;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
+    //         CL0? z1 = x1 || y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "bool CL0.operator true(CL0 x)").WithLocation(10, 19)
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_08()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0? x1, CL0? y1)
+    {
+        CL0? z1 = x1 || y1;
+    }
+}
+
+class CL0
+{
+    public static CL0 operator |(CL0? x, CL0? y)
+    {
+        return new CL0();
+    }
+
+    public static bool operator true(CL0? x)
+    {
+        return false;
+    }
+
+    public static bool operator false(CL0 x)
+    {
+        return false;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_09()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 x1, CL0 y1, CL0 z1)
+    {
+        CL0? u1 = x1 && y1 || z1;
+    }
+}
+
+class CL0
+{
+    public static CL0? operator &(CL0 x, CL0 y)
+    {
+        return new CL0();
+    }
+
+    public static CL0 operator |(CL0 x, CL0 y)
+    {
+        return new CL0();
+    }
+
+    public static bool operator true(CL0 x)
+    {
+        return false;
+    }
+
+    public static bool operator false(CL0 x)
+    {
+        return false;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
+    //         CL0? u1 = x1 && y1 || z1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1 && y1").WithArguments("x", "bool CL0.operator true(CL0 x)").WithLocation(10, 19),
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator |(CL0 x, CL0 y)'.
+    //         CL0? u1 = x1 && y1 || z1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1 && y1").WithArguments("x", "CL0 CL0.operator |(CL0 x, CL0 y)").WithLocation(10, 19)
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_10()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0? x1, CL0? y1, CL0? z1)
+    {
+        CL0? u1 = x1 && y1 || z1;
+    }
+
+    void Test2(CL0 x2, CL0? y2, CL0? z2)
+    {
+        CL0? u1 = x2 && y2 || z2;
+    }
+}
+
+class CL0
+{
+    public static CL0 operator &(CL0? x, CL0? y)
+    {
+        return new CL0();
+    }
+
+    public static CL0 operator |(CL0 x, CL0? y)
+    {
+        return new CL0();
+    }
+
+    public static bool operator true(CL0 x)
+    {
+        return false;
+    }
+
+    public static bool operator false(CL0? x)
+    {
+        return false;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
+    //         CL0? u1 = x1 && y1 || z1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1 && y1").WithArguments("x", "bool CL0.operator true(CL0 x)").WithLocation(10, 19),
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator |(CL0 x, CL0 y)'.
+    //         CL0? u1 = x1 && y1 || z1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1 && y1").WithArguments("x", "CL0 CL0.operator |(CL0 x, CL0 y)").WithLocation(10, 19)
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_11()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(System.Action x1, System.Action y1)
+    {
+        System.Action u1 = x1 + y1;
+    }
+
+    void Test2(System.Action x2, System.Action y2)
+    {
+        System.Action u2 = x2 + y2 ?? x2;
+    }
+
+    void Test3(System.Action? x3, System.Action y3)
+    {
+        System.Action u3 = x3 + y3;
+    }
+
+    void Test4(System.Action? x4, System.Action y4)
+    {
+        System.Action u4 = x4 + y4 ?? y4;
+    }
+
+    void Test5(System.Action x5, System.Action? y5)
+    {
+        System.Action u5 = x5 + y5;
+    }
+
+    void Test6(System.Action x6, System.Action? y6)
+    {
+        System.Action u6 = x6 + y6 ?? x6;
+    }
+
+    void Test7(System.Action? x7, System.Action? y7)
+    {
+        System.Action u7 = x7 + y7;
+    }
+
+    void Test8(System.Action x8, System.Action y8)
+    {
+        System.Action u8 = x8 - y8;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (15,28): warning CS8207: Expression is probably never null.
+    //         System.Action u2 = x2 + y2 ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2 + y2").WithLocation(15, 28),
+    // (25,28): warning CS8207: Expression is probably never null.
+    //         System.Action u4 = x4 + y4 ?? y4;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x4 + y4").WithLocation(25, 28),
+    // (35,28): warning CS8207: Expression is probably never null.
+    //         System.Action u6 = x6 + y6 ?? x6;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x6 + y6").WithLocation(35, 28),
+    // (40,28): warning CS8201: Possible null reference assignment.
+    //         System.Action u7 = x7 + y7;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x7 + y7").WithLocation(40, 28),
+    // (45,28): warning CS8201: Possible null reference assignment.
+    //         System.Action u8 = x8 - y8;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x8 - y8").WithLocation(45, 28)
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_12()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 x1, CL0 y1)
+    {
+        CL0? u1 = x1 && !y1;
+    }
+
+    void Test2(bool x2, bool y2)
+    {
+        bool u2 = x2 && !y2;
+    }
+}
+
+class CL0
+{
+    public static CL0 operator &(CL0? x, CL0 y)
+    {
+        return new CL0();
+    }
+
+    public static bool operator true(CL0? x)
+    {
+        return false;
+    }
+
+    public static bool operator false(CL0? x)
+    {
+        return false;
+    }
+
+    public static CL0? operator !(CL0 x)
+    {
+        return null;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,25): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator &(CL0 x, CL0 y)'.
+    //         CL0? u1 = x1 && !y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "!y1").WithArguments("y", "CL0 CL0.operator &(CL0 x, CL0 y)").WithLocation(10, 25)
+                );
+        }
+
+        [Fact]
+        public void MethodGroupConversion_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0? x1)
+    {
+        System.Action u1 = x1.M1;
+    }
+
+    void Test2(CL0 x2)
+    {
+        System.Action u2 = x2.M1;
+    }
+}
+
+class CL0
+{
+    public void M1() {}
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,28): warning CS8202: Possible dereference of a null reference.
+    //         System.Action u1 = x1.M1;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(10, 28)
+                );
+        }
+
+        [Fact]
+        public void UnaryOperator_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0? x1)
+    {
+        CL0 u1 = !x1;
+    }
+
+    void Test2(CL1 x2)
+    {
+        CL1 u2 = !x2;
+    }
+
+    void Test3(CL2? x3)
+    {
+        CL2 u3 = !x3;
+    }
+
+    void Test4(CL1 x4)
+    {
+        dynamic y4 = x4; 
+        CL1 u4 = !y4;
+        dynamic v4 = !y4 ?? y4; 
+    }
+
+    void Test5(bool x5)
+    {
+        bool u5 = !x5;
+    }
+}
+
+class CL0
+{
+    public static CL0 operator !(CL0 x)
+    {
+        return new CL0();
+    }
+}
+
+class CL1
+{
+    public static CL1? operator !(CL1 x)
+    {
+        return new CL1();
+    }
+}
+
+class CL2
+{
+    public static CL2 operator !(CL2? x)
+    {
+        return new CL2();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator !(CL0 x)'.
+    //         CL0 u1 = !x1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0 CL0.operator !(CL0 x)").WithLocation(10, 19),
+    // (15,18): warning CS8201: Possible null reference assignment.
+    //         CL1 u2 = !x2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "!x2").WithLocation(15, 18)
+                );
+        }
+
+        [Fact]
+        public void Conversion_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0? x1)
+    {
+        CL1 u1 = x1;
+    }
+
+    void Test2(CL0? x2, CL0 y2)
+    {
+        int u2 = x2;
+        long v2 = x2;
+        int w2 = y2;
+    }
+
+    void Test3(CL0 x3)
+    {
+        CL2 u3 = x3;
+    }
+
+    void Test4(CL0 x4)
+    {
+        CL3? u4 = x4;
+        CL3 v4 = u4 ?? new CL3();
+    }
+
+    void Test5(dynamic? x5)
+    {
+        CL3 u5 = x5;
+    }
+
+    void Test6(dynamic? x6)
+    {
+        CL3? u6 = x6;
+        CL3 v6 = u6 ?? new CL3();
+    }
+
+    void Test7(CL0? x7)
+    {
+        dynamic u7 = x7;
+    }
+
+    void Test8(CL0 x8)
+    {
+        dynamic? u8 = x8;
+        dynamic v8 = u8 ?? x8;
+    }
+
+    void Test9(dynamic? x9)
+    {
+        object u9 = x9;
+    }
+
+    void Test10(object? x10)
+    {
+        dynamic u10 = x10;
+    }
+
+    void Test11(CL4? x11)
+    {
+        CL3 u11 = x11;
+    }
+
+    void Test12(CL3? x12)
+    {
+        CL4 u12 = (CL4)x12;
+    }
+
+    void Test13(int x13)
+    {
+        object? u13 = x13;
+        object v13 = u13 ?? new object();
+    }
+
+    void Test14<T>(T x14)
+    {
+        object u14 = x14;
+        object v14 = ((object)x14) ?? new object();
+    }
+
+    void Test15(int? x15)
+    {
+        object u15 = x15;
+    }
+
+    void Test16()
+    {
+        System.IFormattable? u16 = $""{3}"";
+        object v16 = u16 ?? new object();
+    }
+}
+
+class CL0
+{
+    public static implicit operator CL1(CL0 x) { return new CL1(); }
+    public static implicit operator int(CL0 x) { return 0; }
+    public static implicit operator long(CL0? x) { return 0; }
+    public static implicit operator CL2?(CL0 x) { return new CL2(); }
+    public static implicit operator CL3(CL0? x) { return new CL3(); }
+}
+
+class CL1 {}
+class CL2 {}
+class CL3 {}
+class CL4 : CL3 {}
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0.implicit operator CL1(CL0 x)'.
+    //         CL1 u1 = x1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0.implicit operator CL1(CL0 x)").WithLocation(10, 18),
+    // (15,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0.implicit operator int(CL0 x)'.
+    //         int u2 = x2;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL0.implicit operator int(CL0 x)").WithLocation(15, 18),
+    // (22,18): warning CS8201: Possible null reference assignment.
+    //         CL2 u3 = x3;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(22, 18),
+    // (28,18): warning CS8207: Expression is probably never null.
+    //         CL3 v4 = u4 ?? new CL3();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4").WithLocation(28, 18),
+    // (44,22): warning CS8201: Possible null reference assignment.
+    //         dynamic u7 = x7;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x7").WithLocation(44, 22),
+    // (50,22): warning CS8207: Expression is probably never null.
+    //         dynamic v8 = u8 ?? x8;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u8").WithLocation(50, 22),
+    // (55,21): warning CS8201: Possible null reference assignment.
+    //         object u9 = x9;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x9").WithLocation(55, 21),
+    // (60,23): warning CS8201: Possible null reference assignment.
+    //         dynamic u10 = x10;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x10").WithLocation(60, 23),
+    // (65,19): warning CS8201: Possible null reference assignment.
+    //         CL3 u11 = x11;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x11").WithLocation(65, 19),
+    // (70,19): warning CS8201: Possible null reference assignment.
+    //         CL4 u12 = (CL4)x12;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(CL4)x12").WithLocation(70, 19),
+    // (76,22): warning CS8207: Expression is probably never null.
+    //         object v13 = u13 ?? new object();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u13").WithLocation(76, 22),
+    // (87,22): warning CS8201: Possible null reference assignment.
+    //         object u15 = x15;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x15").WithLocation(87, 22),
+    // (93,22): warning CS8207: Expression is probably never null.
+    //         object v16 = u16 ?? new object();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u16").WithLocation(93, 22)
+                );
+        }
+
+        [Fact]
+        public void IncreamentOperator_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0? x1)
+    {
+        CL0? u1 = ++x1;
+        CL0 v1 = u1 ?? new CL0(); 
+        CL0 w1 = x1 ?? new CL0(); 
+    }
+    void Test2(CL0? x2)
+    {
+        CL0 u2 = x2++;
+        CL0 v2 = x2 ?? new CL0();
+    }
+    void Test3(CL1? x3)
+    {
+        CL1 u3 = --x3;
+        CL1 v3 = x3;
+    }
+    void Test4(CL1 x4)
+    {
+        CL1? u4 = x4--; // Result of increment is nullable, storing it in not nullable parameter.
+        CL1 v4 = u4 ?? new CL1(); 
+        CL1 w4 = x4 ?? new CL1();
+    }
+    void Test5(CL1 x5)
+    {
+        CL1 u5 = --x5;
+    }
+
+    void Test6(CL1 x6)
+    {
+        x6--; 
+    }
+}
+
+class CL0
+{
+    public static CL0 operator ++(CL0 x)
+    {
+        return new CL0();
+    }
+}
+
+class CL1
+{
+    public static CL1? operator --(CL1? x)
+    {
+        return new CL1();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,21): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
+    //         CL0? u1 = ++x1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(10, 21),
+    // (11,18): warning CS8207: Expression is probably never null.
+    //         CL0 v1 = u1 ?? new CL0(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    // (12,18): warning CS8207: Expression is probably never null.
+    //         CL0 w1 = x1 ?? new CL0(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18),
+    // (16,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
+    //         CL0 u2 = x2++;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(16, 18),
+    // (16,18): warning CS8201: Possible null reference assignment.
+    //         CL0 u2 = x2++;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2++").WithLocation(16, 18),
+    // (17,18): warning CS8207: Expression is probably never null.
+    //         CL0 v2 = x2 ?? new CL0();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2").WithLocation(17, 18),
+    // (21,18): warning CS8201: Possible null reference assignment.
+    //         CL1 u3 = --x3;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x3").WithLocation(21, 18),
+    // (22,18): warning CS8201: Possible null reference assignment.
+    //         CL1 v3 = x3;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(22, 18),
+    // (26,19): warning CS8201: Possible null reference assignment.
+    //         CL1? u4 = x4--; // Result of increment is nullable, storing it in not nullable parameter.
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4--").WithLocation(26, 19),
+    // (27,18): warning CS8207: Expression is probably never null.
+    //         CL1 v4 = u4 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 18),
+    // (28,18): warning CS8207: Expression is probably never null.
+    //         CL1 w4 = x4 ?? new CL1();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x4").WithLocation(28, 18),
+    // (32,18): warning CS8201: Possible null reference assignment.
+    //         CL1 u5 = --x5;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5").WithLocation(32, 18),
+    // (32,18): warning CS8201: Possible null reference assignment.
+    //         CL1 u5 = --x5;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5").WithLocation(32, 18),
+    // (37,9): warning CS8201: Possible null reference assignment.
+    //         x6--; 
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x6--").WithLocation(37, 9)
+                );
+        }
+
+        [Fact]
+        public void IncreamentOperator_02()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1()
+    {
+        CL0? u1 = ++x1;
+        CL0 v1 = u1 ?? new CL0(); 
+    }
+
+    void Test2()
+    {
+        CL0 u2 = x2++;
+    }
+
+    void Test3()
+    {
+        CL1 u3 = --x3;
+    }
+
+    void Test4()
+    {
+        CL1? u4 = x4--; // Result of increment is nullable, storing it in not nullable property.
+        CL1 v4 = u4 ?? new CL1(); 
+    }
+
+    void Test5(CL1 x5)
+    {
+        CL1 u5 = --x5;
+    }
+
+    CL0? x1 {get; set;}
+    CL0? x2 {get; set;}
+    CL1? x3 {get; set;}
+    CL1 x4 {get; set;}
+    CL1 x5 {get; set;}
+}
+
+class CL0
+{
+    public static CL0 operator ++(CL0 x)
+    {
+        return new CL0();
+    }
+}
+
+class CL1
+{
+    public static CL1? operator --(CL1? x)
+    {
+        return new CL1();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,21): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
+    //         CL0? u1 = ++x1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(10, 21),
+    // (11,18): warning CS8207: Expression is probably never null.
+    //         CL0 v1 = u1 ?? new CL0(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    // (16,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
+    //         CL0 u2 = x2++;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(16, 18),
+    // (16,18): warning CS8201: Possible null reference assignment.
+    //         CL0 u2 = x2++;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2++").WithLocation(16, 18),
+    // (21,18): warning CS8201: Possible null reference assignment.
+    //         CL1 u3 = --x3;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x3").WithLocation(21, 18),
+    // (26,19): warning CS8201: Possible null reference assignment.
+    //         CL1? u4 = x4--; // Result of increment is nullable, storing it in not nullable property.
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4--").WithLocation(26, 19),
+    // (27,18): warning CS8207: Expression is probably never null.
+    //         CL1 v4 = u4 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 18),
+    // (32,18): warning CS8201: Possible null reference assignment.
+    //         CL1 u5 = --x5;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5").WithLocation(32, 18),
+    // (32,18): warning CS8201: Possible null reference assignment.
+    //         CL1 u5 = --x5;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5").WithLocation(32, 18)
+                );
+        }
+
+        [Fact]
+        public void IncreamentOperator_03()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(X1 x1)
+    {
+        CL0? u1 = ++x1[0];
+        CL0 v1 = u1 ?? new CL0(); 
+    }
+
+    void Test2(X1 x2)
+    {
+        CL0 u2 = x2[0]++;
+    }
+
+    void Test3(X3 x3)
+    {
+        CL1 u3 = --x3[0];
+    }
+
+    void Test4(X4 x4)
+    {
+        CL1? u4 = x4[0]--; // Result of increment is nullable, storing it in not nullable parameter.
+        CL1 v4 = u4 ?? new CL1(); 
+    }
+
+    void Test5(X4 x5)
+    {
+        CL1 u5 = --x5[0];
+    }
+}
+
+class CL0
+{
+    public static CL0 operator ++(CL0 x)
+    {
+        return new CL0();
+    }
+}
+
+class CL1
+{
+    public static CL1? operator --(CL1? x)
+    {
+        return new CL1();
+    }
+}
+
+class X1
+{
+    public CL0? this[int x]
+    {
+        get { return null; }
+        set { }
+    }
+}
+
+class X3
+{
+    public CL1? this[int x]
+    {
+        get { return null; }
+        set { }
+    }
+}
+
+class X4
+{
+    public CL1 this[int x]
+    {
+        get { return new CL1(); }
+        set { }
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,21): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
+    //         CL0? u1 = ++x1[0];
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1[0]").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(10, 21),
+    // (11,18): warning CS8207: Expression is probably never null.
+    //         CL0 v1 = u1 ?? new CL0(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    // (16,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
+    //         CL0 u2 = x2[0]++;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2[0]").WithArguments("x", "CL0 CL0.operator ++(CL0 x)").WithLocation(16, 18),
+    // (16,18): warning CS8201: Possible null reference assignment.
+    //         CL0 u2 = x2[0]++;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2[0]++").WithLocation(16, 18),
+    // (21,18): warning CS8201: Possible null reference assignment.
+    //         CL1 u3 = --x3[0];
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x3[0]").WithLocation(21, 18),
+    // (26,19): warning CS8201: Possible null reference assignment.
+    //         CL1? u4 = x4[0]--; // Result of increment is nullable, storing it in not nullable parameter.
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4[0]--").WithLocation(26, 19),
+    // (27,18): warning CS8207: Expression is probably never null.
+    //         CL1 v4 = u4 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 18),
+    // (32,18): warning CS8201: Possible null reference assignment.
+    //         CL1 u5 = --x5[0];
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5[0]").WithLocation(32, 18),
+    // (32,18): warning CS8201: Possible null reference assignment.
+    //         CL1 u5 = --x5[0];
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x5[0]").WithLocation(32, 18)
+                );
+        }
+
+        [Fact]
+        public void IncreamentOperator_04()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(dynamic? x1)
+    {
+        dynamic? u1 = ++x1;
+        dynamic v1 = u1 ?? new object(); 
+    }
+
+    void Test2(dynamic? x2)
+    {
+        dynamic u2 = x2++;
+    }
+
+    void Test3(dynamic? x3)
+    {
+        dynamic u3 = --x3;
+    }
+
+    void Test4(dynamic x4)
+    {
+        dynamic? u4 = x4--; 
+        dynamic v4 = u4 ?? new object(); 
+    }
+
+    void Test5(dynamic x5)
+    {
+        dynamic u5 = --x5;
+    }
+}
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (16,22): warning CS8201: Possible null reference assignment.
+    //         dynamic u2 = x2++;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2++").WithLocation(16, 22),
+    // (27,22): warning CS8207: Expression is probably never null.
+    //         dynamic v4 = u4 ?? new object(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4").WithLocation(27, 22)
+                );
+        }
+
+        [Fact]
+        public void IncreamentOperator_05()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    void Test1(B? x1)
+    {
+        B? u1 = ++x1;
+        B v1 = u1 ?? new B(); 
+    }
+}
+
+class A
+{
+    public static C? operator ++(A x)
+    {
+        return new C();
+    }
+}
+
+class C : A
+{
+    public static implicit operator B(C x)
+    {
+        return new B();
+    }
+}
+
+class B : A
+{
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'C A.operator ++(A x)'.
+    //         B? u1 = ++x1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C A.operator ++(A x)").WithLocation(10, 19),
+    // (10,17): warning CS8204: Possible null reference argument for parameter 'x' in 'C.implicit operator B(C x)'.
+    //         B? u1 = ++x1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "++x1").WithArguments("x", "C.implicit operator B(C x)").WithLocation(10, 17),
+    // (11,16): warning CS8207: Expression is probably never null.
+    //         B v1 = u1 ?? new B(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 16)
+                );
+        }
+
+        [Fact]
+        public void IncreamentOperator_06()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    void Test1(B x1)
+    {
+        B u1 = ++x1;
+    }
+}
+
+class A
+{
+    public static C operator ++(A x)
+    {
+        return new C();
+    }
+}
+
+class C : A
+{
+    public static implicit operator B?(C x)
+    {
+        return new B();
+    }
+}
+
+class B : A
+{
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,16): warning CS8201: Possible null reference assignment.
+    //         B u1 = ++x1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "++x1").WithLocation(10, 16),
+    // (10,16): warning CS8201: Possible null reference assignment.
+    //         B u1 = ++x1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "++x1").WithLocation(10, 16)
+                );
+        }
+
+        [Fact]
+        public void IncreamentOperator_07()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    void Test1(Convertible? x1)
+    {
+        Convertible? u1 = ++x1;
+        Convertible v1 = u1 ?? new Convertible(); 
+    }
+
+    void Test2(int? x2)
+    {
+        var u2 = ++x2;
+    }
+
+    void Test3(byte x3)
+    {
+        var u3 = ++x3;
+    }
+}
+
+class Convertible
+{
+    public static implicit operator int(Convertible c)
+    {
+        return 0;
+    }
+
+    public static implicit operator Convertible(int i)
+    {
+        return new Convertible();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,29): warning CS8204: Possible null reference argument for parameter 'c' in 'Convertible.implicit operator int(Convertible c)'.
+    //         Convertible? u1 = ++x1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("c", "Convertible.implicit operator int(Convertible c)").WithLocation(10, 29),
+    // (11,26): warning CS8207: Expression is probably never null.
+    //         Convertible v1 = u1 ?? new Convertible(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 26)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL1? x1, CL0 y1)
+    {
+        CL1? u1 = x1 += y1;
+        CL1 v1 = u1 ?? new CL1(); 
+        CL1 w1 = x1 ?? new CL1(); 
+    }
+}
+
+class CL0
+{
+    public static CL1 operator +(CL0 x, CL0 y)
+    {
+        return new CL1();
+    }
+}
+
+class CL1
+{
+    public static implicit operator CL0(CL1 x)
+    {
+        return new CL0();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
+    //         CL1? u1 = x1 += y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(10, 19),
+    // (11,18): warning CS8207: Expression is probably never null.
+    //         CL1 v1 = u1 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    // (12,18): warning CS8207: Expression is probably never null.
+    //         CL1 w1 = x1 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_02()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL1? x1, CL0? y1)
+    {
+        CL1? u1 = x1 += y1;
+        CL1 v1 = u1 ?? new CL1(); 
+        CL1 w1 = x1 ?? new CL1(); 
+    }
+}
+
+class CL0
+{
+    public static CL1 operator +(CL0 x, CL0 y)
+    {
+        return new CL1();
+    }
+}
+
+class CL1
+{
+    public static implicit operator CL0(CL1? x)
+    {
+        return new CL0();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,25): warning CS8204: Possible null reference argument for parameter 'y' in 'CL1 CL0.operator +(CL0 x, CL0 y)'.
+    //         CL1? u1 = x1 += y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y1").WithArguments("y", "CL1 CL0.operator +(CL0 x, CL0 y)").WithLocation(10, 25),
+    // (11,18): warning CS8207: Expression is probably never null.
+    //         CL1 v1 = u1 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    // (12,18): warning CS8207: Expression is probably never null.
+    //         CL1 w1 = x1 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_03()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL1? x1, CL0? y1)
+    {
+        CL1? u1 = x1 += y1;
+        CL1 v1 = u1 ?? new CL1(); 
+        CL1 w1 = x1 ?? new CL1(); 
+    }
+
+    void Test2(CL0? x2, CL0 y2)
+    {
+        CL0 u2 = x2 += y2;
+        CL0 w2 = x2; 
+    }
+
+    void Test3(CL0? x3, CL0 y3)
+    {
+        x3 = new CL0();
+        CL0 u3 = x3 += y3;
+        CL0 w3 = x3; 
+    }
+
+    void Test4(CL0? x4, CL0 y4)
+    {
+        x4 = new CL0();
+        x4 += y4;
+        CL0 w4 = x4; 
+    }
+}
+
+class CL0
+{
+    public static CL1 operator +(CL0 x, CL0? y)
+    {
+        return new CL1();
+    }
+}
+
+class CL1
+{
+    public static implicit operator CL0?(CL1? x)
+    {
+        return new CL0();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL0.operator +(CL0 x, CL0 y)'.
+    //         CL1? u1 = x1 += y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL1 CL0.operator +(CL0 x, CL0 y)").WithLocation(10, 19),
+    // (11,18): warning CS8207: Expression is probably never null.
+    //         CL1 v1 = u1 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    // (12,18): warning CS8207: Expression is probably never null.
+    //         CL1 w1 = x1 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18),
+    // (17,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL0.operator +(CL0 x, CL0 y)'.
+    //         CL0 u2 = x2 += y2;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL1 CL0.operator +(CL0 x, CL0 y)").WithLocation(17, 18),
+    // (17,18): warning CS8201: Possible null reference assignment.
+    //         CL0 u2 = x2 += y2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2 += y2").WithLocation(17, 18),
+    // (18,18): warning CS8201: Possible null reference assignment.
+    //         CL0 w2 = x2; 
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2").WithLocation(18, 18),
+    // (24,18): warning CS8201: Possible null reference assignment.
+    //         CL0 u3 = x3 += y3;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3 += y3").WithLocation(24, 18),
+    // (25,18): warning CS8201: Possible null reference assignment.
+    //         CL0 w3 = x3; 
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(25, 18),
+    // (32,18): warning CS8201: Possible null reference assignment.
+    //         CL0 w4 = x4; 
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4").WithLocation(32, 18)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_04()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL1? x1, CL0? y1)
+    {
+        x1 = new CL1();
+        CL1? u1 = x1 += y1;
+        CL1 w1 = x1;
+        w1 = u1; 
+    }
+
+    void Test2(CL1 x2, CL0 y2)
+    {
+        CL1 u2 = x2 += y2;
+        CL1 w2 = x2; 
+    }
+
+    void Test3(CL1 x3, CL0 y3)
+    {
+        x3 += y3;
+    }
+
+    void Test4(CL0? x4, CL0 y4)
+    {
+        CL0? u4 = x4 += y4;
+        CL0 v4 = u4 ?? new CL0(); 
+        CL0 w4 = x4 ?? new CL0(); 
+    }
+
+    void Test5(CL0 x5, CL0 y5)
+    {
+        x5 += y5;
+    }
+}
+
+class CL0
+{
+    public static CL1? operator +(CL0 x, CL0? y)
+    {
+        return new CL1();
+    }
+}
+
+class CL1
+{
+    public static implicit operator CL0(CL1 x)
+    {
+        return new CL0();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,18): warning CS8201: Possible null reference assignment.
+    //         CL1 w1 = x1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(12, 18),
+    // (13,14): warning CS8201: Possible null reference assignment.
+    //         w1 = u1; 
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u1").WithLocation(13, 14),
+    // (18,18): warning CS8201: Possible null reference assignment.
+    //         CL1 u2 = x2 += y2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2 += y2").WithLocation(18, 18),
+    // (18,18): warning CS8201: Possible null reference assignment.
+    //         CL1 u2 = x2 += y2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2 += y2").WithLocation(18, 18),
+    // (24,9): warning CS8201: Possible null reference assignment.
+    //         x3 += y3;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3 += y3").WithLocation(24, 9),
+    // (29,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL0.operator +(CL0 x, CL0 y)'.
+    //         CL0? u4 = x4 += y4;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4").WithArguments("x", "CL1 CL0.operator +(CL0 x, CL0 y)").WithLocation(29, 19),
+    // (29,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
+    //         CL0? u4 = x4 += y4;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4 += y4").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(29, 19),
+    // (30,18): warning CS8207: Expression is probably never null.
+    //         CL0 v4 = u4 ?? new CL0(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u4").WithLocation(30, 18),
+    // (31,18): warning CS8207: Expression is probably never null.
+    //         CL0 w4 = x4 ?? new CL0(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x4").WithLocation(31, 18),
+    // (36,9): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
+    //         x5 += y5;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x5 += y5").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(36, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_05()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    void Test1(int x1, int y1)
+    {
+        var u1 = x1 += y1;
+    }
+
+    void Test2(int? x2, int y2)
+    {
+        var u2 = x2 += y2;
+    }
+
+    void Test3(dynamic? x3, dynamic? y3)
+    {
+        dynamic? u3 = x3 += y3;
+        dynamic v3 = u3;
+        dynamic w3 = u3 ?? v3;
+    }
+
+    void Test4(dynamic? x4, dynamic? y4)
+    {
+        dynamic u4 = x4 += y4;
+    }
+}
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_06()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 y1)
+    {
+        CL1? u1 = x1 += y1;
+        CL1 v1 = u1 ?? new CL1(); 
+        CL1 w1 = x1 ?? new CL1(); 
+    }
+
+    void Test2(CL0 y2)
+    {
+        CL1? u2 = x2 += y2;
+        CL1 v2 = u2 ?? new CL1(); 
+        CL1 w2 = x2 ?? new CL1(); 
+    }
+
+    CL1? x1 {get; set;}
+    CL1 x2 {get; set;}
+}
+
+class CL0
+{
+    public static CL1 operator +(CL0 x, CL0 y)
+    {
+        return new CL1();
+    }
+}
+
+class CL1
+{
+    public static implicit operator CL0(CL1 x)
+    {
+        return new CL0();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
+    //         CL1? u1 = x1 += y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(10, 19),
+    // (11,18): warning CS8207: Expression is probably never null.
+    //         CL1 v1 = u1 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    // (18,18): warning CS8207: Expression is probably never null.
+    //         CL1 v2 = u2 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u2").WithLocation(18, 18),
+    // (19,18): warning CS8207: Expression is probably never null.
+    //         CL1 w2 = x2 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2").WithLocation(19, 18)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_07()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL2 x1, CL0 y1)
+    {
+        CL1? u1 = x1[0] += y1;
+        CL1 v1 = u1 ?? new CL1(); 
+        CL1 w1 = x1[0] ?? new CL1(); 
+    }
+
+    void Test2(CL3 x2, CL0 y2)
+    {
+        CL1? u2 = x2[0] += y2;
+        CL1 v2 = u2 ?? new CL1(); 
+        CL1 w2 = x2[0] ?? new CL1(); 
+    }
+}
+
+class CL0
+{
+    public static CL1 operator +(CL0 x, CL0 y)
+    {
+        return new CL1();
+    }
+}
+
+class CL1
+{
+    public static implicit operator CL0(CL1 x)
+    {
+        return new CL0();
+    }
+}
+
+class CL2
+{
+    public CL1? this[int x]
+    {
+        get { return new CL1(); }
+        set { }
+    }
+}
+
+class CL3
+{
+    public CL1 this[int x]
+    {
+        get { return new CL1(); }
+        set { }
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
+    //         CL1? u1 = x1[0] += y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1[0]").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(10, 19),
+    // (11,18): warning CS8207: Expression is probably never null.
+    //         CL1 v1 = u1 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
+    // (18,18): warning CS8207: Expression is probably never null.
+    //         CL1 v2 = u2 ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "u2").WithLocation(18, 18),
+    // (19,18): warning CS8207: Expression is probably never null.
+    //         CL1 w2 = x2[0] ?? new CL1(); 
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2[0]").WithLocation(19, 18)
+                );
+        }
+
+        [Fact]
+        public void Events_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    event System.Action? E1;
+
+    void Test1()
+    {
+        E1();
+    }
+
+    delegate void D2 (object x);
+    event D2 E2;
+
+    void Test2()
+    {
+        E2(null);
+    }
+
+    delegate object? D3 ();
+    event D3 E3;
+
+    void Test3()
+    {
+        object x3 = E3();
+    }
+
+    void Test4()
+    {
+        //E1?();
+        System.Action? x4 = E1;
+        //x4?();
+    }
+
+    void Test5()
+    {
+        System.Action x5 = E1;
+    }
+
+    void Test6(D2? x6)
+    {
+        E2 = x6;
+    }
+
+    void Test7(D2? x7)
+    {
+        E2 += x7;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,9): warning CS8202: Possible dereference of a null reference.
+    //         E1();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E1").WithLocation(12, 9),
+    // (20,12): warning CS8204: Possible null reference argument for parameter 'x' in 'void D2.Invoke(object x)'.
+    //         E2(null);
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("x", "void D2.Invoke(object x)").WithLocation(20, 12),
+    // (28,21): warning CS8201: Possible null reference assignment.
+    //         object x3 = E3();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "E3()").WithLocation(28, 21),
+    // (40,28): warning CS8201: Possible null reference assignment.
+    //         System.Action x5 = E1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "E1").WithLocation(40, 28),
+    // (45,14): warning CS8201: Possible null reference assignment.
+    //         E2 = x6;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x6").WithLocation(45, 14)
+                );
+        }
+
+        [Fact]
+        public void Events_02()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+}
+
+struct TS1
+{
+    event System.Action? E1;
+
+    TS1(System.Action x1) 
+    {
+        E1 = x1;
+        System.Action y1 = E1 ?? x1;
+
+        E1 = x1;
+        TS1 z1 = this;
+        y1 = z1.E1 ?? x1;
+    }
+
+    void Test3(System.Action x3)
+    {
+        TS1 s3;
+        s3.E1 = x3;
+        System.Action y3 = s3.E1 ?? x3;
+
+        s3.E1 = x3;
+        TS1 z3 = s3;
+        y3 = z3.E1 ?? x3;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (16,28): warning CS8207: Expression is probably never null.
+    //         System.Action y1 = E1 ?? x1;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "E1").WithLocation(16, 28),
+    // (20,14): warning CS8207: Expression is probably never null.
+    //         y1 = z1.E1 ?? x1;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "z1.E1").WithLocation(20, 14),
+    // (27,28): warning CS8207: Expression is probably never null.
+    //         System.Action y3 = s3.E1 ?? x3;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "s3.E1").WithLocation(27, 28),
+    // (31,14): warning CS8207: Expression is probably never null.
+    //         y3 = z3.E1 ?? x3;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "z3.E1").WithLocation(31, 14)
+                );
+        }
+
+        [Fact]
+        public void Events_03()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+}
+
+struct TS2
+{
+    event System.Action? E2;
+
+    TS2(System.Action x2) 
+    {
+        this = new TS2();
+        System.Action z2 = E2;
+        System.Action y2 = E2 ?? x2;
+    }
+}
+
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (16,28): warning CS8201: Possible null reference assignment.
+    //         System.Action z2 = E2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "E2").WithLocation(16, 28)
+                );
+        }
+
+        [Fact]
+        public void Events_04()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0? x1, System.Action? y1)
+    {
+        System.Action v1 = x1.E1 += y1;
+    }
+
+    void Test2(CL0? x2, System.Action? y2)
+    {
+        System.Action v2 = x2.E1 -= y2;
+    }
+}
+
+class CL0
+{
+    public event System.Action? E1;
+
+    void Dummy()
+    {
+        var x = E1;
+    }
+}
+
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,28): error CS0029: Cannot implicitly convert type 'void' to 'System.Action'
+    //         System.Action v1 = x1.E1 += y1;
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "x1.E1 += y1").WithArguments("void", "System.Action").WithLocation(10, 28),
+    // (10,28): warning CS8202: Possible dereference of a null reference.
+    //         System.Action v1 = x1.E1 += y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(10, 28),
+    // (15,28): error CS0029: Cannot implicitly convert type 'void' to 'System.Action'
+    //         System.Action v2 = x2.E1 -= y2;
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "x2.E1 -= y2").WithArguments("void", "System.Action").WithLocation(15, 28),
+    // (15,28): warning CS8202: Possible dereference of a null reference.
+    //         System.Action v2 = x2.E1 -= y2;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(15, 28)
+                );
+        }
+
+        [Fact]
+        public void Events_05()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    public event System.Action E1;
+
+    void Test1(Test? x1)
+    {
+        System.Action v1 = x1.E1;
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,28): warning CS8202: Possible dereference of a null reference.
+    //         System.Action v1 = x1.E1;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(12, 28)
+                );
+        }
+
+        [Fact]
+        public void AsOperator_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class Test
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL1 x1)
+    {
+        object y1 = x1 as object ?? new object();
+    }
+
+    void Test2(int x2)
+    {
+        object y2 = x2 as object ?? new object();
+    }
+
+    void Test3(CL1? x3)
+    {
+        object y3 = x3 as object;
+    }
+
+    void Test4(int? x4)
+    {
+        object y4 = x4 as object;
+    }
+
+    void Test5(object x5)
+    {
+        CL1 y5 = x5 as CL1;
+    }
+
+    void Test6()
+    {
+        CL1 y6 = null as CL1;
+    }
+
+    void Test7<T>(T x7)
+    {
+        CL1 y7 = x7 as CL1;
+    }
+}
+
+class CL1 {}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (10,21): warning CS8207: Expression is probably never null.
+    //         object y1 = x1 as object ?? new object();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x1 as object").WithLocation(10, 21),
+    // (15,21): warning CS8207: Expression is probably never null.
+    //         object y2 = x2 as object ?? new object();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "x2 as object").WithLocation(15, 21),
+    // (20,21): warning CS8201: Possible null reference assignment.
+    //         object y3 = x3 as object;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3 as object").WithLocation(20, 21),
+    // (25,21): warning CS8201: Possible null reference assignment.
+    //         object y4 = x4 as object;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4 as object").WithLocation(25, 21),
+    // (30,18): warning CS8201: Possible null reference assignment.
+    //         CL1 y5 = x5 as CL1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x5 as CL1").WithLocation(30, 18),
+    // (35,18): warning CS8201: Possible null reference assignment.
+    //         CL1 y6 = null as CL1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null as CL1").WithLocation(35, 18),
+    // (40,18): warning CS8201: Possible null reference assignment.
+    //         CL1 y7 = x7 as CL1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x7 as CL1").WithLocation(40, 18)
+                );
+        }
+
+        [Fact]
+        public void Await_01()
+        {
+            var source = @"
+using System;
+
+static class Program
+{
+    static void Main() { }
+
+    static async void f()
+    {
+        object x = await new D() ?? new object();
+    }
+}
+
+class D
+{
+    public Awaiter GetAwaiter() { return new Awaiter(); }
+}
+
+class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
+{
+    public void OnCompleted(Action x) { }
+
+    public object GetResult() { throw new Exception(); }
+
+    public bool IsCompleted { get { return true; } }
+}";
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics(
+    // (10,20): warning CS8207: Expression is probably never null.
+    //         object x = await new D() ?? new object();
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "await new D()").WithLocation(10, 20)
+                );
+        }
+
+        [Fact]
+        public void Await_02()
+        {
+            var source = @"
+using System;
+
+static class Program
+{
+    static void Main() { }
+
+    static async void f()
+    {
+        object x = await new D();
+    }
+}
+
+class D
+{
+    public Awaiter GetAwaiter() { return new Awaiter(); }
+}
+
+class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
+{
+    public void OnCompleted(Action x) { }
+
+    public object? GetResult() { throw new Exception(); }
+
+    public bool IsCompleted { get { return true; } }
+}";
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics(
+    // (10,20): warning CS8201: Possible null reference assignment.
+    //         object x = await new D();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "await new D()").WithLocation(10, 20)
+                );
+        }
+
+        [Fact]
+        public void NoPiaObjectCreation_01()
+        {
+            string pia = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58277"")]
+[CoClass(typeof(ClassITest28))]
+public interface ITest28
+{
+}
+
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58278"")]
+public abstract class ClassITest28 //: ITest28
+{
+    public ClassITest28(int x){} 
+}
+";
+
+            var piaCompilation = CreateCompilation(pia, new MetadataReference[] { MscorlibRef_v4_0_30316_17626 }, options: TestOptions.DebugDll);
+
+            CompileAndVerify(piaCompilation);
+
+            string consumer = @"
+class UsePia
+{
+    public static void Main()
+    {
+    }
+
+    void Test1(ITest28 x1)
+    {
+        x1 = new ITest28();
+    }
+
+    void Test2(ITest28 x2)
+    {
+        x2 = new ITest28() ?? x2;
+    }
+}";
+
+            var compilation = CreateCompilation(consumer,
+                                                new MetadataReference[] { MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
+                                                options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (15,14): warning CS8207: Expression is probably never null.
+    //         x2 = new ITest28() ?? x2;
+    Diagnostic(ErrorCode.WRN_ExpressionIsProbablyNeverNull, "new ITest28()").WithLocation(15, 14)
                 );
         }
 

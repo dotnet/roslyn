@@ -687,6 +687,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
         {
+            Debug.Assert(!IsConditionalState);
+
             if (symbol is RangeVariableSymbol) return -1;
             VariableIdentifier identifier = new VariableIdentifier(symbol, containingSlot);
             int slot;
@@ -1077,6 +1079,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="read">True if target location is considered read from.</param>
         protected virtual void AssignImpl(BoundNode node, BoundExpression value, bool? valueIsNotNull, RefKind refKind, bool written, bool read)
         {
+            Debug.Assert(!IsConditionalState);
+
             switch (node.Kind)
             {
                 case BoundKind.LocalDeclaration:
@@ -1141,6 +1145,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             NoteWrite(fieldAccess, value, read);
                             TrackNullableStateForAssignment(node, fieldAccess.FieldSymbol, fieldAccess.FieldSymbol.Type, slot, value, valueIsNotNull);
+                        }
+                        break;
+                    }
+
+                case BoundKind.EventAccess:
+                    {
+                        var eventAccess = (BoundEventAccess)node;
+                        int slot = MakeSlot(eventAccess);
+                        SetSlotState(slot, written);
+                        if (written)
+                        {
+                            NoteWrite(eventAccess, value, read);
+                            TrackNullableStateForAssignment(node, eventAccess.EventSymbol, eventAccess.EventSymbol.Type, slot, value, valueIsNotNull);
                         }
                         break;
                     }
@@ -1213,12 +1230,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ThisReference:
-                case BoundKind.EventAccess:
                     {
-                        var expression = (BoundExpression)node;
+                        var expression = (BoundThisReference)node;
                         int slot = MakeSlot(expression);
                         SetSlotState(slot, written);
-                        if (written) NoteWrite(expression, value, read);
+                        if (written)
+                        {
+                            NoteWrite(expression, value, read);
+                            ParameterSymbol thisParameter = MethodThisParameter;
+
+                            if ((object)thisParameter != null)
+                            {
+                                TrackNullableStateForAssignment(node, thisParameter, thisParameter.Type, slot, value, valueIsNotNull);
+                            }
+                        }
                         break;
                     }
 
@@ -1264,6 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void TrackNullableStateForAssignment(BoundNode node, Symbol assignmentTarget, TypeSymbolWithAnnotations targetType, int slot, BoundExpression value, bool? valueIsNotNull)
         {
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
                 if (targetType.IsReferenceType)
@@ -1344,9 +1370,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return -1;
         }
 
-        private void ReportStaticNullCheckingDiagnostics(ErrorCode errorCode, SyntaxNode syntaxNode)
+        private void ReportStaticNullCheckingDiagnostics(ErrorCode errorCode, SyntaxNode syntaxNode, params object[] arguments)
         {
-            Diagnostics.Add(errorCode, syntaxNode.GetLocation());
+            Diagnostics.Add(errorCode, syntaxNode.GetLocation(), arguments);
         }
 
         private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isByRefTarget)
@@ -1620,6 +1646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0) SetSlotState(slot, true);
                 NoteWrite(parameter, value: null, read: true);
 
+                Debug.Assert(!IsConditionalState);
                 if (_performStaticNullChecks && slot > 0 && parameter.RefKind != RefKind.Out)
                 {
                     TypeSymbolWithAnnotations paramType = parameter.Type;
@@ -1698,6 +1725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = VisitRvalue(node.ExpressionOpt);
 
+            Debug.Assert(!IsConditionalState);
             if (node.ExpressionOpt != null && _performStaticNullChecks && this.State.Reachable && this.State.ResultIsNotNull == false)
             {
                 TypeSymbolWithAnnotations returnType = this.currentMethodOrLambda?.ReturnType;
@@ -1844,6 +1872,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeclareVariables(node.Locals);
             var result = base.VisitSequence(node);
             ReportUnusedVariables(node.Locals);
+            
+            if (node.Value == null)
+            {
+                SetUnknownResultNullability();
+            }
+
             return result;
         }
 
@@ -1917,6 +1951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Diagnostics.Add(ErrorCode.ERR_FixedLocalInLambda, new SourceLocation(node.Syntax), localSymbol);
             }
 
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
                 this.State.ResultIsNotNull = IsResultNotNull(node, localSymbol, localSymbol.Type);
@@ -1947,14 +1982,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
+            Debug.Assert(!IsConditionalState);
             this.State.ResultIsNotNull = null;
             var result = base.VisitExpressionWithoutStackGuard(node);
 
-            if (_performStaticNullChecks && this.State.Reachable && this.State.ResultIsNotNull == null)
+            Debug.Assert(!IsConditionalState || node.ConstantValue == null || node.Type?.IsReferenceType != true);
+            if (_performStaticNullChecks && !IsConditionalState && this.State.Reachable)
             {
                 var constant = node.ConstantValue;
 
-                if (constant != null && (object)node.Type != null && node.Type.IsReferenceType)
+                if (constant != null && node.Type?.IsReferenceType == true)
                 {
                     this.State.ResultIsNotNull = !constant.IsNull;
                 } 
@@ -1968,6 +2005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalSymbol saveImplicitReceiver = _implicitReceiver;
             _implicitReceiver = null;
 
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable &&
                 EmptyStructTypeCache.IsTrackableStructType(node.Type))
             {
@@ -1977,9 +2015,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = base.VisitObjectCreationExpression(node);
 
+            SetResultIsNotNull(node);
+
+            _implicitReceiver = saveImplicitReceiver;
+            return result;
+        }
+
+        private void SetResultIsNotNull(BoundExpression node)
+        {
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
-                if (node.Type.IsReferenceType)
+                if (node.Type?.IsReferenceType == true)
                 {
                     this.State.ResultIsNotNull = true;
                 }
@@ -1988,9 +2035,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.State.ResultIsNotNull = null;
                 }
             }
-
-            _implicitReceiver = saveImplicitReceiver;
-            return result;
         }
 
         private ObjectCreationPlaceholderLocal GetOrCreateObjectCreationPlaceholder(BoundExpression node)
@@ -2017,6 +2061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
         {
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
                 ObjectCreationPlaceholderLocal implicitReceiver = GetOrCreateObjectCreationPlaceholder(node);
@@ -2056,12 +2101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitArrayCreation(BoundArrayCreation node)
         {
             var result = base.VisitArrayCreation(node);
-
-            if (_performStaticNullChecks && this.State.Reachable)
-            {
-                this.State.ResultIsNotNull = true;
-            }
-
+            SetResultIsNotNull(node);
             return result;
         }
 
@@ -2069,6 +2109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(elementInitializer);
 
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
                 TypeSymbolWithAnnotations elementType = (arrayCreation.Type as ArrayTypeSymbol)?.ElementType;
@@ -2087,6 +2128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitArrayAccess(node);
 
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
                 bool? resultIsNotNull = null;
@@ -2107,99 +2149,148 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             base.VisitArrayAccessTargetAsRvalue(node);
 
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable && this.State.ResultIsNotNull == false)
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, node.Expression.Syntax);
             }
         }
 
-        public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+        private bool? InferResultNullability(BoundBinaryOperator node, bool? leftIsNotNull, bool? rightIsNotNull)
         {
-            base.VisitBinaryOperator(node);
-
-            if (_performStaticNullChecks && this.State.Reachable)
-            {
-                // TODO: Try to infer based on the operator
-                this.State.ResultIsNotNull = null;
-            }
-
-            return null;
+            return InferResultNullability(node.OperatorKind, node.MethodOpt, node.Type, leftIsNotNull, rightIsNotNull);
         }
 
-        protected override void AfterNestedBinaryOperatorHasBeenVisited(BoundBinaryOperator binary)
+        private bool? InferResultNullability(BinaryOperatorKind operatorKind, MethodSymbol methodOpt, TypeSymbol resultType, bool? leftIsNotNull, bool? rightIsNotNull)
         {
-            base.AfterNestedBinaryOperatorHasBeenVisited(binary);
-
-            if (_performStaticNullChecks && this.State.Reachable)
+            if (operatorKind.IsUserDefined())
             {
-                // TODO: Try to infer based on the operator
-                this.State.ResultIsNotNull = null;
+                if ((object)methodOpt != null && methodOpt.ParameterCount == 2)
+                {
+                    return IsResultNotNull(methodOpt, methodOpt.ReturnType);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else if (operatorKind.IsDynamic())
+            {
+                return null;
+            }
+            else if (resultType.IsReferenceType == true)
+            {
+                switch (operatorKind.Operator() | operatorKind.OperandTypes())
+                {
+                    case BinaryOperatorKind.DelegateCombination:
+                        if (leftIsNotNull == true || rightIsNotNull == true)
+                        {
+                            return true;
+                        }
+                        else if (leftIsNotNull == false && rightIsNotNull == false)
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            Debug.Assert(leftIsNotNull == null || rightIsNotNull == null);
+                            return null;
+                        }
+
+                    case BinaryOperatorKind.DelegateRemoval:
+                        return false; // Delegate removal can produce null.
+                }
+
+                return true;
+            }
+            else
+            {
+                return null;
             }
         }
 
         protected override void AfterLeftChildHasBeenVisited(BoundBinaryOperator binary)
         {
-            BinaryOperatorKind op;
-
-            if (_performStaticNullChecks && this.State.Reachable &&
-                ((op = binary.OperatorKind.Operator()) == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual))
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable)
             {
                 bool? leftIsNotNull = this.State.ResultIsNotNull;
+                bool warnOnNullReferenceArgument = (binary.OperatorKind.IsUserDefined() && (object)binary.MethodOpt != null && binary.MethodOpt.ParameterCount == 2);
+
+                if (warnOnNullReferenceArgument)
+                {
+                    WarnOnNullReferenceArgument(binary.Left, leftIsNotNull, binary.MethodOpt.Parameters[0], expanded: false);
+                }
 
                 VisitRvalue(binary.Right);
+                Debug.Assert(!IsConditionalState);
+                Debug.Assert(this.State.Reachable);
                 bool? rightIsNotNull = this.State.ResultIsNotNull;
 
-                AfterBinaryOperatorChildrenHaveBeenVisited(binary);
-
-                BoundExpression operandComparedToNull = null;
-                bool? operandComparedToNullIsNotNull = null;
-
-                if (binary.Right.ConstantValue?.IsNull == true)
+                if (warnOnNullReferenceArgument)
                 {
-                    operandComparedToNull = binary.Left;
-                    operandComparedToNullIsNotNull = leftIsNotNull;
-                }
-                else if (binary.Left.ConstantValue?.IsNull == true)
-                {
-                    operandComparedToNull = binary.Right;
-                    operandComparedToNullIsNotNull = rightIsNotNull;
+                    WarnOnNullReferenceArgument(binary.Right, rightIsNotNull, binary.MethodOpt.Parameters[1], expanded: false);
                 }
 
-                if (operandComparedToNull != null)
+                AfterRightChildHasBeenVisited(binary);
+
+                Debug.Assert(!IsConditionalState);
+                Debug.Assert(this.State.Reachable);
+                this.State.ResultIsNotNull = InferResultNullability(binary, leftIsNotNull, rightIsNotNull);
+
+                BinaryOperatorKind op = binary.OperatorKind.Operator();
+                if (op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual)
                 {
-                    if (operandComparedToNullIsNotNull == true)
+                    BoundExpression operandComparedToNull = null;
+                    bool? operandComparedToNullIsNotNull = null;
+
+                    if (binary.Right.ConstantValue?.IsNull == true)
                     {
-                        ReportStaticNullCheckingDiagnostics(op == BinaryOperatorKind.Equal ?
-                                                                ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse :
-                                                                ErrorCode.WRN_NullCheckIsProbablyAlwaysTrue,
-                                                            binary.Syntax);
+                        operandComparedToNull = binary.Left;
+                        operandComparedToNullIsNotNull = leftIsNotNull;
+                    }
+                    else if (binary.Left.ConstantValue?.IsNull == true)
+                    {
+                        operandComparedToNull = binary.Right;
+                        operandComparedToNullIsNotNull = rightIsNotNull;
                     }
 
-                    // Skip reference conversions
-                    operandComparedToNull = SkipReferenceConversions(operandComparedToNull);
-
-                    if (operandComparedToNull.Type?.IsReferenceType == true)
+                    if (operandComparedToNull != null)
                     {
-                        int slot = MakeSlot(operandComparedToNull);
-
-                        if (slot > 0)
+                        if (operandComparedToNullIsNotNull == true)
                         {
-                            if (slot >= this.State.KnownNullState.Capacity) NormalizeNullable(ref this.State);
+                            ReportStaticNullCheckingDiagnostics(op == BinaryOperatorKind.Equal ?
+                                                                    ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse :
+                                                                    ErrorCode.WRN_NullCheckIsProbablyAlwaysTrue,
+                                                                binary.Syntax);
+                        }
 
-                            Split();
+                        // Skip reference conversions
+                        operandComparedToNull = SkipReferenceConversions(operandComparedToNull);
 
-                            this.StateWhenFalse.KnownNullState[slot] = true;
-                            this.StateWhenTrue.KnownNullState[slot] = true;
+                        if (operandComparedToNull.Type?.IsReferenceType == true)
+                        {
+                            int slot = MakeSlot(operandComparedToNull);
 
-                            if (op == BinaryOperatorKind.Equal)
+                            if (slot > 0)
                             {
-                                this.StateWhenFalse.NotNull[slot] = true;
-                                this.StateWhenTrue.NotNull[slot] = false;
-                            }
-                            else
-                            {
-                                this.StateWhenFalse.NotNull[slot] = false;
-                                this.StateWhenTrue.NotNull[slot] = true;
+                                if (slot >= this.State.KnownNullState.Capacity) NormalizeNullable(ref this.State);
+
+                                Split();
+
+                                this.StateWhenFalse.KnownNullState[slot] = true;
+                                this.StateWhenTrue.KnownNullState[slot] = true;
+
+                                if (op == BinaryOperatorKind.Equal)
+                                {
+                                    this.StateWhenFalse.NotNull[slot] = true;
+                                    this.StateWhenTrue.NotNull[slot] = false;
+                                }
+                                else
+                                {
+                                    this.StateWhenFalse.NotNull[slot] = false;
+                                    this.StateWhenTrue.NotNull[slot] = true;
+                                }
                             }
                         }
                     }
@@ -2208,6 +2299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 base.AfterLeftChildHasBeenVisited(binary);
+                Debug.Assert(!IsConditionalState);
             }
         }
 
@@ -2233,6 +2325,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
+            Debug.Assert(!IsConditionalState);
+
             if (!(_performStaticNullChecks && this.State.Reachable) || node.LeftOperand.ConstantValue != null || node.LeftOperand.Type?.IsReferenceType != true)
             {
                 return base.VisitNullCoalescingOperator(node);
@@ -2262,12 +2356,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.RightOperand);
             bool? rightOperandIsNotNull = this.State.ResultIsNotNull;
             IntersectWith(ref this.State, ref savedState);
+            Debug.Assert(!IsConditionalState);
             this.State.ResultIsNotNull = rightOperandIsNotNull | savedState.ResultIsNotNull;
             return null;
         }
 
         public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
         {
+            Debug.Assert(!IsConditionalState);
+
             if (!(_performStaticNullChecks && this.State.Reachable) || node.Receiver.ConstantValue != null || node.Receiver.Type?.IsReferenceType != true)
             {
                 return base.VisitConditionalAccess(node);
@@ -2299,6 +2396,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
+        {
+            Debug.Assert(!_performStaticNullChecks);
+            return base.VisitLoweredConditionalAccess(node);
+        }
+
+        public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
+        {
+            var result = base.VisitConditionalReceiver(node);
+            SetResultIsNotNull(node);
+            return result;
+        }
+
+        public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
+        {
+            Debug.Assert(!_performStaticNullChecks);
+            return base.VisitComplexConditionalReceiver(node);
+        }
+
         public override BoundNode VisitCall(BoundCall node)
         {
             if (node.Method.MethodKind == MethodKind.LocalFunction)
@@ -2307,7 +2423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = base.VisitCall(node);
-
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
                 this.State.ResultIsNotNull = IsResultNotNull(node.Method, node.Method.ReturnType);
@@ -2380,6 +2496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             base.VisitReceiverBeforeCall(receiverOpt, method);
 
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable && 
                 receiverOpt != null && (object)receiverOpt.Type != null && receiverOpt.Type.IsReferenceType && this.State.ResultIsNotNull == false &&
                 (object)method != null && !method.IsStatic && method.MethodKind != MethodKind.Constructor)
@@ -2392,6 +2509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             base.VisitFieldReceiverAsRvalue(receiverOpt, fieldSymbol);
 
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable &&
                 receiverOpt != null && (object)receiverOpt.Type != null && receiverOpt.Type.IsReferenceType && this.State.ResultIsNotNull == false &&
                 (object)fieldSymbol != null && !fieldSymbol.IsStatic)
@@ -2409,29 +2527,91 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = base.VisitConversion(node);
 
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
-                if (node.Type.IsReferenceType)
+                switch (node.ConversionKind)
                 {
-                    switch (node.ConversionKind)
-                    {
-                        case ConversionKind.MethodGroup:
-                        case ConversionKind.AnonymousFunction:
-                            this.State.ResultIsNotNull = true;
-                            break;
+                    case ConversionKind.ExplicitUserDefined:
+                    case ConversionKind.ImplicitUserDefined:
+                        if ((object)node.SymbolOpt != null && node.SymbolOpt.ParameterCount == 1)
+                        {
+                            WarnOnNullReferenceArgument(node.Operand, this.State.ResultIsNotNull, node.SymbolOpt.Parameters[0], expanded: false);
+                        }
+                        break;
+                }
 
-                        default:
-                            // Inherit state from the operand
-                            break;
-                    }
-                }
-                else
-                {
-                    this.State.ResultIsNotNull = null;
-                }
+                this.State.ResultIsNotNull = InferResultNullability(node.ConversionKind, node.Operand.Type, node.Type, node.SymbolOpt, this.State.ResultIsNotNull);
             }
 
             return result;
+        }
+
+        private bool? InferResultNullability(ConversionKind conversionKind, TypeSymbol sourceTypeOpt, TypeSymbol targetType, MethodSymbol methodOpt, bool? operandIsNotNull)
+        {
+            if (targetType.IsReferenceType)
+            {
+                switch (conversionKind)
+                {
+                    case ConversionKind.MethodGroup:
+                    case ConversionKind.AnonymousFunction:
+                    case ConversionKind.InterpolatedString:
+                        return true;
+
+                    case ConversionKind.ExplicitUserDefined:
+                    case ConversionKind.ImplicitUserDefined:
+                        if ((object)methodOpt != null && methodOpt.ParameterCount == 1)
+                        {
+                            return IsResultNotNull(methodOpt, methodOpt.ReturnType);
+                        }
+                        else
+                        {
+                            return null;
+                        }
+
+                    case ConversionKind.ExplicitDynamic:
+                    case ConversionKind.ImplicitDynamic:
+                    case ConversionKind.NoConversion:
+                        return null;
+
+                    case ConversionKind.NullLiteral:
+                        return false;
+
+                    case ConversionKind.Boxing:
+                        if (sourceTypeOpt?.IsValueType == true)
+                        {
+                            if (sourceTypeOpt.IsNullableType())
+                            {
+                                // TODO: Should we worry about a pathological case of boxing nullable value known to be not null?
+                                //       For example, new int?(0)
+                                return false;
+                            }
+                            else
+                            {
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            Debug.Assert(sourceTypeOpt?.IsReferenceType != true);
+                            return null;
+                        }
+
+                    case ConversionKind.Identity:
+                    case ConversionKind.ImplicitReference:
+                    case ConversionKind.ExplicitReference:
+                        // Inherit state from the operand
+                        return operandIsNotNull;
+
+                    default:
+                        Debug.Assert(false);
+                        return null;
+                }
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
@@ -2440,6 +2620,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckAssigned(node.MethodOpt.OriginalDefinition, node.Syntax);
             }
+
+            SetResultIsNotNull(node);
+
             return base.VisitDelegateCreationExpression(node);
         }
 
@@ -2452,12 +2635,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckAssigned(method, node.Syntax);
                 }
             }
-            return base.VisitMethodGroup(node);
+
+            Debug.Assert(!IsConditionalState);
+
+            BoundExpression receiverOpt = node.ReceiverOpt;
+            if (receiverOpt != null)
+            {
+                // An explicit or implicit receiver, for example in an expression such as (x.Foo is Action, or Foo is Action), is considered to be read.
+                VisitRvalue(receiverOpt);
+
+                if (_performStaticNullChecks && this.State.Reachable &&
+                    (object)receiverOpt.Type != null && receiverOpt.Type.IsReferenceType && this.State.ResultIsNotNull == false)
+                {
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
+                }
+            }
+
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                this.State.ResultIsNotNull = null;
+            }
+
+            return null;
         }
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
-            return VisitLambdaOrLocalFunction(node);
+            var result = VisitLambdaOrLocalFunction(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitUnboundLambda(UnboundLambda node)
+        {
+            var result = base.VisitUnboundLambda(node);
+            SetUnknownResultNullability();
+            return result;
         }
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
@@ -2508,12 +2721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // TODO: in a struct constructor, "this" is not initially assigned.
             CheckAssigned(MethodThisParameter, node.Syntax);
-
-            if (_performStaticNullChecks && this.State.Reachable)
-            {
-                this.State.ResultIsNotNull = node.Type.IsReferenceType ? true : (bool?)null;
-            }
-
+            SetResultIsNotNull(node);
             return null;
         }
 
@@ -2524,6 +2732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckAssigned(node.ParameterSymbol, node.Syntax);
             }
 
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
                 this.State.ResultIsNotNull = IsResultNotNull(node, node.ParameterSymbol, node.ParameterSymbol.Type);
@@ -2535,23 +2744,197 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             base.VisitAssignmentOperator(node);
+            Debug.Assert(!IsConditionalState);
             bool? valueIsNotNull = this.State.ResultIsNotNull;
             Assign(node.Left, node.Right, valueIsNotNull, refKind: node.RefKind);
-            this.State.ResultIsNotNull = valueIsNotNull;
+
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                this.State.ResultIsNotNull = valueIsNotNull;
+            }
+
             return null;
         }
 
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
         {
             base.VisitIncrementOperator(node);
-            Assign(node.Operand, value: null, valueIsNotNull: null); // TODO: valueIsNotNull
+
+            bool? resultOfIncrementIsNotNull;
+
+            Debug.Assert(!IsConditionalState);
+
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                bool? operandIsNotNull;
+                if (RegularPropertyAccess(node.Operand))
+                {
+                    PropertySymbol property = ((BoundPropertyAccess)node.Operand).PropertySymbol;
+                    operandIsNotNull = IsResultNotNull(node, property, property.Type);
+                }
+                else
+                {
+                    operandIsNotNull = this.State.ResultIsNotNull;
+                }
+
+                MethodSymbol incrementOperator = (node.OperatorKind.IsUserDefined() && (object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1) ? node.MethodOpt : null;
+                TypeSymbol targetTypeOfOperandConversion;
+
+                if (node.OperandConversion.IsUserDefined && (object)node.OperandConversion.Method != null && node.OperandConversion.Method.ParameterCount == 1)
+                {
+                    WarnOnNullReferenceArgument(node.Operand, operandIsNotNull, node.OperandConversion.Method.Parameters[0], expanded: false);
+                    targetTypeOfOperandConversion = node.OperandConversion.Method.ReturnType.TypeSymbol;
+                }
+                else if ((object)incrementOperator != null)
+                {
+                    targetTypeOfOperandConversion = incrementOperator.Parameters[0].Type.TypeSymbol;
+                }
+                else
+                {
+                    // Either a built-in increment, or an error case.
+                    targetTypeOfOperandConversion = null;
+                }
+
+                bool? resultOfOperandConversionIsNotNull;
+
+                if ((object)targetTypeOfOperandConversion != null)
+                {
+                    // TODO: Should something special be done for targetTypeOfOperandConversion for lifted case?
+                    resultOfOperandConversionIsNotNull = InferResultNullability(node.OperandConversion.Kind,
+                                                                                node.Operand.Type,
+                                                                                targetTypeOfOperandConversion,
+                                                                                node.OperandConversion.Method,
+                                                                                operandIsNotNull);
+                }
+                else
+                {
+                    resultOfOperandConversionIsNotNull = null;
+                }
+
+                if ((object)incrementOperator == null)
+                {
+                    resultOfIncrementIsNotNull = null;
+                }
+                else 
+                {
+                    WarnOnNullReferenceArgument(node.Operand, 
+                                                resultOfOperandConversionIsNotNull,
+                                                incrementOperator.Parameters[0], expanded: false);
+
+                    resultOfIncrementIsNotNull = IsResultNotNull(incrementOperator, incrementOperator.ReturnType);
+                }
+
+                if (node.ResultConversion.IsUserDefined && (object)node.ResultConversion.Method != null && node.ResultConversion.Method.ParameterCount == 1)
+                {
+                    WarnOnNullReferenceArgument(node, resultOfIncrementIsNotNull, node.ResultConversion.Method.Parameters[0], expanded: false);
+                }
+
+                resultOfIncrementIsNotNull = InferResultNullability(node.ResultConversion.Kind,
+                                                                    incrementOperator?.ReturnType.TypeSymbol,
+                                                                    node.Type,
+                                                                    node.ResultConversion.Method,
+                                                                    resultOfIncrementIsNotNull);
+
+                var op = node.OperatorKind.Operator();
+                if (op == UnaryOperatorKind.PrefixIncrement || op == UnaryOperatorKind.PrefixDecrement)
+                {
+                    this.State.ResultIsNotNull = resultOfIncrementIsNotNull;
+                }
+                else
+                {
+                    this.State.ResultIsNotNull = operandIsNotNull;
+                }
+            }
+            else
+            {
+                resultOfIncrementIsNotNull = null;
+            }
+
+            Assign(node.Operand, value: node, valueIsNotNull: resultOfIncrementIsNotNull); 
             return null;
         }
 
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
-            base.VisitCompoundAssignmentOperator(node);
-            Assign(node.Left, value: null, valueIsNotNull: null); // TODO: valueIsNotNull
+            VisitCompoundAssignmentTarget(node);
+
+            bool? resultIsNotNull;
+            Debug.Assert(!IsConditionalState);
+
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                bool? leftIsNotNull;
+                if (RegularPropertyAccess(node.Left))
+                {
+                    PropertySymbol property = ((BoundPropertyAccess)node.Left).PropertySymbol;
+                    leftIsNotNull = IsResultNotNull(node, property, property.Type);
+                }
+                else
+                {
+                    leftIsNotNull = this.State.ResultIsNotNull;
+                }
+
+                if (node.LeftConversion.IsUserDefined && (object)node.LeftConversion.Method != null && node.LeftConversion.Method.ParameterCount == 1)
+                {
+                    WarnOnNullReferenceArgument(node.Left, leftIsNotNull, node.LeftConversion.Method.Parameters[0], expanded: false);
+                }
+
+                bool? resultOfLeftConversionIsNotNull;
+
+                if ((object)node.Operator.LeftType != null)
+                {
+                    resultOfLeftConversionIsNotNull = InferResultNullability(node.LeftConversion.Kind,
+                                                                             node.Left.Type,
+                                                                             node.Operator.LeftType,
+                                                                             node.LeftConversion.Method,
+                                                                             leftIsNotNull);
+                }
+                else
+                {
+                    resultOfLeftConversionIsNotNull = null;
+                }
+
+                VisitRvalue(node.Right);
+                bool? rightIsNotNull = this.State.ResultIsNotNull;
+
+                AfterRightHasBeenVisited(node);
+
+                if ((object)node.Operator.ReturnType != null)
+                {
+                    if (node.Operator.Kind.IsUserDefined() && (object)node.Operator.Method != null && node.Operator.Method.ParameterCount == 2)
+                    { 
+                        WarnOnNullReferenceArgument(node.Left, resultOfLeftConversionIsNotNull, node.Operator.Method.Parameters[0], expanded: false);
+                        WarnOnNullReferenceArgument(node.Right, rightIsNotNull, node.Operator.Method.Parameters[1], expanded: false);
+                    }
+
+                    resultIsNotNull = InferResultNullability(node.Operator.Kind, node.Operator.Method, node.Operator.ReturnType, leftIsNotNull, rightIsNotNull);
+
+                    if (node.FinalConversion.IsUserDefined && (object)node.FinalConversion.Method != null && node.FinalConversion.Method.ParameterCount == 1)
+                    {
+                        WarnOnNullReferenceArgument(node, resultIsNotNull, node.FinalConversion.Method.Parameters[0], expanded: false);
+                    }
+
+                    resultIsNotNull = InferResultNullability(node.FinalConversion.Kind,
+                                                             node.Operator.ReturnType,
+                                                             node.Type,
+                                                             node.FinalConversion.Method,
+                                                             resultIsNotNull);
+                }
+                else
+                {
+                    resultIsNotNull = null;
+                }
+
+                this.State.ResultIsNotNull = resultIsNotNull;
+            }
+            else
+            {
+                VisitRvalue(node.Right);
+                AfterRightHasBeenVisited(node);
+                resultIsNotNull = null;
+            }
+
+            Assign(node.Left, value: node, valueIsNotNull: resultIsNotNull); 
             return null;
         }
 
@@ -2590,21 +2973,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitAddressOfOperator(node, shouldReadOperand);
 
+            SetUnknownResultNullability();
             return null;
         }
 
         protected override void VisitArgumentAsRvalue(BoundExpression argument, ParameterSymbol parameter, bool expanded)
         {
             base.VisitArgumentAsRvalue(argument, parameter, expanded);
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && (object)parameter != null && this.State.Reachable)
+            {
+                WarnOnNullReferenceArgument(argument, this.State.ResultIsNotNull, parameter, expanded);
+            }
+        }
 
-            if (_performStaticNullChecks && (object)parameter != null && this.State.Reachable && this.State.ResultIsNotNull == false &&
-                RespectNullableAnnotations(parameter))
+        private void WarnOnNullReferenceArgument(BoundExpression argument, bool? argumentIsNotNull, ParameterSymbol parameter, bool expanded)
+        {
+            Debug.Assert(_performStaticNullChecks);
+            if (argumentIsNotNull == false && RespectNullableAnnotations(parameter))
             {
                 TypeSymbolWithAnnotations paramType = expanded ? ((ArrayTypeSymbol)parameter.Type.TypeSymbol).ElementType : parameter.Type;
 
                 if (paramType.IsReferenceType && paramType.IsNullable == false)
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceArgument, argument.Syntax);
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceArgument, argument.Syntax, 
+                        new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
+                        new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
                 }
             }
         }
@@ -2629,6 +3023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckAssigned(arg, arg.Syntax);
             }
 
+            Debug.Assert(!IsConditionalState);
             Assign(arg, value: null, 
                    valueIsNotNull: (_performStaticNullChecks && this.State.Reachable &&
                                     (object)parameter != null && parameter.Type.IsReferenceType && RespectNullableAnnotations(parameter)) ? !parameter.Type.IsNullable : (bool?)null); 
@@ -2723,6 +3118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
             CheckAssigned(MethodThisParameter, node.Syntax);
+            SetResultIsNotNull(node);
             return null;
         }
 
@@ -2846,6 +3242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckAssigned(node, node.FieldSymbol, node.Syntax);
             }
 
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
                 this.State.ResultIsNotNull = IsResultNotNull(node, node.FieldSymbol, node.FieldSymbol.Type);
@@ -2876,6 +3273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
                 var property = node.PropertySymbol;
@@ -2889,6 +3287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitIndexerAccess(node);
 
+            Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
                 this.State.ResultIsNotNull = IsResultNotNull(node.Indexer, node.Indexer.Type);
@@ -2910,6 +3309,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     CheckAssigned(node, associatedField, node.Syntax);
                 }
+            }
+
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                this.State.ResultIsNotNull = IsResultNotNull(node, node.EventSymbol, node.EventSymbol.Type);
             }
 
             return result;
@@ -2935,12 +3340,723 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _sourceAssembly.NoteFieldAccess((FieldSymbol)node.MemberSymbol.OriginalDefinition, read: false, write: true);
             }
 
+            SetUnknownResultNullability();
+
             return result;
         }
 
         public override BoundNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
         {
+            SetUnknownResultNullability();
             return null;
+        }
+
+        public override BoundNode VisitDup(BoundDup node)
+        {
+            Debug.Assert(!_performStaticNullChecks);
+            return base.VisitDup(node);
+        }
+
+        public override BoundNode VisitBadExpression(BoundBadExpression node)
+        {
+            var result = base.VisitBadExpression(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitTypeExpression(BoundTypeExpression node)
+        {
+            var result = base.VisitTypeExpression(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
+        {
+            var result = base.VisitTypeOrValueExpression(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
+        {
+            Debug.Assert(!IsConditionalState);
+
+            var result = base.VisitUnaryOperator(node);
+
+            Debug.Assert(!IsConditionalState || node.OperatorKind == UnaryOperatorKind.BoolLogicalNegation);
+            if (_performStaticNullChecks)
+            {
+                if (IsConditionalState)
+                {
+                    if (this.StateWhenFalse.Reachable)
+                    {
+                        this.StateWhenFalse.ResultIsNotNull = null;
+                    }
+
+                    if (this.StateWhenTrue.Reachable)
+                    {
+                        this.StateWhenTrue.ResultIsNotNull = null;
+                    }
+                }
+                else if (this.State.Reachable)
+                {
+                    if (node.OperatorKind.IsUserDefined() && (object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
+                    {
+                        WarnOnNullReferenceArgument(node.Operand, this.State.ResultIsNotNull, node.MethodOpt.Parameters[0], expanded: false);
+                    }
+
+                    this.State.ResultIsNotNull = InferResultNullability(node);
+                }
+            }
+
+            return null;
+        }
+
+        private bool? InferResultNullability(BoundUnaryOperator node)
+        {
+            if (node.OperatorKind.IsUserDefined())
+            {
+                if ((object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
+                {
+                    return IsResultNotNull(node.MethodOpt, node.MethodOpt.ReturnType);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else if (node.OperatorKind.IsDynamic())
+            {
+                return null;
+            }
+            else if (node.Type?.IsReferenceType == true)
+            {
+                return true;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
+        {
+            var result = base.VisitPointerIndirectionOperator(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)
+        {
+            var result = base.VisitPointerElementAccess(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitRefTypeOperator(BoundRefTypeOperator node)
+        {
+            // Inherit nullable state from the argument.
+            return base.VisitRefTypeOperator(node);
+        }
+
+        public override BoundNode VisitMakeRefOperator(BoundMakeRefOperator node)
+        {
+            var result = base.VisitMakeRefOperator(node);
+            SetResultIsNotNull(node);
+            return result;
+        }
+
+        public override BoundNode VisitRefValueOperator(BoundRefValueOperator node)
+        {
+            var result = base.VisitRefValueOperator(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        private bool? InferResultNullability(BoundUserDefinedConditionalLogicalOperator node)
+        {
+            if ((object)node.LogicalOperator != null && node.LogicalOperator.ParameterCount == 2)
+            {
+                return IsResultNotNull(node.LogicalOperator, node.LogicalOperator.ReturnType);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        protected override void AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression node, BoundExpression right, bool isAnd, bool isBool, ref LocalState leftTrue, ref LocalState leftFalse)
+        {
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                bool? leftIsNotNull = this.State.ResultIsNotNull;
+                MethodSymbol logicalOperator = null;
+                MethodSymbol trueFalseOperator = null;
+                BoundExpression left = null;
+
+                switch (node.Kind)
+                {
+                    case BoundKind.BinaryOperator:
+                        Debug.Assert(!((BoundBinaryOperator)node).OperatorKind.IsUserDefined());
+                        break;
+                    case BoundKind.UserDefinedConditionalLogicalOperator:
+                        var binary = (BoundUserDefinedConditionalLogicalOperator)node;
+                        if (binary.LogicalOperator != null && binary.LogicalOperator.ParameterCount == 2)
+                        {
+                            logicalOperator = binary.LogicalOperator;
+                            left = binary.Left;
+                            trueFalseOperator = isAnd ? binary.FalseOperator : binary.TrueOperator;
+
+                            if ((object)trueFalseOperator != null && trueFalseOperator.ParameterCount != 1)
+                            {
+                                trueFalseOperator = null;
+                            }
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.Unreachable;
+                }
+
+                Debug.Assert((object)trueFalseOperator == null || ((object)logicalOperator != null && left != null));
+
+                if ((object)trueFalseOperator != null)
+                {
+                    WarnOnNullReferenceArgument(left, leftIsNotNull, trueFalseOperator.Parameters[0], expanded: false);
+                }
+
+                if ((object)logicalOperator != null)
+                {
+                    WarnOnNullReferenceArgument(left, leftIsNotNull, logicalOperator.Parameters[0], expanded: false);
+                }
+
+                Visit(right);
+
+                Debug.Assert(IsConditionalState ? (this.StateWhenFalse.Reachable || this.StateWhenTrue.Reachable) : this.State.Reachable);
+                bool? rightIsNotNull = null;
+
+                if (IsConditionalState)
+                {
+                    if (this.StateWhenFalse.Reachable)
+                    {
+                        rightIsNotNull = this.StateWhenFalse.ResultIsNotNull;
+                        this.StateWhenFalse.ResultIsNotNull = InferResultNullabilityOfBinaryLogicalOperator(node, leftIsNotNull, rightIsNotNull);
+                    }
+
+                    if (this.StateWhenTrue.Reachable)
+                    {
+                        bool? saveRightIsNotNull = rightIsNotNull;
+                        rightIsNotNull = this.StateWhenTrue.ResultIsNotNull;
+                        this.StateWhenTrue.ResultIsNotNull = InferResultNullabilityOfBinaryLogicalOperator(node, leftIsNotNull, rightIsNotNull);
+
+                        if (this.StateWhenFalse.Reachable)
+                        {
+                            rightIsNotNull &= saveRightIsNotNull;
+                        }
+                    }
+                }
+                else if (this.State.Reachable)
+                {
+                    rightIsNotNull = this.State.ResultIsNotNull;
+                    this.State.ResultIsNotNull = InferResultNullabilityOfBinaryLogicalOperator(node, leftIsNotNull, rightIsNotNull);
+                }
+
+                if ((object)logicalOperator != null)
+                {
+                    WarnOnNullReferenceArgument(right, rightIsNotNull, logicalOperator.Parameters[1], expanded: false);
+                }
+
+                AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(node, right, isAnd, isBool, ref leftTrue, ref leftFalse);
+            }
+            else
+            {
+                base.AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(node, right, isAnd, isBool, ref leftTrue, ref leftFalse);
+            }
+        }
+
+        private bool? InferResultNullabilityOfBinaryLogicalOperator(BoundExpression node, bool? leftIsNotNull, bool? rightIsNotNull)
+        {
+            switch (node.Kind)
+            {
+                case BoundKind.BinaryOperator:
+                    return InferResultNullability((BoundBinaryOperator)node, leftIsNotNull, rightIsNotNull);
+                case BoundKind.UserDefinedConditionalLogicalOperator:
+                    return InferResultNullability((BoundUserDefinedConditionalLogicalOperator)node);
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        public override BoundNode VisitArrayLength(BoundArrayLength node)
+        {
+            Debug.Assert(!_performStaticNullChecks);
+            return base.VisitArrayLength(node);
+        }
+
+        public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
+        {
+            var result = base.VisitAwaitExpression(node);
+
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                if (!node.Type.IsReferenceType || node.HasErrors || (object)node.GetResult == null)
+                {
+                    SetUnknownResultNullability();
+                }
+                else
+                {
+                    this.State.ResultIsNotNull = IsResultNotNull(node.GetResult, node.GetResult.ReturnType);
+                }
+            }
+
+            return result;
+        }
+
+        public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
+        {
+            var result = base.VisitTypeOfOperator(node);
+            SetResultIsNotNull(node);
+            return result;
+        }
+
+        public override BoundNode VisitMethodInfo(BoundMethodInfo node)
+        {
+            var result = base.VisitMethodInfo(node);
+            SetResultIsNotNull(node);
+            return result;
+        }
+
+        public override BoundNode VisitFieldInfo(BoundFieldInfo node)
+        {
+            var result = base.VisitFieldInfo(node);
+            SetResultIsNotNull(node);
+            return result;
+        }
+
+        public override BoundNode VisitDefaultOperator(BoundDefaultOperator node)
+        {
+            var result = base.VisitDefaultOperator(node);
+
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                if (node.Type.IsReferenceType == true)
+                {
+                    this.State.ResultIsNotNull = false;
+                }
+                else
+                {
+                    this.State.ResultIsNotNull = null;
+                }
+            }
+
+            return result;
+        }
+
+        public override BoundNode VisitIsOperator(BoundIsOperator node)
+        {
+            var result = base.VisitIsOperator(node);
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Boolean);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitAsOperator(BoundAsOperator node)
+        {
+            var result = base.VisitAsOperator(node);
+
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                if (node.Type.IsReferenceType)
+                {
+                    switch (node.Conversion.Kind)
+                    {
+                        case ConversionKind.Identity:
+                        case ConversionKind.ImplicitReference:
+                            // Inherit nullability from the operand
+                            break;
+
+                        case ConversionKind.Boxing:
+                            if (node.Operand.Type?.IsValueType == true)
+                            {
+                                if (node.Operand.Type.IsNullableType())
+                                {
+                                    // TODO: Should we worry about a pathological case of boxing nullable value known to be not null?
+                                    //       For example, new int?(0)
+                                    this.State.ResultIsNotNull = false;
+                                }
+                                else
+                                {
+                                    this.State.ResultIsNotNull = true;
+                                }
+                            }
+                            else
+                            {
+                                Debug.Assert(node.Operand.Type?.IsReferenceType != true);
+                                this.State.ResultIsNotNull = false;
+                            }
+                            break;
+
+                        default:
+                            this.State.ResultIsNotNull = false;
+                            break;
+                    }
+                }
+                else
+                {
+                    SetUnknownResultNullability();
+                }
+            }
+
+            return result;
+        }
+
+        public override BoundNode VisitSizeOfOperator(BoundSizeOfOperator node)
+        {
+            var result = base.VisitSizeOfOperator(node);
+            SetResultIsNotNull(node);
+            return result;
+        }
+
+        public override BoundNode VisitArgList(BoundArgList node)
+        {
+            var result = base.VisitArgList(node);
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_RuntimeArgumentHandle);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitArgListOperator(BoundArgListOperator node)
+        {
+            var result = base.VisitArgListOperator(node);
+            Debug.Assert((object)node.Type == null);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node)
+        {
+            var result = base.VisitFixedLocalCollectionInitializer(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitLiteral(BoundLiteral node)
+        {
+            var result = base.VisitLiteral(node);
+
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                var constant = node.ConstantValue;
+
+                if (constant != null &&
+                    ((object)node.Type != null ? node.Type.IsReferenceType : constant.IsNull))
+                {
+                    this.State.ResultIsNotNull = !constant.IsNull;
+                }
+                else
+                {
+                    this.State.ResultIsNotNull = null;
+                }
+            }
+
+            return result;
+        }
+
+        public override BoundNode VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node)
+        {
+            var result = base.VisitPreviousSubmissionReference(node);
+            Debug.Assert(node.WasCompilerGenerated);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitHostObjectMemberReference(BoundHostObjectMemberReference node)
+        {
+            var result = base.VisitHostObjectMemberReference(node);
+            Debug.Assert(node.WasCompilerGenerated);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitPseudoVariable(BoundPseudoVariable node)
+        {
+            var result = base.VisitPseudoVariable(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitRangeVariable(BoundRangeVariable node)
+        {
+            var result = base.VisitRangeVariable(node);
+            SetUnknownResultNullability(); // TODO
+            return result;
+        }
+
+        public override BoundNode VisitLabel(BoundLabel node)
+        {
+            var result = base.VisitLabel(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitDynamicMemberAccess(BoundDynamicMemberAccess node)
+        {
+            var result = base.VisitDynamicMemberAccess(node);
+
+            Debug.Assert(node.Type.IsDynamic());
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
+        {
+            var result = base.VisitDynamicInvocation(node);
+
+            Debug.Assert(node.Type.IsDynamic());
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                if (node.Type?.IsReferenceType == true)
+                {
+                    this.State.ResultIsNotNull = InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableMethods));
+                }
+                else
+                {
+                    this.State.ResultIsNotNull = null;
+                }
+            }
+
+            return result;
+        }
+
+        public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
+        {
+            var result = base.VisitEventAssignmentOperator(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        protected override void VisitReceiverOfEventAssignmentAsRvalue(BoundEventAssignmentOperator node)
+        {
+            base.VisitReceiverOfEventAssignmentAsRvalue(node);
+
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable &&
+                node.ReceiverOpt != null && (object)node.ReceiverOpt.Type != null && node.ReceiverOpt.Type.IsReferenceType && this.State.ResultIsNotNull == false &&
+                !node.Event.IsStatic)
+            {
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, node.ReceiverOpt.Syntax);
+            }
+        }
+
+        public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
+        {
+            var result = base.VisitDynamicObjectCreationExpression(node);
+            SetResultIsNotNull(node);
+            return result;
+        }
+
+        public override BoundNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
+        {
+            var result = base.VisitObjectInitializerExpression(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node)
+        {
+            var result = base.VisitCollectionInitializerExpression(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
+        {
+            var result = base.VisitCollectionElementInitializer(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
+        {
+            var result = base.VisitDynamicCollectionElementInitializer(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitImplicitReceiver(BoundImplicitReceiver node)
+        {
+            var result = base.VisitImplicitReceiver(node);
+            SetResultIsNotNull(node);
+            return result;
+        }
+
+        public override BoundNode VisitAnonymousPropertyDeclaration(BoundAnonymousPropertyDeclaration node)
+        {
+            var result = base.VisitAnonymousPropertyDeclaration(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
+        {
+            var result = base.VisitNoPiaObjectCreationExpression(node);
+            SetResultIsNotNull(node);
+            return result;
+        }
+
+        public override BoundNode VisitNewT(BoundNewT node)
+        {
+            var result = base.VisitNewT(node);
+            SetResultIsNotNull(node);
+            return result;
+        }
+
+        public override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
+        {
+            var result = base.VisitArrayInitialization(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        private void SetUnknownResultNullability()
+        {
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                this.State.ResultIsNotNull = null;
+            }
+        }
+
+        public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        {
+            var result = base.VisitStackAllocArrayCreation(node);
+            Debug.Assert(node.Type.IsPointerType());
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitHoistedFieldAccess(BoundHoistedFieldAccess node)
+        {
+            Debug.Assert(!_performStaticNullChecks);
+            return base.VisitHoistedFieldAccess(node);
+        }
+
+        public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
+        {
+            var result = base.VisitDynamicIndexerAccess(node);
+
+            Debug.Assert(node.Type.IsDynamic());
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                if (node.Type?.IsReferenceType == true)
+                {
+                    this.State.ResultIsNotNull = InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers));
+                }
+                else
+                {
+                    this.State.ResultIsNotNull = null;
+                }
+            }
+
+            return result;
+        }
+
+        protected override void VisitReceiverOfDynamicAccessAsRvalue(BoundExpression receiverOpt)
+        {
+            base.VisitReceiverOfDynamicAccessAsRvalue(receiverOpt);
+
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable &&
+                receiverOpt != null && (object)receiverOpt.Type != null && receiverOpt.Type.IsReferenceType && this.State.ResultIsNotNull == false)
+            {
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
+            }
+        }
+
+        private bool? InferResultNullabilityFromApplicableCandidates(ImmutableArray<Symbol> applicableMembers)
+        {
+            if (applicableMembers.IsDefaultOrEmpty)
+            {
+                return null;
+            }
+
+            bool? resultIsNotNull = true;
+
+            foreach (Symbol member in applicableMembers)
+            {
+                TypeSymbolWithAnnotations type = member.GetTypeOrReturnType();
+
+                if (type.IsReferenceType)
+                {
+                    bool? memberResultIsNotNull = IsResultNotNull(member, type);
+                    if (memberResultIsNotNull == false)
+                    {
+                        // At least one candidate can produce null, assume dynamic access can produce null as well
+                        resultIsNotNull = false;
+                        break;
+                    }
+                    else if (memberResultIsNotNull == null)
+                    {
+                        // At least one candidate can produce result of an unknow nullability.
+                        // At best, dynamic access can produce result of an unknown nullability as well.
+                        resultIsNotNull = null;
+                    }
+                }
+                else if (!type.IsValueType)
+                {
+                    resultIsNotNull = null;
+                }
+            }
+
+            return resultIsNotNull;
+        }
+
+        public override BoundNode VisitQueryClause(BoundQueryClause node)
+        {
+            var result = base.VisitQueryClause(node);
+            SetUnknownResultNullability(); // TODO
+            return result;
+        }
+
+        public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
+        {
+            var result = base.VisitNameOfOperator(node);
+            SetResultIsNotNull(node);
+            return result;
+        }
+
+        public override BoundNode VisitNamespaceExpression(BoundNamespaceExpression node)
+        {
+            var result = base.VisitNamespaceExpression(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
+        {
+            var result = base.VisitInterpolatedString(node);
+            SetResultIsNotNull(node);
+            return result;
+        }
+
+        public override BoundNode VisitStringInsert(BoundStringInsert node)
+        {
+            var result = base.VisitStringInsert(node);
+            SetUnknownResultNullability();
+            return result;
+        }
+
+        public override BoundNode VisitPropertyGroup(BoundPropertyGroup node)
+        {
+            Debug.Assert(!_performStaticNullChecks);
+            return base.VisitPropertyGroup(node);
         }
 
         #endregion Visitors
@@ -3005,8 +4121,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NormalizeNullable(ref other);
                 }
 
-                self.KnownNullState.IntersectWith(other.KnownNullState); // TODO: is this the right thing to do?
-                self.NotNull.UnionWith(other.NotNull);
+                for (int slot = 1; slot < self.KnownNullState.Capacity; slot++)
+                {
+                    bool? selfSlotIsNotNull = self.KnownNullState[slot] ? self.NotNull[slot] : (bool?)null;
+                    bool? union = selfSlotIsNotNull | (other.KnownNullState[slot] ? other.NotNull[slot] : (bool?)null);
+                    if (selfSlotIsNotNull != union)
+                    {
+                        self.KnownNullState[slot] = union.HasValue;
+                        self.NotNull[slot] = union.GetValueOrDefault();
+                    }
+                }
+
                 self.ResultIsNotNull |= other.ResultIsNotNull;
             }
         }
@@ -3032,8 +4157,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NormalizeNullable(ref other);
                     }
 
-                    result |= self.KnownNullState.IntersectWith(other.KnownNullState) |
-                              self.NotNull.IntersectWith(other.NotNull);
+                    for (int slot = 1; slot < self.KnownNullState.Capacity; slot++)
+                    {
+                        bool? selfSlotIsNotNull = self.KnownNullState[slot] ? self.NotNull[slot] : (bool?)null;
+                        bool? intersection = selfSlotIsNotNull & (other.KnownNullState[slot] ? other.NotNull[slot] : (bool?)null);
+                        if (selfSlotIsNotNull != intersection)
+                        {
+                            self.KnownNullState[slot] = intersection.HasValue;
+                            self.NotNull[slot] = intersection.GetValueOrDefault();
+                            result = true;
+                        }
+                    }
 
                     bool? resultIsNotNull = self.ResultIsNotNull;
                     self.ResultIsNotNull &= other.ResultIsNotNull;
