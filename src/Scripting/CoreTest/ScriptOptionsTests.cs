@@ -49,8 +49,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
 
             AssertEx.ThrowsArgumentNull("references", () => options.AddReferences((IEnumerable<string>)null));
             AssertEx.ThrowsArgumentNull("references[0]", () => options.AddReferences((IEnumerable<string>)new string[] { null }));
-
-            AssertEx.ThrowsArgumentException("references", () => options.AddReferences(moduleRef));
         }
 
         [Fact]
@@ -91,8 +89,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             AssertEx.ThrowsArgumentNull("references", () => options.WithReferences(default(ImmutableArray<string>)));
             AssertEx.ThrowsArgumentNull("references[0]", () => options.WithReferences(new string[] { null }));
             AssertEx.ThrowsArgumentNull("references[0]", () => options.WithReferences(ImmutableArray.Create((string)null)));
-
-            AssertEx.ThrowsArgumentException("references", () => options.WithReferences(moduleRef));
         }
 
         [Fact]
