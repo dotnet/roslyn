@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
         }
 
+        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         [Fact]
         public async Task ImmediatelyDerivedTypes_CSharp()
         {
@@ -66,6 +67,46 @@ namespace M
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
+        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
+        [Fact]
+        public async Task ImmediatelyDerivedTypes_CSharp_PortableProfile7()
+        {
+            var solution = new AdhocWorkspace().CurrentSolution;
+
+            // create portable assembly with an abstract base class
+            solution = AddProject(solution, "PortableProject", LanguageNames.CSharp, @"
+namespace N
+{
+    public abstract class BaseClass { }
+}
+", MscorlibRefPortable);
+
+            // create a normal assembly with a type derived from the portable abstract base
+            solution = AddProject(solution, "NormalProject", LanguageNames.CSharp, @"
+using N;
+namespace M
+{
+    public class DerivedClass : BaseClass { }
+}
+", SystemRuntimePP7Ref, solution.Projects.Single(pid => pid.Name == "PortableProject").Id);
+
+            // get symbols for types
+            var portableCompilation = await solution.Projects.Single(p => p.Name == "PortableProject").GetCompilationAsync();
+            var baseClassSymbol = portableCompilation.GetTypeByMetadataName("N.BaseClass");
+
+            var normalCompilation = await solution.Projects.Single(p => p.Name == "NormalProject").GetCompilationAsync();
+            var derivedClassSymbol = normalCompilation.GetTypeByMetadataName("M.DerivedClass");
+
+            // verify that the symbols are different (due to retargeting)
+            Assert.NotEqual(baseClassSymbol, derivedClassSymbol.BaseType);
+
+            // verify that the dependent types of `N.BaseClass` correctly resolve to `M.DerivedCLass`
+            var derivedFromBase = await DependentTypeFinder.GetTypesImmediatelyDerivedFromClassesAsync(baseClassSymbol, solution, CancellationToken.None);
+            var derivedDependentType = derivedFromBase.Single();
+            Assert.Equal(derivedClassSymbol, derivedDependentType);
+        }
+
+        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         [Fact]
         public async Task ImmediatelyDerivedTypes_VisualBasic()
         {
@@ -105,6 +146,7 @@ End Namespace
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
+        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         [Fact]
         public async Task ImmediatelyDerivedTypes_CrossLanguage()
         {
@@ -144,6 +186,7 @@ End Namespace
             Assert.Equal(derivedClassSymbol, derivedDependentType);
         }
 
+        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         [Fact]
         public async Task ImmediatelyDerivedInterfaces_CSharp()
         {
@@ -181,6 +224,7 @@ namespace M
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
 
+        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         [Fact]
         public async Task ImmediatelyDerivedInterfaces_VisualBasic()
         {
@@ -219,6 +263,7 @@ End Namespace
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
 
+        [WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         [Fact]
         public async Task ImmediatelyDerivedInterfaces_CrossLanguage()
         {
