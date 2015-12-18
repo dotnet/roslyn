@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptorQualifyMemberAccess);
 
-        protected abstract ImmutableArray<TLanguageKindEnum> GetSupportedSyntaxKinds();
         protected abstract bool IsAlreadyQualifiedMemberAccess(SyntaxNode node);
 
         public override void Initialize(AnalysisContext context)
@@ -37,11 +36,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
             var memberReference = (IMemberReferenceExpression)context.Operation;
+
+            // this is a static reference so we don't care if it's qualified
             if (memberReference.Instance == null)
             {
                 return;
             }
 
+            // if we're not referencing `this.` or `Me.` (e.g., a parameter, local, etc.)
+            if (memberReference.Instance.Kind != OperationKind.InstanceReferenceExpression)
+            {
+                return;
+            }
+
+            // if there's already a `this.` or `Me.` qualification
             if (IsAlreadyQualifiedMemberAccess(memberReference.Instance.Syntax))
             {
                 return;
