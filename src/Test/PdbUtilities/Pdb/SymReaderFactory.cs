@@ -55,12 +55,20 @@ namespace Roslyn.Test.PdbUtilities
 
         public static ISymUnmanagedReader CreateReader(Stream pdbStream, Stream peStreamOpt = null)
         {
-            return CreateReader(pdbStream, (peStreamOpt != null) ? new PEReader(peStreamOpt, PEStreamOptions.PrefetchMetadata).GetMetadataReader() : null);
+            if (peStreamOpt != null)
+            {
+                var peReader = new PEReader(peStreamOpt);
+                return CreateReader(pdbStream, peReader.GetMetadataReader(), peReader);
+            }
+            else
+            {
+                return CreateReader(pdbStream, null, null);
+            }
         }
 
-        public static ISymUnmanagedReader CreateReader(Stream pdbStream, MetadataReader metadataReaderOpt)
+        public static ISymUnmanagedReader CreateReader(Stream pdbStream, MetadataReader metadataReaderOpt, IDisposable metadataMemoryOwnerOpt)
         {
-            return CreateReader(pdbStream, new DummyMetadataImport(metadataReaderOpt));
+            return CreateReader(pdbStream, metadataImporter: new DummyMetadataImport(metadataReaderOpt, metadataMemoryOwnerOpt));
         }
 
         public static ISymUnmanagedReader CreateReader(Stream pdbStream, object metadataImporter)
