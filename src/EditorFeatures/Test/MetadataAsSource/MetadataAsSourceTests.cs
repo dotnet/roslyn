@@ -681,8 +681,8 @@ End Class");
 
             using (var context = await TestContext.CreateAsync(LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource)))
             {
-                var a = context.GenerateSource("C");
-                var b = context.GenerateSource("C.Is");
+                var a = await context.GenerateSourceAsync("C");
+                var b = await context.GenerateSourceAsync("C.Is");
                 context.VerifyDocumentReused(a, b);
             }
         }
@@ -692,8 +692,8 @@ End Class");
         {
             using (var context = await TestContext.CreateAsync())
             {
-                var a = context.GenerateSource();
-                var b = context.GenerateSource();
+                var a = await context.GenerateSourceAsync();
+                var b = await context.GenerateSourceAsync();
                 context.VerifyDocumentReused(a, b);
             }
         }
@@ -708,8 +708,8 @@ End Class");
                     .WithMetadataReferences(context.DefaultProject.MetadataReferences)
                     .WithCompilationOptions(new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-                var a = context.GenerateSource(project: context.DefaultProject);
-                var b = context.GenerateSource(project: project);
+                var a = await context.GenerateSourceAsync(project: context.DefaultProject);
+                var b = await context.GenerateSourceAsync(project: project);
                 context.VerifyDocumentReused(a, b);
             }
         }
@@ -724,8 +724,8 @@ End Class");
                     .WithMetadataReferences(context.DefaultProject.MetadataReferences)
                     .WithCompilationOptions(new VB.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-                var a = context.GenerateSource(project: context.DefaultProject);
-                var b = context.GenerateSource(project: project);
+                var a = await context.GenerateSourceAsync(project: context.DefaultProject);
+                var b = await context.GenerateSourceAsync(project: project);
                 context.VerifyDocumentNotReused(a, b);
             }
         }
@@ -736,7 +736,7 @@ End Class");
         {
             using (var context = await TestContext.CreateAsync(LanguageNames.CSharp))
             {
-                var file = context.GenerateSource("System.Console", project: context.DefaultProject);
+                var file = await context.GenerateSourceAsync("System.Console", project: context.DefaultProject);
                 var document = context.GetDocument(file);
                 await Formatting.Formatter.FormatAsync(document);
             }
@@ -1203,7 +1203,7 @@ public static class ObjectExtensions
                 includeXmlDocComments: false,
                 sourceWithSymbolReference: sourceWithSymbolReference))
             {
-                var navigationSymbol = context.GetNavigationSymbol();
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
                 var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
                 context.VerifyResult(metadataAsSourceFile, expected);
             }
@@ -1247,7 +1247,7 @@ End Namespace";
                 includeXmlDocComments: false,
                 sourceWithSymbolReference: sourceWithSymbolReference))
             {
-                var navigationSymbol = context.GetNavigationSymbol();
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
                 var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
                 context.VerifyResult(metadataAsSourceFile, expected);
             }
