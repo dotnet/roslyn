@@ -4756,43 +4756,75 @@ Module Module1
     Dim a As Integer? = 1
     Dim b As Integer? = 0 - a
     Console.WriteLine(String.Format("a: {0}, b: {1}", a, b))
+
+    Dim a1 As Integer? = 1
+    Dim b1 As Integer? = a - 0
+    Console.WriteLine(String.Format("a1: {0}, b1: {1}", a1, b1))
+
  End Sub
 End Module
 
     </file>
-</compilation>, expectedOutput:="a: 1, b: -1").
+</compilation>, expectedOutput:="a: 1, b: -1
+a1: 1, b1: 1").
 VerifyIL("Module1.Main",
             <![CDATA[
 {
-  // Code size       71 (0x47)
+  // Code size      144 (0x90)
   .maxstack  3
   .locals init (Integer? V_0, //a
                 Integer? V_1, //b
-                Integer? V_2)
+                Integer? V_2, //a1
+                Integer? V_3, //b1
+                Integer? V_4,
+                Integer? V_5)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  call       "Sub Integer?..ctor(Integer)"
   IL_0008:  ldloca.s   V_0
   IL_000a:  call       "Function Integer?.get_HasValue() As Boolean"
-  IL_000f:  brtrue.s   IL_001c
-  IL_0011:  ldloca.s   V_2
+  IL_000f:  brtrue.s   IL_001d
+  IL_0011:  ldloca.s   V_4
   IL_0013:  initobj    "Integer?"
-  IL_0019:  ldloc.2
-  IL_001a:  br.s       IL_002a
-  IL_001c:  ldc.i4.0
-  IL_001d:  ldloca.s   V_0
-  IL_001f:  call       "Function Integer?.GetValueOrDefault() As Integer"
-  IL_0024:  sub.ovf
-  IL_0025:  newobj     "Sub Integer?..ctor(Integer)"
-  IL_002a:  stloc.1
-  IL_002b:  ldstr      "a: {0}, b: {1}"
-  IL_0030:  ldloc.0
-  IL_0031:  box        "Integer?"
-  IL_0036:  ldloc.1
-  IL_0037:  box        "Integer?"
-  IL_003c:  call       "Function String.Format(String, Object, Object) As String"
-  IL_0041:  call       "Sub System.Console.WriteLine(String)"
-  IL_0046:  ret
+  IL_0019:  ldloc.s    V_4
+  IL_001b:  br.s       IL_002b
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0025:  sub.ovf
+  IL_0026:  newobj     "Sub Integer?..ctor(Integer)"
+  IL_002b:  stloc.1
+  IL_002c:  ldstr      "a: {0}, b: {1}"
+  IL_0031:  ldloc.0
+  IL_0032:  box        "Integer?"
+  IL_0037:  ldloc.1
+  IL_0038:  box        "Integer?"
+  IL_003d:  call       "Function String.Format(String, Object, Object) As String"
+  IL_0042:  call       "Sub System.Console.WriteLine(String)"
+  IL_0047:  ldloca.s   V_2
+  IL_0049:  ldc.i4.1
+  IL_004a:  call       "Sub Integer?..ctor(Integer)"
+  IL_004f:  ldloc.0
+  IL_0050:  stloc.s    V_4
+  IL_0052:  ldloca.s   V_4
+  IL_0054:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0059:  brtrue.s   IL_0067
+  IL_005b:  ldloca.s   V_5
+  IL_005d:  initobj    "Integer?"
+  IL_0063:  ldloc.s    V_5
+  IL_0065:  br.s       IL_0073
+  IL_0067:  ldloca.s   V_4
+  IL_0069:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_006e:  newobj     "Sub Integer?..ctor(Integer)"
+  IL_0073:  stloc.3
+  IL_0074:  ldstr      "a1: {0}, b1: {1}"
+  IL_0079:  ldloc.2
+  IL_007a:  box        "Integer?"
+  IL_007f:  ldloc.3
+  IL_0080:  box        "Integer?"
+  IL_0085:  call       "Function String.Format(String, Object, Object) As String"
+  IL_008a:  call       "Sub System.Console.WriteLine(String)"
+  IL_008f:  ret
 }
                 ]]>)
 
