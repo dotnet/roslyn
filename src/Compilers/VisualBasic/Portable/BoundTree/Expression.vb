@@ -1085,6 +1085,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundPropertyAccess
         Implements IPropertyReferenceExpression
 
+        Private ReadOnly Property IMemberReferenceExpression_Member As ISymbol Implements IMemberReferenceExpression.Member
+            Get
+                Return Me.PropertySymbol
+            End Get
+        End Property
+
         Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
             Get
                 Return Me.ReceiverOpt
@@ -1104,6 +1110,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundFieldAccess
         Implements IFieldReferenceExpression
+
+        Private ReadOnly Property IMemberReferenceExpression_Member As ISymbol Implements IMemberReferenceExpression.Member
+            Get
+                Return Me.FieldSymbol
+            End Get
+        End Property
 
         Private ReadOnly Property IField As IFieldSymbol Implements IFieldReferenceExpression.Field
             Get
