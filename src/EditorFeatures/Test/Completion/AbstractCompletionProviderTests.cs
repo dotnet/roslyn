@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     AssertEx.None(
                         items,
                         c => CompareItems(c.DisplayText, expectedItemOrNull) &&
-                            (expectedDescriptionOrNull != null ? (await c.GetDescriptionAsync()).GetFullText() == expectedDescriptionOrNull : true));
+                            (expectedDescriptionOrNull != null ? c.GetDescriptionAsync().Result.GetFullText() == expectedDescriptionOrNull : true));
                 }
             }
             else

@@ -56,14 +56,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 get { return this.CurrentSolution.Projects.First(); }
             }
 
-            public MetadataAsSourceFile GenerateSource(ISymbol symbol, Project project = null)
+            public Task<MetadataAsSourceFile> GenerateSourceAsync(ISymbol symbol, Project project = null)
             {
                 project = project ?? this.DefaultProject;
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                var file = _metadataAsSourceService.GetGeneratedFileAsync(project, symbol).Result;
-
-                return file;
+                return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol);
             }
 
             public MetadataAsSourceFile GenerateSource(string symbolMetadataName = null, Project project = null)

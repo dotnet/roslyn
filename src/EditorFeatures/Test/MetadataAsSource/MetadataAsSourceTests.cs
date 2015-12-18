@@ -667,16 +667,9 @@ End Class");
 
             using (var context = await TestContext.CreateAsync())
             {
-                Assert.Throws<ArgumentException>(() =>
+                await Assert.ThrowsAsync<ArgumentException>(async () =>
                 {
-                    try
-                    {
-                        context.GenerateSource(namespaceSymbol);
-                    }
-                    catch (AggregateException ae)
-                    {
-                        throw ae.InnerException;
-                    }
+                    await context.GenerateSourceAsync(namespaceSymbol);
                 });
             }
         }
@@ -1211,7 +1204,7 @@ public static class ObjectExtensions
                 sourceWithSymbolReference: sourceWithSymbolReference))
             {
                 var navigationSymbol = context.GetNavigationSymbol();
-                var metadataAsSourceFile = context.GenerateSource(navigationSymbol);
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
                 context.VerifyResult(metadataAsSourceFile, expected);
             }
         }
@@ -1255,7 +1248,7 @@ End Namespace";
                 sourceWithSymbolReference: sourceWithSymbolReference))
             {
                 var navigationSymbol = context.GetNavigationSymbol();
-                var metadataAsSourceFile = context.GenerateSource(navigationSymbol);
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
                 context.VerifyResult(metadataAsSourceFile, expected);
             }
         }
