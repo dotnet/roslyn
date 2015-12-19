@@ -307,7 +307,7 @@ public class _Default
 
             Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
-                AssertEx.Throws(Of InvalidOperationException)(
+                Assert.Throws(Of InvalidOperationException)(
                     Sub()
                         ContainedLanguageCodeSupport.GetCompatibleEventHandlers(
                             document:=document,
@@ -343,7 +343,7 @@ namespace Test
 
             Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
-                AssertEx.Throws(Of InvalidOperationException)(
+                Assert.Throws(Of InvalidOperationException)(
                     Sub()
                         ContainedLanguageCodeSupport.GetCompatibleEventHandlers(
                             document:=document,

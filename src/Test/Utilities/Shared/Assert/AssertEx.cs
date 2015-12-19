@@ -324,59 +324,6 @@ namespace Roslyn.Test.Utilities
             Assert.False(AssertEqualityComparer<T>.IsNull(@object), message);
         }
 
-        public static void ThrowsArgumentNull(string parameterName, Action del)
-        {
-            try
-            {
-                del();
-            }
-            catch (ArgumentNullException e)
-            {
-                Assert.Equal(parameterName, e.ParamName);
-            }
-        }
-
-        public static void ThrowsArgumentException(string parameterName, Action del)
-        {
-            try
-            {
-                del();
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Equal(parameterName, e.ParamName);
-            }
-        }
-
-        public static T Throws<T>(Action del, bool allowDerived = false) where T : Exception
-        {
-            try
-            {
-                del();
-            }
-            catch (Exception ex)
-            {
-                var type = ex.GetType();
-                if (type.Equals(typeof(T)))
-                {
-                    // We got exactly the type we wanted
-                    return (T)ex;
-                }
-
-                if (allowDerived && typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
-                {
-                    // We got a derived type
-                    return (T)ex;
-                }
-
-                // We got some other type. We know that type != typeof(T), and so we'll use Assert.Equal since Xunit
-                // will give a nice Expected/Actual output for this
-                Assert.Equal(typeof(T), type);
-            }
-
-            throw new Exception("No exception was thrown.");
-        }
-
         // compares against a baseline
         public static void AssertEqualToleratingWhitespaceDifferences(
             string expected,
