@@ -26,5 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor
         void CleanupGeneratedFiles();
 
         bool IsNavigableMetadataSymbol(ISymbol symbol);
+
+        bool IsGeneratedFile(string filePath);
     }
 }

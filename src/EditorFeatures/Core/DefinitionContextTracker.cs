@@ -148,14 +148,15 @@ namespace Microsoft.CodeAnalysis.Editor
                 var project = document.Project;
 
                 // Get the symbol back from the originating workspace
-
                 var symbolMappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
                 var mappingResult = await symbolMappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
-                if (mappingResult != null)
+                if (mappingResult == null)
                 {
-                    symbol = mappingResult.Symbol;
-                    project = mappingResult.Project;
+                    return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
                 }
+
+                symbol = mappingResult.Symbol;
+                project = mappingResult.Project;
 
                 var solution = project.Solution;
                 var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(mappingResult.Symbol, mappingResult.Project.Solution, cancellationToken).ConfigureAwait(false);
@@ -169,7 +170,6 @@ namespace Microsoft.CodeAnalysis.Editor
                 // 1. Another language (like XAML) will take over via ISymbolNavigationService
                 // 2. There are locations in source, so we'll use those
                 // 3. There are no locations from source, so we'll try to generate a metadata as source file and use that
-                var results = new ArrayBuilder<CodeDefinitionWindowLocation>();
                 string filePath = null;
                 int lineNumber = 0;
                 int charOffset = 0;
@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor
                     TaskCreationOptions.None,
                     foregroundTaskScheduler).ConfigureAwait(false);
 
+                var results = new ArrayBuilder<CodeDefinitionWindowLocation>();
                 if (wouldNavigate)
                 {
                     results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), filePath, lineNumber, charOffset));
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor
                             results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationLocation.Path, declarationLocation.Span.Start.Line, declarationLocation.Span.Start.Character));
                         }
                     }
-                    else
+                    else if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                     {
                         var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, cancellationToken).ConfigureAwait(false);
                         var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
