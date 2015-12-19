@@ -114,6 +114,93 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(es.SemicolonToken.IsMissing);
         }
 
+        [Fact]
+        public void TestGenericNameWithInvalidTypeArg()
+        {
+            var text = "Type t = typeof(a<0>);";
+            var statement = this.ParseStatement(text);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(1, statement.Errors().Length);
+            // 0 is invalid here, so we get type expected
+            Assert.Equal((int)ErrorCode.ERR_TypeExpected, statement.Errors()[0].Code);
+
+            var ds = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(ds.Declaration);
+            Assert.Equal(SyntaxKind.VariableDeclaration, ds.Declaration.Kind());
+
+            Assert.NotNull(ds.Declaration.Variables[0].Identifier);
+            Assert.Equal("t", ds.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(ds.Declaration.Variables[0].ArgumentList);
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.False(ds.Declaration.Variables[0].Initializer.EqualsToken.IsMissing);
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal(SyntaxKind.TypeOfExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            Assert.Equal("typeof(a<0>)", ds.Declaration.Variables[0].Initializer.Value.ToString());
+
+            TypeOfExpressionSyntax ts = (TypeOfExpressionSyntax)ds.Declaration.Variables[0].Initializer.Value;
+            Assert.NotNull(ts);
+            Assert.Equal(SyntaxKind.GenericName, ts.Type.Kind());
+
+            GenericNameSyntax ns = (GenericNameSyntax)ts.Type;
+            Assert.NotNull(ns);
+            Assert.Equal(1, ns.TypeArgumentList.Arguments.Count);
+            // 0 is turned into a missing type arugment
+            Assert.Equal(true, ns.TypeArgumentList.Arguments[0].IsMissing);
+            // Verify that the 0 is added as skipped trivia
+            Assert.Equal("", ns.TypeArgumentList.Arguments[0].ToString());
+            Assert.Equal("0", ns.TypeArgumentList.Arguments[0].GetLeadingTrivia().ToString());
+
+            Assert.Equal("Type t = typeof(a<0>)", ds.Declaration.ToString());
+            Assert.NotNull(ds.SemicolonToken);
+            Assert.False(ds.SemicolonToken.IsMissing);
+        }
+
+        [Fact]
+        public void TestGenericNameWithInvalidTypeArgList()
+        {
+            var text = "Type t = typeof(a<0,bool>);";
+            var statement = this.ParseStatement(text);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(1, statement.Errors().Length);
+            // 0 is invalid here, so we get type expected
+            Assert.Equal((int)ErrorCode.ERR_TypeExpected, statement.Errors()[0].Code);
+
+            var ds = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(ds.Declaration);
+            Assert.Equal(SyntaxKind.VariableDeclaration, ds.Declaration.Kind());
+
+            Assert.NotNull(ds.Declaration.Variables[0].Identifier);
+            Assert.Equal("t", ds.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(ds.Declaration.Variables[0].ArgumentList);
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.False(ds.Declaration.Variables[0].Initializer.EqualsToken.IsMissing);
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal(SyntaxKind.TypeOfExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            Assert.Equal("typeof(a<0,bool>)", ds.Declaration.Variables[0].Initializer.Value.ToString());
+
+            TypeOfExpressionSyntax ts = (TypeOfExpressionSyntax)ds.Declaration.Variables[0].Initializer.Value;
+            Assert.NotNull(ts);
+            Assert.Equal(SyntaxKind.GenericName, ts.Type.Kind());
+
+            GenericNameSyntax ns = (GenericNameSyntax)ts.Type;
+            Assert.NotNull(ns);
+            Assert.Equal(2, ns.TypeArgumentList.Arguments.Count);
+            // 0 is turned into a missing type arugment
+            Assert.Equal(true, ns.TypeArgumentList.Arguments[0].IsMissing);
+            // bool is valid
+            Assert.Equal(false, ns.TypeArgumentList.Arguments[1].IsMissing);
+
+            Assert.Equal("Type t = typeof(a<0,bool>)", ds.Declaration.ToString());
+            Assert.NotNull(ds.SemicolonToken);
+            Assert.False(ds.SemicolonToken.IsMissing);
+        }
+
         private void TestPostfixUnaryOperator(SyntaxKind kind)
         {
             var text = "a" + SyntaxFacts.GetText(kind) + ";";
