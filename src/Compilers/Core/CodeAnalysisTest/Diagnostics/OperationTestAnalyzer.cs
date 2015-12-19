@@ -9,6 +9,109 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     // These analyzers are not intended for any actual use. They exist solely to test IOperation support.
 
+    /// <summary>Analyzer used to test for explicit vs. implicit instance references.</summary>
+    public class ExplicitVsImplicitInstanceAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor ImplicitInstanceDescriptor = new DiagnosticDescriptor(
+            "ImplicitInstance",
+            "Implicit Instance",
+            "Implicit instance found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ExplicitInstanceDescriptor = new DiagnosticDescriptor(
+            "ExplicitInstance",
+            "Explicit Instance",
+            "Explicit instance found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(ImplicitInstanceDescriptor, ExplicitInstanceDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IInstanceReferenceExpression instanceReference = (IInstanceReferenceExpression)operationContext.Operation;
+                     operationContext.ReportDiagnostic(Diagnostic.Create(instanceReference.IsExplicit ? ExplicitInstanceDescriptor : ImplicitInstanceDescriptor, instanceReference.Syntax.GetLocation()));
+                 },
+                 OperationKind.InstanceReferenceExpression,
+                 OperationKind.BaseClassInstanceReferenceExpression);
+        }
+    }
+
+    /// <summary>Analyzer used to test for member references.</summary>
+    public class MemberReferenceAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor EventReferenceDescriptor = new DiagnosticDescriptor(
+            "EventReference",
+            "Event Reference",
+            "Event reference found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor PropertyReferenceDescriptor = new DiagnosticDescriptor(
+            "PropertyReference",
+            "Property Reference",
+            "Property reference found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor FieldReferenceDescriptor = new DiagnosticDescriptor(
+           "FieldReference",
+           "Field Reference",
+           "Field reference found.",
+           "Testing",
+           DiagnosticSeverity.Warning,
+           isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MethodReferenceDescriptor = new DiagnosticDescriptor(
+          "MethodReference",
+          "Method Reference",
+          "Method reference found.",
+          "Testing",
+          DiagnosticSeverity.Warning,
+          isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(EventReferenceDescriptor, PropertyReferenceDescriptor, FieldReferenceDescriptor, MethodReferenceDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(EventReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.EventReferenceExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(PropertyReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.PropertyReferenceExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(FieldReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.FieldReferenceExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(MethodReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.MethodReferenceExpression);
+        }
+    }
+
     /// <summary>Analyzer used to test for bad statements and expressions.</summary>
     public class BadStuffTestAnalyzer : DiagnosticAnalyzer
     {

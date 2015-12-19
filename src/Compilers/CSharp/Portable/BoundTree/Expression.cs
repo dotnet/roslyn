@@ -274,7 +274,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundFieldAccess : IFieldReferenceExpression
     {
         IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
-       
+
+        ISymbol IMemberReferenceExpression.Member => this.FieldSymbol;
+
         IFieldSymbol IFieldReferenceExpression.Field => this.FieldSymbol;
 
         protected override OperationKind ExpressionKind => OperationKind.FieldReferenceExpression;
@@ -285,8 +287,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         IPropertySymbol IPropertyReferenceExpression.Property => this.PropertySymbol;
        
         IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
-       
+
+        ISymbol IMemberReferenceExpression.Member => this.PropertySymbol;
+
         protected override OperationKind ExpressionKind => OperationKind.PropertyReferenceExpression;
+    }
+
+    partial class BoundEventAccess : IEventReferenceExpression
+    {
+        IEventSymbol IEventReferenceExpression.Event => this.EventSymbol;
+
+        IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
+
+        ISymbol IMemberReferenceExpression.Member => this.EventSymbol;
+
+        protected override OperationKind ExpressionKind => OperationKind.EventReferenceExpression;
     }
 
     partial class BoundParameter : IParameterReferenceExpression
@@ -542,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundBaseReference : IInstanceReferenceExpression
     {
-        bool IInstanceReferenceExpression.IsExplicit => true;
+        bool IInstanceReferenceExpression.IsExplicit => this.Syntax.Kind() == SyntaxKind.BaseExpression;
 
         IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
         
@@ -551,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundThisReference : IInstanceReferenceExpression
     {
-        bool IInstanceReferenceExpression.IsExplicit => true;
+        bool IInstanceReferenceExpression.IsExplicit => this.Syntax.Kind() == SyntaxKind.ThisExpression;
 
         IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
 

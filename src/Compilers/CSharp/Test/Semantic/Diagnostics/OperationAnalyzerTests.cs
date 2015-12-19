@@ -11,6 +11,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class OperationAnalyzerTests : CompilingTestBase
     {
         [Fact]
+        public void ImplicitVsExplicitInstancesCSharp()
+        {
+            const string source = @"
+class C
+{
+    public virtual void M1()
+    {
+        this.M1();
+        M1();
+    }
+    public void M2()
+    {
+    }
+}
+
+class D : C
+{
+    public override void M1()
+    {
+        base.M1();
+        M1();
+        M2();
+    }
+}";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ExplicitVsImplicitInstanceAnalyzer() }, null, null, false,
+                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "this").WithLocation(6, 9),
+                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M1").WithLocation(7, 9),
+                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "base").WithLocation(18, 9),
+                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M1").WithLocation(19, 9),
+                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M2").WithLocation(20, 9)
+                );
+        }
+
+        [Fact]
+        public void EventReferencesCSharp()
+        {
+            const string source = @"
+public delegate void MumbleEventHandler(object sender, System.EventArgs args);
+
+class C
+{
+    public event MumbleEventHandler Mumble;
+
+    public void OnMumble(System.EventArgs args)
+    {
+        Mumble += new MumbleEventHandler(Mumbler);
+        Mumble(this, args);
+        object o = Mumble;
+        MumbleEventHandler d = Mumbler;
+    }
+
+    private void Mumbler(object sender, System.EventArgs args) 
+    {
+    }
+}";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberReferenceAnalyzer() }, null, null, false,
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(11, 9),
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 20)
+                );
+        }
+
+        [Fact]
         public void EmptyArrayCSharp()
         {
             const string source = @"

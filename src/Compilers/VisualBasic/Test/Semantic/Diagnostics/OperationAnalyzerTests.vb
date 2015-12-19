@@ -12,6 +12,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits BasicTestBase
 
         <Fact>
+        Public Sub ExplicitVsImplicitInstancesVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Overridable Sub M1()
+        Me.M1()
+        M1()
+    End Sub
+    Public Sub M2()
+    End Sub
+End Class
+
+Class D
+    Inherits C
+    Public Overrides Sub M1()
+        MyBase.M1()
+        M1()
+        M2()
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New ExplicitVsImplicitInstanceAnalyzer}, Nothing, Nothing, False,
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "Me").WithLocation(3, 9),
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M1").WithLocation(4, 9),
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "MyBase").WithLocation(13, 9),
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M1").WithLocation(14, 9),
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M2").WithLocation(15, 9))
+        End Sub
+
+        <Fact>
         Public Sub EmptyArrayVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">

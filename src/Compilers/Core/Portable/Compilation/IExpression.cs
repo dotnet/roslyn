@@ -205,18 +205,23 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a reference to a member of a class or struct.
+    /// Represents a reference to a member of a class, struct, or interface.
     /// </summary>
     public interface IMemberReferenceExpression : IReferenceExpression
     {
         /// <summary>
-        /// Instance of the class or struct. Null if the reference is to a static/shared member.
+        /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
         IExpression Instance { get; }
+
+        /// <summary>
+        /// Referenced member.  
+        /// </summary>  
+        ISymbol Member { get; }
     }
 
     /// <summary>
-    /// Represents a reference to a field of a class or struct.
+    /// Represents a reference to a field.
     /// </summary>
     public interface IFieldReferenceExpression : IMemberReferenceExpression
     {
@@ -227,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a reference to a method of a class or struct.
+    /// Represents a reference to a method.
     /// </summary>
     public interface IMethodReferenceExpression : IMemberReferenceExpression
     {
@@ -242,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
     
     /// <summary>
-    /// Represents a reference to a property of a class or struct.
+    /// Represents a reference to a property.
     /// </summary>
     public interface IPropertyReferenceExpression : IMemberReferenceExpression
     {
@@ -250,6 +255,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Referenced property.
         /// </summary>
         IPropertySymbol Property { get; }
+    }
+
+    /// <summary>
+    /// Represents a reference to an event.
+    /// </summary>
+    public interface IEventReferenceExpression : IMemberReferenceExpression
+    {
+        /// <summary>
+        /// Referenced event.
+        /// </summary>
+        IEventSymbol Event { get; }
     }
 
     /// <summary>

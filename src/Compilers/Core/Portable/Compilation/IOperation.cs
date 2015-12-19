@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         FieldReferenceExpression,
         MethodReferenceExpression,
         PropertyReferenceExpression,
+        EventReferenceExpression,
         LateBoundMemberReferenceExpression,
         UnaryOperatorExpression,
         BinaryOperatorExpression,
