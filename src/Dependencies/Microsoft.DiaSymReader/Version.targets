@@ -2,7 +2,6 @@
   <PropertyGroup>
     <AssemblyVersion>1.0.7</AssemblyVersion>
     <NuGetVersion>$(AssemblyVersion)-beta1</NuGetVersion>
-    <NuGetVersionType>PreRelease</NuGetVersionType>
   </PropertyGroup>
 
   <!-- AssemblyFileVersion -->
@@ -11,6 +10,8 @@
       <!-- Lab build. -->
       <PropertyGroup>
         <BuildVersion>$(AssemblyVersion).$(BuildNumber.Split('.')[0])</BuildVersion>
+        <NuGetVersion>$(NuGetVersion)-$(BuildNumber.Split('.')[0])</NuGetVersion>
+        <NuGetVersionType>PerBuildPreRelease</NuGetVersionType>
       </PropertyGroup>
     </When>
 
@@ -18,6 +19,7 @@
       <!-- Local build. -->
       <PropertyGroup>
         <BuildVersion>$(AssemblyVersion).0</BuildVersion>
+        <NuGetVersionType>PreRelease</NuGetVersionType>
       </PropertyGroup>
     </Otherwise>
   </Choose>
