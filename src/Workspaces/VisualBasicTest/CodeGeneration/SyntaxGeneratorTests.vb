@@ -804,12 +804,55 @@ End Function</x>.Value)
 
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.MethodDeclaration("m", returnType:=_g.IdentifierName("x"), accessibility:=Accessibility.Public, modifiers:=DeclarationModifiers.Abstract),
-<x>Public MustInherit Function m() As x</x>.Value)
+<x>Public MustOverride Function m() As x</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
                 _g.MethodDeclaration("m", accessibility:=Accessibility.Private, modifiers:=DeclarationModifiers.Partial),
 <x>Private Partial Sub m()
 End Sub</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestSealedDeclarationModifier()
+            Dim md = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Sealed)
+            Assert.Equal(DeclarationModifiers.Sealed, _g.GetModifiers(md))
+            VerifySyntax(Of MethodBlockSyntax)(
+                md,
+<x>NotOverridable Sub m()
+End Sub</x>.Value)
+
+            Dim md2 = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Sealed + DeclarationModifiers.Override)
+            Assert.Equal(DeclarationModifiers.Sealed + DeclarationModifiers.Override, _g.GetModifiers(md2))
+            VerifySyntax(Of MethodBlockSyntax)(
+                md2,
+<x>NotOverridable Overrides Sub m()
+End Sub</x>.Value)
+
+            Dim cd = _g.ClassDeclaration("c", modifiers:=DeclarationModifiers.Sealed)
+            Assert.Equal(DeclarationModifiers.Sealed, _g.GetModifiers(cd))
+            VerifySyntax(Of ClassBlockSyntax)(
+                cd,
+<x>NotInheritable Class c
+End Class</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestAbstractDeclarationModifier()
+            Dim md = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract)
+            Assert.Equal(DeclarationModifiers.Abstract, _g.GetModifiers(md))
+            VerifySyntax(Of MethodStatementSyntax)(
+                md,
+<x>MustOverride Sub m()</x>.Value)
+
+            Dim cd = _g.ClassDeclaration("c", modifiers:=DeclarationModifiers.Abstract)
+            Assert.Equal(DeclarationModifiers.Abstract, _g.GetModifiers(cd))
+            VerifySyntax(Of ClassBlockSyntax)(
+                cd,
+<x>MustInherit Class c
+End Class</x>.Value)
+
         End Sub
 
         <Fact>
@@ -960,11 +1003,11 @@ End Sub</x>.Value)
         Public Sub TestPropertyDeclarations()
             VerifySyntax(Of PropertyStatementSyntax)(
                 _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract + DeclarationModifiers.ReadOnly),
-<x>MustInherit ReadOnly Property p As x</x>.Value)
+<x>MustOverride ReadOnly Property p As x</x>.Value)
 
             VerifySyntax(Of PropertyStatementSyntax)(
                 _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract + DeclarationModifiers.WriteOnly),
-<x>MustInherit WriteOnly Property p As x</x>.Value)
+<x>MustOverride WriteOnly Property p As x</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
                 _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers:=DeclarationModifiers.ReadOnly),
@@ -982,7 +1025,7 @@ End Property</x>.Value)
 
             VerifySyntax(Of PropertyStatementSyntax)(
                 _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract),
-<x>MustInherit Property p As x</x>.Value)
+<x>MustOverride Property p As x</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
                 _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers:=DeclarationModifiers.ReadOnly, getAccessorStatements:={_g.IdentifierName("y")}),
@@ -1016,15 +1059,15 @@ End Property</x>.Value)
         Public Sub TestIndexerDeclarations()
             VerifySyntax(Of PropertyStatementSyntax)(
                 _g.IndexerDeclaration({_g.ParameterDeclaration("z", _g.IdentifierName("y"))}, _g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract + DeclarationModifiers.ReadOnly),
-<x>Default MustInherit ReadOnly Property Item(z As y) As x</x>.Value)
+<x>Default MustOverride ReadOnly Property Item(z As y) As x</x>.Value)
 
             VerifySyntax(Of PropertyStatementSyntax)(
                 _g.IndexerDeclaration({_g.ParameterDeclaration("z", _g.IdentifierName("y"))}, _g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract + DeclarationModifiers.WriteOnly),
-<x>Default MustInherit WriteOnly Property Item(z As y) As x</x>.Value)
+<x>Default MustOverride WriteOnly Property Item(z As y) As x</x>.Value)
 
             VerifySyntax(Of PropertyStatementSyntax)(
                 _g.IndexerDeclaration({_g.ParameterDeclaration("z", _g.IdentifierName("y"))}, _g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract),
-<x>Default MustInherit Property Item(z As y) As x</x>.Value)
+<x>Default MustOverride Property Item(z As y) As x</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
                 _g.IndexerDeclaration({_g.ParameterDeclaration("z", _g.IdentifierName("y"))}, _g.IdentifierName("x"), modifiers:=DeclarationModifiers.ReadOnly),
@@ -1632,7 +1675,7 @@ End Function</x>.Value)
                 _g.WithTypeParameters(
                     _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract),
                     "a"),
-<x>MustInherit Sub m(Of a)()</x>.Value)
+<x>MustOverride Sub m(Of a)()</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
                 _g.WithTypeParameters(
@@ -1645,7 +1688,7 @@ End Sub</x>.Value)
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.WithTypeParameters(
                     _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract)),
-<x>MustInherit Sub m()</x>.Value)
+<x>MustOverride Sub m()</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
                 _g.WithTypeParameters(
@@ -1658,7 +1701,7 @@ End Sub</x>.Value)
                 _g.WithTypeParameters(_g.WithTypeParameters(
                     _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract),
                     "a")),
-<x>MustInherit Sub m()</x>.Value)
+<x>MustOverride Sub m()</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
                 _g.WithTypeParameters(_g.WithTypeParameters(
@@ -1672,7 +1715,7 @@ End Sub</x>.Value)
                 _g.WithTypeParameters(
                     _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract),
                     "a", "b"),
-<x>MustInherit Sub m(Of a, b)()</x>.Value)
+<x>MustOverride Sub m(Of a, b)()</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
                 _g.WithTypeParameters(
@@ -1711,7 +1754,7 @@ End Interface</x>.Value)
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract), "a"),
                     "a", _g.IdentifierName("b")),
-<x>MustInherit Sub m(Of a As b)()</x>.Value)
+<x>MustOverride Sub m(Of a As b)()</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
                 _g.WithTypeConstraint(
@@ -1725,7 +1768,7 @@ End Sub</x>.Value)
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract), "a"),
                     "a", _g.IdentifierName("b"), _g.IdentifierName("c")),
-<x>MustInherit Sub m(Of a As {b, c})()</x>.Value)
+<x>MustOverride Sub m(Of a As {b, c})()</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
                 _g.WithTypeConstraint(
@@ -1739,7 +1782,7 @@ End Sub</x>.Value)
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract), "a"),
                     "a"),
-<x>MustInherit Sub m(Of a)()</x>.Value)
+<x>MustOverride Sub m(Of a)()</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
                 _g.WithTypeConstraint(
@@ -1753,7 +1796,7 @@ End Sub</x>.Value)
                 _g.WithTypeConstraint(_g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract), "a"),
                     "a", _g.IdentifierName("b"), _g.IdentifierName("c")), "a"),
-<x>MustInherit Sub m(Of a)()</x>.Value)
+<x>MustOverride Sub m(Of a)()</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
                 _g.WithTypeConstraint(_g.WithTypeConstraint(
@@ -1769,49 +1812,49 @@ End Sub</x>.Value)
                         _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract), "a", "x"),
                         "a", _g.IdentifierName("b"), _g.IdentifierName("c")),
                     "x", _g.IdentifierName("y")),
-<x>MustInherit Sub m(Of a As {b, c}, x As y)()</x>.Value)
+<x>MustOverride Sub m(Of a As {b, c}, x As y)()</x>.Value)
 
             ' with constructor constraint
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.Constructor),
-<x>MustInherit Sub m(Of a As New)()</x>.Value)
+<x>MustOverride Sub m(Of a As New)()</x>.Value)
 
             ' with reference constraint
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ReferenceType),
-<x>MustInherit Sub m(Of a As Class)()</x>.Value)
+<x>MustOverride Sub m(Of a As Class)()</x>.Value)
 
             ' with value type constraint
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ValueType),
-<x>MustInherit Sub m(Of a As Structure)()</x>.Value)
+<x>MustOverride Sub m(Of a As Structure)()</x>.Value)
 
             ' with reference constraint and constructor constraint
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ReferenceType Or SpecialTypeConstraintKind.Constructor),
-<x>MustInherit Sub m(Of a As {Class, New})()</x>.Value)
+<x>MustOverride Sub m(Of a As {Class, New})()</x>.Value)
 
             ' with value type constraint and constructor constraint
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ValueType Or SpecialTypeConstraintKind.Constructor),
-<x>MustInherit Sub m(Of a As {Structure, New})()</x>.Value)
+<x>MustOverride Sub m(Of a As {Structure, New})()</x>.Value)
 
             ' with reference constraint and type constraints
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ReferenceType, _g.IdentifierName("b"), _g.IdentifierName("c")),
-<x>MustInherit Sub m(Of a As {Class, b, c})()</x>.Value)
+<x>MustOverride Sub m(Of a As {Class, b, c})()</x>.Value)
 
             ' class declarations
             VerifySyntax(Of ClassBlockSyntax)(
@@ -1904,13 +1947,13 @@ Dim y As x</x>.Value)
                     _g.MethodDeclaration("m", returnType:=_g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract),
                     _g.Attribute("a")),
 <x>&lt;a&gt;
-MustInherit Function m() As t</x>.Value)
+MustOverride Function m() As t</x>.Value)
 
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.AddReturnAttributes(
                     _g.MethodDeclaration("m", returnType:=_g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract),
                     _g.Attribute("a")),
-<x>MustInherit Function m() As &lt;a&gt; t</x>.Value)
+<x>MustOverride Function m() As &lt;a&gt; t</x>.Value)
 
             VerifySyntax(Of MethodBlockSyntax)(
                 _g.AddAttributes(
@@ -1932,7 +1975,7 @@ End Function</x>.Value)
                     _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract),
                     _g.Attribute("a")),
 <x>&lt;a&gt;
-MustInherit Property p As x</x>.Value)
+MustOverride Property p As x</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
                 _g.AddAttributes(
@@ -1952,7 +1995,7 @@ End Property</x>.Value)
                     _g.IndexerDeclaration({_g.ParameterDeclaration("z", _g.IdentifierName("y"))}, _g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract),
                     _g.Attribute("a")),
 <x>&lt;a&gt;
-Default MustInherit Property Item(z As y) As x</x>.Value)
+Default MustOverride Property Item(z As y) As x</x>.Value)
 
             VerifySyntax(Of PropertyBlockSyntax)(
                 _g.AddAttributes(
@@ -2386,11 +2429,11 @@ End Function</x>.Value)
 
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.WithType(_g.MethodDeclaration("m", returnType:=_g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract), Nothing),
-<x>MustInherit Sub m()</x>.Value)
+<x>MustOverride Sub m()</x>.Value)
 
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.WithType(_g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract), _g.IdentifierName("x")),
-<x>MustInherit Function m() As x</x>.Value)
+<x>MustOverride Function m() As x</x>.Value)
 
             VerifySyntax(Of DelegateStatementSyntax)(
                 _g.WithType(_g.DelegateDeclaration("d", returnType:=_g.IdentifierName("x")), Nothing),

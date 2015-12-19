@@ -1638,10 +1638,11 @@ End Class
     Public Sub PublicSignCore(compilation As Compilation)
         Assert.True(compilation.Options.PublicSign)
         Assert.Null(compilation.Options.DelaySign)
-        compilation.VerifyDiagnostics()
 
         Dim stream As New MemoryStream()
-        compilation.Emit(stream)
+        Dim emitResult = compilation.Emit(stream)
+        Assert.True(emitResult.Success)
+        Assert.True(emitResult.Diagnostics.IsEmpty)
         stream.Position = 0
 
         Using reader As New PEReader(stream)
@@ -1660,21 +1661,21 @@ End Class
 
     <Fact>
     Public Sub PublicSign_FromPublicKeyFileNoStrongNameProvider()
-        Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey)
+        Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey)
         Dim options = TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(True)
         PublicSignCore(options)
     End Sub
 
     <Fact>
     Public Sub PublicSign_FromKeyFileAndStrongNameProvider()
-        Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey)
+        Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey2)
         Dim options = TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(True).WithStrongNameProvider(s_defaultProvider)
         PublicSignCore(options)
     End Sub
 
     <Fact>
     Public Sub PublicSign_FromKeyFileAndNoStrongNameProvider()
-        Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey)
+        Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey2)
         Dim options = TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(True)
         PublicSignCore(options)
     End Sub

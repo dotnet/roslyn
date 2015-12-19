@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub TestEmptyProjectAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub TestNameCollisionOnDisplayNames()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub TestProjectAnalyzerMessages()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub TestGlobalAnalyzerGroup()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDuplicateFileAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDuplicateImageAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -483,7 +483,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1167439), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, WorkItem(1167439), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledNoCrash()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -509,6 +509,40 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(expected.Id, diagnostics.First().Id)
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub TestOperationAnalyzers()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document FilePath="Test.cs">
+                                   class Foo { void M() { int x = 0; } }
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                For Each actionKind As OperationAnalyzer.ActionKind In [Enum].GetValues(GetType(OperationAnalyzer.ActionKind))
+                    Dim project = workspace.CurrentSolution.Projects.Single
+                    Dim analyzer = New OperationAnalyzer(actionKind)
+                    Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                    project = project.AddAnalyzerReference(analyzerReference)
+
+                    Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                    Assert.Equal(1, descriptorsMap.Count)
+
+                    Dim document = project.Documents.Single()
+                    Dim diagnostics = diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                    Assert.Equal(1, diagnostics.Count())
+                    Dim diagnostic = diagnostics.First()
+                    Assert.Equal(OperationAnalyzer.Descriptor.Id, diagnostic.Id)
+                    Dim expectedMessage = String.Format(OperationAnalyzer.Descriptor.MessageFormat.ToString(), actionKind)
+                    Assert.Equal(diagnostic.Message, expectedMessage)
+                Next actionKind
             End Using
         End Sub
 
@@ -718,7 +752,7 @@ class AnonymousFunctions
             End Using
         End Sub
 
-        <WpfFact, WorkItem(1083854), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, WorkItem(1083854), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestStatefulCompilationAnalyzer() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -847,7 +881,7 @@ class AnonymousFunctions
                     Dim document = project.GetDocument(diagnostic.DocumentId)
                     If document.Name = "Test1.cs" Then
                         file1HasDiag = True
-                    ElseIf document.Name = "Test2.cs"
+                    ElseIf document.Name = "Test2.cs" Then
                         file2HasDiag = True
                     End If
                 Next

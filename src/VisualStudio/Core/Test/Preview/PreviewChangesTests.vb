@@ -143,6 +143,7 @@ Class C
                     workspace.CurrentSolution,
                     componentModel)
 
+                WpfTestCase.RequireWpfFact("Test explicitly creates an IWpfTextView")
                 Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
                 Dim textView = textEditorFactory.CreateTextView()
 
@@ -206,6 +207,7 @@ Class C
                     workspace.CurrentSolution,
                     componentModel)
 
+                WpfTestCase.RequireWpfFact("Test explicitly creates an IWpfTextView")
                 Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
                 Dim textView = textEditorFactory.CreateTextView()
 

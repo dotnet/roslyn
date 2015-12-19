@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GenerateType
         Private Shared s_submit_failed_unexpectedly As String = "Submit failed unexpectedly."
         Private Shared s_submit_passed_unexpectedly As String = "Submit passed unexpectedly. Submit should fail here"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeExistingFileCSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 class Program
@@ -62,7 +62,7 @@ namespace A
             Assert.Equal(False, viewModel.IsExistingFile)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeExistingFileVisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 Module Program
@@ -95,7 +95,7 @@ End Namespace"]]></Text>
             Assert.Equal(False, viewModel.IsExistingFile)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeNewFileBothLanguage() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 class Program
@@ -157,7 +157,7 @@ namespace A
             Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeProjectChangeAndDependencyBothLanguage() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
@@ -215,7 +215,7 @@ namespace A
             monitor.Detach()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeDisableExistingFileForEmptyProject() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
@@ -262,7 +262,7 @@ namespace A
         End Function
 
         <WorkItem(858815)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeAllowPublicAccessOnlyForGenerationIntoOtherProject() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
@@ -312,7 +312,7 @@ namespace A
         End Function
 
         <WorkItem(858815)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeAllowClassTypeKindForAttribute_CSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 [Foo$$]
@@ -332,7 +332,7 @@ class Program
         End Function
 
         <WorkItem(858815)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeAllowClassTypeKindForAttribute_VisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 <Blah$$>
@@ -348,7 +348,7 @@ End Class]]></Text>
         End Function
 
         <WorkItem(861544)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithCapsAttribute_VisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 <FooAttribute$$>
@@ -360,7 +360,7 @@ End class]]></Text>
         End Function
 
         <WorkItem(861544)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithoutCapsAttribute_VisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 <Fooattribute$$>
@@ -372,7 +372,7 @@ End class]]></Text>
         End Function
 
         <WorkItem(861544)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithCapsAttribute_CSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 [FooAttribute$$]
@@ -385,7 +385,7 @@ public class CCC
         End Function
 
         <WorkItem(861544)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithoutCapsAttribute_CSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 [Fooattribute$$]
@@ -399,7 +399,7 @@ public class CCC
 
 
         <WorkItem(861462)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeCheckOnlyPublic_CSharp_1() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 public class C : $$D
@@ -417,7 +417,7 @@ public class C : $$D
         End Function
 
         <WorkItem(861462)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeCheckOnlyPublic_CSharp_2() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 public interface CCC : $$DDD
@@ -434,7 +434,7 @@ public interface CCC : $$DDD
         End Function
 
         <WorkItem(861462)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeCheckOnlyPublic_VisualBasic_1() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 Public Class C
@@ -450,7 +450,7 @@ End Class]]></Text>
         End Function
 
         <WorkItem(861462)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeCheckOnlyPublic_VisualBasic_2() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 Public Class CC
@@ -468,7 +468,7 @@ End Class]]></Text>
         End Function
 
         <WorkItem(861462)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeCheckOnlyPublic_VisualBasic_3() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 Public Interface CCC
@@ -486,7 +486,7 @@ End Interface]]></Text>
         End Function
 
         <WorkItem(861362)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithModuleOption() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="VB1" CommonReferences="true">
@@ -523,7 +523,7 @@ End Namespace                                       </Document>
         End Function
 
         <WorkItem(858826)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeFileExtensionUpdate() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
@@ -572,7 +572,7 @@ class Program
             Assert.Equal(viewModel.FileName, "Foo.cs")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeExcludeGeneratedDocumentsFromList() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
@@ -590,7 +590,7 @@ class Program
             Assert.Equal(expectedDocuments, viewModel.DocumentList.Select(Function(d) d.Document.Name).ToArray())
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeIntoGeneratedDocument() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
@@ -617,7 +617,7 @@ class Program
             Assert.Equal("Test.generated.cs", viewModel.SelectedDocument.Name)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeNewFileNameOptions() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true" FilePath="C:\A\B\CS1.csproj">
@@ -685,7 +685,7 @@ class Program
         End Function
 
         <WorkItem(898452)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeIntoNewFileWithInvalidIdentifierFolderName() As Task
             Dim documentContentMarkupCSharp = <Text><![CDATA[
 class Program
@@ -764,7 +764,7 @@ namespace A
         End Function
 
         <WorkItem(898563)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateType_DontGenerateIntoExistingFile() As Task
             ' Get a Temp Folder Path
             Dim projectRootFolder = Path.GetTempPath()

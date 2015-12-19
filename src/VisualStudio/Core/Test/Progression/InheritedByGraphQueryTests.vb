@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
     Public Class InheritedByGraphQueryTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestInheritedByClassesCSharp() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -69,7 +69,7 @@ class ReallyDerived : Foo // should not be shown as inherited by Base
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestInheritedByInterfacesCSharp() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -117,7 +117,7 @@ interface I3 : I2 // should not be shown as inherited by I
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestInheritedByClassesVisualBasic() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
@@ -177,7 +177,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestInheritedByInterfacesVisualBasic() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>

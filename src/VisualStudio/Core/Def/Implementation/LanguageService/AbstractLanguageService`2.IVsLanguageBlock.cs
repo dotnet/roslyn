@@ -13,6 +13,8 @@ using Roslyn.Utilities;
 using IVsLanguageBlock = Microsoft.VisualStudio.TextManager.Interop.IVsLanguageBlock;
 using IVsTextLines = Microsoft.VisualStudio.TextManager.Interop.IVsTextLines;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
+using System.Threading.Tasks;
+using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -27,9 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             out string pbstrDescription,
             out int pfBlockAvailable)
         {
-            var foundBlock = false;
-            string description = null;
-            var span = default(TextSpan);
+            Tuple<string, TextSpan> foundBlock = null;
 
             var snapshot = this.EditorAdaptersFactoryService.GetDataBuffer(pTextLines).CurrentSnapshot;
             var position = snapshot?.TryGetPosition(iCurrentLine, iCurrentChar);
@@ -47,15 +47,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 allowCancel: true,
                 action: context =>
                 {
-                    foundBlock = VsLanguageBlock.GetCurrentBlock(snapshot, position.Value, context.CancellationToken, ref description, ref span);
+                    foundBlock = VsLanguageBlock.GetCurrentBlockAsync(snapshot, position.Value, context.CancellationToken).WaitAndGetResult(context.CancellationToken);
                 });
 
-            pfBlockAvailable = foundBlock ? 1 : 0;
-            pbstrDescription = description;
+            pfBlockAvailable = foundBlock != null ? 1 : 0;
+            pbstrDescription = foundBlock.Item1;
 
-            if (ptsBlockSpan != null && ptsBlockSpan.Length >= 1)
+            if (foundBlock != null && ptsBlockSpan != null && ptsBlockSpan.Length >= 1)
             {
-                ptsBlockSpan[0] = span.ToSnapshotSpan(snapshot).ToVsTextSpan();
+                ptsBlockSpan[0] = foundBlock.Item2.ToSnapshotSpan(snapshot).ToVsTextSpan();
             }
             return VSConstants.S_OK;
         }
@@ -63,34 +63,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
     internal static class VsLanguageBlock
     {
-        public static bool GetCurrentBlock(
+        public static async Task<Tuple<string, TextSpan>> GetCurrentBlockAsync(
             ITextSnapshot snapshot,
             int position,
-            CancellationToken cancellationToken,
-            ref string description,
-            ref TextSpan span)
+            CancellationToken cancellationToken)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null || !document.SupportsSyntaxTree)
             {
-                return false;
+                return null;
             }
 
             var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var syntaxRoot = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = syntaxFactsService.GetContainingMemberDeclaration(syntaxRoot, position, useFullSpan: false);
             if (node == null)
             {
-                return false;
+                return null;
             }
 
-            description = syntaxFactsService.GetDisplayName(node,
+            string description = syntaxFactsService.GetDisplayName(node,
                 DisplayNameOptions.IncludeMemberKeyword |
                 DisplayNameOptions.IncludeParameters |
                 DisplayNameOptions.IncludeType |
                 DisplayNameOptions.IncludeTypeParameters);
-            span = node.Span;
-            return true;
+
+            return Tuple.Create(description, node.Span);
         }
     }
 }

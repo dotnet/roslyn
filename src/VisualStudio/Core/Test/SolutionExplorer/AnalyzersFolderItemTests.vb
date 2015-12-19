@@ -7,7 +7,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     Public Class AnalyzersFolderItemTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function Name() As Threading.Tasks.Task
             Dim workspaceXml =
                 <Workspace>
@@ -25,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function BrowseObject1() As Threading.Tasks.Task
             Dim workspaceXml =
                 <Workspace>

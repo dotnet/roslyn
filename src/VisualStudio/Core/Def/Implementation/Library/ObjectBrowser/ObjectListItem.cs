@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             return project
                 .GetCompilationAsync(CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
+                .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
         }
 
         public ushort GlyphIndex

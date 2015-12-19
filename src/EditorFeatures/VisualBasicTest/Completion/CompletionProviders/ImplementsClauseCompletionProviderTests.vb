@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return New ImplementsClauseCompletionProvider()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSuggestInterfaces() As Task
             Dim text = <text>Interface I
     Sub Foo()
@@ -37,7 +37,7 @@ End Class</text>.Value
         End Function
 
         <WorkItem(995986)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSuggestAliasedInterfaces() As Task
             Dim text = <text>Imports IAliasToI = I
 Imports IAliasToJ = J
@@ -61,7 +61,7 @@ End Class</text>.Value
         End Function
 
         <WorkItem(995986)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSuggestAliasedNamespace() As Task
             Dim text = <text>Imports AliasedNS = NS
 Namespace NS
@@ -85,7 +85,7 @@ End Namespace</text>.Value
             Await VerifyItemExistsAsync(text, "J")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSubSuggestSub() As Task
             Dim text = <text>Interface I
     Sub Foo()
@@ -101,7 +101,7 @@ End Class</text>.Value
             Await VerifyItemIsAbsentAsync(text, "Bar")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestFunctionSuggestFunction() As Task
             Dim text = <text>Interface I
     Sub Foo()
@@ -117,7 +117,7 @@ End Class</text>.Value
             Await VerifyItemIsAbsentAsync(text, "Foo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSuggestClassContainingInterface() As Task
             Dim text = <text>Public Class B
     Public Interface I
@@ -134,7 +134,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "B")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDoNotSuggestAlreadyImplementedMember() As Task
             Dim text = <text>Interface I
     Sub Foo()
@@ -153,7 +153,7 @@ End Class</text>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoInterfaceImplementations() As Task
             Dim text = <text>Interface I
     Sub Foo()
@@ -168,7 +168,7 @@ End Class</text>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestPropertyImplementation() As Task
             Dim text = <text>Interface I
     Sub Foo()
@@ -185,7 +185,7 @@ End Class</text>.Value
             Await VerifyItemIsAbsentAsync(text, "Foo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEventImplementation() As Task
             Dim text = <text>Interface I
     Sub Foo()
@@ -202,7 +202,7 @@ End Class</text>.Value
             Await VerifyItemIsAbsentAsync(text, "Foo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAfterGlobal() As Task
             Dim text = <text>Interface I
     Sub Foo()
@@ -218,7 +218,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "I")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546391)>
         Public Async Function TestAfterProperty() As Task
             Dim text = <text>Imports System
@@ -242,7 +242,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Global")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546410)>
         Public Async Function TestSuggestionInImplementsList() As Task
             Dim text = <text>Imports System
@@ -263,7 +263,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "I", Nothing, Nothing, True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546413)>
         Public Async Function TestNestedInterface() As Task
             Dim text = <text>Namespace Outer
@@ -287,7 +287,7 @@ End Class</text>.Value
             Await VerifyItemIsAbsentAsync(text, "J")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546413)>
         Public Async Function TestNoNestedInterface() As Task
             Dim text = <text>Public Class B
@@ -306,7 +306,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "I")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546405)>
         Public Async Function TestDotIntoGlobal() As Task
             Dim text = <text>Imports System
@@ -320,7 +320,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "I")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546415)>
         Public Async Function TestInheritedInterfaceMembers() As Task
             Dim text = <text>Interface I1
@@ -341,7 +341,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Global")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546415)>
         <WorkItem(546488)>
         Public Async Function TestInheritedInterfaceMembers2() As Task
@@ -362,7 +362,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "Equals")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546415)>
         Public Async Function TestInheritedInterface() As Task
             Dim text = <text>Interface I1
@@ -381,7 +381,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "I1")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(530353)>
         Public Async Function TestNothingToImplement() As Task
             Dim text = <text>Interface I
@@ -405,7 +405,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Global")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546431)>
         Public Async Function TestNextToImplicitLineContinuation() As Task
             Dim text = <text>Public Interface I2
@@ -421,7 +421,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Goo")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546431)>
         Public Async Function TestNextToImplicitLineContinuation2() As Task
             Dim text = <text>Public Interface I2
@@ -438,7 +438,7 @@ End Class
             Await VerifyItemExistsAsync(text, "I2")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546406)>
         Public Async Function TestDisplayTypeArguments() As Task
             Dim text = <text>Imports System
@@ -452,7 +452,7 @@ End Class
             Await VerifyItemExistsAsync(text, "IEquatable(Of Integer)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546406)>
         Public Async Function TestCommitTypeArgumentsOnParen() As Task
             Dim text = <text>Imports System
@@ -471,7 +471,7 @@ End Class</text>.Value
         End Function
 
         <WorkItem(546802)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestKeywordIdentifierShowUnescaped() As Task
             Dim text = <text>Interface [Interface]
     Sub Foo()
@@ -486,7 +486,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "Interface")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestKeywordIdentifierCommitEscaped() As Task
             Dim text = <text>Interface [Interface]
     Sub Foo()
@@ -512,7 +512,7 @@ End Class</text>.Value
         End Function
 
         <WorkItem(543812)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEventsAfterDotInImplementsClause() As Task
             Dim markup = <Text>
 Interface i
@@ -529,7 +529,7 @@ Class C1(Of t)
             Await VerifyItemExistsAsync(markup, "myevent")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInterfaceImplementsSub() As Task
             Dim test = <Text>
 Interface IFoo
@@ -548,7 +548,7 @@ End Class
             Await VerifyItemIsAbsentAsync(test, "P1")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInterfaceImplementsFunction() As Task
             Dim test = <Text>
 Interface IFoo
@@ -567,7 +567,7 @@ End Class
             Await VerifyItemIsAbsentAsync(test, "P1")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInterfaceImplementsProperty() As Task
             Dim test = <Text>
 Interface IFoo
@@ -586,7 +586,7 @@ End Class
             Await VerifyItemExistsAsync(test, "P1")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestVerifyDescription() As Task
             Dim test = <Text><![CDATA[
 Interface IFoo
@@ -607,7 +607,7 @@ End Class
         End Function
 
         <WorkItem(530507)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRootNamespaceInDefaultListing() As Task
 
             Dim workspace =
@@ -645,13 +645,13 @@ End Interface
                 Dim document = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id)
                 Dim triggerInfo = New CompletionTriggerInfo()
 
-                Dim completionList = GetCompletionList(document, position, triggerInfo)
+                Dim completionList = Await GetCompletionListAsync(document, position, triggerInfo)
                 AssertEx.Any(completionList.Items, Function(c) c.DisplayText = "Workcover")
 
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInTrivia() As Task
             Dim text = <text>Interface I
     Sub Foo()
@@ -669,7 +669,7 @@ End Class</text>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestReimplementInterfaceImplementedByBase() As Task
             Dim text = <text>Interface I
     Sub Foo()
@@ -693,7 +693,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "I")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestReimplementInterfaceImplementedByBase2() As Task
             Dim text = <text>Interface I
     Sub Foo()

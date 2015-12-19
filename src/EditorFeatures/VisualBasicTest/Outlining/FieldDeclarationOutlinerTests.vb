@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New FieldDeclarationOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestVariableMemberDeclarationWithComments() As Task
             Const code = "
 Class C

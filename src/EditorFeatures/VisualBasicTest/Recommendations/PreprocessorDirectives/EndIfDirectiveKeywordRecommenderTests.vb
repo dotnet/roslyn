@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class EndIfDirectiveKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashEndIfNotInFile()
             VerifyRecommendationsMissing(<File>|</File>, "#End If")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashEndIfInFileAfterIf()
             VerifyRecommendationsContain(<File>
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
 |</File>, "#End If")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashEndIfInFileAfterElseIf()
             VerifyRecommendationsContain(<File>
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
 |</File>, "#End If")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashEndIfNotInFileAfterElse1()
             VerifyRecommendationsContain(<File>
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
 |</File>, "#End If")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashEndIfNotInFileAfterElse2()
             VerifyRecommendationsContain(<File>
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
 |</File>, "#End If")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfAfterHashEndIf()
             VerifyRecommendationsContain(<File>
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         End Sub
 
         <WorkItem(957458)>
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotIfWithEndPartiallyTyped()
             VerifyRecommendationsMissing(<File>

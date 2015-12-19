@@ -108,13 +108,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                              IExpression conditionLeft = condition.Left;
                              IExpression conditionRight = condition.Right;
 
-                             if (conditionRight.ConstantValue != null &&
+                             if (conditionRight.ConstantValue.HasValue &&
                                  conditionRight.ResultType.SpecialType == SpecialType.System_Int32 &&
                                  conditionLeft.Kind == OperationKind.LocalReferenceExpression)
                              {
                                  // Test is known to be a comparison of a local against a constant.
 
-                                 int testValue = (int)conditionRight.ConstantValue;
+                                 int testValue = (int)conditionRight.ConstantValue.Value;
                                  ILocalSymbol testVariable = ((ILocalReferenceExpression)conditionLeft).Local;
 
                                  if (forLoop.Before.Length == 1)
@@ -125,12 +125,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          IAssignmentExpression setupAssignment = (IAssignmentExpression)((IExpressionStatement)setup).Expression;
                                          if (setupAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
                                              ((ILocalReferenceExpression)setupAssignment.Target).Local == testVariable &&
-                                             setupAssignment.Value.ConstantValue != null &&
+                                             setupAssignment.Value.ConstantValue.HasValue &&
                                              setupAssignment.Value.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
                                              // Setup is known to be an assignment of a constant to the local used in the test.
 
-                                             int initialValue = (int)setupAssignment.Value.ConstantValue;
+                                             int initialValue = (int)setupAssignment.Value.ConstantValue.Value;
 
                                              if (forLoop.AtLoopBottom.Length == 1)
                                              {
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                              if (!advanceOperation.UsesOperatorMethod &&
                                                                  advanceOperation.Left.Kind == OperationKind.LocalReferenceExpression &&
                                                                  ((ILocalReferenceExpression)advanceOperation.Left).Local == testVariable &&
-                                                                 advanceOperation.Right.ConstantValue != null &&
+                                                                 advanceOperation.Right.ConstantValue.HasValue &&
                                                                  advanceOperation.Right.ResultType.SpecialType == SpecialType.System_Int32)
                                                              {
                                                                  // Advance binary operation is known to involve a reference to the local used in the test and a constant.
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                                          if (advanceAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
                                                              ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable &&
-                                                             advanceAssignment.Value.ConstantValue != null &&
+                                                             advanceAssignment.Value.ConstantValue.HasValue &&
                                                              advanceAssignment.Value.ResultType.SpecialType == SpecialType.System_Int32)
                                                          {
                                                              // Advance binary operation is known to involve a reference to the local used in the test and a constant.
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                                      if (advanceIncrement != null)
                                                      {
-                                                         int incrementValue = (int)advanceIncrement.ConstantValue;
+                                                         int incrementValue = (int)advanceIncrement.ConstantValue.Value;
                                                          if (advanceOperationCode == BinaryOperationKind.IntegerSubtract)
                                                          {
                                                              advanceOperationCode = BinaryOperationKind.IntegerAdd;
@@ -287,10 +287,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          hasNonDefault = true;
                                          ISingleValueCaseClause singleValueClause = (ISingleValueCaseClause)clause;
                                          IExpression singleValueExpression = singleValueClause.Value;
-                                         if (singleValueExpression?.ConstantValue != null &&
+                                         if (singleValueExpression != null &&
+                                             singleValueExpression.ConstantValue.HasValue &&
                                              singleValueExpression.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
-                                             int singleValue = (int)singleValueExpression.ConstantValue;
+                                             int singleValue = (int)singleValueExpression.ConstantValue.Value;
                                              caseValueCount += IncludeClause(singleValue, singleValue, ref minCaseValue, ref maxCaseValue);
                                          }
                                          else
@@ -306,13 +307,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          IRangeCaseClause rangeClause = (IRangeCaseClause)clause;
                                          IExpression rangeMinExpression = rangeClause.MinimumValue;
                                          IExpression rangeMaxExpression = rangeClause.MaximumValue;
-                                         if (rangeMinExpression?.ConstantValue != null &&
+                                         if (rangeMinExpression != null &&
+                                             rangeMinExpression.ConstantValue.HasValue &&
                                              rangeMinExpression.ResultType.SpecialType == SpecialType.System_Int32 &&
-                                             rangeMaxExpression?.ConstantValue != null &&
+                                             rangeMaxExpression != null &&
+                                             rangeMaxExpression.ConstantValue.HasValue &&
                                              rangeMaxExpression.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
-                                             int rangeMinValue = (int)rangeMinExpression.ConstantValue;
-                                             int rangeMaxValue = (int)rangeMaxExpression.ConstantValue;
+                                             int rangeMinValue = (int)rangeMinExpression.ConstantValue.Value;
+                                             int rangeMaxValue = (int)rangeMaxExpression.ConstantValue.Value;
                                              caseValueCount += IncludeClause(rangeMinValue, rangeMaxValue, ref minCaseValue, ref maxCaseValue);
                                          }
                                          else
@@ -327,12 +330,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          hasNonDefault = true;
                                          IRelationalCaseClause relationalClause = (IRelationalCaseClause)clause;
                                          IExpression relationalValueExpression = relationalClause.Value;
-                                         if (relationalValueExpression?.ConstantValue != null &&
+                                         if (relationalValueExpression != null &&
+                                             relationalValueExpression.ConstantValue.HasValue &&
                                              relationalValueExpression.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
                                              int rangeMinValue = int.MaxValue;
                                              int rangeMaxValue = int.MinValue;
-                                             int relationalValue = (int)relationalValueExpression.ConstantValue;
+                                             int relationalValue = (int)relationalValueExpression.ConstantValue.Value;
                                              switch (relationalClause.Relation)
                                              {
                                                  case BinaryOperationKind.IntegerEquals:
@@ -497,10 +501,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private static void TestAscendingArgument(OperationAnalysisContext operationContext, IExpression argument, ref long priorArgumentValue)
         {
-            object argumentValue = argument.ConstantValue;
-            if (argumentValue != null && argument.ResultType.SpecialType == SpecialType.System_Int32)
+            Optional<object> argumentValue = argument.ConstantValue;
+            if (argumentValue.HasValue && argument.ResultType.SpecialType == SpecialType.System_Int32)
             {
-                int integerArgument = (int)argumentValue;
+                int integerArgument = (int)argumentValue.Value;
                 if (integerArgument < priorArgumentValue)
                 {
                     Report(operationContext, argument.Syntax, OutOfNumericalOrderArgumentsDescriptor);
@@ -543,8 +547,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      ILiteralExpression literal = (ILiteralExpression)operationContext.Operation;
                      if (literal.ResultType.SpecialType == SpecialType.System_Int32 &&
-                         literal.ConstantValue != null &&
-                         (int)literal.ConstantValue == 17)
+                         literal.ConstantValue.HasValue &&
+                         (int)literal.ConstantValue.Value == 17)
                      {
                          operationContext.ReportDiagnostic(Diagnostic.Create(SeventeenDescriptor, literal.Syntax.GetLocation()));
                      }

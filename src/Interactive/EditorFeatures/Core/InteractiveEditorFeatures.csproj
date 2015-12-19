@@ -126,6 +126,7 @@
   <ItemGroup>
     <Compile Include="CommandHandlers\InteractiveCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\InteractiveIntelliSenseCommandHandler.cs" />
+    <Compile Include="Completion\CompletionProviders\ReplCommandCompletionProvider.cs" />
     <Compile Include="Completion\GlobalAssemblyCacheCompletionHelper.cs" />
     <Compile Include="Completion\AbstractReferenceDirectiveCompletionProvider.cs" />
     <Compile Include="Completion\AbstractReferenceDirectiveCompletionProvider.ItemRules.cs" />

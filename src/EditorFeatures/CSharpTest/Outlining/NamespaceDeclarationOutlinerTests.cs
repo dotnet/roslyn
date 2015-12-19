@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     {
         internal override AbstractSyntaxOutliner CreateOutliner() => new NamespaceDeclarationOutliner();
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestNamespace()
         {
             const string code = @"
@@ -28,7 +28,7 @@ class C
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestNamespaceWithLeadingComments()
         {
             const string code = @"
@@ -46,7 +46,7 @@ class C
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestNamespaceWithNestedUsings()
         {
             const string code = @"
@@ -64,7 +64,7 @@ class C
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestNamespaceWithNestedUsingsWithLeadingComments()
         {
             const string code = @"
@@ -85,7 +85,7 @@ class C
                 Region("collapse3", "hint3", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestNamespaceWithNestedComments()
         {
             const string code = @"

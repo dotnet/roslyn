@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestExceptionInDisplayText()
         {
             using (var workspace = await CreateWorkspaceFromFileAsync("class D {}", null, null))

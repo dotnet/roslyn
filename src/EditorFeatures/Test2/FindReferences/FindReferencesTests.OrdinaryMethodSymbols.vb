@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethod1() As Task
             Dim input =
 <Workspace>
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodCaseSensitivity() As Task
             Dim input =
 <Workspace>
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodOverride1() As Task
             Dim input =
 <Workspace>
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodOverride2() As Task
             Dim input =
 <Workspace>
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodOverride3() As Task
             Dim input =
 <Workspace>
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodOverride_InMetadata() As Task
             Dim input =
 <Workspace>
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodOverrideCrossLanguage() As Task
             Dim input =
 <Workspace>
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodInterfaceInheritance_FromReference() As Task
             Dim input =
 <Workspace>
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodInterfaceInheritance_FromDefinition() As Task
             Dim input =
 <Workspace>
@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodInterfaceImplementation1() As Task
             Dim input =
 <Workspace>
@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(529616)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodInterfaceImplementationVB() As Task
             Dim input =
 <Workspace>
@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodInterfaceImplementation2() As Task
             Dim input =
 <Workspace>
@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodInterfaceImplementationSingleFileOnly() As Task
             Dim input =
 <Workspace>
@@ -422,7 +422,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodIEnumerable1() As Task
             Dim input =
 <Workspace>
@@ -445,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodIEnumerable2() As Task
             Dim input =
 <Workspace>
@@ -473,7 +473,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodIEnumerable3() As Task
             Dim input =
 <Workspace>
@@ -501,7 +501,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodIEnumerable4() As Task
             Dim input =
 <Workspace>
@@ -524,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodIEnumerable5() As Task
             Dim input =
 <Workspace>
@@ -552,7 +552,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodIEnumerable6() As Task
             Dim input =
 <Workspace>
@@ -734,7 +734,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_CSharpInaccessibleInstanceAbstractMethod() As Task
             Dim input =
 <Workspace>
@@ -757,7 +757,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_VBInaccessibleInstanceAbstractMethod() As Task
             Dim input =
 <Workspace>
@@ -778,7 +778,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(538794)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_CSharpInaccessibleInstancePrivateStaticMethod() As Task
             Dim input =
 <Workspace>
@@ -801,7 +801,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_VBInaccessibleInstancePrivateStaticMethod() As Task
             Dim input =
 <Workspace>
@@ -823,7 +823,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(538794)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_CSharpInaccessibleInstanceProtectedMethod() As Task
             Dim input =
 <Workspace>
@@ -846,7 +846,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_VBInaccessibleInstanceProtectedMethod() As Task
             Dim input =
 <Workspace>
@@ -868,7 +868,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestInaccessibleMemberOverrideVB() As Task
             Dim workspace =
 <Workspace>
@@ -893,7 +893,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestInaccessibleMemberOverrideCS() As Task
             Dim workspace =
 <Workspace>
@@ -920,7 +920,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_CSharpAccessibleInstanceProtectedMethod() As Task
             Dim input =
 <Workspace>
@@ -943,7 +943,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_CSharpAccessibleStaticProtectedMethod() As Task
             Dim input =
 <Workspace>
@@ -967,7 +967,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(538726)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodInterfaceMethodsDontCascadeThroughOtherInterfaceMethods1() As Task
             Dim input =
 <Workspace>
@@ -994,7 +994,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(538726)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodInterfaceMethodsDontCascadeThroughOtherInterfaceMethods2() As Task
             Dim input =
 <Workspace>
@@ -1021,7 +1021,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(538726)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodInterfaceMethodsDontCascadeThroughOtherInterfaceMethods3() As Task
             Dim input =
 <Workspace>
@@ -1048,7 +1048,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(538898)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodMatchEntireInvocation() As Task
             Dim input =
 <Workspace>
@@ -1072,7 +1072,7 @@ End Interface
         End Function
 
         <WorkItem(539033)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethodFromGenericInterface1() As Task
             Dim input =
 <Workspace>
@@ -1104,7 +1104,7 @@ End Interface
         End Function
 
         <WorkItem(539033)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethodFromGenericInterface2() As Task
             Dim input =
 <Workspace>
@@ -1136,7 +1136,7 @@ End Interface
         End Function
 
         <WorkItem(539033)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethodFromGenericInterface3() As Task
             Dim input =
 <Workspace>
@@ -1168,7 +1168,7 @@ End Interface
         End Function
 
         <WorkItem(539033)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethodFromGenericInterface4() As Task
             Dim input =
 <Workspace>
@@ -1200,7 +1200,7 @@ End Interface
         End Function
 
         <WorkItem(539046)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethod_DoNotFindInNonImplementingClass1() As Task
             Dim input =
 <Workspace>
@@ -1233,7 +1233,7 @@ class D : C
         End Function
 
         <WorkItem(539046)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethod_DoNotFindInNonImplementingClass2() As Task
             Dim input =
 <Workspace>
@@ -1266,7 +1266,7 @@ class D : C
         End Function
 
         <WorkItem(539046)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethod_DoNotFindInNonImplementingClass3() As Task
             Dim input =
 <Workspace>
@@ -1298,7 +1298,7 @@ class D : C
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethod_GenericMethod1() As Task
             Dim input =
 <Workspace>
@@ -1324,7 +1324,7 @@ class C : I
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethod_GenericMethod2() As Task
             Dim input =
 <Workspace>
@@ -1350,7 +1350,7 @@ class C : I
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethod_GenericMethod3() As Task
             Dim input =
 <Workspace>
@@ -1376,7 +1376,7 @@ class C<T> : I
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethod_GenericMethod4() As Task
             Dim input =
 <Workspace>
@@ -1402,7 +1402,7 @@ class C<T> : I
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethod_GenericMethod5() As Task
             Dim input =
 <Workspace>
@@ -1428,7 +1428,7 @@ class C : I
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethod_RefOut1() As Task
             Dim input =
 <Workspace>
@@ -1454,7 +1454,7 @@ class C : I
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethod_RefOut2_Success() As Task
             Dim input =
 <Workspace>
@@ -1484,7 +1484,7 @@ class C : I
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCascadeOrdinaryMethod_RefOut2_Error() As Task
             ' In non-compiling code, finding an almost-matching definition
             ' seems reasonable.
@@ -1512,7 +1512,7 @@ class C : I
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethod_DelegateConstructor1() As Task
             Dim input =
 <Workspace>
@@ -1539,7 +1539,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethod_DelegateConstructor2() As Task
             Dim input =
 <Workspace>
@@ -1566,7 +1566,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethod_DelegateConstructor3() As Task
             Dim input =
 <Workspace>
@@ -1594,7 +1594,7 @@ class Program
         End Function
 
         <WorkItem(539646)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestDelegateMethod1() As Task
             Dim input =
 <Workspace>
@@ -1623,7 +1623,7 @@ class Program
         End Function
 
         <WorkItem(539646)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestDelegateMethod2() As Task
             Dim input =
 <Workspace>
@@ -1652,7 +1652,7 @@ class Program
         End Function
 
         <WorkItem(539646)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestDelegateMethod3() As Task
             Dim input =
 <Workspace>
@@ -1681,7 +1681,7 @@ class Program
         End Function
 
         <WorkItem(539824)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestMethodGroup1() As Task
             Dim input =
 <Workspace>
@@ -1709,7 +1709,7 @@ class C
         End Function
 
         <WorkItem(539824)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestMethodGroup2() As Task
             Dim input =
 <Workspace>
@@ -1737,7 +1737,7 @@ class C
         End Function
 
         <WorkItem(540349)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNonImplementedInterfaceMethod1() As Task
             Dim input =
 <Workspace>
@@ -1768,7 +1768,7 @@ End Class
         End Function
 
         <WorkItem(540349)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNonImplementedInterfaceMethod2() As Task
             Dim input =
 <Workspace>
@@ -1799,7 +1799,7 @@ End Class
         End Function
 
         <WorkItem(540349)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestNonImplementedInterfaceMethod3() As Task
             Dim input =
 <Workspace>
@@ -1830,7 +1830,7 @@ End Class
         End Function
 
         <WorkItem(540359)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestShadowedMethod1() As Task
             Dim input =
 <Workspace>
@@ -1868,7 +1868,7 @@ End Class
         End Function
 
         <WorkItem(540359)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestShadowedMethod2() As Task
             Dim input =
 <Workspace>
@@ -1906,7 +1906,7 @@ End Class
         End Function
 
         <WorkItem(540359)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestShadowedMethod3() As Task
             Dim input =
 <Workspace>
@@ -1944,7 +1944,7 @@ End Class
         End Function
 
         <WorkItem(540359)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestShadowedMethod4() As Task
             Dim input =
 <Workspace>
@@ -1982,7 +1982,7 @@ End Class
         End Function
 
         <WorkItem(540946)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAddressOfOverloads1() As Task
             Dim input =
 <Workspace>
@@ -2010,7 +2010,7 @@ End Class]]>
         End Function
 
         <WorkItem(540946)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAddressOfOverloads2() As Task
             Dim input =
 <Workspace>
@@ -2038,7 +2038,7 @@ End Class]]>
         End Function
 
         <WorkItem(540946)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAddressOfOverloads3() As Task
             Dim input =
 <Workspace>
@@ -2066,7 +2066,7 @@ End Class]]>
         End Function
 
         <WorkItem(542034)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestFunctionValue1() As Task
             Dim input =
 <Workspace>
@@ -2087,7 +2087,7 @@ End Class
         End Function
 
         <WorkItem(542034)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestFunctionValue2() As Task
             Dim input =
 <Workspace>
@@ -2108,7 +2108,7 @@ End Class
         End Function
 
         <WorkItem(543002)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestForEachGetEnumerator1() As Task
             Dim input =
 <Workspace>
@@ -2142,7 +2142,7 @@ class C
         End Function
 
         <WorkItem(543002)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestForEachMoveNext1() As Task
             Dim input =
 <Workspace>
@@ -2176,7 +2176,7 @@ class C
         End Function
 
         <WorkItem(543002)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestForEachCurrent1() As Task
             Dim input =
 <Workspace>
@@ -2210,7 +2210,7 @@ class C
         End Function
 
         <WorkItem(544439)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodPartial1_CSharp() As Task
             Dim input =
 <Workspace>
@@ -2229,7 +2229,7 @@ partial class Class1
         End Function
 
         <WorkItem(544439)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodPartial2_CSharp() As Task
             Dim input =
 <Workspace>
@@ -2248,7 +2248,7 @@ partial class Class1
         End Function
 
         <WorkItem(544437)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodPartial1_VB() As Task
             Dim input =
 <Workspace>
@@ -2270,7 +2270,7 @@ End Module
         End Function
 
         <WorkItem(544437)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodPartial2_VB() As Task
             Dim input =
 <Workspace>
@@ -2291,7 +2291,7 @@ End Module
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestInterfaceMethod() As Task
             Dim input =
 <Workspace>
@@ -2342,7 +2342,7 @@ public interface IClass
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCrefMethod() As Task
             Dim input =
 <Workspace>
@@ -2362,7 +2362,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCrefMethod2() As Task
             Dim input =
 <Workspace>
@@ -2382,7 +2382,7 @@ class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCrefMethodAcrossMultipleFiles() As Task
             Dim input =
 <Workspace>
@@ -2412,7 +2412,7 @@ partial class Program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCrefMethodAcrossMultipleFiles2() As Task
             Dim input =
 <Workspace>
@@ -2443,7 +2443,7 @@ partial class Program
         End Function
 
         <WorkItem(531010)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCrossAssemblyReferencesFromMetadata() As Task
             Dim input =
 <Workspace>
@@ -2472,7 +2472,7 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(623148)>
         Public Async Function TestFarWithInternalVisibleTo() As Task
             Dim input =
@@ -2504,7 +2504,7 @@ End Class
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(657262)>
         Public Async Function TestMethodInsideMetadataToSourcePrimitiveTypeInCSharpSource() As Task
             Dim input =
@@ -2525,7 +2525,7 @@ namespace System
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(657262)>
         Public Async Function TestMethodInsideMetadataToSourcePrimitiveTypeInVisualBasicSource() As Task
             Dim input =
@@ -2545,7 +2545,7 @@ End Namespace
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestRetargetingMethod_Basic() As Task
             Dim input =
 <Workspace>
@@ -2581,7 +2581,7 @@ class Class2
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestRetargetingMethod_GenericType() As Task
             Dim input =
 <Workspace>
@@ -2620,7 +2620,7 @@ class Class2
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestRetargetingMethod_FARFromReferencingProject() As Task
             Dim input =
 <Workspace>
@@ -2659,7 +2659,7 @@ class Class2
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestRetargetingMethod_MultipleForwardedTypes() As Task
             Dim input =
 <Workspace>
@@ -2698,7 +2698,7 @@ class Class2
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestRetargetingMethod_NestedType() As Task
             Dim input =
 <Workspace>
@@ -2737,7 +2737,7 @@ class Class2
         End Function
 
         <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestRefKindRef_FromDefinition() As Task
             Dim input =
 <Workspace>
@@ -2772,7 +2772,7 @@ End Class
         End Function
 
         <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestRefKindRef_FromReference() As Task
             Dim input =
 <Workspace>
@@ -2807,7 +2807,7 @@ End Class
         End Function
 
         <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestRefKindOut_FromDefinition() As Task
             Dim input =
 <Workspace>
@@ -2842,7 +2842,7 @@ End Class
         End Function
 
         <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestRefKindOut_FromReference() As Task
             Dim input =
 <Workspace>

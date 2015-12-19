@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public ChangeSignatureResult ChangeSignature()
         {
+            Roslyn.Test.Utilities.WpfTestCase.RequireWpfFact($"{nameof(AbstractChangeSignatureService.ChangeSignature)} currently needs to run on a WPF Fact because it's factored in a way that tries popping up UI in some cases.");
+
             return ChangeSignatureService.ChangeSignature(
                 InvocationDocument,
                 _testDocument.CursorPosition.Value,

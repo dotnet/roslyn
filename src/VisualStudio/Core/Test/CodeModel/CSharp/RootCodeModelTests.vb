@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 class Foo { }
 </code>
 
-            Await TestCodeElements(code,
+            Await TestChildren(code,
                              "Foo",
                              "System",
                              "Microsoft")
@@ -27,7 +27,7 @@ class Foo { }
 
 #End Region
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDotNetNameFromLanguageSpecific1() As Task
             Dim code =
 <code>
@@ -49,7 +49,7 @@ namespace N
                 End Sub)
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDotNetNameFromLanguageSpecific2() As Task
             Await TestRootCodeModelWithCodeFile(<code></code>,
                 Sub(rootCodeModel)
@@ -58,7 +58,7 @@ namespace N
                 End Sub)
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestDotNetNameFromLanguageSpecificWithAssemblyQualifiedName() As Task
             Await TestRootCodeModelWithCodeFile(<code></code>,
                 Sub(rootCodeModel)
@@ -91,7 +91,7 @@ class Foo { }
 
 #Region "CreateCodeTypeRef"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCreateCodeTypeRef_Int32() As Task
             Await TestCreateCodeTypeRef("System.Int32",
                                   New CodeTypeRefData With {
@@ -102,7 +102,7 @@ class Foo { }
                                   })
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCreateCodeTypeRef_System_Text_StringBuilder() As Task
             Await TestCreateCodeTypeRef("System.Text.StringBuilder",
                                   New CodeTypeRefData With {
@@ -113,7 +113,7 @@ class Foo { }
                                   })
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCreateCodeTypeRef_NullableInteger() As Task
             Await TestCreateCodeTypeRef("int?",
                                   New CodeTypeRefData With {
@@ -124,7 +124,7 @@ class Foo { }
                                   })
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCreateCodeTypeRef_ListOfInt() As Task
             Await TestCreateCodeTypeRef("System.Collections.Generic.List<int>",
                                   New CodeTypeRefData With {

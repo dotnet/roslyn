@@ -10,73 +10,73 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class WithKeywordRecommenderTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoneInClassDeclaration()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "With")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoneAfterFrom()
             VerifyRecommendationsMissing(<ClassDeclaration>Dim x = New Foo From |</ClassDeclaration>, "With")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoneAfterWith1()
             VerifyRecommendationsMissing(<ClassDeclaration>Dim x = New With |</ClassDeclaration>, "With")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoneAfterWith2()
             VerifyRecommendationsMissing(<ClassDeclaration>Dim x = New Foo With |</ClassDeclaration>, "With")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithAfterDimEqualsNew()
             VerifyRecommendationsContain(<MethodBody>Dim x = New |</MethodBody>, "With")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithAfterDimEqualsNewTypeName()
             VerifyRecommendationsContain(<MethodBody>Dim x = New Foo |</MethodBody>, "With")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithAfterDimEqualsNewTypeNameAndParens()
             VerifyRecommendationsContain(<MethodBody>Dim x = New Foo() |</MethodBody>, "With")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithAfterDimAsNew()
             VerifyRecommendationsContain(<MethodBody>Dim x As New |</MethodBody>, "With")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithAfterDimAsNewTypeName()
             VerifyRecommendationsContain(<MethodBody>Dim x As New Foo |</MethodBody>, "With")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithAfterDimAsNewTypeNameAndParens()
             VerifyRecommendationsContain(<MethodBody>Dim x As New Foo() |</MethodBody>, "With")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithAfterAssignmentNew()
             VerifyRecommendationsContain(<MethodBody>x = New |</MethodBody>, "With")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithAfterAssignmentNewTypeName()
             VerifyRecommendationsContain(<MethodBody>x = New Foo |</MethodBody>, "With")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WithAfterAssignmentNewTypeNameAndParens()
             VerifyRecommendationsContain(<MethodBody>x = New Foo() |</MethodBody>, "With")
         End Sub
 
         <WorkItem(543291)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoWithAfterDot()
             Dim code = <File>
 Class C
@@ -90,7 +90,7 @@ End Class
         End Sub
 
         <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterEol()
             VerifyRecommendationsMissing(
 <ClassDeclaration>Dim x = New Foo 
@@ -98,7 +98,7 @@ End Class
         End Sub
 
         <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AfterExplicitLineContinuation()
             VerifyRecommendationsContain(
 <ClassDeclaration>Dim x = New Foo _

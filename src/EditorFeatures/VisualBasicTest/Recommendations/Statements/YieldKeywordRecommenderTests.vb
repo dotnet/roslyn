@@ -4,12 +4,12 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class YieldKeywordRecommenderTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Yield")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InLambdaBody()
             Dim code =
 <MethodBody>
@@ -21,7 +21,7 @@ Dim f = Function()
             VerifyRecommendationsContain(code, "Yield")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInExpression()
             Dim code =
 <MethodBody>

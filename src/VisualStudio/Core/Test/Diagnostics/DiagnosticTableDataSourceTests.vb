@@ -22,7 +22,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class DiagnosticTableDataSourceTests
-        <WpfFact>
+        <Fact>
         Public Async Function TestCreation() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim provider = New TestDiagnosticService()
@@ -54,7 +54,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestInitialEntries() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -73,7 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestEntryChanged() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -98,7 +98,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestEntry() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -139,7 +139,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSnapshotEntry() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -187,7 +187,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestInvalidEntry() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -217,7 +217,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestNoHiddenEntry() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -244,7 +244,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestProjectEntry() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim projectId = workspace.CurrentSolution.Projects.First().Id
@@ -270,7 +270,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestMultipleWorkspace() As Task
             Using workspace1 = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Using workspace2 = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
@@ -342,7 +342,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestHyperLink() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -374,7 +374,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestBingHyperLink() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -406,7 +406,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestHelpLink() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -435,7 +435,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestHelpKeyword() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -464,7 +464,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestBingHelpLink() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -493,7 +493,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestBingHelpLink_NoCustomType() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class A { int 111a; }")
                 Dim diagnostic = (Await workspace.CurrentSolution.Projects.First().GetCompilationAsync()).GetDiagnostics().First(Function(d) d.Id = "CS1519")
@@ -510,7 +510,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestErrorSource() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -539,7 +539,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestWorkspaceDiagnostic() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -569,7 +569,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestProjectDiagnostic() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()

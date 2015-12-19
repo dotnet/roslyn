@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         ITypeSymbol ResultType { get; }
         /// <summary>
-        /// If the expression evaluates to a constant value, the value of the expression, and otherwise null.
+        /// If the expression evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression, and otherwise <see cref="Optional{Object}.HasValue"/> is false.
         /// </summary>
-        object ConstantValue { get; }
+        Optional<object> ConstantValue { get; }
     }
 
     /// <summary>

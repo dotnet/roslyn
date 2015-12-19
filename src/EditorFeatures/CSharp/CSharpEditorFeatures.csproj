@@ -84,6 +84,7 @@
     <Compile Include="BraceMatching\OpenCloseBraceBraceMatcher.cs" />
     <Compile Include="BraceMatching\OpenCloseBracketBraceMatcher.cs" />
     <Compile Include="BraceMatching\OpenCloseParenBraceMatcher.cs" />
+    <Compile Include="BraceMatching\CSharpDirectiveTriviaBraceMatcher.cs" />
     <Compile Include="BraceMatching\StringLiteralBraceMatcher.cs" />
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.cs" />

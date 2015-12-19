@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         public const string SingleIfStatementForm = nameof(SingleIfStatementForm);
     }
 
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    //[DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class InvokeDelegateWithConditionalAccessAnalyzer : DiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(

@@ -1,6 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationCommentFormatting
+Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
     Friend Class DocumentationCommentUtilities
         Private Shared ReadOnly s_newLineStrings As String() = {vbCrLf, vbCr, vbLf}
 

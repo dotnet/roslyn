@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             return new NamedParameterCompletionProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SendEnterThroughToEditorTest()
         {
             const string markup = @"
@@ -40,7 +40,7 @@ class Foo
             await VerifySendEnterThroughToEnterAsync(markup, "a:", sendThroughEnterEnabled: true, expected: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitCharacterTest()
         {
             const string markup = @"
@@ -58,7 +58,7 @@ class Foo
             await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InObjectCreation()
         {
             var markup = @"
@@ -76,7 +76,7 @@ class Foo
             await VerifyItemExistsAsync(markup, "a:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InBaseConstructor()
         {
             var markup = @"
@@ -95,7 +95,7 @@ class DogBed : Foo
             await VerifyItemExistsAsync(markup, "a:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvocationExpression()
         {
             var markup = @"
@@ -111,7 +111,7 @@ class Foo
             await VerifyItemExistsAsync(markup, "a:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvocationExpressionAfterComma()
         {
             var markup = @"
@@ -127,7 +127,7 @@ class Foo
             await VerifyItemExistsAsync(markup, "a:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ElementAccessExpression()
         {
             var markup = @"
@@ -160,7 +160,7 @@ class Program
             await VerifyItemExistsAsync(markup, "i:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PartialMethods()
         {
             var markup = @"
@@ -181,7 +181,7 @@ partial class PartialClass
             await VerifyItemIsAbsentAsync(markup, "implementing:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterColon()
         {
             var markup = @"
@@ -198,7 +198,7 @@ class Foo
         }
 
         [WorkItem(544292)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInCollectionInitializers()
         {
             var markup = @"
@@ -216,7 +216,7 @@ class Foo
         }
 
         [WorkItem(544191)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FilteringOverloadsByCallSite()
         {
             var markup = @"
@@ -239,7 +239,7 @@ class Class1
             await VerifyItemIsAbsentAsync(markup, "character:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DontFilterYet()
         {
             var markup = @"
@@ -263,7 +263,7 @@ class Class1
         }
 
         [WorkItem(544191)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FilteringOverloadsByCallSiteComplex()
         {
             var markup = @"
@@ -296,7 +296,7 @@ class Bar { }
             await VerifyItemIsAbsentAsync(markup, "dbl:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodOverloads()
         {
             var markup = @"
@@ -324,7 +324,7 @@ class Foo
             await VerifyItemExistsAsync(markup, "b:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExistingNamedParamsAreFilteredOut()
         {
             var markup = @"
@@ -357,7 +357,7 @@ class Foo
         }
 
         [WorkItem(529369)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task VerbatimIdentifierNotAKeyword()
         {
             var markup = @"
@@ -373,7 +373,7 @@ class Program
         }
 
         [WorkItem(544209)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DescriptionStringInMethodOverloads()
         {
             var markup = @"
@@ -395,7 +395,7 @@ class Class1
                 expectedDescriptionOrNull: $"({FeaturesResources.Parameter}) Class1 obj = default(Class1)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InDelegates()
         {
             var markup = @"
@@ -417,7 +417,7 @@ class Program
             await VerifyItemExistsAsync(markup, "message:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InDelegateInvokeSyntax()
         {
             var markup = @"
@@ -439,7 +439,7 @@ class Program
             await VerifyItemExistsAsync(markup, "message:");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInComment()
         {
             var markup = @"

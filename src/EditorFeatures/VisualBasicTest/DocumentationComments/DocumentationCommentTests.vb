@@ -1045,7 +1045,7 @@ End Class
         End Function
 
         <WorkItem(538482)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestCommand_NotOnSecondPropertyOnLine()
             Dim code =
                 StringFromLines("Module M",

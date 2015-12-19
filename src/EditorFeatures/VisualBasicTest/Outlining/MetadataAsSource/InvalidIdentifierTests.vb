@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         End Function
 
         <WorkItem(1174405)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function PrependDollarSign() As Task
             Const code = "
 $$Class C
@@ -45,7 +45,7 @@ End Class
         End Function
 
         <WorkItem(1174405)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function SymbolsAndPunctuation() As Task
             Const code = "
 $$Class C
@@ -56,7 +56,7 @@ End Class
         End Function
 
         <WorkItem(1174405)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function IdentifierThatLooksLikeCode() As Task
             Const code = "
 $$Class C

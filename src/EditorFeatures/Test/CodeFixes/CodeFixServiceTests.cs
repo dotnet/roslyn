@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 {
     public class CodeFixServiceTests
     {
-        [WpfFact]
+        [Fact]
         public async Task TestGetFirstDiagnosticWithFixAsync()
         {
             var diagnosticService = new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
@@ -57,35 +57,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestGetCodeFixWithExceptionInRegisterMethod()
         {
             await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInRegisterMethod());
             await GetAddedFixesAsync(new ErrorCases.ExceptionInRegisterMethod());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestGetCodeFixWithExceptionInRegisterMethodAsync()
         {
             await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
             await GetAddedFixesAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds()
         {
             await GetDefaultFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
             await GetAddedFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds2()
         {
             await GetDefaultFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
             await GetAddedFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TestGetCodeFixWithExceptionInGetFixAllProvider()
         {
             await GetAddedFixesAsync(new ErrorCases.ExceptionInGetFixAllProvider());

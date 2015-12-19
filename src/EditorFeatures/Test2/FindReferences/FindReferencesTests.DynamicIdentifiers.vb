@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalVariable() As Task
             Dim input =
 <Workspace>
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalObject() As Task
             Dim input =
 <Workspace>
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalLambda() As Task
             Dim input =
 <Workspace>
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalArray() As Task
             Dim input =
 <Workspace>
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalCast() As Task
             Dim input =
 <Workspace>

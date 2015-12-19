@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     {
         internal override AbstractSyntaxOutliner CreateOutliner() => new ParenthesizedLambdaExpressionOutliner();
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestLambda()
         {
             const string code = @"
@@ -31,7 +31,7 @@ class C
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestLambdaInForLoop()
         {
             const string code = @"
@@ -46,7 +46,7 @@ class C
             await VerifyNoRegionsAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestLambdaInMethodCall1()
         {
             const string code = @"
@@ -64,7 +64,7 @@ class C
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestLambdaInMethodCall2()
         {
             const string code = @"

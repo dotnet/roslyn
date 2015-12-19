@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 {
     public class TextStructureNavigatorTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public async Task Empty()
         {
             await AssertExtentAsync(
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 start: 12, length: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public async Task NewLine()
         {
             await AssertExtentAsync(

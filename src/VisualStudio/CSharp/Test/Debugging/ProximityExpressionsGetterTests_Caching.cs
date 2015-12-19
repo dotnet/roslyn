@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
         // lexically after its declaration.
         //
         // We should figure out some better way to test the feature.
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestCaching1()
         {
             var input = @"
@@ -89,7 +89,7 @@ class Class
         }
 
         [WorkItem(538259)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestCaching2()
         {
             var input = @"
@@ -114,7 +114,7 @@ class Program
         }
 
         [WorkItem(538259)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestCaching3()
         {
             var input = @"

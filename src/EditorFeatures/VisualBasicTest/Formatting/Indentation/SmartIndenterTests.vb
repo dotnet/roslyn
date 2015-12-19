@@ -2001,7 +2001,7 @@ End Module</text>.Value
         End Function
 #End Region
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestSmartIndenterConstructorThrows1()
             AssertEx.Throws(Of ArgumentNullException)(
@@ -2903,6 +2903,8 @@ End Class
 
                             Return p
                         End Function)
+
+                WpfTestCase.RequireWpfFact("Test helper creates mocks of ITextView")
 
                 Dim textView = New Mock(Of ITextView)(MockBehavior.Strict)
                 textView.Setup(Function(x) x.Options).Returns(TestEditorOptions.Instance)

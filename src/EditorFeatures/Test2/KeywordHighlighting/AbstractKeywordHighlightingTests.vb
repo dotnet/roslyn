@@ -28,6 +28,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
                 workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language, optionIsEnabled)
 
+                WpfTestCase.RequireWpfFact($"{NameOf(AbstractKeywordHighlightingTests)}.VerifyHighlightsAsync creates asynchronous taggers")
+
                 Dim highlightingService = workspace.GetService(Of IHighlightingService)()
                 Dim tagProducer = New HighlighterViewTaggerProvider(
                     highlightingService,
@@ -35,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                     AggregateAsynchronousOperationListener.EmptyListeners)
 
                 Dim context = New TaggerContext(Of KeywordHighlightTag)(document, snapshot, New SnapshotPoint(snapshot, caretPosition))
-                tagProducer.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait()
+                Await tagProducer.ProduceTagsAsync_ForTestingPurposesOnly(context)
 
                 Dim producedTags = From tag In context.tagSpans
                                    Order By tag.Span.Start

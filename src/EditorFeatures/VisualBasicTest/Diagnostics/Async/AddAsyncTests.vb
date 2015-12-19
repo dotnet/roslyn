@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
     Public Class AddAsyncTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInSubNoModifiers() As Task
             Await TestAsync(
                 NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Sub Test() \n [|Await Task.Delay(1)|] \n End Sub \n End Module"),
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
                 )
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInSubWithModifiers() As Task
             Await TestAsync(
                 NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Sub Test() \n [|Await Task.Delay(1)|] \n End Sub \n End Module"),
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
                 )
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInFunctionNoModifiers() As Task
             Await TestAsync(
                 NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Function Test() As Integer \n [|Await Task.Delay(1)|] \n Function Sub \n End Module"),
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
                 )
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInFunctionWithModifiers() As Task
             Await TestAsync(
                 NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Function Test() As Integer \n [|Await Task.Delay(1)|] \n Function Sub \n End Module"),
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
                 )
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInLambdaFunction() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInLambdaSub() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -77,12 +77,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInMember() As Task
             Await TestMissingAsync(NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Dim x =[| Await Task.Delay(3)|] \n End Module"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestBadAwaitInNonAsyncMethod() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestBadAwaitInNonAsyncVoidMethod() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestBadAwaitInNonAsyncFunction() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestBadAwaitInNonAsyncFunction2() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestBadAwaitInNonAsyncFunction3() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestBadAwaitInNonAsyncFunction4() As Task
             Dim initial =
 <File>
@@ -188,7 +188,7 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestBadAwaitInNonAsyncFunction5() As Task
             Dim initial =
 <File>
@@ -209,7 +209,7 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestBadAwaitInNonAsyncFunction6() As Task
             Dim initial =
 <File>
@@ -230,7 +230,7 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestBadAwaitInNonAsyncFunction7() As Task
             Dim initial =
 <File>
@@ -251,7 +251,7 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestBadAwaitInNonAsyncFunction8() As Task
             Dim initial =
 <File>
@@ -273,7 +273,7 @@ End Class
         End Function
 
         <WorkItem(6477, "https://github.com/dotnet/roslyn/issues/6477")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestNullNodeCrash() As Task
             Dim initial =
 <File>

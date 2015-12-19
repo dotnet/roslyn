@@ -43,6 +43,9 @@ namespace Roslyn.Test.Utilities
                             StaTaskScheduler.DefaultSta,
                             ForegroundThreadDataKind.StaUnitTest);
 
+                        // Reset our flag ensuring that part of this test actually needs WpfFact
+                        s_wpfFactRequirementReason = null;
+
                         // All WPF Tests need a DispatcherSynchronizationContext and we dont want to block pending keyboard
                         // or mouse input from the user. So use background priority which is a single level below user input.
                         var dispatcherSynchronizationContext = new DispatcherSynchronizationContext();
@@ -74,6 +77,7 @@ namespace Roslyn.Test.Utilities
                     finally
                     {
                         ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = null;
+                        s_wpfFactRequirementReason = null;
 
                         // Cleanup the synchronization context even if the test is failing exceptionally
                         SynchronizationContext.SetSynchronizationContext(null);
@@ -82,6 +86,21 @@ namespace Roslyn.Test.Utilities
             }, cancellationTokenSource.Token, TaskCreationOptions.None, sta);
 
             return task.Unwrap();
+        }
+
+        private static string s_wpfFactRequirementReason;
+
+        /// <summary>
+        /// Asserts that the test is running on a <see cref="WpfFactAttribute"/> test method, and records the reason for requiring the <see cref="WpfFactAttribute"/>.
+        /// </summary>
+        public static void RequireWpfFact(string reason)
+        {
+            if (ForegroundThreadDataInfo.CurrentForegroundThreadDataKind != ForegroundThreadDataKind.StaUnitTest)
+            {
+                throw new Exception($"This test requires {nameof(WpfFactAttribute)} because '{reason}' but is missing {nameof(WpfFactAttribute)}. Either the attribute should be changed, or the reason it needs an STA thread audited.");
+            }
+
+            s_wpfFactRequirementReason = reason;
         }
     }
 }

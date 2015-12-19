@@ -452,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     End If
 
                     Dim renameDeclarationLocations As RenameDeclarationLocationReference() =
-                        ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken).WaitAndGetResult(_cancellationToken)
+                        ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
 
                     Dim renameAnnotation = New RenameActionAnnotation(
                                             identifierToken.Span,

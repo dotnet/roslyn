@@ -161,8 +161,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 Assert.NotNull(document);
 
                 var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-                var tree = await document.GetSyntaxTreeAsync();
-                var iterator = tree.GetRoot().DescendantNodesAndSelf().Cast<SyntaxNode>();
+                var root = await document.GetSyntaxRootAsync();
+                var iterator = root.DescendantNodesAndSelf().Cast<SyntaxNode>();
 
                 var options = document.Project.Solution.Workspace.Options
                                       .WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, true);

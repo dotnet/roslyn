@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class CallKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CallInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Call")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CallAfterStatement()
             VerifyRecommendationsContain(<MethodBody>
@@ -23,19 +23,19 @@ Dim x
 |</MethodBody>, "Call")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CallMissingInClassBlock()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "Call")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CallInSingleLineLambda()
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "Call")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CallNotInSingleLineFunctionLambda()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "Call")

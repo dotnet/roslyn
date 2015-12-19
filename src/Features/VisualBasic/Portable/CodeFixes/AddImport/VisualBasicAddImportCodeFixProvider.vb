@@ -290,14 +290,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return symbol IsNot Nothing AndAlso symbol.Locations.Length > 0
         End Function
 
-        Protected Overloads Overrides Function AddImportAsync(
+        Protected Overloads Overrides Async Function AddImportAsync(
                 contextNode As SyntaxNode,
                 symbol As INamespaceOrTypeSymbol,
                 document As Document,
                 placeSystemNamespaceFirst As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
-            Dim root = DirectCast(contextNode.SyntaxTree.GetRoot(cancellationToken), CompilationUnitSyntax)
+            Dim root = DirectCast(Await contextNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(False), CompilationUnitSyntax)
 
             Dim memberImportsClause =
                 SyntaxFactory.SimpleImportsClause(name:=DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax).WithAdditionalAnnotations(Simplifier.Annotation))
@@ -305,10 +305,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                 importsClauses:=SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(memberImportsClause))
 
             Dim syntaxTree = contextNode.SyntaxTree
-            Return Task.FromResult(
-                document.WithSyntaxRoot(
+            Return document.WithSyntaxRoot(
                 root.AddImportsStatement(newImport, placeSystemNamespaceFirst,
-                                         CaseCorrector.Annotation, Formatter.Annotation)))
+                                         CaseCorrector.Annotation, Formatter.Annotation))
         End Function
 
         Protected Overrides Function IsViableExtensionMethod(method As IMethodSymbol,

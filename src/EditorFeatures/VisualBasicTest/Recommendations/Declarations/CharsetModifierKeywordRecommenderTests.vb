@@ -9,50 +9,50 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class CharsetModifierKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AutoAfterDeclare()
             VerifyRecommendationsContain(<ClassDeclaration>Declare |</ClassDeclaration>, "Auto")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AnsiAfterDeclare()
             VerifyRecommendationsContain(<ClassDeclaration>Declare |</ClassDeclaration>, "Ansi")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub UnicodeAfterDeclare()
             VerifyRecommendationsContain(<ClassDeclaration>Declare |</ClassDeclaration>, "Unicode")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AutoNotAfterAnotherCharsetModifier1()
             VerifyRecommendationsMissing(<ClassDeclaration>Declare Ansi |</ClassDeclaration>, "Auto")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AutoNotAfterAnotherCharsetModifier2()
             VerifyRecommendationsMissing(<ClassDeclaration>Declare Auto |</ClassDeclaration>, "Auto")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AutoNotAfterAnotherCharsetModifier3()
             VerifyRecommendationsMissing(<ClassDeclaration>Declare Unicode |</ClassDeclaration>, "Auto")
         End Sub
 
         <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterColon()
             VerifyRecommendationsMissing(<ClassDeclaration>Declare : |</ClassDeclaration>, "Unicode")
         End Sub
 
         <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterEol()
             VerifyRecommendationsMissing(
 <ClassDeclaration>Declare 
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         End Sub
 
         <WorkItem(530953)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AfterExplicitLineContinuation()
             VerifyRecommendationsContain(
 <ClassDeclaration>Declare _

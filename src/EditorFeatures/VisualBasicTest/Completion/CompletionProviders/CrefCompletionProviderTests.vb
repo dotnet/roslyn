@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return New CrefCompletionProvider()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotOutsideCref() As Task
             Dim text = <File>
 Class C
@@ -38,7 +38,7 @@ End Class
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotOutsideCref2() As Task
             Dim text = <File>
 Class C
@@ -51,7 +51,7 @@ End Class
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotOutsideCref3() As Task
             Dim text = <File>
 Class C
@@ -64,7 +64,7 @@ End Class
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAfterCrefOpenQuote() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -80,7 +80,7 @@ End Module]]></File>.Value
             Await VerifyAnyItemExistsAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRightSideOfQualifiedName() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -96,7 +96,7 @@ End Module]]></File>.Value
             Await VerifyItemExistsAsync(text, "Foo()")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInTypeParameterContext() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -112,7 +112,7 @@ End Class]]></File>.Value
             Await VerifyItemIsAbsentAsync(text, "Integer")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInSignature_FirstParameter() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -129,7 +129,7 @@ End Class]]></File>.Value
             Await VerifyItemIsAbsentAsync(text, "Foo(Integer")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInSignature_SecondParameter() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -145,7 +145,7 @@ End Class]]></File>.Value
             Await VerifyItemExistsAsync(text, "Integer")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotAfterSignature() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -160,7 +160,7 @@ End Class]]></File>.Value
 
             Await VerifyNoItemsExistAsync(text)
         End Function
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotAfterDotAfterSignature() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -176,7 +176,7 @@ End Class]]></File>.Value
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMethodParametersIncluded() As Task
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -190,7 +190,7 @@ End Class]]></File>.Value
             Await VerifyItemExistsAsync(text, "Foo(ByRef Integer, Integer, Integer())")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypesSuggestedWithTypeParameters() As Task
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -205,7 +205,7 @@ End Class]]></File>.Value
             Await VerifyItemExistsAsync(text, "Program")
             Await VerifyItemExistsAsync(text, "Program(Of TTypeParameter)")
         End Function
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOperators() As Task
             Dim text = <File><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -231,7 +231,7 @@ End Class]]></File>.Value
             Await VerifyItemExistsAsync(text, "Operator +(C)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestModOperator() As Task
             Dim text = <File><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -257,7 +257,7 @@ End Class]]></File>.Value
             Await VerifyItemExistsAsync(text, "Operator Mod(C, Integer)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestConstructorsShown() As Task
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -271,7 +271,7 @@ End Class
 
             Await VerifyItemExistsAsync(text, "New(Integer)")
         End Function
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAfterNamespace() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -287,7 +287,7 @@ End Class
             Await VerifyItemExistsAsync(text, "String")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestParameterizedProperties() As Task
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -317,7 +317,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Item(Integer, String)")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoIdentifierEscaping() As Task
             Dim text = <File><![CDATA[
 ''' <see cref="A.$$"/>
@@ -330,7 +330,7 @@ End Class
             Await VerifyItemExistsAsync(text, "GetType()")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoCommitOnParen() As Task
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -355,7 +355,7 @@ End Class
             Await VerifyProviderCommitAsync(text, "bar(Integer, Integer)", expected, "("c, "bar")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAllowTypingTypeParameters() As Task
             Dim text = <File><![CDATA[
 Imports System.Collections.Generic
@@ -382,7 +382,7 @@ End Class
             Await VerifyProviderCommitAsync(text, "List(Of T)", expected, " "c, "List(Of")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOfAfterParen() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -398,7 +398,7 @@ End Module]]></File>.Value
             Await VerifyItemExistsAsync(text, "Of")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOfNotAfterComma() As Task
             Dim text = <File><![CDATA[
 Imports System
@@ -432,7 +432,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Dim provider = New CrefCompletionProvider()
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim completionList = GetCompletionList(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim completionList = Await GetCompletionListAsync(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
             End Using
         End Function
 

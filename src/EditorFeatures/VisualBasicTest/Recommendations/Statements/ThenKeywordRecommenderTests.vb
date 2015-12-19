@@ -3,12 +3,12 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ThenKeywordRecommenderTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterHashIf()
             VerifyRecommendationsMissing(<File>#If |</File>, "Then")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AfterHashIfExpression()
             VerifyRecommendationsContain(<File>#If True |</File>, "Then")
         End Sub

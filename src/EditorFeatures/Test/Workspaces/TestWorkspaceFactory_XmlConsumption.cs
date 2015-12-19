@@ -72,10 +72,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ExportProvider exportProvider = null,
             string workspaceKind = null)
         {
-            return CreateWorkspaceAsync(workspaceElement, completed, openDocuments, exportProvider, workspaceKind).WaitAndGetResult(CancellationToken.None);
+            return CreateWorkspaceAsync(workspaceElement, completed, openDocuments, exportProvider, workspaceKind).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
         }
 
-        public static async Task<TestWorkspace> CreateWorkspaceAsync(
+        public static Task<TestWorkspace> CreateWorkspaceAsync(
             XElement workspaceElement,
             bool completed = true,
             bool openDocuments = true,
@@ -173,14 +173,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     if (openDocuments)
                     {
-                        await workspace.OnDocumentOpenedAsync(document.Id, document.GetOpenTextContainer(), isCurrentContext: !document.IsLinkFile);
+                        workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer(), isCurrentContext: !document.IsLinkFile);
                     }
 
                     workspace.Documents.Add(document);
                 }
             }
 
-            return workspace;
+            return Task.FromResult(workspace);
         }
 
         private static IList<TestHostProject> CreateSubmissions(

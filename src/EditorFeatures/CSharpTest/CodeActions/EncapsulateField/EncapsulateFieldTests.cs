@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             return new EncapsulateFieldRefactoringProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PrivateFieldToPropertyIgnoringReferences()
         {
             var text = @"
@@ -57,7 +57,7 @@ class foo
             await TestAsync(text, expected, compareTokens: false, index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PrivateFieldToPropertyUpdatingReferences()
         {
             var text = @"
@@ -99,7 +99,7 @@ class foo
             await TestAsync(text, expected, compareTokens: false, index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PublicFieldIntoPublicPropertyIgnoringReferences()
         {
             var text = @"
@@ -141,7 +141,7 @@ class foo
             await TestAsync(text, expected, compareTokens: false, index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PublicFieldIntoPublicPropertyUpdatingReferences()
         {
             var text = @"
@@ -183,7 +183,7 @@ class foo
             await TestAsync(text, expected, compareTokens: false, index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task StaticPreserved()
         {
             var text = @"class Program
@@ -211,7 +211,7 @@ class foo
             await TestAsync(text, expected, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task UniqueNameGenerated()
         {
             var text = @"
@@ -243,7 +243,7 @@ class Program
             await TestAsync(text, expected, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task GenericField()
         {
             var text = @"
@@ -273,7 +273,7 @@ class C<T>
             await TestAsync(text, expected, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task NewFieldNameIsUnique()
         {
             var text = @"
@@ -305,7 +305,7 @@ class foo
             await TestAsync(text, expected, compareTokens: false, index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task RespectReadonly()
         {
             var text = @"
@@ -330,7 +330,7 @@ class foo
             await TestAsync(text, expected, compareTokens: false, index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PreserveNewAndConsiderBaseMemberNames()
         {
             var text = @"
@@ -374,7 +374,7 @@ class d : c
             await TestAsync(text, expected, compareTokens: false, index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task EncapsulateMultiplePrivateFields()
         {
             var text = @"
@@ -429,7 +429,7 @@ class foo
             await TestAsync(text, expected, compareTokens: false, index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task EncapsulateMultiplePrivateFields2()
         {
             var text = @"
@@ -486,7 +486,7 @@ class foo
             await TestAsync(text, expected, compareTokens: false, index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task EncapsulateSinglePublicFieldInMultipleVariableDeclarationAndUpdateReferences()
         {
             var text = @"
@@ -530,7 +530,7 @@ class foo
         }
 
         [WorkItem(694057)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task ConstFieldNoGetter()
         {
             var text = @"
@@ -558,7 +558,7 @@ class Program
         }
 
         [WorkItem(694276)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task EncapsulateFieldNamedValue()
         {
             var text = @"
@@ -586,7 +586,7 @@ class Program
         }
 
         [WorkItem(694276)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PublicFieldNamed__()
         {
             var text = @"
@@ -619,7 +619,7 @@ class Program
         }
 
         [WorkItem(695046)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AvailableNotJustOnVariableName()
         {
             var text = @"
@@ -633,7 +633,7 @@ class Program
         }
 
         [WorkItem(705898)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task CopyFieldAccessibility()
         {
             var text = @"
@@ -660,7 +660,7 @@ class Program
             await TestAsync(text, expected, compareTokens: false, index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task UpdateReferencesCrossProject()
         {
             var text = @"
@@ -729,7 +729,7 @@ public class D
         }
 
         [WorkItem(713269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task PreserveUnsafe()
         {
             var text = @"
@@ -762,7 +762,7 @@ class C
         }
 
         [WorkItem(713240)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task ConsiderReturnTypeAccessibility()
         {
             var text = @"
@@ -805,7 +805,7 @@ internal enum State
         }
 
         [WorkItem(713191)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task DoNotReferToReadOnlyPropertyInConstructor()
         {
             var text = @"
@@ -841,7 +841,7 @@ class Program
         }
 
         [WorkItem(713191)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task DoNotReferToStaticReadOnlyPropertyInConstructor()
         {
             var text = @"
@@ -877,7 +877,7 @@ class Program
         }
 
         [WorkItem(765959)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task GenerateInTheCorrectPart()
         {
             var text = @"
@@ -910,7 +910,7 @@ partial class Program {
         }
 
         [WorkItem(829178)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task ErrorTolerance()
         {
             var text = @"class Program 
@@ -920,13 +920,13 @@ partial class Program {
 
             using (var workspace = await CreateWorkspaceFromFileAsync(text, null, null))
             {
-                var result = GetCodeRefactoring(workspace);
+                var result = await GetCodeRefactoringAsync(workspace);
                 Assert.NotNull(result);
             }
         }
 
         [WorkItem(834072)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task DuplicateFieldErrorTolerance()
         {
             var text = @"
@@ -939,13 +939,13 @@ class Program
 
             using (var workspace = await CreateWorkspaceFromFileAsync(text, null, null))
             {
-                var result = GetCodeRefactoring(workspace);
+                var result = await GetCodeRefactoringAsync(workspace);
                 Assert.NotNull(result);
             }
         }
 
         [WorkItem(862517)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task Trivia()
         {
             var text = @"
@@ -986,7 +986,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task DoNotEncapsulateOutsideTypeDeclaration()
         {
             await TestMissingAsync(@"
@@ -1006,7 +1006,7 @@ enum E
         }
 
         [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishDottedI()
         {
             using (new CultureContext("tr-TR"))
@@ -1038,7 +1038,7 @@ class C
         }
 
         [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishUndottedI()
         {
             using (new CultureContext("tr-TR"))
@@ -1070,7 +1070,7 @@ class C
         }
 
         [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Arabic()
         {
             using (new CultureContext("ar-EG"))
@@ -1102,7 +1102,7 @@ class C
         }
 
         [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Spanish()
         {
             using (new CultureContext("es-ES"))
@@ -1134,7 +1134,7 @@ class C
         }
 
         [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Greek()
         {
             using (new CultureContext("el-GR"))

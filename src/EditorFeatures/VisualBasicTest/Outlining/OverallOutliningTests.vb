@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
                 .ToArray()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function DirectivesAtEndOfFile() As Task
             Const code = "
 $${|span1:Class C

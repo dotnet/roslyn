@@ -22,6 +22,20 @@ Public Class ParseDirectives
     End Sub
 
     <Fact>
+    Public Sub ParseReferenceDirective()
+        ParseAndVerify(<![CDATA[
+            #r "reference"
+        ]]>, TestOptions.Script)
+
+        ParseAndVerify(<![CDATA[
+            #r "reference"
+        ]]>,
+        <errors>
+            <error id="36964" message="#R is only allowed in scripts" start="14" end="15"/>
+        </errors>)
+    End Sub
+
+    <Fact>
     Public Sub FloatsAndUnaryNot()
         ParseAndVerify(<![CDATA[
 Imports System

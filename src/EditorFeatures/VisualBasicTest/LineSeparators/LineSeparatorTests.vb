@@ -15,54 +15,54 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
     Public Class LineSeparatorTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestNoLinesInEmptyFile() As Task
             Await AssertTagsAsync(Array.Empty(Of TextSpan)(), "")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestEmptyClass() As Task
             Await AssertTagsAsync({New TextSpan(9, 9)},
                        "Class C",
                        "End Class")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestEmptyModule() As Task
             Await AssertTagsAsync({New TextSpan(10, 10)},
                        "Module C",
                        "End Module")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestEmptyStructure() As Task
             Await AssertTagsAsync({New TextSpan(13, 13)},
                        "Structure S",
                        "End Structure")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestEmptyInterface() As Task
             Await AssertTagsAsync({New TextSpan(13, 13)},
                        "Interface I",
                        "End Interface")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestEmptyEnum() As Task
             Await AssertTagsAsync({New TextSpan(8, 8)},
                        "Enum E",
                        "End Enum")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestEmptyNamespace() As Task
             Await AssertTagsAsync({New TextSpan(13, 13)},
                        "Namespace N",
                        "End Namespace")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestClassWithOneMethod() As Task
             Await AssertTagsAsync({New TextSpan(40, 9)},
                        "Class C",
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestClassWithTwoMethods() As Task
             Await AssertTagsAsync({
                            New TextSpan(32, 7),
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestClassWithTwoNonEmptyMethods() As Task
             Await AssertTagsAsync({
                             New TextSpan(45, 7),
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestClassWithMethodAndField() As Task
             Await AssertTagsAsync({
                             New TextSpan(32, 7),
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestClassWithFieldAndMethod() As Task
             Await AssertTagsAsync({
                            New TextSpan(17, 12),
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestEmptyClassInNamespace() As Task
             Await AssertTagsAsync({New TextSpan(41, 13)},
                        "Namespace N",
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Namespace")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestNamespaceAndTwoClasses() As Task
             Await AssertTagsAsync({
                            New TextSpan(31, 9),
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Namespace")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestNamespaceAndTwoClassesAndDelegate() As Task
             Await AssertTagsAsync({
                            New TextSpan(31, 9),
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Namespace")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestNestedClass() As Task
             Await AssertTagsAsync({New TextSpan(37, 9)},
                        "Class C",
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestTwoNestedClasses() As Task
             Await AssertTagsAsync({
                            New TextSpan(27, 9),
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
         End Function
 
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestProperty() As Task
             Await AssertTagsAsync({New TextSpan(164, 9)},
                        "Class C",
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestPropertyAndField() As Task
             Await AssertTagsAsync({
                            New TextSpan(150, 12),
@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestImports() As Task
             Await AssertTagsAsync({
                             New TextSpan(8, 6),
@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestCustomEvent() As Task
             Await AssertTagsAsync({
                             New TextSpan(235, 9),
@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestConstructor() As Task
             Await AssertTagsAsync({
                             New TextSpan(26, 7),
@@ -293,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(lines)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Dim spans = Await New VisualBasicLineSeparatorService().GetLineSeparatorsAsync(document,
-                    (Await document.GetSyntaxTreeAsync()).GetRoot().FullSpan)
+                    (Await document.GetSyntaxRootAsync()).FullSpan)
                 Return spans.OrderBy(Function(span) span.Start)
             End Using
         End Function
