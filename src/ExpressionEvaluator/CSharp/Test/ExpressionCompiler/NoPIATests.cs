@@ -98,7 +98,7 @@ public interface I
                 Guid.NewGuid().ToString("D"),
                 references,
                 exeBytes,
-                new SymReader(pdbBytes));
+                SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(runtime, "C.M");
             string error;
             var testData = new CompilationTestData();
@@ -184,9 +184,9 @@ public interface I
             // Create runtime from modules { mscorlib, PIA, A, B }.
             var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
             modulesBuilder.Add(MscorlibRef.ToModuleInstance(fullImage: null, symReader: null));
-            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage: exeA, symReader: new SymReader(pdbA)));
+            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage: exeA, symReader: SymReaderFactory.CreateReader(pdbA)));
             modulesBuilder.Add(referencePIA.ToModuleInstance(fullImage: null, symReader: null));
-            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage: exeB, symReader: new SymReader(pdbB)));
+            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage: exeB, symReader: SymReaderFactory.CreateReader(pdbB)));
 
             using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))
             {
