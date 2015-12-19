@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var argument = (IArgument)operationContext.Operation;
-                     if (argument.Value.ConstantValue == null)
+                     if (argument.Value.ConstantValue.HasValue && argument.Value.ConstantValue.Value == null)
                      {
                          Report(operationContext, argument.Syntax, NullArgumentsDescriptor);
                      }

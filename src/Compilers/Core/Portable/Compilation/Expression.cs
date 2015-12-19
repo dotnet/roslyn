@@ -328,8 +328,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 ResultType = arrayType;
             }
 
-            public object ConstantValue => null;
-
             public ImmutableArray<IExpression> ElementValues { get; }
 
             public bool IsInvalid => ElementValues.Any(v => v.IsInvalid);
@@ -339,6 +337,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             public ITypeSymbol ResultType { get; }
 
             public SyntaxNode Syntax { get; }
+
+            public Optional<object> ConstantValue => default(Optional<object>);
         }
     }
     
