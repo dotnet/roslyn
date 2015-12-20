@@ -296,6 +296,9 @@ if [ "$CLEAN_RUN" == "true" ]; then
     git clean -dxf . 
 fi
 
+# TODO: flow the mono path through to the tools used as a part of the build 
+# TODO: flow the build configuration through 
+
 set_build_info
 restore_nuget
 set_mono_path
