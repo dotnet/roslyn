@@ -71,6 +71,7 @@
     <Compile Include="InternalUtilities\SetWithInsertionOrder.cs" />
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
+    <Compile Include="PEWriter\SignatureBuilders.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
