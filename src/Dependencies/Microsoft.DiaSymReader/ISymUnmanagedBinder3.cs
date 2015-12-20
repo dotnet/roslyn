@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 namespace Microsoft.DiaSymReader
 {
     [ComImport]
-    [Guid("ACCEE350-89AF-4ccb-8B40-1C2C4C6F9434")]
+    [Guid("28AD3D43-B601-4d26-8A1B-25F9165AF9D7")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [ComVisible(false)]
-    public interface ISymUnmanagedBinder2 : ISymUnmanagedBinder
+    public interface ISymUnmanagedBinder3 : ISymUnmanagedBinder2
     {
         #region ISymUnmanagedBinder methods
 
@@ -46,6 +46,8 @@ namespace Microsoft.DiaSymReader
 
         #endregion
 
+        #region ISymUnmanagedBinder2 methods
+
         /// <summary>
         /// Given a metadata interface and a file name, returns the 
         /// <see cref="ISymUnmanagedReader"/> interface that will read the debugging symbols associated
@@ -62,11 +64,22 @@ namespace Microsoft.DiaSymReader
         /// <param name="searchPolicy">Search policy.</param>
         /// <param name="reader">The new reader instance.</param>
         [PreserveSig]
-        int GetReaderForFile2(
+        new int GetReaderForFile2(
             [MarshalAs(UnmanagedType.Interface)]object metadataImporter,
             [MarshalAs(UnmanagedType.LPWStr)]string fileName,
             [MarshalAs(UnmanagedType.LPWStr)]string searchPath,
             SymUnmanagedSearchPolicy searchPolicy,
+            [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedReader reader);
+
+        #endregion
+
+        [PreserveSig]
+        int GetReaderFromCallback(
+            [In, MarshalAs(UnmanagedType.Interface)] object metadataImporter,
+            [MarshalAs(UnmanagedType.LPWStr)]string fileName,
+            [MarshalAs(UnmanagedType.LPWStr)]string searchPath,
+            SymUnmanagedSearchPolicy searchPolicy,
+            [In, MarshalAs(UnmanagedType.Interface)] object callback,
             [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedReader reader);
     }
 }

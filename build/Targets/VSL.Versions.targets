@@ -1,0 +1,77 @@
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.2.0</RoslynSemanticVersion>
+    <SystemReflectionMetadataAssemblyVersion Condition="'$(SystemReflectionMetadataAssemblyVersion)' == ''">1.2.0</SystemReflectionMetadataAssemblyVersion>
+    <SystemCollectionsImmutableAssemblyVersion Condition="'$(SystemCollectionsImmutableAssemblyVersion)' == ''">1.1.37</SystemCollectionsImmutableAssemblyVersion>
+    <NuGetCommandLineAssemblyVersion Condition="'$(NuGetCommandLineAssemblyVersion)' == ''">2.8.5</NuGetCommandLineAssemblyVersion>
+    <MicrosoftCompositionAssemblyVersion Condition="'$(MicrosoftCompositionAssemblyVersion)' == ''">1.0.27</MicrosoftCompositionAssemblyVersion>
+    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-rc2-23608</SystemReflectionMetadataVersion>
+    <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutableAssemblyVersion)</SystemCollectionsImmutableVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.3.3</MicrosoftDiaSymReaderNativeVersion>
+    <NuGetCommandLineVersion>$(NuGetCommandLineAssemblyVersion)</NuGetCommandLineVersion>
+    <MicrosoftCompositionVersion>$(MicrosoftCompositionAssemblyVersion)</MicrosoftCompositionVersion>
+    <!-- Versioning is independent, this should not be the Roslyn semantic version -->
+    <CodeAnalysisAnalyzersVersion Condition="'$(CodeAnalysisAnalyzersVersion)' == ''">1.1.0</CodeAnalysisAnalyzersVersion>
+  </PropertyGroup>
+  
+  <Choose>
+    <When Condition="'$(BuildVersion)' != ''">
+      <!-- The user specified a build version number. In that case, we'll use their version number
+          for the file version, and force the assembly version to $(RoslynSemanticVersion).0.  That way
+          day-to-day upgrades don't break assembly references to other installed apps. -->
+      <PropertyGroup>
+        <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
+      </PropertyGroup>
+    </When>
+
+    <When Condition="('$(BuildNumber)' != '') and ($(BuildNumber.Split('.').Length) == 2)">
+      <!-- The user specified a build number, so we should use that. -->
+      <PropertyGroup>
+        <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
+        <BuildVersion>$(RoslynSemanticVersion).$(BuildNumber.Split('.')[0])</BuildVersion>
+      </PropertyGroup>
+    </When>
+
+    <When Condition="'$(OfficialBuild)' == 'true' OR '$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real'">
+      <!-- We're creating an official or real-signed build, but don't have a build number. Just use the RoslynSemanticVersion.
+          This happens if the build template does not pass BuildNumber down to MSBuild. -->
+      <PropertyGroup>
+        <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
+        <BuildVersion>$(RoslynSemanticVersion).0</BuildVersion>
+      </PropertyGroup>
+    </When>
+
+    <Otherwise>
+      <!-- No build version was supplied.  We'll use a special version, higher than anything
+          installed, so that the assembly identity is different.  This will allows us to
+          have a build with an actual number installed, but then build and F5 a build with
+          this number.  -->
+      <PropertyGroup>
+        <BuildVersion>42.42.42.42</BuildVersion>
+        <AssemblyVersion>42.42.42.42</AssemblyVersion>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
+  <Target Name="GetBuildVersion" Outputs="$(BuildVersion)" />
+
+  <!-- NuGet version -->
+  <PropertyGroup>
+    <BuildNumberSuffix Condition="('$(TF_BUILD_BUILDNUMBER)' != '')
+                     and ($(TF_BUILD_BUILDNUMBER.Split('_').Length) == 2)">$(TF_BUILD_BUILDNUMBER.Split('_')[1])</BuildNumberSuffix>
+    <BuildNumberPart1 Condition="'$(BuildNumberSuffix)' != ''">
+      $(BuildNumberSuffix.Split('.')[0])
+    </BuildNumberPart1>
+    <BuildNumberPart2 Condition="'$(BuildNumberSuffix)' != ''">
+      $(BuildNumberSuffix.Split('.')[1].PadLeft(2,'0'))
+    </BuildNumberPart2>
+
+    <!-- Only set when building RTM with no dependencies on pre-release packages
+    <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
+    -->
+    <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta1</NuGetPreReleaseVersion>
+    <NuGetPerBuildPreReleaseVersion Condition="'$(BuildNumberSuffix)' != ''">$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
+  </PropertyGroup>
+  
+</Project>
