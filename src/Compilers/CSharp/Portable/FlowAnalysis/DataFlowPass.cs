@@ -2260,8 +2260,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (operandComparedToNullIsNotNull == true)
                         {
                             ReportStaticNullCheckingDiagnostics(op == BinaryOperatorKind.Equal ?
-                                                                    ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse :
-                                                                    ErrorCode.WRN_NullCheckIsProbablyAlwaysTrue,
+                                                                    ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse :
+                                                                    ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue,
                                                                 binary.Syntax);
                         }
 
@@ -2339,7 +2339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (savedState.ResultIsNotNull == true)
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ExpressionIsProbablyNeverNull, node.LeftOperand.Syntax);
+                ReportStaticNullCheckingDiagnostics(ErrorCode.HDN_ExpressionIsProbablyNeverNull, node.LeftOperand.Syntax);
             }
 
             operandComparedToNull = SkipReferenceConversions(operandComparedToNull);
@@ -2377,7 +2377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (savedState.ResultIsNotNull == true)
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ExpressionIsProbablyNeverNull, node.Receiver.Syntax);
+                ReportStaticNullCheckingDiagnostics(ErrorCode.HDN_ExpressionIsProbablyNeverNull, node.Receiver.Syntax);
             }
 
             operandComparedToNull = SkipReferenceConversions(operandComparedToNull);

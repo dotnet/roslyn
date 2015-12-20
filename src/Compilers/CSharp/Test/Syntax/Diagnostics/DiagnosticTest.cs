@@ -218,9 +218,6 @@ class X
                         case ErrorCode.WRN_NullReferenceReceiver:
                         case ErrorCode.WRN_NullReferenceReturn:
                         case ErrorCode.WRN_NullReferenceArgument:
-                        case ErrorCode.WRN_NullCheckIsProbablyAlwaysTrue:
-                        case ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse:
-                        case ErrorCode.WRN_ExpressionIsProbablyNeverNull:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:

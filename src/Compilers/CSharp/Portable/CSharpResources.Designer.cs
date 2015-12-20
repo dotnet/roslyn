@@ -8756,6 +8756,60 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression is probably never null..
+        /// </summary>
+        internal static string HDN_ExpressionIsProbablyNeverNull {
+            get {
+                return ResourceManager.GetString("HDN_ExpressionIsProbablyNeverNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expression is probably never null..
+        /// </summary>
+        internal static string HDN_ExpressionIsProbablyNeverNull_Title {
+            get {
+                return ResourceManager.GetString("HDN_ExpressionIsProbablyNeverNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Result of the comparison is possibly always false..
+        /// </summary>
+        internal static string HDN_NullCheckIsProbablyAlwaysFalse {
+            get {
+                return ResourceManager.GetString("HDN_NullCheckIsProbablyAlwaysFalse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Result of the comparison is possibly always false..
+        /// </summary>
+        internal static string HDN_NullCheckIsProbablyAlwaysFalse_Title {
+            get {
+                return ResourceManager.GetString("HDN_NullCheckIsProbablyAlwaysFalse_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Result of the comparison is possibly always true..
+        /// </summary>
+        internal static string HDN_NullCheckIsProbablyAlwaysTrue {
+            get {
+                return ResourceManager.GetString("HDN_NullCheckIsProbablyAlwaysTrue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Result of the comparison is possibly always true..
+        /// </summary>
+        internal static string HDN_NullCheckIsProbablyAlwaysTrue_Title {
+            get {
+                return ResourceManager.GetString("HDN_NullCheckIsProbablyAlwaysTrue_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unused extern alias..
         /// </summary>
         internal static string HDN_UnusedExternAlias {
@@ -11493,24 +11547,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expression is probably never null..
-        /// </summary>
-        internal static string WRN_ExpressionIsProbablyNeverNull {
-            get {
-                return ResourceManager.GetString("WRN_ExpressionIsProbablyNeverNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expression is probably never null..
-        /// </summary>
-        internal static string WRN_ExpressionIsProbablyNeverNull_Title {
-            get {
-                return ResourceManager.GetString("WRN_ExpressionIsProbablyNeverNull_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Constructor &apos;{0}&apos; is marked external.
         /// </summary>
         internal static string WRN_ExternCtorNoImplementation {
@@ -12377,42 +12413,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NubExprIsConstBool2_Title {
             get {
                 return ResourceManager.GetString("WRN_NubExprIsConstBool2_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Result of the comparison is possibly always false..
-        /// </summary>
-        internal static string WRN_NullCheckIsProbablyAlwaysFalse {
-            get {
-                return ResourceManager.GetString("WRN_NullCheckIsProbablyAlwaysFalse", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Result of the comparison is possibly always false..
-        /// </summary>
-        internal static string WRN_NullCheckIsProbablyAlwaysFalse_Title {
-            get {
-                return ResourceManager.GetString("WRN_NullCheckIsProbablyAlwaysFalse_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Result of the comparison is possibly always true..
-        /// </summary>
-        internal static string WRN_NullCheckIsProbablyAlwaysTrue {
-            get {
-                return ResourceManager.GetString("WRN_NullCheckIsProbablyAlwaysTrue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Result of the comparison is possibly always true..
-        /// </summary>
-        internal static string WRN_NullCheckIsProbablyAlwaysTrue_Title {
-            get {
-                return ResourceManager.GetString("WRN_NullCheckIsProbablyAlwaysTrue_Title", resourceCulture);
             }
         }
         
