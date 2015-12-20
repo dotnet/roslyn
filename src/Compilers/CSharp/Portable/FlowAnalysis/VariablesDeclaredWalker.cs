@@ -76,6 +76,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLambda(node);
         }
 
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            if (IsInside && !node.WasCompilerGenerated)
+            {
+                foreach (var parameter in node.Symbol.Parameters)
+                {
+                    _variablesDeclared.Add(parameter);
+                }
+            }
+
+            return base.VisitLocalFunctionStatement(node);
+        }
+
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {
             if (IsInside)

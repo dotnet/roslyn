@@ -196,6 +196,10 @@ namespace My
                 var s2 = $@"x {1 , -2 :d}";
             }
 
+            int LocalFunction()
+            {
+            }
+
 #if DEBUG
       Console.WriteLine(export.iefSupplied.command);
 #endif

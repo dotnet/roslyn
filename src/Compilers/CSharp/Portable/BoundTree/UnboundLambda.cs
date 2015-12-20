@@ -15,7 +15,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed partial class BoundLambda
+    internal interface IBoundLambdaOrFunction
+    {
+        MethodSymbol Symbol { get; }
+        CSharpSyntaxNode Syntax { get; }
+        BoundBlock Body { get; }
+        bool WasCompilerGenerated { get; }
+    }
+
+    internal sealed partial class BoundLocalFunctionStatement : IBoundLambdaOrFunction
+    {
+        MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
+
+        CSharpSyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
+    }
+
+    internal sealed partial class BoundLambda : IBoundLambdaOrFunction
     {
         public MessageID MessageID { get { return Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
@@ -34,6 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _inferredFromSingleType;
             }
         }
+
+        MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
+
+        CSharpSyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
 
         public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol type, bool inferReturnType)
             : this(syntax, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, type)
@@ -121,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).Construct(bestResultType);
         }
 
-        private sealed class BlockReturns : BoundTreeWalker
+        internal sealed class BlockReturns : BoundTreeWalker
         {
             private readonly ArrayBuilder<TypeSymbol> _types;
             private bool _hasReturnWithoutArgument;
@@ -158,6 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+            {
+                // Do not recurse into nested lambdas; we don't want their returns.
+                return null;
             }
 
             public override BoundNode VisitReturnStatement(BoundReturnStatement node)

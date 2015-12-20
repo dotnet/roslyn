@@ -11614,6 +11614,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to binary literals.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_BinaryLiterals() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_BinaryLiterals", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to CObj in attribute arguments.
         '''</summary>
         Friend ReadOnly Property FEATURE_CObjInAttributeArguments() As String
@@ -11637,6 +11646,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_CollectionInitializers() As String
             Get
                 Return ResourceManager.GetString("FEATURE_CollectionInitializers", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to digit separators.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_DigitSeparators() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_DigitSeparators", resourceCulture)
             End Get
         End Property
         

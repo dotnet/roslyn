@@ -233,5 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
+
+        protected override LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
+        {
+            return null;
+        }
     }
 }
