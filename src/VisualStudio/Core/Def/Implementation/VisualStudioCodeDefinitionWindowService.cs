@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Editor;
 using System;
-using System.Linq;
 using System.Collections.Immutable;
-using Microsoft.VisualStudio.Shell.Interop;
 using System.Composition;
+using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.VisualStudio.Shell.Interop;
+
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -49,41 +50,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             int IVsCodeDefViewContext.GetSymbolName(uint iItem, out string pbstrSymbolName)
             {
-                var index = (int)iItem;
-                if (index < 0 || index >= _locations.Length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(iItem));
-                }
-
-                pbstrSymbolName = _locations[index].DisplayName;
+                pbstrSymbolName = _locations[GetIndex(iItem)].DisplayName;
                 return VSConstants.S_OK;
             }
 
             int IVsCodeDefViewContext.GetFileName(uint iItem, out string pbstrFilename)
             {
-                var index = (int)iItem;
-                if (index < 0 || index >= _locations.Length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(iItem));
-                }
-
-                pbstrFilename = _locations[index].FilePath;
+                pbstrFilename = _locations[GetIndex(iItem)].FilePath;
                 return VSConstants.S_OK;
             }
 
             int IVsCodeDefViewContext.GetLine(uint iItem, out uint piLine)
             {
-                var index = (int)iItem;
-                if (index < 0 || index >= _locations.Length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(iItem));
-                }
-
-                piLine = (uint)_locations[index].Line;
+                piLine = (uint)_locations[GetIndex(iItem)].Line;
                 return VSConstants.S_OK;
             }
 
             int IVsCodeDefViewContext.GetCol(uint iItem, out uint piCol)
+            {
+                piCol = (uint)_locations[GetIndex(iItem)].Character;
+                return VSConstants.S_OK;
+            }
+
+            private int GetIndex(uint iItem)
             {
                 var index = (int)iItem;
                 if (index < 0 || index >= _locations.Length)
@@ -91,8 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     throw new ArgumentOutOfRangeException(nameof(iItem));
                 }
 
-                piCol = (uint)_locations[index].Character;
-                return VSConstants.S_OK;
+                return index;
             }
         }
     }
