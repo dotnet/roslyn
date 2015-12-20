@@ -104,13 +104,13 @@ restore_nuget()
 
 }
 
-run_msbuild()
+run_make()
 {
     local is_good=false
     
     for i in `seq 1 $RETRY_COUNT`
     do
-        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $MSBUILD_ADDITIONALARGS /p:SignAssembly=false /p:DebugSymbols=false /p:Configuration=$BUILD_CONFIGURATION "$@"
+        make "$@" BUILD_CONFIGURATION=$BUILD_CONFIGURATION
         if [ $? -eq 0 ]; then
             is_good=true
             break
@@ -175,37 +175,14 @@ install_roslyn_toolset()
 
 build_bootstrap()
 {
-    install_roslyn_toolset
-    local bootstrap_arg="/p:CscToolPath=$(pwd)/Binaries/$ROSLYN_TOOLSET_NAME /p:CscToolExe=csc \
-/p:VbcToolPath=$(pwd)/Binaries/$ROSLYN_TOOLSET_NAME /p:VbcToolExe=vbc"
-
-    # Build the bootstrap compilers 
     echo Compiling the toolset compilers
-    echo -e "  Compiling the C# compiler"
-    run_msbuild /nologo $bootstrap_arg src/Compilers/CSharp/CscCore/CscCore.csproj /fileloggerparameters:LogFile=Binaries/Bootstrap_CscCore.log
-    echo -e "  Compiling the VB compiler"
-    run_msbuild /nologo $bootstrap_arg src/Compilers/VisualBasic/VbcCore/VbcCore.csproj /fileloggerparameters:LogFile=Binaries/Bootstrap_VbcCore.log
-
-    # Save the compilers into the bootstrap directory
-    local bootstrap_path="Binaries/Bootstrap"
-    mkdir -p $bootstrap_path
-    cp Binaries/$BUILD_CONFIGURATION/csccore/* $bootstrap_path
-    cp Binaries/$BUILD_CONFIGURATION/vbccore/* $bootstrap_path
-
-    # Clean out the built files so they will be re-built using the 
-    # bootstrap compiler
-    echo Cleaning the enlistment
-    rm -rf Binaries/$BUILD_CONFIGURATION
-    rm -rf Binaries/Obj
+    run_make bootstrap 
 }
 
 build_roslyn()
 {    
-    local bootstrap_arg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
-/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
-
     echo Building CrossPlatform.sln
-    run_msbuild /nologo $bootstrap_arg CrossPlatform.sln /fileloggerparameters:LogFile=Binaries/Build.log
+    run_make all BOOTSTRAP=true BUILD_LOG_PATH=Binaries/Build.log
 }
 
 # Install the specified Mono toolset from our Azure blob storage.
@@ -291,13 +268,12 @@ test_roslyn()
     fi
 }
 
+# TODO: flow through the build log 
+
 if [ "$CLEAN_RUN" == "true" ]; then
     echo Clean out the enlistment
     git clean -dxf . 
 fi
-
-# TODO: flow the mono path through to the tools used as a part of the build 
-# TODO: flow the build configuration through 
 
 set_build_info
 restore_nuget

@@ -3,8 +3,9 @@ OS_NAME = $(shell uname -s)
 NUGET_PACKAGE_NAME = nuget.40
 BUILD_CONFIGURATION = Debug
 BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
+BUILD_LOG_PATH =
 
-MSBUILD_ADDITIONALARGS = /v:m /fl /fileloggerparameters:Verbosity=normal /p:SignAssembly=false /p:DebugSymbols=false
+MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:SignAssembly=false /p:DebugSymbols=false /p:Configuration=$(BUILD_CONFIGURATION)
 
 ifeq ($(OS_NAME),Linux)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=ubuntu.14.04
@@ -14,6 +15,10 @@ else ifeq ($(OS_NAME),Darwin)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=osx.10.10
 	MONO_TOOLSET_NAME = mono.mac.5
 	ROSLYN_TOOLSET_NAME = roslyn.mac.1
+endif
+
+ifneq ($(BUILD_LOG_PATH),)
+	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /fileloggerparameters:LogFile=$(BUILD_LOG_PATH)
 endif
 
 ifeq ($(BOOTSTRAP),true)
