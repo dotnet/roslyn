@@ -127,7 +127,7 @@ class C
             Assert.Equal(4, info.WarningLevel);
         }
 
-        [Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")]
+        [Fact(Skip ="7446"), WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")]
         public void TestCompilationEventQueueWithSemanticModelGetDiagnostics()
         {
             var source1 = @"
@@ -155,8 +155,10 @@ namespace N1
             var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
             
             // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
-            var model = compilation.GetSemanticModel(tree1);
-            model.GetDiagnostics(tree1.GetRoot().FullSpan);
+            var tree = compilation.SyntaxTrees.Single(t => t == tree1);
+            var root = tree.GetRoot();
+            var model = compilation.GetSemanticModel(tree);
+            model.GetDiagnostics(root.FullSpan);
 
             Assert.True(eventQueue.Count > 0);
             bool compilationStartedFired;
@@ -169,10 +171,10 @@ namespace N1
             Assert.True(declaredSymbolNames.Contains("N1"));
             Assert.True(declaredSymbolNames.Contains("Class"));
             Assert.True(declaredSymbolNames.Contains("NonPartialMethod1"));
-            Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
+            Assert.True(completedCompilationUnits.Contains(tree.FilePath));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7477"), WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")]
+        [Fact(Skip = "7446"), WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")]
         public void TestCompilationEventsForPartialMethod()
         {
             var source1 = @"
@@ -202,8 +204,10 @@ namespace N1
             var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
 
             // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
-            var model = compilation.GetSemanticModel(tree1);
-            model.GetDiagnostics(tree1.GetRoot().FullSpan);
+            var tree = compilation.SyntaxTrees.Single(t => t == tree1);
+            var root = tree.GetRoot();
+            var model = compilation.GetSemanticModel(tree);
+            model.GetDiagnostics(root.FullSpan);
 
             Assert.True(eventQueue.Count > 0);
             bool compilationStartedFired;
@@ -217,7 +221,7 @@ namespace N1
             Assert.True(declaredSymbolNames.Contains("Class"));
             Assert.True(declaredSymbolNames.Contains("NonPartialMethod1"));
             Assert.True(declaredSymbolNames.Contains("PartialMethod"));
-            Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
+            Assert.True(completedCompilationUnits.Contains(tree.FilePath));
         }
 
         private static bool DequeueCompilationEvents(AsyncQueue<CompilationEvent> eventQueue, out bool compilationStartedFired, out HashSet<string> declaredSymbolNames, out HashSet<string> completedCompilationUnits)
@@ -243,8 +247,7 @@ namespace N1
                     var symbolDeclaredEvent = compEvent as SymbolDeclaredCompilationEvent;
                     if (symbolDeclaredEvent != null)
                     {
-                        var added = declaredSymbolNames.Add(symbolDeclaredEvent.Symbol.Name);
-                        Assert.True(added, "Unexpected multiple symbol declared events for symbol " + symbolDeclaredEvent.Symbol);
+                        Assert.True(declaredSymbolNames.Add(symbolDeclaredEvent.Symbol.Name), "Unexpected multiple symbol declared events for same symbol");
                     }
                     else
                     {
