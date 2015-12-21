@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
                 if (codeElement == null)
                 {
-                    throw new ArgumentException(ServicesVSResources.ElementIsNotValid, "element");
+                    throw new ArgumentException(ServicesVSResources.ElementIsNotValid, nameof(element));
                 }
 
                 codeElement.Delete();

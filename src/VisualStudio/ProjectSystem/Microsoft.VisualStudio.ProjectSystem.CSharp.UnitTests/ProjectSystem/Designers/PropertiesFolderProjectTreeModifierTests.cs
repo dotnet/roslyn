@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
-    [UnitTestTrait]
+    [ProjectSystemTrait]
     public class PropertiesFolderProjectTreeModifierTests
     {
         [Fact]

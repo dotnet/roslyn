@@ -7,7 +7,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     Public Class DiagnosticItemTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub Name()
             Dim descriptor = CreateDescriptor()
 
@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Assert.Equal(expected:="TST0001: A test diagnostic", actual:=diagnostic.Text)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub BrowseObject()
             Dim descriptor = CreateDescriptor()
 

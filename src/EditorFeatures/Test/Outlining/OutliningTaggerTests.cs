@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
     public class OutliningTaggerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void CSharpOutliningTagger()
+        public async Task CSharpOutliningTagger()
         {
             var code = new string[]
             {
@@ -43,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
                 "}"
             };
 
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
-                var tags = GetTagsFromWorkspace(workspace);
+                var tags = await GetTagsFromWorkspaceAsync(workspace);
 
                 // ensure all 4 outlining region tags were found
                 Assert.Equal(4, tags.Count);
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void VisualBasicOutliningTagger()
+        public async Task VisualBasicOutliningTagger()
         {
             var code = new string[]
             {
@@ -83,9 +84,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
                 "End Namespace"
             };
 
-            using (var workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code))
+            using (var workspace = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
-                var tags = GetTagsFromWorkspace(workspace);
+                var tags = await GetTagsFromWorkspaceAsync(workspace);
 
                 // ensure all 4 outlining region tags were found
                 Assert.Equal(4, tags.Count);
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void OutliningTaggerTooltipText()
+        public async Task OutliningTaggerTooltipText()
         {
             var code = new string[]
             {
@@ -117,9 +118,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
                 "End Module",
             };
 
-            using (var workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code))
+            using (var workspace = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
-                var tags = GetTagsFromWorkspace(workspace);
+                var tags = await GetTagsFromWorkspaceAsync(workspace);
 
                 var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().ToArray();
                 Assert.Equal("Sub Main(args As String())\r\nEnd Sub", hints[1].ToString()); // method
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             }
         }
 
-        private static List<IOutliningRegionTag> GetTagsFromWorkspace(TestWorkspace workspace)
+        private static async Task<List<IOutliningRegionTag>> GetTagsFromWorkspaceAsync(TestWorkspace workspace)
         {
             var hostdoc = workspace.Documents.First();
             var view = hostdoc.GetTextView();
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
             var context = new TaggerContext<IOutliningRegionTag>(document, view.TextSnapshot);
-            provider.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait();
+            await provider.ProduceTagsAsync_ForTestingPurposesOnly(context);
 
             return context.tagSpans.Select(x => x.Tag).ToList();
         }

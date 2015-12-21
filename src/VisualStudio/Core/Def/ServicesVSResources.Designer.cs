@@ -1084,6 +1084,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Synchronize {0}.
+        /// </summary>
+        internal static string SynchronizeClassView {
+            get {
+                return ResourceManager.GetString("SynchronizeClassView", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Synchronizing with {0}....
+        /// </summary>
+        internal static string SynchronizingWithClassView {
+            get {
+                return ResourceManager.GetString("SynchronizingWithClassView", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This workspace only supports opening documents on the UI thread..
         /// </summary>
         internal static string ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread {
@@ -1192,7 +1210,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analyzer assembly &apos;{0}&apos; depends on &apos;{1}&apos; but it was not found. Analyzers may not run correctly..
+        ///   Looks up a localized string similar to Analyzer assembly &apos;{0}&apos; depends on &apos;{1}&apos; but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well..
         /// </summary>
         internal static string WRN_MissingAnalyzerReferenceMessage {
             get {

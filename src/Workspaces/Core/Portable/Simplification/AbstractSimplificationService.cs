@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.Simplification
                 // Hence make sure we always start working off of the actual SemanticModel instead of a speculative SemanticModel.
                 Contract.Assert(!semanticModel.IsSpeculativeSemanticModel);
 
-                var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+                var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
 #if DEBUG
-                bool originalDocHasErrors = await document.HasAnyErrors(cancellationToken).ConfigureAwait(false);
+                bool originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
                 var reduced = await this.ReduceAsyncInternal(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 !spansTree.GetOverlappingIntervals(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length).Any();
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             // prep namespace imports marked for simplification 
             var removeIfUnusedAnnotation = new SyntaxAnnotation();
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             {
                 document = document.WithSyntaxRoot(root);
                 semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+                root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
             // Get the list of syntax nodes and tokens that need to be reduced.
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             CancellationToken cancellationToken)
         {
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = model.SyntaxTree.GetRoot();
+            var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var addedImports = root.GetAnnotatedNodes(removeIfUnusedAnnotation);
             var unusedImports = new HashSet<SyntaxNode>();
             this.GetUnusedNamespaceImports(model, unusedImports, cancellationToken);

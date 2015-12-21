@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
@@ -13,9 +14,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ITypeSymbol IExpression.ResultType => this.Type;
 
         OperationKind IOperation.Kind => this.ExpressionKind;
-       
-        object IExpression.ConstantValue => this.ConstantValue?.Value;
 
+        bool IOperation.IsInvalid => this.HasErrors;
+
+        Optional<object> IExpression.ConstantValue
+        {
+            get
+            {
+                ConstantValue value = this.ConstantValue;
+                return value != null ? new Optional<object>(value.Value) : default(Optional<object>);
+            }
+        }
         SyntaxNode IOperation.Syntax => this.Syntax;
         
         protected virtual OperationKind ExpressionKind => OperationKind.None;
@@ -594,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundBadExpression
     {
-        protected override OperationKind ExpressionKind => OperationKind.None;
+        protected override OperationKind ExpressionKind => OperationKind.InvalidExpression;
     }
 
     partial class BoundNewT

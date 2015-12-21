@@ -913,7 +913,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!argument.HasExpressionType())
             {
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
-                if (argument.Kind == BoundKind.UnboundLambda)
+                // The argument and parameter type might match, but may not have same in/out modifiers
+                if (argument.Kind == BoundKind.UnboundLambda && refArg == refParm)
                 {
                     ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameter.Type.TypeSymbol);
                 }

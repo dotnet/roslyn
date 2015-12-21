@@ -5,7 +5,6 @@
 #endregion
 
 using System;
-using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {

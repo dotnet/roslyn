@@ -70,10 +70,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                             //// Pointer types can't be generic type arguments.
                             && arrayCreation.ElementType.TypeKind != TypeKind.Pointer)
                         {
-                            object arrayLength = arrayCreation.DimensionSizes[0].ConstantValue;
-                            if (arrayLength != null &&
-                                arrayLength is int &&
-                                (int)arrayLength == 0)
+                            Optional<object> arrayLength = arrayCreation.DimensionSizes[0].ConstantValue;
+                            if (arrayLength.HasValue &&
+                                arrayLength.Value is int &&
+                                (int)arrayLength.Value == 0)
                             {
                                 Report(operationContext, arrayCreation.Syntax);
                             }

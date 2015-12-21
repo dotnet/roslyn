@@ -31,6 +31,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             CodeBlockStartActionsCount = analyzerActions.CodeBlockStartActionsCount;
             CodeBlockEndActionsCount = analyzerActions.CodeBlockEndActionsCount;
             CodeBlockActionsCount = analyzerActions.CodeBlockActionsCount;
+            OperationActionsCount = analyzerActions.OperationActionsCount;
+            OperationBlockStartActionsCount = analyzerActions.OperationBlockStartActionsCount;
+            OperationBlockEndActionsCount = analyzerActions.OperationBlockEndActionsCount;
+            OperationBlockActionsCount = analyzerActions.OperationBlockActionsCount;
+
+            HasAnyExecutableCodeActions = CodeBlockActionsCount > 0 ||
+                CodeBlockStartActionsCount > 0 ||
+                SyntaxNodeActionsCount > 0 ||
+                OperationActionsCount > 0 ||
+                OperationBlockActionsCount > 0 ||
+                OperationBlockStartActionsCount > 0;
         }
 
         /// <summary>
@@ -82,5 +93,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// Count of code block actions.
         /// </summary>
         public int CodeBlockActionsCount { get; }
+
+        /// <summary>
+        /// Count of Operation actions.
+        /// </summary>
+        public int OperationActionsCount { get; }
+
+        /// <summary>
+        /// Count of Operation block start actions.
+        /// </summary>
+        public int OperationBlockStartActionsCount { get; }
+
+        /// <summary>
+        /// Count of Operation block end actions.
+        /// </summary>
+        public int OperationBlockEndActionsCount { get; }
+
+        /// <summary>
+        /// Count of Operation block actions.
+        /// </summary>
+        public int OperationBlockActionsCount { get; }
+
+        /// <summary>
+        /// Returns true if there are any actions that need to run on executable code.
+        /// </summary>
+        public bool HasAnyExecutableCodeActions { get; }
     }
 }

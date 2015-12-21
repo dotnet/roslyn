@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var arg = node.Indices[0];
                 var index = Visit(arg);
-                if (node.Type != _int32Type)
+                if (index.Type != _int32Type)
                 {
                     index = ConvertIndex(index, arg.Type, _int32Type);
                 }
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var arg in expressions)
             {
                 var index = Visit(arg);
-                if (arg.Type != _int32Type)
+                if (index.Type != _int32Type)
                 {
                     index = ConvertIndex(index, arg.Type, _int32Type);
                 }
@@ -450,7 +450,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var conversion = (BoundConversion)operand;
                 if (!conversion.ConversionKind.IsUserDefinedConversion() &&
-                    conversion.ConversionKind.IsImplicitConversion() && 
+                    conversion.ConversionKind.IsImplicitConversion() &&
+                    conversion.ConversionKind != ConversionKind.NullLiteral &&
                     conversion.Type.StrippedType().IsEnumType())
                 {
                     operand = conversion.Operand;

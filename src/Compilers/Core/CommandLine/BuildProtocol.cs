@@ -506,5 +506,15 @@ namespace Microsoft.CodeAnalysis.CommandLine
             } while (totalBytesRead < count);
             Log("Finished read");
         }
+
+        public static string GetServerMutexName(string pipeName)
+        {
+            return $"{pipeName}.server";
+        }
+
+        public static string GetClientMutexName(string pipeName)
+        {
+            return $"{pipeName}.client";
+        }
     }
 }

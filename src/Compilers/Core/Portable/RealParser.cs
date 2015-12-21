@@ -26,24 +26,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="s">The decimal floating-point constant's string</param>
         /// <param name="d">The nearest double value, if conversion succeeds</param>
-        /// <returns>True of the input was converted; false if there was an overflow</returns>
+        /// <returns>True if the input was converted; false if there was an overflow</returns>
         public static bool TryParseDouble(string s, out double d)
         {
-            try
-            {
-                var str = DecimalFloatingPointString.FromSource(s);
-                var dbl = DoubleFloatingPointType.Instance;
-                ulong result;
-                var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
-                d = BitConverter.Int64BitsToDouble((long)result);
-                return status != Status.Overflow;
-            }
-            catch (System.FormatException)
-            {
-                // this can occur when the exponent is empty (e.g. "0.0e") or too large to fit in an integer
-                d = 0.0;
-                return false;
-            }
+            var str = DecimalFloatingPointString.FromSource(s);
+            var dbl = DoubleFloatingPointType.Instance;
+            ulong result;
+            var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
+            d = BitConverter.Int64BitsToDouble((long)result);
+            return status != Status.Overflow;
         }
 
         /// <summary>
@@ -53,23 +44,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="s">The float floating-point constant's string</param>
         /// <param name="f">The nearest float value, if conversion succeeds</param>
-        /// <returns>True of the input was converted; false if there was an overflow</returns>
+        /// <returns>True if the input was converted; false if there was an overflow</returns>
         public static bool TryParseFloat(string s, out float f)
         {
-            try
-            {
-                var str = DecimalFloatingPointString.FromSource(s);
-                var dbl = FloatFloatingPointType.Instance;
-                ulong result;
-                var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
-                f = Int32BitsToFloat((uint)result);
-                return status != Status.Overflow;
-            }
-            catch (System.FormatException)
-            {
-                f = 0.0f;
-                return false;
-            }
+            var str = DecimalFloatingPointString.FromSource(s);
+            var dbl = FloatFloatingPointType.Instance;
+            ulong result;
+            var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
+            f = Int32BitsToFloat((uint)result);
+            return status != Status.Overflow;
         }
 
         private readonly static BigInteger BigZero = BigInteger.Zero;
@@ -348,6 +331,7 @@ namespace Microsoft.CodeAnalysis
                 result.Mantissa = mantissaBuilder.ToString();
                 if (i < source.Length && (source[i] == 'e' || source[i] == 'E'))
                 {
+                    const int MAX_EXP = (1 << 30); // even playing ground
                     char exponentSign = '\0';
                     i++;
                     if (i < source.Length && (source[i] == '-' || source[i] == '+'))
@@ -358,14 +342,24 @@ namespace Microsoft.CodeAnalysis
                     int firstExponent = i;
                     int lastExponent = i;
                     while (i < source.Length && source[i] >= '0' && source[i] <= '9') lastExponent = ++i;
-                    int exponentMagnitude = int.Parse(source.Substring(firstExponent, lastExponent - firstExponent));
-                    if (exponentSign == '-')
+
+                    int exponentMagnitude = 0;
+
+                    if (int.TryParse(source.Substring(firstExponent, lastExponent - firstExponent), out exponentMagnitude) &&
+                        exponentMagnitude <= MAX_EXP)
                     {
-                        exponent -= exponentMagnitude;
+                        if (exponentSign == '-')
+                        {
+                            exponent -= exponentMagnitude;
+                        }
+                        else
+                        {
+                            exponent += exponentMagnitude;
+                        }
                     }
                     else
                     {
-                        exponent += exponentMagnitude;
+                        exponent = exponentSign == '-' ? -MAX_EXP : MAX_EXP;
                     }
                 }
                 result.Exponent = exponent;

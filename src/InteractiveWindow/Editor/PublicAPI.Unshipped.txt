@@ -85,8 +85,10 @@ Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations.SelectAll(
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations.TrySubmitStandardInput() -> bool
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.Copy() -> void
+Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.CopyCode() -> void
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.CutLine() -> void
 Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.DeleteLine() -> void
+Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.TypeChar(char typedChar) -> void
 Microsoft.VisualStudio.InteractiveWindow.InteractiveWindowExtensions
 Microsoft.VisualStudio.InteractiveWindow.InteractiveWindowOptions
 Microsoft.VisualStudio.InteractiveWindow.PredefinedInteractiveContentTypes

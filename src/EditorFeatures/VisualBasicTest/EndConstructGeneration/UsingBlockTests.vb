@@ -12,8 +12,8 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class UsingBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub ApplyAfterUsingStatement()
-            VerifyStatementEndConstructApplied(
+        Public Async Function ApplyAfterUsingStatement() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "Sub foo()",
                          "Using variable",
@@ -28,11 +28,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "End Sub",
                         "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyForMatchedUsing()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DontApplyForMatchedUsing() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class c1",
                        "Sub foo()",
                        "Using variable",
@@ -40,11 +40,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyNestedUsing()
-            VerifyStatementEndConstructApplied(
+        Public Async Function VerifyNestedUsing() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    Sub S",
                          "        Using y",
@@ -63,11 +63,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End Sub",
                          "End Class"},
                 afterCaret:={4, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyUsingWithDelegate()
-            VerifyStatementEndConstructApplied(
+        Public Async Function VerifyUsingWithDelegate() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    Sub S",
                          "        Using Func(of String, String)",
@@ -82,26 +82,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End Sub",
                          "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyUsingAtInvalidSyntax()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyUsingAtInvalidSyntax() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class EC",
                        "    Sub S",
                        "        Using x asf asdf",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyUsingAtInvalidLocation()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyUsingAtInvalidLocation() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class EC",
                        "    Using x",
                        "End Class"},
                 caret:={1, -1})
-        End Sub
+        End Function
     End Class
 End Namespace

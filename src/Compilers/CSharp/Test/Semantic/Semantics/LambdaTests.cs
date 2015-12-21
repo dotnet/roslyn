@@ -218,14 +218,14 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(code);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(); // no errors expected
         }
 
         [WorkItem(539538, "DevDiv")]
         [Fact]
         public void TestLambdaErrors03()
         {
-            TestErrors(@"
+            string source = @"
 using System;
 
 interface I : IComparable<IComparable<I>> { }
@@ -239,8 +239,11 @@ class C
         Foo(() => null);
     }
 }
-",
-"'Foo' error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(Func<IComparable<I>>)' and 'C.Foo(Func<I>)'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(Func<IComparable<I>>)' and 'C.Foo(Func<I>)'
+                //         Foo(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(System.Func<System.IComparable<I>>)", "C.Foo(System.Func<I>)").WithLocation(12, 9));
         }
 
         [WorkItem(539976, "DevDiv")]
@@ -1395,6 +1398,31 @@ public interface IColumn { }
 ";
             var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
+        }
+
+        [Fact, WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void SyntaxAndSemanticErrorInLambda()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    public static void Main(string[] args)
+    {
+        Action a = () => { new X().ToString() };
+        a();
+    }
+}
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,47): error CS1002: ; expected
+                //         Action a = () => { new X().ToString() };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 47),
+                // (7,32): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //         Action a = () => { new X().ToString() };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(7, 32)
+                );
         }
 
         [Fact, WorkItem(4527, "https://github.com/dotnet/roslyn/issues/4527")]

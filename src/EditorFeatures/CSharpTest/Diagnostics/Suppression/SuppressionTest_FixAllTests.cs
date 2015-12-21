@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
                 [Fact]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-                public void TestFixAllInDocument()
+                public async Task TestFixAllInDocument()
                 {
                     var input = @"
 <Workspace>
@@ -113,13 +114,13 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
                 [Fact]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-                public void TestFixAllInProject()
+                public async Task TestFixAllInProject()
                 {
                     var input = @"
 <Workspace>
@@ -209,13 +210,13 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
                 [Fact]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-                public void TestFixAllInSolution()
+                public async Task TestFixAllInSolution()
                 {
                     var input = @"
 <Workspace>
@@ -309,7 +310,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
             }
         }
@@ -327,7 +328,7 @@ class Class2
                 [Fact]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-                public void TestFixAllInDocument()
+                public async Task TestFixAllInDocument()
                 {
                     var input = @"
 <Workspace>
@@ -424,13 +425,13 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
                 [Fact]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-                public void TestFixAllInProject()
+                public async Task TestFixAllInProject()
                 {
                     var input = @"
 <Workspace>
@@ -528,13 +529,13 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
-                [Fact(Skip ="TODO: File a GitHubIssue for test framework unable to handle multiple projects in solution with same file name.")]
+                [Fact(Skip = "TODO: File a GitHubIssue for test framework unable to handle multiple projects in solution with same file name.")]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-                public void TestFixAllInSolution()
+                public async Task TestFixAllInSolution()
                 {
                     var input = @"
 <Workspace>
@@ -647,7 +648,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
             }
         }
@@ -659,7 +660,7 @@ class Class2
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public void TestFixAllInProject()
+            public async Task TestFixAllInProject()
             {
                 var input = @"
 <Workspace>
@@ -754,7 +755,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
         }
 

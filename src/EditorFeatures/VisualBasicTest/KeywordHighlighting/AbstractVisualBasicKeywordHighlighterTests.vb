@@ -13,12 +13,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return {TestOptions.Regular}
         End Function
 
-        Protected Overloads Sub Test(element As XElement)
-            Test(element.NormalizedValue)
-        End Sub
+        Protected Overloads Function TestAsync(element As XElement) As Threading.Tasks.Task
+            Return TestAsync(element.NormalizedValue)
+        End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(code As String, options As ParseOptions) As TestWorkspace
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(code, DirectCast(options, ParseOptions))
+        Protected Overrides Function CreateWorkspaceFromFileAsync(code As String, options As ParseOptions) As Threading.Tasks.Task(Of TestWorkspace)
+            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code, DirectCast(options, ParseOptions))
         End Function
     End Class
 End Namespace

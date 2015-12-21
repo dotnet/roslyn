@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Testing
 {
-    [UnitTestTrait]
+    [ProjectSystemTrait]
     public class ProjectTreeParserTests
     {
         [Fact]

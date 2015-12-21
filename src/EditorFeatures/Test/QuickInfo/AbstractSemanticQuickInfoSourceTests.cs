@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
@@ -296,6 +297,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        protected abstract void Test(string markup, params Action<object>[] expectedResults);
+        protected abstract Task TestAsync(string markup, params Action<object>[] expectedResults);
     }
 }

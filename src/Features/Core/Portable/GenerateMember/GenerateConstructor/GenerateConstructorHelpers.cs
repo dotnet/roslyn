@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return false;
             }
 
-            if (parameterTypes.Count < method.Parameters.Length)
+            if (parameterTypes.Count != method.Parameters.Length)
             {
                 return false;
             }

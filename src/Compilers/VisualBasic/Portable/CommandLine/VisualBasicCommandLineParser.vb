@@ -150,6 +150,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim touchedFilesPath As String = Nothing
             Dim features = New List(Of String)()
             Dim reportAnalyzer As Boolean = False
+            Dim publicSign As Boolean = False
+            Dim interactiveMode As Boolean = False
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -398,6 +400,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If IsScriptRunner Then
                     Select Case name
+                        Case "i", "i+"
+                            If value IsNot Nothing Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "i")
+                            End If
+                            interactiveMode = True
+                            Continue For
+
+                        Case "i-"
+                            If value IsNot Nothing Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "i")
+                            End If
+                            interactiveMode = False
+                            Continue For
                         Case "loadpath", "loadpaths"
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
@@ -786,6 +801,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             delaySignSetting = False
+                            Continue For
+
+                        Case "publicsign", "publicsign+"
+                            If value IsNot Nothing Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "publicsign")
+                                Continue For
+                            End If
+
+                            publicSign = True
+                            Continue For
+
+                        Case "publicsign-"
+                            If value IsNot Nothing Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "publicsign")
+                                Continue For
+                            End If
+
+                            publicSign = False
                             Continue For
 
                         Case "keycontainer"
@@ -1223,6 +1256,7 @@ lVbRuntimePlus:
                 cryptoKeyContainer:=keyContainerSetting,
                 cryptoKeyFile:=keyFileSetting,
                 delaySign:=delaySignSetting,
+                publicSign:=publicSign,
                 platform:=platform,
                 generalDiagnosticOption:=generalDiagnosticOption,
                 specificDiagnosticOptions:=specificDiagnosticOptions,
@@ -1249,9 +1283,14 @@ lVbRuntimePlus:
                 documentationPath = documentationPath + ".xml"
             End If
 
+            ' Enable interactive mode if either `\i` option is passed in or no arguments are specified (`vbi`, `vbi script.vbx \i`).
+            ' If the script is passed without the `\i` option simply execute the script (`vbi script.vbx`).
+            interactiveMode = interactiveMode Or (IsScriptRunner AndAlso sourceFiles.Count = 0)
+
             Return New VisualBasicCommandLineArguments With
             {
                 .IsScriptRunner = IsScriptRunner,
+                .InteractiveMode = interactiveMode,
                 .BaseDirectory = baseDirectory,
                 .Errors = diagnostics.AsImmutable(),
                 .Utf8Output = utf8output,

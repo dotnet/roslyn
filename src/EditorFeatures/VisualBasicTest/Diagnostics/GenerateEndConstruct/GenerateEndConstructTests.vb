@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateEndConstruct
     Public Class GenerateEndConstructTests
@@ -12,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New GenerateEndConstructCodeFixProvider())
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestIf()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestIf() As Task
             Dim text = <MethodBody>
 If True Then[||]
 </MethodBody>
@@ -23,11 +24,11 @@ If True Then
 
 End If</MethodBody>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestUsing()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestUsing() As Task
             Dim text = <MethodBody>
 Using (foo)[||]
 </MethodBody>
@@ -37,76 +38,76 @@ Using (foo)
 
 End Using</MethodBody>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestStructure()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestStructure() As Task
             Dim text = <File>
 Structure Foo[||]</File>
 
             Dim expected = StringFromLines("Structure Foo", "End Structure", "")
 
-            Test(text.ConvertTestSourceTag(), expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected, compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestModule()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestModule() As Task
             Dim text = <File>
 Module Foo[||]
 </File>
 
             Dim expected = StringFromLines("Module Foo", "End Module", "")
 
-            Test(text.ConvertTestSourceTag(), expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected, compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestNamespace()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestNamespace() As Task
             Dim text = <File>
 Namespace Foo[||]
 </File>
 
             Dim expected = StringFromLines("Namespace Foo", "End Namespace", "")
 
-            Test(text.ConvertTestSourceTag(), expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected, compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestClass()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestClass() As Task
             Dim text = <File>
 Class Foo[||]
 </File>
 
             Dim expected = StringFromLines("Class Foo", "End Class", "")
 
-            Test(text.ConvertTestSourceTag(), expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected, compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestInterface()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestInterface() As Task
             Dim text = <File>
 Interface Foo[||]
 </File>
 
             Dim expected = StringFromLines("Interface Foo", "End Interface", "")
 
-            Test(text.ConvertTestSourceTag(), expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected, compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestEnum()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestEnum() As Task
             Dim text = <File>
 Enum Foo[||]
 </File>
 
             Dim expected = StringFromLines("Enum Foo", "End Enum", "")
 
-            Test(text.ConvertTestSourceTag(), expected, compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected, compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestWhile()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestWhile() As Task
             Dim text = <MethodBody>
 While True[||]</MethodBody>
 
@@ -115,11 +116,11 @@ While True
 
 End While</MethodBody>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestWith()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestWith() As Task
             Dim text = <MethodBody>
 With True[||]</MethodBody>
 
@@ -128,11 +129,11 @@ With True
 
 End With</MethodBody>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestSyncLock()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestSyncLock() As Task
             Dim text = <MethodBody>
 SyncLock Me[||]</MethodBody>
 
@@ -141,11 +142,11 @@ SyncLock Me
 
 End SyncLock</MethodBody>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestDoLoop()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestDoLoop() As Task
             Dim text = <MethodBody>
 Do While True[||]</MethodBody>
 
@@ -154,11 +155,11 @@ Do While True
 
 Loop</MethodBody>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestForNext()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestForNext() As Task
             Dim text = <MethodBody>
 For x = 1 to 3[||]</MethodBody>
 
@@ -167,11 +168,11 @@ For x = 1 to 3
 
 Next</MethodBody>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestForEachNext()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestForEachNext() As Task
             Dim text = <MethodBody>
 For Each x in {}[||]</MethodBody>
 
@@ -180,11 +181,11 @@ For Each x in {}
 
 Next</MethodBody>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestEndTry()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestEndTry() As Task
             Dim text = <MethodBody>
 Try[||]</MethodBody>
 
@@ -193,11 +194,11 @@ Try
 
 End Try</MethodBody>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestEndTryCatch()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestEndTryCatch() As Task
             Dim text = <MethodBody>
 Try[||]
 Catch</MethodBody>
@@ -208,11 +209,11 @@ Catch
 
 End Try</MethodBody>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestEndTryCatchFinally()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestEndTryCatchFinally() As Task
             Dim text = <MethodBody>
 Try[||]
 Catch
@@ -225,11 +226,11 @@ Finally
 
 End Try</MethodBody>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestProperty()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestProperty() As Task
             Dim text = <File>
 Class C
     Property P As Integer[||]
@@ -246,11 +247,11 @@ Class C
     End Property
 End Class</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestReadOnlyProperty()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestReadOnlyProperty() As Task
             Dim text = <File>
 Class C
     ReadOnly Property P As Integer[||]
@@ -265,11 +266,11 @@ Class C
     End Property
 End Class</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestWriteOnlyProperty()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestWriteOnlyProperty() As Task
             Dim text = <File>
 Class C
     WriteOnly Property P As Integer[||]
@@ -284,11 +285,11 @@ Class C
     End Property
 End Class</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestWriteOnlyPropertyFromSet()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestWriteOnlyPropertyFromSet() As Task
             Dim text = <File>
 Class C
     WriteOnly Property P As Integer
@@ -303,11 +304,11 @@ Class C
     End Property
 End Class</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub InvInsideEndsEnum()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestInvInsideEndsEnum() As Task
             Dim text = <File>
 Public Enum e[||]
     e1
@@ -322,11 +323,11 @@ End Enum
 Class Foo
 End Class</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub MissingEndSub()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestMissingEndSub() As Task
             Dim text = <File>
 Class C
     Sub Bar()[||]
@@ -339,11 +340,11 @@ Class C
     End Sub
 End Class</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub MissingEndFunction()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestMissingEndFunction() As Task
             Dim text = <File>
 Class C
     Function Bar() as Integer[||]
@@ -356,12 +357,12 @@ Class C
     End Function
 End Class</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
         <WorkItem(576176)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub FormatWrappedBlock()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestFormatWrappedBlock() As Task
             Dim text = <File>
 Class C
     Sub Main(args As String())
@@ -388,12 +389,12 @@ Class C
 
 End Class</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
         <WorkItem(578253)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub DoNotWrapCLass()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestDoNotWrapCLass() As Task
             Dim text = <File>
 Class C[||]
         Function f1() As Integer
@@ -420,19 +421,19 @@ Module Program
     End Sub
 End Module</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
         <WorkItem(578260)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub NotOnLambda()
-            TestMissing(
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestNotOnLambda() As Task
+            Await TestMissingAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n End Sub \n Function foo() \n Dim op = Sub[||](c) \n Dim kl = Sub(g) \n End Sub \n End Function \n End Module"))
-        End Sub
+        End Function
 
         <WorkItem(578271)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestNamespaceThatEndsAtFile()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Async Function TestNamespaceThatEndsAtFile() As Task
             Dim text = <File>
 Namespace N[||]
     Interface I
@@ -453,8 +454,8 @@ Interface I
     End Module
 End Interface</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Function
 
     End Class
 End Namespace

@@ -6,8 +6,8 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
-    [UnitTestTrait]
-    public class OpenProjectDesignerCommandTests : OpenProjectDesignerCommandBaseTests
+    [ProjectSystemTrait]
+    public class OpenProjectDesignerCommandTests : AbstractOpenProjectDesignerCommandTests
     {
         [Fact]
         public void Constructor_NullAsDesignerService_ThrowsArgumentNull()
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
             return VisualStudioStandard97CommandId.Open;
         }
 
-        internal override OpenProjectDesignerCommandBase CreateInstance(IProjectDesignerService designerService = null)
+        internal override AbstractOpenProjectDesignerCommand CreateInstance(IProjectDesignerService designerService = null)
         {
             designerService = designerService ?? IProjectDesignerServiceFactory.Create();
 

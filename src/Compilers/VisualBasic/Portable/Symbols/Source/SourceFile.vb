@@ -36,10 +36,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The bound information from a file.
         ''' </summary>
         Private NotInheritable Class BoundFileInformation
-            Public ReadOnly MemberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) ' can be Nothing if no member imports.
-            Public ReadOnly MemberImportsSyntax As ImmutableArray(Of SyntaxReference) ' can be Nothing if no member imports.
-            Public ReadOnly AliasImports As Dictionary(Of String, AliasAndImportsClausePosition) ' can be Nothing if no alias imports.
-            Public ReadOnly XmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) ' can be Nothing if no xmlns imports.
+
+            ' Does not contain error types (imports with errors are ignored).
+            Public ReadOnly MemberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition)
+
+            ' Does not contain error imports with errors.
+            Public ReadOnly MemberImportsSyntax As ImmutableArray(Of SyntaxReference)
+
+            ' Can be Nothing if no alias imports. May contain alias whose target is an error type.
+            Public ReadOnly AliasImportsOpt As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition)
+
+            ' Can be Nothing if no xmlns imports.
+            Public ReadOnly XmlNamespacesOpt As IReadOnlyDictionary(Of String, XmlNamespaceAndImportsClausePosition)
 
             ' HasValue is false if the given option wasn't present in the file.
             Public ReadOnly OptionStrict As Boolean?
@@ -47,19 +55,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public ReadOnly OptionExplicit As Boolean?
             Public ReadOnly OptionCompareText As Boolean?
 
-            Public Sub New(importMembersOf As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
-                           importMembersOfSyntax As ImmutableArray(Of SyntaxReference),
-                           importAliases As Dictionary(Of String, AliasAndImportsClausePosition),
-                           xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition),
+            Public Sub New(memberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
+                           memberImportsSyntax As ImmutableArray(Of SyntaxReference),
+                           importAliasesOpt As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition),
+                           xmlNamespacesOpt As IReadOnlyDictionary(Of String, XmlNamespaceAndImportsClausePosition),
                            optionStrict As Boolean?,
                            optionInfer As Boolean?,
                            optionExplicit As Boolean?,
                            optionCompareText As Boolean?)
 
-                Me.MemberImports = importMembersOf
-                Me.MemberImportsSyntax = importMembersOfSyntax
-                Me.AliasImports = importAliases
-                Me.XmlNamespaces = xmlNamespaces
+                Debug.Assert(Not memberImports.IsDefault)
+                Debug.Assert(Not memberImportsSyntax.IsDefault)
+                Debug.Assert(memberImports.Length = memberImportsSyntax.Length)
+                Debug.Assert(Not memberImports.Any(Function(i) i.NamespaceOrType.Kind = SymbolKind.ErrorType))
+
+                Me.MemberImports = memberImports
+                Me.MemberImportsSyntax = memberImportsSyntax
+                Me.AliasImportsOpt = importAliasesOpt
+                Me.XmlNamespacesOpt = xmlNamespacesOpt
 
                 Me.OptionStrict = optionStrict
                 Me.OptionInfer = optionInfer
@@ -155,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If _importsValidated = 0 Then
                 Dim boundFileInformation = BoundInformation
                 Dim diagBag As New DiagnosticBag()
-                ValidateImports(boundFileInformation.MemberImports, boundFileInformation.MemberImportsSyntax, boundFileInformation.AliasImports, diagBag)
+                ValidateImports(boundFileInformation.MemberImports, boundFileInformation.MemberImportsSyntax, boundFileInformation.AliasImportsOpt, diagBag)
                 _sourceModule.AtomicStoreIntegerAndDiagnostics(_importsValidated, 1, 0, diagBag, CompilationStage.Declare)
             End If
             Debug.Assert(_importsValidated = 1)
@@ -176,12 +189,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim importMembersOf As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
             Dim importMembersOfSyntax As ImmutableArray(Of SyntaxReference) = Nothing
-            Dim importAliases As Dictionary(Of String, AliasAndImportsClausePosition) = Nothing
-            Dim xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
+            Dim importAliasesOpt As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition) = Nothing
+            Dim xmlNamespacesOpt As IReadOnlyDictionary(Of String, XmlNamespaceAndImportsClausePosition) = Nothing
 
-            BindImports(compilationUnitSyntax.Imports, binder, diagBag, importMembersOf, importMembersOfSyntax, importAliases, xmlNamespaces, cancellationToken, filterSpan)
+            BindImports(compilationUnitSyntax.Imports, binder, diagBag, importMembersOf, importMembersOfSyntax, importAliasesOpt, xmlNamespacesOpt, cancellationToken, filterSpan)
 
-            Return New BoundFileInformation(importMembersOf, importMembersOfSyntax, importAliases, xmlNamespaces, optionStrict, optionInfer, optionExplicit, optionCompareText)
+            Return New BoundFileInformation(importMembersOf, importMembersOfSyntax, importAliasesOpt, xmlNamespacesOpt, optionStrict, optionInfer, optionExplicit, optionCompareText)
         End Function
 
         ' Bind the options and return the value of how options were specified.
@@ -242,10 +255,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Sub BindImports(importsListSyntax As SyntaxList(Of ImportsStatementSyntax),
                                        binder As Binder,
                                        diagBag As DiagnosticBag,
-                                       <Out()> ByRef importMembersOf As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
-                                       <Out()> ByRef importMembersOfSyntax As ImmutableArray(Of SyntaxReference),
-                                       <Out()> ByRef importAliases As Dictionary(Of String, AliasAndImportsClausePosition),
-                                       <Out()> ByRef xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition),
+                                       <Out> ByRef importMembersOf As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
+                                       <Out> ByRef importMembersOfSyntax As ImmutableArray(Of SyntaxReference),
+                                       <Out> ByRef importAliasesOpt As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition),
+                                       <Out> ByRef xmlNamespacesOpt As IReadOnlyDictionary(Of String, XmlNamespaceAndImportsClausePosition),
                                        cancellationToken As CancellationToken,
                                        Optional filterSpan As TextSpan? = Nothing)
             Dim membersBuilder = ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance()
@@ -273,8 +286,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 importMembersOf = membersBuilder.ToImmutable()
                 importMembersOfSyntax = membersSyntaxBuilder.ToImmutable()
-                importAliases = If(data.Aliases.Count = 0, Nothing, data.Aliases)
-                xmlNamespaces = If(data.XmlNamespaces.Count > 0, data.XmlNamespaces, Nothing)
+                importAliasesOpt = If(data.Aliases.Count = 0, Nothing, data.Aliases)
+                xmlNamespacesOpt = If(data.XmlNamespaces.Count > 0, data.XmlNamespaces, Nothing)
             Finally
                 membersBuilder.Free()
                 membersSyntaxBuilder.Free()
@@ -317,23 +330,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Private Shared Sub ValidateImports(memberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
                                            memberImportsSyntax As ImmutableArray(Of SyntaxReference),
-                                           aliasImports As Dictionary(Of String, AliasAndImportsClausePosition),
+                                           aliasImportsOpt As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition),
                                            diagnostics As DiagnosticBag)
             ' TODO: Dev10 reports error on specific type parts rather than the import
             ' (reporting error on Object rather than C in C = A(Of Object) for instance).
 
-            If Not memberImports.IsDefault Then
-                For i = 0 To memberImports.Length - 1
-                    Dim type = TryCast(memberImports(i).NamespaceOrType, TypeSymbol)
-                    If type IsNot Nothing Then
-                        Dim location = memberImportsSyntax(i).GetLocation()
-                        type.CheckAllConstraints(location, diagnostics)
-                    End If
-                Next
-            End If
+            For i = 0 To memberImports.Length - 1
+                Dim type = TryCast(memberImports(i).NamespaceOrType, TypeSymbol)
+                If type IsNot Nothing Then
+                    Dim location = memberImportsSyntax(i).GetLocation()
+                    type.CheckAllConstraints(location, diagnostics)
+                End If
+            Next
 
-            If aliasImports IsNot Nothing Then
-                For Each aliasImport In aliasImports.Values
+            If aliasImportsOpt IsNot Nothing Then
+                For Each aliasImport In aliasImportsOpt.Values
                     Dim type = TryCast(aliasImport.Alias.Target, TypeSymbol)
                     If type IsNot Nothing Then
                         type.CheckAllConstraints(aliasImport.Alias.Locations(0), diagnostics)
@@ -343,7 +354,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ''' <summary>
-        ''' Return the member imports for this file. May return Nothing if there are no member imports.
+        ''' Return the member imports for this file.
+        ''' Doesn't contain error types.
         ''' </summary>
         Public ReadOnly Property MemberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition)
             Get
@@ -353,19 +365,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Return the alias imports for this file. May return Nothing if there are no alias imports.
+        ''' May contain aliases with error type targets.
         ''' </summary>
-        Public ReadOnly Property AliasImports As Dictionary(Of String, AliasAndImportsClausePosition)
+        Public ReadOnly Property AliasImportsOpt As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition)
             Get
-                Return BoundInformation.AliasImports
+                Return BoundInformation.AliasImportsOpt
             End Get
         End Property
 
         ''' <summary>
         ''' Return the xmlns imports for this file. May return Nothing if there are no xmlns imports.
         ''' </summary>
-        Public ReadOnly Property XmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition)
+        Public ReadOnly Property XmlNamespacesOpt As IReadOnlyDictionary(Of String, XmlNamespaceAndImportsClausePosition)
             Get
-                Return BoundInformation.XmlNamespaces
+                Return BoundInformation.XmlNamespacesOpt
             End Get
         End Property
 
@@ -446,8 +459,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function TranslateImports(moduleBuilder As Emit.PEModuleBuilder, diagnostics As DiagnosticBag) As ImmutableArray(Of Cci.UsedNamespaceOrType)
             Return NamespaceScopeBuilder.BuildNamespaceScope(moduleBuilder,
-                                                             XmlNamespaces,
-                                                             If(AliasImports IsNot Nothing, AliasImports.Values, Nothing),
+                                                             XmlNamespacesOpt,
+                                                             If(AliasImportsOpt IsNot Nothing, AliasImportsOpt.Values, Nothing),
                                                              MemberImports,
                                                              diagnostics)
         End Function

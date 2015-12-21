@@ -3,7 +3,7 @@
 REM Parse Arguments.
 
 set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.33.zip
+set NugetZipUrl=%NuGetZipUrlRoot%/nuget.future.3.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 set BuildRestore=false
@@ -37,6 +37,8 @@ if defined Perf (
 )
 
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
+
+powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
 
 REM Restore the NuGet packages 
 if "%BuildRestore%" == "true" (
@@ -91,13 +93,14 @@ REM Ensure caller sees successful exit.
 exit /b 0
 
 :Usage
-@echo Usage: cibuild.cmd [/debug^|/release] [/test32^|/test64^|/perf]
+@echo Usage: cibuild.cmd [/debug^|/release] [/test32^|/test64^|/perf] [/restore]
 @echo   /debug   Perform debug build.  This is the default.
 @echo   /release Perform release build.
 @echo   /test32  Run unit tests in the 32-bit runner.  This is the default.
 @echo   /test64  Run units tests in the 64-bit runner.
 @echo   /perf    Submit a job to the performance test system. Usually combined
 @echo            with /release. May not be combined with /test32 or /test64.
+@echo   /restore Perform actual nuget restore instead of using zip drops.
 @echo.
 @goto :eof
 
@@ -108,6 +111,6 @@ exit /b 1
 
 :TerminateCompilerServer
 @REM Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
-@REM This prevents future CI runs from failing hile trying to delete those files.
+@REM This prevents future CI runs from failing while trying to delete those files.
 
 taskkill /F /IM vbcscompiler.exe 2> nul

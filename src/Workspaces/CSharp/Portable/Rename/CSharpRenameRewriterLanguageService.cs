@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 if (tokenNeedsConflictCheck)
                 {
-                    newToken = RenameAndAnnotateAsync(token, newToken, isRenameLocation, isOldText).WaitAndGetResult(_cancellationToken);
+                    newToken = RenameAndAnnotateAsync(token, newToken, isRenameLocation, isOldText).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
 
                     if (!_isProcessingComplexifiedSpans)
                     {
@@ -382,9 +382,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         AddModifiedSpan(oldSpan, newToken.Span);
                     }
 
-                    RenameDeclarationLocationReference[] renameDeclarationLocations =
-                        ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken)
-                                .WaitAndGetResult(_cancellationToken);
+                    var renameDeclarationLocations = await
+                        ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken).ConfigureAwait(false);
 
                     var isNamespaceDeclarationReference = false;
                     if (isRenameLocation && token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword))
@@ -474,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                                                                     _solution,
                                                                                     symbols,
                                                                                     _cancellationToken)
-                                                                                        .WaitAndGetResult(_cancellationToken);
+                                                                                        .WaitAndGetResult_CanCallOnBackground(_cancellationToken);
 
                     var renameAnnotation = new RenameActionAnnotation(
                                                 identifierToken.Span,

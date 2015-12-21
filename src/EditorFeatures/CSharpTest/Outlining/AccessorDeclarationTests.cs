@@ -1,457 +1,278 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class AccessorDeclarationTests : AbstractOutlinerTests<AccessorDeclarationSyntax>
+    public class AccessorDeclarationTests : AbstractCSharpSyntaxNodeOutlinerTests<AccessorDeclarationSyntax>
     {
-        internal override IEnumerable<OutliningSpan> GetRegions(AccessorDeclarationSyntax accessorDeclaration)
+        internal override AbstractSyntaxOutliner CreateOutliner() => new AccessorDeclarationOutliner();
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestPropertyGetter1()
         {
-            var outliner = new AccessorDeclarationOutliner();
-            return outliner.GetOutliningSpans(accessorDeclaration, CancellationToken.None).WhereNotNull();
+            const string code = @"
+class C
+{
+    public string Text
+    {
+        $${|hint:get{|collapse:
+        {
+        }|}|}
+    }
+}";
+
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyGetter1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestPropertyGetterWithSingleLineComments1()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Text",
-                                        "  {",
-                                        "    get",
-                                        "    {",
-                                        "    }",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    public string Text
+    {
+        {|span1:// My
+        // Getter|}
+        $${|hint2:get{|collapse2:
+        {
+        }|}|}
+    }
+}
+";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
-            var accessor = propDecl.AccessorList.Accessors[0];
-
-            var actualRegion = GetRegion(accessor);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(46, 60),
-                TextSpan.FromBounds(43, 60),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// My ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyGetterWithSingleLineComments1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestPropertyGetterWithMultiLineComments1()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Text",
-                                        "  {",
-                                        "    // My",
-                                        "    // Getter",
-                                        "    get",
-                                        "    {",
-                                        "    }",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    public string Text
+    {
+        {|span1:/* My
+           Getter */|}
+        $${|hint2:get{|collapse2:
+        {
+        }|}|}
+    }
+}
+";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
-            var accessor = propDecl.AccessorList.Accessors[0];
-
-            var actualRegions = GetRegions(accessor).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(43, 63),
-                "// My ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(72, 86),
-                TextSpan.FromBounds(69, 86),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("span1", "/* My ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyGetterWithMultiLineComments1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestPropertyGetter2()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Text",
-                                        "  {",
-                                        "    /* My",
-                                        "       Getter */",
-                                        "    get",
-                                        "    {",
-                                        "    }",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    public string Text
+    {
+        $${|hint:get{|collapse:
+        {
+        }|}|}
+        set
+        {
+        }
+    }
+}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
-            var accessor = propDecl.AccessorList.Accessors[0];
-
-            var actualRegions = GetRegions(accessor).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(43, 66),
-                "/* My ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(75, 89),
-                TextSpan.FromBounds(72, 89),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyGetter2()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestPropertyGetterWithSingleLineComments2()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Text",
-                                        "  {",
-                                        "    get",
-                                        "    {",
-                                        "    }",
-                                        "    set",
-                                        "    {",
-                                        "    }",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    public string Text
+    {
+        {|span1:// My
+        // Getter|}
+        $${|hint2:get{|collapse2:
+        {
+        }|}|}
+        set
+        {
+        }
+    }
+}
+";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
-            var accessor = propDecl.AccessorList.Accessors[0];
-
-            var actualRegion = GetRegion(accessor);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(46, 60),
-                TextSpan.FromBounds(43, 60),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// My ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyGetterWithSingleLineComments2()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestPropertyGetterWithMultiLineComments2()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Text",
-                                        "  {",
-                                        "    // My",
-                                        "    // Getter",
-                                        "    get",
-                                        "    {",
-                                        "    }",
-                                        "    set",
-                                        "    {",
-                                        "    }",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    public string Text
+    {
+        {|span1:/* My
+           Getter */|}
+        $${|hint2:get{|collapse2:
+        {
+        }|}|}
+        set
+        {
+        }
+    }
+}
+";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
-            var accessor = propDecl.AccessorList.Accessors[0];
-
-            var actualRegions = GetRegions(accessor).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(43, 63),
-                "// My ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(72, 86),
-                TextSpan.FromBounds(69, 86),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("span1", "/* My ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyGetterWithMultiLineComments2()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestPropertySetter1()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Text",
-                                        "  {",
-                                        "    /* My",
-                                        "       Getter */",
-                                        "    get",
-                                        "    {",
-                                        "    }",
-                                        "    set",
-                                        "    {",
-                                        "    }",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    public string Text
+    {
+        $${|hint:set{|collapse:
+        {
+        }|}|}
+    }
+}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
-            var accessor = propDecl.AccessorList.Accessors[0];
-
-            var actualRegions = GetRegions(accessor).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(43, 66),
-                "/* My ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(75, 89),
-                TextSpan.FromBounds(72, 89),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertySetter1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestPropertySetterWithSingleLineComments1()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Text",
-                                        "  {",
-                                        "    set",
-                                        "    {",
-                                        "    }",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    public string Text
+    {
+        {|span1:// My
+        // Setter|}
+        $${|hint2:set{|collapse2:
+        {
+        }|}|}
+    }
+}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
-            var accessor = propDecl.AccessorList.Accessors[0];
-
-            var actualRegion = GetRegion(accessor);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(46, 60),
-                TextSpan.FromBounds(43, 60),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// My ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertySetter2()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestPropertySetterWithMultiLineComments1()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Text",
-                                        "  {",
-                                        "    get",
-                                        "    {",
-                                        "    }",
-                                        "    set",
-                                        "    {",
-                                        "    }",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    public string Text
+    {
+        {|span1:/* My
+           Setter */|}
+        $${|hint2:set{|collapse2:
+        {
+        }|}|}
+    }
+}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
-            var accessor = propDecl.AccessorList.Accessors[1];
-
-            var actualRegion = GetRegion(accessor);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(69, 83),
-                TextSpan.FromBounds(66, 83),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span1", "/* My ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertySetterWithSingleLineComments1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestPropertySetter2()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Text",
-                                        "  {",
-                                        "    // My",
-                                        "    // Setter",
-                                        "    set",
-                                        "    {",
-                                        "    }",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    public string Text
+    {
+        get
+        {
+        }
+        $${|hint:set{|collapse:
+        {
+        }|}|}
+    }
+}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
-            var accessor = propDecl.AccessorList.Accessors[0];
-
-            var actualRegions = GetRegions(accessor).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(43, 63),
-                "// My ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(72, 86),
-                TextSpan.FromBounds(69, 86),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertySetterWithMultiLineComments1()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestPropertySetterWithSingleLineComments2()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Text",
-                                        "  {",
-                                        "    get",
-                                        "    {",
-                                        "    }",
-                                        "    /* My",
-                                        "       Setter */",
-                                        "    set",
-                                        "    {",
-                                        "    }",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    public string Text
+    {
+        get
+        {
+        }
+        {|span1:// My
+        // Setter|}
+        $${|hint2:set{|collapse2:
+        {
+        }|}|}
+    }
+}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
-            var accessor = propDecl.AccessorList.Accessors[1];
-
-            var actualRegions = GetRegions(accessor).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(66, 89),
-                "/* My ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(98, 112),
-                TextSpan.FromBounds(95, 112),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// My ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertySetterWithSingleLineComments2()
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestPropertySetterWithMultiLineComments2()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Text",
-                                        "  {",
-                                        "    get",
-                                        "    {",
-                                        "    }",
-                                        "    // My",
-                                        "    // Setter",
-                                        "    set",
-                                        "    {",
-                                        "    }",
-                                        "  }",
-                                        "}");
-
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
-            var accessor = propDecl.AccessorList.Accessors[1];
-
-            var actualRegions = GetRegions(accessor).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(66, 86),
-                "// My ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(95, 109),
-                TextSpan.FromBounds(92, 109),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            const string code = @"
+class C
+{
+    public string Text
+    {
+        get
+        {
         }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertySetterWithMultiLineComments2()
+        {|span1:/* My
+           Setter */|}
+        $${|hint2:set{|collapse2:
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  public string Text",
-                                        "  {",
-                                        "    get",
-                                        "    {",
-                                        "    }",
-                                        "    /* My",
-                                        "       Setter */",
-                                        "    set",
-                                        "    {",
-                                        "    }",
-                                        "  }",
-                                        "}");
+        }|}|}
+    }
+}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
-            var accessor = propDecl.AccessorList.Accessors[1];
-
-            var actualRegions = GetRegions(accessor).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(66, 89),
-                "/* My ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(98, 112),
-                TextSpan.FromBounds(95, 112),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("span1", "/* My ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

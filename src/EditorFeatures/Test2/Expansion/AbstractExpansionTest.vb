@@ -10,8 +10,8 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
     Public MustInherit Class AbstractExpansionTest
 
-        Protected Sub Test(definition As XElement, expected As XElement, Optional useLastProject As Boolean = False, Optional expandParameter As Boolean = False)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition)
+        Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional useLastProject As Boolean = False, Optional expandParameter As Boolean = False) As System.Threading.Tasks.Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
                 Dim hostDocument = If(Not useLastProject, workspace.Documents.Single(), workspace.Documents.Last())
 
                 If hostDocument.AnnotatedSpans.Count <> 1 Then
@@ -21,31 +21,31 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
                 Dim document = If(Not useLastProject, workspace.CurrentSolution.Projects.Single(), workspace.CurrentSolution.Projects.Last()).Documents.Single()
                 Dim languageServices = document.Project.LanguageServices
 
-                Dim root = document.GetSyntaxRootAsync().Result
+                Dim root = Await document.GetSyntaxRootAsync()
 
                 If (hostDocument.AnnotatedSpans.ContainsKey("Expand")) Then
                     For Each span In hostDocument.AnnotatedSpans("Expand")
                         Dim node = GetExpressionSyntaxWithSameSpan(root.FindToken(span.Start).Parent, span.End)
-                        root = root.ReplaceNode(node, Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter).Result)
+                        root = root.ReplaceNode(node, Await Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter))
                     Next
                 ElseIf (hostDocument.AnnotatedSpans.ContainsKey("ExpandAndSimplify")) Then
                     For Each span In hostDocument.AnnotatedSpans("ExpandAndSimplify")
                         Dim node = GetExpressionSyntaxWithSameSpan(root.FindToken(span.Start).Parent, span.End)
-                        root = root.ReplaceNode(node, Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter).Result)
+                        root = root.ReplaceNode(node, Await Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter))
                         document = document.WithSyntaxRoot(root)
-                        document = Simplifier.ReduceAsync(document, Simplifier.Annotation).Result
-                        root = document.GetSyntaxRootAsync().Result
+                        document = Await Simplifier.ReduceAsync(document, Simplifier.Annotation)
+                        root = Await document.GetSyntaxRootAsync()
                     Next
                 End If
 
                 document = document.WithSyntaxRoot(root)
-                document = Formatter.FormatAsync(document).WaitAndGetResult(Nothing)
+                document = Await Formatter.FormatAsync(document)
 
-                Dim actualText = document.GetTextAsync().Result.ToString()
+                Dim actualText = (Await document.GetTextAsync()).ToString()
 
                 Assert.Equal(expected.NormalizedValue.Trim(), actualText.Trim())
             End Using
-        End Sub
+        End Function
 
         Private Function GetExpressionSyntaxWithSameSpan(node As SyntaxNode, spanEnd As Integer) As SyntaxNode
             While Not node Is Nothing And Not node.Parent Is Nothing And node.Parent.SpanStart = node.SpanStart

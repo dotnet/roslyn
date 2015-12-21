@@ -84,7 +84,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             internal EmitData()
             {
-
             }
         }
 
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             allModules = allModules.ToArray();
 
-            var runtimeData = GetOrCreateRuntimeData(compilationDependencies);
+            var runtimeData = GetOrCreateRuntimeData(allModules);
 
             // Many prominent assemblys like mscorlib are already in the RuntimeAssemblyManager.  Only 
             // add in the delta values to reduce serialization overhead going across AppDomains.
@@ -252,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         private static void EmitReferences(Compilation compilation, HashSet<string> fullNameSet, List<ModuleData> dependencies, DiagnosticBag diagnostics)
         {
-            var previousSubmission = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            // NOTE: specifically don't need to consider previous submissions since they will always be compilations.
             foreach (var metadataReference in compilation.References)
             {
                 if (metadataReference is CompilationReference)

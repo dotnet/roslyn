@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp;
@@ -26,15 +27,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         public string ErrorMessage { get; private set; }
         public NotificationSeverity ErrorSeverity { get; private set; }
 
-        public ChangeSignatureTestState(string markup, string languageName, ParseOptions parseOptions = null)
-            : this(languageName == LanguageNames.CSharp
-                  ? CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup, exportProvider: s_exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
-                  : VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(markup, exportProvider: s_exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+        public static async Task<ChangeSignatureTestState> CreateAsync(string markup, string languageName, ParseOptions parseOptions = null)
         {
+            var workspace = languageName == LanguageNames.CSharp
+                  ? await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, exportProvider: s_exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
+                  : await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, exportProvider: s_exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            return new ChangeSignatureTestState(workspace);
         }
 
-        public ChangeSignatureTestState(XElement workspaceXml) : this(TestWorkspaceFactory.CreateWorkspace(workspaceXml))
+        public static async Task<ChangeSignatureTestState> CreateAsync(XElement workspaceXml)
         {
+            var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml);
+            return new ChangeSignatureTestState(workspace);
         }
 
         public ChangeSignatureTestState(TestWorkspace workspace)
@@ -61,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public ChangeSignatureResult ChangeSignature()
         {
+            Roslyn.Test.Utilities.WpfTestCase.RequireWpfFact($"{nameof(AbstractChangeSignatureService.ChangeSignature)} currently needs to run on a WPF Fact because it's factored in a way that tries popping up UI in some cases.");
+
             return ChangeSignatureService.ChangeSignature(
                 InvocationDocument,
                 _testDocument.CursorPosition.Value,

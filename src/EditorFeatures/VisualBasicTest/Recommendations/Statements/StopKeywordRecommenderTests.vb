@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class StopKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StopInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Stop")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StopAfterStatement()
             VerifyRecommendationsContain(<MethodBody>
@@ -23,19 +23,19 @@ Dim x
 |</MethodBody>, "Stop")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StopMissingInClassBlock()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "Stop")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StopInSingleLineLambda()
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "Stop")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StopNotInSingleLineFunctionLambda()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "Stop")

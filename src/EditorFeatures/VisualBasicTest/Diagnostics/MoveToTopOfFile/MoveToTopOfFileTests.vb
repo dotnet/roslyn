@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
@@ -14,28 +15,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MoveTo
 
 #Region "Imports Tests"
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub TestImportsMissing()
-            TestMissing(
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestTestImportsMissing() As Task
+            Await TestMissingAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n [|Imports Microsoft|] \n Module Program \n Sub Main(args As String()) \n  \n End Sub \n End Module"))
-        End Sub
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub ImportsInsideDeclaration()
-            Test(
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestImportsInsideDeclaration() As Task
+            Await TestAsync(
 NewLines("Module Program \n [|Imports System|] \n Sub Main(args As String()) \n End Sub \n End Module"),
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
-        End Sub
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub ImportsAfterDeclarations()
-            Test(
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestImportsAfterDeclarations() As Task
+            Await TestAsync(
 NewLines("Module Program \n Sub Main(args As String()) \n End Sub \n End Module \n [|Imports System|]"),
 NewLines("Imports System Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
-        End Sub
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub ImportsMovedNextToOtherImports()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestImportsMovedNextToOtherImports() As Task
             Dim text = <File>
 Imports Microsoft
 
@@ -56,11 +57,11 @@ Module Program
     End Sub
 End Module</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub ImportsMovedAfterOptions()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestImportsMovedAfterOptions() As Task
             Dim text = <File>
 Option Explicit Off
 
@@ -81,11 +82,11 @@ Module Program
     End Sub
 End Module</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub ImportsWithTriviaMovedNextToOtherImports()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestImportsWithTriviaMovedNextToOtherImports() As Task
             Dim text = <File>
 Imports Microsoft
 
@@ -106,11 +107,11 @@ Module Program
     End Sub
 End Module</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub ImportsWithTriviaMovedNextToOtherImportsWithTrivia()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestImportsWithTriviaMovedNextToOtherImportsWithTrivia() As Task
             Dim text = <File>
 Imports Microsoft 'C1
 
@@ -131,44 +132,44 @@ Module Program
     End Sub
 End Module</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
 
         <WorkItem(601222)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub OnlyMoveOptions()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOnlyMoveOptions() As Task
             Dim text = <File>
 Imports Sys = System
 Option Infer Off
 [|Imports System.IO|]</File>
 
-            TestMissing(text.ConvertTestSourceTag())
-        End Sub
+            Await TestMissingAsync(text.ConvertTestSourceTag())
+        End Function
 #End Region
 
 #Region "Option Tests"
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub TestOptionsMissing()
-            TestMissing(
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestTestOptionsMissing() As Task
+            Await TestMissingAsync(
 NewLines("[|Option Explicit Off|] \n Module Program \n Sub Main(args As String()) \n  \n End Sub \n End Module"))
-        End Sub
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub OptionsInsideDeclaration()
-            Test(
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOptionsInsideDeclaration() As Task
+            Await TestAsync(
 NewLines("Module Program \n [|Option Explicit Off|] \n Sub Main(args As String()) \n End Sub \n End Module"),
 NewLines("Option Explicit Off \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
-        End Sub
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub OptionsAfterDeclarations()
-            Test(
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOptionsAfterDeclarations() As Task
+            Await TestAsync(
 NewLines("Module Program \n Sub Main(args As String()) \n End Sub \n End Module \n [|Option Explicit Off|]"),
 NewLines("Option Explicit Off \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
-        End Sub
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub OptionsMovedNextToOtherOptions()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOptionsMovedNextToOtherOptions() As Task
             Dim text = <File>
 Option Explicit Off
 
@@ -189,11 +190,11 @@ Module Program
     End Sub
 End Module</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub OptionsWithTriviaMovedNextToOtherOptions()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOptionsWithTriviaMovedNextToOtherOptions() As Task
             Dim text = <File>
 Imports Microsoft
 
@@ -214,11 +215,11 @@ Module Program
     End Sub
 End Module</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub OptionsWithTriviaMovedNextToOtherOptionsWithTrivia()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestOptionsWithTriviaMovedNextToOtherOptionsWithTrivia() As Task
             Dim text = <File>
 Option Explicit Off'C1
 
@@ -239,13 +240,13 @@ Module Program
     End Sub
 End Module</File>
 
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
 #End Region
 
 #Region "Attribute Tests"
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub AttributeNoAction1()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestAttributeNoAction1() As Task
             Dim text = <File>
 [|&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;|]
 Imports Microsoft
@@ -256,11 +257,11 @@ Module Program
     End Sub
 End Module</File>
 
-            TestMissing(text.ConvertTestSourceTag())
-        End Sub
+            Await TestMissingAsync(text.ConvertTestSourceTag())
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub AttributeNoAction2()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestAttributeNoAction2() As Task
             Dim text = <File>
 [|&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;|]
 
@@ -270,11 +271,11 @@ Module Program
     End Sub
 End Module</File>
 
-            TestMissing(text.ConvertTestSourceTag())
-        End Sub
+            Await TestMissingAsync(text.ConvertTestSourceTag())
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub AttributeAfterDeclaration()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestAttributeAfterDeclaration() As Task
             Dim text = <File>
 Module Program
     Sub Main(args As String())
@@ -292,11 +293,11 @@ Module Program
     End Sub
 End Module
 </File>
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub AttributeInsideDeclaration()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestAttributeInsideDeclaration() As Task
             Dim text = <File>
 Module Program
     Sub Main(args As String())
@@ -313,11 +314,11 @@ Module Program
     End Sub
 End Module
 </File>
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub AttributePreserveTrivia()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestAttributePreserveTrivia() As Task
             Dim text = <File>
 &lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Comment
 Module Program
@@ -336,12 +337,12 @@ Module Program
     End Sub
 End Module
 </File>
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+        End Function
 
         <WorkItem(600949)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub RemoveAttribute()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestRemoveAttribute() As Task
             Dim text = <File>
 Class C
     &lt;[|Assembly:|] Reflection.AssemblyCultureAttribute("de")&gt;
@@ -352,12 +353,12 @@ End Class
 Class C
 End Class
 </File>
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=1)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=1)
+        End Function
 
         <WorkItem(606857)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub MoveImportBeforeAttribute()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestMoveImportBeforeAttribute() As Task
             Dim text = <File>
 &lt;Assembly:CLSCompliant(True)&gt;
 [|Imports System|]</File>
@@ -365,12 +366,12 @@ End Class
             Dim expected = <File>
 [|Imports System|]
 &lt;Assembly:CLSCompliant(True)&gt;</File>
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
+        End Function
 
         <WorkItem(606877)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub NewLineWhenMovingFromEOF()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestNewLineWhenMovingFromEOF() As Task
             Dim text = <File>Imports System
 &lt;Assembly:CLSCompliant(True)&gt;
 [|Option Strict On|]</File>
@@ -379,12 +380,12 @@ End Class
 Imports System
 &lt;Assembly:CLSCompliant(True)&gt;
 </File>
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
+        End Function
 
         <WorkItem(606851)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub DoNotMoveLeadingWhitespace()
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        Public Async Function TestDoNotMoveLeadingWhitespace() As Task
             Dim text = <File>Imports System
  
 [|Option Strict On|]
@@ -394,13 +395,13 @@ Imports System
 Imports System
  
 </File>
-            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
-        End Sub
+            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
+        End Function
 #End Region
 
         <WorkItem(632305)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
-        Public Sub TestHiddenRegion()
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestTestHiddenRegion() As Task
             Dim code =
 <File>
 #ExternalSource ("Foo", 1)
@@ -412,8 +413,8 @@ Class C
 End Class
 </File>
 
-            TestMissing(code)
-        End Sub
+            Await TestMissingAsync(code)
+        End Function
 
     End Class
 End Namespace

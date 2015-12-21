@@ -85,7 +85,7 @@
     <Compile Include="Testing\ProjectTreeParser\Tokenizer.Token.cs" />
     <Compile Include="Testing\ProjectTreeParser\Tokenizer.cs" />
     <Compile Include="Trait.cs" />
-    <Compile Include="UnitTestTraitAttribute.cs" />
+    <Compile Include="ProjectSystemTraitAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

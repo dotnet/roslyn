@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -22,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 
         #region "Regular tests"
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationWithoutParameters()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationWithoutParameters()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -38,11 +39,11 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationWithoutParametersMethodXmlComments()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationWithoutParametersMethodXmlComments()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -59,11 +60,11 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", "Summary For Attribute", null, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationWithParametersOn1()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationWithParametersOn1()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -79,11 +80,11 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute(int someInteger, string someString)", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationWithParametersXmlCommentsOn1()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationWithParametersXmlCommentsOn1()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -104,11 +105,11 @@ class SomethingAttribute : System.Attribute
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute(int someInteger, string someString)", "Summary For Attribute", "Param someInteger", currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationWithParametersOn2()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationWithParametersOn2()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -123,11 +124,11 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute(int someInteger, string someString)", string.Empty, string.Empty, currentParameterIndex: 1));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationWithParametersXmlComentsOn2()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationWithParametersXmlComentsOn2()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -148,11 +149,11 @@ class SomethingAttribute : System.Attribute
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute(int someInteger, string someString)", "Summary For Attribute", "Param someString", currentParameterIndex: 1));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationWithClosingParen()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationWithClosingParen()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -166,13 +167,13 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationSpan1()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationSpan1()
         {
-            Test(
+            await TestAsync(
 @"using System;
 
 class C
@@ -184,10 +185,10 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationSpan2()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationSpan2()
         {
-            Test(
+            await TestAsync(
 @"using System;
 
 class C
@@ -199,10 +200,10 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationSpan3()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationSpan3()
         {
-            Test(
+            await TestAsync(
 @"using System;
 
 class C
@@ -220,8 +221,8 @@ $$|]]
 
         #region "Current Parameter Name"
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestCurrentParameterName()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestCurrentParameterName()
         {
             var markup = @"
 using System;
@@ -236,7 +237,7 @@ class C
 {
 }";
 
-            VerifyCurrentParameterName(markup, "someParameter");
+            await VerifyCurrentParameterNameAsync(markup, "someParameter");
         }
 
         #endregion
@@ -245,8 +246,8 @@ class C
 
         [WorkItem(545425)]
         [WorkItem(544139)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithValidField()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithValidField()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -262,11 +263,11 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute({CSharpEditorResources.Properties}: [foo = int])", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithInvalidFieldReadonly()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithInvalidFieldReadonly()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -282,11 +283,11 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithInvalidFieldStatic()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithInvalidFieldStatic()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -302,11 +303,11 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithInvalidFieldConst()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithInvalidFieldConst()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -322,7 +323,7 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
         #endregion
@@ -331,8 +332,8 @@ class D
 
         [WorkItem(545425)]
         [WorkItem(544139)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithValidProperty()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithValidProperty()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -349,11 +350,11 @@ class D
             expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute({CSharpEditorResources.Properties}: [foo = int])", string.Empty, string.Empty, currentParameterIndex: 0));
 
             // TODO: Bug 12319: Enable tests for script when this is fixed.
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithInvalidPropertyStatic()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithInvalidPropertyStatic()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -369,11 +370,11 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithInvalidPropertyNoSetter()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithInvalidPropertyNoSetter()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -389,11 +390,11 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithInvalidPropertyNoGetter()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithInvalidPropertyNoGetter()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -409,11 +410,11 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithInvalidPropertyPrivateGetter()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithInvalidPropertyPrivateGetter()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -429,11 +430,11 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithInvalidPropertyPrivateSetter()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithInvalidPropertyPrivateSetter()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -449,7 +450,7 @@ class D
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
         #endregion
@@ -458,8 +459,8 @@ class D
 
         [WorkItem(545425)]
         [WorkItem(544139)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithArgumentsAndNamedParameters1()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithArgumentsAndNamedParameters1()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -480,13 +481,13 @@ class D
             expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], [string bar = null], {CSharpEditorResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "FooParameter", currentParameterIndex: 0));
 
             // TODO: Bug 12319: Enable tests for script when this is fixed.
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
         [WorkItem(545425)]
         [WorkItem(544139)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithArgumentsAndNamedParameters2()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithArgumentsAndNamedParameters2()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -507,13 +508,13 @@ class D
             expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], [string bar = null], {CSharpEditorResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "BarParameter", currentParameterIndex: 1));
 
             // TODO: Bug 12319: Enable tests for script when this is fixed.
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
         [WorkItem(545425)]
         [WorkItem(544139)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithArgumentsAndNamedParameters3()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithArgumentsAndNamedParameters3()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -534,13 +535,13 @@ class D
             expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], [string bar = null], {CSharpEditorResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, string.Empty, currentParameterIndex: 2));
 
             // TODO: Bug 12319: Enable tests for script when this is fixed.
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
         [WorkItem(545425)]
         [WorkItem(544139)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithOptionalArgumentAndNamedParameterWithSameName1()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithOptionalArgumentAndNamedParameterWithSameName1()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -559,13 +560,13 @@ class D
             expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], {CSharpEditorResources.Properties}: [foo = int])", string.Empty, "FooParameter", currentParameterIndex: 0));
 
             // TODO: Bug 12319: Enable tests for script when this is fixed.
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
         [WorkItem(545425)]
         [WorkItem(544139)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestAttributeWithOptionalArgumentAndNamedParameterWithSameName2()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithOptionalArgumentAndNamedParameterWithSameName2()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -584,15 +585,15 @@ class D
             expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], {CSharpEditorResources.Properties}: [foo = int])", string.Empty, string.Empty, currentParameterIndex: 1));
 
             // TODO: Bug 12319: Enable tests for script when this is fixed.
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
         #endregion
 
         #region "Trigger tests"
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationOnTriggerParens()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationOnTriggerParens()
         {
             var markup = @"
 using System;
@@ -610,11 +611,11 @@ class C
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute(int someParameter, bool somethingElse)", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationOnTriggerComma()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationOnTriggerComma()
         {
             var markup = @"
 using System;
@@ -632,11 +633,11 @@ class C
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute(int someParameter, bool somethingElse)", string.Empty, string.Empty, currentParameterIndex: 1));
 
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestNoInvocationOnSpace()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestNoInvocationOnSpace()
         {
             var markup = @"
 using System;
@@ -652,10 +653,10 @@ class C
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void TestTriggerCharacters()
         {
             char[] expectedCharacters = { ',', '(' };
@@ -668,8 +669,8 @@ class C
 
         #region "EditorBrowsable tests"
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void EditorBrowsable_Attribute_BrowsableAlways()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task EditorBrowsable_Attribute_BrowsableAlways()
         {
             var markup = @"
 [MyAttribute($$
@@ -690,7 +691,7 @@ public class MyAttribute
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+            await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
                                                 expectedOrderedItemsMetadataReference: expectedOrderedItems,
                                                 expectedOrderedItemsSameSolution: expectedOrderedItems,
@@ -699,8 +700,8 @@ public class MyAttribute
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void EditorBrowsable_Attribute_BrowsableNever()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task EditorBrowsable_Attribute_BrowsableNever()
         {
             var markup = @"
 [MyAttribute($$
@@ -721,7 +722,7 @@ public class MyAttribute
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+            await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
                                                 expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
                                                 expectedOrderedItemsSameSolution: expectedOrderedItems,
@@ -730,8 +731,8 @@ public class MyAttribute
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void EditorBrowsable_Attribute_BrowsableAdvanced()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task EditorBrowsable_Attribute_BrowsableAdvanced()
         {
             var markup = @"
 [MyAttribute($$
@@ -752,7 +753,7 @@ public class MyAttribute
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+            await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
                                                 expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
                                                 expectedOrderedItemsSameSolution: expectedOrderedItems,
@@ -760,7 +761,7 @@ public class MyAttribute
                                                 referencedLanguage: LanguageNames.CSharp,
                                                 hideAdvancedMembers: true);
 
-            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+            await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
                                                 expectedOrderedItemsMetadataReference: expectedOrderedItems,
                                                 expectedOrderedItemsSameSolution: expectedOrderedItems,
@@ -770,8 +771,8 @@ public class MyAttribute
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void EditorBrowsable_Attribute_BrowsableMixed()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task EditorBrowsable_Attribute_BrowsableMixed()
         {
             var markup = @"
 [MyAttribute($$
@@ -801,7 +802,7 @@ public class MyAttribute
             expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
             expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("MyAttribute(int x, int y)", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+            await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
                                                 expectedOrderedItemsMetadataReference: expectedOrderedItemsMetadataReference,
                                                 expectedOrderedItemsSameSolution: expectedOrderedItemsSameSolution,
@@ -811,8 +812,8 @@ public class MyAttribute
 
         #endregion
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void FieldUnavailableInOneLinkedFile()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
@@ -837,11 +838,11 @@ class C
     </Project>
 </Workspace>";
             var expectedDescription = new SignatureHelpTestItem($"Secret()\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", currentParameterIndex: 0);
-            VerifyItemWithReferenceWorker(markup, new[] { expectedDescription }, false);
+            await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void ExcludeFilesWithInactiveRegions()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO,BAR"">
@@ -873,22 +874,22 @@ class C
 </Workspace>";
 
             var expectedDescription = new SignatureHelpTestItem($"Secret()\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", currentParameterIndex: 0);
-            VerifyItemWithReferenceWorker(markup, new[] { expectedDescription }, false);
+            await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
         [WorkItem(1067933)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void InvokedWithNoToken()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task InvokedWithNoToken()
         {
             var markup = @"
 // [foo($$";
 
-            Test(markup);
+            await TestAsync(markup);
         }
 
         [WorkItem(1081535)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationWithBadParameterList()
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestInvocationWithBadParameterList()
         {
             var markup = @"
 class SomethingAttribute : System.Attribute
@@ -901,7 +902,7 @@ class D
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
     }
 }

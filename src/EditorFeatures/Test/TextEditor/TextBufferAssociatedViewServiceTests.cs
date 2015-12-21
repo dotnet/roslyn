@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
 {
     public class TextBufferAssociatedViewServiceTests
     {
-        [WpfFact]
+        [Fact]
         public void SanityCheck()
         {
             var viewMock = new Mock<IWpfTextView>();

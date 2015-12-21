@@ -130,34 +130,34 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Throw New NotSupportedException
         End Function
 
-        Protected Sub TestCanOverride(code As XElement, expected As Boolean)
-            TestElement(code,
+        Protected Async Function TestCanOverride(code As XElement, expected As Boolean) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.CanOverride)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestSetCanOverride(code As XElement, expectedCode As XElement, value As Boolean)
-            TestSetCanOverride(code, expectedCode, value, NoThrow(Of Boolean)())
-        End Sub
+        Protected Async Function TestSetCanOverride(code As XElement, expectedCode As XElement, value As Boolean) As Threading.Tasks.Task
+            Await TestSetCanOverride(code, expectedCode, value, NoThrow(Of Boolean)())
+        End Function
 
-        Protected Sub TestSetCanOverride(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean))
-            TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetCanOverride(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Threading.Tasks.Task
+            Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)
                     action(value, Sub(v) codeElement.CanOverride = v)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestIsOverloaded(code As XElement, expectedOverloaded As Boolean)
-            TestElement(code,
+        Protected Async Function TestIsOverloaded(code As XElement, expectedOverloaded As Boolean) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Dim overloaded = GetIsOverloaded(codeElement)
                     Assert.Equal(expectedOverloaded, overloaded)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestOverloadsUniqueSignatures(code As XElement, ParamArray expectedOverloadNames As String())
-            TestElement(code,
+        Protected Async Function TestOverloadsUniqueSignatures(code As XElement, ParamArray expectedOverloadNames As String()) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Dim actualOverloads = GetOverloads(codeElement)
                     Assert.Equal(expectedOverloadNames.Count, actualOverloads.Count)
@@ -167,49 +167,49 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         Assert.True(expectedOverloadNames.Contains(signature))
                     Next
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestFunctionKind(code As XElement, expected As EnvDTE.vsCMFunction)
-            TestElement(code,
+        Protected Async Function TestFunctionKind(code As XElement, expected As EnvDTE.vsCMFunction) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.FunctionKind)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestFunctionKind(code As XElement, expected As EnvDTE80.vsCMFunction2)
-            TestElement(code,
+        Protected Async Function TestFunctionKind(code As XElement, expected As EnvDTE80.vsCMFunction2) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, CType(codeElement.FunctionKind, EnvDTE80.vsCMFunction2))
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestExtensionMethodExtender_IsExtension(code As XElement, expected As Boolean)
-            TestElement(code,
+        Protected Async Function TestExtensionMethodExtender_IsExtension(code As XElement, expected As Boolean) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, ExtensionMethodExtender_GetIsExtension(codeElement))
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestPartialMethodExtender_IsPartial(code As XElement, expected As Boolean)
-            TestElement(code,
+        Protected Async Function TestPartialMethodExtender_IsPartial(code As XElement, expected As Boolean) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, PartialMethodExtender_GetIsPartial(codeElement))
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestPartialMethodExtender_IsDeclaration(code As XElement, expected As Boolean)
-            TestElement(code,
+        Protected Async Function TestPartialMethodExtender_IsDeclaration(code As XElement, expected As Boolean) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, PartialMethodExtender_GetIsDeclaration(codeElement))
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestPartialMethodExtender_HasOtherPart(code As XElement, expected As Boolean)
-            TestElement(code,
+        Protected Async Function TestPartialMethodExtender_HasOtherPart(code As XElement, expected As Boolean) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, PartialMethodExtender_GetHasOtherPart(codeElement))
                 End Sub)
-        End Sub
+        End Function
 
     End Class
 End Namespace

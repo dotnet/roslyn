@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 {
     public class CodeFixServiceTests
     {
-        [WpfFact]
-        public void TestGetFirstDiagnosticWithFixAsync()
+        [Fact]
+        public async Task TestGetFirstDiagnosticWithFixAsync()
         {
             var diagnosticService = new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var code = @"
     a
 ";
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code))
             {
                 var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetService<IErrorLoggerService>()));
                 var fixService = new CodeFixService(
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 var reference = new MockAnalyzerReference();
                 var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
                 var document = project.Documents.Single();
-                var unused = fixService.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), considerSuppressionFixes: false, cancellationToken: CancellationToken.None).Result;
+                var unused = await fixService.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), considerSuppressionFixes: false, cancellationToken: CancellationToken.None);
 
                 var fixer1 = fixers.Single().Value as MockFixer;
                 var fixer2 = reference.Fixer as MockFixer;
@@ -57,109 +57,103 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        [WpfFact]
-        public void TestGetCodeFixWithExceptionInRegisterMethod()
+        [Fact]
+        public async Task TestGetCodeFixWithExceptionInRegisterMethod()
         {
-            GetFirstDiagnosticWithFix(new ErrorCases.ExceptionInRegisterMethod());
-            GetAddedFixes(new ErrorCases.ExceptionInRegisterMethod());
+            await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInRegisterMethod());
+            await GetAddedFixesAsync(new ErrorCases.ExceptionInRegisterMethod());
         }
 
-        [WpfFact]
-        public void TestGetCodeFixWithExceptionInRegisterMethodAsync()
+        [Fact]
+        public async Task TestGetCodeFixWithExceptionInRegisterMethodAsync()
         {
-            GetFirstDiagnosticWithFix(new ErrorCases.ExceptionInRegisterMethodAsync());
-            GetAddedFixes(new ErrorCases.ExceptionInRegisterMethodAsync());
+            await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
+            await GetAddedFixesAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
         }
 
-        [WpfFact]
-        public void TestGetCodeFixWithExceptionInFixableDiagnosticIds()
+        [Fact]
+        public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds()
         {
-            GetDefaultFixes(new ErrorCases.ExceptionInFixableDiagnosticIds());
-            GetAddedFixes(new ErrorCases.ExceptionInFixableDiagnosticIds());
+            await GetDefaultFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
+            await GetAddedFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
         }
 
-        [WpfFact]
-        public void TestGetCodeFixWithExceptionInFixableDiagnosticIds2()
+        [Fact]
+        public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds2()
         {
-            GetDefaultFixes(new ErrorCases.ExceptionInFixableDiagnosticIds2());
-            GetAddedFixes(new ErrorCases.ExceptionInFixableDiagnosticIds2());
+            await GetDefaultFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
+            await GetAddedFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
         }
 
-        [WpfFact]
-        public void TestGetCodeFixWithExceptionInGetFixAllProvider()
+        [Fact]
+        public async Task TestGetCodeFixWithExceptionInGetFixAllProvider()
         {
-            GetAddedFixes(new ErrorCases.ExceptionInGetFixAllProvider());
+            await GetAddedFixesAsync(new ErrorCases.ExceptionInGetFixAllProvider());
         }
 
-        public void GetDefaultFixes(CodeFixProvider codefix)
+        public async Task GetDefaultFixesAsync(CodeFixProvider codefix)
         {
-            TestDiagnosticAnalyzerService diagnosticService;
-            CodeFixService fixService;
-            IErrorLoggerService errorLogger;
-            using (var workspace = ServiceSetup(codefix, out diagnosticService, out fixService, out errorLogger))
+            var tuple = await ServiceSetupAsync(codefix);
+            using (var workspace = tuple.Item1)
             {
                 Document document;
                 EditorLayerExtensionManager.ExtensionManager extensionManager;
-                GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager);
-                var fixes = fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None).Result;
-                Assert.True(((TestErrorLogger)errorLogger).Messages.Count == 1);
+                GetDocumentAndExtensionManager(tuple.Item2, workspace, out document, out extensionManager);
+                var fixes = await tuple.Item3.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None);
+                Assert.True(((TestErrorLogger)tuple.Item4).Messages.Count == 1);
                 string message;
-                Assert.True(((TestErrorLogger)errorLogger).Messages.TryGetValue(codefix.GetType().Name, out message));
+                Assert.True(((TestErrorLogger)tuple.Item4).Messages.TryGetValue(codefix.GetType().Name, out message));
             }
         }
 
-        public void GetAddedFixes(CodeFixProvider codefix)
+        public async Task GetAddedFixesAsync(CodeFixProvider codefix)
         {
-            TestDiagnosticAnalyzerService diagnosticService;
-            CodeFixService fixService;
-            IErrorLoggerService errorLogger;
-            using (var workspace = ServiceSetup(codefix, out diagnosticService, out fixService, out errorLogger))
+            var tuple = await ServiceSetupAsync(codefix);
+            using (var workspace = tuple.Item1)
             {
                 Document document;
                 EditorLayerExtensionManager.ExtensionManager extensionManager;
-                GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager);
-                var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
+                GetDocumentAndExtensionManager(tuple.Item2, workspace, out document, out extensionManager);
+                var incrementalAnalyzer = (IIncrementalAnalyzerProvider)tuple.Item2;
                 var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
                 var reference = new MockAnalyzerReference(codefix);
                 var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
                 document = project.Documents.Single();
-                var fixes = fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None).Result;
+                var fixes = await tuple.Item3.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None);
 
                 Assert.True(extensionManager.IsDisabled(codefix));
                 Assert.False(extensionManager.IsIgnored(codefix));
             }
         }
 
-        public void GetFirstDiagnosticWithFix(CodeFixProvider codefix)
+        public async Task GetFirstDiagnosticWithFixAsync(CodeFixProvider codefix)
         {
-            TestDiagnosticAnalyzerService diagnosticService;
-            CodeFixService fixService;
-            IErrorLoggerService errorLogger;
-            using (var workspace = ServiceSetup(codefix, out diagnosticService, out fixService, out errorLogger))
+            var tuple = await ServiceSetupAsync(codefix);
+            using (var workspace = tuple.Item1)
             {
                 Document document;
                 EditorLayerExtensionManager.ExtensionManager extensionManager;
-                GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager);
-                var unused = fixService.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), considerSuppressionFixes: false, cancellationToken: CancellationToken.None).Result;
+                GetDocumentAndExtensionManager(tuple.Item2, workspace, out document, out extensionManager);
+                var unused = await tuple.Item3.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), considerSuppressionFixes: false, cancellationToken: CancellationToken.None);
                 Assert.True(extensionManager.IsDisabled(codefix));
                 Assert.False(extensionManager.IsIgnored(codefix));
             }
         }
 
-        private static TestWorkspace ServiceSetup(CodeFixProvider codefix, out TestDiagnosticAnalyzerService diagnosticService, out CodeFixService fixService, out IErrorLoggerService errorLogger)
+        private static async Task<Tuple<TestWorkspace, TestDiagnosticAnalyzerService, CodeFixService, IErrorLoggerService>> ServiceSetupAsync(CodeFixProvider codefix)
         {
-            diagnosticService = new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
+            var diagnosticService = new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             var fixers = SpecializedCollections.SingletonEnumerable(
                 new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(
                 () => codefix,
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
             var code = @"class Program { }";
-            var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code);
+            var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code);
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
-            errorLogger = logger.First().Value;
-            fixService = new CodeFixService(
+            var errorLogger = logger.First().Value;
+            var fixService = new CodeFixService(
                     diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
-            return workspace;
+            return Tuple.Create(workspace, diagnosticService, fixService, errorLogger);
         }
 
         private static void GetDocumentAndExtensionManager(TestDiagnosticAnalyzerService diagnosticService, TestWorkspace workspace, out Document document, out EditorLayerExtensionManager.ExtensionManager extensionManager)

@@ -206,8 +206,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                 Case SyntaxKind.GetTypeExpression
                     Return TryGenerateGetTypeExpression(DirectCast(expression, GetTypeExpressionSyntax))
 
-                Case SyntaxKind.CTypeExpression
-                    Return TryGenerateCTypeExpression(DirectCast(expression, CTypeExpressionSyntax))
+                Case SyntaxKind.CTypeExpression,
+                     SyntaxKind.DirectCastExpression,
+                     SyntaxKind.TryCastExpression
+                    Return TryGenerateCastExpression(DirectCast(expression, CastExpressionSyntax))
 
                 Case SyntaxKind.PredefinedCastExpression
                     Return TryGeneratePredefinedCastExpression(DirectCast(expression, PredefinedCastExpressionSyntax))
@@ -471,29 +473,40 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             Return True
         End Function
 
-        Private Function TryGenerateCast(type As ITypeSymbol, expression As ExpressionSyntax) As Boolean
-            Using (CastTag())
+        Private Function TryGenerateCast(type As ITypeSymbol, expression As ExpressionSyntax, Optional specialCastKind As SpecialCastKind? = Nothing) As Boolean
+            Using (CastTag(specialCastKind))
                 GenerateType(type)
 
                 Return TryGenerateExpression(expression)
             End Using
         End Function
 
-        Private Function TryGenerateCTypeExpression(ctypeExpression As CTypeExpressionSyntax) As Boolean
-            If ctypeExpression.Type Is Nothing Then
+        Private Function TryGenerateCastExpression(castExpression As CastExpressionSyntax) As Boolean
+            If castExpression.Type Is Nothing Then
                 Return False
             End If
 
-            Dim type = SemanticModel.GetTypeInfo(ctypeExpression.Type).Type
+            Dim type = SemanticModel.GetTypeInfo(castExpression.Type).Type
             If type Is Nothing Then
                 Return False
             End If
 
-            If Not TryGenerateCast(type, ctypeExpression.Expression) Then
+            If Not TryGenerateCast(type, castExpression.Expression, GetSpecialCastKind(castExpression)) Then
                 Return False
             End If
 
             Return True
+        End Function
+
+        Private Function GetSpecialCastKind(castExpression As CastExpressionSyntax) As SpecialCastKind?
+            Select Case castExpression.Kind()
+                Case SyntaxKind.DirectCastExpression
+                    Return SpecialCastKind.DirectCast
+                Case SyntaxKind.TryCastExpression
+                    Return SpecialCastKind.TryCast
+                Case Else
+                    Return Nothing
+            End Select
         End Function
 
         Private Function TryGeneratePredefinedCastExpression(predefinedCastExpression As PredefinedCastExpressionSyntax) As Boolean

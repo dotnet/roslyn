@@ -1014,7 +1014,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub MakeDeclaredInterfacesInPart(tree As SyntaxTree,
                                                 syntaxNode As VisualBasicSyntaxNode,
-                                                interfaces As HashSet(Of NamedTypeSymbol),
+                                                interfaces As SetWithInsertionOrder(Of NamedTypeSymbol),
                                                 basesBeingResolved As ConsList(Of Symbol),
                                                 diagBag As DiagnosticBag)
 
@@ -1142,7 +1142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Sub ValidateInheritedInterfaces(baseSyntax As SyntaxList(Of InheritsStatementSyntax),
-                                                basesInOtherPartials As HashSet(Of NamedTypeSymbol),
+                                                basesInOtherPartials As SetWithInsertionOrder(Of NamedTypeSymbol),
                                                 basesBeingResolved As ConsList(Of Symbol),
                                                 binder As Binder,
                                                 diagBag As DiagnosticBag)
@@ -1203,7 +1203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Sub ValidateImplementedInterfaces(baseSyntax As SyntaxList(Of ImplementsStatementSyntax),
-                                                  basesInOtherPartials As HashSet(Of NamedTypeSymbol),
+                                                  basesInOtherPartials As SetWithInsertionOrder(Of NamedTypeSymbol),
                                                   basesBeingResolved As ConsList(Of Symbol),
                                                   binder As Binder,
                                                   diagBag As DiagnosticBag)
@@ -1301,7 +1301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 containingSourceType.GetDeclaredBaseInterfacesSafe(If(basesBeingResolved, ConsList(Of Symbol).Empty).Prepend(Me))
             End If
 
-            Dim interfaces As New HashSet(Of NamedTypeSymbol)
+            Dim interfaces As New SetWithInsertionOrder(Of NamedTypeSymbol)
 
             ' Go through all the parts of this type, and declare the information in that part, 
             ' reporting errors appropriately.
@@ -1309,7 +1309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 MakeDeclaredInterfacesInPart(syntaxRef.SyntaxTree, syntaxRef.GetVisualBasicSyntax(), interfaces, basesBeingResolved, diagnostics)
             Next
 
-            Return interfaces.AsImmutable
+            Return interfaces.InInsertionOrder.AsImmutable
         End Function
 
         Private Function GetInheritsLocation(base As NamedTypeSymbol) As Location
