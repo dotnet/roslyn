@@ -1672,6 +1672,52 @@ class C
         }
 
         [Fact]
+        public void CS0106ERR_BadMemberFlag05()
+        {
+            var text = @"
+struct Foo
+{
+    public abstract void Bar1();
+    public virtual void Bar2() { }
+    public virtual int Bar3 { get;set; }
+    public abstract int Bar4 { get;set; }
+    public abstract event System.EventHandler Bar5;
+    public virtual event System.EventHandler Bar6;
+    // prevent warning for test
+    void OnBar() { Bar6?.Invoke(null, null); }
+    public virtual int this[int x] { get { return 1;} set {;} }
+    // use long for to prevent signature clash
+    public abstract int this[long x] { get; set; }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (6,24): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual int Bar3 { get;set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar3").WithArguments("virtual").WithLocation(6, 24),
+                // (7,25): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract int Bar4 { get;set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar4").WithArguments("abstract").WithLocation(7, 25),
+                // (12,24): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual int this[int x] { get { return 1;} set {;} }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("virtual").WithLocation(12, 24),
+                // (14,25): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract int this[long x] { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(14, 25),
+                // (5,25): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual void Bar2() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar2").WithArguments("virtual").WithLocation(5, 25),
+                // (4,26): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract void Bar1();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar1").WithArguments("abstract").WithLocation(4, 26),
+                // (8,47): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract event System.EventHandler Bar5;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar5").WithArguments("abstract").WithLocation(8, 47),
+                // (9,46): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual event System.EventHandler Bar6;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar6").WithArguments("virtual").WithLocation(9, 46));
+        }
+
+        [Fact]
         public void CS0111ERR_MemberAlreadyExists01()
         {
             var text = @"class A
@@ -3081,10 +3127,13 @@ namespace NS
             var text =
 @"[Attribute] class C { }
 ";
-            // (1,2): error CS0246: The type or namespace name 'Attribute' could not be found (are you missing a using directive or an assembly reference?)
-
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 1, Column = 2 });
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (1,2): error CS0246: The type or namespace name 'AttributeAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attribute] class C { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attribute").WithArguments("AttributeAttribute").WithLocation(1, 2),
+                // (1,2): error CS0246: The type or namespace name 'Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [Attribute] class C { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attribute").WithArguments("Attribute").WithLocation(1, 2));
         }
 
         [Fact]
@@ -6896,16 +6945,21 @@ extern alias FT1;
         [Fact]
         public void CS0442ERR_PrivateAbstractAccessor()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source =
 @"abstract class MyClass
 {
     public abstract int P { get; private set; } // CS0442
     protected abstract object Q { private get; set; } // CS0442
     internal virtual object R { private get; set; } // no error
 }
-",
-                "'set' error CS0442: 'MyClass.P.set': abstract properties cannot have private accessors",
-                "'get' error CS0442: 'MyClass.Q.get': abstract properties cannot have private accessors");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,42): error CS0442: 'MyClass.P.set': abstract properties cannot have private accessors
+                //     public abstract int P { get; private set; } // CS0442
+                Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "set").WithArguments("MyClass.P.set").WithLocation(3, 42),
+                // (4,43): error CS0442: 'MyClass.Q.get': abstract properties cannot have private accessors
+                //     protected abstract object Q { private get; set; } // CS0442
+                Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("MyClass.Q.get").WithLocation(4, 43));
         }
 
         [Fact]
@@ -7903,7 +7957,7 @@ Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GM").WithArguments("GG
         [Fact]
         public void CS0509ERR_CantDeriveFromSealedType01()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"namespace NS
 {
     public struct stx { }
@@ -7912,15 +7966,20 @@ Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GM").WithArguments("GG
     public class cly : clx {}
     public class clz : stx { }
 }
-",
-                "'cly' error CS0509: 'cly': cannot derive from sealed type 'clx'",
-                "'clz' error CS0509: 'clz': cannot derive from sealed type 'stx'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,18): error CS0509: 'clz': cannot derive from sealed type 'stx'
+                //     public class clz : stx { }
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "clz").WithArguments("NS.clz", "NS.stx").WithLocation(7, 18),
+                // (6,18): error CS0509: 'cly': cannot derive from sealed type 'clx'
+                //     public class cly : clx {}
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "cly").WithArguments("NS.cly", "NS.clx").WithLocation(6, 18));
         }
 
         [Fact]
         public void CS0509ERR_CantDeriveFromSealedType02()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"namespace N1 { enum E { A, B } }
 namespace N2
 {
@@ -7928,16 +7987,23 @@ namespace N2
     class D : System.Int32 { }
     class E : int { }
 }
-",
-                "'C' error CS0509: 'C': cannot derive from sealed type 'E'",
-                "'D' error CS0509: 'D': cannot derive from sealed type 'int'",
-                "'E' error CS0509: 'E': cannot derive from sealed type 'int'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,11): error CS0509: 'E': cannot derive from sealed type 'int'
+                //     class E : int { }
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "E").WithArguments("N2.E", "int").WithLocation(6, 11),
+                // (4,11): error CS0509: 'C': cannot derive from sealed type 'E'
+                //     class C : N1.E { }
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "C").WithArguments("N2.C", "N1.E").WithLocation(4, 11),
+                // (5,11): error CS0509: 'D': cannot derive from sealed type 'int'
+                //     class D : System.Int32 { }
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "D").WithArguments("N2.D", "int").WithLocation(5, 11));
         }
 
         [Fact]
         public void CS0513ERR_AbstractInConcreteClass01()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"namespace NS
 {
     public class clx
@@ -7948,12 +8014,23 @@ namespace N2
         public abstract object P { get; set; }
     }
 }
-",
-                "'M1' error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract class 'clx'",
-                "'M2' error CS0513: 'clx.M2()' is abstract but it is contained in non-abstract class 'clx'",
-                "'M3' error CS0513: 'clx.M3(sbyte)' is abstract but it is contained in non-abstract class 'clx'",
-                "'get' error CS0513: 'clx.P.get' is abstract but it is contained in non-abstract class 'clx'",
-                "'set' error CS0513: 'clx.P.set' is abstract but it is contained in non-abstract class 'clx'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (8,36): error CS0513: 'clx.P.get' is abstract but it is contained in non-abstract class 'clx'
+                //         public abstract object P { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("NS.clx.P.get", "NS.clx").WithLocation(8, 36),
+                // (8,41): error CS0513: 'clx.P.set' is abstract but it is contained in non-abstract class 'clx'
+                //         public abstract object P { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("NS.clx.P.set", "NS.clx").WithLocation(8, 41),
+                // (6,34): error CS0513: 'clx.M2()' is abstract but it is contained in non-abstract class 'clx'
+                //         internal abstract object M2();
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M2").WithArguments("NS.clx.M2()", "NS.clx").WithLocation(6, 34),
+                // (7,42): error CS0513: 'clx.M3(sbyte)' is abstract but it is contained in non-abstract class 'clx'
+                //         protected abstract internal void M3(sbyte p);
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M3").WithArguments("NS.clx.M3(sbyte)", "NS.clx").WithLocation(7, 42),
+                // (5,30): error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract class 'clx'
+                //         abstract public void M1();
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M1").WithArguments("NS.clx.M1()", "NS.clx").WithLocation(5, 30));
         }
 
         [Fact]
@@ -9263,7 +9340,7 @@ public class Clx
         public void CS0542ERR_MemberNameSameAsType02()
         {
             // No errors for names from explicit implementations.
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"interface IM
 {
     void C();
@@ -9277,7 +9354,8 @@ class C : IM, IP
     void IM.C() { }
     object IP.C { get { return null; } }
 }
-");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact(), WorkItem(529156, "DevDiv")]
@@ -10644,7 +10722,7 @@ class Class2 { }
         [Fact]
         public void CS0621ERR_VirtualPrivate02()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"abstract class A
 {
     abstract object P { get; }
@@ -10653,9 +10731,14 @@ class B
 {
     private virtual object Q { get; set; }
 }
-",
-                "'P' error CS0621: 'A.P': virtual or abstract members cannot be private",
-                "'Q' error CS0621: 'B.Q': virtual or abstract members cannot be private");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,21): error CS0621: 'A.P': virtual or abstract members cannot be private
+                //     abstract object P { get; }
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "P").WithArguments("A.P").WithLocation(3, 21),
+                // (7,28): error CS0621: 'B.Q': virtual or abstract members cannot be private
+                //     private virtual object Q { get; set; }
+                Diagnostic(ErrorCode.ERR_VirtualPrivate, "Q").WithArguments("B.Q").WithLocation(7, 28));
         }
 
         [Fact]
@@ -10870,7 +10953,7 @@ public class Test
         [Fact]
         public void CS0644ERR_DeriveFromEnumOrValueType()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"using System;
 namespace N
 {
@@ -10880,12 +10963,23 @@ namespace N
     static class F : MulticastDelegate { }
     static class G : Array { }
 }
-",
-                "'C' error CS0644: 'C' cannot derive from special class 'Enum'",
-                "'D' error CS0644: 'D' cannot derive from special class 'ValueType'",
-                "'E' error CS0644: 'E' cannot derive from special class 'Delegate'",
-                "'F' error CS0644: 'F' cannot derive from special class 'MulticastDelegate'",
-                "'G' error CS0644: 'G' cannot derive from special class 'Array'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,11): error CS0644: 'D' cannot derive from special class 'ValueType'
+                //     class D : ValueType { }
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "D").WithArguments("N.D", "System.ValueType").WithLocation(5, 11),
+                // (6,11): error CS0644: 'E' cannot derive from special class 'Delegate'
+                //     class E : Delegate { }
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "E").WithArguments("N.E", "System.Delegate").WithLocation(6, 11),
+                // (4,11): error CS0644: 'C' cannot derive from special class 'Enum'
+                //     class C : Enum { }
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "C").WithArguments("N.C", "System.Enum").WithLocation(4, 11),
+                // (8,18): error CS0644: 'G' cannot derive from special class 'Array'
+                //     static class G : Array { }
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "G").WithArguments("N.G", "System.Array").WithLocation(8, 18),
+                // (7,18): error CS0644: 'F' cannot derive from special class 'MulticastDelegate'
+                //     static class F : MulticastDelegate { }
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "F").WithArguments("N.F", "System.MulticastDelegate").WithLocation(7, 18));
         }
 
         [Fact]
@@ -12282,7 +12376,7 @@ static class C
         [Fact]
         public void CS0713ERR_StaticDerivedFromNonObject01()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"namespace NS
 {
     public class Base
@@ -12301,22 +12395,32 @@ static class C
     {
     }
 }
-",
-                "'Base' error CS0713: Static class 'Derived' cannot derive from type 'Base'. Static classes must derive from object.",
-                "'Base1<string, V>' error CS0713: Static class 'D<V>' cannot derive from type 'Base1<string, V>'. Static classes must derive from object.");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,35): error CS0713: Static class 'Derived' cannot derive from type 'Base'. Static classes must derive from object.
+                //     public static class Derived : Base
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Base").WithArguments("NS.Derived", "NS.Base").WithLocation(7, 35),
+                // (15,25): error CS0713: Static class 'D<V>' cannot derive from type 'Base1<string, V>'. Static classes must derive from object.
+                //     static class D<V> : Base1<string, V>
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Base1<string, V>").WithArguments("NS.D<V>", "NS.Base1<string, V>").WithLocation(15, 25));
         }
 
         [Fact]
         public void CS0713ERR_StaticDerivedFromNonObject02()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"delegate void A();
 struct B { }
 static class C : A { }
 static class D : B { }
-",
-                "'A' error CS0713: Static class 'C' cannot derive from type 'A'. Static classes must derive from object.",
-                "'B' error CS0713: Static class 'D' cannot derive from type 'B'. Static classes must derive from object.");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,18): error CS0713: Static class 'D' cannot derive from type 'B'. Static classes must derive from object.
+                // static class D : B { }
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "B").WithArguments("D", "B").WithLocation(4, 18),
+                // (3,18): error CS0713: Static class 'C' cannot derive from type 'A'. Static classes must derive from object.
+                // static class C : A { }
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "A").WithArguments("C", "A").WithLocation(3, 18));
         }
 
         [Fact]
@@ -13615,15 +13719,20 @@ namespace TestNamespace
         [Fact]
         public void CS1014ERR_GetOrSetExpected()
         {
-            DiagnosticsUtils.TestDiagnostics(
+            var source = 
 @"partial class C
 {
     public object P { partial get; set; }
     object Q { get { return 0; } add { } }
 }
-",
-                "'partial' error CS1014: A get or set accessor expected",
-                "'add' error CS1014: A get or set accessor expected");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,23): error CS1014: A get or set accessor expected
+                //     public object P { partial get; set; }
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(3, 23),
+                // (4,34): error CS1014: A get or set accessor expected
+                //     object Q { get { return 0; } add { } }
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 34));
         }
 
         [Fact]
@@ -15808,7 +15917,7 @@ namespace x
         [Fact]
         public void CS0108WRN_NewRequired02()
         {
-            DiagnosticsUtils.TestDiagnosticsExact(
+            var source = 
 @"class A
 {
     public static void P() { }
@@ -15831,15 +15940,32 @@ class B : A
     public static void V() { } // CS0108
     public void W() { } // CS0108
 }
-",
-                "'P' warning CS0108: 'B.P' hides inherited member 'A.P()'. Use the new keyword if hiding was intended.",
-                "'Q' warning CS0108: 'B.Q' hides inherited member 'A.Q()'. Use the new keyword if hiding was intended.",
-                "'R' warning CS0108: 'B.R' hides inherited member 'A.R()'. Use the new keyword if hiding was intended.",
-                "'S' warning CS0108: 'B.S' hides inherited member 'A.S()'. Use the new keyword if hiding was intended.",
-                "'T' warning CS0108: 'B.T()' hides inherited member 'A.T'. Use the new keyword if hiding was intended.",
-                "'U' warning CS0108: 'B.U()' hides inherited member 'A.U'. Use the new keyword if hiding was intended.",
-                "'V' warning CS0108: 'B.V()' hides inherited member 'A.V'. Use the new keyword if hiding was intended.",
-                "'W' warning CS0108: 'B.W()' hides inherited member 'A.W'. Use the new keyword if hiding was intended.");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (15,16): warning CS0108: 'B.Q' hides inherited member 'A.Q()'. Use the new keyword if hiding was intended.
+                //     public int Q { get; set; } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "Q").WithArguments("B.Q", "A.Q()").WithLocation(15, 16),
+                // (16,23): warning CS0108: 'B.R' hides inherited member 'A.R()'. Use the new keyword if hiding was intended.
+                //     public static int R { get; set; } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "R").WithArguments("B.R", "A.R()").WithLocation(16, 23),
+                // (17,16): warning CS0108: 'B.S' hides inherited member 'A.S()'. Use the new keyword if hiding was intended.
+                //     public int S { get; set; } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "S").WithArguments("B.S", "A.S()").WithLocation(17, 16),
+                // (18,24): warning CS0108: 'B.T()' hides inherited member 'A.T'. Use the new keyword if hiding was intended.
+                //     public static void T() { } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "T").WithArguments("B.T()", "A.T").WithLocation(18, 24),
+                // (19,17): warning CS0108: 'B.U()' hides inherited member 'A.U'. Use the new keyword if hiding was intended.
+                //     public void U() { } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "U").WithArguments("B.U()", "A.U").WithLocation(19, 17),
+                // (20,24): warning CS0108: 'B.V()' hides inherited member 'A.V'. Use the new keyword if hiding was intended.
+                //     public static void V() { } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "V").WithArguments("B.V()", "A.V").WithLocation(20, 24),
+                // (21,17): warning CS0108: 'B.W()' hides inherited member 'A.W'. Use the new keyword if hiding was intended.
+                //     public void W() { } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "W").WithArguments("B.W()", "A.W").WithLocation(21, 17),
+                // (14,23): warning CS0108: 'B.P' hides inherited member 'A.P()'. Use the new keyword if hiding was intended.
+                //     public static int P { get; set; } // CS0108
+                Diagnostic(ErrorCode.WRN_NewRequired, "P").WithArguments("B.P", "A.P()").WithLocation(14, 23));
         }
 
         [WorkItem(539624, "DevDiv")]

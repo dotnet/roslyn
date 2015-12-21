@@ -110,11 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (topLevel)
             {
-                // Once we get down to the block level we don't need to go any further and we can
+                // Once we get down to the body level we don't need to go any further and we can
                 // consider these trees equivalent.
-                if ((SyntaxKind)before.RawKind == SyntaxKind.Block)
+                switch ((SyntaxKind)before.RawKind)
                 {
-                    return true;
+                    case SyntaxKind.Block:
+                    case SyntaxKind.ArrowExpressionClause:
+                        return true;
                 }
 
                 // If we're only checking top level equivalence, then we don't have to go down into

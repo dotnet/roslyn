@@ -1597,7 +1597,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var containingType = method.ContainingType;
-            return containingType.IsIntrinsicType() || containingType.IsRestrictedType();
+            // overrides in structs that are special types can be caled directly.
+            // we can assume that special types will not be removing oiverrides
+            return containingType.SpecialType != SpecialType.None;
         }
 
         /// <summary>

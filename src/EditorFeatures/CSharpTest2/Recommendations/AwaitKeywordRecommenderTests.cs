@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class AwaitKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInTypeContext()
         {
             VerifyAbsence(@"
@@ -17,7 +17,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InSynchronousMethod()
         {
             VerifyKeyword(@"
@@ -30,7 +30,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void StatementInAsyncMethod()
         {
             VerifyKeyword(@"
@@ -43,7 +43,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void ExpressionInAsyncMethod()
         {
             VerifyKeyword(@"
@@ -56,7 +56,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInQuery()
         {
             VerifyAbsence(@"
@@ -71,7 +71,7 @@ class Program
         }
 
         [WorkItem(907052)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InFinally()
         {
             VerifyKeyword(@"
@@ -86,7 +86,7 @@ class Program
         }
 
         [WorkItem(907052)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InCatch()
         {
             VerifyKeyword(@"
@@ -100,7 +100,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotInLock()
         {
             VerifyAbsence(@"
@@ -113,7 +113,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void InAsyncLambdaInCatch()
         {
             VerifyKeyword(@"
@@ -127,7 +127,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void AwaitInLock()
         {
             VerifyKeyword(@"
@@ -143,6 +143,6 @@ class Program
         {
             const string text = @"$$";
             VerifyKeyword(SourceCodeKind.Script, text);
-        } 
+        }
     }
 }

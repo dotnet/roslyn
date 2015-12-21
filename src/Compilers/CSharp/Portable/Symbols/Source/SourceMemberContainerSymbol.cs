@@ -468,6 +468,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var diagnostics = DiagnosticBag.GetInstance();
                             AfterMembersChecks(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
+
+                            // We may produce a SymbolDeclaredEvent for the enclosing type before events for its contained members
+                            DeclaringCompilation.SymbolDeclaredEvent(this);
                             var thisThreadCompleted = state.NotePartComplete(CompletionPart.FinishMemberChecks);
                             Debug.Assert(thisThreadCompleted);
                             diagnostics.Free();
@@ -510,10 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             // We've completed all members, so we're ready for the PointedAtManagedTypeChecks;
                             // proceed to the next iteration.
-                            if (state.NotePartComplete(CompletionPart.MembersCompleted))
-                            {
-                                DeclaringCompilation.SymbolDeclaredEvent(this);
-                            }
+                            state.NotePartComplete(CompletionPart.MembersCompleted);
                             break;
                         }
 
@@ -814,21 +814,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PERF: Declaring references are cached for compilations with event queue.
-                return this.DeclaringCompilation?.EventQueue != null ? GetCachedDeclaringReferences() : this.SyntaxReferences;
+                return SyntaxReferences;
             }
-        }
-
-        private ImmutableArray<SyntaxReference> GetCachedDeclaringReferences()
-        {
-            ImmutableArray<SyntaxReference> declaringReferences;
-            if (!Diagnostics.AnalyzerDriver.TryGetCachedDeclaringReferences(this, this.DeclaringCompilation, out declaringReferences))
-            {
-                declaringReferences = this.SyntaxReferences;
-                Diagnostics.AnalyzerDriver.CacheDeclaringReferences(this, this.DeclaringCompilation, declaringReferences);
-            }
-
-            return declaringReferences;
         }
 
         #endregion

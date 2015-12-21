@@ -1,100 +1,56 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class EnumDeclarationOutlinerTests
-        Inherits AbstractOutlinerTests(Of EnumStatementSyntax)
+        Inherits AbstractVisualBasicSyntaxNodeOutlinerTests(Of EnumStatementSyntax)
 
-        Friend Overrides Function GetRegions(enumDeclaration As EnumStatementSyntax) As IEnumerable(Of OutliningSpan)
-            Dim outliner As New EnumDeclarationOutliner()
-            Return outliner.GetOutliningSpans(enumDeclaration, CancellationToken.None).WhereNotNull()
+        Friend Overrides Function CreateOutliner() As AbstractSyntaxOutliner
+            Return New EnumDeclarationOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestEnum()
-            Dim syntaxTree = ParseLines("Enum E1",
-                                  "End Enum ' Foo")
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function TestEnum() As Task
+            Const code = "
+{|span:Enum $$E1
+End Enum|} ' Foo
+"
 
-            Dim enumBlock = syntaxTree.DigToFirstNodeOfType(Of EnumBlockSyntax)()
-            Dim enumDecl = enumBlock.EnumStatement
-            Assert.NotNull(enumDecl)
+            Await VerifyRegionsAsync(code,
+                Region("span", "Enum E1 ...", autoCollapse:=True))
+        End Function
 
-            Dim actualRegion = GetRegion(enumDecl)
-            Dim expectedRegion = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 17),
-                                     bannerText:="Enum E1 ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 17),
-                                     autoCollapse:=True)
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function TestEnumWithLeadingComments() As Task
+            Const code = "
+{|span1:'Hello
+'World!|}
+{|span2:Enum $$E1
+End Enum|} ' Foo
+"
 
-            AssertRegion(expectedRegion, actualRegion)
-        End Sub
+            Await VerifyRegionsAsync(code,
+                Region("span1", "' Hello ...", autoCollapse:=True),
+                Region("span2", "Enum E1 ...", autoCollapse:=True))
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestEnumWithLeadingComments()
-            Dim syntaxTree = ParseLines("'Hello",
-                                  "'World!",
-                                  "Enum E1",
-                                  "End Enum")
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function TestEnumWithNestedComments() As Task
+            Const code = "
+{|span1:Enum $$E1
+{|span2:'Hello
+'World!|}
+End Enum|} ' Foo
+"
 
-            Dim enumBlock = syntaxTree.DigToFirstNodeOfType(Of EnumBlockSyntax)()
-            Dim enumDecl = enumBlock.EnumStatement
-            Assert.NotNull(enumDecl)
-
-            Dim actualRegions = GetRegions(enumDecl).ToList()
-            Assert.Equal(2, actualRegions.Count)
-
-            Dim expectedRegion1 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 15),
-                                     bannerText:="' Hello ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 15),
-                                     autoCollapse:=True)
-
-            AssertRegion(expectedRegion1, actualRegions(0))
-
-            Dim expectedRegion2 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(17, 34),
-                                     bannerText:="Enum E1 ...",
-                                     hintSpan:=TextSpan.FromBounds(17, 34),
-                                     autoCollapse:=True)
-
-            AssertRegion(expectedRegion2, actualRegions(1))
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestEnumWithNestedComments()
-            Dim syntaxTree = ParseLines("Enum E1",
-                                  "'Hello",
-                                  "'World!",
-                                  "End Enum")
-
-            Dim enumBlock = syntaxTree.DigToFirstNodeOfType(Of EnumBlockSyntax)()
-            Dim enumDecl = enumBlock.EnumStatement
-            Assert.NotNull(enumDecl)
-
-            Dim actualRegions = GetRegions(enumDecl).ToList()
-            Assert.Equal(2, actualRegions.Count)
-
-            Dim expectedRegion1 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 34),
-                                     bannerText:="Enum E1 ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 34),
-                                     autoCollapse:=True)
-
-            AssertRegion(expectedRegion1, actualRegions(0))
-
-            Dim expectedRegion2 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(9, 24),
-                                     bannerText:="' Hello ...",
-                                     hintSpan:=TextSpan.FromBounds(9, 24),
-                                     autoCollapse:=True)
-
-            AssertRegion(expectedRegion2, actualRegions(1))
-        End Sub
+            Await VerifyRegionsAsync(code,
+                Region("span1", "Enum E1 ...", autoCollapse:=True),
+                Region("span2", "' Hello ...", autoCollapse:=True))
+        End Function
 
     End Class
 End Namespace

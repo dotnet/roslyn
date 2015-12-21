@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
@@ -16,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             Return New AddRemoveHandlerSignatureHelpProvider()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestInvocationForAddHandler()
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestInvocationForAddHandler() As Task
             Dim markup = <a><![CDATA[
 Class C
     Sub Foo()
@@ -33,11 +34,11 @@ End Class
                                      EventToAssociate,
                                      currentParameterIndex:=0))
 
-            Test(markup, expectedOrderedItems)
-        End Sub
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestInvocationForAddHandlerAfterComma()
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestInvocationForAddHandlerAfterComma() As Task
             Dim markup = <a><![CDATA[
 Class C
     Sub Foo()
@@ -53,13 +54,13 @@ End Class
                                      EventHandlerToAssociate,
                                      currentParameterIndex:=1))
 
-            Test(markup, expectedOrderedItems)
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
-        End Sub
+            Await TestAsync(markup, expectedOrderedItems)
+            Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
+        End Function
 
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestInvocationForRemoveHandler()
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestInvocationForRemoveHandler() As Task
             Dim markup = <a><![CDATA[
 Class C
     Sub Foo()
@@ -75,11 +76,11 @@ End Class
                                      EventToDisassociate,
                                      currentParameterIndex:=0))
 
-            Test(markup, expectedOrderedItems)
-        End Sub
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestInvocationForRemoveHandlerAfterComma()
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestInvocationForRemoveHandlerAfterComma() As Task
             Dim markup = <a><![CDATA[
 Class C
     Sub Foo()
@@ -95,8 +96,8 @@ End Class
                                      EventHandlerToDisassociate,
                                      currentParameterIndex:=1))
 
-            Test(markup, expectedOrderedItems)
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
-        End Sub
+            Await TestAsync(markup, expectedOrderedItems)
+            Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
+        End Function
     End Class
 End Namespace

@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class NextKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextNotInMethodBody()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Next")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextNotInLambda()
             VerifyRecommendationsMissing(<MethodBody>
@@ -24,7 +24,7 @@ Dim x = Sub()
         End Sub</MethodBody>, "Next")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextNotAfterStatement()
             VerifyRecommendationsMissing(<MethodBody>
@@ -32,7 +32,7 @@ Dim x
 |</MethodBody>, "Next")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextAfterForStatement()
             VerifyRecommendationsContain(<MethodBody>
@@ -40,7 +40,7 @@ For i = 1 To 10
 |</MethodBody>, "Next")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextAfterForEachStatement()
             VerifyRecommendationsContain(<MethodBody>

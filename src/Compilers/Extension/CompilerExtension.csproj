@@ -21,6 +21,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
     <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
@@ -28,8 +29,10 @@
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\VisualStudio\Setup\ProvideRoslynBindingRedirection.cs">
@@ -92,6 +95,13 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <ProjectReference Include="..\Core\MSBuildTask\Desktop\MSBuildTask.Desktop.csproj">
+      <Project>{d874349c-8bb3-4bdc-8535-2d52ccca1198}</Project>
+      <Name>MSBuildTask.Desktop</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -130,13 +140,6 @@
     <ProjectReference Include="..\VisualBasic\vbc\vbc.csproj">
       <Project>{2ac2755d-9437-4271-bbde-1a3795a0c320}</Project>
       <Name>vbc</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
-    <ProjectReference Include="..\Core\MSBuildTask\MSBuildTask.csproj">
-      <Project>{d874349c-8bb3-4bdc-8535-2d52ccca1198}</Project>
-      <Name>MSBuildTask</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>

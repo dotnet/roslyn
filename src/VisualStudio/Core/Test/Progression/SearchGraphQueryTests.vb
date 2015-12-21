@@ -8,9 +8,9 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class SearchGraphQueryTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForType() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -40,9 +40,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545474)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545474)>
         Public Async Function SearchForNestedType() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="F"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="F"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -74,9 +74,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForMember() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -85,7 +85,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="M"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="M"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -108,9 +108,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForPartialType() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -132,7 +132,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -156,9 +156,9 @@ End Namespace
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForMethodInPartialType() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -180,7 +180,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Foo"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Foo"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -203,9 +203,9 @@ End Namespace
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchWithResultsAcrossMultipleTypeParts() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -227,7 +227,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Z"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Z"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -255,9 +255,9 @@ End Namespace
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForDottedName1() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -266,7 +266,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="D.B"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="D.B"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -289,9 +289,9 @@ End Namespace
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForDottedName2() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -300,7 +300,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C.B"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C.B"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -311,9 +311,9 @@ End Namespace
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForDottedName3() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -322,7 +322,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="D.B"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="D.B"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -345,9 +345,9 @@ End Namespace
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForDottedName4() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -356,7 +356,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="A.D.B"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="A.D.B"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -379,9 +379,9 @@ End Namespace
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchWithNullFilePathsOnProject() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath=<%= TestWorkspaceFactory.NullFilePath %>>
                             <Document FilePath="Z:\SomeVenusDocument.aspx.cs">
@@ -390,7 +390,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="A.D.B"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="A.D.B"), GraphContextDirection.Custom)
 
                 ' When searching, don't descend into projects with a null FilePath because they are artifacts and not
                 ' representable in the Solution Explorer, e.g., Venus projects create sub-projects with a null file

@@ -613,6 +613,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic has a source location in file &apos;{0}&apos;, which is not part of the compilation being analyzed..
+        /// </summary>
+        internal static string InvalidDiagnosticLocationReported {
+            get {
+                return ResourceManager.GetString("InvalidDiagnosticLocationReported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid hash..
         /// </summary>
         internal static string InvalidHash {
@@ -1032,6 +1041,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string RuleSetMissingAttribute {
             get {
                 return ResourceManager.GetString("RuleSetMissingAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value for argument &apos;/shared:&apos; must not be empty.
+        /// </summary>
+        internal static string SharedArgumentMissing {
+            get {
+                return ResourceManager.GetString("SharedArgumentMissing", resourceCulture);
             }
         }
         

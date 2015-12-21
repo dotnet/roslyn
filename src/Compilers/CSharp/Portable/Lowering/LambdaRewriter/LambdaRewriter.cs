@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // No closures or lambda methods are generated.
                 // E.g. 
                 //   int y = 0;
-                //   var b = false && from z in new X(y) select f(z + y)
+                //   var b = false && (from z in new X(y) select f(z + y))
                 return loweredBody;
             }
 

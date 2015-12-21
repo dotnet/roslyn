@@ -1,6 +1,20 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
+  <!-- Turn off implict binary and project reference copying to prevent projects
+       from racing to copy the same files to the shared build directory -->
+  <ItemDefinitionGroup Condition="'$(CopyReferencesByDefault)' == 'false'">
+
+    <Reference>
+      <Private>false</Private>
+    </Reference>
+
+    <ProjectReference>
+      <Private>false</Private>
+    </ProjectReference>
+
+  </ItemDefinitionGroup>
+  
   <!-- This file is imported by all projects at the end of the project files -->
   <!-- Update common properties -->
   <PropertyGroup>
@@ -65,7 +79,6 @@
       '$(OutputType)' == 'Exe'">
     <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
     <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
-    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
@@ -100,8 +113,21 @@
   </PropertyGroup>
 
   <Target Name="VerifyBuildFlags">
-    <Error Condition="('$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real') AND '$(BuildVersion)' == '42.42.42.42'"
-           Text="Must specify a build version in order to real sign a build." />
+    <Error 
+        Condition="('$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real') AND '$(BuildVersion)' == '42.42.42.42'"
+        Text="Must specify a build version in order to real sign a build." />
+
+    <Error 
+        Condition="'$(CheckForOverflowUnderflow)' != '' OR '$(RemoveIntegerChecks)' != ''"
+        Text="The following properties cannot be set by individual projects: CheckForOverflowUnderflow and RemoveIntegerChecks" />
+    
+    <PropertyGroup Condition="'$(ProjectLanguage)' == 'CSharp'">
+        <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(ProjectLanguage)' == 'VB'">
+        <RemoveIntegerChecks>true</RemoveIntegerChecks>
+    </PropertyGroup>
   </Target>
 
   <!-- ====================================================================================

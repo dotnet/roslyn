@@ -1,9 +1,9 @@
 ﻿{
   "dependencies": {
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.2.0-beta-20151016-11",
-    "Microsoft.DiaSymReader": "1.0.6",
+    "Microsoft.DiaSymReader": "1.0.7-beta1",
     "System.Collections.Immutable": "1.1.37",
-    "System.Reflection.Metadata": "1.1.0",
+    "System.Reflection.Metadata": "1.2.0-rc2-23608",
     "xunit": "2.1.0"
   },
   "frameworks": {
@@ -13,6 +13,8 @@
     "win7": { },
     "win7-anycpu": { },
     "ubuntu.14.04": { },
-    "ubuntu.14.04-anycpu": { }
+    "ubuntu.14.04-anycpu": { },
+    "osx.10.10": { },
+    "osx.10.10-anycpu": { }
   }
 }

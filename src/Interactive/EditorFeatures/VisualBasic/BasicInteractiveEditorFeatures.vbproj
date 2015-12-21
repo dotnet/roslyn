@@ -84,6 +84,8 @@
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Interactive\FileSystem\ReferenceDirectiveCompletionProvider.vb" />
+    <Compile Include="Interactive\CompletionProviders\VisualBasicReplCommandCompletionProvider.vb" />
     <Compile Include="Interactive\VisualBasicInteractiveEvaluator.vb" />
     <Compile Include="Interactive\VisualBasicReplServiceProvider.vb" />
     <Compile Include="VBInteractiveEditorResources.Designer.vb">

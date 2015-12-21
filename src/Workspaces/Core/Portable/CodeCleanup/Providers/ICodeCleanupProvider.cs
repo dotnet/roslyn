@@ -27,6 +27,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         /// 
         /// This will do cleanups that don't require any semantic information
         /// </summary>
-        SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken = default(CancellationToken));
+        Task<SyntaxNode> CleanupAsync(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

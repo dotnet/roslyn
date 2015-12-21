@@ -1549,13 +1549,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We have already optimized cases where both operands are null or both are non-null.
             // Now optimize cases where one side is known to be null or one side is known to be non-null.
-            BoundExpression optimized = OptimizeLiftedBooleanOperatorOneNull(syntax, kind, loweredRight, loweredLeft);
+            BoundExpression optimized = OptimizeLiftedBooleanOperatorOneNull(syntax, kind, loweredLeft, loweredRight);
             if (optimized != null)
             {
                 return optimized;
             }
 
-            optimized = OptimizeLiftedBooleanOperatorOneNonNull(syntax, kind, loweredRight, loweredLeft);
+            optimized = OptimizeLiftedBooleanOperatorOneNonNull(syntax, kind, loweredLeft, loweredRight);
             if (optimized != null)
             {
                 return optimized;

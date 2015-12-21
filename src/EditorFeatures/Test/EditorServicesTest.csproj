@@ -230,7 +230,6 @@
     <Compile Include="Commands\CommandArgsTests.cs" />
     <Compile Include="Commands\TypeCharCommandArgsTests.cs" />
     <Compile Include="CommentSelection\CommentUncommentSelectionCommandHandlerTests.cs" />
-    <Compile Include="Completion\AbstractCompletionCommandHandlerTestState.cs" />
     <Compile Include="Completion\AbstractCompletionProviderTests.cs" />
     <Compile Include="Diagnostics\AbstractSuppressionAllCodeTests.cs" />
     <Compile Include="Diagnostics\AbstractSuppressionDiagnosticTest.cs" />
@@ -252,6 +251,10 @@
     <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
     <Compile Include="Diagnostics\TestHostDiagnosticUpdateSource.cs" />
     <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
+    <Compile Include="GoToAdjacentMember\AbstractGoToAdjacentMemberTests.cs" />
+    <Compile Include="Outlining\AbstractSyntaxNodeOutlinerTests.cs" />
+    <Compile Include="Outlining\AbstractSyntaxOutlinerTests.cs" />
+    <Compile Include="Outlining\AbstractSyntaxTriviaOutlinerTests.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
     <Compile Include="DocumentationComments\AbstractDocumentationCommentTests.cs" />
@@ -324,6 +327,7 @@
     <Compile Include="Threading\ForegroundNotificationServiceTests.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTestBase.cs" />
     <Compile Include="Utilities\AsynchronousOperationListenerTests.cs" />
+    <Compile Include="Utilities\AsyncLazyTests.cs" />
     <Compile Include="Utilities\BloomFilterTests.cs" />
     <Compile Include="Utilities\PatternMatcherTests.cs" />
     <Compile Include="Utilities\SymbolEquivalenceComparerTests.cs" />

@@ -232,6 +232,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         case ProjectGuids:
                             content = item.ProjectGuids;
                             return ((Guid[])content).Length > 0;
+                        case SuppressionStateColumnDefinition.ColumnName:
+                            // Build doesn't report suppressed diagnostics.
+                            Contract.ThrowIfTrue(data.IsSuppressed);
+                            content = ServicesVSResources.SuppressionStateActive;
+                            return true;
                         default:
                             content = null;
                             return false;

@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             return true;
         }
 
-        protected override SyntaxNode ReplaceNode(SyntaxNode node, string containerName, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, CancellationToken cancellationToken)
         {
             var simpleName = (SimpleNameSyntax)node;
 
@@ -85,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             qualifiedName = qualifiedName.WithAdditionalAnnotations(Formatter.Annotation);
 
             var syntaxTree = simpleName.SyntaxTree;
-            return syntaxTree.GetRoot(cancellationToken).ReplaceNode(simpleName, qualifiedName);
+            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            return root.ReplaceNode(simpleName, qualifiedName);
         }
     }
 }

@@ -553,8 +553,8 @@ class C : B
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x6c"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x6c"" attributes=""0"" />
-        <scope startOffset=""0x27"" endOffset=""0x6b"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x27"" il_end=""0x6b"" attributes=""0"" />
+        <scope startOffset=""0x27"" endOffset=""0x6c"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x27"" il_end=""0x6c"" attributes=""0"" />
         </scope>
       </scope>
     </method>

@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 editor.ReplaceNode(property, updatedProperty);
 
                 var newRoot = editor.GetChangedRoot();
-                newRoot = Format(newRoot, fieldDocument, cancellationToken);
+                newRoot = await FormatAsync(newRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
 
                 return solution.WithDocumentSyntaxRoot(
                     fieldDocument.Id, newRoot);
@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 var newFieldTreeRoot = fieldTreeRoot.RemoveNode(nodeToRemove, options);
                 var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
 
-                newFieldTreeRoot = Format(newFieldTreeRoot, fieldDocument, cancellationToken);
-                newPropertyTreeRoot = Format(newPropertyTreeRoot, propertyDocument, cancellationToken);
+                newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
+                newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, cancellationToken).ConfigureAwait(false);
 
                 updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
@@ -147,13 +147,15 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
         }
 
-        private SyntaxNode Format(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
         {
             var formattingRules = GetFormattingRules(document);
+            if (formattingRules == null)
+            {
+                return newRoot;
+            }
 
-            return formattingRules == null
-                ? newRoot
-                : Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options: null, rules: formattingRules, cancellationToken: cancellationToken);
+            return await Formatter.FormatAsync(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options: null, rules: formattingRules, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(

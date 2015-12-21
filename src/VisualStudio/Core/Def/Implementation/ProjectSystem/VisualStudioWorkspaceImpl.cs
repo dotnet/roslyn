@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // document worker coordinator
         private ISolutionCrawlerRegistrationService _registrationService;
 
-        private readonly ForegroundThreadAffinitizedObject foregroundObject = new ForegroundThreadAffinitizedObject();
+        private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
 
         public VisualStudioWorkspaceImpl(
             SVsServiceProvider serviceProvider,
@@ -676,7 +676,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            if (!foregroundObject.IsForeground())
+            if (!_foregroundObject.IsForeground())
             {
                 throw new InvalidOperationException(ServicesVSResources.ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread);
             }

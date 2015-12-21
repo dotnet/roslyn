@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
@@ -11,55 +12,55 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub FullName1()
+        Public Async Function TestFullName1() As Task
             Dim code =
 <Code>
 using $$Foo;
 </Code>
 
-            Dim ex = Assert.Throws(Of COMException)(
-                Sub()
-                    TestName(code, "Foo")
-                End Sub)
+            Dim ex = Await Assert.ThrowsAsync(Of COMException)(
+                Async Function()
+                    Await TestName(code, "Foo")
+                End Function)
 
             Assert.Equal(E_FAIL, ex.ErrorCode)
-        End Sub
+        End Function
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Name1()
+        Public Async Function TestName1() As Task
             Dim code =
 <Code>
 using $$Foo;
 </Code>
 
-            Dim ex = Assert.Throws(Of COMException)(
-                Sub()
-                    TestName(code, "Foo")
-                End Sub)
+            Dim ex = Await Assert.ThrowsAsync(Of COMException)(
+                Async Function()
+                    Await TestName(code, "Foo")
+                End Function)
 
             Assert.Equal(E_FAIL, ex.ErrorCode)
-        End Sub
+        End Function
 
 #End Region
 
 #Region "Namespace tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Namespace1()
+        Public Async Function TestNamespace1() As Task
             Dim code =
 <Code>
 using $$Foo;
 </Code>
 
-            TestNamespace(code, "Foo")
-        End Sub
+            Await TestNamespace(code, "Foo")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Namespace2()
+        Public Async Function TestNamespace2() As Task
             Dim code =
 <Code>
 namespace Bar
@@ -68,13 +69,13 @@ namespace Bar
 }
 </Code>
 
-            TestNamespace(code, "Foo")
-        End Sub
+            Await TestNamespace(code, "Foo")
+        End Function
 
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TypeDescriptor_GetProperties()
+        Public Async Function TestTypeDescriptor_GetProperties() As Task
             Dim code =
 <Code>
 using $$System;
@@ -85,8 +86,8 @@ using $$System;
                  "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
                  "ExtenderCATID", "Namespace", "Alias", "Parent"}
 
-            TestPropertyDescriptors(code, expectedPropertyNames)
-        End Sub
+            Await TestPropertyDescriptors(code, expectedPropertyNames)
+        End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

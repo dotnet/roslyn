@@ -18,12 +18,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
             Dim syntaxTree = xmlExpression.SyntaxTree
             Dim line = syntaxTree.GetText(cancellationToken).Lines.GetLineFromPosition(span.Start)
             Dim lineText = line.ToString().Substring(span.Start - line.Start)
-            Dim bannerText = lineText & " " & Ellipsis
+            Dim bannerText = lineText & SpaceEllipsis
 
-            spans.Add(VisualBasicOutliningHelpers.CreateRegion(
-                            span,
-                            bannerText,
-                            autoCollapse:=False))
+            spans.Add(
+                CreateRegion(span, bannerText, autoCollapse:=False))
         End Sub
     End Class
 End Namespace

@@ -35,13 +35,11 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>false</Optimize>
     <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
   </PropertyGroup>
@@ -49,7 +47,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />

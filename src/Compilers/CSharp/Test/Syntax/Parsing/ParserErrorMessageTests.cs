@@ -1184,6 +1184,29 @@ class Program
         }
 
         [Fact]
+        public void CS1001ERR_IdentifierExpected_7()
+        {
+            var test = @"
+using System;
+class C
+{
+  void M()
+  {
+    DateTime
+    M();
+  }
+}
+";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (7,13): error CS1001: Identifier expected
+                //     DateTime
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(7, 13),
+                // (7,13): error CS1002: ; expected
+                //     DateTime
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 13));
+        }
+
+        [Fact]
         public void CS1002ERR_SemicolonExpected()
         {
             var test = @"

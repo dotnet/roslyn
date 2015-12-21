@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
 {
     public class TextSpanExtensionsTest
     {
-        [WpfFact]
+        [Fact]
         public void ConvertToSpan()
         {
             Action<int, int> del = (start, length) =>
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
             del(15, 20);
         }
 
-        [WpfFact]
+        [Fact]
         public void ConvertToSnapshotSpan1()
         {
             var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, new string('a', 10)).CurrentSnapshot;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
             Assert.Equal(5, ss.Length);
         }
 
-        [WpfFact]
+        [Fact]
         public void ConvertToSnapshotSpan2()
         {
             var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, new string('a', 10)).CurrentSnapshot;

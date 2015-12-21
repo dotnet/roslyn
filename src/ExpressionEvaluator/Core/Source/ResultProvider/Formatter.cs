@@ -1,9 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Text;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -15,17 +16,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// <summary>
     /// Computes string representations of <see cref="DkmClrValue"/> instances.
     /// </summary>
-    internal abstract partial class Formatter : IDkmClrFormatter
+    internal abstract partial class Formatter : IDkmClrFormatter, IDkmClrFormatter2, IDkmClrFullNameProvider
     {
         private readonly string _defaultFormat;
         private readonly string _nullString;
-        internal readonly string StaticMembersString;
 
-        internal Formatter(string defaultFormat, string nullString, string staticMembersString)
+        internal Formatter(string defaultFormat, string nullString)
         {
             _defaultFormat = defaultFormat;
             _nullString = nullString;
-            this.StaticMembersString = staticMembersString;
         }
 
         string IDkmClrFormatter.GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers)
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         string IDkmClrFormatter.GetTypeName(DkmInspectionContext inspectionContext, DkmClrType type, DkmClrCustomTypeInfo typeInfo, ReadOnlyCollection<string> formatSpecifiers)
         {
             bool unused;
-            return GetTypeName(new TypeAndCustomInfo(type.GetLmrType(), typeInfo), escapeKeywordIdentifiers: false, sawInvalidIdentifier: out unused);
+            return GetTypeName(new TypeAndCustomInfo(type, typeInfo), escapeKeywordIdentifiers: false, sawInvalidIdentifier: out unused);
         }
 
         bool IDkmClrFormatter.HasUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
@@ -50,6 +49,112 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         string IDkmClrFormatter.GetUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             return GetUnderlyingString(value, inspectionContext);
+        }
+
+        string IDkmClrFormatter2.GetValueString(DkmClrValue value, DkmClrCustomTypeInfo customTypeInfo, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers)
+        {
+            return value.GetValueString(inspectionContext, formatSpecifiers);
+        }
+
+        string IDkmClrFormatter2.GetEditableValueString(DkmClrValue value, DkmInspectionContext inspectionContext, DkmClrCustomTypeInfo customTypeInfo)
+        {
+            return GetEditableValue(value, inspectionContext, customTypeInfo);
+        }
+
+        string IDkmClrFullNameProvider.GetClrTypeName(DkmInspectionContext inspectionContext, DkmClrType clrType, DkmClrCustomTypeInfo customTypeInfo)
+        {
+            Debug.Assert(inspectionContext != null);
+            bool sawInvalidIdentifier;
+            var name = GetTypeName(new TypeAndCustomInfo(clrType, customTypeInfo), escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
+            return sawInvalidIdentifier ? null : name;
+        }
+
+        string IDkmClrFullNameProvider.GetClrArrayIndexExpression(DkmInspectionContext inspectionContext, int[] indices)
+        {
+            return GetArrayIndexExpression(indices);
+        }
+
+        string IDkmClrFullNameProvider.GetClrCastExpression(DkmInspectionContext inspectionContext, string argument, DkmClrType type, DkmClrCustomTypeInfo customTypeInfo, bool parenthesizeArgument, bool parenthesizeEntireExpression)
+        {
+            bool sawInvalidIdentifier;
+            var name = GetTypeName(new TypeAndCustomInfo(type, customTypeInfo), escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
+            if (sawInvalidIdentifier)
+            {
+                return null;
+            }
+            return GetCastExpression(argument, name, parenthesizeArgument, parenthesizeEntireExpression);
+        }
+
+        string IDkmClrFullNameProvider.GetClrObjectCreationExpression(DkmInspectionContext inspectionContext, DkmClrType type, DkmClrCustomTypeInfo customTypeInfo, string arguments)
+        {
+            bool sawInvalidIdentifier;
+            var name = GetTypeName(new TypeAndCustomInfo(type, customTypeInfo), escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
+            if (sawInvalidIdentifier)
+            {
+                return null;
+            }
+            return GetObjectCreationExpression(name, arguments);
+        }
+
+        string IDkmClrFullNameProvider.GetClrValidIdentifier(DkmInspectionContext inspectionContext, string identifier)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+            bool sawInvalidIdentifier;
+            AppendIdentifierEscapingPotentialKeywords(builder, identifier, out sawInvalidIdentifier);
+            var result = sawInvalidIdentifier ? null : builder.ToString();
+            pooledBuilder.Free();
+            return result;
+        }
+
+        string IDkmClrFullNameProvider.GetClrExpressionAndFormatSpecifiers(DkmInspectionContext inspectionContext, string expression, out ReadOnlyCollection<string> formatSpecifiers)
+        {
+            return TrimAndGetFormatSpecifiers(expression, out formatSpecifiers);
+        }
+
+        bool IDkmClrFullNameProvider.ClrExpressionMayRequireParentheses(DkmInspectionContext inspectionContext, string expression)
+        {
+            return NeedsParentheses(expression);
+        }
+
+        string IDkmClrFullNameProvider.GetClrMemberName(
+            DkmInspectionContext inspectionContext,
+            string parentFullName,
+            DkmClrType declaringType,
+            DkmClrCustomTypeInfo declaringTypeInfo,
+            string memberName,
+            bool memberAccessRequiresExplicitCast,
+            bool memberIsStatic)
+        {
+            string qualifier;
+            if (memberIsStatic)
+            {
+                bool sawInvalidIdentifier;
+                qualifier = GetTypeName(new TypeAndCustomInfo(declaringType, declaringTypeInfo), escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
+                if (sawInvalidIdentifier)
+                {
+                    return null; // FullName wouldn't be parseable.
+                }
+            }
+            else if (memberAccessRequiresExplicitCast)
+            {
+                bool sawInvalidIdentifier;
+                var typeName = GetTypeName(new TypeAndCustomInfo(declaringType, declaringTypeInfo), escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
+                if (sawInvalidIdentifier)
+                {
+                    return null; // FullName wouldn't be parseable.
+                }
+                qualifier = GetCastExpression(
+                    parentFullName,
+                    typeName,
+                    parenthesizeArgument: false,
+                    parenthesizeEntireExpression: true);
+            }
+            else
+            {
+                qualifier = parentFullName;
+            }
+            return $"{qualifier}.{memberName}";
         }
 
         // CONSIDER: If the number or complexity of the "language-specific syntax helpers" grows (or if
@@ -68,14 +173,56 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract bool IsWhitespace(char c);
 
         // Note: We could be less conservative (e.g. "new C()").
-        internal bool NeedsParentheses(string expr)
+        private bool NeedsParentheses(string expr)
         {
-            foreach (var ch in expr)
+            int parens = 0;
+            for (int i = 0; i < expr.Length; i++)
             {
-                if (!this.IsIdentifierPartCharacter(ch) && !this.IsWhitespace(ch) && ch != '.') return true;
+                var ch = expr[i];
+                switch (ch)
+                {
+                    case '(':
+                        // Cast, "(A)b", requires parentheses.
+                        if ((parens == 0) && FollowsCloseParen(expr, i))
+                        {
+                            return true;
+                        }
+                        parens++;
+                        break;
+                    case '[':
+                        parens++;
+                        break;
+                    case ')':
+                    case ']':
+                        parens--;
+                        break;
+                    case '.':
+                        break;
+                    default:
+                        if (parens == 0)
+                        {
+                            if (this.IsIdentifierPartCharacter(ch))
+                            {
+                                // Cast, "(A)b", requires parentheses.
+                                if (FollowsCloseParen(expr, i))
+                                {
+                                    return true;
+                                }
+                            }
+                            else
+                            {
+                                return true;
+                            }
+                        }
+                        break;
+                }
             }
-
             return false;
+        }
+
+        private static bool FollowsCloseParen(string expr, int index)
+        {
+            return (index > 0) && (expr[index - 1] == ')');
         }
 
         internal abstract string TrimAndGetFormatSpecifiers(string expression, out ReadOnlyCollection<string> formatSpecifiers);

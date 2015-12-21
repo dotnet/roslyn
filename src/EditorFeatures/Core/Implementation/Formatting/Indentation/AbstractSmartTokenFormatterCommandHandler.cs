@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
         {
             var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var formatter = CreateSmartTokenFormatter(document.Project.Solution.Workspace.Options, formattingRules, root);
-            var changes = formatter.FormatToken(document.Project.Solution.Workspace, token, cancellationToken);
+            var changes = formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).WaitAndGetResult(cancellationToken);
             if (changes.Count == 0)
             {
                 return false;

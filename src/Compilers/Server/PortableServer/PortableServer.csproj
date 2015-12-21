@@ -43,7 +43,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NoWarn>1591</NoWarn>
     <NoStdLib>true</NoStdLib>
     <DebugType>full</DebugType>

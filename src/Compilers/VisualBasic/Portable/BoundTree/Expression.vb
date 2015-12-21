@@ -44,20 +44,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundExpression
         Implements IExpression
 
-        Private ReadOnly Property IConstantValue As Object Implements IExpression.ConstantValue
+        Private ReadOnly Property IConstantValue As [Optional](Of Object) Implements IExpression.ConstantValue
             Get
                 Dim value As ConstantValue = Me.ConstantValueOpt
                 If value Is Nothing Then
-                    Return Nothing
+                    Return New [Optional](Of Object)()
                 End If
 
-                Return value.Value
+                Return New [Optional](Of Object)(value.Value)
             End Get
         End Property
 
         Private ReadOnly Property IKind As OperationKind Implements IOperation.Kind
             Get
                 Return Me.ExpressionKind()
+            End Get
+        End Property
+
+        Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
+            Get
+                Return Me.HasErrors
             End Get
         End Property
 
@@ -734,7 +740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundBadExpression
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.None
+            Return OperationKind.InvalidExpression
         End Function
     End Class
 

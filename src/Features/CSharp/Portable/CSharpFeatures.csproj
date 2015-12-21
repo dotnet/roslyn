@@ -270,8 +270,8 @@
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpSimplifyTypeNamesDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\CSharpAnalyzerDriverService.cs" />
-    <Compile Include="DocumentationCommentFormatting\CSharpDocumentationCommentFormattingService.cs" />
-    <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.cs" />
+    <Compile Include="DocumentationComments\CSharpDocumentationCommentFormattingService.cs" />
+    <Compile Include="DocumentationComments\DocumentationCommentUtilities.cs" />
     <Compile Include="EditAndContinue\BreakpointSpans.cs" />
     <Compile Include="EditAndContinue\CSharpEditAndContinueAnalyzer.cs" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.cs" />

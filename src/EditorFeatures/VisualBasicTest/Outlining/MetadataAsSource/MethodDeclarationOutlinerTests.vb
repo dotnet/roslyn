@@ -1,113 +1,82 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
+Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports MaSOutliners = Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining.MetadataAsSource
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
     Public Class MethodDeclarationOutlinerTests
-        Inherits AbstractOutlinerTests(Of MethodStatementSyntax)
+        Inherits AbstractVisualBasicSyntaxNodeOutlinerTests(Of MethodStatementSyntax)
 
-        Friend Overrides Function GetRegions(node As MethodStatementSyntax) As IEnumerable(Of OutliningSpan)
-            Dim outliner = New MaSOutliners.MethodDeclarationOutliner()
-            Return outliner.GetOutliningSpans(node, CancellationToken.None).WhereNotNull()
+        Protected Overrides ReadOnly Property WorkspaceKind As String
+            Get
+                Return CodeAnalysis.WorkspaceKind.MetadataAsSource
+            End Get
+        End Property
+
+        Friend Overrides Function CreateOutliner() As AbstractSyntaxOutliner
+            Return New MaSOutliners.MethodDeclarationOutliner()
         End Function
 
-        Private Shared Function GetMethodStatement(code As Xml.Linq.XElement) As MethodStatementSyntax
-            Dim tree = ParseCode(code.Value)
-            Dim typeDecl = tree.DigToFirstTypeBlock()
-            Dim methodBlock = typeDecl.DigToFirstNodeOfType(Of MethodBlockSyntax)()
-            Dim methodStatement = DirectCast(methodBlock.BlockStatement, MethodStatementSyntax)
-            Return methodStatement
-        End Function
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub NoCommentsOrAttributes()
-            Dim code =
-<code><![CDATA[
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        Public Async Function NoCommentsOrAttributes() As Task
+            Dim code = "
 Class C
-    Sub M()
+    Sub $$M()
     End Sub
 End Class
-]]></code>
+"
 
-            Dim methodStatement As MethodStatementSyntax = GetMethodStatement(code)
+            Await VerifyNoRegionsAsync(code)
+        End Function
 
-            Assert.Empty(GetRegions(methodStatement))
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithAttributes()
-            Dim code =
-<code><![CDATA[
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        Public Async Function WithAttributes() As Task
+            Dim code = "
 Class C
+    {|hint:{|collapse:<Foo>
+    |}Sub $$M()|}
+    End Sub
+End Class
+"
+
+            Await VerifyRegionsAsync(code,
+                Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        Public Async Function WithCommentsAndAttributes() As Task
+            Dim code = "
+Class C
+    {|hint:{|collapse:' Summary:
+    '     This is a summary.
     <Foo>
-    Sub M()
+    |}Sub $$M()|}
     End Sub
 End Class
-]]></code>
+"
 
-            Dim methodStatement As MethodStatementSyntax = GetMethodStatement(code)
+            Await VerifyRegionsAsync(code,
+                Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+        End Function
 
-            Dim actualRegion = GetRegion(methodStatement)
-            Dim expectedRegion = New OutliningSpan(
-                TextSpan.FromBounds(13, 23),
-                TextSpan.FromBounds(13, 30),
-                VisualBasicOutliningHelpers.Ellipsis,
-                autoCollapse:=True)
-
-            AssertRegion(expectedRegion, actualRegion)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithCommentsAndAttributes()
-            Dim code =
-<code><![CDATA[
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        Public Async Function WithCommentsAttributesAndModifiers() As Task
+            Dim code = "
 Class C
-    ' Summary:
+    {|hint:{|collapse:' Summary:
     '     This is a summary.
-    Sub M()
+    <Foo>
+    |}Public Sub $$M()|}
     End Sub
 End Class
-]]></code>
+"
 
-            Dim methodStatement As MethodStatementSyntax = GetMethodStatement(code)
+            Await VerifyRegionsAsync(code,
+                Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+        End Function
 
-            Dim actualRegion = GetRegion(methodStatement)
-            Dim expectedRegion = New OutliningSpan(
-                TextSpan.FromBounds(13, 57),
-                TextSpan.FromBounds(13, 64),
-                VisualBasicOutliningHelpers.Ellipsis,
-                autoCollapse:=True)
-
-            AssertRegion(expectedRegion, actualRegion)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithCommentsAttributesAndModifiers()
-            Dim code =
-<code><![CDATA[
-Class C
-    ' Summary:
-    '     This is a summary.
-    Public Sub M()
-    End Sub
-End Class
-]]></code>
-
-            Dim methodStatement As MethodStatementSyntax = GetMethodStatement(code)
-
-            Dim actualRegion = GetRegion(methodStatement)
-            Dim expectedRegion = New OutliningSpan(
-                TextSpan.FromBounds(13, 57),
-                TextSpan.FromBounds(13, 71),
-                VisualBasicOutliningHelpers.Ellipsis,
-                autoCollapse:=True)
-
-            AssertRegion(expectedRegion, actualRegion)
-        End Sub
     End Class
 End Namespace

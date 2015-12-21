@@ -1313,7 +1313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not String.IsNullOrEmpty(aliasName) Then
                 Dim sourceFile = Me._sourceModule.GetSourceFile(Me.SyntaxTree)
 
-                Dim aliasImports As Dictionary(Of String, AliasAndImportsClausePosition) = sourceFile.AliasImports
+                Dim aliasImports As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition) = sourceFile.AliasImportsOpt
                 Dim symbol As AliasAndImportsClausePosition = Nothing
 
                 If aliasImports IsNot Nothing AndAlso aliasImports.TryGetValue(aliasName, symbol) Then

@@ -9,19 +9,19 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class ResumeKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ResumeNextAfterOnError()
             VerifyRecommendationsContain(<MethodBody>On Error |</MethodBody>, "Resume Next")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ResumeInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Resume")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ResumeNotInLambda()
             ' On Error statements are never allowed within lambdas

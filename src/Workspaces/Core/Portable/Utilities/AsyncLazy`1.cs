@@ -372,18 +372,18 @@ namespace Roslyn.Utilities
                 // a state that was complete.
                 try
                 {
+                    // We avoid creating a full closure just to pass the token along
+                    // Also, use TaskContinuationOptions.ExecuteSynchronously so that we inline 
+                    // the continuation if asynchronousComputeFunction completes synchronously
                     var task = computationToStart.AsynchronousComputeFunction(cancellationToken);
 
-                    // As an optimization, if the task is already completed, mark the 
-                    // request as being completed as well.
-                    //
-                    // Note: we want to do this before we do the .ContinueWith below. That way, 
-                    // when the async call to CompleteWithTask runs, it sees that we've already
-                    // completed and can bail immediately.  If we were to do this after we 
-                    // kicked off the async work, then we'd have the chance that both would
-                    // run concurrently and we'd have a higher change of hitting the race condition
-                    // of calling AsyncMethodBuilder.SetResult simultaneously (and thus having 
-                    // the InvalidOperationException that we have to ignore).
+                    task.ContinueWith(
+                        (t, s) => CompleteWithTask(t, ((CancellationTokenSource)s).Token),
+                        computationToStart.CancellationTokenSource,
+                        cancellationToken,
+                        TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
+
                     if (requestToCompleteSynchronously != null && task.IsCompleted)
                     {
                         using (TakeLock(CancellationToken.None))
@@ -395,16 +395,6 @@ namespace Roslyn.Utilities
                         // to the caller of GetValueAsync yet
                         requestToCompleteSynchronously.CompleteFromTaskSynchronously(task);
                     }
-
-                    // We avoid creating a full closure just to pass the token along
-                    // Also, use TaskContinuationOptions.ExecuteSynchronously so that we inline 
-                    // the continuation if asynchronousComputeFunction completes synchronously
-                    task.ContinueWith(
-                        (t, s) => CompleteWithTask(t, ((CancellationTokenSource)s).Token),
-                        computationToStart.CancellationTokenSource,
-                        cancellationToken,
-                        TaskContinuationOptions.ExecuteSynchronously,
-                        TaskScheduler.Default);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {

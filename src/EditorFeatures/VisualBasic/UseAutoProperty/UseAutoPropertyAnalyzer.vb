@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
     Friend Class UseAutoPropertyAnalyzer
         Inherits AbstractUseAutoPropertyAnalyzer(Of PropertyBlockSyntax, FieldDeclarationSyntax, ModifiedIdentifierSyntax, ExpressionSyntax)
 
-        Private ReadOnly semanticFacts As New VisualBasicSemanticFactsService()
+        Private ReadOnly _semanticFacts As New VisualBasicSemanticFactsService()
 
         Protected Overrides Function SupportsReadOnlyProperties(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             If node.Kind() = SyntaxKind.IdentifierName Then
                 Dim symbolInfo = semanticModel.GetSymbolInfo(node)
                 If field.Equals(symbolInfo.Symbol) Then
-                    If semanticFacts.IsWrittenTo(semanticModel, node, cancellationToken) Then
+                    If _semanticFacts.IsWrittenTo(semanticModel, node, cancellationToken) Then
                         Return True
                     End If
                 End If

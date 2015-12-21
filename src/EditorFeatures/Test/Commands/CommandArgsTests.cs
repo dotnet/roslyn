@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Commands
 {
     public class CommandArgsTests
     {
-        [WpfFact]
+        [Fact]
         public void CreateBackspaceCommandArgsWithNullTextView()
         {
             var buffer = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, "class C { }");

@@ -1,69 +1,58 @@
 # Cross Platform Instructions
 
-This guide will walk you through setting up a Linux / Mac box for Roslyn development.  
-
 ## Caveats
 
 Linux and Mac support for developing Roslyn is very much a work in progress.  Not everything is supported at the moment and the steps detailed on this page will change very frequently.  If this is an area you are interested in then please check back frequently for updates.
 
-## Acquiring Mono
+## Building using a pre-made toolset
 
-Roslyn requires bug fixes not present in the latest release of mono.  Hence you will need to acquire mono from a different channel in order to develop on Roslyn.  
+Right now Roslyn builds on *nix using a mix of Mono and CoreCLR. Patching the right Mono version and acquiring all the tools
+can be very difficult, so we've saved pre-built versions on Azure.
 
-### Azure drops
+Running `make` should download all these toolset binaries and kick off a build using MSBuild running on Mono.
 
-The easiest way to acquire a compatible version is to download it from our Azure storage.  This is the version used on our CI system and hence will work with the latest sources:
+## Using the compiler
 
-- [Mac Mono Bundle](https://dotnetci.blob.core.windows.net/roslyn/mono.mac.1.tar.bz2)
-- [Linux Mono Bundle](https://dotnetci.blob.core.windows.net/roslyn/mono.linux.1.tar.bz2)
+After building there should be at least two versions of `csc.exe` in your output directory.
 
-This file must be unzipped into `/tmp` in order to function correctly.  Once unzipped simply add the `/tmp/mono.mac.1/bin` folder to `$PATH` and you should be able to build, edit and run test for CrossPlatform.sln.  
+The first is in the `Binaries/Debug` directory. This is the "full .NET framework" version. That means it expects to run on a
+full .NET framework, like either the Windows .NET framework or Mono. You would run this like you run other mono programs, i.e.
+`mono csc.exe`.
 
-### Build from source
+The second copy is in the `Binaries/Debug/csccore` directory. This is a version running directly on CoreCLR -- no Mono necessary.
+Just run `csc` in that directory. Note that this version includes a copy of CoreCLR in the output directory, so it is not portable.
+The version of CoreCLR copied is specific to whatever machine you built with, so if you're running OS X, this will only run on OS X.
+Similarly with Linux (and whatever distro you're using). 
 
-The universal working method for Linux and Mac is to build Mono from source.  This actually quite straightforward as Mono has boiled this down to a simple set of steps which is described here:
 
-- [Compiling Mono on Mac](http://www.mono-project.com/docs/compiling-mono/mac/#building-mono-from-a-git-source-code-checkout)
+### Known issues when running `csc.exe`
 
-The Mono master branch has merged in all of the necessary fixes and should work.  Roslyn though currently tests against a very specific build hence this will produce the most reliable results.  
+##### Output:
 
-```
-$> cd mono
-$mono> git remote add jaredpar git@github.com:jaredpar/mono.git
-$mono> git fetch jaredpar
-$mono> git checkout -b build-roslyn jaredpar/build-roslyn
-```
+  ```
+  Microsoft (R) Visual C# Compiler version 42.42.42.42
+ Copyright (C) Microsoft Corporation. All rights reserved.
 
-Roslyn depends on the Portable Class Libraries to build which is not standard on Mono.  Hence the installation of Mono being used must be patched in order to build Roslyn.  The [setup-pcl.sh](https://github.com/dotnet/roslyn/blob/master/build/linux/setup-pcl.sh) script takes care of this.  
-
-```
-$> ./roslyn/builds/linux/setup-pcl.sh ~/builds/mono
-```
-
-## Configuring Mono
-
-Note: This script may need to be used with `sudo` depending on where mono was installed.
-
-Additionally we need to update the certificate store so that NuGet can function correctly.  
-
-```
-$> sudo roslyn/builds/linux/setup-certs.sh
+error CS0006: Metadata file 'System.Deployment.dll' could not be found
+error CS0006: Metadata file 'System.Web.Mobile.dll' could not be found
+error CS0006: Metadata file 'System.Web.RegularExpressions.dll' could not be found
+error CS0006: Metadata file 'System.Workflow.Activities.dll' could not be found
+error CS0006: Metadata file 'System.Workflow.ComponentModel.dll' could not be found
+error CS0006: Metadata file 'System.Workflow.Runtime.dll' could not be found
 ```
 
-## Building Roslyn on Linux / Mac
+##### Fix: 
 
-The first step is to ensure that the custom installed version of mono is first on your path.  This is what `xbuild` will grab when running our tools and compilers during the build.  
-
-Next we need to restore NuGet packages.  Roslyn compiles itself via a NuGet package and it must be installed before the build will succeed:
-
-```
-$> mono src/.nuget/NuGet.exe restore src/Roslyn.sln -packagesdirectory packages
-```
-
-Once the NuGet packages are available CrossPlatform.sln can be built directly.
+  This is because `csc.exe` by default references the `csc.rsp` file next to it. This is the Windows response file, so not all
+  assemblies are present when running on Mono. Pass the `-noconfig` option to ignore this response file.
+  
+##### Output:
 
 ```
-$> xbuild /p:SignAssembly=False /p:DebugSymbols=False src/CrossPlatform.sln
+error CS0041: Unexpected error writing debug information -- 'The requested feature is not implemented
 ```
 
-This will produce a number of binaries including `csc.exe` and `vbc.exe` in `Binaries\Debug`.  
+##### Fix:
+
+  The compiler is defaulting to writing full PDBs, which are not supported outside of Windows. Use the `/debug:portable` flag
+  to generate a portable PDB instead.

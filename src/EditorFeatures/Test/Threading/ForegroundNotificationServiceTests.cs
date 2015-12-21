@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 {
     public class ForegroundNotificationServiceTests
     {
-        private readonly IForegroundNotificationService _service;
+        private readonly ForegroundNotificationService _service;
         private bool _done;
 
         public ForegroundNotificationServiceTests()
@@ -34,11 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             _service.RegisterNotification(() => { /* do nothing */ }, asyncToken, CancellationToken.None);
             _service.RegisterNotification(() => { ran = true; _done = true; }, asyncToken, CancellationToken.None);
 
-            await PumpWait().ConfigureAwait(true);
+            await PumpWait();
 
             Assert.True(_done);
             Assert.True(ran);
-            Assert.True(Empty(_service));
+            Assert.True(_service.IsEmpty_TestOnly);
         }
 
         [WpfFact]
@@ -57,10 +58,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
                 _service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
 
                 waitEvent.Set();
-                await PumpWait().ConfigureAwait(true);
+                await PumpWait();
 
                 Assert.False(ran);
-                Assert.True(Empty(_service));
+                Assert.True(_service.IsEmpty_TestOnly);
             }
         }
 
@@ -69,19 +70,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         {
             var asyncToken = EmptyAsyncToken.Instance;
 
-            DateTime now = DateTime.UtcNow;
-            DateTime set = DateTime.UtcNow;
+            Stopwatch watch = Stopwatch.StartNew();
 
             _service.RegisterNotification(() =>
             {
-                set = DateTime.UtcNow;
+                watch.Stop();
                 _done = true;
             }, 50, asyncToken, CancellationToken.None);
 
-            await PumpWait().ConfigureAwait(true);
+            await PumpWait();
 
-            Assert.True(set.Subtract(now).TotalMilliseconds > 50);
-            Assert.True(Empty(_service));
+            Assert.False(watch.IsRunning);
+            Assert.True(watch.ElapsedMilliseconds >= 50);
+            Assert.True(_service.IsEmpty_TestOnly);
         }
 
         [WpfFact]
@@ -134,21 +135,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             await PumpWait().ConfigureAwait(false);
             Assert.True(_done);
             Assert.Equal(count, 9000000);
-            Assert.True(Empty(_service));
+            Assert.True(_service.IsEmpty_TestOnly);
         }
 
         private async Task PumpWait()
         {
             while (!_done)
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(1)).ConfigureAwait(true);
+                await Task.Delay(TimeSpan.FromMilliseconds(1));
             }
-        }
-
-        private static bool Empty(IForegroundNotificationService service)
-        {
-            var temp = (ForegroundNotificationService)service;
-            return temp.IsEmpty_TestOnly;
         }
     }
 }

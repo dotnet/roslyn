@@ -949,7 +949,7 @@ class C
                 assemblyNameB,
                 ImmutableArray.Create(MscorlibRef, referenceA2).AddIntrinsicAssembly(),
                 exeBytes,
-                new SymReader(pdbBytes));
+                SymReaderFactory.CreateReader(pdbBytes));
 
             //// typeof(Exception), typeof(A<B<object>>), typeof(B<A<object>[]>)
             var context = CreateMethodContext(
@@ -1047,8 +1047,8 @@ class B
 
             var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
             modulesBuilder.Add(MscorlibRef.ToModuleInstance(fullImage: null, symReader: null));
-            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage: exeA, symReader: new SymReader(pdbA)));
-            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage: exeB, symReader: new SymReader(pdbB)));
+            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage: exeA, symReader: SymReaderFactory.CreateReader(pdbA)));
+            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage: exeB, symReader: SymReaderFactory.CreateReader(pdbB)));
             modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage: null, symReader: null));
 
             using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))

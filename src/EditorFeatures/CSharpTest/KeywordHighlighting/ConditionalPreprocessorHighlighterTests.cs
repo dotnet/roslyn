@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             return new ConditionalPreprocessorHighlighter();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_1()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample1_1()
         {
-            Test(
+            await TestAsync(
 @"class C {
     void M() {
         #define Debug
@@ -40,10 +41,10 @@ class PurchaseTransaction
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_2()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample1_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         #define Debug
@@ -67,10 +68,10 @@ class PurchaseTransaction
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_1()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample2_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         #define Debug
@@ -94,10 +95,10 @@ class PurchaseTransaction
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_2()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample2_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         #define Debug
@@ -121,10 +122,10 @@ class PurchaseTransaction
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_3()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample2_3()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         #define Debug
@@ -148,10 +149,10 @@ class PurchaseTransaction
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample4_1()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample4_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         #define Foo1
@@ -169,10 +170,10 @@ class PurchaseTransaction
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample4_2()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample4_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         #define Foo1
@@ -190,10 +191,10 @@ class PurchaseTransaction
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample4_3()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample4_3()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         #define Foo1
@@ -211,10 +212,10 @@ class PurchaseTransaction
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample4_4()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestExample4_4()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         #define Foo1

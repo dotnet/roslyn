@@ -5,11 +5,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -19,6 +16,7 @@ using Roslyn.Utilities;
 using InteractiveCommandIds = Microsoft.VisualStudio.LanguageServices.InteractiveWindow.CommandIds;
 using InteractiveGuids = Microsoft.VisualStudio.LanguageServices.InteractiveWindow.Guids;
 #endif
+
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal abstract partial class AbstractOleCommandTarget
@@ -103,6 +101,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 case VSConstants.VSStd97CmdID.FindReferences:
                     return QueryFindReferencesStatus(prgCmds);
+
+                case VSConstants.VSStd97CmdID.SyncClassView:
+                    return QuerySyncClassView(prgCmds);
 
                 default:
                     return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
@@ -246,6 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 #endif
+
         private int GetCommandState<T>(
             Func<ITextView, ITextBuffer, T> createArgs,
             ref Guid pguidCmdGroup,
@@ -326,6 +328,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private int QueryFindReferencesStatus(OLECMD[] prgCmds)
+        {
+            prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
+            return VSConstants.S_OK;
+        }
+
+        private int QuerySyncClassView(OLECMD[] prgCmds)
         {
             prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
             return VSConstants.S_OK;
