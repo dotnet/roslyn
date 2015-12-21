@@ -489,10 +489,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int minCustomModifierCount = int.MaxValue;
 
             IEqualityComparer<Symbol> exactMatchComparer = memberIsFromSomeCompilation
-                ? MemberSignatureComparer.CSharpCustomModifierOverrideComparer
+                ? (member.IsOverride ? MemberSignatureComparer.CSharpCustomModifierNullableOverrideComparer : MemberSignatureComparer.CSharpCustomModifierOverrideComparer)
                 : MemberSignatureComparer.RuntimePlusRefOutSignatureComparer;
             IEqualityComparer<Symbol> fallbackComparer = memberIsFromSomeCompilation
-                ? MemberSignatureComparer.CSharpOverrideComparer
+                ? (member.IsOverride ? MemberSignatureComparer.CSharpNullableOverrideComparer : MemberSignatureComparer.CSharpOverrideComparer)
                 : MemberSignatureComparer.RuntimeSignatureComparer;
 
             SymbolKind memberKind = member.Kind;

@@ -230,28 +230,35 @@ class B : A
             var source = @"
 class A
 {
-    public virtual void Foo<T>(T? x) where T : struct 
+    public virtual void M1<T>(T? x) where T : struct 
     { 
     }
 }
 
 class B : A
 {
-    public override void Foo<T>(System.Nullable<T> x)
+    public override void M1<T>(System.Nullable<T> x)
     {
     }
 } 
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics();
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.Parameters[0].Type.IsValueType);
+            Assert.True(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
         }
 
         [Fact]
-        public void InheritedClassConstraintForNullable1_01()
+        public void Overriding_01()
         {
             var source = @"
 class A
 {
-    public virtual T? Foo<T>() where T : class 
+    public virtual T? M1<T>() where T : class 
     { 
         return null; 
     }
@@ -259,40 +266,859 @@ class A
 
 class B : A
 {
-    public override T? Foo<T>()
+    public override T? M1<T>()
     {
         return null;
     }
 } 
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics();
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.False(m1.ReturnType.IsNullableType());
+            Assert.True(m1.ReturnType.IsNullable);
+            Assert.True(m1.ReturnType.IsReferenceType);
+            Assert.False(m1.OverriddenMethod.ReturnType.IsNullableType());
         }
 
-        [Fact(Skip = "Unexpected errors!")]
-        public void InheritedClassConstraintForNullable1_02()
+        [Fact]
+        public void Overriding_02()
         {
             var source = @"
 class A
 {
-    public virtual void Foo<T>(T? x) where T : class 
+    public virtual void M1<T>(T? x) where T : class 
+    { 
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x)
+    {
+    }
+} 
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics();
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.False(m1.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.Parameters[0].Type.IsNullable);
+            Assert.True(m1.Parameters[0].Type.IsReferenceType);
+            Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        public void Overriding_03()
+        {
+            var source = @"
+class A
+{
+    public virtual void M1<T>(T? x) where T : class 
     { 
     }
 
+    public virtual T? M2<T>() where T : class 
+    { 
+        return null;
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x)
+    {
+    }
+
+    public override T? M2<T>()
+    { 
+        return null;
+    }
+} 
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics();
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.False(m1.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.Parameters[0].Type.IsNullable);
+            Assert.True(m1.Parameters[0].Type.IsReferenceType);
+            Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+
+            var m2 = b.GetMember<MethodSymbol>("M2");
+            Assert.False(m2.ReturnType.IsNullableType());
+            Assert.True(m2.ReturnType.IsNullable);
+            Assert.True(m2.ReturnType.IsReferenceType);
+            Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
+        }
+
+        [Fact]
+        public void Overriding_04()
+        {
+            var source = @"
+class A
+{
+    public virtual void M1<T>(T? x) where T : struct 
+    { 
+    }
+
+    public virtual void M1<T>(T x) 
+    { 
+    }
+
+    public virtual void M2<T>(T? x) where T : struct 
+    { 
+    }
+
+    public virtual void M2<T>(T x) 
+    { 
+    }
+
+    public virtual void M3<T>(T x) 
+    { 
+    }
+
+    public virtual void M3<T>(T? x) where T : struct 
+    { 
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x)
+    {
+    }
+
+    public override void M2<T>(T x)
+    {
+    }
+
+    public override void M3<T>(T? x)
+    {
+    }
+} 
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics(
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+
+            var m2 = b.GetMember<MethodSymbol>("M2");
+            Assert.False(m2.Parameters[0].Type.IsNullableType());
+            Assert.False(m2.OverriddenMethod.Parameters[0].Type.IsNullableType());
+
+            var m3 = b.GetMember<MethodSymbol>("M3");
+            Assert.True(m3.Parameters[0].Type.IsNullableType());
+            Assert.True(m3.OverriddenMethod.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        public void Overriding_05()
+        {
+            var source = @"
+class A
+{
+    public virtual void M1<T>(T? x) where T : struct 
+    { 
+    }
+
+    public virtual void M1<T>(T? x) where T : class 
+    { 
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x)
+    {
+    }
+} 
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            // TODO: The overriding is ambigous. We simply matched the first candidate. Should this be an error?
+            compilation.VerifyDiagnostics();
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        public void Overriding_06()
+        {
+            var source = @"
+class A
+{
+    public virtual void M1<T>(System.Nullable<T> x) where T : struct
+    {
+    }
+
+    public virtual void M2<T>(T? x) where T : struct
+    {
+    }
+
+    public virtual void M3<T>(C<T?> x) where T : struct
+    {
+    }
+
+    public virtual void M4<T>(C<System.Nullable<T>> x) where T : struct
+    {
+    }
+
+    public virtual void M5<T>(C<T?> x) where T : class
+    {
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x)
+    {
+    }
+
+    public override void M2<T>(T? x)
+    {
+    }
+
+    public override void M3<T>(C<T?> x)
+    {
+    }
+
+    public override void M4<T>(C<T?> x)
+    {
+    }
+
+    public override void M5<T>(C<T?> x)
+    {
+    }
+}
+
+class C<T> {}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics();
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m3 = b.GetMember<MethodSymbol>("M3");
+            var m4 = b.GetMember<MethodSymbol>("M4");
+            var m5 = b.GetMember<MethodSymbol>("M5");
+            Assert.True(((NamedTypeSymbol)m3.Parameters[0].Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m3.OverriddenMethod.Parameters[0].Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m4.Parameters[0].Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m4.OverriddenMethod.Parameters[0].Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.False(((NamedTypeSymbol)m5.Parameters[0].Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.False(((NamedTypeSymbol)m5.OverriddenMethod.Parameters[0].Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
+        }
+
+        [Fact]
+        public void Overriding_07()
+        {
+            var source = @"
+class A
+{
+    public void M1<T>(T x) 
+    {
+    }
+}
+
+class B : A
+{
+    public void M1<T>(T? x) where T : struct
+    {
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics();
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.Parameters[0].Type.TypeSymbol.StrippedType().IsValueType);
+            Assert.Null(m1.OverriddenMethod);
+        }
+
+        [Fact]
+        public void Overriding_08()
+        {
+            var source = @"
+class A
+{
+    public void M1<T>(T x) 
+    {
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x) where T : struct
+    {
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics(
+    // (11,38): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+    //     public override void M1<T>(T? x) where T : struct
+    Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(11, 38),
+    // (11,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
+    //     public override void M1<T>(T? x) where T : struct
+    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(11, 26),
+    // (11,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public override void M1<T>(T? x) where T : struct
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(11, 35)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.False(m1.Parameters[0].Type.TypeSymbol.StrippedType().IsValueType);
+            Assert.False(m1.Parameters[0].Type.TypeSymbol.StrippedType().IsReferenceType);
+            Assert.Null(m1.OverriddenMethod);
+        }
+
+        [Fact]
+        public void Overriding_09()
+        {
+            var source = @"
+class A
+{
+    public void M1<T>(T x) 
+    {
+    }
+
+    public void M2<T>(T? x) 
+    {
+    }
+
+    public void M3<T>(T? x) where T : class
+    {
+    }
+
+    public void M4<T>(T? x) where T : struct
+    {
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x)
+    {
+    }
+
+    public override void M2<T>(T? x)
+    {
+    }
+
+    public override void M3<T>(T? x)
+    {
+    }
+
+    public override void M4<T>(T? x)
+    {
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics(
+    // (27,26): error CS0506: 'B.M2<T>(T?)': cannot override inherited member 'A.M2<T>(T?)' because it is not marked virtual, abstract, or override
+    //     public override void M2<T>(T? x)
+    Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M2").WithArguments("B.M2<T>(T?)", "A.M2<T>(T?)").WithLocation(27, 26),
+    // (31,26): error CS0506: 'B.M3<T>(T?)': cannot override inherited member 'A.M3<T>(T)' because it is not marked virtual, abstract, or override
+    //     public override void M3<T>(T? x)
+    Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M3").WithArguments("B.M3<T>(T?)", "A.M3<T>(T)").WithLocation(31, 26),
+    // (35,26): error CS0506: 'B.M4<T>(T?)': cannot override inherited member 'A.M4<T>(T?)' because it is not marked virtual, abstract, or override
+    //     public override void M4<T>(T? x)
+    Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M4").WithArguments("B.M4<T>(T?)", "A.M4<T>(T?)").WithLocation(35, 26),
+    // (23,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
+    //     public override void M1<T>(T? x)
+    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(23, 26),
+    // (27,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public override void M2<T>(T? x)
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(27, 35),
+    // (31,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public override void M3<T>(T? x)
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(31, 35),
+    // (35,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public override void M4<T>(T? x)
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(35, 35),
+    // (23,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public override void M1<T>(T? x)
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(23, 35),
+    // (8,26): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public void M2<T>(T? x) 
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(8, 26)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            var m2 = b.GetMember<MethodSymbol>("M2");
+            var m3 = b.GetMember<MethodSymbol>("M3");
+            var m4 = b.GetMember<MethodSymbol>("M4");
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.True(m2.Parameters[0].Type.IsNullableType());
+            Assert.True(m3.Parameters[0].Type.IsNullableType());
+            Assert.True(m4.Parameters[0].Type.IsNullableType());
+
+            Assert.Null(m1.OverriddenMethod);
+            Assert.Null(m2.OverriddenMethod);
+            Assert.Null(m3.OverriddenMethod);
+            Assert.Null(m4.OverriddenMethod);
+        }
+
+        [Fact]
+        public void Overriding_10()
+        {
+            var source = @"
+class A
+{
+    public virtual void M1<T>(System.Nullable<T> x) where T : class
+    { 
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x)
+    {
+    }
+} 
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics(
+    // (4,50): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public virtual void M1<T>(System.Nullable<T> x) where T : class
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(4, 50),
+    // (11,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
+    //     public override void M1<T>(T? x)
+    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(11, 26),
+    // (11,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public override void M1<T>(T? x)
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(11, 35)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.Null(m1.OverriddenMethod);
+        }
+
+        [Fact]
+        public void Overriding_11()
+        {
+            var source = @"
+class A
+{
+    public virtual C<System.Nullable<T>> M1<T>() where T : class
+    { 
+        throw new System.NotImplementedException();
+    }
+}
+
+class B : A
+{
+    public override C<T?> M1<T>()
+    {
+        throw new System.NotImplementedException();
+    }
+} 
+
+class C<T> {}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics(
+    // (4,42): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public virtual C<System.Nullable<T>> M1<T>() where T : class
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M1").WithArguments("System.Nullable<T>", "T", "T").WithLocation(4, 42),
+    // (12,27): error CS0508: 'B.M1<T>()': return type must be 'C<T?>' to match overridden member 'A.M1<T>()'
+    //     public override C<T?> M1<T>()
+    Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M1").WithArguments("B.M1<T>()", "A.M1<T>()", "C<T?>").WithLocation(12, 27)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.False(((NamedTypeSymbol)m1.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m1.OverriddenMethod.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
+        }
+
+        [Fact]
+        public void Overriding_12()
+        {
+            var source = @"
+class A
+{
+    public virtual string M1()
+    { 
+        throw new System.NotImplementedException();
+    }
+
+    public virtual string? M2()
+    { 
+        throw new System.NotImplementedException();
+    }
+
+    public virtual string? M3()
+    { 
+        throw new System.NotImplementedException();
+    }
+
+    public virtual System.Nullable<string> M4()
+    { 
+        throw new System.NotImplementedException();
+    }
+
+    public System.Nullable<string> M5()
+    { 
+        throw new System.NotImplementedException();
+    }
+}
+
+class B : A
+{
+    public override string? M1()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override string? M2()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override string M3()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override string? M4()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override string? M5()
+    {
+        throw new System.NotImplementedException();
+    }
+} 
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics(
+    // (47,29): error CS0508: 'B.M4()': return type must be 'string?' to match overridden member 'A.M4()'
+    //     public override string? M4()
+    Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M4").WithArguments("B.M4()", "A.M4()", "string?").WithLocation(47, 29),
+    // (52,29): error CS0506: 'B.M5()': cannot override inherited member 'A.M5()' because it is not marked virtual, abstract, or override
+    //     public override string? M5()
+    Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M5").WithArguments("B.M5()", "A.M5()").WithLocation(52, 29),
+    // (19,44): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public virtual System.Nullable<string> M4()
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M4").WithArguments("System.Nullable<T>", "T", "string").WithLocation(19, 44),
+    // (24,36): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public System.Nullable<string> M5()
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M5").WithArguments("System.Nullable<T>", "T", "string").WithLocation(24, 36)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.False(m1.ReturnType.IsNullableType());
+            Assert.False(m1.OverriddenMethod.ReturnType.IsNullableType());
+
+            var m4 = b.GetMember<MethodSymbol>("M4");
+            Assert.False(m4.ReturnType.IsNullableType());
+            Assert.True(m4.OverriddenMethod.ReturnType.IsNullableType());
+
+            var m5 = b.GetMember<MethodSymbol>("M4");
+            Assert.False(m5.ReturnType.IsNullableType());
+        }
+
+        [Fact]
+        public void Overriding_13()
+        {
+            var source = @"
+class A
+{
+    public virtual void M1(string x)
+    { 
+    }
+
+    public virtual void M2(string? x)
+    { 
+    }
+
+    public virtual void M3(string? x)
+    { 
+    }
+
+    public virtual void M4(System.Nullable<string> x)
+    { 
+    }
+
+    public void M5(System.Nullable<string> x)
+    { 
+    }
+}
+
+class B : A
+{
+    public override void M1(string? x)
+    {
+    }
+
+    public override void M2(string? x)
+    {
+    }
+
+    public override void M3(string x)
+    {
+    }
+
+    public override void M4(string? x)
+    {
+    }
+
+    public override void M5(string? x)
+    {
+    }
+} 
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (39,26): error CS0115: 'B.M4(string)': no suitable method found to override
+    //     public override void M4(string? x)
+    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("B.M4(string)").WithLocation(39, 26),
+    // (43,26): error CS0115: 'B.M5(string)': no suitable method found to override
+    //     public override void M5(string? x)
+    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M5").WithArguments("B.M5(string)").WithLocation(43, 26),
+    // (16,52): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public virtual void M4(System.Nullable<string> x)
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "string").WithLocation(16, 52),
+    // (20,44): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+    //     public void M5(System.Nullable<string> x)
+    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "string").WithLocation(20, 44)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.False(m1.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.Parameters[0].Type.IsNullable);
+            Assert.True(m1.Parameters[0].Type.IsReferenceType);
+            Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+
+            var m4 = b.GetMember<MethodSymbol>("M4");
+            Assert.False(m4.Parameters[0].Type.IsNullableType());
+            Assert.Null(m4.OverriddenMethod);
+
+            var m5 = b.GetMember<MethodSymbol>("M4");
+            Assert.False(m5.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        public void Overriding_14()
+        {
+            var source = @"
+class A
+{
+    public virtual int M1()
+    { 
+        throw new System.NotImplementedException();
+    }
+
+    public virtual int? M2()
+    { 
+        throw new System.NotImplementedException();
+    }
+
+    public virtual int? M3()
+    { 
+        throw new System.NotImplementedException();
+    }
+
+    public virtual System.Nullable<int> M4()
+    { 
+        throw new System.NotImplementedException();
+    }
+
+    public System.Nullable<int> M5()
+    { 
+        throw new System.NotImplementedException();
+    }
+}
+
+class B : A
+{
+    public override int? M1()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override int? M2()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override int M3()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override int? M4()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override int? M5()
+    {
+        throw new System.NotImplementedException();
+    }
+} 
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics(
+    // (42,25): error CS0508: 'B.M3()': return type must be 'int?' to match overridden member 'A.M3()'
+    //     public override int M3()
+    Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M3").WithArguments("B.M3()", "A.M3()", "int?").WithLocation(42, 25),
+    // (52,26): error CS0506: 'B.M5()': cannot override inherited member 'A.M5()' because it is not marked virtual, abstract, or override
+    //     public override int? M5()
+    Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M5").WithArguments("B.M5()", "A.M5()").WithLocation(52, 26),
+    // (32,26): error CS0508: 'B.M1()': return type must be 'int' to match overridden member 'A.M1()'
+    //     public override int? M1()
+    Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M1").WithArguments("B.M1()", "A.M1()", "int").WithLocation(32, 26)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            Assert.True(b.GetMember<MethodSymbol>("M1").ReturnType.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M2").ReturnType.IsNullableType());
+            Assert.False(b.GetMember<MethodSymbol>("M3").ReturnType.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M4").ReturnType.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M5").ReturnType.IsNullableType());
+        }
+
+        [Fact]
+        public void Overriding_15()
+        {
+            var source = @"
+class A
+{
+    public virtual void M1(int x)
+    { 
+    }
+
+    public virtual void M2(int? x)
+    { 
+    }
+
+    public virtual void M3(int? x)
+    { 
+    }
+
+    public virtual void M4(System.Nullable<int> x)
+    { 
+    }
+
+    public void M5(System.Nullable<int> x)
+    { 
+    }
+}
+
+class B : A
+{
+    public override void M1(int? x)
+    {
+    }
+
+    public override void M2(int? x)
+    {
+    }
+
+    public override void M3(int x)
+    {
+    }
+
+    public override void M4(int? x)
+    {
+    }
+
+    public override void M5(int? x)
+    {
+    }
+} 
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (35,26): error CS0115: 'B.M3(int)': no suitable method found to override
+    //     public override void M3(int x)
+    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("B.M3(int)").WithLocation(35, 26),
+    // (43,26): error CS0506: 'B.M5(int?)': cannot override inherited member 'A.M5(int?)' because it is not marked virtual, abstract, or override
+    //     public override void M5(int? x)
+    Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M5").WithArguments("B.M5(int?)", "A.M5(int?)").WithLocation(43, 26),
+    // (27,26): error CS0115: 'B.M1(int?)': no suitable method found to override
+    //     public override void M1(int? x)
+    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1(int?)").WithLocation(27, 26)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            Assert.True(b.GetMember<MethodSymbol>("M1").Parameters[0].Type.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M2").Parameters[0].Type.IsNullableType());
+            Assert.False(b.GetMember<MethodSymbol>("M3").Parameters[0].Type.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M4").Parameters[0].Type.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M5").Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        public void Overloading_01()
+        {
+            var source = @"
+class A
+{
     void Test1(string? x1) {}
     void Test1(string x2) {}
 
     string Test2(string y1) { return y1; }
     string? Test2(string y2) { return y2; }
 }
-
-class B : A
-{
-    public override void Foo<T>(T? x)
-    {
-    }
-} 
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).
+                VerifyDiagnostics(
+    // (5,10): error CS0111: Type 'A' already defines a member called 'Test1' with the same parameter types
+    //     void Test1(string x2) {}
+    Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Test1").WithArguments("Test1", "A").WithLocation(5, 10),
+    // (8,13): error CS0111: Type 'A' already defines a member called 'Test2' with the same parameter types
+    //     string? Test2(string y2) { return y2; }
+    Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Test2").WithArguments("Test2", "A").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void Overloading_02()
+        {
+            var source = @"
+class A
+{
+    public void M1<T>(T? x) where T : struct 
+    { 
+    }
+
+    public void M1<T>(T? x) where T : class 
+    { 
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact()]

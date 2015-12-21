@@ -621,6 +621,7 @@
     <Compile Include="Symbols\SignatureOnlyParameterSymbol.cs" />
     <Compile Include="Symbols\SignatureOnlyPropertySymbol.cs" />
     <Compile Include="Symbols\Source\AttributeLocation.cs" />
+    <Compile Include="Symbols\Source\IndexedTypeParameterSymbolForOverriding.cs" />
     <Compile Include="Symbols\Source\ConstantEvaluationHelpers.cs" />
     <Compile Include="Symbols\Source\CrefTypeParameterSymbol.cs" />
     <Compile Include="Symbols\Source\CustomModifierUtils.cs" />
