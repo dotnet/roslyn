@@ -197,11 +197,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // CONSIDER: Do we want to guard against the possibility that someone has created their own EventRegistrationTokenTable<T>
                     // type that has additional generic constraints?
-                    type = TypeSymbolWithAnnotations.Create(tokenTableType.Construct(@event.Type.TypeSymbol));
+                    type = TypeSymbolWithAnnotations.Create(tokenTableType.Construct(ImmutableArray.Create(@event.Type)));
                 }
                 else
                 {
-                    type = TypeSymbolWithAnnotations.Create(@event.Type.TypeSymbol);
+                    type = @event.Type;
                 }
             }
             else
