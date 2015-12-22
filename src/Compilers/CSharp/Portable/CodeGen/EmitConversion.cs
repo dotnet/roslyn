@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // The null pointer is represented as 0u.
                     _builder.EmitIntConstant(0);
                     _builder.EmitOpCode(ILOpCode.Conv_u);
+                    EmitPopIfUnused(used);
                     return;
             }
 

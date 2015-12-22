@@ -326,9 +326,6 @@ End Class"
         ''' <summary>
         ''' Hide members that have compiler-generated names.
         ''' </summary>
-        ''' <remarks>
-        ''' As in dev11, the FullName expressions don't parse.
-        ''' </remarks> 
         <Fact, WorkItem(1010498)>
         Public Sub HiddenMembers()
             Dim source =
@@ -403,7 +400,7 @@ End Class"
                 EvalResult("Shared members", Nothing, "", "A", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
             children = GetChildren(children(children.Length - 1))
             Verify(children,
-                EvalResult("[>]", "Nothing", "Object", fullName:=Nothing),
+                EvalResult(">", "Nothing", "Object", fullName:=Nothing),
                 EvalResult("><", "Nothing", "Object", fullName:=Nothing))
 
             type = assembly.GetType("B")
@@ -420,7 +417,7 @@ End Class"
                 EvalResult("Shared members", Nothing, "", "B", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
             children = GetChildren(children(children.Length - 1))
             Verify(children,
-                EvalResult("[>]", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly),
+                EvalResult(">", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("><", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly))
         End Sub
 

@@ -2,14 +2,14 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="Version.targets" />
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\build\Targets\Settings.targets" />
   </ImportGroup>
   <ItemGroup Label="Redist">
     <NuSpec Include="Microsoft.DiaSymReader.nuspec" />
   </ItemGroup>
   <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec-&gt;NuGet\$(NuGetVersionType)\%(Identity).$(NuGetVersion).nupkg">
     <PropertyGroup>
-      <NuGetArguments>-prop binaries=$(OutDir) -prop currentVersion="$(NuGetVersion)"</NuGetArguments>
+      <NuGetArguments>-prop currentVersion="$(NuGetVersion)"</NuGetArguments>
       <NuGetOutDir>$(OutDir)NuGet\$(NuGetVersionType)</NuGetOutDir>
     </PropertyGroup>
     <!-- clean our output directory -->
@@ -17,7 +17,7 @@
     <!-- copy any extra content files (like EULAs) that we need to include -->
     <Copy SourceFiles="@(Content)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <!-- package! -->
-    <Exec Command='$(NuGetToolPath) Pack "$(MSBuildProjectDirectory)\%(NuSpec.Identity)" -BasePath $(OutDir) -OutputDirectory $(NuGetOutDir) $(NuGetArguments)' />
+    <Exec Command='$(NuGetToolPath) Pack "$(MSBuildProjectDirectory)\%(NuSpec.Identity)" -BasePath "$(OutDir)DiaSymReader" -OutputDirectory "$(NuGetOutDir)" $(NuGetArguments)' />
   </Target>
   <Target Name="Clean">
     <RemoveDir Directories="$(OutDir)NuGet" />

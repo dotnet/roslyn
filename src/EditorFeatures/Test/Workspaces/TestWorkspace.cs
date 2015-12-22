@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// </summary>
         internal static void ResetThreadAffinity(ForegroundThreadData foregroundThreadData = null)
         {
-            foregroundThreadData = foregroundThreadData ?? ForegroundThreadAffinitizedObject.DefaultForegroundThreadData;
+            foregroundThreadData = foregroundThreadData ?? ForegroundThreadAffinitizedObject.CurrentForegroundThreadData;
 
             // HACK: When the platform team took over several of our components they created a copy
             // of ForegroundThreadAffinitizedObject.  This needs to be reset in the same way as our copy
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
             else if (exceptions.Count > 1)
             {
-				throw new AggregateException(exceptions);
+                throw new AggregateException(exceptions);
             }
 
             if (SynchronizationContext.Current != null)

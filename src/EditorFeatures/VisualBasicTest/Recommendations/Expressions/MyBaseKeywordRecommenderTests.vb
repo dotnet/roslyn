@@ -10,91 +10,91 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class MyBaseKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoneInClassDeclaration()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoneInModuleDeclaration()
             VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoneInModuleMethodBody()
             VerifyRecommendationsMissing(<ModuleMethodBody>|</ModuleMethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoneInStructureDeclaration()
             VerifyRecommendationsMissing(<StructureDeclaration>|</StructureDeclaration>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoneInStructureMethodBody()
             VerifyRecommendationsMissing(<StructureMethodBody>|</StructureMethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseInStatement()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterReturn()
             VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterArgument1()
             VerifyRecommendationsContain(<MethodBody>Foo(|</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterArgument2()
             VerifyRecommendationsContain(<MethodBody>Foo(bar, |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterBinaryExpression()
             VerifyRecommendationsContain(<MethodBody>Foo(bar + |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterNot()
             VerifyRecommendationsContain(<MethodBody>Foo(Not |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterTypeOf()
             VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterDoWhile()
             VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterDoUntil()
             VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterLoopWhile()
             VerifyRecommendationsContain(<MethodBody>
@@ -102,7 +102,7 @@ Do
 Loop While |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterLoopUntil()
             VerifyRecommendationsContain(<MethodBody>
@@ -110,55 +110,55 @@ Do
 Loop Until |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterIf()
             VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterElseIf()
             VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterElseSpaceIf()
             VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterError()
             VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterThrow()
             VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterInitializer()
             VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterArrayInitializerSquiggle()
             VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseAfterArrayInitializerComma()
             VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseNotInModule()
             VerifyRecommendationsMissing(<File>
@@ -169,7 +169,7 @@ End Sub()
 End Module</File>, "MyBase")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseInStructure()
             VerifyRecommendationsMissing(<File>
@@ -180,7 +180,7 @@ End Sub()
 End Module</File>, "MyBase")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseToHandleInheritedMember()
             Dim text = <File>Public Class BaseClass
     Protected Event Event1()
@@ -195,7 +195,7 @@ Public Class Class1
             VerifyRecommendationsContain(text, "MyBase")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoMyBaseToHandleInheritedMemberIfThereIsNotOne()
             Dim text = <File>Public Class BaseClass
 End Class
@@ -209,7 +209,7 @@ Public Class Class1
             VerifyRecommendationsMissing(text, "MyBase")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoMyBaseToHandleInaccessibleInheritedMember()
             Dim text = <File>Public Class Base
     Private Event Click()
@@ -225,12 +225,12 @@ End Class
             VerifyRecommendationsMissing(text, "MyBase")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseInNameOf1()
             VerifyRecommendationsContain(<MethodBody>Dim s = NameOf(|</MethodBody>, "MyBase")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub MyBaseInNameOf2()
             VerifyRecommendationsMissing(<MethodBody>Dim s = NameOf(System.|</MethodBody>, "MyBase")
         End Sub

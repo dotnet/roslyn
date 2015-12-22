@@ -4,14 +4,13 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 using Xunit;
 
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
-    [UnitTestTrait]
+    [ProjectSystemTrait]
     public class ProjectDesignerServiceTests
     {
         [Fact]

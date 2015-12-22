@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>> _compilationEndActionsMap;
 
         /// <summary>
+        /// Map from non-concurrent analyzers to the gate guarding callback into the analyzer. 
+        /// </summary>
+        private ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim> _analyzerGateMap = ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
+
+        /// <summary>
         /// Driver task which initializes all analyzers.
         /// This task is initialized and executed only once at start of analysis.
         /// </summary>
@@ -96,16 +101,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.DiagnosticQueue = diagnosticQueue;
 
                 // Compute the set of effective actions based on suppression, and running the initial analyzers
-                var analyzerActionsTask = GetAnalyzerActionsAsync(analyzers, analyzerManager, analyzerExecutor);
-                _initializeTask = analyzerActionsTask.ContinueWith(t =>
+                _initializeTask = Task.Run(async () =>
                 {
-                    this.analyzerActions = t.Result;
+                    this.analyzerActions = await GetAnalyzerActionsAsync(analyzers, analyzerManager, analyzerExecutor).ConfigureAwait(false);
+                    this._analyzerGateMap = await GetAnalyzerGateMapAsync(analyzers, analyzerManager, analyzerExecutor).ConfigureAwait(false);
+
                     _symbolActionsByKind = MakeSymbolActionsByKind();
                     _semanticModelActionsMap = MakeSemanticModelActionsByAnalyzer();
                     _syntaxTreeActionsMap = MakeSyntaxTreeActionsByAnalyzer();
                     _compilationActionsMap = MakeCompilationActionsByAnalyzer(this.analyzerActions.CompilationActions);
                     _compilationEndActionsMap = MakeCompilationActionsByAnalyzer(this.analyzerActions.CompilationEndActions);
-                }, cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
+                }, cancellationToken);
 
                 // create the primary driver task.
                 cancellationToken.ThrowIfCancellationRequested();
@@ -141,26 +147,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(_initializeTask == null);
 
             var diagnosticQueue = DiagnosticQueue.Create(categorizeDiagnostics);
-            var addDiagnostic = GetDiagnosticSink(diagnosticQueue.Enqueue, compilation);
-            var addLocalDiagnosticOpt = categorizeDiagnostics ? GetDiagnosticSink(diagnosticQueue.EnqueueLocal, compilation) : null;
-            var addNonLocalDiagnosticOpt = categorizeDiagnostics ? GetDiagnosticSink(diagnosticQueue.EnqueueNonLocal, compilation) : null;
 
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> newOnAnalyzerException;
-            if (analysisOptions.OnAnalyzerException != null)
+            Action<Diagnostic> addNotCategorizedDiagnosticOpt = null;
+            Action<Diagnostic, DiagnosticAnalyzer, bool> addCategorizedLocalDiagnosticOpt = null;
+            Action<Diagnostic, DiagnosticAnalyzer> addCategorizedNonLocalDiagnosticOpt = null;
+            if (categorizeDiagnostics)
             {
-                // Wrap onAnalyzerException to pass in filtered diagnostic.
-                var comp = compilation;
-                newOnAnalyzerException = (ex, analyzer, diagnostic) =>
-                    analysisOptions.OnAnalyzerException(ex, analyzer, GetFilteredDiagnostic(diagnostic, comp));
+                addCategorizedLocalDiagnosticOpt = GetDiagnosticSink(diagnosticQueue.EnqueueLocal, compilation);
+                addCategorizedNonLocalDiagnosticOpt = GetDiagnosticSink(diagnosticQueue.EnqueueNonLocal, compilation);
             }
             else
             {
-                // Add exception diagnostic to regular diagnostic bag.
-                newOnAnalyzerException = (ex, analyzer, diagnostic) => addDiagnostic(diagnostic);
+                addNotCategorizedDiagnosticOpt = GetDiagnosticSink(diagnosticQueue.Enqueue, compilation);
             }
 
-            // Assume all analyzers are non-thread safe.
-            var singleThreadedAnalyzerToGateMap = ImmutableDictionary.CreateRange(analyzers.Select(a => KeyValuePair.Create(a, new object())));
+            // Wrap onAnalyzerException to pass in filtered diagnostic.
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> newOnAnalyzerException = (ex, analyzer, diagnostic) =>
+            {
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation);
+                if (filteredDiagnostic != null)
+                {
+                    if (analysisOptions.OnAnalyzerException != null)
+                    {
+                        analysisOptions.OnAnalyzerException(ex, analyzer, filteredDiagnostic);
+                    }
+                    else if (categorizeDiagnostics)
+                    {
+                        addCategorizedNonLocalDiagnosticOpt(filteredDiagnostic, analyzer);
+                    }
+                    else
+                    {
+                        addNotCategorizedDiagnosticOpt(filteredDiagnostic);
+                    }
+                }
+            };
 
             if (analysisOptions.LogAnalyzerExecutionTime)
             {
@@ -169,11 +189,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var unused = compilation.GetTypeByMetadataName("System.Object");
             }
 
-            Func<DiagnosticAnalyzer, object> getAnalyzerGate = analyzer => singleThreadedAnalyzerToGateMap[analyzer];
-            var analyzerExecutor = AnalyzerExecutor.Create(compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addDiagnostic, newOnAnalyzerException, IsCompilerAnalyzer,
-                analyzerManager, getAnalyzerGate, analysisOptions.LogAnalyzerExecutionTime, addLocalDiagnosticOpt, addNonLocalDiagnosticOpt, cancellationToken);
+            var analyzerExecutor = AnalyzerExecutor.Create(compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addNotCategorizedDiagnosticOpt, newOnAnalyzerException, IsCompilerAnalyzer,
+                analyzerManager, GetAnalyzerGate, analysisOptions.LogAnalyzerExecutionTime, addCategorizedLocalDiagnosticOpt, addCategorizedNonLocalDiagnosticOpt, cancellationToken);
 
             Initialize(analyzerExecutor, diagnosticQueue, cancellationToken);
+        }
+
+        private SemaphoreSlim GetAnalyzerGate(DiagnosticAnalyzer analyzer)
+        {
+            SemaphoreSlim gate;
+            if (_analyzerGateMap.TryGetValue(analyzer, out gate))
+            {
+                // Non-concurrent analyzer, needs all the callbacks guarded by a gate.
+                Debug.Assert(gate != null);
+                return gate;
+            }
+
+            // Concurrent analyzer.
+            return null;
         }
 
         /// <summary>
@@ -427,6 +460,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ImmutableArray.CreateBuilder<Diagnostic>();
             for (var i = 0; i < diagnostics.Length; i++)
             {
+#if DEBUG
+                // We should have ignored diagnostics with invalid locations and reported analyzer exception diagnostic for the same.
+                DiagnosticAnalysisContextHelpers.VerifyDiagnosticLocationsInCompilation(diagnostics[i], compilation);
+#endif
+
                 var diagnostic = SuppressMessageAttributeState.ApplySourceSuppressions(diagnostics[i], compilation);
                 if (reportSuppressedDiagnostics || !diagnostic.IsSuppressed)
                 {
@@ -531,7 +569,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var workerTasks = new Task<CompilationCompletedEvent>[workerCount];
                     for (int i = 0; i < workerCount; i++)
                     {
-                        workerTasks[i] = ProcessCompilationEventsCoreAsync(analysisScope, analysisStateOpt, prePopulatedEventQueue, cancellationToken);
+                        // Create separate worker tasks to process all compilation events - we do not want to process any events on the main thread.
+                        workerTasks[i] = Task.Run(async () => await ProcessCompilationEventsCoreAsync(analysisScope, analysisStateOpt, prePopulatedEventQueue, cancellationToken).ConfigureAwait(false));
                     }
 
                     cancellationToken.ThrowIfCancellationRequested();
@@ -842,28 +881,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return compilation.Options.FilterDiagnostic(diagnostic);
         }
 
-        private static Task<AnalyzerActions> GetAnalyzerActionsAsync(
+        private static async Task<AnalyzerActions> GetAnalyzerActionsAsync(
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor)
         {
-            return Task.Run(async () =>
+            var allAnalyzerActions = new AnalyzerActions();
+            foreach (var analyzer in analyzers)
             {
-                AnalyzerActions allAnalyzerActions = new AnalyzerActions();
-                foreach (var analyzer in analyzers)
+                if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor))
                 {
-                    if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor))
+                    var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+                    if (analyzerActions != null)
                     {
-                        var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-                        if (analyzerActions != null)
-                        {
-                            allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
-                        }
+                        allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
                     }
                 }
+            }
 
-                return allAnalyzerActions;
-            }, analyzerExecutor.CancellationToken);
+            return allAnalyzerActions;
+        }
+
+        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>> GetAnalyzerGateMapAsync(
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AnalyzerManager analyzerManager,
+            AnalyzerExecutor analyzerExecutor)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, SemaphoreSlim>();
+            foreach (var analyzer in analyzers)
+            {
+                var isConcurrent = await analyzerManager.IsConcurrentAnalyzerAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+                if (!isConcurrent)
+                {
+                    // Non-concurrent analyzers need their action callbacks from the analyzer driver to be guarded by a gate.
+                    var gate = new SemaphoreSlim(initialCount: 1);
+                    builder.Add(analyzer, gate);
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         internal async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)

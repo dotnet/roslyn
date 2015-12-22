@@ -7,8 +7,8 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     Public Class AnalyzerItemTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub Name()
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Async Function Name() As Threading.Tasks.Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
                 Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
@@ -24,10 +24,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Assert.Equal(expected:="Foo", actual:=analyzer.Text)
             End Using
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub BrowseObject()
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Async Function BrowseObject1() As Threading.Tasks.Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -35,7 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
                 Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
@@ -47,6 +47,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Assert.Equal(expected:="Foo", actual:=browseObject.Name)
                 Assert.Equal(expected:="C:\Users\Bill\Documents\Analyzers\Foo.dll", actual:=browseObject.Path)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

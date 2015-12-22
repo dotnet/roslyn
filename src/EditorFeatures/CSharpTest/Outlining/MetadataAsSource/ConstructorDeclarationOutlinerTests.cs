@@ -1,111 +1,76 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using MaSOutliners = Microsoft.CodeAnalysis.Editor.CSharp.Outlining.MetadataAsSource;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSource
 {
-    public class ConstructorDeclarationOutlinerTests :
-        AbstractOutlinerTests<ConstructorDeclarationSyntax>
+    public class ConstructorDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<ConstructorDeclarationSyntax>
     {
-        internal override IEnumerable<OutliningSpan> GetRegions(ConstructorDeclarationSyntax node)
+        protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
+        internal override AbstractSyntaxOutliner CreateOutliner() => new MaSOutliners.ConstructorDeclarationOutliner();
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task NoCommentsOrAttributes()
         {
-            var outliner = new MaSOutliners.ConstructorDeclarationOutliner();
-            return outliner.GetOutliningSpans(node, CancellationToken.None).WhereNotNull();
+            const string code = @"
+class C
+{
+    $$C();
+}";
+
+            await VerifyNoRegionsAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void NoCommentsOrAttributes()
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task WithAttributes()
         {
-            var tree = ParseCode(
-@"class C
+            const string code = @"
+class C
 {
-    C();
-}");
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var consDecl = typeDecl.DigToFirstNodeOfType<ConstructorDeclarationSyntax>();
+    {|hint:{|collapse:[Bar]
+    |}$$C();|}
+}";
 
-            Assert.Empty(GetRegions(consDecl));
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void WithAttributes()
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task WithCommentsAndAttributes()
         {
-            var tree = ParseCode(
-@"class C
+            const string code = @"
+class C
 {
-    [Bar]
-    C();
-}");
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var consDecl = typeDecl.DigToFirstNodeOfType<ConstructorDeclarationSyntax>();
-
-            var actualRegion = GetRegion(consDecl);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(16, 27),
-                TextSpan.FromBounds(16, 31),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void WithCommentsAndAttributes()
-        {
-            var tree = ParseCode(
-@"class C
-{
-    // Summary:
+    {|hint:{|collapse:// Summary:
     //     This is a summary.
     [Bar]
-    C();
-}");
+    |}$$C();|}
+}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var consDecl = typeDecl.DigToFirstNodeOfType<ConstructorDeclarationSyntax>();
-
-            var actualRegion = GetRegion(consDecl);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(16, 75),
-                TextSpan.FromBounds(16, 79),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void WithCommentsAttributesAndModifiers()
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task WithCommentsAttributesAndModifiers()
         {
-            var tree = ParseCode(
-@"class C
+            const string code = @"
+class C
 {
-    // Summary:
+    {|hint:{|collapse:// Summary:
     //     This is a summary.
     [Bar]
-    public C();
-}");
+    |}$$public C();|}
+}";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var consDecl = typeDecl.DigToFirstNodeOfType<ConstructorDeclarationSyntax>();
-
-            var actualRegion = GetRegion(consDecl);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(16, 75),
-                TextSpan.FromBounds(16, 86),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

@@ -30,6 +30,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
+    using System.Threading.Tasks;
     using RelativePathResolver = WORKSPACES::Microsoft.CodeAnalysis.RelativePathResolver;
 
     public partial class TestWorkspaceFactory
@@ -59,12 +60,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public static TestWorkspace CreateWorkspace(string xmlDefinition, bool completed = true, bool openDocuments = true, ExportProvider exportProvider = null)
+        public static Task<TestWorkspace> CreateWorkspaceAsync(string xmlDefinition, bool completed = true, bool openDocuments = true, ExportProvider exportProvider = null)
         {
-            return CreateWorkspace(XElement.Parse(xmlDefinition), completed, openDocuments, exportProvider);
+            return CreateWorkspaceAsync(XElement.Parse(xmlDefinition), completed, openDocuments, exportProvider);
         }
 
         public static TestWorkspace CreateWorkspace(
+            XElement workspaceElement,
+            bool completed = true,
+            bool openDocuments = true,
+            ExportProvider exportProvider = null,
+            string workspaceKind = null)
+        {
+            return CreateWorkspaceAsync(workspaceElement, completed, openDocuments, exportProvider, workspaceKind).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+        }
+
+        public static Task<TestWorkspace> CreateWorkspaceAsync(
             XElement workspaceElement,
             bool completed = true,
             bool openDocuments = true,
@@ -169,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
-            return workspace;
+            return Task.FromResult(workspace);
         }
 
         private static IList<TestHostProject> CreateSubmissions(
@@ -208,12 +219,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     submissions.Add(
                         new TestHostProject(
-                            languageServices, 
-                            compilationOptions: null, 
-                            parseOptions: null, 
-                            assemblyName: submissionName, 
-                            references: null, 
-                            documents: documents, 
+                            languageServices,
+                            compilationOptions: null,
+                            parseOptions: null,
+                            assemblyName: submissionName,
+                            references: null,
+                            documents: documents,
                             isSubmission: true));
                     continue;
                 }
@@ -232,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     parseOptions,
                     submissionName,
                     references,
-                    documents, 
+                    documents,
                     isSubmission: true);
 
                 submissions.Add(project);

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
 {
     public class MapTests
     {
-        [WpfFact]
+        [Fact]
         public void TestEnumerator()
         {
             var map = ImmutableDictionary.Create<string, int>().Add("1", 1);
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
             }
         }
 
-        [WpfFact]
+        [Fact]
         public void TestCounts()
         {
             var map = ImmutableDictionary.Create<string, int>()
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
             Assert.Equal(5, map.Values.Count());
         }
 
-        [WpfFact]
+        [Fact]
         public void TestRemove()
         {
             var map = ImmutableDictionary.Create<string, int>()
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
             Assert.Equal(0, map.Count);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestPathology()
         {
             var map = ImmutableDictionary.Create<string, int>(new PathologicalComparer<string>())

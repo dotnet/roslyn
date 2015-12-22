@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code.ToString())
                 Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
                     New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
                     New MockDiagnosticUpdateSourceRegistrationService())
@@ -43,14 +43,15 @@ class 123 { }
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
+                WpfTestCase.RequireWpfFact("This test uses IForegroundNotificationService")
                 Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
                 Dim provider = New DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners)
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
                 Using disposable = TryCast(tagger, IDisposable)
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                    Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).ConfigureAwait(True)
+                    Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None)
 
-                    Await listener.CreateWaitTask().ConfigureAwait(True)
+                    Await listener.CreateWaitTask()
 
                     Dim snapshot = buffer.CurrentSnapshot
                     Dim spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray()
@@ -61,12 +62,12 @@ class 123 { }
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestMiscCSharpErrorSource() As Tasks.Task
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code.ToString())
                 Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
                     New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
                     New MockDiagnosticUpdateSourceRegistrationService())
@@ -79,19 +80,19 @@ class 123 { }
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).ConfigureAwait(True)
+                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None)
 
                 Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestMiscVBErrorSource() As Task
             Dim code = <code>
 Class 123
 End Class
                        </code>
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code.ToString())
                 Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
                     New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
                     New MockDiagnosticUpdateSourceRegistrationService())
@@ -104,7 +105,7 @@ End Class
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).ConfigureAwait(True)
+                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None)
 
                 Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using

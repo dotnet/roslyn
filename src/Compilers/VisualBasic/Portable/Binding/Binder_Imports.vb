@@ -118,6 +118,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                         End If
 
+                        ' We create the alias symbol even when the target is erroneous, 
+                        ' so that we can bind to the alias and avoid cascading errors.
+                        ' As a result the further consumers of the aliases have to account for the error case.
                         Dim aliasSymbol = New AliasSymbol(binder.Compilation,
                                                              binder.ContainingNamespaceOrType,
                                                              aliasText,

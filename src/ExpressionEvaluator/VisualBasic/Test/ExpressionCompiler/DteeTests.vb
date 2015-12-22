@@ -485,7 +485,7 @@ End Namespace
             End Using
             Assert.Equal(makePdb, pdbBytes IsNot Nothing)
             Dim compRef = AssemblyMetadata.CreateFromImage(peBytes).GetReference()
-            Return compRef.ToModuleInstance(peBytes, If(makePdb, New SymReader(pdbBytes), Nothing))
+            Return compRef.ToModuleInstance(peBytes, If(makePdb, SymReaderFactory.CreateReader(pdbBytes), Nothing))
         End Function
 
         Private Shared Function GetModuleInstanceForIL(ilSource As String) As ModuleInstance
@@ -493,7 +493,7 @@ End Namespace
             Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
             EmitILToArray(ilSource, appendDefaultHeader:=False, includePdb:=True, assemblyBytes:=peBytes, pdbBytes:=pdbBytes)
             Dim compRef = AssemblyMetadata.CreateFromImage(peBytes).GetReference()
-            Return compRef.ToModuleInstance(peBytes.ToArray(), New SymReader(pdbBytes.ToArray()))
+            Return compRef.ToModuleInstance(peBytes.ToArray(), SymReaderFactory.CreateReader(pdbBytes))
         End Function
 
         Private Shared Sub CheckDteeMethodDebugInfo(methodDebugInfo As MethodDebugInfo, ParamArray namespaceNames As String())

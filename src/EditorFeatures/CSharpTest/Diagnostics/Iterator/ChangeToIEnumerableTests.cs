@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpChangeToIEnumerableCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
-        public void TestChangeToIEnumerableObjectMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        public async Task TestChangeToIEnumerableObjectMethod()
         {
             var initial =
 @"using System;
@@ -42,11 +43,11 @@ class Program
         yield return 0;
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
-        public void TestChangeToIEnumerableTupleMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        public async Task TestChangeToIEnumerableTupleMethod()
         {
             var initial =
 @"using System;
@@ -71,11 +72,11 @@ class Program
         yield return 0;
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
-        public void TestChangeToIEnumerableListMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        public async Task TestChangeToIEnumerableListMethod()
         {
             var initial =
 @"using System;
@@ -100,11 +101,11 @@ class Program
         yield return 0;
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
-        public void TestChangeToIEnumerableGenericIEnumerableMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        public async Task TestChangeToIEnumerableGenericIEnumerableMethod()
         {
             var initial =
 @"using System;
@@ -117,11 +118,11 @@ class Program
         yield return 0;
     }
 }";
-            TestMissing(initial);
+            await TestMissingAsync(initial);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
-        public void TestChangeToIEnumerableGenericIEnumeratorMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        public async Task TestChangeToIEnumerableGenericIEnumeratorMethod()
         {
             var initial =
 @"using System;
@@ -134,11 +135,11 @@ class Program
         yield return 0;
     }
 }";
-            TestMissing(initial);
+            await TestMissingAsync(initial);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
-        public void TestChangeToIEnumerableIEnumeratorMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        public async Task TestChangeToIEnumerableIEnumeratorMethod()
         {
             var initial =
 @"using System;
@@ -151,11 +152,11 @@ class Program
         yield return 0;
     }
 }";
-            TestMissing(initial);
+            await TestMissingAsync(initial);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
-        public void TestChangeToIEnumerableIEnumerableMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        public async Task TestChangeToIEnumerableIEnumerableMethod()
         {
             var initial =
 @"using System;
@@ -168,11 +169,11 @@ class Program
         yield return 0;
     }
 }";
-            TestMissing(initial);
+            await TestMissingAsync(initial);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
-        public void TestChangeToIEnumerableVoidMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        public async Task TestChangeToIEnumerableVoidMethod()
         {
             var initial =
 @"using System;
@@ -185,7 +186,7 @@ class Program
         yield return 0;
     }
 }";
-            TestMissing(initial);
+            await TestMissingAsync(initial);
         }
     }
 }

@@ -1,12 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
     Public Class CSharpKeywordHighlightingTests
         Inherits AbstractKeywordHighlightingTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub VerifyNoHighlightsWhenOptionDisabled()
-            VerifyHighlights(
+        Public Async Function TestVerifyNoHighlightsWhenOptionDisabled() As Task
+            Await VerifyHighlightsAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -22,11 +24,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                     </Project>
                 </Workspace>,
                 optionIsEnabled:=False)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub VerifyHighlightsWhenOptionEnabled()
-            VerifyHighlights(
+        Public Async Function TestVerifyHighlightsWhenOptionEnabled() As Task
+            Await VerifyHighlightsAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -41,6 +43,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                         </Document>
                     </Project>
                 </Workspace>)
-        End Sub
+        End Function
     End Class
 End Namespace

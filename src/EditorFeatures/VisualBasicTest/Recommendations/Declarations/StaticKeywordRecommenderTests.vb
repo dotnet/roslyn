@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class StaticKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StaticInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Static")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StaticInLambda()
             VerifyRecommendationsContain(<MethodBody>
@@ -24,7 +24,7 @@ Dim x = Sub()
         End Sub</MethodBody>, "Static")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StaticAfterStatement()
             VerifyRecommendationsContain(<MethodBody>
@@ -32,7 +32,7 @@ Dim x
 |</MethodBody>, "Static")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StaticNotInsideSingleLineLambda()
             VerifyRecommendationsMissing(<MethodBody>

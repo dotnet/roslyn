@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
     [ProjectCommand(CommandGroup.VisualStudioStandard97, VisualStudioStandard97CommandId.Open)]
     [AppliesTo(ProjectCapability.CSharpOrVisualBasic)]
     [OrderPrecedence(1000)] 
-    internal class OpenProjectDesignerCommand : OpenProjectDesignerCommandBase
+    internal class OpenProjectDesignerCommand : AbstractOpenProjectDesignerCommand
     {
         [ImportingConstructor]
         public OpenProjectDesignerCommand(IProjectDesignerService designerService)

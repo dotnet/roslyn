@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private class TaggerProvider : AsynchronousTaggerProvider<TTag>, ITaggerEventSource
         {
             private readonly AbstractDiagnosticsTaggerProvider<TTag> _owner;
-            private readonly object gate = new object();
+            private readonly object _gate = new object();
 
             // The latest diagnostics we've head about for this 
             private object _latestId;
@@ -62,11 +64,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
             {
-                ProduceTagsAsync(context, spanToTag);
+                ProduceTags(context, spanToTag);
                 return SpecializedTasks.EmptyTask;
             }
 
-            private void ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
+            private void ProduceTags(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
             {
                 if (!_owner.IsEnabled)
                 {
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 ImmutableArray<DiagnosticData> diagnostics;
                 SourceText sourceText;
                 ITextSnapshot editorSnapshot;
-                lock (gate)
+                lock (_gate)
                 {
                     id = _latestId;
                     diagnostics = _latestDiagnostics;
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             {
                 // We were told about new diagnostics.  Store them, and then let the 
                 // AsynchronousTaggerProvider know it should ProduceTags again.
-                lock (gate)
+                lock (_gate)
                 {
                     _latestId = e.Id;
                     _latestDiagnostics = e.Diagnostics;

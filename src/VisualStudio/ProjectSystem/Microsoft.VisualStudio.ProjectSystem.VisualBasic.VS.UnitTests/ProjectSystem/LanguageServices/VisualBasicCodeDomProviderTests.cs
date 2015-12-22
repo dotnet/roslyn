@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 {
-    [UnitTestTrait]
+    [ProjectSystemTrait]
     public class VisualBasicCodeDomProviderTests
     {
         [Fact]

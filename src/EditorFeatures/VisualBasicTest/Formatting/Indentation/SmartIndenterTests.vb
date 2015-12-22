@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
@@ -34,18 +35,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EmptyFile()
-            AssertSmartIndent(
+        Public Async Function TestEmptyFile() As Task
+            Await AssertSmartIndentAsync(
                 code:="",
                 indentationLine:=0,
                 expectedIndentation:=0)
-        End Sub
+        End Function
 
         <WpfFact(Skip:="674611")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886)>
         <WorkItem(674611)>
-        Public Sub AtBeginningOfSpanInNugget()
+        Public Async Function TestAtBeginningOfSpanInNugget() As Task
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -56,15 +57,15 @@ $$Console.WriteLine()|]|}
 End Module
 </code>.NormalizedValue
 
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886)>
-        Public Sub AtEndOfSpanInNugget()
+        Public Async Function TestAtEndOfSpanInNugget() As Task
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -75,15 +76,15 @@ $$|]|}
 End Module
 </code>.NormalizedValue
 
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886)>
-        Public Sub InsideMiddleOfSpanInNugget()
+        Public Async Function TestInsideMiddleOfSpanInNugget() As Task
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -94,15 +95,15 @@ $$teLine()|]|}
 End Module
 </code>.NormalizedValue
 
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886)>
-        Public Sub AtContinuationAtStartOfNugget()
+        Public Async Function TestAtContinuationAtStartOfNugget() As Task
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -117,15 +118,15 @@ End Module
             ' where we think it _should_ be.  So the position is one indent level past the base
             ' for the nugget (where we think the statement should be), plus one more since it is
             ' a continuation
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886)>
-        Public Sub AtContinuationInsideOfNugget()
+        Public Async Function TestAtContinuationInsideOfNugget() As Task
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -139,267 +140,267 @@ End Module
 
             ' "Console" starts gets indented once from the base indent, and we indent once from it.
             Dim extra = 8
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + extra)
-        End Sub
+        End Function
 
 #Region "Non-line-continued constructs"
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub BadLineNumberLabelInFile()
-            AssertSmartIndent(
+        Public Async Function TestBadLineNumberLabelInFile() As Task
+            Await AssertSmartIndentAsync(
                 code:="10:",
                 indentationLine:=0,
                 expectedIndentation:=0)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ImportStatement()
+        Public Async Function TestImportStatement() As Task
             Dim code = <Code>Import System
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=1,
                 expectedIndentation:=0)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Comments()
+        Public Async Function TestComments() As Task
             Dim code = <Code>        ' comments
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=1,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub XmlComments()
+        Public Async Function TestXmlComments() As Task
             Dim code = <Code>        ''' Xml comments
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=1,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ClassStatement()
+        Public Async Function TestClassStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ClassStatementWithInherits()
+        Public Async Function TestClassStatementWithInherits() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Inherits BC
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndClassStatement()
+        Public Async Function TestEndClassStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Dim i As Integer
     End Class
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ClassStatementWithInheritsImplementsAndStatementSeparators()
+        Public Async Function TestClassStatementWithInheritsImplementsAndStatementSeparators() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Inherits IFoo : Implements Foo
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ClassStatementWithInheritsImplementsAndStatementSeparators2()
+        Public Async Function TestClassStatementWithInheritsImplementsAndStatementSeparators2() As Task
             Dim code = <Code>Namespace NS
     Class CL : Inherits IFoo : Implements Foo
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub InterfaceStatement()
+        Public Async Function TestInterfaceStatement() As Task
             Dim code = <Code>Namespace NS
     Interface IF
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndInterfaceStatement()
+        Public Async Function TestEndInterfaceStatement() As Task
             Dim code = <Code>Namespace NS
     Interface IF
         Sub Foo()
     End Interface
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub InterfaceStatementWithInherits()
+        Public Async Function TestInterfaceStatementWithInherits() As Task
             Dim code = <Code>Namespace NS
     Interface IF
         Inherits IFoo
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub InterfaceStatementWithInheritsOnTheSameLine()
+        Public Async Function TestInterfaceStatementWithInheritsOnTheSameLine() As Task
             Dim code = <Code>Namespace NS
     Interface IF : Inherits IFoo
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EnumStatement()
+        Public Async Function TestEnumStatement() As Task
             Dim code = <Code>Namespace NS
     Enum Foo
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndEnumStatement()
+        Public Async Function TestEndEnumStatement() As Task
             Dim code = <Code>Namespace NS
     Enum Foo
         Member1
     End Enum
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EnumMembers()
+        Public Async Function TestEnumMembers() As Task
             Dim code = <Code>Namespace NS
     Enum Foo
         Member1
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub StructureStatement()
+        Public Async Function TestStructureStatement() As Task
             Dim code = <Code>Namespace NS
     Structure SomeStructure
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndStructureStatement()
+        Public Async Function TestEndStructureStatement() As Task
             Dim code = <Code>Namespace NS
     Structure SomeStructure
         Dim i As Integer
     End Structure
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub NamespaceStatement()
+        Public Async Function TestNamespaceStatement() As Task
             Dim code = <Code>Namespace NS
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=1,
                 expectedIndentation:=4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndNamespaceStatement()
+        Public Async Function TestEndNamespaceStatement() As Task
             Dim code = <Code>Namespace NS
     Class C
         Dim i As Integer
@@ -407,28 +408,28 @@ End Module
 End Namespace
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=0)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ModuleStatement()
+        Public Async Function TestModuleStatement() As Task
             Dim code = <Code>Namespace NS
     Module Module1
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndModuleStatement()
+        Public Async Function TestEndModuleStatement() As Task
             Dim code = <Code>Namespace NS
     Module Module1
         Sub Foo()
@@ -436,29 +437,29 @@ End Namespace
     End Module
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SubStatement()
+        Public Async Function TestSubStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SubStatementWithParametersOnDifferentLines()
+        Public Async Function TestSubStatementWithParametersOnDifferentLines() As Task
             Dim code = <Code>Class C
     Sub Method(ByVal p1 As Boolean,
                ByVal p2 As Boolean,
@@ -467,45 +468,45 @@ End Namespace
     End Sub
 End Class</Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SingleLineIfStatement()
+        Public Async Function TestSingleLineIfStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method
             If True Then Return
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub IfStatement()
+        Public Async Function TestIfStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method
             If True Then
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ElseStatement()
+        Public Async Function TestElseStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method
@@ -514,15 +515,15 @@ End Class</Code>.Value
             Else
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndIfStatement()
+        Public Async Function TestEndIfStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method
@@ -533,45 +534,45 @@ End Class</Code>.Value
             End If
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=8,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub LineContinuedIfStatement()
+        Public Async Function TestLineContinuedIfStatement() As Task
             Dim code = <Code>Class C
     Sub Method()
         If True OrElse
            False Then
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub DoStatement()
+        Public Async Function TestDoStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             Do
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndDoStatement()
+        Public Async Function TestEndDoStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
@@ -580,45 +581,45 @@ End Class</Code>.Value
             Loop
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ForStatement()
+        Public Async Function TestForStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             For a = 1 To 10
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ForEachStatement()
+        Public Async Function TestForEachStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             For Each a In Group
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndForStatement()
+        Public Async Function TestEndForStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
@@ -627,59 +628,59 @@ End Class</Code>.Value
             Next
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub OperatorStatement()
+        Public Async Function TestOperatorStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Public Shared Operator =(ByVal objVehicle1 as Vehicle, ByVal objVehicle2 as Vehicle) As Boolean
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SelectStatement()
+        Public Async Function TestSelectStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             Select A
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SelectCaseStatement()
+        Public Async Function TestSelectCaseStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             Select Case A
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub CaseStatement()
+        Public Async Function TestCaseStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
@@ -687,15 +688,15 @@ End Class</Code>.Value
                 Case 1
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=20)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub CaseStatementWithCode()
+        Public Async Function TestCaseStatementWithCode() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
@@ -704,15 +705,15 @@ End Class</Code>.Value
                     foo()
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=20)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub CaseElseStatement()
+        Public Async Function TestCaseElseStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
@@ -722,15 +723,15 @@ End Class</Code>.Value
                 Case Else
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=7,
                 expectedIndentation:=20)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndSelectStatement()
+        Public Async Function TestEndSelectStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
@@ -740,30 +741,30 @@ End Class</Code>.Value
             End Select
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=7,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SyncLockStatement()
+        Public Async Function TestSyncLockStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             SyncLock New Object()
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndSyncLockStatement()
+        Public Async Function TestEndSyncLockStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
@@ -772,30 +773,30 @@ End Class</Code>.Value
             End SyncLock
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub TryStatement()
+        Public Async Function TestTryStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             Try
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub CatchStatement()
+        Public Async Function TestCatchStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
@@ -803,15 +804,15 @@ End Class</Code>.Value
             Catch ex as Exception
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub FinallyStatement()
+        Public Async Function TestFinallyStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
@@ -820,15 +821,15 @@ End Class</Code>.Value
             Finally
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndTryStatement()
+        Public Async Function TestEndTryStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
@@ -839,45 +840,45 @@ End Class</Code>.Value
             End Try
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=8,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub UsingStatement()
+        Public Async Function TestUsingStatement() As Task
             Dim code = <code>Namespace NS
     Class CL
         Sub Method
             Using resource As new Resource()
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub WhileStatement()
+        Public Async Function TestWhileStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             While True
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndWhileStatement()
+        Public Async Function TestEndWhileStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
@@ -886,31 +887,31 @@ End Class</Code>.Value
             End While
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub WithStatement()
+        Public Async Function TestWithStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             With DataStructure
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub EndWithStatement()
+        Public Async Function TestEndWithStatement() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
@@ -919,72 +920,72 @@ End Class</Code>.Value
             End With
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub PropertyStatementWithParameter()
+        Public Async Function TestPropertyStatementWithParameter() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Property Prop(ByVal index as Integer) As String
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub PropertyStatementWithoutParens()
+        Public Async Function TestPropertyStatementWithoutParens() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Property Prop As String
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub PropertyStatementWithParens()
+        Public Async Function TestPropertyStatementWithParens() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Property Prop() As String
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub PropertyStatementWithGet()
+        Public Async Function TestPropertyStatementWithGet() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Property Prop() As String
             Get
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub PropertyStatementWithSet()
+        Public Async Function TestPropertyStatementWithSet() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Property Prop() As String
@@ -993,149 +994,149 @@ End Class</Code>.Value
             Set
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         <WorkItem(536466)>
-        Public Sub XmlComments2()
+        Public Async Function TestXmlComments2() As Task
             Dim code = <Code>Class C
     '''a
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         <WorkItem(536545)>
-        Public Sub XmlComments3()
+        Public Async Function TestXmlComments3() As Task
             Dim code = <Code>Class C
     Sub Bar()
         If True Then 'c
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
 #End Region
 
 #Region "Lambdas"
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SingleLineFunctionLambda()
+        Public Async Function TestSingleLineFunctionLambda() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             Dim foo = Function(x) 42
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub MultiLineFunctionLambda()
+        Public Async Function TestMultiLineFunctionLambda() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             Dim foo = Function(x)
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=22)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub MultiLineFunctionLambdaWithComment()
+        Public Async Function TestMultiLineFunctionLambdaWithComment() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             Dim foo = Function(x) 'Comment
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=22)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SingleLineSubLambda()
+        Public Async Function TestSingleLineSubLambda() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             Dim foo = Sub(x) Console.WriteLine("Foo")
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SingleLineSubLambda2()
+        Public Async Function TestSingleLineSubLambda2() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             Dim foo = Sub(x) Console.WriteLine("Foo") _
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=26)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub MultiLineSubLambda()
+        Public Async Function TestMultiLineSubLambda() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             Dim foo = Sub(x)
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=22)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub MultiLineSubLambdaWithComment()
+        Public Async Function TestMultiLineSubLambdaWithComment() As Task
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
             Dim foo = Sub(x) 'Comment
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=22)
-        End Sub
+        End Function
 
 #End Region
 
@@ -1143,36 +1144,36 @@ End Class</Code>.Value
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub QueryExpressionOnSingleLineAmbiguous()
+        Public Async Function TestQueryExpressionOnSingleLineAmbiguous() As Task
             Dim code = <Code>Class C
     Sub Method()
         Dim q = From c In B
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub QueryExpressionOnMultipleLinesAmbiguous()
+        Public Async Function TestQueryExpressionOnMultipleLinesAmbiguous() As Task
             Dim code = <Code>Class C
     Sub Method()
         Dim q = From c In B
                 Where c > 10
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub QueryExpressionOnMultipleLinesAmbiguous2()
+        Public Async Function TestQueryExpressionOnMultipleLinesAmbiguous2() As Task
             Dim code = <Code>Class C
     Sub Method()
         Dim q = From c In B
@@ -1180,16 +1181,16 @@ End Class</Code>.Value
                 Select c
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(538933)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub QueryExpressionFollowedByBlankLine()
+        Public Async Function TestQueryExpressionFollowedByBlankLine() As Task
             ' What if user hits ENTER twice after a query expression? Should 'exit' the query.
 
             Dim code = <Code>Class C
@@ -1200,71 +1201,71 @@ End Class</Code>.Value
 
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub QueryExpressionWithNestedQueryExpressionOnNewLine()
+        Public Async Function TestQueryExpressionWithNestedQueryExpressionOnNewLine() As Task
             Dim code = <Code>Class C
     Sub Method()
         Dim q = From c In
                     From c2 in b
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=20)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub QueryExpressionWithNestedQueryExpressionOnSameLine()
+        Public Async Function TestQueryExpressionWithNestedQueryExpressionOnSameLine() As Task
             Dim code = <Code>Class C
     Sub Method()
         Dim q = From c In From c2 in b
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=26)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub QueryExpressionWithNestedQueryExpressionWithMultipleLines()
+        Public Async Function TestQueryExpressionWithNestedQueryExpressionWithMultipleLines() As Task
             Dim code = <Code>Class C
     Sub Method()
         Dim q = From c In From c2 in b
                           Where c2 > 10
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=26)
-        End Sub
+        End Function
 
         <WorkItem(536762)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub BugFix1417_2()
+        Public Async Function TestBugFix1417_2() As Task
             Dim code = <Code>Sub Main()
     Dim foo = From x In y
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=14)
-        End Sub
+        End Function
 
-        Public Sub QueryExpressionExplicitLineContinued()
+        Public Async Function TestQueryExpressionExplicitLineContinued() As Task
             ' This should still follow indent of 'From', as in Dev10
 
             Dim code = <Code>Class C
@@ -1272,74 +1273,74 @@ End Class</Code>.Value
         Dim q = From c In From c2 in b _
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=26)
-        End Sub
+        End Function
 
 #End Region
 
 #Region "Implicit line-continuation"
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ImplicitLineContinuationAfterAttributeInNamespace()
+        Public Async Function TestImplicitLineContinuationAfterAttributeInNamespace() As Task
             Dim code = "Namespace foo" & vbCrLf &
                        "    <SomeAttribute()>" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ImplicitLineContinuationWithMultipleAttributes()
+        Public Async Function TestImplicitLineContinuationWithMultipleAttributes() As Task
             Dim code = "Namespace foo" & vbCrLf &
                        "    <SomeAttribute1()>" & vbCrLf &
                        "    <SomeAttribute2()>" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ImplicitLineContinuationAfterAttributeInClass()
+        Public Async Function TestImplicitLineContinuationAfterAttributeInClass() As Task
             Dim code = "Namespace foo" & vbCrLf &
                        "    Class C" & vbCrLf &
                        "        <SomeAttribute()>" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ImplicitLineContinuationMethodParameters()
+        Public Async Function TestImplicitLineContinuationMethodParameters() As Task
             Dim code = <Code>Class C
     Sub Method(ByVal p1 As Boolean,
 
     End Sub
 End Class</Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ImplicitLineContinuationMethodArguments()
+        Public Async Function TestImplicitLineContinuationMethodArguments() As Task
             Dim code = <Code>Class C
     Sub Method(ByVal p1 As Boolean, ByVal p2 As Boolean)
         Method(1,
@@ -1347,30 +1348,30 @@ End Class</Code>.Value
     End Sub
 End Class</Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=15)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ImplicitLineContinuationExpression()
+        Public Async Function TestImplicitLineContinuationExpression() As Task
             Dim code = <Code>Class C
     Sub Method()
         Dim a = 
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WorkItem(539456)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ImplicitLineContinuationExpression1()
+        Public Async Function TestImplicitLineContinuationExpression1() As Task
             Dim code = <Code>Class C
     Function Foo$(ParamArray arg())
         Dim r$ = "3"
@@ -1380,16 +1381,16 @@ End Class</Code>.Value
     End Function
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WorkItem(540634)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ImplicitLineContinuationExpression2()
+        Public Async Function TestImplicitLineContinuationExpression2() As Task
             Dim code = <Code>Module Program
     Sub Main(args As String())
         If True And
@@ -1399,31 +1400,31 @@ False Then
 End Module
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 #End Region
 
 #Region "Explicit line-continuation"
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ExplicitLineContinuationInExpression()
+        Public Async Function TestExplicitLineContinuationInExpression() As Task
             Dim code = <Code>Class C
     Sub Method()
         Dim q = 1 + _
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub MultipleExplicitLineContinuationsInExpression()
+        Public Async Function TestMultipleExplicitLineContinuationsInExpression() As Task
             Dim code = <Code>Class C
     Sub Method()
         Dim q = 1 + _
@@ -1431,65 +1432,65 @@ End Module
                         3 + _
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=24)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ExplicitLineContinuationInFieldDeclaration()
+        Public Async Function TestExplicitLineContinuationInFieldDeclaration() As Task
             Dim code = <Code>Class C
     Dim q _
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ExplicitLineContinuationAfterAttributeInNamespace()
+        Public Async Function TestExplicitLineContinuationAfterAttributeInNamespace() As Task
             Dim code = "Namespace foo" & vbCrLf &
                        "    <SomeAttribute()> _" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ExplicitLineContinuationWithMultipleAttributes()
+        Public Async Function TestExplicitLineContinuationWithMultipleAttributes() As Task
             Dim code = "Namespace foo" & vbCrLf &
                        "    <SomeAttribute1()> _" & vbCrLf &
                        "    <SomeAttribute2()> _" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub ExplicitLineContinuationAfterAttributeInClass()
+        Public Async Function TestExplicitLineContinuationAfterAttributeInClass() As Task
             Dim code = "Namespace foo" & vbCrLf &
                        "    Class C" & vbCrLf &
                        "        <SomeAttribute()> _" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
 #End Region
 
@@ -1497,22 +1498,22 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub MultipleStatementsWithStatementSeparators()
+        Public Async Function TestMultipleStatementsWithStatementSeparators() As Task
             Dim code = <Code>Namespace Foo
     Class C
         Sub Method()
             Dim r As Integer = 22 : Dim q = 15
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub MultipleStatementsIncludingMultilineLambdaWithStatementSeparators()
+        Public Async Function TestMultipleStatementsIncludingMultilineLambdaWithStatementSeparators() As Task
             Dim code = <Code>Namespace Foo
     Class C
         Sub Method()
@@ -1521,11 +1522,11 @@ End Module
                                             End Sub : Dim t = 42
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
 #End Region
 
@@ -1534,55 +1535,55 @@ End Module
         <WpfFact>
         <WorkItem(538937)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub PreprocessorConstWithoutAssignment()
+        Public Async Function TestPreprocessorConstWithoutAssignment() As Task
             Dim code = <Code>Namespace SomeNamespace
     Class C
         Sub Method()
 #Const foo
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(538937)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub PreprocessorConstWithAssignment()
+        Public Async Function TestPreprocessorConstWithAssignment() As Task
             Dim code = <Code>Namespace SomeNamespace
     Class C
         Sub Method()
 #Const foo = 42
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(538937)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub PreprocessorIf()
+        Public Async Function TestPreprocessorIf() As Task
             Dim code = <Code>Namespace SomeNamespace
     Class C
         Sub Method()
 #If True Then
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(538937)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub PreprocessorElseIf()
+        Public Async Function TestPreprocessorElseIf() As Task
             Dim code = <Code>Namespace SomeNamespace
     Class C
         Sub Method()
@@ -1590,16 +1591,16 @@ End Module
 #ElseIf a = False Then
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(538937)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub PreprocessorElse()
+        Public Async Function TestPreprocessorElse() As Task
             Dim code = <Code>Namespace SomeNamespace
     Class C
         Sub Method()
@@ -1607,16 +1608,16 @@ End Module
 #Else
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(538937)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub PreprocessorEndIf()
+        Public Async Function TestPreprocessorEndIf() As Task
             Dim code = <Code>Namespace SomeNamespace
     Class C
         Sub Method()
@@ -1624,47 +1625,47 @@ End Module
 #End If
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
 #End Region
 
 #Region "XML Literals"
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub XMLLiteralOpenTag()
+        Public Async Function TestXMLLiteralOpenTag() As Task
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=20)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub XMLLiteralNestOpenTag()
+        Public Async Function TestXMLLiteralNestOpenTag() As Task
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
                        "                    <inner>" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=24)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub XMLLiteralCloseTag()
+        Public Async Function TestXMLLiteralCloseTag() As Task
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1672,16 +1673,16 @@ End Module
                        "" & vbCrLf &
                        "    End Sub"
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(538938)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub XMLLiteralCloseTagInXML()
+        Public Async Function TestXMLLiteralCloseTagInXML() As Task
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1689,17 +1690,17 @@ End Module
                        "                    </inner>" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=5,
                 expectedIndentation:=20)
-        End Sub
+        End Function
 
         <WpfFact(Skip:="Bug 816976")>
         <WorkItem(816976)>
         <WorkItem(538938)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub XMLExpressionHole()
+        Public Async Function TestXMLExpressionHole() As Task
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
@@ -1707,103 +1708,103 @@ End Module
                        "" & vbCrLf &
                        "    End Sub"
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=24)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub XMLExpressionHoleWithMultilineLambda()
+        Public Async Function TestXMLExpressionHoleWithMultilineLambda() As Task
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
                        "                    <%= Sub()" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(538938)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub XMLExpressionHoleClosed()
+        Public Async Function TestXMLExpressionHoleClosed() As Task
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
                        "                    <%= 42 %>" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=20)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub XMLExpressionHoleWithXMLInIt()
+        Public Async Function TestXMLExpressionHoleWithXMLInIt() As Task
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
                        "                    <%= <xml2>" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=28)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub XMLLiteralText()
+        Public Async Function TestXMLLiteralText() As Task
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
                        "                    foo" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub XMLIndentOnBlankLine()
+        Public Async Function TestXMLIndentOnBlankLine() As Task
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
                        "" & vbCrLf &
                        "                </xml>"
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=20)
-        End Sub
+        End Function
 
         <WorkItem(816976)>
         <WpfFact(Skip:="Bug 816976")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub XMLIndentOnLineContinuedXMLExpressionHole()
+        Public Async Function TestXMLIndentOnLineContinuedXMLExpressionHole() As Task
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
                        "                    <%= Foo(2 _" & vbCrLf &
                        ""
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=28)
-        End Sub
+        End Function
 #End Region
 
 #Region "Bugs"
@@ -1811,33 +1812,33 @@ End Module
         <WorkItem(538771)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub BugFix4481()
+        Public Async Function TestBugFix4481() As Task
             Dim code = <Code>_
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=1,
                 expectedIndentation:=4)
-        End Sub
+        End Function
 
         <WorkItem(538771)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub BugFix4481_2()
+        Public Async Function TestBugFix4481_2() As Task
             Dim code = <Code>  _
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=1,
                 expectedIndentation:=6)
-        End Sub
+        End Function
 
         <WorkItem(539553)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Bug5559()
+        Public Async Function TestBug5559() As Task
             Dim code = <Code>Public Class Class1
     Property too(ByVal d As Char)
         Get
@@ -1849,16 +1850,16 @@ End Module
     End Property
 End Class</Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=7,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WorkItem(539575)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Bug5586()
+        Public Async Function TestBug5586() As Task
             Dim code = <Code>Module Program
     Sub Main()
         Dim x = &lt;?xml version="1.0"?&gt;
@@ -1866,16 +1867,16 @@ End Class</Code>.Value
     End Sub
 End Module</Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WorkItem(539609)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Bug5629()
+        Public Async Function TestBug5629() As Task
             Dim code = <Code>Module Module1
     Sub Main()
         Dim q = Sub()
@@ -1885,16 +1886,16 @@ End Module</Code>.Value
     End Sub
 End Module</Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=20)
-        End Sub
+        End Function
 
         <WorkItem(539686)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Bug5730()
+        Public Async Function TestBug5730() As Task
             Dim code = <Code>Module Program
     Sub Main(args As String())
         Dim y = New List(Of Integer) From
@@ -1903,16 +1904,16 @@ End Module</Code>.Value
 End Module
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WorkItem(539686)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Bug5730_1()
+        Public Async Function TestBug5730_1() As Task
             Dim code = <Code>Module Program
     Sub Main(args As String())
         Dim query = From
@@ -1920,16 +1921,16 @@ End Module
     End Sub
 End Module</Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=20)
-        End Sub
+        End Function
 
         <WorkItem(539639)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Bug5666()
+        Public Async Function TestBug5666() As Task
             Dim code = <Code>Module Program
     Sub Main(args As String())
         If True Then
@@ -1940,28 +1941,28 @@ End Module</Code>.Value
 End Module
 </Code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WorkItem(539453)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Bug5430_1()
+        Public Async Function TestBug5430_1() As Task
             Dim code = My.Resources.XmlLiterals.IndentationTest2
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=11,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WorkItem(540198)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Bug6374()
+        Public Async Function TestBug6374() As Task
             Dim code = <text>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -1974,16 +1975,16 @@ Module Program
     End Sub
 End Module</text>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=8,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WorkItem(542240)>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub MissingEndStatement()
+        Public Async Function TestMissingEndStatement() As Task
             Dim code = <text>Module Module1
     Sub Main()
         If True Then
@@ -1993,16 +1994,16 @@ End Module</text>.Value
 
 End Module</text>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 #End Region
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SmartIndenterConstructorThrows1()
+        Public Sub TestSmartIndenterConstructorThrows1()
             AssertEx.Throws(Of ArgumentNullException)(
                 Function() New SmartIndent(Nothing),
                 allowDerived:=True)
@@ -2010,22 +2011,22 @@ End Module</text>.Value
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Parameter1()
+        Public Async Function TestParameter1() As Task
             Dim code = <code>Class CL
     Sub Method(Arg1 As Integer,
 Arg2 As Integer)
     End Sub
 End Class</code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Argument()
+        Public Async Function TestArgument() As Task
             Dim code = <code>Class CL
     Sub Method(Arg1 As Integer, Arg2 As Integer)
         Method(1,
@@ -2033,90 +2034,90 @@ End Class</code>.Value
     End Sub
 End Class</code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=15)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Parameter_LineContinuation()
+        Public Async Function TestParameter_LineContinuation() As Task
             Dim code = <code>Class CL
     Sub Method(Arg1 _ 
 As Integer, Arg2 As Integer)
     End Sub
 End Class</code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Parameter_LineContinuation2()
+        Public Async Function TestParameter_LineContinuation2() As Task
             Dim code = <code>Class CL
     Sub Method(Arg1 As _ 
 Integer, Arg2 As Integer)
     End Sub
 End Class</code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Parameter2()
+        Public Async Function TestParameter2() As Task
             Dim code = <code>Class CL
     Sub Method(Arg1 As Integer, Arg2 _
 As Integer)
     End Sub
 End Class</code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=15)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub TypeParameter()
+        Public Async Function TestTypeParameter() As Task
             Dim code = <code>Class CL
     Sub Method(Of 
 T, T2)()
     End Sub
 End Class</code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=19)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub TypeParameter2()
+        Public Async Function TestTypeParameter2() As Task
             Dim code = <code>Class CL
     Sub Method(Of T,
 T2)()
     End Sub
 End Class</code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=19)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub TypeArgument()
+        Public Async Function TestTypeArgument() As Task
             Dim code = <code>Class CL
     Sub Method(Of T, T2)()
         Method(Of
@@ -2124,15 +2125,15 @@ Integer, Integer)()
     End Sub
 End Class</code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub TypeArgument2()
+        Public Async Function TestTypeArgument2() As Task
             Dim code = <code>Class CL
     Sub Method(Of T, T2)()
         Method(Of Integer, 
@@ -2140,15 +2141,15 @@ Integer)()
     End Sub
 End Class</code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Argument_ImplicitLineContinuation()
+        Public Async Function TestArgument_ImplicitLineContinuation() As Task
             Dim code = <code>Class CL
     Sub Method()(i as Integer, i2 as Integer)
         Method(
@@ -2156,15 +2157,15 @@ End Class</code>.Value
     End Sub
 End Class</code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub Argument_ImplicitLineContinuation2()
+        Public Async Function TestArgument_ImplicitLineContinuation2() As Task
             Dim code = <code>Class CL
     Sub Method()(i as Integer, i2 as Integer)
         Method(1,
@@ -2172,15 +2173,15 @@ End Class</code>.Value
     End Sub
 End Class</code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=15)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub StatementAfterLabel()
+        Public Async Function TestStatementAfterLabel() As Task
             Dim code = <code>Module Module1
     Sub Main(args As String())
 x100:
@@ -2189,15 +2190,15 @@ x100:
 End Module
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub AfterStatementInNugget()
+        Public Async Function TestAfterStatementInNugget() As Task
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -2210,14 +2211,14 @@ $$
 End Module
 </code>.Value
 
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub AfterStatementOnFirstLineOfNugget()
+        Public Async Function TestAfterStatementOnFirstLineOfNugget() As Task
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -2239,14 +2240,14 @@ End Module
             ' C# had the desired behavior in Dev12, where VB had the same behavior
             ' as Roslyn has.  The Roslyn formatting engine currently always formats
             ' each statement independently, so let's not change that just for Venus
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub InQueryInNugget()
+        Public Async Function TestInQueryInNugget() As Task
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -2260,14 +2261,14 @@ End Module
 </code>.Value
 
             ' In this case, we don't look at the base indentation at all - we just line up directly with "From"
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=26)
-        End Sub
+        End Function
 
         <WorkItem(574314)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub InQueryOnFirstLineOfNugget()
+        Public Async Function TestInQueryOnFirstLineOfNugget() As Task
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 ExternalSource ("Default.aspx", 3)
@@ -2279,14 +2280,14 @@ $$
 End Module
 </code>.Value
 
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 2 + "Dim query = ".Length)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub InNestedBlockInNugget()
+        Public Async Function TestInNestedBlockInNugget() As Task
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -2299,14 +2300,14 @@ $$
 End Module
 </code>.Value
 
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 8)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub InNestedBlockStartingOnFirstLineOfNugget()
+        Public Async Function TestInNestedBlockStartingOnFirstLineOfNugget() As Task
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -2318,14 +2319,14 @@ End Module
 End Module
 </code>.Value
 
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 8)
-        End Sub
+        End Function
 
         <WpfFact, WorkItem(646663)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub InEmptyNugget()
+        Public Async Function TestInEmptyNugget() As Task
             Dim markup = <code>Module Module1
     Sub Main(args As String())
 #ExternalSource ("Default.aspx", 3)
@@ -2336,14 +2337,14 @@ $$|]|}
 End Module
 </code>.Value
 
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
-        End Sub
+        End Function
 
         <WpfFact, WorkItem(1190278)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub GetNextTokenForFormattingSpanCalculationIncludesZeroWidthToken_VB()
+        Public Async Function GetNextTokenForFormattingSpanCalculationIncludesZeroWidthToken_VB() As Tasks.Task
             Dim markup = <code>Option Strict Off
 Option Explicit On
  
@@ -2449,59 +2450,59 @@ End Class
 End Namespace
 </code>.Value
 
-            AssertSmartIndentIndentationInProjection(
+            Await AssertSmartIndentIndentationInProjectionAsync(
                 markup,
                 expectedIndentation:=15)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub BlockIndentation1()
+        Public Async Function TestBlockIndentation1() As Task
             Dim code = <code>Class C
     Sub Main()
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=2,
                 expectedIndentation:=4,
                 indentStyle:=FormattingOptions.IndentStyle.Block)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub BlockIndentation2()
+        Public Async Function TestBlockIndentation2() As Task
             Dim code = <code>Class C
     Sub Main()
         Dim x = 3
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8,
                 indentStyle:=FormattingOptions.IndentStyle.Block)
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub NoIndentation()
+        Public Async Function TestNoIndentation() As Task
             Dim code = <code>Class C
     Sub Main()
         Dim x = 3
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=Nothing,
                 indentStyle:=FormattingOptions.IndentStyle.None)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(809354)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub CaseStatement1()
+        Public Async Function TestCaseStatement1() As Task
             Dim code = <code>Enum E
     A
     B
@@ -2519,16 +2520,16 @@ Module Module1
 End Module
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=10,
                 expectedIndentation:=17)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(1082028)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub NotLineContinuationIndentation_Empty()
+        Public Async Function TestNotLineContinuationIndentation_Empty() As Task
             Dim code = <code>Module Module1
     Sub Main()
         Dim cust2 = New Customer With {
@@ -2542,16 +2543,16 @@ Public Class Customer
 End Class
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(1082028)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub LineContinuationIndentation()
+        Public Async Function TestLineContinuationIndentation() As Task
             Dim code = <code>Module Module1
     Sub Main()
         Dim cust2 = New Customer With {
@@ -2566,16 +2567,16 @@ Public Class Customer
 End Class
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(1082028)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub NotLineContinuationIndentation_ObjectMember()
+        Public Async Function TestNotLineContinuationIndentation_ObjectMember() As Task
             Dim code = <code>Module Module1
     Sub Main()
         Dim cust2 = New Customer With {
@@ -2590,16 +2591,16 @@ Public Class Customer
 End Class
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(1082028)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub NotLineContinuationIndentation_ObjectCollection()
+        Public Async Function TestNotLineContinuationIndentation_ObjectCollection() As Task
             Dim code = <code>Module Module1
     Sub Main()
         Dim l2 = New List(Of String) From {
@@ -2609,16 +2610,16 @@ End Class
 End Module
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WpfFact>
         <WorkItem(1082028)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub NotLineContinuationIndentation_Collection()
+        Public Async Function TestNotLineContinuationIndentation_Collection() As Task
             Dim code = <code>Module Module1
     Sub Main()
         Dim c2() As Char = {
@@ -2628,15 +2629,15 @@ End Module
 End Module
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=4,
                 expectedIndentation:=8)
-        End Sub
+        End Function
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SmartIndentInsideInterpolatedMultiLineString_0()
+        Public Async Function TestSmartIndentInsideInterpolatedMultiLineString_0() As Task
             Dim code = <code>Module Module1
     Sub Main()
         Dim c2() = $"
@@ -2645,15 +2646,15 @@ End Module
 End Module
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
-        End Sub
+        End Function
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SmartIndentInsideInterpolatedMultiLineString_1()
+        Public Async Function TestSmartIndentInsideInterpolatedMultiLineString_1() As Task
             Dim code = <code>Module Module1
     Sub Main()
         Dim c2() = $"
@@ -2662,15 +2663,15 @@ End Module
 End Module
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
-        End Sub
+        End Function
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SmartIndentInsideInterpolatedMultiLineString_2()
+        Public Async Function TestSmartIndentInsideInterpolatedMultiLineString_2() As Task
             Dim code = <code>Module Module1
     Sub Main()
         Dim c2() = $"what
@@ -2679,15 +2680,15 @@ End Module
 End Module
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
-        End Sub
+        End Function
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SmartIndentInsideInterpolatedMultiLineString_3()
+        Public Async Function TestSmartIndentInsideInterpolatedMultiLineString_3() As Task
             Dim code = <code>Module Module1
     Sub Main()
         Dim c2() = $"what
@@ -2696,15 +2697,15 @@ End Module
 End Module
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
-        End Sub
+        End Function
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SmartIndentInsideInterpolatedMultiLineString_4()
+        Public Async Function TestSmartIndentInsideInterpolatedMultiLineString_4() As Task
             Dim code = <code>Module Module1
     Sub Main()
         Dim c2() = $"what{0}
@@ -2713,15 +2714,15 @@ End Module
 End Module
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
-        End Sub
+        End Function
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SmartIndentInsideMultiLineString()
+        Public Async Function TestSmartIndentInsideMultiLineString() As Task
             Dim code = <code>Module Module1
     Sub Main()
         Dim c2() = $"1
@@ -2730,15 +2731,15 @@ End Module
 End Module
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0)
-        End Sub
+        End Function
 
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SmartIndentAtCaseBlockEnd()
+        Public Async Function TestSmartIndentAtCaseBlockEnd() As Task
             Dim code = <code>Class Program
     Public Sub M()
         Dim s = 1
@@ -2752,15 +2753,15 @@ End Module
 End Class
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=6,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SmartIndentAtCaseBlockEndComment()
+        Public Async Function TestSmartIndentAtCaseBlockEndComment() As Task
             Dim code = <code>Class Program
     Public Sub M()
         Dim s = 1
@@ -2775,15 +2776,15 @@ End Class
 End Class
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=7,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SmartIndentAtCaseBlockInbetweenComments()
+        Public Async Function TestSmartIndentAtCaseBlockInbetweenComments() As Task
             Dim code = <code>Class Program
     Public Sub M()
         Dim s = 1
@@ -2799,15 +2800,15 @@ End Class
 End Class
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=7,
                 expectedIndentation:=16)
-        End Sub
+        End Function
 
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub SmartIndentAtCaseBlockEndUntabbedComment()
+        Public Async Function TestSmartIndentAtCaseBlockEndUntabbedComment() As Task
             Dim code = <code>Class Program
     Public Sub M()
         Dim s = 1
@@ -2822,15 +2823,15 @@ End Class
 End Class
 </code>.Value
 
-            AssertSmartIndent(
+            Await AssertSmartIndentAsync(
                 code,
                 indentationLine:=7,
                 expectedIndentation:=12)
-        End Sub
+        End Function
 
-        Private Shared Sub AssertSmartIndentIndentationInProjection(markup As String,
-                                                                    expectedIndentation As Integer)
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines({markup})
+        Private Shared Async Function AssertSmartIndentIndentationInProjectionAsync(markup As String,
+                                                                    expectedIndentation As Integer) As Tasks.Task
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync({markup})
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents, LanguageNames.CSharp)
 
@@ -2846,7 +2847,7 @@ End Class
 
                 TestIndentation(point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
             End Using
-        End Sub
+        End Function
 
         Friend Shared Sub TestIndentation(point As Integer, expectedIndentation As Integer?, textView As ITextView, subjectDocument As TestHostDocument)
             Dim snapshot = subjectDocument.TextBuffer.CurrentSnapshot
@@ -2878,8 +2879,8 @@ End Class
         End Sub
 
         ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>
-        Private Shared Sub AssertSmartIndent(code As String, indentationLine As Integer, expectedIndentation As Integer?, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines({code})
+        Private Shared Async Function AssertSmartIndentAsync(code As String, indentationLine As Integer, expectedIndentation As Integer?, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart) As Task
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync({code})
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 SetIndentStyle(buffer, indentStyle)
@@ -2903,6 +2904,8 @@ End Class
                             Return p
                         End Function)
 
+                WpfTestCase.RequireWpfFact("Test helper creates mocks of ITextView")
+
                 Dim textView = New Mock(Of ITextView)(MockBehavior.Strict)
                 textView.Setup(Function(x) x.Options).Returns(TestEditorOptions.Instance)
                 textView.Setup(Function(x) x.BufferGraph).Returns(bufferGraph.Object)
@@ -2919,7 +2922,7 @@ End Class
                     End If
                 End Using
             End Using
-        End Sub
+        End Function
 
         Friend Shared Sub SetIndentStyle(buffer As ITextBuffer, indentStyle As FormattingOptions.IndentStyle)
             Dim optionService = buffer.GetWorkspace().Services.GetService(Of IOptionService)()

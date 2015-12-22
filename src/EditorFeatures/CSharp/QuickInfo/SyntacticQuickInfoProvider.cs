@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
                 {
                     nearbyTrivia = trivia;
                 }
-                else if(!trivia.IsKind(SyntaxKind.WhitespaceTrivia) && !trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                else if (!trivia.IsKind(SyntaxKind.WhitespaceTrivia) && !trivia.IsKind(SyntaxKind.EndOfLineTrivia))
                 {
                     break;
                 }

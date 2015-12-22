@@ -16,16 +16,21 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         void UpdateKeepAlive(TimeSpan timeSpan);
 
         /// <summary>
+        /// Called when a connection to the server occurs.
+        /// </summary>
+        void ConnectionReceived();
+
+        /// <summary>
         /// Called when one or more connections have completed processing.  The number of connections
         /// processed is provided in <paramref name="count"/>.
         /// </summary>
-        void ConnectionProcessed(int count);
+        void ConnectionCompleted(int count);
 
         /// <summary>
         /// Called when a bad client connection was detected and the server will be shutting down as a 
         /// result.
         /// </summary>
-        void DetectedBadConnection();
+        void ConnectionRudelyEnded();
 
         /// <summary>
         /// Called when the server is shutting down because the keep alive timeout was reached.
@@ -39,11 +44,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
         }
 
-        public void ConnectionProcessed(int count)
+        public void ConnectionReceived()
         {
         }
 
-        public void DetectedBadConnection()
+        public void ConnectionCompleted(int count)
+        {
+        }
+
+        public void ConnectionRudelyEnded()
         {
         }
 

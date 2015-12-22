@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 Imports Microsoft.CodeAnalysis.Text
@@ -64,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Return ClassificationBuilder.VBXmlEntityReference(value)
         End Function
 
-        Friend MustOverride Function GetClassificationSpans(code As String, textSpan As TextSpan) As IEnumerable(Of ClassifiedSpan)
+        Friend MustOverride Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Task(Of IEnumerable(Of ClassifiedSpan))
 
         Protected Function GetText(tuple As Tuple(Of String, String)) As String
             Return "(" & tuple.Item1 & ", " & tuple.Item2 & ")"
@@ -78,31 +79,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Return "(" & tuple.Item1.ToString() & ", " & tuple.Item2.Classification & ")"
         End Function
 
-        Protected Sub Test(
+        Protected Function TestAsync(
             code As String,
             allCode As String,
-            ParamArray expected As Tuple(Of String, String)())
+            ParamArray expected As Tuple(Of String, String)()) As Task
 
             Dim start = allCode.IndexOf(code, StringComparison.Ordinal)
             Dim length = code.Length
             Dim span = New TextSpan(start, length)
-            Test(code, allCode, span, expected)
-        End Sub
+            Return TestAsync(code, allCode, span, expected)
+        End Function
 
-        Protected Sub Test(
-            code As String,
-            span As TextSpan,
-            ParamArray expected As Tuple(Of String, String)())
-            Test(code, code, span, expected)
-        End Sub
+        Protected Function TestAsync(
+                code As String,
+                span As TextSpan,
+                ParamArray expected As Tuple(Of String, String)()) As Task
+            Return TestAsync(code, code, span, expected)
+        End Function
 
-        Protected Sub Test(
+        Protected Async Function TestAsync(
             code As String,
             allCode As String,
             span As TextSpan,
-            ParamArray expected As Tuple(Of String, String)())
+            ParamArray expected As Tuple(Of String, String)()) As Task
 
-            Dim actual = GetClassificationSpans(allCode, span).ToList()
+            Dim actual = (Await GetClassificationSpansAsync(allCode, span)).ToList()
             actual.Sort(Function(t1, t2) t1.TextSpan.Start - t2.TextSpan.Start)
 
             For i = 0 To Math.Max(expected.Length, actual.Count) - 1
@@ -119,100 +120,99 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Assert.Equal(tuple.Item1, text)
                 Assert.Equal(tuple.Item2, classification.ClassificationType)
             Next
-        End Sub
+        End Function
 
         Protected Function Classifications(ParamArray expected As Tuple(Of String, IClassificationType)()) As Tuple(Of String, IClassificationType)()
             Return expected
         End Function
 
         <DebuggerStepThrough()>
-        Protected Sub Test(
+        Protected Function TestAsync(
             code As String,
-            ParamArray expected As Tuple(Of String, String)())
+            ParamArray expected As Tuple(Of String, String)()) As Task
 
-            Test(code, code, expected)
-        End Sub
+            Return TestAsync(code, code, expected)
+        End Function
 
         <DebuggerStepThrough()>
-        Protected Sub TestInNamespace(
+        Protected Function TestInNamespaceAsync(
             code As String,
-            ParamArray expected As Tuple(Of String, String)())
+            ParamArray expected As Tuple(Of String, String)()) As Task
 
             Dim allCode = "Namespace N" & vbCrLf & code & vbCrLf & "End Namespace"
-            Test(code, allCode, expected)
-        End Sub
+            Return TestAsync(code, allCode, expected)
+        End Function
 
         <DebuggerStepThrough()>
-        Protected Sub TestInClass(
+        Protected Function TestInClassAsync(
             className As String,
             code As String,
-            expected As Tuple(Of String, String)())
+            expected As Tuple(Of String, String)()) As Task
 
             Dim allCode = "Class " & className & vbCrLf & code & vbCrLf & "End Class"
-            Test(code, allCode, expected)
-        End Sub
+            Return TestAsync(code, allCode, expected)
+        End Function
 
         <DebuggerStepThrough()>
-        Protected Sub TestInClass(
+        Protected Function TestInClassAsync(
             code As String,
-            ParamArray expected As Tuple(Of String, String)())
+            ParamArray expected As Tuple(Of String, String)()) As Task
 
-            TestInClass("C", code, expected)
-        End Sub
+            Return TestInClassAsync("C", code, expected)
+        End Function
 
         <DebuggerStepThrough()>
-        Protected Sub TestInMethod(
+        Protected Function TestInMethodAsync(
             className As String,
             methodName As String,
             code As String,
-            expected As Tuple(Of String, String)())
+            expected As Tuple(Of String, String)()) As Task
 
             Dim allCode = "Class " & className & vbCrLf & "    Sub " & methodName & "()" & vbCrLf & "        " &
                 code & vbCrLf & "    End Sub" & vbCrLf & "End Class"
-            Test(code, allCode, expected)
-        End Sub
+            Return TestAsync(code, allCode, expected)
+        End Function
 
         <DebuggerStepThrough()>
-        Protected Sub TestInMethod(
+        Protected Async Function TestInMethodAsync(
             className As String,
             methodName As String,
             code As String,
             codeToClassify As String,
-            ParamArray expected As Tuple(Of String, String)())
+            ParamArray expected As Tuple(Of String, String)()) As Task
 
             Dim allCode = "Class " & className & vbCrLf & "    Sub " & methodName & "()" & vbCrLf & "        " &
                 code & vbCrLf & "    End Sub" & vbCrLf & "End Class"
             Dim start = allCode.IndexOf(codeToClassify)
             Dim length = codeToClassify.Length
-            Test(code, allCode, new TextSpan(start, length), expected)
-        End Sub
+            Await TestAsync(code, allCode, New TextSpan(start, length), expected)
+        End Function
 
         <DebuggerStepThrough()>
-        Protected Sub TestInMethod(
+        Protected Function TestInMethodAsync(
             methodName As String,
             code As String,
-            expected As Tuple(Of String, String)())
+            expected As Tuple(Of String, String)()) As Task
 
-            TestInMethod("C", methodName, code, expected)
-        End Sub
-
-        <DebuggerStepThrough()>
-        Protected Sub TestInMethod(
-            code As String,
-            ParamArray expected As Tuple(Of String, String)())
-
-            TestInMethod("C", "M", code, expected)
-        End Sub
+            Return TestInMethodAsync("C", methodName, code, expected)
+        End Function
 
         <DebuggerStepThrough()>
-        Protected Sub TestInExpression(
+        Protected Function TestInMethodAsync(
             code As String,
-            ParamArray expected As Tuple(Of String, String)())
+            ParamArray expected As Tuple(Of String, String)()) As Task
+
+            Return TestInMethodAsync("C", "M", code, expected)
+        End Function
+
+        <DebuggerStepThrough()>
+        Protected Function TestInExpressionAsync(
+            code As String,
+            ParamArray expected As Tuple(Of String, String)()) As Task
 
             Dim allCode = "Class C" & vbCrLf & "    Sub M()" & vbCrLf & "        dim q = " &
                 code & vbCrLf & "    End Sub" & vbCrLf & "End Class"
-            Test(code, allCode, expected)
-        End Sub
-
+            Return TestAsync(code, allCode, expected)
+        End Function
     End Class
 End Namespace

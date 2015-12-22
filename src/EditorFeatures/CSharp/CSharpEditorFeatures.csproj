@@ -84,6 +84,7 @@
     <Compile Include="BraceMatching\OpenCloseBraceBraceMatcher.cs" />
     <Compile Include="BraceMatching\OpenCloseBracketBraceMatcher.cs" />
     <Compile Include="BraceMatching\OpenCloseParenBraceMatcher.cs" />
+    <Compile Include="BraceMatching\CSharpDirectiveTriviaBraceMatcher.cs" />
     <Compile Include="BraceMatching\StringLiteralBraceMatcher.cs" />
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.cs" />
@@ -152,7 +153,6 @@
     <Compile Include="NavigationBar\CSharpNavigationBarItemService.cs" />
     <Compile Include="Outlining\CSharpOutliningHelpers.cs" />
     <Compile Include="Outlining\CSharpOutliningService.cs" />
-    <Compile Include="Outlining\Outliners\AbstractSyntaxNodeOutliner.cs" />
     <Compile Include="Outlining\Outliners\AccessorDeclarationOutliner.cs" />
     <Compile Include="Outlining\Outliners\AnonymousMethodExpressionOutliner.cs" />
     <Compile Include="Outlining\Outliners\CompilationUnitOutliner.cs" />

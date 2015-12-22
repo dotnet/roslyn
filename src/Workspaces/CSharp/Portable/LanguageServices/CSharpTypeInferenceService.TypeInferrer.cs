@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CancellationToken cancellationToken) : base(semanticModel, cancellationToken)
             {
             }
-            
+
             protected override bool IsUnusableType(ITypeSymbol otherSideType)
             {
                 return otherSideType.IsErrorType() &&
@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (CatchFilterClauseSyntax catchFilterClause) => InferTypeInCatchFilterClause(catchFilterClause, token),
                     (CheckedExpressionSyntax checkedExpression) => InferTypes(checkedExpression),
                     (ConditionalExpressionSyntax conditionalExpression) => InferTypeInConditionalExpression(conditionalExpression, previousToken: token),
+                    (DefaultExpressionSyntax defaultExpression) => InferTypeInDefaultExpression(defaultExpression),
                     (DoStatementSyntax doStatement) => InferTypeInDoStatement(doStatement, token),
                     (EqualsValueClauseSyntax equalsValue) => InferTypeInEqualsValueClause(equalsValue, token),
                     (ExpressionStatementSyntax expressionStatement) => InferTypeInExpressionStatement(expressionStatement, token),
@@ -628,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return;
                 }
-        }
+            }
 
             private IEnumerable<ITypeSymbol> InferTypeInAttributeArgument(
                 int index,
@@ -1033,6 +1034,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return otherTypes.IsEmpty()
                            ? InferTypes(conditional)
                            : otherTypes;
+            }
+
+            private IEnumerable<ITypeSymbol> InferTypeInDefaultExpression(DefaultExpressionSyntax defaultExpression)
+            {
+                return InferTypes(defaultExpression);
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInDoStatement(DoStatementSyntax doStatement, SyntaxToken? previousToken = null)
@@ -1565,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lambda = ancestorExpressions.FirstOrDefault(e => e.IsKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression));
                 if (lambda != null)
                 {
-                    types= InferTypeInLambdaExpression(lambda);
+                    types = InferTypeInLambdaExpression(lambda);
                     isAsync = lambda is ParenthesizedLambdaExpressionSyntax && ((ParenthesizedLambdaExpressionSyntax)lambda).AsyncKeyword.Kind() != SyntaxKind.None;
                     return;
                 }

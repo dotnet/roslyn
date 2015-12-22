@@ -5,6 +5,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Text
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -20,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public Class OrganizeTypeDeclarationTests
         Inherits AbstractOrganizerTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestFieldsWithoutInitializers1()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestFieldsWithoutInitializers1() As Task
             Dim initial =
     <element>class C 
     dim A as Integer
@@ -35,11 +36,11 @@ end class</element>
     dim B as Integer
     dim C as Integer
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestFieldsWithoutInitializers2()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestFieldsWithoutInitializers2() As Task
 
             Dim initial =
     <element>class C 
@@ -54,49 +55,49 @@ end class</element>
     dim B as Integer
     dim C as Integer
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestFieldsWithInitializers1()
-
-            Dim initial =
-    <element>class C 
-    dim C as Integer = 0
-    dim B as Integer
-    dim A as Integer
-end class</element>
-
-            Dim final =
-    <element>class C 
-    dim A as Integer
-    dim B as Integer
-    dim C as Integer = 0
-end class</element>
-            Check(initial, final)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestFieldsWithInitializers2()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestFieldsWithInitializers1() As Task
 
             Dim initial =
     <element>class C 
     dim C as Integer = 0
-    dim B as Integer = 0
+    dim B as Integer
     dim A as Integer
 end class</element>
 
             Dim final =
     <element>class C 
     dim A as Integer
+    dim B as Integer
+    dim C as Integer = 0
+end class</element>
+            Await CheckAsync(initial, final)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestFieldsWithInitializers2() As Task
+
+            Dim initial =
+    <element>class C 
     dim C as Integer = 0
     dim B as Integer = 0
+    dim A as Integer
 end class</element>
-            Check(initial, final)
-        End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestEnumStatement()
+            Dim final =
+    <element>class C 
+    dim A as Integer
+    dim C as Integer = 0
+    dim B as Integer = 0
+end class</element>
+            Await CheckAsync(initial, final)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestEnumStatement() As Task
 
             Dim initial =
     <element>class C 
@@ -115,11 +116,11 @@ end class</element>
            create = 1
      End Enum
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestSharedInstance()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestSharedInstance() As Task
 
             Dim initial =
     <element>class C 
@@ -136,11 +137,11 @@ end class</element>
     dim A as Integer
     dim C as Integer
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestAccessibility()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestAccessibility() As Task
 
             Dim initial =
     <element>class C 
@@ -159,11 +160,11 @@ end class</element>
     dim A as Integer
     private B as Integer
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestSharedAccessibility()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestSharedAccessibility() As Task
 
             Dim initial =
     <element>class C 
@@ -192,11 +193,11 @@ end class</element>
     dim A1 as Integer
     private B1 as Integer
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestMethodsAccessModifiers()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestMethodsAccessModifiers() As Task
 
             Dim initial =
     <element>class C 
@@ -225,11 +226,11 @@ End class</element>
         Function Goo() As Integer
         End Function  
 End class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestGenerics()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestGenerics() As Task
 
             Dim initial =
 <element>class C 
@@ -262,11 +263,11 @@ end class</element>
     sub B(of X,Y)()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestInsidePPRegion()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestInsidePPRegion() As Task
 
             Dim initial =
 <element>class C 
@@ -285,11 +286,11 @@ end class</element>
     dim c as Integer
 #End If
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestInsidePPRegion2()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestInsidePPRegion2() As Task
 
             Dim initial =
     <element>class C 
@@ -318,11 +319,11 @@ end class</element>
     dim c as Integer
 #End If
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestInsidePPRegion3()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestInsidePPRegion3() As Task
 
             Dim initial =
     <element>class C 
@@ -347,11 +348,11 @@ end class</element>
     dim a as Integer
     dim b as Integer
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestInsidePPRegion4()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestInsidePPRegion4() As Task
 
             Dim initial =
     <element>class C 
@@ -376,11 +377,11 @@ end class</element>
     sub c()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestInsidePPRegion5()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestInsidePPRegion5() As Task
 
             Dim initial =
     <element>class C 
@@ -407,11 +408,11 @@ end class</element>
     sub c()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestInsidePPRegion6()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestInsidePPRegion6() As Task
 
             Dim initial =
     <element>class C 
@@ -448,11 +449,11 @@ end class</element>
     end sub
 #end region
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestPinned()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestPinned() As Task
 
             Dim initial =
     <element>class C 
@@ -493,11 +494,11 @@ end class</element>
     sub b()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestSensitivity()
+        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        Public Async Function TestSensitivity() As Task
             Dim initial =
 <element>class 
     dim Bb as Integer
@@ -584,14 +585,14 @@ end class</element>
     dim ああ as Integer
 end class</element>
 
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
 
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub TestWhitespaceBetweenMethods1()
+        <Fact>
+        Public Async Function TestWhitespaceBetweenMethods1() As Task
             Dim initial =
 <element>class Program
     sub B()
@@ -609,12 +610,12 @@ end class</element>
     sub B()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub TestWhitespaceBetweenMethods2()
+        <Fact>
+        Public Async Function TestWhitespaceBetweenMethods2() As Task
             Dim initial =
 <element>class Program
     sub B()
@@ -634,12 +635,12 @@ end class</element>
     sub B()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub TestWhitespaceBetweenMethods3()
+        <Fact>
+        Public Async Function TestWhitespaceBetweenMethods3() As Task
             Dim initial =
 <element>class Program
 
@@ -659,12 +660,12 @@ end class</element>
     sub B()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub TestWhitespaceBetweenMethods4()
+        <Fact>
+        Public Async Function TestWhitespaceBetweenMethods4() As Task
             Dim initial =
 <element>class Program
 
@@ -686,12 +687,12 @@ end class</element>
     sub B()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub TestWhitespaceBetweenMethods5()
+        <Fact>
+        Public Async Function TestWhitespaceBetweenMethods5() As Task
             Dim initial =
 <element>class Program
 
@@ -715,12 +716,12 @@ end class</element>
     sub B()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub TestWhitespaceBetweenMethods6()
+        <Fact>
+        Public Async Function TestWhitespaceBetweenMethods6() As Task
             Dim initial =
 <element>class Program
 
@@ -746,12 +747,12 @@ end class</element>
     sub B()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub TestMoveComments1()
+        <Fact>
+        Public Async Function TestMoveComments1() As Task
             Dim initial =
 <element>class Program
     ' B
@@ -771,12 +772,12 @@ end class</element>
     sub B()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub TestMoveComments2()
+        <Fact>
+        Public Async Function TestMoveComments2() As Task
             Dim initial =
 <element>class Program
     ' B
@@ -798,12 +799,12 @@ end class</element>
     sub B()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub TestMoveDocComments1()
+        <Fact>
+        Public Async Function TestMoveDocComments1() As Task
             Dim initial =
 <element>class Program
     ''' B
@@ -823,12 +824,12 @@ end class</element>
     sub B()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub TestMoveDocComments2()
+        <Fact>
+        Public Async Function TestMoveDocComments2() As Task
             Dim initial =
 <element>class Program
     ''' B
@@ -850,12 +851,12 @@ end class</element>
     sub B()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub TestDontMoveBanner()
+        <Fact>
+        Public Async Function TestDontMoveBanner() As Task
             Dim initial =
 <element>class Program
     ' Banner
@@ -877,12 +878,12 @@ end class</element>
     sub B()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub TestDontMoveBanner2()
+        <Fact>
+        Public Async Function TestDontMoveBanner2() As Task
             Dim initial =
 <element>class Program
     ' Banner
@@ -910,12 +911,12 @@ end class</element>
     sub B()
     end sub
 end class</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WorkItem(537614)>
-        <WpfFact>
-        Public Sub Bug2592()
+        <Fact>
+        Public Async Function TestBug2592() As Task
             Dim initial =
 <element>Namespace Acme
     Public Class Foo
@@ -941,17 +942,17 @@ End Namespace</element>
         End Sub
     End Class
 End Namespace</element>
-            Check(initial, final)
-        End Sub
+            Await CheckAsync(initial, final)
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Organizing)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Sub OrganizingCommandsDisabledInSubmission()
+        Public Async Function TestOrganizingCommandsDisabledInSubmission() As Task
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C
@@ -994,6 +995,6 @@ End Namespace</element>
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

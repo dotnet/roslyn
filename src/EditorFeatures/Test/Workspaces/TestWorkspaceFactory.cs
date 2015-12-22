@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
@@ -55,21 +57,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// Creates a single buffer in a workspace.
         /// </summary>
         /// <param name="content">Lines of text, the buffer contents</param>
-        internal static TestWorkspace CreateWorkspaceFromLines(
+        internal static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             params string[] content)
         {
             var total = content.Join(Environment.NewLine);
-            return CreateWorkspaceFromFiles(language, compilationOptions, parseOptions, total);
+            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, total);
         }
 
         /// <summary>
         /// Creates a single buffer in a workspace.
         /// </summary>
         /// <param name="content">Lines of text, the buffer contents</param>
-        internal static TestWorkspace CreateWorkspaceFromLines(
+        internal static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(
             string workspaceKind,
             string language,
             CompilationOptions compilationOptions,
@@ -77,31 +79,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             params string[] content)
         {
             var total = content.Join(Environment.NewLine);
-            return CreateWorkspaceFromFiles(workspaceKind, language, compilationOptions, parseOptions, total);
+            return CreateWorkspaceFromFilesAsync(workspaceKind, language, compilationOptions, parseOptions, total);
         }
 
         /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
-        internal static TestWorkspace CreateWorkspaceFromFiles(
+        internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             params string[] files)
         {
-            return CreateWorkspaceFromFiles(language, compilationOptions, parseOptions, files, exportProvider: null);
+            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, files, exportProvider: null);
         }
 
         /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
-        internal static TestWorkspace CreateWorkspaceFromFiles(
+        internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string workspaceKind,
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             params string[] files)
         {
-            return CreateWorkspaceFromFiles(language, compilationOptions, parseOptions, files, exportProvider: null, workspaceKind: workspaceKind);
+            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, files, exportProvider: null, workspaceKind: workspaceKind);
         }
 
-        internal static TestWorkspace CreateWorkspaceFromFiles(
+        internal static async Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
@@ -136,10 +138,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var workspaceElement = CreateWorkspaceElement(
                 CreateProjectElement(compilationOptions?.ModuleName ?? "Test", language, commonReferences, parseOptions, compilationOptions, documentElements));
 
-            return CreateWorkspace(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
+            return await CreateWorkspaceAsync(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
         }
 
-        internal static TestWorkspace CreateWorkspaceFromFiles(
+        internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions[] parseOptions,
@@ -177,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var workspaceElement = CreateWorkspaceElement(
                 CreateProjectElement("Test", language, true, parseOptions.FirstOrDefault(), compilationOptions, documentElements));
 
-            return CreateWorkspace(workspaceElement, exportProvider: exportProvider);
+            return CreateWorkspaceAsync(workspaceElement, exportProvider: exportProvider);
         }
     }
 }

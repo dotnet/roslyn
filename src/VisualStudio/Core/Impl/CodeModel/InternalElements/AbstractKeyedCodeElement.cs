@@ -95,6 +95,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             });
         }
 
+        protected override Document DeleteCore(Document document)
+        {
+            var result = base.DeleteCore(document);
+
+            FileCodeModel.OnCodeElementDeleted(_nodeKey);
+
+            return result;
+        }
+
         protected override string GetName()
         {
             if (IsUnknown)

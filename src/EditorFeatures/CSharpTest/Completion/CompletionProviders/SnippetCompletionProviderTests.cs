@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
@@ -22,84 +23,84 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new SnippetCompletionProvider(new MockSnippetInfoService());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SnippetsInEmptyFile()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SnippetsInEmptyFile()
         {
-            VerifyItemExists(@"$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(@"$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        public void SnippetDescriptions()
+        public async Task SnippetDescriptions()
         {
-            VerifyItemExists(@"$$", MockSnippetInfoService.SnippetShortcut, MockSnippetInfoService.SnippetTitle + Environment.NewLine + MockSnippetInfoService.SnippetDescription, SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(@"$$", MockSnippetInfoService.SnippetShortcut, MockSnippetInfoService.SnippetTitle + Environment.NewLine + MockSnippetInfoService.SnippetDescription, SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SnippetsInNamespace()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SnippetsInNamespace()
         {
-            VerifyItemExists(@"namespace NS { $$ }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(@"namespace NS { $$ }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SnippetsInClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SnippetsInClass()
         {
-            VerifyItemExists(@"namespace NS { class C { $$ } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(@"namespace NS { class C { $$ } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SnippetsInMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SnippetsInMethod()
         {
-            VerifyItemExists(@"namespace NS { class C { void M() { $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(@"namespace NS { class C { void M() { $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SnippetsNotInLocalDeclarationIdentifier()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SnippetsNotInLocalDeclarationIdentifier()
         {
-            VerifyItemIsAbsent(@"namespace NS { class C { void M() { int $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(@"namespace NS { class C { void M() { int $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SnippetsNotInEnum()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SnippetsNotInEnum()
         {
-            VerifyItemIsAbsent(@"namespace NS { enum E { $$ } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(@"namespace NS { enum E { $$ } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SnippetsInExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SnippetsInExpression()
         {
-            VerifyItemExists(@"namespace NS { class C { void M() { bool b = true && $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(@"namespace NS { class C { void M() { bool b = true && $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(608860)]
-        public void SnippetsInPreProcessorContextWhenShortcutBeginsWithHash()
+        public async Task SnippetsInPreProcessorContextWhenShortcutBeginsWithHash()
         {
-            VerifyItemExists(@"#$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(@"#$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(608860)]
-        public void SnippetsNotInPreProcessorContextWhenShortcutDoesNotBeginWithHash()
+        public async Task SnippetsNotInPreProcessorContextWhenShortcutDoesNotBeginWithHash()
         {
-            VerifyItemIsAbsent(@"#$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(@"#$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(770156)]
-        public void SnippetsNotInPreProcessorContextDirectiveNameAlreadyTyped()
+        public async Task SnippetsNotInPreProcessorContextDirectiveNameAlreadyTyped()
         {
-            VerifyItemIsAbsent(@"#region $$", MockSnippetInfoService.PreProcessorSnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(@"#region $$", MockSnippetInfoService.PreProcessorSnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(839555)]
-        public void ShowRegionSnippetWithHashRTyped()
+        public async Task ShowRegionSnippetWithHashRTyped()
         {
-            VerifyItemExists(@"#r$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(@"#r$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(968256)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void ShowSnippetsFromOtherContext()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ShowSnippetsFromOtherContext()
         {
             var markup = @"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
@@ -117,27 +118,27 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            VerifyItemInLinkedFiles(markup, MockSnippetInfoService.SnippetShortcut, null);
+            await VerifyItemInLinkedFilesAsync(markup, MockSnippetInfoService.SnippetShortcut, null);
         }
 
         [WorkItem(1140893)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitWithEnterObeysOption()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitWithEnterObeysOption()
         {
-            VerifySendEnterThroughToEnter("$$", "SnippetShortcu", sendThroughEnterEnabled: true, expected: false);
-            VerifySendEnterThroughToEnter("$$", "SnippetShortcut", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcu", sendThroughEnterEnabled: true, expected: false);
+            await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcut", sendThroughEnterEnabled: true, expected: true);
 
-            VerifySendEnterThroughToEnter("$$", "SnippetShortcu", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("$$", "SnippetShortcut", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcu", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcut", sendThroughEnterEnabled: false, expected: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(6405, "https://github.com/dotnet/roslyn/issues/6405")]
-        public void SnippetsNotInPreProcessorContextForScriptDirectives()
+        public async Task SnippetsNotInPreProcessorContextForScriptDirectives()
         {
-            VerifyItemIsAbsent(@"#r f$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Script);
-            VerifyItemIsAbsent(@"#load f$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Script);
-            VerifyItemIsAbsent(@"#!$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Script);
+            await VerifyItemIsAbsentAsync(@"#r f$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Script);
+            await VerifyItemIsAbsentAsync(@"#load f$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Script);
+            await VerifyItemIsAbsentAsync(@"#!$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Script);
         }
 
         private class MockSnippetInfoService : ISnippetInfoService

@@ -661,7 +661,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return ImmutableArray<ObjectListItem>.Empty;
             }
 
-            var builder = ImmutableArray.CreateBuilder<ObjectListItem>();
+            var builder = ArrayBuilder<ObjectListItem>.GetInstance();
 
             foreach (var reference in compilation.References)
             {
@@ -673,7 +673,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         private ImmutableArray<INamedTypeSymbol> GetAccessibleTypes(INamespaceSymbol namespaceSymbol, Compilation compilation)

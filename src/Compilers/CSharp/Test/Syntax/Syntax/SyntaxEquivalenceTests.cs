@@ -437,5 +437,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyEquivalent(tree1, tree2, topLevel: true);
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
         }
+
+        [Fact(DisplayName = "https://github.com/dotnet/roslyn/issues/7380")]
+        public void TestExpressionBodiedMethod()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void M() => 1; }");
+            var tree2 = SyntaxFactory.ParseSyntaxTree("class C { void M() => 2; }");
+
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
     }
 }

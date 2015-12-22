@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             var pipeName = args[0].Substring(pipeArgPrefix.Length);
-            var serverMutexName = $"{pipeName}.server";
+            var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
 
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
             // location of the response files.
@@ -80,7 +80,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        internal static int Run(string mutexName, IClientConnectionHost connectionHost, TimeSpan? keepAlive)
+        internal static int Run(string mutexName, IClientConnectionHost connectionHost, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return Run(mutexName, connectionHost, new EmptyDiagnosticListener(), keepAlive, cancellationToken);
+        }
+
+        internal static int Run(string mutexName, IClientConnectionHost connectionHost, IDiagnosticListener listener, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Grab the server mutex to prevent multiple servers from starting with the same
             // pipename and consuming excess resources. If someone else holds the mutex
@@ -97,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 try
                 {
-                    return RunCore(connectionHost, keepAlive);
+                    return RunCore(connectionHost, listener, keepAlive, cancellationToken);
                 }
                 finally
                 {
@@ -106,13 +111,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private static int RunCore(IClientConnectionHost connectionHost, TimeSpan? keepAliveTimeout)
+        private static int RunCore(
+            IClientConnectionHost connectionHost, 
+            IDiagnosticListener listener,
+            TimeSpan? keepAliveTimeout, 
+            CancellationToken cancellationToken)
         {
             CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAliveTimeout?.TotalMilliseconds ?? 0);
             FatalError.Handler = FailFast.OnFatalException;
 
-            var dispatcher = new ServerDispatcher(connectionHost, new EmptyDiagnosticListener());
-            dispatcher.ListenAndDispatchConnections(keepAliveTimeout);
+            var dispatcher = new ServerDispatcher(connectionHost, listener);
+            dispatcher.ListenAndDispatchConnections(keepAliveTimeout, cancellationToken);
             return CommonCompiler.Succeeded;
         }
     }

@@ -1933,6 +1933,51 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[null, ""A""]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
+        [Fact]
+        public void OverloadResolutionWithUseSiteErrors_WithParamsArguments_ReturnsUseSiteErrors()
+        {
+            var missingSource = @"
+public class Missing { }
+";
+
+            var libSource = @"
+public class C
+{
+    public static Missing GetMissing(params int[] args) { return null; }
+    public static void SetMissing(params Missing[] args) { }
+    public static Missing GetMissing(string firstArgument, params int[] args) { return null; }
+    public static void SetMissing(string firstArgument, params Missing[] args) { }
+}
+";
+
+            var testSource = @"
+class Test
+{
+    static void Main()
+    {
+        C.GetMissing();
+        C.GetMissing(1, 1);
+        C.SetMissing();
+        C.GetMissing(string.Empty);
+        C.GetMissing(string.Empty, 1, 1);
+        C.SetMissing(string.Empty);
+    }
+}
+";
+            var missingRef = CreateCompilationWithMscorlib(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateCompilationWithMscorlib(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateCompilationWithMscorlib(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var getMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.GetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+            var setMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.SetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+            CreateCompilationWithMscorlib(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+                getMissingDiagnostic,
+                getMissingDiagnostic,
+                setMissingDiagnostic,
+                getMissingDiagnostic,
+                getMissingDiagnostic,
+                setMissingDiagnostic);
+        }
+
         [WorkItem(708169, "DevDiv")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedExists()

@@ -1,12 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBStatements_AddHandler1()
+        Public Async Function TestVBStatements_AddHandler1() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -57,11 +58,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBStatements_AddHandler2()
+        Public Async Function TestVBStatements_AddHandler2() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -120,11 +121,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBStatements_AddHandler3()
+        Public Async Function TestVBStatements_AddHandler3() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -187,11 +188,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBStatements_AddHandler4()
+        Public Async Function TestVBStatements_AddHandler4() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -262,11 +263,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBStatements_AddHandler5()
+        Public Async Function TestVBStatements_AddHandler5() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -337,11 +338,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBStatements_RemoveHandler1()
+        Public Async Function TestVBStatements_RemoveHandler1() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -392,11 +393,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBStatements_RemoveHandler2()
+        Public Async Function TestVBStatements_RemoveHandler2() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -455,11 +456,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBStatements_RemoveHandler3()
+        Public Async Function TestVBStatements_RemoveHandler3() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -522,11 +523,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBStatements_RemoveHandler4()
+        Public Async Function TestVBStatements_RemoveHandler4() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -597,11 +598,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBStatements_RemoveHandler5()
+        Public Async Function TestVBStatements_RemoveHandler5() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Test">
@@ -672,8 +673,8 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
     End Class
 End Namespace

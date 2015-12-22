@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryCast;
@@ -14,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
     {
         #region "Fix all occurrences tests"
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInDocument()
+        public async Task TestFixAllInDocument()
         {
             var input = @"
 <Workspace>
@@ -179,13 +180,13 @@ class Program3
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInProject()
+        public async Task TestFixAllInProject()
         {
             var input = @"
 <Workspace>
@@ -323,13 +324,13 @@ class Program3
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInSolution()
+        public async Task TestFixAllInSolution()
         {
             var input = @"
 <Workspace>
@@ -467,7 +468,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
         }
         #endregion
     }

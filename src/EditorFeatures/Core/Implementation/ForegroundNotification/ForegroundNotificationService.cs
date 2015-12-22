@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue = new PriorityQueue();
             _lastProcessedTimeInMS = Environment.TickCount;
 
-            Debug.Assert(IsValid());
+            Contract.ThrowIfFalse(IsValid());
             Debug.Assert(IsForeground());
             Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken.None, TaskScheduler.Default);
         }

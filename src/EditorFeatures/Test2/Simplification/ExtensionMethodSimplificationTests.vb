@@ -1,12 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class ExtensionMethodSimplificationTests
         Inherits AbstractSimplificationTests
 
 #Region "Visual Basic tests"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyExtensionMethodOnce()
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestVisualBasic_SimplifyExtensionMethodOnce() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -49,12 +51,11 @@ Module ProgramExtensions
 End Module
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
+        End Function
 
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyExtensionMethodChained()
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestVisualBasic_SimplifyExtensionMethodChained() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -97,16 +98,16 @@ Module ProgramExtensions
 End Module
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
 #End Region
 
 
 #Region "CSharp tests"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyExtensionMethodOnce()
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_SimplifyExtensionMethodOnce() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -151,12 +152,12 @@ public static class ProgramExtensions
 }
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyExtensionMethodChained()
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_SimplifyExtensionMethodChained() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -201,9 +202,9 @@ public static class ProgramExtensions
 }
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 #End Region
 
     End Class

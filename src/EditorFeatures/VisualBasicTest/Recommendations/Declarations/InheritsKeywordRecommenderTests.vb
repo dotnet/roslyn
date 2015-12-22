@@ -9,21 +9,21 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class InheritsKeywordRecommenderTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InheritsAfterClassDeclaration()
             VerifyRecommendationsContain(<File>
 Class Foo
 |</File>, "Inherits")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InheritsAfterInterfaceDeclaration()
             VerifyRecommendationsContain(<File>
 Interface Foo
 |</File>, "Inherits")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InheritsAfterClassDeclarationAndBlankLine()
             VerifyRecommendationsContain(<File>
 Class Foo
@@ -31,7 +31,7 @@ Class Foo
 |</File>, "Inherits")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InheritsAfterInterfaceDeclarationAndBlankLine()
             VerifyRecommendationsContain(<File>
 Interface Foo
@@ -39,7 +39,7 @@ Interface Foo
 |</File>, "Inherits")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InheritsNotAfterImplements()
             VerifyRecommendationsMissing(<File>
 Class Foo
@@ -47,7 +47,7 @@ Implements IFooable
 |</File>, "Inherits")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InheritsNotInStructure()
             VerifyRecommendationsMissing(<File>
 Structure Foo
@@ -55,7 +55,7 @@ Structure Foo
         End Sub
 
         <WorkItem(531257)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InheritsAfterInheritsInInterface()
             VerifyRecommendationsContain(<File>
 Public Interface ITest1
@@ -67,7 +67,7 @@ Public Interface ITest2
         End Sub
 
         <WorkItem(531257)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InheritsNotAfterInheritsInClass()
             VerifyRecommendationsMissing(<File>
 Public Class Foo
@@ -77,7 +77,7 @@ Public Class Foo
         End Sub
 
         <WorkItem(674791)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterHash()
             VerifyRecommendationsMissing(<File>
 Imports System
