@@ -371,7 +371,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         for (int i = node.RankSpecifiers.Count - 1; i >= 0; i--)
                         {
                             var a = node.RankSpecifiers[i];
-                            type = TypeSymbolWithAnnotations.Create(ArrayTypeSymbol.CreateCSharpArray(this.Compilation.Assembly, type, a.Rank));
+                            var array = ArrayTypeSymbol.CreateCSharpArray(this.Compilation.Assembly, type, a.Rank);
+
+                            if (a.QuestionToken.IsKind(SyntaxKind.QuestionToken))
+                            {
+                                type = TypeSymbolWithAnnotations.CreateNullableReferenceType(array);
+                            }
+                            else
+                            {
+                                type = TypeSymbolWithAnnotations.Create(array);
+                            }
                         }
 
                         return type;

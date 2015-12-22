@@ -3722,6 +3722,292 @@ class C
         }
 
         [Fact]
+        public void Array_06()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    object Test1()
+    {
+        object []? u1 = null;
+        return u1;
+    }
+    object Test2()
+    {
+        object [][]? u2 = null;
+        return u2;
+    }
+    object Test3()
+    {
+        object []?[]? u3 = null;
+        return u3;
+    }
+}
+");
+
+            c.VerifyDiagnostics(
+    // (10,18): error CS8058: Feature 'static null checking' is only available in 'experimental' language version.
+    //         object []? u1 = null;
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "?").WithArguments("static null checking").WithLocation(10, 18),
+    // (15,20): error CS8058: Feature 'static null checking' is only available in 'experimental' language version.
+    //         object [][]? u2 = null;
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "?").WithArguments("static null checking").WithLocation(15, 20),
+    // (20,18): error CS8058: Feature 'static null checking' is only available in 'experimental' language version.
+    //         object []?[]? u3 = null;
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "?").WithArguments("static null checking").WithLocation(20, 18),
+    // (20,21): error CS8058: Feature 'static null checking' is only available in 'experimental' language version.
+    //         object []?[]? u3 = null;
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "?").WithArguments("static null checking").WithLocation(20, 21)
+                );
+        }
+
+        [Fact]
+        public void Array_07()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1()
+    {
+        object? [] u1 = new [] { null, new object() };
+        u1 = null;
+    }
+
+    void Test2()
+    {
+        object [] u2 = new [] { null, new object() };
+    }
+
+    void Test3()
+    {
+        var u3 = new object [] { null, new object() };
+    }
+
+    object? Test4()
+    {
+        object []? u4 = null;
+        return u4;
+    }
+
+    object Test5()
+    {
+        object? [] u5 = null;
+        return u5;
+    }
+
+    void Test6()
+    {
+        object [][,]? u6 = null;
+        u6[0] = null;
+        u6[0][0,0] = null;
+        u6[0][0,0].ToString();
+    }
+
+    void Test7()
+    {
+        object [][,] u7 = null;
+        u7[0] = null;
+        u7[0][0,0] = null;
+    }
+
+    void Test8()
+    {
+        object []?[,] u8 = null;
+        u8[0] = null;
+        u8[0][0,0] = null;
+        u8[0][0,0].ToString();
+    }
+
+    void Test9()
+    {
+        object []?[,]? u9 = null;
+        u9[0] = null;
+        u9[0][0,0] = null;
+        u9[0][0,0].ToString();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (11,14): warning CS8201: Possible null reference assignment.
+    //         u1 = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(11, 14),
+    // (21,34): warning CS8201: Possible null reference assignment.
+    //         var u3 = new object [] { null, new object() };
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(21, 34),
+    // (32,25): warning CS8201: Possible null reference assignment.
+    //         object? [] u5 = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(32, 25),
+    // (38,28): warning CS8201: Possible null reference assignment.
+    //         object [][,]? u6 = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(38, 28),
+    // (40,9): warning CS8202: Possible dereference of a null reference.
+    //         u6[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6[0]").WithLocation(40, 9),
+    // (40,22): warning CS8201: Possible null reference assignment.
+    //         u6[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(40, 22),
+    // (41,9): warning CS8202: Possible dereference of a null reference.
+    //         u6[0][0,0].ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6[0]").WithLocation(41, 9),
+    // (46,27): warning CS8201: Possible null reference assignment.
+    //         object [][,] u7 = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(46, 27),
+    // (47,17): warning CS8201: Possible null reference assignment.
+    //         u7[0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(47, 17),
+    // (48,22): warning CS8201: Possible null reference assignment.
+    //         u7[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(48, 22),
+    // (54,9): warning CS8202: Possible dereference of a null reference.
+    //         u8[0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u8").WithLocation(54, 9),
+    // (54,17): warning CS8201: Possible null reference assignment.
+    //         u8[0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(54, 17),
+    // (55,9): warning CS8202: Possible dereference of a null reference.
+    //         u8[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u8").WithLocation(55, 9),
+    // (55,22): warning CS8201: Possible null reference assignment.
+    //         u8[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(55, 22),
+    // (56,9): warning CS8202: Possible dereference of a null reference.
+    //         u8[0][0,0].ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u8").WithLocation(56, 9),
+    // (62,9): warning CS8202: Possible dereference of a null reference.
+    //         u9[0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9").WithLocation(62, 9),
+    // (63,9): warning CS8202: Possible dereference of a null reference.
+    //         u9[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9").WithLocation(63, 9),
+    // (63,9): warning CS8202: Possible dereference of a null reference.
+    //         u9[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9[0]").WithLocation(63, 9),
+    // (63,22): warning CS8201: Possible null reference assignment.
+    //         u9[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(63, 22),
+    // (64,9): warning CS8202: Possible dereference of a null reference.
+    //         u9[0][0,0].ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9").WithLocation(64, 9),
+    // (64,9): warning CS8202: Possible dereference of a null reference.
+    //         u9[0][0,0].ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9[0]").WithLocation(64, 9)
+                );
+        }
+
+        [Fact]
+        public void Array_08()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test3()
+    {
+        var u3 = new object? [] { null };
+    }
+
+    void Test6()
+    {
+        var u6 = new object [][,]? {null, 
+                                    new object[,]? {{null}}};
+        u6[0] = null;
+        u6[0][0,0] = null;
+        u6[0][0,0].ToString();
+    }
+
+    void Test7()
+    {
+        var u7 = new object [][,] {null, 
+                                   new object[,] {{null}}};
+        u7[0] = null;
+        u7[0][0,0] = null;
+    }
+
+    void Test8()
+    {
+        var u8 = new object []?[,] {null, 
+                                    new object[,] {{null}}};
+        u8[0] = null;
+        u8[0][0,0] = null;
+        u8[0][0,0].ToString();
+    }
+
+    void Test9()
+    {
+        var u9 = new object []?[,]? {null, 
+                                     new object[,]? {{null}}};
+        u9[0] = null;
+        u9[0][0,0] = null;
+        u9[0][0,0].ToString();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (16,54): warning CS8201: Possible null reference assignment.
+    //                                     new object[,]? {{null}}};
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(16, 54),
+    // (18,9): warning CS8202: Possible dereference of a null reference.
+    //         u6[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6[0]").WithLocation(18, 9),
+    // (18,22): warning CS8201: Possible null reference assignment.
+    //         u6[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(18, 22),
+    // (19,9): warning CS8202: Possible dereference of a null reference.
+    //         u6[0][0,0].ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6[0]").WithLocation(19, 9),
+    // (24,36): warning CS8201: Possible null reference assignment.
+    //         var u7 = new object [][,] {null, 
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(24, 36),
+    // (25,52): warning CS8201: Possible null reference assignment.
+    //                                    new object[,] {{null}}};
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(25, 52),
+    // (26,17): warning CS8201: Possible null reference assignment.
+    //         u7[0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(26, 17),
+    // (27,22): warning CS8201: Possible null reference assignment.
+    //         u7[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(27, 22),
+    // (32,37): warning CS8201: Possible null reference assignment.
+    //         var u8 = new object []?[,] {null, 
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(32, 37),
+    // (33,53): warning CS8201: Possible null reference assignment.
+    //                                     new object[,] {{null}}};
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(33, 53),
+    // (34,17): warning CS8201: Possible null reference assignment.
+    //         u8[0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(34, 17),
+    // (35,22): warning CS8201: Possible null reference assignment.
+    //         u8[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(35, 22),
+    // (42,55): warning CS8201: Possible null reference assignment.
+    //                                      new object[,]? {{null}}};
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(42, 55),
+    // (44,9): warning CS8202: Possible dereference of a null reference.
+    //         u9[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9[0]").WithLocation(44, 9),
+    // (44,22): warning CS8201: Possible null reference assignment.
+    //         u9[0][0,0] = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(44, 22),
+    // (45,9): warning CS8202: Possible dereference of a null reference.
+    //         u9[0][0,0].ToString();
+    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9[0]").WithLocation(45, 9)
+                );
+        }
+
+        [Fact]
         public void ObjectInitializer_01()
         {
             CSharpCompilation c = CreateCompilationWithMscorlib(@"

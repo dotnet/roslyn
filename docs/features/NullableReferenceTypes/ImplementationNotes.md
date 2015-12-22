@@ -75,3 +75,13 @@ class B : A
 ```
 
 Current implementation doesn't detect this ambiguity case and simply grabs the first applicable candidate for overriding, always in in declaration order, I assume.
+
+Array type syntax is extended as follows to allow nullable modifiers:
+-	string?[] x1; // not-nullable one-dimensional array of nullable strings
+-	string?[]? x2; // nullable one-dimensional array of nullable strings
+-	string[]? X3; // nullable one-dimensional array of not-nullable strings
+-	string?[][,] x4; // not-nullable one-dimensional array of not-nullable two-dimensional arrays of nullable strings
+-	string?[][,]? X5; // not-nullable one-dimensional array of nullable two-dimensional arrays of nullable strings
+-	string?[]?[,] x6; // nullable one-dimensional array of not-nullable two-dimensional arrays of nullable strings
+
+

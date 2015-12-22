@@ -1404,7 +1404,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // Eat the close brace and we're done.
                             var close = this.EatToken(SyntaxKind.CloseBracketToken);
 
-                            rankList.Add(SyntaxFactory.ArrayRankSpecifier(open, dimensionList, close));
+                            SyntaxToken questionToken = null;
+
+                            if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                            {
+                                questionToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureStaticNullChecking);
+                            }
+
+                            rankList.Add(SyntaxFactory.ArrayRankSpecifier(open, dimensionList, close, questionToken));
                         }
                         finally
                         {

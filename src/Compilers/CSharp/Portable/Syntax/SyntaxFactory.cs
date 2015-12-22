@@ -2013,5 +2013,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 name: name,
                 semicolonToken: Token(SyntaxKind.SemicolonToken));
         }
+
+        /// <summary>Creates a new ArrayRankSpecifierSyntax instance.</summary>
+        public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
+        {
+            return SyntaxFactory.ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken, default(SyntaxToken));
+        }
     }
 }
