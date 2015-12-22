@@ -27,7 +27,7 @@
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
         }
       },
-      "Microsoft.DiaSymReader/1.0.7-beta1": {
+      "Microsoft.DiaSymReader/1.0.7-beta1-51221": {
         "compile": {
           "lib/net20/Microsoft.DiaSymReader.dll": {}
         },
@@ -320,8 +320,8 @@
         "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp"
       ]
     },
-    "Microsoft.DiaSymReader/1.0.7-beta1": {
-      "sha512": "0B6ZT7riIG8GvLWTjatj06a9s+s65/mVRE0G30Ao3wLKkavzsftPyQC5D3defJfnrI9duSpAIMx5eT1eXJCaRQ==",
+    "Microsoft.DiaSymReader/1.0.7-beta1-51221": {
+      "sha512": "sQ/I7+gi4Si8K7fqyJgMswip9RNvKjUD9CmmWwzcCxnX2sMLDA5X54thgX+cQn7nF0+C35a1nAYgafDsqiPOkg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -331,7 +331,7 @@
         "lib/portable-net45+win8/Microsoft.DiaSymReader.dll",
         "lib/portable-net45+win8/Microsoft.DiaSymReader.xml",
         "Microsoft.DiaSymReader.nuspec",
-        "package/services/metadata/core-properties/db4a7501f1f04b9994a56439822e66a7.psmdcp"
+        "package/services/metadata/core-properties/2e8b0ffd43c2417296e93e7c2ee8d686.psmdcp"
       ]
     },
     "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
