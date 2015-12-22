@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -304,6 +305,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.EventReferenceExpression;
     }
 
+    partial class BoundEventAssignmentOperator : IEventAssignmentExpression
+    {
+
+        IEventSymbol IEventAssignmentExpression.Event => this.Event;
+
+        IExpression IEventAssignmentExpression.EventInstance => this.ReceiverOpt;
+
+        IExpression IEventAssignmentExpression.Value => this.Argument;
+
+        protected override OperationKind ExpressionKind => OperationKind.EventAssignmentExpression;
+    }
+
+    partial class BoundDelegateCreationExpression : IMethodReferenceExpression
+    {
+        IExpression IMemberReferenceExpression.Instance
+        {
+            get
+            {
+                BoundMethodGroup methodGroup = this.Argument as BoundMethodGroup;
+                if (methodGroup != null)
+                {
+                    return methodGroup.InstanceOpt;
+                }
+
+                return null;
+            }
+        }
+
+        bool IMethodReferenceExpression.IsVirtual => this.MethodOpt != null && (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) && !this.SuppressVirtualCalls;
+       
+        ISymbol IMemberReferenceExpression.Member => this.MethodOpt;
+       
+        IMethodSymbol IMethodReferenceExpression.Method => this.MethodOpt;
+       
+        protected override OperationKind ExpressionKind => OperationKind.MethodReferenceExpression;
+    }
+
     partial class BoundParameter : IParameterReferenceExpression
     {
         IParameterSymbol IParameterReferenceExpression.Parameter => this.ParameterSymbol;
@@ -360,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.LambdaExpression;
     }
 
-    partial class BoundConversion : IConversionExpression
+    partial class BoundConversion : IConversionExpression, IMethodReferenceExpression
     {
         IExpression IConversionExpression.Operand => this.Operand;
 
@@ -412,7 +450,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IHasOperatorExpression.UsesOperatorMethod => this.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || this.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined;
 
-        protected override OperationKind ExpressionKind => OperationKind.ConversionExpression;
+        // Consider introducing a different bound node type for method group conversions. These aren't truly conversions, but represent selection of a particular method.
+        protected override OperationKind ExpressionKind => this.ConversionKind == ConversionKind.MethodGroup ? OperationKind.MethodReferenceExpression : OperationKind.ConversionExpression;
+
+        IMethodSymbol IMethodReferenceExpression.Method => this.ConversionKind == ConversionKind.MethodGroup ? this.SymbolOpt as IMethodSymbol : null;
+       
+        bool IMethodReferenceExpression.IsVirtual
+        {
+            get
+            {
+                IMethodSymbol method = ((IMethodReferenceExpression)this).Method;
+                return method != null && (method.IsAbstract || method.IsOverride || method.IsVirtual) && !this.SuppressVirtualCalls;
+            }
+        }
+
+        IExpression IMemberReferenceExpression.Instance
+        {
+            get
+            {
+                if (this.ConversionKind == ConversionKind.MethodGroup)
+                {
+                    BoundMethodGroup methodGroup = this.Operand as BoundMethodGroup;
+                    if (methodGroup != null)
+                    {
+                        return methodGroup.InstanceOpt;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        ISymbol IMemberReferenceExpression.Member => ((IMethodReferenceExpression)this).Method;
     }
 
     partial class BoundAsOperator : IConversionExpression
@@ -747,11 +816,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind ExpressionKind => OperationKind.ConditionalAccessExpression;
     }
-
-    //partial class BoundEventMumble
-    //{
-    //
-    //}
 
     class Expression
     {

@@ -62,6 +62,7 @@ class C
         Mumble(this, args);
         object o = Mumble;
         MumbleEventHandler d = Mumbler;
+        Mumbler(this, null);
     }
 
     private void Mumbler(object sender, System.EventArgs args) 
@@ -71,8 +72,11 @@ class C
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberReferenceAnalyzer() }, null, null, false,
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble += new MumbleEventHandler(Mumbler)").WithLocation(10, 9),
+                Diagnostic(MemberReferenceAnalyzer.MethodReferenceDescriptor.Id, "new MumbleEventHandler(Mumbler)").WithLocation(10, 19),
                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(11, 9),
-                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 20)
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 20),
+                Diagnostic(MemberReferenceAnalyzer.MethodReferenceDescriptor.Id, "Mumbler").WithLocation(13, 32)
                 );
         }
 

@@ -90,6 +90,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.EventReferenceExpression);
 
             context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    operationContext.ReportDiagnostic(Diagnostic.Create(EventReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                },
+                OperationKind.EventAssignmentExpression);
+
+            context.RegisterOperationAction(
                  (operationContext) =>
                  {
                      operationContext.ReportDiagnostic(Diagnostic.Create(PropertyReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));

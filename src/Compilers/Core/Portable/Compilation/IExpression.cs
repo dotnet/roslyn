@@ -269,6 +269,27 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a binding of an event.
+    /// </summary>
+    public interface IEventAssignmentExpression : IExpression
+    {
+        /// <summary>
+        /// Event being bound.
+        /// </summary>
+        IEventSymbol Event { get; }
+
+        /// <summary>
+        /// Instance used to refer to the event being bound.
+        /// </summary>
+        IExpression EventInstance { get; }
+
+        /// <summary>
+        /// Value supplied for the event.
+        /// </summary>
+        IExpression Value { get; }
+    }
+
+    /// <summary>
     /// Represents a conditional access expression.
     /// </summary>
     public interface IConditionalAccessExpression : IExpression

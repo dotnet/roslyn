@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         ParenthesizedExpression,
 
         UnboundLambdaExpression,
+        EventAssignmentExpression,
 
         // VB only
 
