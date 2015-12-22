@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _lastTask = Task.FromResult(initialState);
 
                 Console.OutputEncoding = Encoding.UTF8;
-              
+
                 // We want to be sure to delete the shadow-copied files when the process goes away. Frankly
                 // there's nothing we can do if the process is forcefully quit or goes down in a completely
                 // uncontrolled manner (like a stack overflow). When the process goes down in a controlled
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 string baseDirectory)
             {
                 var state = await ReportUnhandledExceptionIfAny(lastTask).ConfigureAwait(false);
-               
+
                 try
                 {
                     Directory.SetCurrentDirectory(baseDirectory);
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Debug.WriteLine(e);
             }
 
-#endregion
+            #endregion
 
             #region Operations
 
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         {
                             var metadataResolver = CreateMetadataReferenceResolver(args.ReferencePaths, rspDirectory);
                             var sourceResolver = CreateSourceReferenceResolver(args.SourcePaths, rspDirectory);
-                            
+
                             var metadataReferences = new List<PortableExecutableReference>();
                             foreach (CommandLineReference cmdLineReference in args.MetadataReferences)
                             {

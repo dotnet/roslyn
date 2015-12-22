@@ -756,6 +756,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversion.Kind)
             {
                 case ConversionKind.Identity:
+                    // An identity conversion to a floating-point type (for example from a cast in
+                    // source code) changes the internal representation of the constant value
+                    // to precisely the required precision.
+                    switch (destination.SpecialType)
+                    {
+                        case SpecialType.System_Single:
+                            return ConstantValue.Create(sourceConstantValue.SingleValue);
+                        case SpecialType.System_Double:
+                            return ConstantValue.Create(sourceConstantValue.DoubleValue);
+                        default:
+                            return sourceConstantValue;
+                    }
+
                 case ConversionKind.NullLiteral:
                     return sourceConstantValue;
 

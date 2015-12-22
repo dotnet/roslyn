@@ -8,41 +8,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
     Friend Class MethodDeclarationOutliner
         Inherits AbstractSyntaxNodeOutliner(Of MethodStatementSyntax)
 
-        Private Shared Function GetBannerText(methodDeclaration As MethodStatementSyntax) As String
-            Dim builder As New BannerTextBuilder()
-            For Each modifier In methodDeclaration.Modifiers
-                builder.Append(modifier.ToString())
-                builder.Append(" "c)
-            Next
-
-            builder.Append(methodDeclaration.DeclarationKeyword.ToString())
-            builder.Append(" "c)
-            builder.Append(methodDeclaration.Identifier.ToString())
-
-            builder.AppendTypeParameterList(methodDeclaration.TypeParameterList)
-            builder.AppendParameterList(methodDeclaration.ParameterList, emptyParentheses:=True)
-            builder.AppendAsClause(methodDeclaration.AsClause)
-            builder.AppendHandlesClause(methodDeclaration.HandlesClause)
-            builder.AppendImplementsClause(methodDeclaration.ImplementsClause)
-
-            builder.Append(" "c)
-            builder.Append(Ellipsis)
-
-            Return builder.ToString()
-        End Function
-
         Protected Overrides Sub CollectOutliningSpans(methodDeclaration As MethodStatementSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
-            VisualBasicOutliningHelpers.CollectCommentsRegions(methodDeclaration, spans)
+            CollectCommentsRegions(methodDeclaration, spans)
 
-            Dim methodBlock = TryCast(methodDeclaration.Parent, MethodBlockSyntax)
-            If methodBlock IsNot Nothing Then
-                If Not methodBlock.EndBlockStatement.IsMissing Then
-                    spans.Add(
-                        VisualBasicOutliningHelpers.CreateRegionFromBlock(
-                            methodBlock,
-                            GetBannerText(methodDeclaration),
-                            autoCollapse:=True))
-                End If
+            Dim block = TryCast(methodDeclaration.Parent, MethodBlockSyntax)
+            If Not block?.EndBlockStatement.IsMissing Then
+                spans.Add(
+                    CreateRegionFromBlock(block, bannerNode:=methodDeclaration, autoCollapse:=True))
             End If
         End Sub
     End Class

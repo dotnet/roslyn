@@ -6,7 +6,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class ITextSnapshotExtensionsTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ThrowsWithNullSnapshot()
             Assert.Throws(Of ArgumentNullException)(Sub()
                                                         EndConstructExtensions.GetAligningWhitespace(Nothing, 0)

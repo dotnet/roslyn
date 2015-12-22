@@ -63,6 +63,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="metadataReferenceResolver">An optional parameter to specify <see cref="CodeAnalysis.MetadataReferenceResolver"/>.</param>
         ''' <param name="assemblyIdentityComparer">An optional parameter to specify <see cref="CodeAnalysis.AssemblyIdentityComparer"/>.</param>
         ''' <param name="strongNameProvider">An optional parameter to specify <see cref="CodeAnalysis.StrongNameProvider"/>.</param>
+        ''' <param name="publicSign">An optional parameter to specify whether the assembly will be public signed.</param>
+        ''' <param name="reportSuppressedDiagnostics">An optional parameter to specify whether or not suppressed diagnostics should be reported.</param>
         Public Sub New(
             outputKind As OutputKind,
             Optional moduleName As String = Nothing,
@@ -86,17 +88,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional generalDiagnosticOption As ReportDiagnostic = ReportDiagnostic.Default,
             Optional specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)) = Nothing,
             Optional concurrentBuild As Boolean = True,
-            Optional deterministic As Boolean = False, ' TODO(5431): Enable deterministic mode by default
+            Optional deterministic As Boolean = False,
             Optional xmlReferenceResolver As XmlReferenceResolver = Nothing,
             Optional sourceReferenceResolver As SourceReferenceResolver = Nothing,
             Optional metadataReferenceResolver As MetadataReferenceResolver = Nothing,
             Optional assemblyIdentityComparer As AssemblyIdentityComparer = Nothing,
             Optional strongNameProvider As StrongNameProvider = Nothing,
-            Optional publicSign As Boolean = False)
+            Optional publicSign As Boolean = False,
+            Optional reportSuppressedDiagnostics As Boolean = False)
 
             MyClass.New(
                 outputKind,
-                False,
+                reportSuppressedDiagnostics,
                 moduleName,
                 mainTypeName,
                 scriptClassName,
@@ -119,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption,
                 specificDiagnosticOptions,
                 concurrentBuild,
-                deterministic:=False,' TODO: fix this
+                deterministic:=deterministic,
                 suppressEmbeddedDeclarations:=False,
                 extendedCustomDebugInformation:=True,
                 debugPlusMode:=False,
@@ -250,7 +253,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function GetImports() As ImmutableArray(Of String)
             ' TODO: implement (only called from VBI) https://github.com/dotnet/roslyn/issues/5854
-            Throw ExceptionUtilities.Unreachable
+            Dim importNames = ArrayBuilder(Of String).GetInstance(GlobalImports.Length)
+            For Each globalImport In GlobalImports
+                If Not globalImport.IsXmlClause Then
+                    importNames.Add(globalImport.Name)
+                End If
+            Next
+            Return importNames.ToImmutableAndFree()
         End Function
 
         ''' <summary>
@@ -1098,7 +1107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption,
                 specificDiagnosticOptions,
                 concurrentBuild,
-                deterministic:=False,' TODO: fix this
+                deterministic:=False,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
                 metadataReferenceResolver:=metadataReferenceResolver,

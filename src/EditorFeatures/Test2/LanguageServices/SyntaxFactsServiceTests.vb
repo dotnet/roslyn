@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
@@ -9,8 +10,8 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.LanguageServices
     Public Class SyntaxFactsServiceTests
 
-        <WpfFact>
-        Public Sub CSharp_TestGetMemberBodySpanForSpeculativeBinding1()
+        <Fact>
+        Public Async Function TestCSharp_TestGetMemberBodySpanForSpeculativeBinding1() As Task
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -26,11 +27,11 @@ class C
     </Project>
 </Workspace>
 
-            VerifyGetMemberBodySpanForSpeculativeBinding(definition)
-        End Sub
+            Await VerifyGetMemberBodySpanForSpeculativeBindingAsync(definition)
+        End Function
 
-        <WpfFact>
-        Public Sub CSharp_TestGetMemberBodySpanForSpeculativeBinding2()
+        <Fact>
+        Public Async Function TestCSharp_TestGetMemberBodySpanForSpeculativeBinding2() As Task
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -46,11 +47,11 @@ class C
     </Project>
 </Workspace>
 
-            VerifyGetMemberBodySpanForSpeculativeBinding(definition)
-        End Sub
+            Await VerifyGetMemberBodySpanForSpeculativeBindingAsync(definition)
+        End Function
 
-        <WpfFact>
-        Public Sub CSharp_TestGetMemberBodySpanForSpeculativeBinding3()
+        <Fact>
+        Public Async Function TestCSharp_TestGetMemberBodySpanForSpeculativeBinding3() As Task
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -66,11 +67,11 @@ class C
     </Project>
 </Workspace>
 
-            VerifyGetMemberBodySpanForSpeculativeBinding(definition)
-        End Sub
+            Await VerifyGetMemberBodySpanForSpeculativeBindingAsync(definition)
+        End Function
 
-        <WpfFact>
-        Public Sub CSharp_TestGetMemberBodySpanForSpeculativeBinding4()
+        <Fact>
+        Public Async Function TestCSharp_TestGetMemberBodySpanForSpeculativeBinding4() As Task
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -86,11 +87,11 @@ class C
     </Project>
 </Workspace>
 
-            VerifyGetMemberBodySpanForSpeculativeBinding(definition)
-        End Sub
+            Await VerifyGetMemberBodySpanForSpeculativeBindingAsync(definition)
+        End Function
 
-        <WpfFact>
-        Public Sub CSharp_TestGetMemberBodySpanForSpeculativeBinding5()
+        <Fact>
+        Public Async Function TestCSharp_TestGetMemberBodySpanForSpeculativeBinding5() As Task
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -106,11 +107,11 @@ $$}
     </Project>
 </Workspace>
 
-            VerifyGetMemberBodySpanForSpeculativeBinding(definition)
-        End Sub
+            Await VerifyGetMemberBodySpanForSpeculativeBindingAsync(definition)
+        End Function
 
-        <WpfFact>
-        Public Sub VB_TestGetMemberBodySpanForSpeculativeBinding1()
+        <Fact>
+        Public Async Function TestVB_TestGetMemberBodySpanForSpeculativeBinding1() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -124,11 +125,11 @@ End Class
     </Project>
 </Workspace>
 
-            VerifyGetMemberBodySpanForSpeculativeBinding(definition)
-        End Sub
+            Await VerifyGetMemberBodySpanForSpeculativeBindingAsync(definition)
+        End Function
 
-        <WpfFact>
-        Public Sub VB_TestGetMemberBodySpanForSpeculativeBinding2()
+        <Fact>
+        Public Async Function TestVB_TestGetMemberBodySpanForSpeculativeBinding2() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -142,11 +143,11 @@ End Class
     </Project>
 </Workspace>
 
-            VerifyGetMemberBodySpanForSpeculativeBinding(definition)
-        End Sub
+            Await VerifyGetMemberBodySpanForSpeculativeBindingAsync(definition)
+        End Function
 
-        <WpfFact>
-        Public Sub VB_TestGetMemberBodySpanForSpeculativeBinding3()
+        <Fact>
+        Public Async Function TestVB_TestGetMemberBodySpanForSpeculativeBinding3() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -160,11 +161,11 @@ End Class
     </Project>
 </Workspace>
 
-            VerifyGetMemberBodySpanForSpeculativeBinding(definition)
-        End Sub
+            Await VerifyGetMemberBodySpanForSpeculativeBindingAsync(definition)
+        End Function
 
-        <WpfFact>
-        Public Sub VB_TestGetMemberBodySpanForSpeculativeBinding4()
+        <Fact>
+        Public Async Function TestVB_TestGetMemberBodySpanForSpeculativeBinding4() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -178,11 +179,11 @@ End Class
     </Project>
 </Workspace>
 
-            VerifyGetMemberBodySpanForSpeculativeBinding(definition)
-        End Sub
+            Await VerifyGetMemberBodySpanForSpeculativeBindingAsync(definition)
+        End Function
 
-        <WpfFact>
-        Public Sub VB_TestGetMemberBodySpanForSpeculativeBinding5()
+        <Fact>
+        Public Async Function TestVB_TestGetMemberBodySpanForSpeculativeBinding5() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -196,16 +197,16 @@ $$End Class
     </Project>
 </Workspace>
 
-            VerifyGetMemberBodySpanForSpeculativeBinding(definition)
-        End Sub
+            Await VerifyGetMemberBodySpanForSpeculativeBindingAsync(definition)
+        End Function
 
-        Private Sub VerifyGetMemberBodySpanForSpeculativeBinding(workspaceDefinition As XElement)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition)
+        Private Async Function VerifyGetMemberBodySpanForSpeculativeBindingAsync(workspaceDefinition As XElement) As Tasks.Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
                 Dim cursorDocument = workspace.DocumentWithCursor
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
-                Dim root = document.GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Dim root = Await document.GetSyntaxRootAsync()
                 Dim node = root.FindNode(New TextSpan(cursorPosition, 0))
                 Dim syntaxFactsService = document.GetLanguageService(Of ISyntaxFactsService)()
 
@@ -214,7 +215,7 @@ $$End Class
 
                 Assert.Equal(expected, actual)
             End Using
-        End Sub
+        End Function
 
     End Class
 End Namespace

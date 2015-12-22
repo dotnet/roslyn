@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
     public class DocumentationCommentTests : AbstractDocumentationCommentTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_Class()
+        public async Task TypingCharacter_Class()
         {
             var code =
 @"//$$
@@ -29,11 +30,11 @@ class C
 {
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
+        public async Task TypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
         {
             var code =
 @"//$$
@@ -47,11 +48,11 @@ class C
 {
 }";
 
-            VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments: false);
+            await VerifyTypingCharacterAsync(code, expected, autoGenerateXmlDocComments: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_Method()
+        public async Task TypingCharacter_Method()
         {
             var code =
 @"class C
@@ -72,11 +73,11 @@ class C
     int M<T>(int foo) { return 0; }
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_Method_WithVerbatimParams()
+        public async Task TypingCharacter_Method_WithVerbatimParams()
         {
             var code =
 @"class C
@@ -97,11 +98,11 @@ class C
     int M<@int>(int @foo) { return 0; }
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_AutoProperty()
+        public async Task TypingCharacter_AutoProperty()
         {
             var code =
 @"class C
@@ -119,11 +120,11 @@ class C
     int P { get; set; }
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_Property()
+        public async Task TypingCharacter_Property()
         {
             var code =
 @"class C
@@ -149,11 +150,11 @@ class C
     }
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_Indexer()
+        public async Task TypingCharacter_Indexer()
         {
             var code =
 @"class C
@@ -181,11 +182,11 @@ class C
     }
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_VoidMethod1()
+        public async Task TypingCharacter_VoidMethod1()
         {
             var code =
 @"class C
@@ -205,11 +206,11 @@ class C
     void M<T>(int foo) {  }
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_VoidMethod_WithVerbatimParams()
+        public async Task TypingCharacter_VoidMethod_WithVerbatimParams()
         {
             var code =
 @"class C
@@ -229,12 +230,12 @@ class C
     void M<@T>(int @int) {  }
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WorkItem(538699)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_VoidMethod2()
+        public async Task TypingCharacter_VoidMethod2()
         {
             var code =
 @"class C
@@ -250,11 +251,11 @@ class C
     /// </summary>
     void Method() { }
 }";
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_NotWhenDocCommentExists1()
+        public async Task TypingCharacter_NotWhenDocCommentExists1()
         {
             var code = @"
 ///
@@ -270,11 +271,11 @@ class C
 {
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_NotWhenDocCommentExists2()
+        public async Task TypingCharacter_NotWhenDocCommentExists2()
         {
             var code = @"
 ///
@@ -292,11 +293,11 @@ class C
 {
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_NotWhenDocCommentExists3()
+        public async Task TypingCharacter_NotWhenDocCommentExists3()
         {
             var code = @"
 class B { } ///
@@ -314,11 +315,11 @@ class C
 {
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_NotWhenDocCommentExists4()
+        public async Task TypingCharacter_NotWhenDocCommentExists4()
         {
             var code =
 @"//$$
@@ -334,11 +335,11 @@ class C
 {
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_NotWhenDocCommentExists5()
+        public async Task TypingCharacter_NotWhenDocCommentExists5()
         {
             var code =
 @"class C
@@ -356,11 +357,11 @@ class C
     int M<T>(int foo) { return 0; }
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_NotInsideMethodBody1()
+        public async Task TypingCharacter_NotInsideMethodBody1()
         {
             var code =
 @"class C
@@ -380,11 +381,11 @@ class C
     }
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_NotInsideMethodBody2()
+        public async Task TypingCharacter_NotInsideMethodBody2()
         {
             var code =
 @"class C
@@ -406,11 +407,11 @@ class C
     }
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_NotAfterClassName()
+        public async Task TypingCharacter_NotAfterClassName()
         {
             var code =
 @"class C//$$
@@ -422,11 +423,11 @@ class C
 {
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_NotAfterOpenBrace()
+        public async Task TypingCharacter_NotAfterOpenBrace()
         {
             var code =
 @"class C
@@ -438,11 +439,11 @@ class C
 {///$$
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_NotAfterCtorName()
+        public async Task TypingCharacter_NotAfterCtorName()
         {
             var code =
 @"class C
@@ -456,11 +457,11 @@ C() //$$
 C() ///$$
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TypingCharacter_NotInsideCtor()
+        public async Task TypingCharacter_NotInsideCtor()
         {
             var code =
 @"class C
@@ -480,11 +481,11 @@ C()
 }
 }";
 
-            VerifyTypingCharacter(code, expected);
+            await VerifyTypingCharacterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertComment_Class1()
+        public async Task PressingEnter_InsertComment_Class1()
         {
             var code =
 @"///$$
@@ -500,12 +501,12 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertComment_Class1_AutoGenerateXmlDocCommentsOff()
+        public async Task PressingEnter_InsertComment_Class1_AutoGenerateXmlDocCommentsOff()
         {
             var code =
 @"///$$
@@ -520,11 +521,11 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
+            await VerifyPressingEnterAsync(code, expected, autoGenerateXmlDocComments: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertComment_Class2()
+        public async Task PressingEnter_InsertComment_Class2()
         {
             var code =
 @"///$$class C
@@ -539,11 +540,11 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertComment_Class3()
+        public async Task PressingEnter_InsertComment_Class3()
         {
             var code =
 @"///$$[Foo] class C
@@ -558,11 +559,11 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertComment_NotAfterWhitespace()
+        public async Task PressingEnter_InsertComment_NotAfterWhitespace()
         {
             var code =
             @"///    $$class C
@@ -575,11 +576,11 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertComment_Method1()
+        public async Task PressingEnter_InsertComment_Method1()
         {
             var code =
 @"class C
@@ -600,11 +601,11 @@ class C
     int M<T>(int foo) { return 0; }
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertComment_Method2()
+        public async Task PressingEnter_InsertComment_Method2()
         {
             var code =
 @"class C
@@ -624,11 +625,11 @@ class C
     int M<T>(int foo) { return 0; }
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_NotInMethodBody1()
+        public async Task PressingEnter_NotInMethodBody1()
         {
             var code =
 @"class C
@@ -649,12 +650,12 @@ $$
 }
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(537513)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_NotInterleavedInClassName1()
+        public async Task PressingEnter_NotInterleavedInClassName1()
         {
             var code =
 @"class///$$ C
@@ -667,12 +668,12 @@ $$ C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(537513)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_NotInterleavedInClassName2()
+        public async Task PressingEnter_NotInterleavedInClassName2()
         {
             var code =
 @"class ///$$C
@@ -685,12 +686,12 @@ $$C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(537513)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_NotInterleavedInClassName3()
+        public async Task PressingEnter_NotInterleavedInClassName3()
         {
             var code =
 @"class /// $$C
@@ -703,13 +704,13 @@ $$C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(537514)]
         [WorkItem(537532)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_NotAfterClassName1()
+        public async Task PressingEnter_NotAfterClassName1()
         {
             var code =
 @"class C ///$$
@@ -722,12 +723,12 @@ $$
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(537552)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_NotAfterClassName2()
+        public async Task PressingEnter_NotAfterClassName2()
         {
             var code =
 @"class C /** $$
@@ -740,12 +741,12 @@ $$
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(537535)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_NotAfterCtorName()
+        public async Task PressingEnter_NotAfterCtorName()
         {
             var code =
 @"class C
@@ -760,12 +761,12 @@ C() ///
 $$
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(537511)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_NotInsideCtor()
+        public async Task PressingEnter_NotInsideCtor()
         {
             var code =
 @"class C
@@ -786,12 +787,12 @@ $$
 }
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(537550)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_NotBeforeDocComment()
+        public async Task PressingEnter_NotBeforeDocComment()
         {
             var code =
 @"    class c1
@@ -800,7 +801,7 @@ $$/// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public void foo()
+        public async Task foo()
         {
             var x = 1;
         }
@@ -814,17 +815,17 @@ $$/// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public void foo()
+        public async Task foo()
         {
             var x = 1;
         }
     }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertSlashes1()
+        public async Task PressingEnter_InsertSlashes1()
         {
             var code =
 @"///$$
@@ -841,11 +842,11 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertSlashes2()
+        public async Task PressingEnter_InsertSlashes2()
         {
             var code =
 @"/// <summary>
@@ -864,11 +865,11 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertSlashes3()
+        public async Task PressingEnter_InsertSlashes3()
         {
             var code =
 @"    /// <summary>
@@ -887,11 +888,11 @@ class C
     {
     }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertSlashes4()
+        public async Task PressingEnter_InsertSlashes4()
         {
             var code =
 @"/// <summary>$$</summary>
@@ -906,11 +907,11 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertSlashes5()
+        public async Task PressingEnter_InsertSlashes5()
         {
             var code =
 @"    /// <summary>
@@ -929,11 +930,11 @@ class C
     {
     }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertSlashes6()
+        public async Task PressingEnter_InsertSlashes6()
         {
             var code =
 @"/// <summary></summary>$$
@@ -948,11 +949,11 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertSlashes7()
+        public async Task PressingEnter_InsertSlashes7()
         {
             var code =
 @"    /// <summary>$$</summary>
@@ -967,12 +968,12 @@ class C
     {
     }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(538702)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertSlashes8()
+        public async Task PressingEnter_InsertSlashes8()
         {
             var code =
 @"/// <summary>
@@ -985,11 +986,11 @@ class C
 /// </summary>
 ///
 /// $$class C {}";
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertSlashes9()
+        public async Task PressingEnter_InsertSlashes9()
         {
             var code =
 @"class C
@@ -1008,11 +1009,11 @@ class C
     int M<T>(int foo) { return 0; }
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertSlashes10()
+        public async Task PressingEnter_InsertSlashes10()
         {
             var code =
 @"/// <summary>
@@ -1026,11 +1027,11 @@ class C
 ///
 /// $$Go ahead and add some slashes";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertSlashes11()
+        public async Task PressingEnter_InsertSlashes11()
         {
             var code =
 @"class C
@@ -1057,12 +1058,12 @@ class C
     }
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InsertSlashes12_AutoGenerateXmlDocCommentsOff()
+        public async Task PressingEnter_InsertSlashes12_AutoGenerateXmlDocCommentsOff()
         {
             var code =
 @"///$$
@@ -1079,12 +1080,12 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
+            await VerifyPressingEnterAsync(code, expected, autoGenerateXmlDocComments: false);
         }
 
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_DontInsertSlashes1()
+        public async Task PressingEnter_DontInsertSlashes1()
         {
             var code =
 @"/// <summary></summary>
@@ -1101,12 +1102,12 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(538701)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_DontInsertSlashes2()
+        public async Task PressingEnter_DontInsertSlashes2()
         {
             var code =
 @"///<summary></summary>
@@ -1119,12 +1120,12 @@ class C{}";
 ///
 $$
 class C{}";
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(542426)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_PreserveParams()
+        public async Task PressingEnter_PreserveParams()
         {
             var code =
 @"/// <summary>
@@ -1142,12 +1143,12 @@ static void Main(string[] args)
 static void Main(string[] args)
 { }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(2091, "https://github.com/dotnet/roslyn/issues/2091")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_InTextBeforeSpace()
+        public async Task PressingEnter_InTextBeforeSpace()
         {
             const string code =
 @"class C
@@ -1172,12 +1173,12 @@ static void Main(string[] args)
     }
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_Indentation1()
+        public async Task PressingEnter_Indentation1()
         {
             const string code =
 @"class C
@@ -1202,12 +1203,12 @@ static void Main(string[] args)
     }
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_Indentation2()
+        public async Task PressingEnter_Indentation2()
         {
             const string code =
 @"class C
@@ -1232,12 +1233,12 @@ static void Main(string[] args)
     }
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_Indentation3()
+        public async Task PressingEnter_Indentation3()
         {
             const string code =
 @"class C
@@ -1262,12 +1263,12 @@ static void Main(string[] args)
     }
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_Indentation4()
+        public async Task PressingEnter_Indentation4()
         {
             const string code =
 @"class C
@@ -1292,12 +1293,12 @@ static void Main(string[] args)
     }
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_Indentation5_UseTabs()
+        public async Task PressingEnter_Indentation5_UseTabs()
         {
             const string code =
 @"class C
@@ -1322,12 +1323,12 @@ static void Main(string[] args)
     }
 }";
 
-            VerifyPressingEnter(code, expected, useTabs: true);
+            await VerifyPressingEnterAsync(code, expected, useTabs: true);
         }
 
         [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_Selection1()
+        public async Task PressingEnter_Selection1()
         {
             var code =
 @"/// <summary>
@@ -1345,12 +1346,12 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void PressingEnter_Selection2()
+        public async Task PressingEnter_Selection2()
         {
             var code =
 @"/// <summary>
@@ -1368,11 +1369,11 @@ class C
 {
 }";
 
-            VerifyPressingEnter(code, expected);
+            await VerifyPressingEnterAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_Class()
+        public async Task Command_Class()
         {
             var code =
 @"class C
@@ -1387,12 +1388,12 @@ class C
 {
 }";
 
-            VerifyInsertCommentCommand(code, expected);
+            await VerifyInsertCommentCommandAsync(code, expected);
         }
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_Class_AutoGenerateXmlDocCommentsOff()
+        public async Task Command_Class_AutoGenerateXmlDocCommentsOff()
         {
             var code =
 @"class C
@@ -1407,12 +1408,12 @@ class C
 {
 }";
 
-            VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments: false);
+            await VerifyInsertCommentCommandAsync(code, expected, autoGenerateXmlDocComments: false);
         }
 
         [WorkItem(538714)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_BeforeClass1()
+        public async Task Command_BeforeClass1()
         {
             var code =
 @"$$
@@ -1424,12 +1425,12 @@ class C { }";
 /// </summary>
 class C { }";
 
-            VerifyInsertCommentCommand(code, expected);
+            await VerifyInsertCommentCommandAsync(code, expected);
         }
 
         [WorkItem(538714)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_BeforeClass2()
+        public async Task Command_BeforeClass2()
         {
             var code =
 @"class B { }
@@ -1443,12 +1444,12 @@ class C { }";
 /// </summary>
 class C { }";
 
-            VerifyInsertCommentCommand(code, expected);
+            await VerifyInsertCommentCommandAsync(code, expected);
         }
 
         [WorkItem(538714)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_BeforeClass3()
+        public async Task Command_BeforeClass3()
         {
             var code =
 @"class B
@@ -1466,12 +1467,12 @@ class C { }";
     class C { }
 }";
 
-            VerifyInsertCommentCommand(code, expected);
+            await VerifyInsertCommentCommandAsync(code, expected);
         }
 
         [WorkItem(527604)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_Class_NotIfMultilineDocCommentExists()
+        public async Task Command_Class_NotIfMultilineDocCommentExists()
         {
             var code =
 @"/**
@@ -1482,11 +1483,11 @@ class C { $$ }";
 @"/**
 */
 class C { $$ }";
-            VerifyInsertCommentCommand(code, expected);
+            await VerifyInsertCommentCommandAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_Method()
+        public async Task Command_Method()
         {
             var code =
 @"class C
@@ -1506,11 +1507,11 @@ class C { $$ }";
     int M<T>(int foo) { return 0; }
 }";
 
-            VerifyInsertCommentCommand(code, expected);
+            await VerifyInsertCommentCommandAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_Class_NotIfCommentExists()
+        public async Task Command_Class_NotIfCommentExists()
         {
             var code =
 @"/// <summary></summary>
@@ -1524,11 +1525,11 @@ class C
 {$$
 }";
 
-            VerifyInsertCommentCommand(code, expected);
+            await VerifyInsertCommentCommandAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_Method_NotIfCommentExists()
+        public async Task Command_Method_NotIfCommentExists()
         {
             var code =
 @"class C
@@ -1544,12 +1545,12 @@ class C
     int M<T>(int foo) { $$return 0; }
 }";
 
-            VerifyInsertCommentCommand(code, expected);
+            await VerifyInsertCommentCommandAsync(code, expected);
         }
 
         [WorkItem(538482)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_FirstClassOnLine()
+        public async Task Command_FirstClassOnLine()
         {
             var code = @"$$class C { } class D { }";
 
@@ -1559,23 +1560,23 @@ class C
 /// </summary>
 class C { } class D { }";
 
-            VerifyInsertCommentCommand(code, expected);
+            await VerifyInsertCommentCommandAsync(code, expected);
         }
 
         [WorkItem(538482)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_NotOnSecondClassOnLine()
+        public async Task Command_NotOnSecondClassOnLine()
         {
             var code = @"class C { } $$class D { }";
 
             var expected = @"class C { } $$class D { }";
 
-            VerifyInsertCommentCommand(code, expected);
+            await VerifyInsertCommentCommandAsync(code, expected);
         }
 
         [WorkItem(538482)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_FirstMethodOnLine()
+        public async Task Command_FirstMethodOnLine()
         {
             var code =
 @"class C
@@ -1592,12 +1593,12 @@ class C { } class D { }";
     protected abstract void Foo(); protected abstract void Bar();
 }";
 
-            VerifyInsertCommentCommand(code, expected);
+            await VerifyInsertCommentCommandAsync(code, expected);
         }
 
         [WorkItem(538482)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void Command_NotOnSecondMethodOnLine()
+        public async Task Command_NotOnSecondMethodOnLine()
         {
             var code =
 @"class C
@@ -1611,12 +1612,12 @@ class C { } class D { }";
     protected abstract void Foo(); protected abstract void $$Bar();
 }";
 
-            VerifyInsertCommentCommand(code, expected);
+            await VerifyInsertCommentCommandAsync(code, expected);
         }
 
         [WorkItem(917904)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TestUseTab()
+        public async Task TestUseTab()
         {
             var code =
 @"using System;
@@ -1642,12 +1643,12 @@ public class Class1
 	}
 }";
 
-            VerifyTypingCharacter(code, expected, useTabs: true);
+            await VerifyTypingCharacterAsync(code, expected, useTabs: true);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TestOpenLineAbove1()
+        public async Task TestOpenLineAbove1()
         {
             const string code =
 @"class C
@@ -1672,12 +1673,12 @@ public class Class1
     }
 }";
 
-            VerifyOpenLineAbove(code, expected);
+            await VerifyOpenLineAboveAsync(code, expected);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TestOpenLineAbove2()
+        public async Task TestOpenLineAbove2()
         {
             const string code =
 @"class C
@@ -1702,12 +1703,12 @@ public class Class1
     }
 }";
 
-            VerifyOpenLineAbove(code, expected);
+            await VerifyOpenLineAboveAsync(code, expected);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TestOpenLineAbove3()
+        public async Task TestOpenLineAbove3()
         {
             const string code =
 @"class C
@@ -1734,12 +1735,12 @@ $$
     }
 }";
 
-            VerifyOpenLineAbove(code, expected);
+            await VerifyOpenLineAboveAsync(code, expected);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TestOpenLineAbove4_Tabs()
+        public async Task TestOpenLineAbove4_Tabs()
         {
             const string code =
 @"class C
@@ -1764,12 +1765,12 @@ $$
     }
 }";
 
-            VerifyOpenLineAbove(code, expected, useTabs: true);
+            await VerifyOpenLineAboveAsync(code, expected, useTabs: true);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TestOpenLineBelow1()
+        public async Task TestOpenLineBelow1()
         {
             const string code =
 @"class C
@@ -1794,12 +1795,12 @@ $$
     }
 }";
 
-            VerifyOpenLineBelow(code, expected);
+            await VerifyOpenLineBelowAsync(code, expected);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TestOpenLineBelow2()
+        public async Task TestOpenLineBelow2()
         {
             const string code =
 @"class C
@@ -1824,12 +1825,12 @@ $$
     }
 }";
 
-            VerifyOpenLineBelow(code, expected);
+            await VerifyOpenLineBelowAsync(code, expected);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TestOpenLineBelow3()
+        public async Task TestOpenLineBelow3()
         {
             const string code =
 @"/// <summary>
@@ -1844,12 +1845,12 @@ $$
 /// $$
 ";
 
-            VerifyOpenLineBelow(code, expected);
+            await VerifyOpenLineBelowAsync(code, expected);
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-        public void TestOpenLineBelow4_Tabs()
+        public async Task TestOpenLineBelow4_Tabs()
         {
             const string code =
 @"class C
@@ -1874,7 +1875,7 @@ $$
     }
 }";
 
-            VerifyOpenLineBelow(code, expected, useTabs: true);
+            await VerifyOpenLineBelowAsync(code, expected, useTabs: true);
         }
 
         protected override char DocumentationCommentCharacter
@@ -1891,9 +1892,9 @@ $$
             return new DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService, completionService);
         }
 
-        protected override TestWorkspace CreateTestWorkspace(string code)
+        protected override Task<TestWorkspace> CreateTestWorkspaceAsync(string code)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromLines(code);
+            return CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code);
         }
     }
 }

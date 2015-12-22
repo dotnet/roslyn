@@ -30,7 +30,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             object hostObjectValue,
             DkmClrType type,
             string alias,
-            IDkmClrFormatter formatter,
             DkmEvaluationResultFlags evalFlags,
             DkmClrValueFlags valueFlags,
             DkmEvaluationResultCategory category = default(DkmEvaluationResultCategory),
@@ -45,7 +44,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             this.RawValue = value;
             this.HostObjectValue = hostObjectValue;
             this.Type = type;
-            _formatter = formatter;
             this.Alias = alias;
             this.EvalFlags = evalFlags;
             this.ValueFlags = valueFlags;
@@ -67,7 +65,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         public readonly string Alias;
         public readonly ulong NativeComPointer;
 
-        private readonly IDkmClrFormatter _formatter;
         internal readonly object RawValue;
 
         public void Close()
@@ -105,7 +102,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 value,
                 valueType,
                 alias: null,
-                formatter: _formatter,
                 evalFlags: evalFlags,
                 valueFlags: valueFlags,
                 category: DkmEvaluationResultCategory.Other,
@@ -145,8 +141,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException(nameof(inspectionContext));
             }
 
-            // The real version does some sort of dynamic dispatch that ultimately calls this method.
-            return _formatter.GetValueString(this, inspectionContext, formatSpecifiers);
+            return inspectionContext.InspectionSession.InvokeFormatter(MethodId.GetValueString, f => f.GetValueString(this, inspectionContext, formatSpecifiers));
         }
 
         public bool HasUnderlyingString(DkmInspectionContext inspectionContext)
@@ -156,7 +151,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException(nameof(inspectionContext));
             }
 
-            return _formatter.HasUnderlyingString(this, inspectionContext);
+            return inspectionContext.InspectionSession.InvokeFormatter(MethodId.HasUnderlyingString, f => f.HasUnderlyingString(this, inspectionContext));
         }
 
         public string GetUnderlyingString(DkmInspectionContext inspectionContext)
@@ -166,7 +161,35 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException(nameof(inspectionContext));
             }
 
-            return _formatter.GetUnderlyingString(this, inspectionContext);
+            return inspectionContext.InspectionSession.InvokeFormatter(MethodId.GetUnderlyingString, f => f.GetUnderlyingString(this, inspectionContext));
+        }
+
+        public void GetResult(
+            DkmWorkList WorkList,
+            DkmClrType DeclaredType,
+            DkmClrCustomTypeInfo CustomTypeInfo,
+            DkmInspectionContext InspectionContext,
+            ReadOnlyCollection<string> FormatSpecifiers,
+            string ResultName,
+            string ResultFullName,
+            DkmCompletionRoutine<DkmEvaluationAsyncResult> CompletionRoutine)
+        {
+            InspectionContext.InspectionSession.InvokeResultProvider(
+                MethodId.GetResult,
+                r =>
+                {
+                    r.GetResult(
+                        this,
+                        WorkList,
+                        DeclaredType,
+                        CustomTypeInfo,
+                        InspectionContext,
+                        FormatSpecifiers,
+                        ResultName,
+                        ResultFullName,
+                        CompletionRoutine);
+                    return (object)null;
+                });
         }
 
         public string EvaluateToString(DkmInspectionContext inspectionContext)
@@ -253,7 +276,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                         {
                             if (formatSpecifier == "nq")
                             {
-                                inspectionContext = new DkmInspectionContext(_formatter, inspectionContext.EvaluationFlags | DkmEvaluationFlags.NoQuotes, inspectionContext.Radix, inspectionContext.RuntimeInstance);
+                                inspectionContext = new DkmInspectionContext(inspectionContext.InspectionSession, inspectionContext.EvaluationFlags | DkmEvaluationFlags.NoQuotes, inspectionContext.Radix, inspectionContext.RuntimeInstance);
                             }
                             // If we need to support additional format specifiers, add them here...
                         }
@@ -280,7 +303,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                             fieldValue,
                             DkmClrType.Create(appDomain, (TypeImpl)((fieldValue == null) ? field.FieldType : fieldValue.GetType())),
                             alias: null,
-                            formatter: _formatter,
                             evalFlags: GetEvaluationResultFlags(fieldValue),
                             valueFlags: DkmClrValueFlags.None);
                     }
@@ -295,7 +317,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                                 propertyValue,
                                 DkmClrType.Create(appDomain, (TypeImpl)((propertyValue == null) ? property.PropertyType : propertyValue.GetType())),
                                 alias: null,
-                                formatter: _formatter,
                                 evalFlags: GetEvaluationResultFlags(propertyValue),
                                 valueFlags: DkmClrValueFlags.None);
                         }
@@ -318,7 +339,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                                     methodValue,
                                     DkmClrType.Create(appDomain, (TypeImpl)((methodValue == null) ? method.ReturnType : methodValue.GetType())),
                                     alias: null,
-                                    formatter: _formatter,
                                     evalFlags: GetEvaluationResultFlags(methodValue),
                                     valueFlags: DkmClrValueFlags.None);
                             }
@@ -331,7 +351,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                                     stringValue,
                                     stringType,
                                     alias: null,
-                                    formatter: _formatter,
                                     evalFlags: DkmEvaluationResultFlags.None,
                                     valueFlags: DkmClrValueFlags.Error);
                             }
@@ -398,7 +417,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                         boolValue,
                         type: boolType,
                         alias: null,
-                        formatter: _formatter,
                         evalFlags: DkmEvaluationResultFlags.None,
                         valueFlags: DkmClrValueFlags.None,
                         category: DkmEvaluationResultCategory.Property,
@@ -415,7 +433,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                         RawValue,
                         type: valueType,
                         alias: null,
-                        formatter: _formatter,
                         evalFlags: DkmEvaluationResultFlags.None,
                         valueFlags: DkmClrValueFlags.None,
                         category: DkmEvaluationResultCategory.Property,
@@ -459,7 +476,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                             exception,
                             type: runtime.GetType((TypeImpl)exception.GetType()),
                             alias: null,
-                            formatter: _formatter,
                             evalFlags: evalFlags | DkmEvaluationResultFlags.ExceptionThrown,
                             valueFlags: DkmClrValueFlags.None,
                             category: category,
@@ -487,7 +503,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                             exception,
                             type: runtime.GetType((TypeImpl)exception.GetType()),
                             alias: null,
-                            formatter: _formatter,
                             evalFlags: evalFlags | DkmEvaluationResultFlags.ExceptionThrown,
                             valueFlags: DkmClrValueFlags.None,
                             category: category,
@@ -518,7 +533,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 value,
                 type: runtime.GetType(type),
                 alias: null,
-                formatter: _formatter,
                 evalFlags: evalFlags,
                 valueFlags: DkmClrValueFlags.None,
                 category: category,
@@ -555,7 +569,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 element,
                 type: type,
                 alias: null,
-                formatter: _formatter,
                 evalFlags: DkmEvaluationResultFlags.None,
                 valueFlags: DkmClrValueFlags.None);
         }
@@ -621,7 +634,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 value,
                 type: proxyType,
                 alias: null,
-                formatter: _formatter,
                 evalFlags: DkmEvaluationResultFlags.None,
                 valueFlags: DkmClrValueFlags.None);
         }

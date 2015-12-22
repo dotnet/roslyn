@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Debugging;
@@ -14,30 +15,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 {
     public class NameResolverTests
     {
-        private void Test(string text, string searchText, params string[] expectedNames)
+        private async Task TestAsync(string text, string searchText, params string[] expectedNames)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(text))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(text))
             {
                 var nameResolver = new BreakpointResolver(workspace.CurrentSolution, searchText);
-                var results = nameResolver.DoAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var results = await nameResolver.DoAsync(CancellationToken.None);
 
                 Assert.Equal(expectedNames, results.Select(r => r.LocationNameOpt));
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestCSharpLanguageDebugInfoCreateNameResolver()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestCSharpLanguageDebugInfoCreateNameResolver()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(" "))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(" "))
             {
                 var debugInfo = new CSharpBreakpointResolutionService();
-                var results = debugInfo.ResolveBreakpointsAsync(workspace.CurrentSolution, "foo", CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var results = await debugInfo.ResolveBreakpointsAsync(workspace.CurrentSolution, "foo", CancellationToken.None);
                 Assert.Equal(0, results.Count());
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestSimpleNameInClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestSimpleNameInClass()
         {
             var text =
 @"class C
@@ -46,19 +47,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
   {
   }
 }";
-            Test(text, "Foo", "C.Foo()");
-            Test(text, "foo");
-            Test(text, "C.Foo", "C.Foo()");
-            Test(text, "N.C.Foo");
-            Test(text, "Foo<T>");
-            Test(text, "C<T>.Foo");
-            Test(text, "Foo()", "C.Foo()");
-            Test(text, "Foo(int i)");
-            Test(text, "Foo(int)");
+            await TestAsync(text, "Foo", "C.Foo()");
+            await TestAsync(text, "foo");
+            await TestAsync(text, "C.Foo", "C.Foo()");
+            await TestAsync(text, "N.C.Foo");
+            await TestAsync(text, "Foo<T>");
+            await TestAsync(text, "C<T>.Foo");
+            await TestAsync(text, "Foo()", "C.Foo()");
+            await TestAsync(text, "Foo(int i)");
+            await TestAsync(text, "Foo(int)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestSimpleNameInNamespace()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestSimpleNameInNamespace()
         {
             var text =
 @"
@@ -71,22 +72,22 @@ namespace N
     }
   }
 }";
-            Test(text, "Foo", "N.C.Foo()");
-            Test(text, "foo");
-            Test(text, "C.Foo", "N.C.Foo()");
-            Test(text, "N.C.Foo", "N.C.Foo()");
-            Test(text, "Foo<T>");
-            Test(text, "C<T>.Foo");
-            Test(text, "Foo()", "N.C.Foo()");
-            Test(text, "C.Foo()", "N.C.Foo()");
-            Test(text, "N.C.Foo()", "N.C.Foo()");
-            Test(text, "Foo(int i)");
-            Test(text, "Foo(int)");
-            Test(text, "Foo(a)");
+            await TestAsync(text, "Foo", "N.C.Foo()");
+            await TestAsync(text, "foo");
+            await TestAsync(text, "C.Foo", "N.C.Foo()");
+            await TestAsync(text, "N.C.Foo", "N.C.Foo()");
+            await TestAsync(text, "Foo<T>");
+            await TestAsync(text, "C<T>.Foo");
+            await TestAsync(text, "Foo()", "N.C.Foo()");
+            await TestAsync(text, "C.Foo()", "N.C.Foo()");
+            await TestAsync(text, "N.C.Foo()", "N.C.Foo()");
+            await TestAsync(text, "Foo(int i)");
+            await TestAsync(text, "Foo(int)");
+            await TestAsync(text, "Foo(a)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestSimpleNameInGenericClassNamespace()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestSimpleNameInGenericClassNamespace()
         {
             var text =
 @"
@@ -99,23 +100,23 @@ namespace N
     }
   }
 }";
-            Test(text, "Foo", "N.C<T>.Foo()");
-            Test(text, "foo");
-            Test(text, "C.Foo", "N.C<T>.Foo()");
-            Test(text, "N.C.Foo", "N.C<T>.Foo()");
-            Test(text, "Foo<T>");
-            Test(text, "C<T>.Foo", "N.C<T>.Foo()");
-            Test(text, "C<T>.Foo()", "N.C<T>.Foo()");
-            Test(text, "Foo()", "N.C<T>.Foo()");
-            Test(text, "C.Foo()", "N.C<T>.Foo()");
-            Test(text, "N.C.Foo()", "N.C<T>.Foo()");
-            Test(text, "Foo(int i)");
-            Test(text, "Foo(int)");
-            Test(text, "Foo(a)");
+            await TestAsync(text, "Foo", "N.C<T>.Foo()");
+            await TestAsync(text, "foo");
+            await TestAsync(text, "C.Foo", "N.C<T>.Foo()");
+            await TestAsync(text, "N.C.Foo", "N.C<T>.Foo()");
+            await TestAsync(text, "Foo<T>");
+            await TestAsync(text, "C<T>.Foo", "N.C<T>.Foo()");
+            await TestAsync(text, "C<T>.Foo()", "N.C<T>.Foo()");
+            await TestAsync(text, "Foo()", "N.C<T>.Foo()");
+            await TestAsync(text, "C.Foo()", "N.C<T>.Foo()");
+            await TestAsync(text, "N.C.Foo()", "N.C<T>.Foo()");
+            await TestAsync(text, "Foo(int i)");
+            await TestAsync(text, "Foo(int)");
+            await TestAsync(text, "Foo(a)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestGenericNameInClassNamespace()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestGenericNameInClassNamespace()
         {
             var text =
 @"
@@ -128,28 +129,28 @@ namespace N
     }
   }
 }";
-            Test(text, "Foo", "N.C.Foo<T>()");
-            Test(text, "foo");
-            Test(text, "C.Foo", "N.C.Foo<T>()");
-            Test(text, "N.C.Foo", "N.C.Foo<T>()");
-            Test(text, "Foo<T>", "N.C.Foo<T>()");
-            Test(text, "Foo<X>", "N.C.Foo<T>()");
-            Test(text, "Foo<T,X>");
-            Test(text, "C<T>.Foo");
-            Test(text, "C<T>.Foo()");
-            Test(text, "Foo()", "N.C.Foo<T>()");
-            Test(text, "C.Foo()", "N.C.Foo<T>()");
-            Test(text, "N.C.Foo()", "N.C.Foo<T>()");
-            Test(text, "Foo(int i)");
-            Test(text, "Foo(int)");
-            Test(text, "Foo(a)");
-            Test(text, "Foo<T>(int i)");
-            Test(text, "Foo<T>(int)");
-            Test(text, "Foo<T>(a)");
+            await TestAsync(text, "Foo", "N.C.Foo<T>()");
+            await TestAsync(text, "foo");
+            await TestAsync(text, "C.Foo", "N.C.Foo<T>()");
+            await TestAsync(text, "N.C.Foo", "N.C.Foo<T>()");
+            await TestAsync(text, "Foo<T>", "N.C.Foo<T>()");
+            await TestAsync(text, "Foo<X>", "N.C.Foo<T>()");
+            await TestAsync(text, "Foo<T,X>");
+            await TestAsync(text, "C<T>.Foo");
+            await TestAsync(text, "C<T>.Foo()");
+            await TestAsync(text, "Foo()", "N.C.Foo<T>()");
+            await TestAsync(text, "C.Foo()", "N.C.Foo<T>()");
+            await TestAsync(text, "N.C.Foo()", "N.C.Foo<T>()");
+            await TestAsync(text, "Foo(int i)");
+            await TestAsync(text, "Foo(int)");
+            await TestAsync(text, "Foo(a)");
+            await TestAsync(text, "Foo<T>(int i)");
+            await TestAsync(text, "Foo<T>(int)");
+            await TestAsync(text, "Foo<T>(a)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestOverloadsInSingleClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestOverloadsInSingleClass()
         {
             var text =
 @"class C
@@ -162,20 +163,20 @@ namespace N
   {
   }
 }";
-            Test(text, "Foo", "C.Foo()", "C.Foo(int)");
-            Test(text, "foo");
-            Test(text, "C.Foo", "C.Foo()", "C.Foo(int)");
-            Test(text, "N.C.Foo");
-            Test(text, "Foo<T>");
-            Test(text, "C<T>.Foo");
-            Test(text, "Foo()", "C.Foo()");
-            Test(text, "Foo(int i)", "C.Foo(int)");
-            Test(text, "Foo(int)", "C.Foo(int)");
-            Test(text, "Foo(i)", "C.Foo(int)");
+            await TestAsync(text, "Foo", "C.Foo()", "C.Foo(int)");
+            await TestAsync(text, "foo");
+            await TestAsync(text, "C.Foo", "C.Foo()", "C.Foo(int)");
+            await TestAsync(text, "N.C.Foo");
+            await TestAsync(text, "Foo<T>");
+            await TestAsync(text, "C<T>.Foo");
+            await TestAsync(text, "Foo()", "C.Foo()");
+            await TestAsync(text, "Foo(int i)", "C.Foo(int)");
+            await TestAsync(text, "Foo(int)", "C.Foo(int)");
+            await TestAsync(text, "Foo(i)", "C.Foo(int)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestMethodsInMultipleClasses()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestMethodsInMultipleClasses()
         {
             var text =
 @"namespace N
@@ -197,21 +198,21 @@ namespace N1
     }
   }
 }";
-            Test(text, "Foo", "N1.C.Foo(int)", "N.C.Foo()");
-            Test(text, "foo");
-            Test(text, "C.Foo", "N1.C.Foo(int)", "N.C.Foo()");
-            Test(text, "N.C.Foo", "N.C.Foo()");
-            Test(text, "N1.C.Foo", "N1.C.Foo(int)");
-            Test(text, "Foo<T>");
-            Test(text, "C<T>.Foo");
-            Test(text, "Foo()", "N.C.Foo()");
-            Test(text, "Foo(int i)", "N1.C.Foo(int)");
-            Test(text, "Foo(int)", "N1.C.Foo(int)");
-            Test(text, "Foo(i)", "N1.C.Foo(int)");
+            await TestAsync(text, "Foo", "N1.C.Foo(int)", "N.C.Foo()");
+            await TestAsync(text, "foo");
+            await TestAsync(text, "C.Foo", "N1.C.Foo(int)", "N.C.Foo()");
+            await TestAsync(text, "N.C.Foo", "N.C.Foo()");
+            await TestAsync(text, "N1.C.Foo", "N1.C.Foo(int)");
+            await TestAsync(text, "Foo<T>");
+            await TestAsync(text, "C<T>.Foo");
+            await TestAsync(text, "Foo()", "N.C.Foo()");
+            await TestAsync(text, "Foo(int i)", "N1.C.Foo(int)");
+            await TestAsync(text, "Foo(int)", "N1.C.Foo(int)");
+            await TestAsync(text, "Foo(i)", "N1.C.Foo(int)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestMethodsWithDifferentArityInMultipleClasses()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestMethodsWithDifferentArityInMultipleClasses()
         {
             var text =
 @"namespace N
@@ -233,25 +234,25 @@ namespace N1
     }
   }
 }";
-            Test(text, "Foo", "N1.C.Foo<T>(int)", "N.C.Foo()");
-            Test(text, "foo");
-            Test(text, "C.Foo", "N1.C.Foo<T>(int)", "N.C.Foo()");
-            Test(text, "N.C.Foo", "N.C.Foo()");
-            Test(text, "N1.C.Foo", "N1.C.Foo<T>(int)");
-            Test(text, "Foo<T>", "N1.C.Foo<T>(int)");
-            Test(text, "C<T>.Foo");
-            Test(text, "Foo()", "N.C.Foo()");
-            Test(text, "Foo<T>()");
-            Test(text, "Foo(int i)", "N1.C.Foo<T>(int)");
-            Test(text, "Foo(int)", "N1.C.Foo<T>(int)");
-            Test(text, "Foo(i)", "N1.C.Foo<T>(int)");
-            Test(text, "Foo<T>(int i)", "N1.C.Foo<T>(int)");
-            Test(text, "Foo<T>(int)", "N1.C.Foo<T>(int)");
-            Test(text, "Foo<T>(i)", "N1.C.Foo<T>(int)");
+            await TestAsync(text, "Foo", "N1.C.Foo<T>(int)", "N.C.Foo()");
+            await TestAsync(text, "foo");
+            await TestAsync(text, "C.Foo", "N1.C.Foo<T>(int)", "N.C.Foo()");
+            await TestAsync(text, "N.C.Foo", "N.C.Foo()");
+            await TestAsync(text, "N1.C.Foo", "N1.C.Foo<T>(int)");
+            await TestAsync(text, "Foo<T>", "N1.C.Foo<T>(int)");
+            await TestAsync(text, "C<T>.Foo");
+            await TestAsync(text, "Foo()", "N.C.Foo()");
+            await TestAsync(text, "Foo<T>()");
+            await TestAsync(text, "Foo(int i)", "N1.C.Foo<T>(int)");
+            await TestAsync(text, "Foo(int)", "N1.C.Foo<T>(int)");
+            await TestAsync(text, "Foo(i)", "N1.C.Foo<T>(int)");
+            await TestAsync(text, "Foo<T>(int i)", "N1.C.Foo<T>(int)");
+            await TestAsync(text, "Foo<T>(int)", "N1.C.Foo<T>(int)");
+            await TestAsync(text, "Foo<T>(i)", "N1.C.Foo<T>(int)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestOverloadsWithMultipleParametersInSingleClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestOverloadsWithMultipleParametersInSingleClass()
         {
             var text =
 @"class C
@@ -268,32 +269,32 @@ namespace N1
   {
   }
 }";
-            Test(text, "Foo", "C.Foo(int)", "C.Foo(int, [string])", "C.Foo(__arglist)");
-            Test(text, "foo");
-            Test(text, "C.Foo", "C.Foo(int)", "C.Foo(int, [string])", "C.Foo(__arglist)");
-            Test(text, "N.C.Foo");
-            Test(text, "Foo<T>");
-            Test(text, "C<T>.Foo");
-            Test(text, "Foo()", "C.Foo(__arglist)");
-            Test(text, "Foo(int i)", "C.Foo(int)");
-            Test(text, "Foo(int)", "C.Foo(int)");
-            Test(text, "Foo(int x = 42)", "C.Foo(int)");
-            Test(text, "Foo(i)", "C.Foo(int)");
-            Test(text, "Foo(int i, int b)", "C.Foo(int, [string])");
-            Test(text, "Foo(int, bool)", "C.Foo(int, [string])");
-            Test(text, "Foo(i, s)", "C.Foo(int, [string])");
-            Test(text, "Foo(,)", "C.Foo(int, [string])");
-            Test(text, "Foo(int x = 42,)", "C.Foo(int, [string])");
-            Test(text, "Foo(int x = 42, y = 42)", "C.Foo(int, [string])");
-            Test(text, "Foo([attr] x = 42, y = 42)", "C.Foo(int, [string])");
-            Test(text, "Foo(int i, int b, char c)");
-            Test(text, "Foo(int, bool, char)");
-            Test(text, "Foo(i, s, c)");
-            Test(text, "Foo(__arglist)", "C.Foo(int)");
+            await TestAsync(text, "Foo", "C.Foo(int)", "C.Foo(int, [string])", "C.Foo(__arglist)");
+            await TestAsync(text, "foo");
+            await TestAsync(text, "C.Foo", "C.Foo(int)", "C.Foo(int, [string])", "C.Foo(__arglist)");
+            await TestAsync(text, "N.C.Foo");
+            await TestAsync(text, "Foo<T>");
+            await TestAsync(text, "C<T>.Foo");
+            await TestAsync(text, "Foo()", "C.Foo(__arglist)");
+            await TestAsync(text, "Foo(int i)", "C.Foo(int)");
+            await TestAsync(text, "Foo(int)", "C.Foo(int)");
+            await TestAsync(text, "Foo(int x = 42)", "C.Foo(int)");
+            await TestAsync(text, "Foo(i)", "C.Foo(int)");
+            await TestAsync(text, "Foo(int i, int b)", "C.Foo(int, [string])");
+            await TestAsync(text, "Foo(int, bool)", "C.Foo(int, [string])");
+            await TestAsync(text, "Foo(i, s)", "C.Foo(int, [string])");
+            await TestAsync(text, "Foo(,)", "C.Foo(int, [string])");
+            await TestAsync(text, "Foo(int x = 42,)", "C.Foo(int, [string])");
+            await TestAsync(text, "Foo(int x = 42, y = 42)", "C.Foo(int, [string])");
+            await TestAsync(text, "Foo([attr] x = 42, y = 42)", "C.Foo(int, [string])");
+            await TestAsync(text, "Foo(int i, int b, char c)");
+            await TestAsync(text, "Foo(int, bool, char)");
+            await TestAsync(text, "Foo(i, s, c)");
+            await TestAsync(text, "Foo(__arglist)", "C.Foo(int)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void AccessorTests()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task AccessorTests()
         {
             var text =
 @"class C
@@ -302,13 +303,13 @@ namespace N1
   int Property2 { set { } }
   int Property3 { get; set;}
 }";
-            Test(text, "Property1", "C.Property1");
-            Test(text, "Property2", "C.Property2");
-            Test(text, "Property3", "C.Property3");
+            await TestAsync(text, "Property1", "C.Property1");
+            await TestAsync(text, "Property2", "C.Property2");
+            await TestAsync(text, "Property3", "C.Property3");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void NegativeTests()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task NegativeTests()
         {
             var text =
 @"using System.Runtime.CompilerServices;
@@ -324,41 +325,41 @@ abstract class C
     void Foo(int x = 1, int y = 2) { }
     ~C() { }
 }";
-            Test(text, "AbstractMethod");
-            Test(text, "Field");
-            Test(text, "Delegate");
-            Test(text, "Event");
-            Test(text, "this");
-            Test(text, "C.this[int]");
-            Test(text, "C.get_Item");
-            Test(text, "C.get_Item(i)");
-            Test(text, "C[i]");
-            Test(text, "ABCD");
-            Test(text, "C.ABCD(int)");
-            Test(text, "42");
-            Test(text, "Foo", "C.Foo()", "C.Foo([int], [int])"); // just making sure it would normally resolve before trying bad syntax
-            Test(text, "Foo Foo");
-            Test(text, "Foo()asdf");
-            Test(text, "Foo(),");
-            Test(text, "Foo(),f");
-            Test(text, "Foo().Foo");
-            Test(text, "Foo(");
-            Test(text, "(Foo");
-            Test(text, "Foo)");
-            Test(text, "(Foo)");
-            Test(text, "Foo(x = 42, y = 42)", "C.Foo([int], [int])"); // just making sure it would normally resolve before trying bad syntax
-            Test(text, "int x = 42");
-            Test(text, "Foo(int x = 42, y = 42");
-            Test(text, "C");
-            Test(text, "C.C");
-            Test(text, "~");
-            Test(text, "~C");
-            Test(text, "C.~C()");
-            Test(text, "");
+            await TestAsync(text, "AbstractMethod");
+            await TestAsync(text, "Field");
+            await TestAsync(text, "Delegate");
+            await TestAsync(text, "Event");
+            await TestAsync(text, "this");
+            await TestAsync(text, "C.this[int]");
+            await TestAsync(text, "C.get_Item");
+            await TestAsync(text, "C.get_Item(i)");
+            await TestAsync(text, "C[i]");
+            await TestAsync(text, "ABCD");
+            await TestAsync(text, "C.ABCD(int)");
+            await TestAsync(text, "42");
+            await TestAsync(text, "Foo", "C.Foo()", "C.Foo([int], [int])"); // just making sure it would normally resolve before trying bad syntax
+            await TestAsync(text, "Foo Foo");
+            await TestAsync(text, "Foo()asdf");
+            await TestAsync(text, "Foo(),");
+            await TestAsync(text, "Foo(),f");
+            await TestAsync(text, "Foo().Foo");
+            await TestAsync(text, "Foo(");
+            await TestAsync(text, "(Foo");
+            await TestAsync(text, "Foo)");
+            await TestAsync(text, "(Foo)");
+            await TestAsync(text, "Foo(x = 42, y = 42)", "C.Foo([int], [int])"); // just making sure it would normally resolve before trying bad syntax
+            await TestAsync(text, "int x = 42");
+            await TestAsync(text, "Foo(int x = 42, y = 42");
+            await TestAsync(text, "C");
+            await TestAsync(text, "C.C");
+            await TestAsync(text, "~");
+            await TestAsync(text, "~C");
+            await TestAsync(text, "C.~C()");
+            await TestAsync(text, "");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestInstanceConstructors()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestInstanceConstructors()
         {
             var text =
 @"class C
@@ -371,35 +372,35 @@ class G<T>
   public G() { }
   ~G() { }
 }";
-            Test(text, "C", "C.C()");
-            Test(text, "C.C", "C.C()");
-            Test(text, "C.C()", "C.C()");
-            Test(text, "C()", "C.C()");
-            Test(text, "C<T>");
-            Test(text, "C<T>()");
-            Test(text, "C(int i)");
-            Test(text, "C(int)");
-            Test(text, "C(i)");
-            Test(text, "G", "G<T>.G()");
-            Test(text, "G()", "G<T>.G()");
-            Test(text, "G.G", "G<T>.G()");
-            Test(text, "G.G()", "G<T>.G()");
-            Test(text, "G<T>.G", "G<T>.G()");
-            Test(text, "G<t>.G()", "G<T>.G()");
-            Test(text, "G<T>");
-            Test(text, "G<T>()");
-            Test(text, "G.G<T>");
-            Test(text, ".ctor");
-            Test(text, ".ctor()");
-            Test(text, "C.ctor");
-            Test(text, "C.ctor()");
-            Test(text, "G.ctor");
-            Test(text, "G<T>.ctor()");
-            Test(text, "Finalize", "G<T>.~G()");
+            await TestAsync(text, "C", "C.C()");
+            await TestAsync(text, "C.C", "C.C()");
+            await TestAsync(text, "C.C()", "C.C()");
+            await TestAsync(text, "C()", "C.C()");
+            await TestAsync(text, "C<T>");
+            await TestAsync(text, "C<T>()");
+            await TestAsync(text, "C(int i)");
+            await TestAsync(text, "C(int)");
+            await TestAsync(text, "C(i)");
+            await TestAsync(text, "G", "G<T>.G()");
+            await TestAsync(text, "G()", "G<T>.G()");
+            await TestAsync(text, "G.G", "G<T>.G()");
+            await TestAsync(text, "G.G()", "G<T>.G()");
+            await TestAsync(text, "G<T>.G", "G<T>.G()");
+            await TestAsync(text, "G<t>.G()", "G<T>.G()");
+            await TestAsync(text, "G<T>");
+            await TestAsync(text, "G<T>()");
+            await TestAsync(text, "G.G<T>");
+            await TestAsync(text, ".ctor");
+            await TestAsync(text, ".ctor()");
+            await TestAsync(text, "C.ctor");
+            await TestAsync(text, "C.ctor()");
+            await TestAsync(text, "G.ctor");
+            await TestAsync(text, "G<T>.ctor()");
+            await TestAsync(text, "Finalize", "G<T>.~G()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestStaticConstructors()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestStaticConstructors()
         {
             var text =
 @"class C
@@ -408,21 +409,21 @@ class G<T>
   {
   }
 }";
-            Test(text, "C", "C.C()");
-            Test(text, "C.C", "C.C()");
-            Test(text, "C.C()", "C.C()");
-            Test(text, "C()", "C.C()");
-            Test(text, "C<T>");
-            Test(text, "C<T>()");
-            Test(text, "C(int i)");
-            Test(text, "C(int)");
-            Test(text, "C(i)");
-            Test(text, "C.cctor");
-            Test(text, "C.cctor()");
+            await TestAsync(text, "C", "C.C()");
+            await TestAsync(text, "C.C", "C.C()");
+            await TestAsync(text, "C.C()", "C.C()");
+            await TestAsync(text, "C()", "C.C()");
+            await TestAsync(text, "C<T>");
+            await TestAsync(text, "C<T>()");
+            await TestAsync(text, "C(int i)");
+            await TestAsync(text, "C(int)");
+            await TestAsync(text, "C(i)");
+            await TestAsync(text, "C.cctor");
+            await TestAsync(text, "C.cctor()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestAllConstructors()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestAllConstructors()
         {
             var text =
 @"class C
@@ -435,19 +436,19 @@ class G<T>
   {
   }
 }";
-            Test(text, "C", "C.C(int)", "C.C()");
-            Test(text, "C.C", "C.C(int)", "C.C()");
-            Test(text, "C.C()", "C.C()");
-            Test(text, "C()", "C.C()");
-            Test(text, "C<T>");
-            Test(text, "C<T>()");
-            Test(text, "C(int i)", "C.C(int)");
-            Test(text, "C(int)", "C.C(int)");
-            Test(text, "C(i)", "C.C(int)");
+            await TestAsync(text, "C", "C.C(int)", "C.C()");
+            await TestAsync(text, "C.C", "C.C(int)", "C.C()");
+            await TestAsync(text, "C.C()", "C.C()");
+            await TestAsync(text, "C()", "C.C()");
+            await TestAsync(text, "C<T>");
+            await TestAsync(text, "C<T>()");
+            await TestAsync(text, "C(int i)", "C.C(int)");
+            await TestAsync(text, "C(int)", "C.C(int)");
+            await TestAsync(text, "C(i)", "C.C(int)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestPartialMethods()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestPartialMethods()
         {
             var text =
 @"partial class C
@@ -464,36 +465,36 @@ class G<T>
 
   partial void M4() { }
 }";
-            Test(text, "M1");
-            Test(text, "C.M1");
-            Test(text, "M2", "C.M2()");
-            Test(text, "M3", "C.M3(int)");
-            Test(text, "M3()");
-            Test(text, "M3(y)", "C.M3(int)");
-            Test(text, "M4", "C.M4()");
+            await TestAsync(text, "M1");
+            await TestAsync(text, "C.M1");
+            await TestAsync(text, "M2", "C.M2()");
+            await TestAsync(text, "M3", "C.M3(int)");
+            await TestAsync(text, "M3()");
+            await TestAsync(text, "M3(y)", "C.M3(int)");
+            await TestAsync(text, "M4", "C.M4()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestLeadingAndTrailingText()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestLeadingAndTrailingText()
         {
             var text =
 @"class C
 {
   void Foo() { };
 }";
-            Test(text, "Foo;", "C.Foo()");
-            Test(text, "Foo();", "C.Foo()");
-            Test(text, "  Foo;", "C.Foo()");
-            Test(text, "  Foo;;");
-            Test(text, "  Foo; ;");
-            Test(text, "Foo(); ", "C.Foo()");
-            Test(text, " Foo (  )  ; ", "C.Foo()");
-            Test(text, "Foo(); // comment", "C.Foo()");
-            Test(text, "/*comment*/Foo(/* params */); /* comment", "C.Foo()");
+            await TestAsync(text, "Foo;", "C.Foo()");
+            await TestAsync(text, "Foo();", "C.Foo()");
+            await TestAsync(text, "  Foo;", "C.Foo()");
+            await TestAsync(text, "  Foo;;");
+            await TestAsync(text, "  Foo; ;");
+            await TestAsync(text, "Foo(); ", "C.Foo()");
+            await TestAsync(text, " Foo (  )  ; ", "C.Foo()");
+            await TestAsync(text, "Foo(); // comment", "C.Foo()");
+            await TestAsync(text, "/*comment*/Foo(/* params */); /* comment", "C.Foo()");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestEscapedKeywords()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestEscapedKeywords()
         {
             var text =
 @"struct @true { }
@@ -502,17 +503,17 @@ class @foreach
     void where(@true @this) { }
     void @false() { }
 }";
-            Test(text, "where", "@foreach.where(@true)");
-            Test(text, "@where", "@foreach.where(@true)");
-            Test(text, "@foreach.where", "@foreach.where(@true)");
-            Test(text, "foreach.where");
-            Test(text, "@foreach.where(true)");
-            Test(text, "@foreach.where(@if)", "@foreach.where(@true)");
-            Test(text, "false");
+            await TestAsync(text, "where", "@foreach.where(@true)");
+            await TestAsync(text, "@where", "@foreach.where(@true)");
+            await TestAsync(text, "@foreach.where", "@foreach.where(@true)");
+            await TestAsync(text, "foreach.where");
+            await TestAsync(text, "@foreach.where(true)");
+            await TestAsync(text, "@foreach.where(@if)", "@foreach.where(@true)");
+            await TestAsync(text, "false");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestAliasQualifiedNames()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestAliasQualifiedNames()
         {
             var text =
 @"extern alias A
@@ -520,15 +521,15 @@ class C
 {
     void Foo(D d) { }
 }";
-            Test(text, "A::Foo");
-            Test(text, "A::Foo(A::B)");
-            Test(text, "A::Foo(A::B)");
-            Test(text, "A::C.Foo");
-            Test(text, "C.Foo(A::Q)", "C.Foo(D)");
+            await TestAsync(text, "A::Foo");
+            await TestAsync(text, "A::Foo(A::B)");
+            await TestAsync(text, "A::Foo(A::B)");
+            await TestAsync(text, "A::C.Foo");
+            await TestAsync(text, "C.Foo(A::Q)", "C.Foo(D)");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestNestedTypesAndNamespaces()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestNestedTypesAndNamespaces()
         {
             var text =
 @"namespace N1
@@ -565,17 +566,17 @@ class C
   namespace N5 { }
 }";
 
-            Test(text, "Foo", "N1.N4.C.Foo(double)", "N1.N4.C.D.Foo()", "N1.N4.C.D.E.Foo()", "N1.C.Foo()");
-            Test(text, "C.Foo", "N1.N4.C.Foo(double)", "N1.C.Foo()");
-            Test(text, "D.Foo", "N1.N4.C.D.Foo()");
-            Test(text, "N1.N4.C.D.Foo", "N1.N4.C.D.Foo()");
-            Test(text, "N1.Foo");
-            Test(text, "N3.C.Foo");
-            Test(text, "N5.C.Foo");
+            await TestAsync(text, "Foo", "N1.N4.C.Foo(double)", "N1.N4.C.D.Foo()", "N1.N4.C.D.E.Foo()", "N1.C.Foo()");
+            await TestAsync(text, "C.Foo", "N1.N4.C.Foo(double)", "N1.C.Foo()");
+            await TestAsync(text, "D.Foo", "N1.N4.C.D.Foo()");
+            await TestAsync(text, "N1.N4.C.D.Foo", "N1.N4.C.D.Foo()");
+            await TestAsync(text, "N1.Foo");
+            await TestAsync(text, "N3.C.Foo");
+            await TestAsync(text, "N5.C.Foo");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
-        public void TestInterfaces()
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        public async Task TestInterfaces()
         {
             var text =
 @"interface I1
@@ -587,10 +588,10 @@ class C1 : I1
   void I1.Foo() { }
 }";
 
-            Test(text, "Foo", "C1.Foo()");
-            Test(text, "I1.Foo");
-            Test(text, "C1.Foo", "C1.Foo()");
-            Test(text, "C1.I1.Moo");
+            await TestAsync(text, "Foo", "C1.Foo()");
+            await TestAsync(text, "I1.Foo");
+            await TestAsync(text, "C1.Foo", "C1.Foo()");
+            await TestAsync(text, "C1.I1.Moo");
         }
     }
 }

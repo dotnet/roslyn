@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -12,8 +13,8 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class IfBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterSimpleIfThen()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterSimpleIfThen() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "  Sub foo()",
                          "    If True Then",
@@ -28,11 +29,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "  End Sub",
                         "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterLineIfNextToThen()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterLineIfNextToThen() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "    Sub foo()",
                          "        If True Then foo()",
@@ -47,11 +48,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Sub",
                         "End Class"},
                 afterCaret:={3, 12})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterLineIfWithMultipleStatements()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterLineIfWithMultipleStatements() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "    Sub foo()",
                          "        If True Then foo() : foo()",
@@ -67,11 +68,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Sub",
                         "End Class"},
                 afterCaret:={3, 12})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterLineIfNextToStatement()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterLineIfNextToStatement() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "    Sub foo()",
                          "        If True Then foo()",
@@ -86,11 +87,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Sub",
                         "End Class"},
                 afterCaret:={3, 12})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifySingleLineIfWithMultiLineLambda()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifySingleLineIfWithMultiLineLambda() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    Sub S",
                          "        If True Then Dim x = Function(x As Integer)",
@@ -115,11 +116,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End Sub",
                          "End Class"},
                 afterCaret:={3, 12})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifySingleLineIfThenElse()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifySingleLineIfThenElse() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    Sub S",
                          "        If True Then dim x = 1 Else y = 6",
@@ -136,11 +137,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End Sub",
                          "End Class"},
                 afterCaret:={3, 12})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyNestedIf()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyNestedIf() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    Sub S",
                          "        If True Then",
@@ -162,12 +163,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "End Class"},
                 afterCaret:={4, -1})
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536441)>
-        Public Sub VerifyNestedSingleLineIf()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyNestedSingleLineIf() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    Sub S",
                          "        If True Then If True Then X = 1 Else X = 2",
@@ -182,11 +183,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End Sub",
                          "End Class"},
                 afterCaret:={3, 12})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyAddingElseIf()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyAddingElseIf() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub S",
                        "        If true Then",
@@ -195,12 +196,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "    End Sub",
                        "End Class"},
                 caret:={3, -1})
-        End Sub
-
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyIfWithImplicitLC()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyIfWithImplicitLC() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    Sub S",
                          "        If True And",
@@ -217,11 +217,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End Sub",
                          "End Class"},
                 afterCaret:={4, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyReCommitWithCode()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyReCommitWithCode() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub S",
                        "        If True Then",
@@ -231,11 +231,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyReCommitWithoutCode()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyReCommitWithoutCode() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub S",
                        "        If True Then",
@@ -243,22 +243,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyWithMultiLineChar()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyWithMultiLineChar() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub S",
                        "        If True Then : Elseif true then: End If",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, WorkItem(539576), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyWithSkippedTokens()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyWithSkippedTokens() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    Sub S",
                          "        If True Then #Const foo = 2 ' x = 42",
@@ -273,11 +273,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Sub",
                         "End Class"},
                 afterCaret:={3, 12})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidMissingEndIf()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidMissingEndIf() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub S",
                        "        If True Then",
@@ -285,20 +285,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "    End Sub",
                        "End Class"},
                 caret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyIfInInvalidCode()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyIfInInvalidCode() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"If True Then",
                        "    if True then",
                        "End If"},
                 caret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInternationalCharacter()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyInternationalCharacter() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "    Sub foo()",
                          "        If True Then Dim xæ大% = 1",
@@ -313,12 +313,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Sub",
                         "End Class"},
                 afterCaret:={3, 12})
-        End Sub
+        End Function
 
         <WorkItem(540204)>
-        <WpfFact(skip:="528838"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub BugFix6380()
-            VerifyStatementEndConstructApplied(
+        <WpfFact(Skip:="528838"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        Public Async Function TestBugFix6380() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={<code>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -344,11 +344,11 @@ Module Program
     End Sub
 End Module</code>.Value.Replace(vbLf, vbCrLf)},
                 afterCaret:={8, 12})
-        End Sub
+        End Function
 
         <WpfFact(Skip:="890307"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544523)>
-        Public Sub VerifyRewriteOfIfWithColons()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyRewriteOfIfWithColons() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    Sub Foo()",
                          "        If True Then : Return : End If",
@@ -363,14 +363,14 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)},
                         "    End Sub",
                         "End Class"},
                 afterCaret:={3, 12})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530648)>
-        Public Sub VerifyRewriteOfIfWithEmptyStatement()
+        Public Async Function TestVerifyRewriteOfIfWithEmptyStatement() As Task
             ' Verify the caret is at the beginning of line 3 here.  In VS, it will be moved to the
             ' correct virtual offset as part of the edit.  This is an edge case that we really just
             ' need to avoid crashing.
-            VerifyStatementEndConstructApplied(
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    Sub Foo()",
                          "        If True Then Else ' asdf ",
@@ -387,6 +387,6 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)},
                         "    End Sub",
                         "End Class"},
                 afterCaret:={3, 0})
-        End Sub
+        End Function
     End Class
 End Namespace

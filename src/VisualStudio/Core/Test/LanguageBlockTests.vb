@@ -1,16 +1,18 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Roslyn.Test.Utilities
 
-Public Class LanguageBlockTests
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_NotInImports_VB()
-        VerifyNoBlock("
+Namespace Tests
+    Public Class LanguageBlockTests
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_NotInImports_VB() As Task
+            Await VerifyNoBlockAsync("
 I$$mports System
 
 Module Program
@@ -19,11 +21,11 @@ Module Program
     End Sub
 End Module
 ", LanguageNames.VisualBasic)
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_NotLeadingTriviaOfRootClass_VB()
-        VerifyNoBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_NotLeadingTriviaOfRootClass_VB() As Task
+            Await VerifyNoBlockAsync("
 Imports System
 
 $$
@@ -34,11 +36,11 @@ Module Program
     End Sub
 End Module
 ", LanguageNames.VisualBasic)
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_InNamespace_VB()
-        VerifyBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_InNamespace_VB() As Task
+            Await VerifyBlockAsync("
 [|Namespace N
 $$
     Module Program
@@ -48,11 +50,11 @@ $$
     End Module
 End Namespace|]
 ", LanguageNames.VisualBasic, "N")
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_InModule_VB()
-        VerifyBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_InModule_VB() As Task
+            Await VerifyBlockAsync("
 Namespace N
     [|Module Program
         $$
@@ -62,11 +64,11 @@ Namespace N
     End Module|]
 End Namespace
 ", LanguageNames.VisualBasic, "Program")
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_InSub()
-        VerifyBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_InSub() As Task
+            Await VerifyBlockAsync("
 Namespace N
     Module Program
         [|Sub M()
@@ -75,11 +77,11 @@ Namespace N
     End Module
 End Namespace
 ", LanguageNames.VisualBasic, "Sub Program.M()")
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_InFunction()
-        VerifyBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_InFunction() As Task
+            Await VerifyBlockAsync("
 Namespace N
     Module Program
         [|Function F() As Integer
@@ -88,11 +90,11 @@ Namespace N
     End Module
 End Namespace
 ", LanguageNames.VisualBasic, "Function Program.F() As Integer")
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_InProperty_VB()
-        VerifyBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_InProperty_VB() As Task
+            Await VerifyBlockAsync("
 Namespace N
     Module Program
         [|ReadOnly Property P() As Integer
@@ -103,11 +105,11 @@ Namespace N
     End Module
 End Namespace
 ", LanguageNames.VisualBasic, "Property Program.P() As Integer")
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_NotInUsings_CS()
-        VerifyNoBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_NotInUsings_CS() As Task
+            Await VerifyNoBlockAsync("
 u$$sing System;
 
 class Program
@@ -115,11 +117,11 @@ class Program
     void M() { }
 }
 ", LanguageNames.CSharp)
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_NotLeadingTriviaOfRootClass_CS()
-        VerifyNoBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_NotLeadingTriviaOfRootClass_CS() As Task
+            Await VerifyNoBlockAsync("
 using System;
 
 $$
@@ -129,11 +131,11 @@ class Program
     void M() { }
 }
 ", LanguageNames.CSharp)
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_InNamespace_CS()
-        VerifyBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_InNamespace_CS() As Task
+            Await VerifyBlockAsync("
 [|namespace N
 {
 $$
@@ -143,11 +145,11 @@ $$
     }
 }|]
 ", LanguageNames.CSharp, "N")
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_InClass_CS()
-        VerifyBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_InClass_CS() As Task
+            Await VerifyBlockAsync("
 namespace N
 {
     [|class Program
@@ -157,11 +159,11 @@ namespace N
     }|]
 }
 ", LanguageNames.CSharp, "Program")
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_InMethod()
-        VerifyBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_InMethod() As Task
+            Await VerifyBlockAsync("
 namespace N
 {
     class Program
@@ -173,11 +175,11 @@ namespace N
     }
 }
 ", LanguageNames.CSharp, "void Program.M()")
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_InProperty_CS()
-        VerifyBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_InProperty_CS() As Task
+            Await VerifyBlockAsync("
 namespace N
 {
     class Program
@@ -192,87 +194,80 @@ namespace N
     }
 }
 ", LanguageNames.CSharp, "int Program.P")
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
-    Public Sub GetCurrentBlock_DocumentDoesNotSupportSyntax()
-        ' NoCompilation is the special Language-Name we use to indicate that a language does not
-        ' support SyntaxTrees/SemanticModels.  This test validates that we do not crash in that
-        ' case and we gracefully bail out with 'false' for VsLanguageBlock.GetCurrentBlock.
-        VerifyNoBlock("$$", languageName:="NoCompilation")
-    End Sub
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+        Public Async Function TestGetCurrentBlock_DocumentDoesNotSupportSyntax() As Task
+            ' NoCompilation is the special Language-Name we use to indicate that a language does not
+            ' support SyntaxTrees/SemanticModels.  This test validates that we do not crash in that
+            ' case and we gracefully bail out with 'false' for VsLanguageBlock.GetCurrentBlock.
+            Await VerifyNoBlockAsync("$$", languageName:="NoCompilation")
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock)>
-    Public Sub GetCurrentBlock_NotInGlobalCode_CS()
-        VerifyNoBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock)>
+        Public Async Function TestGetCurrentBlock_NotInGlobalCode_CS() As Task
+            Await VerifyNoBlockAsync("
 var message = ""Hello"";
 System.Console$$.WriteLine(message);
 ", LanguageNames.CSharp, SourceCodeKind.Script)
 
-        VerifyNoBlock("
+            Await VerifyNoBlockAsync("
 var message = ""Hello"";
 System.Console$$.WriteLine(message);
 ", LanguageNames.CSharp, SourceCodeKind.Regular)
-    End Sub
+        End Function
 
-    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock)>
-    Public Sub GetCurrentBlock_NotInGlobalCode_VB()
-        VerifyNoBlock("
+        <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock)>
+        Public Async Function TestGetCurrentBlock_NotInGlobalCode_VB() As Task
+            Await VerifyNoBlockAsync("
 Dim message = ""Hello""
 System.Console$$.WriteLine(message)
 ", LanguageNames.VisualBasic, SourceCodeKind.Script)
 
-        VerifyNoBlock("
+            Await VerifyNoBlockAsync("
 Dim message = ""Hello""
 System.Console$$.WriteLine(message)
 ", LanguageNames.VisualBasic, SourceCodeKind.Regular)
-    End Sub
+        End Function
 
-    Private Sub VerifyNoBlock(markup As String, languageName As String, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular)
-        Dim xml = <Workspace>
-                      <Project Language=<%= languageName %> CommonReferences="True">
-                          <Document>
-                              <ParseOptions Kind=<%= sourceCodeKind %>/>
-                              <%= markup %>
-                          </Document>
-                      </Project>
-                  </Workspace>
-        Using workspace = TestWorkspaceFactory.CreateWorkspace(xml)
-            Dim hostDocument = workspace.Documents.Single()
-            Dim description As String = Nothing
-            Dim span As TextSpan
+        Private Async Function VerifyNoBlockAsync(markup As String, languageName As String, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular) As Tasks.Task
+            Dim xml = <Workspace>
+                          <Project Language=<%= languageName %> CommonReferences="True">
+                              <Document>
+                                  <ParseOptions Kind=<%= sourceCodeKind %>/>
+                                  <%= markup %>
+                              </Document>
+                          </Project>
+                      </Workspace>
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xml)
+                Dim hostDocument = workspace.Documents.Single()
 
-            Assert.False(VsLanguageBlock.GetCurrentBlock(
+                Assert.Null(Await VsLanguageBlock.GetCurrentBlockAsync(
                          hostDocument.TextBuffer.CurrentSnapshot,
                          hostDocument.CursorPosition.Value,
-                         CancellationToken.None,
-                         description,
-                         span))
-        End Using
-    End Sub
+                         CancellationToken.None))
+            End Using
+        End Function
 
-    Private Sub VerifyBlock(markup As String, languageName As String, expectedDescription As String)
-        Dim xml = <Workspace>
-                      <Project Language=<%= languageName %> CommonReferences="True">
-                          <Document>
-                              <%= markup %>
-                          </Document>
-                      </Project>
-                  </Workspace>
-        Using workspace = TestWorkspaceFactory.CreateWorkspace(xml)
-            Dim hostDocument = workspace.Documents.Single()
-            Dim description As String = Nothing
-            Dim span As TextSpan
+        Private Async Function VerifyBlockAsync(markup As String, languageName As String, expectedDescription As String) As Tasks.Task
+            Dim xml = <Workspace>
+                          <Project Language=<%= languageName %> CommonReferences="True">
+                              <Document>
+                                  <%= markup %>
+                              </Document>
+                          </Project>
+                      </Workspace>
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xml)
+                Dim hostDocument = workspace.Documents.Single()
 
-            Assert.True(VsLanguageBlock.GetCurrentBlock(
+                Dim tuple = Await VsLanguageBlock.GetCurrentBlockAsync(
                              hostDocument.TextBuffer.CurrentSnapshot,
                              hostDocument.CursorPosition.Value,
-                             CancellationToken.None,
-                             description,
-                             span))
+                             CancellationToken.None)
 
-            Assert.Equal(expectedDescription, description)
-            Assert.Equal(hostDocument.SelectedSpans.Single(), span)
-        End Using
-    End Sub
-End Class
+                Assert.Equal(expectedDescription, tuple.Item1)
+                Assert.Equal(hostDocument.SelectedSpans.Single(), tuple.Item2)
+            End Using
+        End Function
+    End Class
+End Namespace

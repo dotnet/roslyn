@@ -1,124 +1,71 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class RegionDirectiveOutlinerTests
-        Inherits AbstractOutlinerTests(Of RegionDirectiveTriviaSyntax)
+        Inherits AbstractVisualBasicSyntaxNodeOutlinerTests(Of RegionDirectiveTriviaSyntax)
 
-        Friend Overrides Function GetRegions(regionDirective As RegionDirectiveTriviaSyntax) As IEnumerable(Of OutliningSpan)
-            Dim outliner As New RegionDirectiveOutliner
-            Return outliner.GetOutliningSpans(regionDirective, CancellationToken.None).WhereNotNull()
+        Friend Overrides Function CreateOutliner() As AbstractSyntaxOutliner
+            Return New RegionDirectiveOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub BrokenRegion()
-            Dim syntaxTree = ParseLines("#Region ""Foo""")
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function BrokenRegion() As Task
+            Const code = "
+$$#Region ""Foo""
+"
 
-            Dim directiveTrivia = TryCast(syntaxTree.GetCompilationUnitRoot().EndOfFileToken.LeadingTrivia.ElementAt(0).GetStructure(), DirectiveTriviaSyntax)
-            Assert.NotNull(directiveTrivia)
+            Await VerifyNoRegionsAsync(code)
+        End Function
 
-            Dim regionDirective = TryCast(directiveTrivia, RegionDirectiveTriviaSyntax)
-            Assert.NotNull(regionDirective)
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function SimpleRegion() As Task
+            Const code = "
+{|span:$$#Region ""Foo""
+#End Region|}
+"
 
-            Dim actualRegions = GetRegions(regionDirective).ToList()
-            Assert.Equal(0, actualRegions.Count)
-        End Sub
+            Await VerifyRegionsAsync(code,
+                Region("span", "Foo", autoCollapse:=False, isDefaultCollapsed:=True))
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub SimpleRegion()
-            Dim syntaxTree = ParseLines("#Region ""Foo""",
-                                  "#End Region")
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function RegionWithNoBanner1() As Task
+            Const code = "
+{|span:$$#Region
+#End Region|}
+"
 
-            Dim directiveTrivia = TryCast(DirectCast(syntaxTree.GetCompilationUnitRoot(), CompilationUnitSyntax).EndOfFileToken.LeadingTrivia.ElementAt(0).GetStructure(), DirectiveTriviaSyntax)
-            Assert.NotNull(directiveTrivia)
+            Await VerifyRegionsAsync(code,
+                Region("span", "#Region", autoCollapse:=False, isDefaultCollapsed:=True))
+        End Function
 
-            Dim regionDirective = TryCast(directiveTrivia, RegionDirectiveTriviaSyntax)
-            Assert.NotNull(regionDirective)
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function RegionWithNoBanner2() As Task
+            Const code = "
+{|span:$$#Region """"
+#End Region|}
+"
 
-            Dim actualRegion = GetRegion(regionDirective)
-            Dim expectedRegion = New OutliningSpan(
-                                     textSpan:=TextSpan.FromBounds(0, 26),
-                                     bannerText:="Foo",
-                                     hintSpan:=TextSpan.FromBounds(0, 26),
-                                     autoCollapse:=False,
-                                     isDefaultCollapsed:=True)
-
-            AssertRegion(expectedRegion, actualRegion)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub RegionWithNoBanner1()
-            Dim syntaxTree = ParseLines("#Region",
-                                  "#End Region")
-
-            Dim directiveTrivia = TryCast(syntaxTree.GetCompilationUnitRoot().EndOfFileToken.LeadingTrivia.ElementAt(0).GetStructure(), DirectiveTriviaSyntax)
-            Assert.NotNull(directiveTrivia)
-
-            Dim regionDirective = TryCast(directiveTrivia, RegionDirectiveTriviaSyntax)
-            Assert.NotNull(regionDirective)
-
-            Dim actualRegion = GetRegion(regionDirective)
-            Dim expectedRegion = New OutliningSpan(
-                                     textSpan:=TextSpan.FromBounds(0, 20),
-                                     bannerText:="#Region",
-                                     hintSpan:=TextSpan.FromBounds(0, 20),
-                                     autoCollapse:=False,
-                                     isDefaultCollapsed:=True)
-
-            AssertRegion(expectedRegion, actualRegion)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub RegionWithNoBanner2()
-            Dim syntaxTree = ParseLines("#Region """"",
-                                  "#End Region")
-
-            Dim directiveTrivia = TryCast(syntaxTree.GetCompilationUnitRoot().EndOfFileToken.LeadingTrivia.ElementAt(0).GetStructure(), DirectiveTriviaSyntax)
-            Assert.NotNull(directiveTrivia)
-
-            Dim regionDirective = TryCast(directiveTrivia, RegionDirectiveTriviaSyntax)
-            Assert.NotNull(regionDirective)
-
-            Dim actualRegion = GetRegion(regionDirective)
-            Dim expectedRegion = New OutliningSpan(
-                                     textSpan:=TextSpan.FromBounds(0, 23),
-                                     bannerText:="#Region",
-                                     hintSpan:=TextSpan.FromBounds(0, 23),
-                                     autoCollapse:=False,
-                                     isDefaultCollapsed:=True)
-
-            AssertRegion(expectedRegion, actualRegion)
-        End Sub
+            Await VerifyRegionsAsync(code,
+                Region("span", "#Region", autoCollapse:=False, isDefaultCollapsed:=True))
+        End Function
 
         <WorkItem(537984)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub RegionEndOfFile()
-            Dim syntaxTree = ParseLines("Class C",
-                                "End CLass",
-                                "#Region",
-                                "#End Region"
-                                )
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function RegionEndOfFile() As Task
+            Const code = "
+Class C
+End Class
+{|span:$$#Region
+#End Region|}"
 
-            Dim directiveTrivia = TryCast(syntaxTree.GetCompilationUnitRoot().EndOfFileToken.LeadingTrivia.ElementAt(0).GetStructure(), DirectiveTriviaSyntax)
-            Assert.NotNull(directiveTrivia)
-
-            Dim regionDirective = TryCast(directiveTrivia, RegionDirectiveTriviaSyntax)
-            Assert.NotNull(regionDirective)
-
-            Dim actualRegion = GetRegion(regionDirective)
-            Dim expectedRegion = New OutliningSpan(
-                               textSpan:=TextSpan.FromBounds(20, 40),
-                               bannerText:="#Region",
-                               hintSpan:=TextSpan.FromBounds(20, 40),
-                               autoCollapse:=False,
-                               isDefaultCollapsed:=True)
-
-            AssertRegion(expectedRegion, actualRegion)
-        End Sub
+            Await VerifyRegionsAsync(code,
+                Region("span", "#Region", autoCollapse:=False, isDefaultCollapsed:=True))
+        End Function
     End Class
 End Namespace

@@ -8,39 +8,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
     Friend Class OperatorDeclarationOutliner
         Inherits AbstractSyntaxNodeOutliner(Of OperatorStatementSyntax)
 
-        Private Shared Function GetBannerText(operatorDeclaration As OperatorStatementSyntax) As String
-            Dim builder As New BannerTextBuilder()
-
-            For Each modifier In operatorDeclaration.Modifiers
-                builder.Append(modifier.ToString())
-                builder.Append(" "c)
-            Next
-
-            builder.Append(operatorDeclaration.DeclarationKeyword.ToString())
-            builder.Append(" "c)
-            builder.Append(operatorDeclaration.OperatorToken.ToString())
-
-            builder.AppendParameterList(operatorDeclaration.ParameterList, emptyParentheses:=True)
-            builder.AppendAsClause(operatorDeclaration.AsClause)
-
-            builder.Append(" "c)
-            builder.Append(Ellipsis)
-
-            Return builder.ToString()
-        End Function
-
         Protected Overrides Sub CollectOutliningSpans(operatorDeclaration As OperatorStatementSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
-            Dim methodBlock = TryCast(operatorDeclaration.Parent, OperatorBlockSyntax)
-            If methodBlock IsNot Nothing Then
-                VisualBasicOutliningHelpers.CollectCommentsRegions(methodBlock, spans)
+            CollectCommentsRegions(operatorDeclaration, spans)
 
-                If Not methodBlock.EndBlockStatement.IsMissing Then
-                    spans.Add(
-                        VisualBasicOutliningHelpers.CreateRegionFromBlock(
-                            methodBlock,
-                            GetBannerText(operatorDeclaration),
-                            autoCollapse:=True))
-                End If
+            Dim block = TryCast(operatorDeclaration.Parent, OperatorBlockSyntax)
+            If Not block?.EndBlockStatement.IsMissing Then
+                spans.Add(
+                    CreateRegionFromBlock(block, bannerNode:=operatorDeclaration, autoCollapse:=True))
             End If
         End Sub
     End Class

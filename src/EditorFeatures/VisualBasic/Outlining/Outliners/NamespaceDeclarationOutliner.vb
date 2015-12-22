@@ -9,21 +9,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
         Inherits AbstractSyntaxNodeOutliner(Of NamespaceStatementSyntax)
 
         Protected Overrides Sub CollectOutliningSpans(namespaceDeclaration As NamespaceStatementSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
-            VisualBasicOutliningHelpers.CollectCommentsRegions(namespaceDeclaration, spans)
+            CollectCommentsRegions(namespaceDeclaration, spans)
 
-            Dim bannerText = namespaceDeclaration.NamespaceKeyword.ToString() & " " &
-                             namespaceDeclaration.Name.ToString & " " &
-                             Ellipsis
-
-            Dim namespaceBlock = TryCast(namespaceDeclaration.Parent, NamespaceBlockSyntax)
-            If Not namespaceBlock.EndNamespaceStatement.IsMissing Then
+            Dim block = TryCast(namespaceDeclaration.Parent, NamespaceBlockSyntax)
+            If Not block?.EndNamespaceStatement.IsMissing Then
                 spans.Add(
-                    VisualBasicOutliningHelpers.CreateRegionFromBlock(
-                        namespaceBlock,
-                        bannerText,
-                        autoCollapse:=False))
+                    CreateRegionFromBlock(block, bannerNode:=namespaceDeclaration, autoCollapse:=False))
 
-                VisualBasicOutliningHelpers.CollectCommentsRegions(namespaceBlock.EndNamespaceStatement, spans)
+                CollectCommentsRegions(block.EndNamespaceStatement, spans)
             End If
         End Sub
 

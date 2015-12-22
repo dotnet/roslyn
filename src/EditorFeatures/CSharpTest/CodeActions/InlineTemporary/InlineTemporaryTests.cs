@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
 using Roslyn.Test.Utilities;
@@ -14,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
             return new InlineTemporaryCodeRefactoringProvider();
         }
 
-        private void TestFixOne(string initial, string expected, bool compareTokens = true)
+        private async Task TestFixOneAsync(string initial, string expected, bool compareTokens = true)
         {
-            Test(GetTreeText(initial), GetTreeText(expected), index: 0);
+            await TestAsync(GetTreeText(initial), GetTreeText(expected), index: 0);
         }
 
         private string GetTreeText(string initial)
@@ -37,84 +38,84 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
             return fixedRoot.Members[0].Members[0].BodyOpt;
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void NotWithNoInitializer1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task NotWithNoInitializer1()
         {
-            TestMissing(GetTreeText(@"{ int [||]x; System.Console.WriteLine(x); }"));
+            await TestMissingAsync(GetTreeText(@"{ int [||]x; System.Console.WriteLine(x); }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void NotWithNoInitializer2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task NotWithNoInitializer2()
         {
-            TestMissing(GetTreeText(@"{ int [||]x = ; System.Console.WriteLine(x); }"));
+            await TestMissingAsync(GetTreeText(@"{ int [||]x = ; System.Console.WriteLine(x); }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void NotOnSecondWithNoInitializer()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task NotOnSecondWithNoInitializer()
         {
-            TestMissing(GetTreeText(@"{ int x = 42, [||]y; System.Console.WriteLine(y); }"));
+            await TestMissingAsync(GetTreeText(@"{ int x = 42, [||]y; System.Console.WriteLine(y); }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void NotOnField()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task NotOnField()
         {
-            TestMissing(@"class C { int [||]x = 42; void M() { System.Console.WriteLine(x); } }");
+            await TestMissingAsync(@"class C { int [||]x = 42; void M() { System.Console.WriteLine(x); } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void SingleStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task SingleStatement()
         {
-            TestMissing(GetTreeText(@"{ int [||]x = 27; }"));
+            await TestMissingAsync(GetTreeText(@"{ int [||]x = 27; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void MultipleDeclarators_First()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task MultipleDeclarators_First()
         {
-            TestMissing(GetTreeText(@"{ int [||]x = 0, y = 1, z = 2; }"));
+            await TestMissingAsync(GetTreeText(@"{ int [||]x = 0, y = 1, z = 2; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void MultipleDeclarators_Second()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task MultipleDeclarators_Second()
         {
-            TestMissing(GetTreeText(@"{ int x = 0, [||]y = 1, z = 2; }"));
+            await TestMissingAsync(GetTreeText(@"{ int x = 0, [||]y = 1, z = 2; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void MultipleDeclarators_Last()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task MultipleDeclarators_Last()
         {
-            TestMissing(GetTreeText(@"{ int x = 0, y = 1, [||]z = 2; }"));
+            await TestMissingAsync(GetTreeText(@"{ int x = 0, y = 1, [||]z = 2; }"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Escaping1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Escaping1()
         {
-            TestFixOne(@"{ int [||]x = 0; Console.WriteLine(x); }",
+            await TestFixOneAsync(@"{ int [||]x = 0; Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Escaping2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Escaping2()
         {
-            TestFixOne(@"{ int [||]@x = 0; Console.WriteLine(x); }",
+            await TestFixOneAsync(@"{ int [||]@x = 0; Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Escaping3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Escaping3()
         {
-            TestFixOne(@"{ int [||]@x = 0; Console.WriteLine(@x); }",
+            await TestFixOneAsync(@"{ int [||]@x = 0; Console.WriteLine(@x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Escaping4()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Escaping4()
         {
-            TestFixOne(@"{ int [||]x = 0; Console.WriteLine(@x); }",
+            await TestFixOneAsync(@"{ int [||]x = 0; Console.WriteLine(@x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Escaping5()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Escaping5()
         {
             var code = @"
 using System.Linq;
@@ -137,11 +138,11 @@ class C
     }
 }";
 
-            Test(code, expected, compareTokens: false);
+            await TestAsync(code, expected, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Call()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Call()
         {
             var code = @"
 using System;
@@ -164,11 +165,11 @@ class C
     }
 }";
 
-            Test(code, expected, index: 0, compareTokens: false);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Conversion_NoChange()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Conversion_NoChange()
         {
             var code = @"
 using System;
@@ -191,20 +192,20 @@ class C
     }
 }";
 
-            Test(code, expected, index: 0, compareTokens: false);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Conversion_NoConversion()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Conversion_NoConversion()
         {
-            TestFixOne(@"{ int [||]x = 3; x.ToString(); }",
+            await TestFixOneAsync(@"{ int [||]x = 3; x.ToString(); }",
                        @"{ 3.ToString(); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Conversion_DifferentOverload()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Conversion_DifferentOverload()
         {
-            Test(
+            await TestAsync(
 @"
 using System;
 class C
@@ -229,10 +230,10 @@ index: 0,
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Conversion_DifferentMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Conversion_DifferentMethod()
         {
-            Test(
+            await TestAsync(
 @"
 class Base 
 {
@@ -273,10 +274,10 @@ class C
     compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Conversion_SameMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Conversion_SameMethod()
         {
-            Test(
+            await TestAsync(
 @"
 class Base 
 {
@@ -317,15 +318,15 @@ class C
     compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void NoCastOnVar()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task NoCastOnVar()
         {
-            TestFixOne(@"{ var [||]x = 0; Console.WriteLine(x); }",
+            await TestFixOneAsync(@"{ var [||]x = 0; Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void DoubleAssignment()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoubleAssignment()
         {
             var code = @"
 class C
@@ -346,25 +347,25 @@ class C
     }
 }";
 
-            Test(code, expected, index: 0, compareTokens: false);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestAnonymousType1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestAnonymousType1()
         {
-            TestFixOne(@"{ int [||]x = 42; var a = new { x }; }",
+            await TestFixOneAsync(@"{ int [||]x = 42; var a = new { x }; }",
                        @"{ var a = new { x = 42 }; }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestParenthesizedAtReference_Case3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestParenthesizedAtReference_Case3()
         {
-            TestFixOne(@"{ int [||]x = 1 + 1; int y = x * 2; }",
+            await TestFixOneAsync(@"{ int [||]x = 1 + 1; int y = x * 2; }",
                        @"{ int y = (1 + 1) * 2; }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void DontBreakOverloadResolution_Case5()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontBreakOverloadResolution_Case5()
         {
             var code = @"
 class C
@@ -391,11 +392,11 @@ class C
     }
 }";
 
-            Test(code, expected, index: 0, compareTokens: false);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void DontTouchUnrelatedBlocks()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontTouchUnrelatedBlocks()
         {
             var code = @"
 class C
@@ -418,11 +419,11 @@ class C
     }
 }";
 
-            Test(code, expected, index: 0);
+            await TestAsync(code, expected, index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestLambdaParenthesizeAndCast_Case7()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestLambdaParenthesizeAndCast_Case7()
         {
             var code = @"
 class C
@@ -443,14 +444,14 @@ class C
     }
 }";
 
-            Test(code, expected, compareTokens: false);
+            await TestAsync(code, expected, compareTokens: false);
         }
 
         [WorkItem(538094)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ParseAmbiguity1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ParseAmbiguity1()
         {
-            Test(
+            await TestAsync(
 @"
 class C
 {
@@ -475,10 +476,10 @@ class C
         }
 
         [WorkItem(538094), WorkItem(541462)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ParseAmbiguity2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ParseAmbiguity2()
         {
-            Test(
+            await TestAsync(
 @"
 class C
 {
@@ -503,10 +504,10 @@ class C
         }
 
         [WorkItem(538094)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ParseAmbiguity3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ParseAmbiguity3()
         {
-            Test(
+            await TestAsync(
 @"
 class C
 {
@@ -532,10 +533,10 @@ class C
         }
 
         [WorkItem(544924)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ParseAmbiguity4()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ParseAmbiguity4()
         {
-            Test(
+            await TestAsync(
 @"
 class Program
 {
@@ -566,10 +567,10 @@ class Program
         }
 
         [WorkItem(544613)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ParseAmbiguity5()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ParseAmbiguity5()
         {
-            Test(
+            await TestAsync(
 @"
 class Program
 {
@@ -592,16 +593,16 @@ class Program
         }
 
         [WorkItem(538131)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestArrayInitializer()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestArrayInitializer()
         {
-            TestFixOne(@"{ int[] [||]x = { 3, 4, 5 }; int a = Array.IndexOf(x, 3); }",
+            await TestFixOneAsync(@"{ int[] [||]x = { 3, 4, 5 }; int a = Array.IndexOf(x, 3); }",
                        @"{ int a = Array.IndexOf(new int[] { 3, 4, 5 }, 3);  }");
         }
 
         [WorkItem(545657)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestArrayInitializer2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestArrayInitializer2()
         {
             var initial = @"
 class Program
@@ -622,12 +623,12 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(545657)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestArrayInitializer3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestArrayInitializer3()
         {
             var initial = @"
 class Program
@@ -656,11 +657,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_RefParameter1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_RefParameter1()
         {
             var initial =
 @"using System;
@@ -702,11 +703,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_RefParameter2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_RefParameter2()
         {
             var initial =
 @"using System;
@@ -738,11 +739,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_AssignExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_AssignExpression()
         {
             var initial =
 @"using System;
@@ -768,11 +769,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_AddAssignExpression1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_AddAssignExpression1()
         {
             var initial =
 @"using System;
@@ -798,11 +799,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_AddAssignExpression2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_AddAssignExpression2()
         {
             var initial =
 @"using System;
@@ -830,11 +831,11 @@ class C
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_SubtractAssignExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_SubtractAssignExpression()
         {
             var initial =
 @"using System;
@@ -860,11 +861,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0);
+            await TestAsync(initial, expected, index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_MultiplyAssignExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_MultiplyAssignExpression()
         {
             var initial =
 @"using System;
@@ -890,11 +891,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_DivideAssignExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_DivideAssignExpression()
         {
             var initial =
 @"using System;
@@ -920,11 +921,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_ModuloAssignExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_ModuloAssignExpression()
         {
             var initial =
 @"using System;
@@ -950,11 +951,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_AndAssignExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_AndAssignExpression()
         {
             var initial =
 @"using System;
@@ -980,11 +981,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_OrAssignExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_OrAssignExpression()
         {
             var initial =
 @"using System;
@@ -1010,11 +1011,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_ExclusiveOrAssignExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_ExclusiveOrAssignExpression()
         {
             var initial =
 @"using System;
@@ -1040,11 +1041,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_LeftShiftAssignExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_LeftShiftAssignExpression()
         {
             var initial =
 @"using System;
@@ -1070,11 +1071,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_RightShiftAssignExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_RightShiftAssignExpression()
         {
             var initial =
 @"using System;
@@ -1100,11 +1101,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_PostIncrementExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_PostIncrementExpression()
         {
             var initial =
 @"using System;
@@ -1130,11 +1131,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_PreIncrementExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_PreIncrementExpression()
         {
             var initial =
 @"using System;
@@ -1160,11 +1161,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_PostDecrementExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_PostDecrementExpression()
         {
             var initial =
 @"using System;
@@ -1190,11 +1191,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_PreDecrementExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_PreDecrementExpression()
         {
             var initial =
 @"using System;
@@ -1220,11 +1221,11 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_AddressOfExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_AddressOfExpression()
         {
             var initial = @"
 class C
@@ -1248,12 +1249,12 @@ class C
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(545342)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConflict_UsedBeforeDeclaration()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConflict_UsedBeforeDeclaration()
         {
             var initial =
 @"class Program
@@ -1275,13 +1276,13 @@ class C
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Preprocessor1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Preprocessor1()
         {
-            TestFixOne(@"
+            await TestFixOneAsync(@"
 {
     int [||]x = 1,
 #if true
@@ -1303,10 +1304,10 @@ class C
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Preprocessor2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Preprocessor2()
         {
-            TestFixOne(@"
+            await TestFixOneAsync(@"
 {
     int y,
 #if true
@@ -1328,10 +1329,10 @@ compareTokens: false);
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Preprocessor3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Preprocessor3()
         {
-            TestFixOne(@"
+            await TestFixOneAsync(@"
 {
     int y,
 #if true
@@ -1354,8 +1355,8 @@ compareTokens: false);
         }
 
         [WorkItem(540164)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TriviaOnArrayInitializer()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TriviaOnArrayInitializer()
         {
             var initial =
 @"class C
@@ -1376,12 +1377,12 @@ compareTokens: false);
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(540156)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ProperlyFormatWhenRemovingDeclarator1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ProperlyFormatWhenRemovingDeclarator1()
         {
             var initial =
 @"class C
@@ -1403,12 +1404,12 @@ compareTokens: false);
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(540156)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ProperlyFormatWhenRemovingDeclarator2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ProperlyFormatWhenRemovingDeclarator2()
         {
             var initial =
 @"class C
@@ -1430,12 +1431,12 @@ compareTokens: false);
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(540156)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ProperlyFormatWhenRemovingDeclarator3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ProperlyFormatWhenRemovingDeclarator3()
         {
             var initial =
 @"class C
@@ -1457,12 +1458,12 @@ compareTokens: false);
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(540186)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ProperlyFormatAnonymousTypeMember()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ProperlyFormatAnonymousTypeMember()
         {
             var initial =
 @"class C
@@ -1483,12 +1484,12 @@ compareTokens: false);
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(6356, "DevDiv_Projects/Roslyn")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineToAnonymousTypeProperty()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineToAnonymousTypeProperty()
         {
             var initial =
 @"class C
@@ -1509,12 +1510,12 @@ compareTokens: false);
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(528075)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineIntoDelegateInvocation()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineIntoDelegateInvocation()
         {
             var initial =
 @"using System;
@@ -1537,12 +1538,12 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(541341)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineAnonymousMethodIntoNullCoalescingExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineAnonymousMethodIntoNullCoalescingExpression()
         {
             var initial =
 @"using System;
@@ -1567,12 +1568,12 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(541341)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineLambdaIntoNullCoalescingExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineLambdaIntoNullCoalescingExpression()
         {
             var initial =
 @"using System;
@@ -1597,12 +1598,12 @@ class Program
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(538079)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastForBoxingOperation1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastForBoxingOperation1()
         {
             var initial =
 @"using System;
@@ -1627,12 +1628,12 @@ class A
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(538079)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastForBoxingOperation2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastForBoxingOperation2()
         {
             var initial =
 @"using System;
@@ -1659,12 +1660,12 @@ class A
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(538079)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastForBoxingOperation3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastForBoxingOperation3()
         {
             var initial =
 @"using System;
@@ -1689,12 +1690,12 @@ class A
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(538079)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastForBoxingOperation4()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastForBoxingOperation4()
         {
             var initial =
 @"using System;
@@ -1719,12 +1720,12 @@ class A
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(538079)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastForBoxingOperation5()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastForBoxingOperation5()
         {
             var initial =
 @"using System;
@@ -1749,14 +1750,14 @@ class A
     }
 }";
 
-            Test(initial, expected, index: 0, compareTokens: false);
+            await TestAsync(initial, expected, index: 0, compareTokens: false);
         }
 
         [WorkItem(540278)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestLeadingTrivia()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestLeadingTrivia()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1781,10 +1782,10 @@ compareTokens: false);
         }
 
         [WorkItem(540278)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestLeadingAndTrailingTrivia()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestLeadingAndTrailingTrivia()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1810,10 +1811,10 @@ compareTokens: false);
         }
 
         [WorkItem(540278)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestTrailingTrivia()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestTrailingTrivia()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1837,10 +1838,10 @@ compareTokens: false);
         }
 
         [WorkItem(540278)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestPreprocessor()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestPreprocessor()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1867,10 +1868,10 @@ compareTokens: false);
         }
 
         [WorkItem(540277)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestFormatting()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestFormatting()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -1892,10 +1893,10 @@ compareTokens: false);
         }
 
         [WorkItem(541694)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestSwitchSection()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestSwitchSection()
         {
-            Test(
+            await TestAsync(
 @"using System;
 class C
 {
@@ -1928,10 +1929,10 @@ compareTokens: false);
         }
 
         [WorkItem(542647)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void UnparenthesizeExpressionIfNeeded1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task UnparenthesizeExpressionIfNeeded1()
         {
-            Test(
+            await TestAsync(
 @"
 using System;
 class C
@@ -1961,10 +1962,10 @@ class C
         }
 
         [WorkItem(545619)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void UnparenthesizeExpressionIfNeeded2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task UnparenthesizeExpressionIfNeeded2()
         {
-            Test(
+            await TestAsync(
 @"
 using System;
 class Program
@@ -1994,10 +1995,10 @@ class Program
         }
 
         [WorkItem(542656)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ParenthesizeIfNecessary1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ParenthesizeIfNecessary1()
         {
-            Test(
+            await TestAsync(
             @"using System;
 using System.Collections;
 using System.Linq;
@@ -2030,10 +2031,10 @@ class A
         }
 
         [WorkItem(544626)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ParenthesizeIfNecessary2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ParenthesizeIfNecessary2()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 class C
@@ -2064,10 +2065,10 @@ class C
         }
 
         [WorkItem(544415)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ParenthesizeAddressOf1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ParenthesizeAddressOf1()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 unsafe class C
@@ -2094,10 +2095,10 @@ unsafe class C
         }
 
         [WorkItem(544922)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ParenthesizeAddressOf2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ParenthesizeAddressOf2()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 unsafe class C
@@ -2124,10 +2125,10 @@ unsafe class C
         }
 
         [WorkItem(544921)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ParenthesizePointerIndirection1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ParenthesizePointerIndirection1()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 unsafe class C
@@ -2154,10 +2155,10 @@ unsafe class C
         }
 
         [WorkItem(544614)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ParenthesizePointerIndirection2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ParenthesizePointerIndirection2()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 unsafe class C
@@ -2184,10 +2185,10 @@ unsafe class C
         }
 
         [WorkItem(544563)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void DontInlineStackAlloc()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontInlineStackAlloc()
         {
-            TestMissing(
+            await TestMissingAsync(
             @"
 using System;
 unsafe class C
@@ -2203,10 +2204,10 @@ unsafe class C
         }
 
         [WorkItem(543744)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineTempLambdaExpressionCastingError()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineTempLambdaExpressionCastingError()
         {
-            Test(
+            await TestAsync(
             @"using System;
 class Program
 {
@@ -2229,10 +2230,10 @@ class Program
             compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastForNull()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastForNull()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 class C
@@ -2257,10 +2258,10 @@ class C
             compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastIfNeeded1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastIfNeeded1()
         {
-            Test(
+            await TestAsync(
             @"
 class C
 {
@@ -2283,10 +2284,10 @@ class C
         }
 
         [WorkItem(545161)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastIfNeeded2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastIfNeeded2()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
  
@@ -2318,10 +2319,10 @@ class C
         }
 
         [WorkItem(544612)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineIntoBracketedList()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineIntoBracketedList()
         {
-            Test(
+            await TestAsync(
             @"
 class C
 {
@@ -2351,10 +2352,10 @@ class C
         }
 
         [WorkItem(542648)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void ParenthesizeAfterCastIfNeeded()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task ParenthesizeAfterCastIfNeeded()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 
@@ -2387,10 +2388,10 @@ class Program
         }
 
         [WorkItem(544635)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastForEnumZeroIfBoxed()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastForEnumZeroIfBoxed()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 class Program
@@ -2420,10 +2421,10 @@ class Program
 
         [WorkItem(544636)]
         [WorkItem(554010)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastForMethodGroupIfNeeded1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastForMethodGroupIfNeeded1()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 class Program
@@ -2451,10 +2452,10 @@ class Program
 
         [WorkItem(544978)]
         [WorkItem(554010)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastForMethodGroupIfNeeded2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastForMethodGroupIfNeeded2()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 class Program
@@ -2481,10 +2482,10 @@ class Program
         }
 
         [WorkItem(545103)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void DontInsertCastForTypeThatNoLongerBindsToTheSameType()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontInsertCastForTypeThatNoLongerBindsToTheSameType()
         {
-            Test(
+            await TestAsync(
             @"
 class A<T>
 {
@@ -2517,10 +2518,10 @@ class A<T>
         }
 
         [WorkItem(545170)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCorrectCastForDelegateCreationExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCorrectCastForDelegateCreationExpression()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
  
@@ -2550,10 +2551,10 @@ class Program
         }
 
         [WorkItem(545523)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void DontInsertCastForObjectCreationIfUnneeded()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontInsertCastForObjectCreationIfUnneeded()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 class Program
@@ -2580,10 +2581,10 @@ class Program
             compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void DontInsertCastInForeachIfUnneeded01()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontInsertCastInForeachIfUnneeded01()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 using System.Collections.Generic;
@@ -2616,10 +2617,10 @@ class Program
             compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastInForeachIfNeeded01()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastInForeachIfNeeded01()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 using System.Collections;
@@ -2652,10 +2653,10 @@ class Program
             compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastInForeachIfNeeded02()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastInForeachIfNeeded02()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 using System.Collections;
@@ -2689,10 +2690,10 @@ class Program
         }
 
         [WorkItem(545601)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastToKeepGenericMethodInference()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastToKeepGenericMethodInference()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 class C
@@ -2724,10 +2725,10 @@ class C
         }
 
         [WorkItem(545601)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastForKeepImplicitArrayInference()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastForKeepImplicitArrayInference()
         {
-            Test(
+            await TestAsync(
             @"
 class C
 {
@@ -2759,10 +2760,10 @@ class C
         }
 
         [WorkItem(545601)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertASingleCastToNotBreakOverloadResolution()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertASingleCastToNotBreakOverloadResolution()
         {
-            Test(
+            await TestAsync(
             @"
 class C
 {
@@ -2792,10 +2793,10 @@ class C
         }
 
         [WorkItem(545601)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertASingleCastToNotBreakOverloadResolutionInLambdas()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertASingleCastToNotBreakOverloadResolutionInLambdas()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 class C
@@ -2827,10 +2828,10 @@ class C
         }
 
         [WorkItem(545601)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertASingleCastToNotBreakResolutionOfOperatorOverloads()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertASingleCastToNotBreakResolutionOfOperatorOverloads()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 class C
@@ -2894,10 +2895,10 @@ class C
         }
 
         [WorkItem(545561)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastToNotBreakOverloadResolutionInUncheckedContext()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastToNotBreakOverloadResolutionInUncheckedContext()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 
@@ -2939,10 +2940,10 @@ class X
         }
 
         [WorkItem(545564)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastToNotBreakOverloadResolutionInUnsafeContext()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastToNotBreakOverloadResolutionInUnsafeContext()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 
@@ -2988,10 +2989,10 @@ static class C
         }
 
         [WorkItem(545783)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InsertCastToNotBreakOverloadResolutionInNestedLambdas()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InsertCastToNotBreakOverloadResolutionInNestedLambdas()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 
@@ -3031,10 +3032,10 @@ class C
         }
 
         [WorkItem(546069)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestBrokenVariableDeclarator()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestBrokenVariableDeclarator()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class C
 {
     static void M()
@@ -3045,10 +3046,10 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestHiddenRegion1()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestHiddenRegion1()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program
 {
     void Main()
@@ -3062,10 +3063,10 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestHiddenRegion2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestHiddenRegion2()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program
 {
     void Main()
@@ -3080,10 +3081,10 @@ class C
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestHiddenRegion3()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestHiddenRegion3()
         {
-            Test(
+            await TestAsync(
 @"#line default
 class Program
 {
@@ -3112,10 +3113,10 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestHiddenRegion4()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestHiddenRegion4()
         {
-            Test(
+            await TestAsync(
 @"#line default
 class Program
 {
@@ -3146,10 +3147,10 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestHiddenRegion5()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestHiddenRegion5()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program
 {
     void Main()
@@ -3166,10 +3167,10 @@ compareTokens: false);
         }
 
         [WorkItem(530743)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineFromLabeledStatement()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineFromLabeledStatement()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
  
@@ -3201,10 +3202,10 @@ class Program
         }
 
         [WorkItem(529698)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineCompoundAssignmentIntoInitializer()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineCompoundAssignmentIntoInitializer()
         {
-            Test(
+            await TestAsync(
             @"
 using System.Collections.Generic;
 
@@ -3234,10 +3235,10 @@ class Program
         }
 
         [WorkItem(609497)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Bugfix_609497()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Bugfix_609497()
         {
-            Test(
+            await TestAsync(
             @"
 using System.Collections.Generic;
  
@@ -3265,10 +3266,10 @@ class Program
         }
 
         [WorkItem(636319)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Bugfix_636319()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Bugfix_636319()
         {
-            Test(
+            await TestAsync(
             @"
 using System.Collections.Generic;
  
@@ -3298,10 +3299,10 @@ class Program
         }
 
         [WorkItem(609492)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Bugfix_609492()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Bugfix_609492()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
  
@@ -3331,10 +3332,10 @@ class Program
         }
 
         [WorkItem(529950)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineTempDoesNotInsertUnnecessaryExplicitTypeInLambdaParameter()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineTempDoesNotInsertUnnecessaryExplicitTypeInLambdaParameter()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 
@@ -3377,10 +3378,10 @@ static class C
         }
 
         [WorkItem(619425)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Bugfix_619425_RestrictedSimpleNameExpansion()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Bugfix_619425_RestrictedSimpleNameExpansion()
         {
-            Test(
+            await TestAsync(
             @"
 class A<B>
 {
@@ -3418,10 +3419,10 @@ class A<B>
         }
 
         [WorkItem(529840)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void Bugfix_529840_DetectSemanticChangesAtInlineSite()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Bugfix_529840_DetectSemanticChangesAtInlineSite()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
  
@@ -3482,10 +3483,10 @@ class A
         }
 
         [WorkItem(1091946)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConditionalAccessWithConversion()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConditionalAccessWithConversion()
         {
-            Test(
+            await TestAsync(
             @"
 class A
 {
@@ -3505,10 +3506,10 @@ class A
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestSimpleConditionalAccess()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestSimpleConditionalAccess()
         {
-            Test(
+            await TestAsync(
             @"
 class A
 {
@@ -3528,10 +3529,10 @@ class A
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConditionalAccessWithConditionalExpression()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConditionalAccessWithConditionalExpression()
         {
-            Test(
+            await TestAsync(
             @"
 class A
 {
@@ -3551,11 +3552,11 @@ class A
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
-        public void TestConditionalAccessWithExtensionMethodInvocation()
+        public async Task TestConditionalAccessWithExtensionMethodInvocation()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 using System.Collections.Generic;
@@ -3608,11 +3609,11 @@ class C
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
-        public void TestConditionalAccessWithExtensionMethodInvocation_2()
+        public async Task TestConditionalAccessWithExtensionMethodInvocation_2()
         {
-            Test(
+            await TestAsync(
             @"
 using System;
 using System.Collections.Generic;
@@ -3675,10 +3676,10 @@ class C
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestAliasQualifiedNameIntoInterpolation()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestAliasQualifiedNameIntoInterpolation()
         {
-            Test(
+            await TestAsync(
             @"
 class A
 {
@@ -3698,10 +3699,10 @@ class A
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConditionalExpressionIntoInterpolation()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConditionalExpressionIntoInterpolation()
         {
-            Test(
+            await TestAsync(
             @"
 class A
 {
@@ -3721,10 +3722,10 @@ class A
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestConditionalExpressionIntoInterpolationWithFormatClause()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestConditionalExpressionIntoInterpolationWithFormatClause()
         {
-            Test(
+            await TestAsync(
             @"
 class A
 {
@@ -3744,10 +3745,10 @@ class A
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestInvocationExpressionIntoInterpolation()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TestInvocationExpressionIntoInterpolation()
         {
-            Test(
+            await TestAsync(
             @"
 class A
 {
@@ -3768,10 +3769,10 @@ class A
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void DontParenthesizeInterpolatedStringWithNoInterpolation()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
         {
-            Test(
+            await TestAsync(
             @"
 class C
 {
@@ -3792,10 +3793,10 @@ class C
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void DontParenthesizeInterpolatedStringWithInterpolation()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontParenthesizeInterpolatedStringWithInterpolation()
         {
-            Test(
+            await TestAsync(
             @"
 class C
 {
@@ -3816,8 +3817,8 @@ class C
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineFormattableStringIntoCallSiteRequiringFormattableString()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineFormattableStringIntoCallSiteRequiringFormattableString()
         {
             const string initial = @"
 using System;
@@ -3850,12 +3851,12 @@ class C
     }
 }";
 
-            Test(initial, expected, compareTokens: false);
+            await TestAsync(initial, expected, compareTokens: false);
         }
 
         [WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineFormattableStringIntoCallSiteWithFormattableStringOverload()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineFormattableStringIntoCallSiteWithFormattableStringOverload()
         {
             const string initial = @"
 using System;
@@ -3885,7 +3886,7 @@ class C
         M((FormattableString)$""{x}, {y}"");
     }
 }";
-            Test(initial, expected, compareTokens: false);
+            await TestAsync(initial, expected, compareTokens: false);
         }
     }
 }

@@ -130,9 +130,8 @@ End Namespace
                         Dim methodToken = metadataReader.GetToken(methodHandle)
 
                         pdbbits.Position = 0
-                        Using reader As New SymReader(pdbbits)
-                            Return reader.GetVisualBasicImportStrings(methodToken, methodVersion:=1)
-                        End Using
+                        Dim reader = SymReaderFactory.CreateReader(pdbbits)
+                        Return reader.GetVisualBasicImportStrings(methodToken, methodVersion:=1)
                     End Using
                 End Using
             End Using
@@ -500,8 +499,8 @@ End Class
             Dim ref2 = AssemblyMetadata.CreateFromImage(dllBytes2).GetReference(display:="B")
 
             Dim modulesBuilder = ArrayBuilder(Of ModuleInstance).GetInstance()
-            modulesBuilder.Add(ref1.ToModuleInstance(dllBytes1, New SymReader(pdbBytes1, dllBytes1)))
-            modulesBuilder.Add(ref2.ToModuleInstance(dllBytes2, New SymReader(pdbBytes2, dllBytes2)))
+            modulesBuilder.Add(ref1.ToModuleInstance(dllBytes1, SymReaderFactory.CreateReader(pdbBytes1)))
+            modulesBuilder.Add(ref2.ToModuleInstance(dllBytes2, SymReaderFactory.CreateReader(pdbBytes2)))
             modulesBuilder.Add(MscorlibRef_v4_0_30316_17626.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing))
             modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing))
 

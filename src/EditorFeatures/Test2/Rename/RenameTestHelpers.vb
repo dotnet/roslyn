@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Sub
 
         Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace, newIdentifierName As String) As Task
-            Await WaitForRename(workspace).ConfigureAwait(True)
+            Await WaitForRename(workspace)
             For Each document In workspace.Documents
                 For Each selectedSpan In document.SelectedSpans
                     Dim trackingSpan = document.InitialTextSnapshot.CreateTrackingSpan(selectedSpan.ToSpan(), SpanTrackingMode.EdgeInclusive)
@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         Public Async Function WaitForRename(workspace As TestWorkspace) As Task
             Dim waiters = workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter)
-            Await waiters.WaitAllAsync().ConfigureAwait(True)
+            Await waiters.WaitAllAsync()
         End Function
 
         Public Function CreateRenameTrackingTagger(workspace As TestWorkspace, document As TestHostDocument) As ITagger(Of RenameTrackingTag)
@@ -128,17 +128,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Function
 
         Public Async Function VerifyNoRenameTrackingTags(tagger As ITagger(Of RenameTrackingTag), workspace As TestWorkspace, document As TestHostDocument) As Task
-            Dim tags = Await GetRenameTrackingTags(tagger, workspace, document).ConfigureAwait(True)
+            Dim tags = Await GetRenameTrackingTags(tagger, workspace, document)
             Assert.Equal(0, tags.Count())
         End Function
 
         Public Async Function VerifyRenameTrackingTags(tagger As ITagger(Of RenameTrackingTag), workspace As TestWorkspace, document As TestHostDocument, expectedTagCount As Integer) As Task
-            Dim tags = Await GetRenameTrackingTags(tagger, workspace, document).ConfigureAwait(True)
+            Dim tags = Await GetRenameTrackingTags(tagger, workspace, document)
             Assert.Equal(expectedTagCount, tags.Count())
         End Function
 
         Public Async Function GetRenameTrackingTags(tagger As ITagger(Of RenameTrackingTag), workspace As TestWorkspace, document As TestHostDocument) As Task(Of IEnumerable(Of ITagSpan(Of RenameTrackingTag)))
-            Await WaitForRename(workspace).ConfigureAwait(True)
+            Await WaitForRename(workspace)
             Dim view = document.GetTextView()
             Return tagger.GetTags(view.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection())
         End Function

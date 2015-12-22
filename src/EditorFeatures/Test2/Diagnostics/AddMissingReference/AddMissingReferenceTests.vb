@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Reflection
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 
@@ -29,81 +30,81 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, fixer)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
-        Public Sub AddProjectReferenceBetweenCSharpProjects()
-            TestAddProjectReference(<Workspace>
-                                        <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">
-                                            <Document>public class A { }</Document>
-                                        </Project>
-                                        <Project Language="C#" AssemblyName="ProjectB" CommonReferences="true">
-                                            <ProjectReference>ProjectA</ProjectReference>
-                                            <Document>public class B : A { }</Document>
-                                        </Project>
-                                        <Project Language="C#" AssemblyName="ProjectC" CommonReferences="true">
-                                            <ProjectReference>ProjectB</ProjectReference>
-                                            <Document>public class C : B$$ { }</Document>
-                                        </Project>
-                                    </Workspace>,
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        Public Async Function AddProjectReferenceBetweenCSharpProjects() As Task
+            Await TestAddProjectReferenceAsync(<Workspace>
+                                                   <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">
+                                                       <Document>public class A { }</Document>
+                                                   </Project>
+                                                   <Project Language="C#" AssemblyName="ProjectB" CommonReferences="true">
+                                                       <ProjectReference>ProjectA</ProjectReference>
+                                                       <Document>public class B : A { }</Document>
+                                                   </Project>
+                                                   <Project Language="C#" AssemblyName="ProjectC" CommonReferences="true">
+                                                       <ProjectReference>ProjectB</ProjectReference>
+                                                       <Document>public class C : B$$ { }</Document>
+                                                   </Project>
+                                               </Workspace>,
                                     "ProjectC", "ProjectA")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
-        Public Sub AddProjectReferenceBetweenVisualBasicProjects()
-            TestAddProjectReference(<Workspace>
-                                        <Project Language="Visual Basic" AssemblyName="ProjectA" CommonReferences="true">
-                                            <Document>Public Class A : End Class</Document>
-                                        </Project>
-                                        <Project Language="Visual Basic" AssemblyName="ProjectB" CommonReferences="true">
-                                            <ProjectReference>ProjectA</ProjectReference>
-                                            <Document>Public Class B : Inherits A : End Class</Document>
-                                        </Project>
-                                        <Project Language="Visual Basic" AssemblyName="ProjectC" CommonReferences="true">
-                                            <ProjectReference>ProjectB</ProjectReference>
-                                            <Document>Public Class C : Inherits $$B : End Class</Document>
-                                        </Project>
-                                    </Workspace>,
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        Public Async Function AddProjectReferenceBetweenVisualBasicProjects() As Task
+            Await TestAddProjectReferenceAsync(<Workspace>
+                                                   <Project Language="Visual Basic" AssemblyName="ProjectA" CommonReferences="true">
+                                                       <Document>Public Class A : End Class</Document>
+                                                   </Project>
+                                                   <Project Language="Visual Basic" AssemblyName="ProjectB" CommonReferences="true">
+                                                       <ProjectReference>ProjectA</ProjectReference>
+                                                       <Document>Public Class B : Inherits A : End Class</Document>
+                                                   </Project>
+                                                   <Project Language="Visual Basic" AssemblyName="ProjectC" CommonReferences="true">
+                                                       <ProjectReference>ProjectB</ProjectReference>
+                                                       <Document>Public Class C : Inherits $$B : End Class</Document>
+                                                   </Project>
+                                               </Workspace>,
                                     "ProjectC", "ProjectA")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
-        Public Sub AddProjectReferenceBetweenMixedLanguages1()
-            TestAddProjectReference(<Workspace>
-                                        <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">
-                                            <Document>public class A { }</Document>
-                                        </Project>
-                                        <Project Language="Visual Basic" AssemblyName="ProjectB" CommonReferences="true">
-                                            <ProjectReference>ProjectA</ProjectReference>
-                                            <Document>Public Class B : Inherits A : End Class</Document>
-                                        </Project>
-                                        <Project Language="Visual Basic" AssemblyName="ProjectC" CommonReferences="true">
-                                            <ProjectReference>ProjectB</ProjectReference>
-                                            <Document>Public Class C : Inherits $$B : End Class</Document>
-                                        </Project>
-                                    </Workspace>,
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        Public Async Function AddProjectReferenceBetweenMixedLanguages1() As Task
+            Await TestAddProjectReferenceAsync(<Workspace>
+                                                   <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">
+                                                       <Document>public class A { }</Document>
+                                                   </Project>
+                                                   <Project Language="Visual Basic" AssemblyName="ProjectB" CommonReferences="true">
+                                                       <ProjectReference>ProjectA</ProjectReference>
+                                                       <Document>Public Class B : Inherits A : End Class</Document>
+                                                   </Project>
+                                                   <Project Language="Visual Basic" AssemblyName="ProjectC" CommonReferences="true">
+                                                       <ProjectReference>ProjectB</ProjectReference>
+                                                       <Document>Public Class C : Inherits $$B : End Class</Document>
+                                                   </Project>
+                                               </Workspace>,
                                     "ProjectC", "ProjectA")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
-        Public Sub AddProjectReferenceBetweenMixedLanguages2()
-            TestAddProjectReference(<Workspace>
-                                        <Project Language="Visual Basic" AssemblyName="ProjectA" CommonReferences="true">
-                                            <Document>Public Class A : End Class</Document>
-                                        </Project>
-                                        <Project Language="C#" AssemblyName="ProjectB" CommonReferences="true">
-                                            <ProjectReference>ProjectA</ProjectReference>
-                                            <Document>public class B : A { }</Document>
-                                        </Project>
-                                        <Project Language="C#" AssemblyName="ProjectC" CommonReferences="true">
-                                            <ProjectReference>ProjectB</ProjectReference>
-                                            <Document>public class C : B$$ { }</Document>
-                                        </Project>
-                                    </Workspace>,
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        Public Async Function AddProjectReferenceBetweenMixedLanguages2() As Task
+            Await TestAddProjectReferenceAsync(<Workspace>
+                                                   <Project Language="Visual Basic" AssemblyName="ProjectA" CommonReferences="true">
+                                                       <Document>Public Class A : End Class</Document>
+                                                   </Project>
+                                                   <Project Language="C#" AssemblyName="ProjectB" CommonReferences="true">
+                                                       <ProjectReference>ProjectA</ProjectReference>
+                                                       <Document>public class B : A { }</Document>
+                                                   </Project>
+                                                   <Project Language="C#" AssemblyName="ProjectC" CommonReferences="true">
+                                                       <ProjectReference>ProjectB</ProjectReference>
+                                                       <Document>public class C : B$$ { }</Document>
+                                                   </Project>
+                                               </Workspace>,
                                     "ProjectC", "ProjectA")
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
-        Public Sub AddMetadataReferenceToVisualBasicProjectErrorCode30005()
-            TestAddUnresolvedMetadataReference(
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        Public Async Function AddMetadataReferenceToVisualBasicProjectErrorCode30005() As Task
+            Await TestAddUnresolvedMetadataReferenceAsync(
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VBProject" CommonReferences="true">
                         <ProjectReference>VBProject2</ProjectReference>
@@ -125,11 +126,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                     </Project>
                 </Workspace>,
                 "VBProject", s_windowsBaseAssembly.FullName)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
-        Public Sub AddMetadataReferenceToVisualBasicProjectErrorCode30007()
-            TestAddUnresolvedMetadataReference(
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        Public Async Function AddMetadataReferenceToVisualBasicProjectErrorCode30007() As Task
+            Await TestAddUnresolvedMetadataReferenceAsync(
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VBProject" CommonReferences="true">
                         <MetadataReference><%= s_presentationCoreAssembly.Location %></MetadataReference>
@@ -137,11 +138,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                     </Project>
                 </Workspace>,
                 "VBProject", s_windowsBaseAssembly.FullName)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
-        Public Sub AddMetadataReferenceToVisualBasicProjectErrorCode30652()
-            TestAddUnresolvedMetadataReference(
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        Public Async Function AddMetadataReferenceToVisualBasicProjectErrorCode30652() As Task
+            Await TestAddUnresolvedMetadataReferenceAsync(
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VBProject" CommonReferences="true">
                         <ProjectReference>VBProject2</ProjectReference>
@@ -163,11 +164,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                     </Project>
                 </Workspace>,
                 "VBProject", s_windowsBaseAssembly.FullName)
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
-        Public Sub AddMetadataReferenceToCSharpProject()
-            TestAddUnresolvedMetadataReference(
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        Public Async Function AddMetadataReferenceToCSharpProject() As Task
+            Await TestAddUnresolvedMetadataReferenceAsync(
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
                         <MetadataReference><%= s_presentationCoreAssembly.Location %></MetadataReference>
@@ -175,6 +176,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                     </Project>
                 </Workspace>,
                 "CSharpProject", s_windowsBaseAssembly.FullName)
-        End Sub
+        End Function
     End Class
 End Namespace

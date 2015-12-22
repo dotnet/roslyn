@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxTreeExtensions
     {
+        public static bool IsScript(this SyntaxTree syntaxTree)
+        {
+            return syntaxTree.Options.Kind != SourceCodeKind.Regular;
+        }
+
         /// <summary>
         /// Returns the identifier, keyword, contextual keyword or preprocessor keyword touching this
         /// position, or a token of Kind = None if the caret is not touching either.
@@ -120,6 +125,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var lineVisibility = tree.GetLineVisibility(position, cancellationToken);
             return lineVisibility == LineVisibility.Hidden || lineVisibility == LineVisibility.BeforeFirstLineDirective;
+        }
+
+        public static bool IsBeforeFirstToken(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var firstToken = syntaxTree.GetRoot(cancellationToken).GetFirstToken(includeZeroWidth: true, includeSkipped: true);
+
+            return position <= firstToken.SpanStart;
         }
     }
 }

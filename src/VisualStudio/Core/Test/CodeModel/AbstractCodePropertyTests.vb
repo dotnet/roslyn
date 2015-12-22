@@ -100,26 +100,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Throw New NotSupportedException
         End Function
 
-        Protected Sub TestAutoImplementedPropertyExtender_IsAutoImplemented(code As XElement, expected As Boolean)
-            TestElement(code,
+        Protected Async Function TestAutoImplementedPropertyExtender_IsAutoImplemented(code As XElement, expected As Boolean) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, AutoImplementedPropertyExtender_GetIsAutoImplemented(codeElement))
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestGetter(code As XElement, verifier As Action(Of EnvDTE.CodeFunction))
-            TestElement(code,
+        Protected Async Function TestGetter(code As XElement, verifier As Action(Of EnvDTE.CodeFunction)) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     verifier(codeElement.Getter)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Sub TestSetter(code As XElement, verifier As Action(Of EnvDTE.CodeFunction))
-            TestElement(code,
+        Protected Async Function TestSetter(code As XElement, verifier As Action(Of EnvDTE.CodeFunction)) As Threading.Tasks.Task
+            Await TestElement(code,
                 Sub(codeElement)
                     verifier(codeElement.Setter)
                 End Sub)
-        End Sub
+        End Function
 
     End Class
 End Namespace

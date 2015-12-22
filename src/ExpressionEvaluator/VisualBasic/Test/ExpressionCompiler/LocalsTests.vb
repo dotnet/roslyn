@@ -247,7 +247,7 @@ End Class"
             Dim pdbBytes As Byte() = Nothing
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
             comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes), includeLocalSignatures:=False)
+            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes), includeLocalSignatures:=False)
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M",
@@ -561,7 +561,7 @@ End Class"
             Dim pdbBytes As Byte() = Nothing
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
             comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes, exeBytes))
+            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes))
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M")
@@ -617,7 +617,7 @@ End Class"
             Dim pdbBytes As Byte() = Nothing
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
             comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes, exeBytes))
+            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes))
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M")
@@ -1702,7 +1702,7 @@ End Class"
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 ImmutableArray.Create(MscorlibRef), ' no reference to compilation0
                 exeBytes,
-                New SymReader(pdbBytes))
+                SymReaderFactory.CreateReader(pdbBytes))
 
             Dim context = CreateMethodContext(
                 runtime,
@@ -1776,7 +1776,7 @@ End Class
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
             comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
 
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes, exeBytes))
+            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes))
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M")
@@ -1825,7 +1825,7 @@ End Class
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
             comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
 
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes, exeBytes))
+            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes))
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M")
@@ -2653,7 +2653,7 @@ End Class
             ' Referencing SystemCoreRef and SystemXmlLinqRef will cause Microsoft.VisualBasic.Embedded to be compiled
             ' and it depends on EditorBrowsableAttribute.
             Dim runtimeReferences = ImmutableArray.Create(MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef)
-            Dim runtime = CreateRuntimeInstance(GetUniqueName(), runtimeReferences, exeBytes, New SymReader(pdbBytes))
+            Dim runtime = CreateRuntimeInstance(GetUniqueName(), runtimeReferences, exeBytes, SymReaderFactory.CreateReader(pdbBytes))
 
             Dim typeName As String = Nothing
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()

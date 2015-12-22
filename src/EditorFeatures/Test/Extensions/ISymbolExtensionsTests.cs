@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class ISymbolExtensionsTests : TestBase
     {
-        [WpfFact]
+        [Fact]
         public void GetGlyphGroupTests()
         {
             TestGlyph(
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 allowDerived: true);
         }
 
-        [WpfFact, WorkItem(545015)]
+        [Fact, WorkItem(545015)]
         public void TestRegularOperatorGlyph()
         {
             TestGlyph(
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 methodKind: MethodKind.UserDefinedOperator);
         }
 
-        [WpfFact, WorkItem(545015)]
+        [Fact, WorkItem(545015)]
         public void TestConversionOperatorGlyph()
         {
             TestGlyph(
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 methodKind: MethodKind.Conversion);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestWithEventsMemberGlyph()
         {
             TestGlyph(

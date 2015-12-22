@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ThrowKeywordRecommenderTests
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ThrowInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Throw")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ThrowInMultiLineLambda()
             VerifyRecommendationsContain(<ClassDeclaration>
@@ -26,7 +26,7 @@ End Sub
 
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ThrowInSingleLineLambda()
             VerifyRecommendationsContain(<ClassDeclaration>
@@ -34,7 +34,7 @@ Private _member = Sub() |
                                          </ClassDeclaration>, "Throw")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ThrowInSingleLineFunctionLambda()
             VerifyRecommendationsMissing(<ClassDeclaration>

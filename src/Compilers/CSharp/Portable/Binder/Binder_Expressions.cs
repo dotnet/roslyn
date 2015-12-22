@@ -1758,6 +1758,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private bool RefMustBeObeyed(bool isDelegateCreation, ArgumentSyntax argumentSyntax)
+        {
+            if (Compilation.FeatureStrictEnabled || !isDelegateCreation)
+            {
+                return true;
+            }
+
+            switch (argumentSyntax.Expression.Kind())
+            {
+                // The next 3 cases should never be allowed as they cannot be ref/out. Assuming a bug in legacy compiler.
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.InvocationExpression:
+                case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ParenthesizedExpression: // this is never allowed in legacy compiler
+                    // A property/indexer is also invalid as it cannot be ref/out, but cannot be checked here. Assuming a bug in legacy compiler.
+                    return true;
+                default:
+                    // The only ones that concern us here for compat is: locals, params, fields
+                    // BindArgumentAndName correctly rejects all other cases, except for properties and indexers.
+                    // They are handled after BindArgumentAndName returns and the binding can be checked.
+                    return false;
+            }
+        }
+
         private bool BindArgumentAndName(
             AnalyzedArguments result,
             DiagnosticBag diagnostics,
@@ -1766,11 +1792,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowArglist,
             bool isDelegateCreation = false)
         {
+            RefKind origRefKind = argumentSyntax.RefOrOutKeyword.Kind().GetRefKind();
             // The old native compiler ignores ref/out in a delegate creation expression.
             // For compatibility we implement the same bug except in strict mode.
-            RefKind refKind = (!isDelegateCreation || Compilation.FeatureStrictEnabled)
-                ? argumentSyntax.RefOrOutKeyword.Kind().GetRefKind()
-                : RefKind.None;
+            // Note: Some others should still be rejected when ref/out present. See RefMustBeObeyed.
+            RefKind refKind = origRefKind == RefKind.None || RefMustBeObeyed(isDelegateCreation, argumentSyntax) ? origRefKind : RefKind.None;
 
             hadError |= BindArgumentAndName(
                 result,
@@ -1781,6 +1807,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentSyntax.NameColon,
                 refKind,
                 allowArglist);
+
+            // check for ref/out property/indexer, only needed for 1 parameter version
+            if (!hadError && isDelegateCreation && origRefKind != RefKind.None && result.Arguments.Count == 1)
+            {
+                var arg = result.Argument(0);
+                switch (arg.Kind)
+                {
+                    case BoundKind.PropertyAccess:
+                    case BoundKind.IndexerAccess:
+                        return CheckIsVariable(argumentSyntax, arg, BindValueKind.OutParameter, false, diagnostics);
+                }
+            }
 
             return hadError;
         }

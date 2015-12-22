@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         [WpfFact]
         public async Task TestCodeActionPreviewAndApply()
         {
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(WorkspaceXml))
+            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(WorkspaceXml))
             {
-                var codeIssueOrRefactoring = GetCodeRefactoring(workspace);
+                var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace);
 
                 var expectedCode = "private class D { }";
 
@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                     expectedText: expectedCode,
                     index: 0,
                     actions: codeIssueOrRefactoring.Actions.ToList(),
-                    expectedPreviewContents: expectedCode).ConfigureAwait(true);
+                    expectedPreviewContents: expectedCode);
             }
         }
 
-        [WpfFact]
-        public void TestWorkspaceTryApplyChangesDirectCall()
+        [Fact]
+        public async Task TestWorkspaceTryApplyChangesDirectCall()
         {
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(WorkspaceXml))
+            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(WorkspaceXml))
             {
                 var solution = workspace.CurrentSolution;
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             }
         }
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
         {
             throw new NotSupportedException();
         }

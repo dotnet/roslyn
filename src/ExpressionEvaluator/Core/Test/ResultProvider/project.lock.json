@@ -3,6 +3,23 @@
   "version": 1,
   "targets": {
     ".NETFramework,Version=v4.5": {
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
+        "compile": {
+          "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
+        }
+      },
+      "Microsoft.DiaSymReader/1.0.7-beta1": {
+        "compile": {
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
+        },
+        "runtime": {
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
+        }
+      },
+      "Microsoft.DiaSymReader.Native/1.3.3": {},
       "System.Collections/4.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -51,6 +68,17 @@
         },
         "runtime": {
           "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Metadata/1.2.0-rc2-23608": {
+        "dependencies": {
+          "System.Collections.Immutable": "[1.1.37, )"
+        },
+        "compile": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -138,6 +166,48 @@
     }
   },
   "libraries": {
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
+      "sha512": "zsE8FvVez0iaoyWutVewackGkJsJXjavomMMdme5NZTXS2/5aG6gdLuaFvGeslq/XMsh4CqIgdvMOOFr5TmpFQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll",
+        "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
+        "package/services/metadata/core-properties/f64bfc9a6f91426492917a4c8a1b955e.psmdcp"
+      ]
+    },
+    "Microsoft.DiaSymReader/1.0.7-beta1": {
+      "sha512": "0B6ZT7riIG8GvLWTjatj06a9s+s65/mVRE0G30Ao3wLKkavzsftPyQC5D3defJfnrI9duSpAIMx5eT1eXJCaRQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/net20/Microsoft.DiaSymReader.dll",
+        "lib/net20/Microsoft.DiaSymReader.xml",
+        "lib/portable-net45+win8/Microsoft.DiaSymReader.dll",
+        "lib/portable-net45+win8/Microsoft.DiaSymReader.xml",
+        "Microsoft.DiaSymReader.nuspec",
+        "package/services/metadata/core-properties/db4a7501f1f04b9994a56439822e66a7.psmdcp"
+      ]
+    },
+    "Microsoft.DiaSymReader.Native/1.3.3": {
+      "sha512": "mjATkm+L2UlP35gO/ExNutLDfgX4iiwz1l/8sYVoeGHp5WnkEDu0NfIEsC4Oy/pCYeRw0/6SGB+kArJVNNvENQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "build/Microsoft.DiaSymReader.Native.props",
+        "Microsoft.DiaSymReader.Native.nuspec",
+        "package/services/metadata/core-properties/fdc58d35421849398d4c224d791a4bc4.psmdcp",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.arm.dll",
+        "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll",
+        "runtimes/win8-arm/native/Microsoft.DiaSymReader.Native.arm.dll",
+        "runtimes/win-x64/native/Microsoft.DiaSymReader.Native.amd64.dll",
+        "runtimes/win-x86/native/Microsoft.DiaSymReader.Native.x86.dll"
+      ]
+    },
     "System.Collections/4.0.0": {
       "sha512": "i2vsGDIEbWdHcUSNDPKZP/ZWod6o740el7mGTCy0dqbCxQh74W4QoC+klUwPEtGEFuvzJ7bJgvwJqscosVNyZQ==",
       "type": "Package",
@@ -330,6 +400,20 @@
         "ref/wp80/_._",
         "ref/wpa81/_._",
         "System.Linq.nuspec"
+      ]
+    },
+    "System.Reflection.Metadata/1.2.0-rc2-23608": {
+      "sha512": "OTjZOWW+lJqVLkLeuZNWyNGL4PDSSJZIm5XPig0TOAwag46OyoEVz5t0AvE95SXj3mCaovSVpt8FvaXMiYt91w==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet5.2/System.Reflection.Metadata.dll",
+        "lib/dotnet5.2/System.Reflection.Metadata.xml",
+        "lib/portable-net45+win8/System.Reflection.Metadata.dll",
+        "lib/portable-net45+win8/System.Reflection.Metadata.xml",
+        "package/services/metadata/core-properties/c3d433fae9784b3da60bd437eacfbdd6.psmdcp",
+        "System.Reflection.Metadata.nuspec"
       ]
     },
     "System.Resources.ResourceManager/4.0.0": {
