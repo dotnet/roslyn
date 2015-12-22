@@ -96,7 +96,7 @@ End Class"
                 assemblyNameC,
                 ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceBS2),
                 exeBytesC1,
-                New SymReader(pdbBytesC1))
+                SymReaderFactory.CreateReader(pdbBytesC1))
 
                 Dim typeBlocks As ImmutableArray(Of MetadataBlock) = Nothing
                 Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
@@ -197,7 +197,7 @@ End Class"
             compilationA.EmitAndGetReferences(exeBytesA, pdbBytesA, referencesA)
             Dim referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display:=assemblyNameA)
             Dim identityA = referenceA.GetAssemblyIdentity()
-            Dim moduleA = referenceA.ToModuleInstance(exeBytesA, New SymReader(pdbBytesA))
+            Dim moduleA = referenceA.ToModuleInstance(exeBytesA, SymReaderFactory.CreateReader(pdbBytesA))
 
             Dim assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName()
             Dim compilationB = CreateCompilationWithMscorlibAndVBRuntime(
@@ -209,7 +209,7 @@ End Class"
             Dim referencesB As ImmutableArray(Of MetadataReference) = Nothing
             compilationB.EmitAndGetReferences(exeBytesB, pdbBytesB, referencesB)
             Dim referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display:=assemblyNameB)
-            Dim moduleB = referenceB.ToModuleInstance(exeBytesB, New SymReader(pdbBytesB))
+            Dim moduleB = referenceB.ToModuleInstance(exeBytesB, SymReaderFactory.CreateReader(pdbBytesB))
 
             Dim moduleBuilder = ArrayBuilder(Of ModuleInstance).GetInstance()
             moduleBuilder.AddRange(referencesA.Select(Function(r) r.ToModuleInstance(Nothing, Nothing)))
@@ -348,7 +348,7 @@ End Class"
                 assemblyNameB,
                 ImmutableArray.Create(MscorlibRef, SystemRef, MsvbRef, referenceA1, referenceA2),
                 exeBytesB,
-                New SymReader(pdbBytesB))
+                SymReaderFactory.CreateReader(pdbBytesB))
 
                 Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
                 Dim moduleVersionId As Guid = Nothing

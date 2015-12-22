@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var loader = new SimpleAnalyzerAssemblyLoader();
 
-            AssertEx.ThrowsArgumentNull("fullPath", () => loader.AddDependencyLocation(null));
+            Assert.Throws<ArgumentNullException>("fullPath", () => loader.AddDependencyLocation(null));
         }
 
         [Fact]
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var loader = new SimpleAnalyzerAssemblyLoader();
 
-            AssertEx.Throws<Exception>(() => loader.LoadFromPath(path), allowDerived: true);
+            Assert.ThrowsAny<Exception>(() => loader.LoadFromPath(path));
         }
 
         [Fact]

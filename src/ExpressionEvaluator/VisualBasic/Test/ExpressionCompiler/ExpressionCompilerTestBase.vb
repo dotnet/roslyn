@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 references.AddIntrinsicAssembly(),
                 exeBytes,
-                If(includeSymbols, New SymReader(pdbBytes, exeBytes), Nothing))
+                If(includeSymbols, SymReaderFactory.CreateReader(pdbBytes, exeBytes), Nothing))
         End Function
 
         Friend Function CreateRuntimeInstance(

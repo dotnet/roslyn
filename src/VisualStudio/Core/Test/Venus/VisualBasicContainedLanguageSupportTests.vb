@@ -338,7 +338,7 @@ End Class</text>.Value
 
             Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
-                AssertEx.Throws(Of InvalidOperationException)(
+                Assert.Throws(Of InvalidOperationException)(
                     Sub()
                         ContainedLanguageCodeSupport.GetCompatibleEventHandlers(
                             document:=document,
@@ -368,7 +368,7 @@ End Class</text>.Value
 
             Using workspace = Await GetWorkspaceAsync(code)
                 Dim document = GetDocument(workspace)
-                AssertEx.Throws(Of InvalidOperationException)(
+                Assert.Throws(Of InvalidOperationException)(
                     Sub()
                         ContainedLanguageCodeSupport.GetCompatibleEventHandlers(
                             document:=document,
