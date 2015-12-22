@@ -390,14 +390,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsAsync)
             {
-                if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
+                state.NotePartComplete(CompletionPart.StartAsyncMethodChecks);
+                if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
                 {
-                    if (IsPartialDefinition) DeclaringCompilation.SymbolDeclaredEvent(this);
-                    state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
-                }
-                else
-                {
-                    state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
                 }
 
                 return;
@@ -435,8 +431,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
             {
                 AddDeclarationDiagnostics(diagnostics);
-                if (IsPartialDefinition) DeclaringCompilation.SymbolDeclaredEvent(this);
-                state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
+                if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
+                {
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                }
             }
             else
             {
