@@ -571,6 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, tname.ToString());
         }
 
+        [WorkItem(7177, "https://github.com/dotnet/roslyn/issues/7177")]
         [Fact]
         public void TestConstantInGenericNameBad()
         {
@@ -596,6 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, tname.ToString());
         }
 
+        [WorkItem(7177, "https://github.com/dotnet/roslyn/issues/7177")]
         [Fact]
         public void TestConstantInGenericNamePartiallyBad()
         {
@@ -627,6 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, tname.ToString());
         }
 
+        [WorkItem(7177, "https://github.com/dotnet/roslyn/issues/7177")]
         [Fact]
         public void TestKeywordInGenericNameBad()
         {

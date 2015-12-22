@@ -2061,6 +2061,66 @@ public class Test
             AssertEx.Equal(CreateCompilationWithMscorlib(tree).GetDiagnostics(), CreateCompilationWithMscorlib(tree).GetDiagnostics());
         }
 
+        /// <summary>
+        /// Test that invalid type argument lists produce clean error messages
+        /// with minimal noise
+        /// </summary>
+        [WorkItem(7177, "https://github.com/dotnet/roslyn/issues/7177")]
+        [Fact]
+        public void InvalidTypeArgumentList()
+        {
+            var text = @"using System;
+public class A
+{
+    static void Main(string[] args)
+    {
+        // Invalid type arguments
+        object a1 = typeof(Action<0>);
+        object a2 = typeof(Action<static>);
+
+        // Valid type arguments
+        object a3 = typeof(Action<string>);
+        object a4 = typeof(Action<>);
+
+        // Invalid with multiple types
+        object a5 = typeof(Func<0,1>);
+        object a6 = typeof(Func<0,bool>);
+        object a7 = typeof(Func<static,bool>);
+
+        // Valid with multiple types
+        object a8 = typeof(Func<string,bool>);
+        object a9 = typeof(Func<,>);
+
+        // Invalid with nested types
+        object a10 = typeof(Action<Action<0>>);
+        object a11 = typeof(Action<Action<static>>);
+        object a12 = typeof(Action<Action<>>);
+
+        // Valid with nested types
+        object a13 = typeof(Action<Action<string>>);
+    }
+}";
+
+            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+                // Case a1
+                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 7, Column = 36 },
+                // Case a2
+                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 8, Column = 41 },
+                // Case a5
+                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 15, Column = 34 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 15, Column = 36 },
+                // Case a6
+                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 16, Column = 34 },
+                // Case a7
+                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 17, Column = 39 },
+                // Case a10
+                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 24, Column = 44 },
+                // Case a11
+                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 25, Column = 49 },
+                // Case a12
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnexpectedUnboundGenericName, Line = 26, Column = 36 });
+        }
+
         #region Mocks
         internal class CustomErrorInfo : DiagnosticInfo
         {
