@@ -5347,4 +5347,7 @@
   <data name="ERR_ShebangOnlyAllowedInScripts" xml:space="preserve">
     <value>#! directive is only allowed is script code.</value>
   </data>
+  <data name="ERR_LoadDirectiveOnlyAllowedInScripts" xml:space="preserve">
+    <value>#Load is only allowed in scripts</value>
+  </data>
 </root>

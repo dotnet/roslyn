@@ -76,7 +76,7 @@ Public Class ParseDirectives
             #r "assembly.dll"
         ]]>,
         <errors>
-            <error id="36964" message="#R Is only allowed in scripts" start="14" end="15"/>
+            <error id="36964" message="#R is only allowed in scripts" start="14" end="15"/>
         </errors>)
     End Sub
 
@@ -98,10 +98,17 @@ Public Class ParseDirectives
         </errors>)
 
         ParseAndVerify(<![CDATA[
+            #load "script.vbx": Dim x = 1
+        ]]>, TestOptions.Script,
+        <errors>
+            <error id="30205" message="End of statement expected." start="26" end="29"/>
+        </errors>)
+
+        ParseAndVerify(<![CDATA[
             #load "script.vbx"
         ]]>,
         <errors>
-            <error id="36967" message="#Load Is only allowed in scripts" start="14" end="18"/>
+            <error id="36967" message="#Load is only allowed in scripts" start="14" end="18"/>
         </errors>)
     End Sub
 

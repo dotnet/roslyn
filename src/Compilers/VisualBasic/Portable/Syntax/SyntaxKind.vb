@@ -3190,6 +3190,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ShebangDirectiveTrivia = 790                                    ' ShebangDirectiveTrivia : DirectiveTriviaSyntax : StructuredTriviaSyntax
 
+        ''' <summary>
+        ''' Represents a message in a preprocessing directive.
+        ''' </summary>
+        PreprocessingMessageTrivia = 791                                ' PreprocessingMessageTrivia : SyntaxTrivia
+
     End Enum
 
 End Namespace

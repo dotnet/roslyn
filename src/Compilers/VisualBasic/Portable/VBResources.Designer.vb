@@ -6604,6 +6604,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to #Load is only allowed in scripts.
+        '''</summary>
+        Friend ReadOnly Property ERR_LoadDirectiveOnlyAllowedInScripts() As String
+            Get
+                Return ResourceManager.GetString("ERR_LoadDirectiveOnlyAllowedInScripts", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; is already declared as a parameter of this method..
         '''</summary>
         Friend ReadOnly Property ERR_LocalNamedSameAsParam1() As String

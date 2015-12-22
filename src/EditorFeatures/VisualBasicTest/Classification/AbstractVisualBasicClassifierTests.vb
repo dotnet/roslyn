@@ -85,35 +85,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         Protected Function TestAsync(
             code As String,
             allCode As String,
-            ParamArray expected As Tuple(Of String, String)()) As Task
-            Return TestAsync(code, allCode, Nothing, expected)
-        End Function
-
-        Protected Function TestAsync(
-            code As String,
-            allCode As String,
-            parseOptions As ParseOptions,
-            ParamArray expected As Tuple(Of String, String)()) As Task
+            Optional parseOptions As ParseOptions = Nothing,
+            Optional expected As Tuple(Of String, String)() = Nothing) As Task
 
             Dim start = allCode.IndexOf(code, StringComparison.Ordinal)
             Dim length = code.Length
             Dim span = New TextSpan(start, length)
-            Return TestAsync(code, allCode, span, parseOptions, expected)
+            Return TestAsync(code, allCode, span, parseOptions:=parseOptions, expected:=expected)
         End Function
 
         Protected Function TestAsync(
                 code As String,
                 span As TextSpan,
                 ParamArray expected As Tuple(Of String, String)()) As Task
-            Return TestAsync(code, code, span, Nothing, expected)
+            Return TestAsync(code, code, span, expected:=expected)
         End Function
 
         Protected Async Function TestAsync(
             code As String,
             allCode As String,
             span As TextSpan,
-            parseOptions As ParseOptions,
-            ParamArray expected As Tuple(Of String, String)()) As Task
+            Optional parseOptions As ParseOptions = Nothing,
+            Optional expected As Tuple(Of String, String)() = Nothing) As Task
+
+            If expected Is Nothing Then
+                expected = {}
+            End If
 
             Dim actual = (Await GetClassificationSpansAsync(allCode, span, parseOptions)).ToList()
             actual.Sort(Function(t1, t2) t1.TextSpan.Start - t2.TextSpan.Start)
@@ -143,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             code As String,
             ParamArray expected As Tuple(Of String, String)()) As Task
 
-            Return TestAsync(code, code, expected)
+            Return TestAsync(code, code, expected:=expected)
         End Function
 
         <DebuggerStepThrough()>
@@ -152,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             parseOptions As ParseOptions,
             ParamArray expected As Tuple(Of String, String)()) As Task
 
-            Return TestAsync(code, code, parseOptions, expected)
+            Return TestAsync(code, code, parseOptions:=parseOptions, expected:=expected)
         End Function
 
         <DebuggerStepThrough()>
@@ -161,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             ParamArray expected As Tuple(Of String, String)()) As Task
 
             Dim allCode = "Namespace N" & vbCrLf & code & vbCrLf & "End Namespace"
-            Return TestAsync(code, allCode, expected)
+            Return TestAsync(code, allCode, expected:=expected)
         End Function
 
         <DebuggerStepThrough()>
@@ -171,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             expected As Tuple(Of String, String)()) As Task
 
             Dim allCode = "Class " & className & vbCrLf & code & vbCrLf & "End Class"
-            Return TestAsync(code, allCode, expected)
+            Return TestAsync(code, allCode, expected:=expected)
         End Function
 
         <DebuggerStepThrough()>
@@ -191,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
             Dim allCode = "Class " & className & vbCrLf & "    Sub " & methodName & "()" & vbCrLf & "        " &
                 code & vbCrLf & "    End Sub" & vbCrLf & "End Class"
-            Return TestAsync(code, allCode, expected)
+            Return TestAsync(code, allCode, expected:=expected)
         End Function
 
         <DebuggerStepThrough()>
@@ -206,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 code & vbCrLf & "    End Sub" & vbCrLf & "End Class"
             Dim start = allCode.IndexOf(codeToClassify)
             Dim length = codeToClassify.Length
-            Await TestAsync(code, allCode, New TextSpan(start, length), Nothing, expected)
+            Await TestAsync(code, allCode, New TextSpan(start, length), expected:=expected)
         End Function
 
         <DebuggerStepThrough()>
@@ -233,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
             Dim allCode = "Class C" & vbCrLf & "    Sub M()" & vbCrLf & "        dim q = " &
                 code & vbCrLf & "    End Sub" & vbCrLf & "End Class"
-            Return TestAsync(code, allCode, expected)
+            Return TestAsync(code, allCode, expected:=expected)
         End Function
     End Class
 End Namespace

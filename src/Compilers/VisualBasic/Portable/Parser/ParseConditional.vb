@@ -491,8 +491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 GetNextToken()
             End While
 
-
-            exclamationToken = exclamationToken.AddTrailingTrivia(SyntaxFactory.CommentTrivia(builder.ToStringAndFree()))
+            exclamationToken = exclamationToken.AddTrailingTrivia(SyntaxFactory.PreprocessingMessageTrivia(builder.ToStringAndFree()))
             Return SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken)
         End Function
 

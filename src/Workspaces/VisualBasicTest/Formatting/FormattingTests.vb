@@ -3972,11 +3972,16 @@ End Module
         Public Async Function TestShebangDirective() As Task
             Dim text = <Code>#!/usr/bin</Code>
             Dim expected = text
-            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value)
+            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value, parseOptions:=TestOptions.Script)
 
             text = <Code>#! /usr/bin </Code>
             expected = text
-            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value)
+            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value, parseOptions:=TestOptions.Script)
+
+            text = <Code>#! /usr/bin
+Dim x = 12</Code>
+            expected = text
+            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value, parseOptions:=TestOptions.Script)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
@@ -3984,7 +3989,7 @@ End Module
             Dim text = <Code>#Load           "filename" 'comment</Code>
             Dim expected = <Code>#Load "filename" 'comment</Code>
 
-            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value)
+            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value, parseOptions:=TestOptions.Script)
         End Function
 
         <WorkItem(796562)>

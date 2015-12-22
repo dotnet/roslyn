@@ -1208,6 +1208,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>Load a vbx file.</value>
   </data>
   <data name="ShebangKeywordToolTip" xml:space="preserve">
-    <value>Under unix a #! directive specifies program that runs the script. For example (#!/usr/bin/env vbi).</value>
+    <value>Under Unix a #! directive specifies program that runs the script. For example (#!/usr/bin/env vbi).</value>
   </data>
 </root>

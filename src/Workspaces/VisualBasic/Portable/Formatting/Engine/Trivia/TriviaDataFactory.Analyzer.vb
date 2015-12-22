@@ -47,7 +47,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                         AnalyzeWhitespacesInTrivia(trivia, result)
                     ElseIf trivia.Kind = SyntaxKind.EndOfLineTrivia Then
                         AnalyzeLineBreak(trivia, result)
-                    ElseIf trivia.Kind = SyntaxKind.CommentTrivia OrElse trivia.Kind = SyntaxKind.DocumentationCommentTrivia Then
+                    ElseIf trivia.Kind = SyntaxKind.CommentTrivia OrElse
+                            trivia.Kind = SyntaxKind.DocumentationCommentTrivia OrElse
+                            trivia.Kind = SyntaxKind.PreprocessingMessageTrivia Then
                         result.HasComments = True
                     ElseIf trivia.Kind = SyntaxKind.DisabledTextTrivia OrElse trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
                         result.HasSkippedOrDisabledText = True

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
     Friend Class VisualBasicLoadDirectiveCompletionProvider
         Inherits LoadDirectiveCompletionProvider
 
-        Private Shared s_directiveRegex As Regex = New Regex("#load\s+(""[^""]*""?)", RegexOptions.Compiled Or RegexOptions.IgnoreCase)
+        Private Shared ReadOnly s_directiveRegex As Regex = New Regex("#load\s+(""[^""]*""?)", RegexOptions.Compiled Or RegexOptions.IgnoreCase)
 
         Protected Overrides Function GetDirectiveMatch(lineText As String) As Match
             Return s_directiveRegex.Match(lineText)

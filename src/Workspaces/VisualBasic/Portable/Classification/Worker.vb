@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     Case SyntaxKind.SkippedTokensTrivia
                         ClassifySkippedTokens(DirectCast(trivia.GetStructure(), SkippedTokensTriviaSyntax))
                 End Select
-            ElseIf trivia.Kind = SyntaxKind.CommentTrivia Then
+            ElseIf trivia.Kind = SyntaxKind.CommentTrivia OrElse trivia.Kind = SyntaxKind.PreprocessingMessageTrivia Then
                 AddClassification(trivia, ClassificationTypeNames.Comment)
             ElseIf trivia.Kind = SyntaxKind.DisabledTextTrivia Then
                 AddClassification(trivia, ClassificationTypeNames.ExcludedCode)

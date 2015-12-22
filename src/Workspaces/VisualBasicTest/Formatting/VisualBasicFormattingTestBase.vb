@@ -30,11 +30,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             Return StringFromLines(adjustedLines.ToArray())
         End Function
 
-        Protected Function AssertFormatLf2CrLfAsync(code As String, expected As String, Optional optionSet As Dictionary(Of OptionKey, Object) = Nothing) As Task
+        Protected Function AssertFormatLf2CrLfAsync(
+                code As String, expected As String,
+                Optional optionSet As Dictionary(Of OptionKey, Object) = Nothing,
+                Optional parseOptions As VisualBasicParseOptions = Nothing) As Task
             code = code.Replace(vbLf, vbCrLf)
             expected = expected.Replace(vbLf, vbCrLf)
 
-            Return AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
+            Return AssertFormatAsync(code, expected, changedOptionSet:=optionSet, parseOptions:=parseOptions)
         End Function
 
         Protected Async Function AssertFormatUsingAllEntryPointsAsync(code As String, expected As String) As Task
@@ -81,8 +84,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             Optional debugMode As Boolean = False,
             Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
             Optional testWithTransformation As Boolean = False,
-            Optional experimental As Boolean = False) As Task
-            Return AssertFormatAsync(expected, code, SpecializedCollections.SingletonEnumerable(New TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation, experimental:=experimental)
+            Optional experimental As Boolean = False,
+            Optional parseOptions As VisualBasicParseOptions = Nothing) As Task
+            Return AssertFormatAsync(expected, code, SpecializedCollections.SingletonEnumerable(New TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation, experimental:=experimental, parseOptions:=parseOptions)
         End Function
 
         Protected Overloads Function AssertFormatAsync(
@@ -92,9 +96,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             Optional debugMode As Boolean = False,
             Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
             Optional testWithTransformation As Boolean = False,
-            Optional experimental As Boolean = False) As Task
+            Optional experimental As Boolean = False,
+            Optional parseOptions As VisualBasicParseOptions = Nothing) As Task
 
-            Dim parseOptions = New VisualBasicParseOptions()
+            If parseOptions Is Nothing Then
+                parseOptions = New VisualBasicParseOptions()
+            End If
             If (experimental) Then
                 ' There are no experimental features at this time.
                 ' parseOptions = parseOptions.WithExperimentalFeatures
