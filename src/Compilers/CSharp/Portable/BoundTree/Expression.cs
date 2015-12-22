@@ -748,6 +748,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.ConditionalAccessExpression;
     }
 
+    //partial class BoundEventMumble
+    //{
+    //
+    //}
+
     class Expression
     {
         internal static BinaryOperationKind DeriveBinaryOperationKind(UnaryOperationKind incrementKind)

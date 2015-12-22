@@ -47,7 +47,7 @@ class D : C
         }
 
         [Fact]
-        public void EventReferencesCSharp()
+        public void EventAndMethodReferencesCSharp()
         {
             const string source = @"
 public delegate void MumbleEventHandler(object sender, System.EventArgs args);
