@@ -6326,7 +6326,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Eat the close brace and we're done.
                 var close = this.EatToken(SyntaxKind.CloseBracketToken);
 
-                return _syntaxFactory.ArrayRankSpecifier(open, list, close);
+                SyntaxToken questionToken = null;
+
+                if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                {
+                    questionToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureStaticNullChecking);
+                }
+
+                return _syntaxFactory.ArrayRankSpecifier(open, list, close, questionToken);
             }
             finally
             {

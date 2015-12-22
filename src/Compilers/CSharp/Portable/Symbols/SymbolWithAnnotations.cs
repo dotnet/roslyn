@@ -175,6 +175,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new WithoutCustomModifiers(typeSymbol);
         }
 
+        public static TypeSymbolWithAnnotations CreateNullableReferenceType(TypeSymbol typeSymbol)
+        {
+            // TODO: Consider if it makes sense to cache and reuse instances, at least for definitions.
+            return new NullableReferenceTypeWithoutCustomModifiers(typeSymbol);
+        }
+
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
         {
             if (customModifiers.IsDefaultOrEmpty)
