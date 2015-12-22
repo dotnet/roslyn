@@ -4,6 +4,7 @@ NUGET_PACKAGE_NAME = nuget.40
 BUILD_CONFIGURATION = Debug
 BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
 BUILD_LOG_PATH =
+XUNIT_VERSION = 2.1.0
 
 MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:SignAssembly=false /p:DebugSymbols=false /p:Configuration=$(BUILD_CONFIGURATION)
 
@@ -42,6 +43,9 @@ bootstrap: toolset
 	cp Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) ; \
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
+tests:
+	build/scripts/tests.sh $(MONO_PATH) $(BUILD_CONFIGURATION) $(XUNIT_VERSION)
+
 clean:
 	@rm -rf Binaries
 
@@ -67,4 +71,3 @@ clean_toolset:
 	curl -O https://dotnetci.blob.core.windows.net/roslyn/$(NUGET_PACKAGE_NAME).zip ; \
 	unzip -uoq $(NUGET_PACKAGE_NAME).zip -d ~/ ; \
 	chmod +x ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe
-
