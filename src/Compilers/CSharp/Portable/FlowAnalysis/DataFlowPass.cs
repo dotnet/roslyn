@@ -2278,17 +2278,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 Split();
 
-                                this.StateWhenFalse.KnownNullState[slot] = true;
-                                this.StateWhenTrue.KnownNullState[slot] = true;
-
                                 if (op == BinaryOperatorKind.Equal)
                                 {
+                                    this.StateWhenFalse.KnownNullState[slot] = true;
                                     this.StateWhenFalse.NotNull[slot] = true;
-                                    this.StateWhenTrue.NotNull[slot] = false;
                                 }
                                 else
                                 {
-                                    this.StateWhenFalse.NotNull[slot] = false;
+                                    this.StateWhenTrue.KnownNullState[slot] = true;
                                     this.StateWhenTrue.NotNull[slot] = true;
                                 }
                             }
@@ -2344,14 +2341,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             operandComparedToNull = SkipReferenceConversions(operandComparedToNull);
             int slot = MakeSlot(operandComparedToNull);
-
-            if (slot > 0)
-            {
-                if (slot >= this.State.KnownNullState.Capacity) NormalizeNullable(ref this.State);
-
-                this.State.KnownNullState[slot] = true;
-                this.State.NotNull[slot] = false;
-            }
 
             VisitRvalue(node.RightOperand);
             bool? rightOperandIsNotNull = this.State.ResultIsNotNull;

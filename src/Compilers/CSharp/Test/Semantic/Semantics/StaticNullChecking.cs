@@ -2949,10 +2949,7 @@ class CL1
     Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x3").WithLocation(20, 18),
     // (26,18): warning CS8207: Expression is probably never null.
     //         CL1 z4 = x4 ?? x4.M1();
-    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(26, 18),
-    // (26,24): warning CS8202: Possible dereference of a null reference.
-    //         CL1 z4 = x4 ?? x4.M1();
-    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(26, 24)
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(26, 18)
                 );
         }
 
@@ -3083,9 +3080,6 @@ class CL1
     // (26,18): warning CS8205: Result of the comparison is possibly always true.
     //         CL1 z4 = x4 != null ? x4 : x4.M1();
     Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "x4 != null").WithLocation(26, 18),
-    // (26,36): warning CS8202: Possible dereference of a null reference.
-    //         CL1 z4 = x4 != null ? x4 : x4.M1();
-    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(26, 36),
     // (38,21): warning CS8205: Result of the comparison is possibly always true.
     //         string z6 = y6 != null ? y6 : x6.M2();
     Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "y6 != null").WithLocation(38, 21),
@@ -3165,9 +3159,6 @@ class CL1
     // (26,18): warning CS8206: Result of the comparison is possibly always false.
     //         CL1 z4 = x4 == null ? x4.M1() : x4;
     Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "x4 == null").WithLocation(26, 18),
-    // (26,31): warning CS8202: Possible dereference of a null reference.
-    //         CL1 z4 = x4 == null ? x4.M1() : x4;
-    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(26, 31),
     // (38,21): warning CS8206: Result of the comparison is possibly always false.
     //         string z6 = y6 == null ? x6.M2() : y6;
     Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "y6 == null").WithLocation(38, 21),
@@ -3209,7 +3200,7 @@ class CL1
                 );
         }
 
-        [Fact(Skip = "Unexpected warning on the second ToString(). The state of 'y1' is changed to nullable by the NullCoalescingOperator.")]
+        [Fact]
         public void ConditionalBranching_09()
         {
             CSharpCompilation c = CreateCompilationWithMscorlib(@"
@@ -3236,7 +3227,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "Unexpected warning on the second ToString(). The state of 'y1' is changed to nullable by the conditional expression.")]
+        [Fact]
         public void ConditionalBranching_10()
         {
             CSharpCompilation c = CreateCompilationWithMscorlib(@"
@@ -3290,7 +3281,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "Unexpected warning on the second ToString(). The state of 'y1' is changed to nullable by the 'if' statement.")]
+        [Fact]
         public void ConditionalBranching_12()
         {
             CSharpCompilation c = CreateCompilationWithMscorlib(@"
@@ -3323,6 +3314,42 @@ class C
     // (13,13): warning CS8206: Result of the comparison is possibly always false.
     //         if (y1 == null)
     Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "y1 == null").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void ConditionalBranching_13()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    void Test1(object x1, object? y1)
+    {
+        y1 = x1;
+        y1.ToString();
+
+        if (y1 != null)
+        {
+            System.Console.WriteLine(1);
+        }
+        else
+        {
+            System.Console.WriteLine(2);
+        }
+
+        y1.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (13,13): hidden CS8205: Result of the comparison is possibly always true.
+    //         if (y1 != null)
+    Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "y1 != null").WithLocation(13, 13)
                 );
         }
 
@@ -4604,6 +4631,7 @@ class C
         var y3 = new { p1 = x3 };
         x3 = y3.p1 ?? 
                       z3.M1(y3.p1);
+        CL1 v3 = y3.p1;
     }
 }
 
@@ -4616,10 +4644,7 @@ class CL1
             c.VerifyDiagnostics(
     // (25,29): error CS0269: Use of unassigned out parameter 'x3'
     //         var y3 = new { p1 = x3 };
-    Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x3").WithArguments("x3").WithLocation(25, 29),
-    // (27,29): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL1.M1(CL1 x)'.
-    //                       z3.M1(y3.p1);
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y3.p1").WithArguments("x", "CL1 CL1.M1(CL1 x)").WithLocation(27, 29)
+    Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x3").WithArguments("x3").WithLocation(25, 29)
                 );
         }
 
