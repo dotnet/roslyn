@@ -3406,8 +3406,8 @@ Class C
         <WorkItem(627297)>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameVarNotSupported()
-            AssertEx.Throws(Of ArgumentException)(Sub()
-                                                      Dim result = RenameEngineResult.Create(
+            Assert.ThrowsAny(Of ArgumentException)(Sub()
+                                                       Dim result = RenameEngineResult.Create(
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3427,7 +3427,7 @@ namespace X
                         </Document>
                     </Project>
                 </Workspace>, renameTo:="Int32")
-                                                  End Sub, True)
+                                                   End Sub)
         End Sub
 
         <WorkItem(627297)>
@@ -3465,8 +3465,8 @@ namespace X
         <WorkItem(627297)>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameDynamicNotSupported()
-            AssertEx.Throws(Of ArgumentException)(Sub()
-                                                      Dim result = RenameEngineResult.Create(
+            Assert.ThrowsAny(Of ArgumentException)(Sub()
+                                                       Dim result = RenameEngineResult.Create(
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3486,7 +3486,7 @@ namespace X
                         </Document>
                     </Project>
                 </Workspace>, renameTo:="Int32")
-                                                  End Sub, True)
+                                                   End Sub)
         End Sub
 
         <WorkItem(627297)>
