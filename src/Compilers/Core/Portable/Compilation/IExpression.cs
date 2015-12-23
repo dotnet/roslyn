@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a reference to a method.
+    /// Represents a reference to a method other than as the target of an invocation.
     /// </summary>
     public interface IMethodReferenceExpression : IMemberReferenceExpression
     {
@@ -240,6 +240,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Referenced method.
         /// </summary>
         IMethodSymbol Method { get; }
+
         /// <summary>
         /// Indicates whether the reference uses virtual semantics.
         /// </summary>
@@ -287,6 +288,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value supplied for the event.
         /// </summary>
         IExpression Value { get; }
+
+        /// <summary>
+        /// True for adding a binding, false for removing one.
+        /// </summary>
+        bool Adds { get; }
     }
 
     /// <summary>

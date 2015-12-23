@@ -63,6 +63,7 @@ class C
         object o = Mumble;
         MumbleEventHandler d = Mumbler;
         Mumbler(this, null);
+        Mumble -= new MumbleEventHandler(Mumbler);
     }
 
     private void Mumbler(object sender, System.EventArgs args) 
@@ -76,7 +77,9 @@ class C
                 Diagnostic(MemberReferenceAnalyzer.MethodReferenceDescriptor.Id, "new MumbleEventHandler(Mumbler)").WithLocation(10, 19),
                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(11, 9),
                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 20),
-                Diagnostic(MemberReferenceAnalyzer.MethodReferenceDescriptor.Id, "Mumbler").WithLocation(13, 32)
+                Diagnostic(MemberReferenceAnalyzer.MethodReferenceDescriptor.Id, "Mumbler").WithLocation(13, 32),
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble -= new MumbleEventHandler(Mumbler)").WithLocation(15, 9),
+                Diagnostic(MemberReferenceAnalyzer.MethodReferenceDescriptor.Id, "new MumbleEventHandler(Mumbler)").WithLocation(15, 19)
                 );
         }
 

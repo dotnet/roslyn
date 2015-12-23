@@ -1134,6 +1134,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    Partial Class BoundDelegateCreationExpression
+        Implements IMethodReferenceExpression
+
+        Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
+            Get
+                Return Me.ReceiverOpt
+            End Get
+        End Property
+
+        Private ReadOnly Property IIsVirtual As Boolean Implements IMethodReferenceExpression.IsVirtual
+            Get
+                Return Me.Method IsNot Nothing AndAlso (Me.Method.IsOverridable OrElse Me.Method.IsOverrides OrElse Me.Method.IsMustOverride) AndAlso Not Me.SuppressVirtualCalls
+            End Get
+        End Property
+
+        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+            Get
+                Return Me.Method
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethod As IMethodSymbol Implements IMethodReferenceExpression.Method
+            Get
+                Return Me.Method
+            End Get
+        End Property
+
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.MethodReferenceExpression
+        End Function
+    End Class
+
     Partial Class BoundFieldAccess
         Implements IFieldReferenceExpression
 

@@ -355,6 +355,7 @@ Microsoft.CodeAnalysis.Semantics.IConversionExpression.Operand.get -> Microsoft.
 Microsoft.CodeAnalysis.Semantics.IDimensionArrayInitializer
 Microsoft.CodeAnalysis.Semantics.IDimensionArrayInitializer.ElementValues.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArrayInitializer>
 Microsoft.CodeAnalysis.Semantics.IEventAssignmentExpression
+Microsoft.CodeAnalysis.Semantics.IEventAssignmentExpression.Adds.get -> bool
 Microsoft.CodeAnalysis.Semantics.IEventAssignmentExpression.Event.get -> Microsoft.CodeAnalysis.IEventSymbol
 Microsoft.CodeAnalysis.Semantics.IEventAssignmentExpression.EventInstance.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IEventAssignmentExpression.Value.get -> Microsoft.CodeAnalysis.Semantics.IExpression

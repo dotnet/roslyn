@@ -314,6 +314,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IExpression IEventAssignmentExpression.Value => this.Argument;
 
+        bool IEventAssignmentExpression.Adds => this.IsAddition;
+
         protected override OperationKind ExpressionKind => OperationKind.EventAssignmentExpression;
     }
 

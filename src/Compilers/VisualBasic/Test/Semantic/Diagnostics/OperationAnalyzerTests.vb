@@ -48,6 +48,43 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub EventAndMethodReferencesVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Delegate Sub MumbleEventHandler(sender As Object, args As System.EventArgs)
+
+Class C
+    Public Event Mumble As MumbleEventHandler
+
+    Public Sub OnMumble(args As System.EventArgs)
+        AddHandler Mumble, new MumbleEventHandler(AddressOf Mumbler)
+        RaiseEvent Mumble(Me, args)
+        ' Dim o As object = AddressOf Mumble
+        Dim d As MumbleEventHandler = AddressOf Mumbler
+        Mumbler(Me, Nothing)
+        RemoveHandler Mumble, AddressOf Mumbler
+    End Sub
+
+    Private Sub Mumbler(sender As Object, args As System.EventArgs) 
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(7, 20),
+                Diagnostic(MemberReferenceAnalyzer.MethodReferenceDescriptor.Id, "AddressOf Mumbler").WithLocation(7, 51),
+                Diagnostic(MemberReferenceAnalyzer.FieldReferenceDescriptor.Id, "Mumble").WithLocation(8, 20),
+                Diagnostic(MemberReferenceAnalyzer.MethodReferenceDescriptor.Id, "AddressOf Mumbler").WithLocation(10, 39),
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 23),
+                Diagnostic(MemberReferenceAnalyzer.MethodReferenceDescriptor.Id, "AddressOf Mumbler").WithLocation(12, 31))
+        End Sub
+
+        <Fact>
         Public Sub EmptyArrayVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
