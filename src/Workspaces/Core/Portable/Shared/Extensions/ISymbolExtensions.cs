@@ -898,13 +898,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     return false;
                 }
-
-                // dynamic
-                if (methodSymbol.ReturnType.TypeKind == TypeKind.Dynamic &&
-                    methodSymbol.MethodKind != MethodKind.BuiltinOperator)
-                {
-                    return true;
-                }
             }
 
             // otherwise: needs valid GetAwaiter
