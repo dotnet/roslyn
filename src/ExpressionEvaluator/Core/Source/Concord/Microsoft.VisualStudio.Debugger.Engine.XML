@@ -7254,7 +7254,7 @@
         <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.DkmLanguage.GetLanguageSettings(Microsoft.VisualStudio.Debugger.DkmLanguageRegistrySetting[]@)">
             <summary>
             Reads language-specific from the registry.  The settings are stored under
-            HKLM\Software\Microsoft\VisualStudio\14.0\AD7Metrics\ExpressionEvaluator\[Languag
+            HKLM\Software\Microsoft\VisualStudio\15.0\AD7Metrics\ExpressionEvaluator\[Languag
              Guid]\[Vendor Guid].
             </summary>
             <param name="Settings">
@@ -7264,7 +7264,7 @@
         <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.DkmLanguage.GetLanguageSettings(Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Evaluation.DkmGetLanguageSettingsAsyncResult})">
              <summary>
              Reads language-specific from the registry.  The settings are stored under
-             HKLM\Software\Microsoft\VisualStudio\14.0\AD7Metrics\ExpressionEvaluator\[Languag
+             HKLM\Software\Microsoft\VisualStudio\15.0\AD7Metrics\ExpressionEvaluator\[Languag
               Guid]\[Vendor Guid].
             
              This method will append a new work item to the specified work list, and return
@@ -10768,9 +10768,6 @@
              arise through invalid IL (e.g. attempt to pop from empty stack), we do not guarantee
              that exception handling of such errors will be supported.  If an exception occurs
              that we do not support handling, the IL processing will simply abort.
-            
-             Currently, nested try blocks are not supported, that is, an attempt to execute a
-             DkmILBeginTry while already inside a try block is considered an error.
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.IL.DkmILBeginTry.CatchBlocks">
@@ -15739,6 +15736,42 @@
              canceled). This will never fire if appending the work item fails.
              </param>
         </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.DefaultPort.DkmTransportConnection.ActivateAppPackageExtended(Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.DefaultPort.DkmPackagedAppPlatform,System.String,System.Boolean,Microsoft.VisualStudio.Debugger.DefaultPort.DkmActivateAppPackageFlags,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Start.DkmActivateAppPackageAsyncResult})">
+             <summary>
+             Activates the specified packaged application. This will cause the application to
+             start if it has not already started, and will bring it back as the active
+             application if it is already running. When launching under the debugger,
+             IDkmProcessLaunchNotifyListener.StartListener will be called before this API.
+            
+             This method will append a new work item to the specified work list, and return
+             once the work item has been appended. The actual processing of the work item is
+             asynchronous. The caller will be notified that the request is complete through
+             the completion routine.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="WorkList">
+             WorkList to append the new work item to.
+             </param>
+             <param name="AppPlatform">
+             [In] Indicates if the specified application package is a Windows Phone or Windows
+             Store app.
+             </param>
+             <param name="ActivationName">
+             [In] Identifier for the application to launch.
+             </param>
+             <param name="LaunchForDebugging">
+             [In] If true, the app is being debugged.
+             </param>
+             <param name="ActivationOptions">
+             [In] Flags indicating options for AppPackage activation.
+             </param>
+             <param name="CompletionRoutine">
+             Routine to fire when the request is complete. If the request is successfully
+             appended to the work list, this will always fire (including when the operation is
+             canceled). This will never fire if appending the work item fails.
+             </param>
+        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.DefaultPort.DkmTransportConnection.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
             <summary>
             Convert a native dispatcher object to managed
@@ -15752,6 +15785,23 @@
             </summary>
             <param name="pNativeObject">Native object</param>
             <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.DefaultPort.DkmActivateAppPackageFlags">
+             <summary>
+             Flags indicating options for AppPackage activation.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DefaultPort.DkmActivateAppPackageFlags.None">
+            <summary>
+            Default value.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DefaultPort.DkmActivateAppPackageFlags.Prelaunch">
+            <summary>
+            App should be launched in Prelaunch mode.
+            </summary>
         </member>
         <member name="T:Microsoft.VisualStudio.Debugger.DefaultPort.DkmActivateBackgroundTaskAsyncResult">
             <summary>
@@ -16741,6 +16791,16 @@
             On ARM, used to indicate that the CPU supports the full set of floating-point
             registers (Q0-Q15, D0-D31, and S0-S63, ).  On arm, when this flag is cleared, the
             only supported floating-point registers include Q0-Q3, D0-D7, and S0-S15.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DefaultPort.DkmProcessorFeatures.AVX512">
+            <summary>
+            On X86/X64, used to indicate that the CPU supports AVX512 registers.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DefaultPort.DkmProcessorFeatures.MPX">
+            <summary>
+            On X86/X64, used to indicate that the CPU supports MPX registers.
             </summary>
         </member>
         <member name="T:Microsoft.VisualStudio.Debugger.DefaultPort.DkmPublishedProgramInfo">
@@ -18037,6 +18097,22 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.DkmClrType.FunctionPointerReturnType">
+             <summary>
+             [Optional] If the current type is a function pointer, specifies the return type
+             of the function pointer.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.DkmClrType.FunctionPointerArgumentTypes">
+             <summary>
+             [Optional] If the current type is a function pointer, specifies the types of the
+             arguments.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.DkmClrType.AppDomain">
              <summary>
              The app domain of the type.
@@ -18109,6 +18185,53 @@
              <param name="SyntheticMvid">
              [In] If this type is synthetic and does not exist in the debuggee, this is the
              MVID of the module the type belongs to.
+             </param>
+             <returns>
+             [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmClrType.Create(Microsoft.VisualStudio.Debugger.Clr.DkmClrModuleInstance,System.Int32,System.Collections.ObjectModel.ReadOnlyCollection{Microsoft.VisualStudio.Debugger.Clr.DkmClrType},Microsoft.VisualStudio.Debugger.Clr.DkmClrType,System.UInt32,System.Int32,System.Guid,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,System.Collections.ObjectModel.ReadOnlyCollection{Microsoft.VisualStudio.Debugger.Clr.DkmClrType})">
+             <summary>
+             Create a new DkmClrType object instance.
+            
+             Location constraint: API must be called from a Monitor component (component level
+             &lt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="ModuleInstance">
+             [In] The module the type resides in.  If the type resides in a synthetic
+             assembly, this value will be a real module in the same AppDomain.
+             </param>
+             <param name="Token">
+             [In] The type def token of the type.
+             </param>
+             <param name="GenericArguments">
+             [In,Optional] If the type is generic, specifies the generic arguments for the
+             type.
+             </param>
+             <param name="ElementType">
+             [In,Optional] The type of the object encompassed or referenced by this type given
+             the type is an array, pointer or reference.  This value is null if there is no
+             element type.
+             </param>
+             <param name="CorElementType">
+             [In] The CorElementType of this type.
+             </param>
+             <param name="ArrayRank">
+             [In] The rank of the array.  This value is 0 if the type is not an array.
+             </param>
+             <param name="SyntheticMvid">
+             [In] If this type is synthetic and does not exist in the debuggee, this is the
+             MVID of the module the type belongs to.
+             </param>
+             <param name="FunctionPointerReturnType">
+             [In,Optional] If the current type is a function pointer, specifies the return
+             type of the function pointer.
+             </param>
+             <param name="FunctionPointerArgumentTypes">
+             [In,Optional] If the current type is a function pointer, specifies the types of
+             the arguments.
              </param>
              <returns>
              [Out] Result of this method call.
@@ -19278,6 +19401,38 @@
              appended to the work list, this will always fire (including when the operation is
              canceled). This will never fire if appending the work item fails.
              </param>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmClrInstructionSymbol.GetManagedCppMethodScope(Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppInspectionSession)">
+             <summary>
+             Returns symbol information concerning the innermost active scope of the location
+             indicated by the given instruction symbol, which is assumed to have been compiled
+             with managed C++.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="InspectionSession">
+             [In] Inspection session to use for the creation of native C++ types, if needed.
+             </param>
+             <returns>
+             [Out] The innermost active scope of the given instruction symbol.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmClrInstructionSymbol.GetManagedCppFunctionParameters">
+             <summary>
+             Obtains the parameters to the managed C++ function represented by the given
+             function symbol.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <returns>
+             [Out] The parameters to the given function.
+             </returns>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmClrInstructionSymbol.ManagedToNativeImpl(XapiOutgoingCall)">
             <summary>
@@ -21217,6 +21372,9 @@
              <summary>
              Initializes heap sampler.
             
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
              This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
              </summary>
              <param name="TargetObjectCount">
@@ -21235,6 +21393,9 @@
              <summary>
              Walks the given number of objects on the heap.
             
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
              This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
              </summary>
              <param name="RequestCount">
@@ -21247,6 +21408,9 @@
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmManagedHeapSampler.NextReferences(System.UInt32)">
              <summary>
              Walks the given number of references on the heap.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
             
              This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
              </summary>
@@ -21261,6 +21425,9 @@
              <summary>
              Walks the given number of GC roots on the heap.
             
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
              This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
              </summary>
              <param name="RequestCount">
@@ -21273,6 +21440,9 @@
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmManagedHeapSampler.GetSampledHeapData(System.UInt32)">
              <summary>
              Returns the next requested portion of serialized object graph data.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
             
              This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
              </summary>
@@ -21287,6 +21457,9 @@
              <summary>
              Returns the heap type stats.
             
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
              This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
              </summary>
              <returns>
@@ -21296,6 +21469,9 @@
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmManagedHeapSampler.GetRoots">
              <summary>
              Returns roots from the sampled heap.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
             
              This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
              </summary>
@@ -22163,14 +22339,16 @@
              logical container for one or more logical managed modules (DkmClrNcModuleInstance)
              which are embedded inside it.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance.RuntimeInstance">
              <summary>
              Represents a native-compiled CLR instance running in a target process.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance.FindEmbeddedModule(System.UInt32)">
@@ -22179,7 +22357,8 @@
              DkmClrNcContainerModuleInstance. If no element with the given input key is
              present, FindEmbeddedModule will fail.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
              <param name="Index">
              [In] Search key used to find the element.
@@ -22193,18 +22372,20 @@
              GetEmbeddedModules enumerates the DkmClrNcModuleInstance elements of this
              DkmClrNcContainerModuleInstance object.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
              <returns>
              [Out] Array containing the enumerated elements.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance.GetAssemblyImageBytes(System.UInt32,System.UInt32)">
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance.GetMergedAssemblyImageBytes(System.UInt32,System.UInt32)">
              <summary>
              Returns the image bytes starting at a specified RVA. Implemented by symbol
              provider for managed DM.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
              <param name="RVA">
              [In] Starting RVA from where bytes are requested.
@@ -22216,12 +22397,19 @@
              [Out] Image bytes.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance.GetClassInfo(System.Collections.ObjectModel.ReadOnlyCollection{System.Byte},Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstanceFieldSymbol[]@,System.UInt32@)">
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance.GetClassInfo(Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcModuleInstance,System.Collections.ObjectModel.ReadOnlyCollection{System.Byte},Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstanceFieldSymbol[]@,System.UInt32@)">
              <summary>
              Retrieves the layout of the class.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
+             <param name="ModuleInstance">
+             [In,Optional] Can be non-null only for multi-file scenarios where the
+             ClassSignature is relative to this module.  If this parameter is null, the
+             ClassSignature is relative to the mapping metadata (pseudo-il assembly) contained
+             in the DkmClrNcContainerModuleInstance.
+             </param>
              <param name="ClassSignature">
              [In] Signature of class.
              </param>
@@ -22232,14 +22420,16 @@
              [Out] Size of the struct/class in bytes.
              </param>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance.GetGenericDictionaryInfo">
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance.IsMultiFile">
              <summary>
-             Returns the image bytes for the ManagedNativeGenericInfo PDB stream.
+             Returns true if the container module is not a merged .Net Native assembly.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
              <returns>
-             [Out] Generic dictionary symbols stream bytes.
+             [Out] True if this represents a multi-file assembly, false if it is a merged
+             assembly.
              </returns>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance.CreateInstructionAddressFromRva(Microsoft.VisualStudio.Debugger.DkmWorkList,System.UInt32,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmCreateInstructionAddressFromRvaAsyncResult})">
@@ -22251,7 +22441,8 @@
              asynchronous. The caller will be notified that the request is complete through
              the completion routine.
             
-             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
              <param name="WorkList">
              WorkList to append the new work item to.
@@ -22284,35 +22475,40 @@
              Information about an instance field for a managed class that is compiled into native
              code.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstanceFieldSymbol.Name">
              <summary>
              Field name.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstanceFieldSymbol.Size">
              <summary>
              Size in bytes.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstanceFieldSymbol.Offset">
              <summary>
              Byte offset in class.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstanceFieldSymbol.Create(System.String,System.UInt32,System.UInt32)">
              <summary>
              Create a new DkmClrNcInstanceFieldSymbol object instance.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
              <param name="Name">
              [In] Field name.
@@ -22357,21 +22553,24 @@
              concepts (DkmClrNcModuleInstance, method token, IL offset) and native concepts (
              DkmClrNcContainerModuleInstance, RVA).
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionAddress.RuntimeInstance">
              <summary>
              Represents a native-compiled CLR instance running in a target process.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionAddress.ModuleInstance">
              <summary>
              The managed module containing the InstructionPointer.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionAddress.ContainerModule">
@@ -22379,22 +22578,36 @@
              The underlying container module (on-disk module) where this address is loaded.
              Symbols (DkmModule) are accessed through this module instead of 'ModuleInstance'.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionAddress.GenericParameters">
              <summary>
              [Optional] For generic methods, this provides the ECMA formatted TypeSpec
              signature for each generic parameter. For non-generic methods, this will be null.
+             For non-merged modules this is relative to the mapping (or pseudo-IL assembly).
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionAddress.Create(Microsoft.VisualStudio.Debugger.Clr.DkmClrMethodId,System.UInt32,System.UInt32,Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcRuntimeInstance,Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcModuleInstance,Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance,System.Collections.ObjectModel.ReadOnlyCollection{System.Byte},Microsoft.VisualStudio.Debugger.DkmInstructionAddress.CPUInstruction)">
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionAddress.ReferenceToken">
+             <summary>
+             [Optional] In a multi-module assembly, MethodId.Token is a method token resolved
+             to the appropriate virtual module.  This token is can be looked up in the pseudo-
+             assembly.
+            
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionAddress.Create(Microsoft.VisualStudio.Debugger.Clr.DkmClrMethodId,System.UInt32,System.UInt32,Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcRuntimeInstance,Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcModuleInstance,Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcContainerModuleInstance,System.Collections.ObjectModel.ReadOnlyCollection{System.Byte},System.Int32,Microsoft.VisualStudio.Debugger.DkmInstructionAddress.CPUInstruction)">
              <summary>
              Create a new DkmClrNcInstructionAddress object instance.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
              <param name="MethodId">
              [In] The version/token pair for this method.
@@ -22430,6 +22643,12 @@
              <param name="GenericParameters">
              [In,Optional] For generic methods, this provides the ECMA formatted TypeSpec
              signature for each generic parameter. For non-generic methods, this will be null.
+             For non-merged modules this is relative to the mapping (or pseudo-IL assembly).
+             </param>
+             <param name="ReferenceToken">
+             [In,Optional] In a multi-module assembly, MethodId.Token is a method token
+             resolved to the appropriate virtual module.  This token is can be looked up in
+             the pseudo- assembly.
              </param>
              <param name="CPUInstruction">
              [In,Optional] CPUInstruction provides the address that the CPU will execute. This
@@ -22472,15 +22691,16 @@
              instruction address concepts. Like a native symbol, it contains enough information to
              bind it to a native CPU address.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
-        <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionSymbol.EmbeddedModuleIndex">
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionSymbol.LogicalMvid">
              <summary>
-             Identifier of the embedded module within the container where this function
-             resides.
+             The Mvid of the module where MethodId.Token is defined.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionSymbol.NativeOffset">
@@ -22488,22 +22708,36 @@
              This value is the RVA of the native instruction from the beginning of the native
              module that contains this instruction.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionSymbol.GenericParameters">
              <summary>
              [Optional] For generic methods, this provides the ECMA formatted TypeSpec
              signature for each generic parameter. For non-generic methods, this will be null.
+             For non-merged modules this is relative to the mapping (or pseudo-IL assembly).
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionSymbol.Create(Microsoft.VisualStudio.Debugger.Symbols.DkmModule,Microsoft.VisualStudio.Debugger.Clr.DkmClrMethodId,System.UInt32,System.UInt32,System.UInt32,System.Collections.ObjectModel.ReadOnlyCollection{System.Byte})">
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionSymbol.ReferenceToken">
+             <summary>
+             [Optional] In a multi-module assembly, MethodId.Token is a method token resolved
+             to the appropriate virtual module.  This token is can be looked up in the pseudo-
+             assembly.
+            
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionSymbol.Create(Microsoft.VisualStudio.Debugger.Symbols.DkmModule,Microsoft.VisualStudio.Debugger.Clr.DkmClrMethodId,System.UInt32,System.Guid,System.UInt32,System.Collections.ObjectModel.ReadOnlyCollection{System.Byte},System.Int32)">
              <summary>
              Create a new DkmClrNcInstructionSymbol object instance.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
              <param name="Module">
              [In] The DkmModule class represents a code bundle (ex: dll or exe) which is or
@@ -22523,9 +22757,8 @@
              given method, but not tied to a particular instruction. This is used for CLR
              native instructions that don't map to an IL instruction.
              </param>
-             <param name="EmbeddedModuleIndex">
-             [In] Identifier of the embedded module within the container where this function
-             resides.
+             <param name="LogicalMvid">
+             [In] The Mvid of the module where MethodId.Token is defined.
              </param>
              <param name="NativeOffset">
              [In] This value is the RVA of the native instruction from the beginning of the
@@ -22534,6 +22767,12 @@
              <param name="GenericParameters">
              [In,Optional] For generic methods, this provides the ECMA formatted TypeSpec
              signature for each generic parameter. For non-generic methods, this will be null.
+             For non-merged modules this is relative to the mapping (or pseudo-IL assembly).
+             </param>
+             <param name="ReferenceToken">
+             [In,Optional] In a multi-module assembly, MethodId.Token is a method token
+             resolved to the appropriate virtual module.  This token is can be looked up in
+             the pseudo- assembly.
              </param>
              <returns>
              [Out] Result of this method call.
@@ -22568,14 +22807,16 @@
              code and embedded inside of a native module. Like DkmClrModuleInstance, these are 1:1
              with an ICorDebugModule.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcModuleInstance.RuntimeInstance">
              <summary>
              Represents a native-compiled CLR instance running in a target process.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcModuleInstance.ContainerModule">
@@ -22583,7 +22824,8 @@
              The container (physical) module instance that this embedded (virtual) module is
              built into.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcModuleInstance.Index">
@@ -22592,8 +22834,35 @@
              prefix on type names in the container module to indicate which embedded module a
              type belongs to.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcModuleInstance.Mvid">
+             <summary>
+             The identifier for this embedded module within the process.
+            
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcModuleInstance.GetAssemblyImageBytes(System.UInt32,System.UInt32)">
+             <summary>
+             Returns the image bytes starting at a specified RVA. Implemented by symbol
+             provider for managed DM.
+            
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
+             </summary>
+             <param name="RVA">
+             [In] Starting RVA from where bytes are requested.
+             </param>
+             <param name="BytesRequested">
+             [In] Number of bytes requested.
+             </param>
+             <returns>
+             [Out] Image bytes.
+             </returns>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcModuleInstance.CreateInstructionAddressesFromILAddress(Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.Clr.DkmClrMethodId,System.UInt32,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmCreateInstructionAddressesFromILAddressAsyncResult})">
              <summary>
@@ -22607,7 +22876,8 @@
              asynchronous. The caller will be notified that the request is complete through
              the completion routine.
             
-             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
              <param name="WorkList">
              WorkList to append the new work item to.
@@ -22642,7 +22912,8 @@
              <summary>
              Represents a native-compiled CLR instance running in a target process.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcRuntimeInstance.Create(Microsoft.VisualStudio.Debugger.DkmProcess,Microsoft.VisualStudio.Debugger.DkmRuntimeInstanceId,Microsoft.VisualStudio.Debugger.DkmRuntimeCapabilities,Microsoft.VisualStudio.Debugger.DkmRuntimeInstance,System.String,Microsoft.VisualStudio.Debugger.DkmDataItem)">
@@ -22654,7 +22925,8 @@
             
              This method will send a RuntimeInstanceLoad event.
             
-             This API was introduced in Visual Studio 12 RTM (DkmApiVersion.VS12RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
              <param name="Process">
              [In] DkmProcess represents a target process which is being debugged. The debugger
@@ -22684,6 +22956,33 @@
              </param>
              <returns>
              [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcRuntimeInstance.FindEmbeddedModule(System.Guid)">
+             <summary>
+             Find a DkmClrNcModuleInstance element within this DkmClrNcRuntimeInstance. If no
+             element with the given input key is present, FindEmbeddedModule will fail.
+            
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
+             </summary>
+             <param name="Mvid">
+             [In] Search key used to find the element.
+             </param>
+             <returns>
+             [Out,Optional] Result of the search.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcRuntimeInstance.GetEmbeddedModules">
+             <summary>
+             GetEmbeddedModules enumerates the DkmClrNcModuleInstance elements of this
+             DkmClrNcRuntimeInstance object.
+            
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
+             </summary>
+             <returns>
+             [Out] Array containing the enumerated elements.
              </returns>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcRuntimeInstance.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
@@ -22726,7 +23025,8 @@
              <summary>
              Created DkmClrNcInstructionAddress object.
             
-             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmCreateInstructionAddressFromRvaAsyncResult.#ctor(Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionAddress)">
@@ -22783,7 +23083,8 @@
              <summary>
              Created DkmClrNcInstructionAddress object.
             
-             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             This API was introduced in Visual Studio 14 Windows 10 Tools 1.1
+             (DkmApiVersion.VS14Win10Tools1Dot1).
              </summary>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmCreateInstructionAddressesFromILAddressAsyncResult.#ctor(Microsoft.VisualStudio.Debugger.Clr.NativeCompilation.DkmClrNcInstructionAddress[])">
@@ -22814,6 +23115,300 @@
             Validate the fields of this structure
             </summary>
             <param name="scope">Path to this structure (ex: {"myArgument", ".StructField"})</param>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppILLocalVariableSymbol">
+             <summary>
+             Represents a C++/CLI local variable or function parameter backed by an IL slot, which
+             can be inspected by a ldloc or ldarg instruction. The types of IL local variables are
+             not represented in the PDB, and are not provided through this API.  Instead,
+             consumers of DkmMCppILLocalVariableSymbol objects should obtain the type information
+             through inspection of the managed metadata.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppILLocalVariableSymbol.IsParameter">
+             <summary>
+             True if this variable is a function parameter; false if this variable is a local
+             variable.  In some cases, such as global functions or member functions of native
+             classes, this API will provide parameter names from the PDB that are not
+             available through inspection of just the metadata.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppILLocalVariableSymbol.Slot">
+             <summary>
+             The local slot used by the IL in stloc/ldloc instructions to access the variable
+             (or starg/ldarg instructions if this variable is a function parameter).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppILLocalVariableSymbol.Create(System.String,System.Boolean,System.Int32)">
+             <summary>
+             Create a new DkmMCppILLocalVariableSymbol object instance.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="Name">
+             [In] The name of the variable.
+             </param>
+             <param name="IsParameter">
+             [In] True if this variable is a function parameter; false if this variable is a
+             local variable.  In some cases, such as global functions or member functions of
+             native classes, this API will provide parameter names from the PDB that are not
+             available through inspection of just the metadata.
+             </param>
+             <param name="Slot">
+             [In] The local slot used by the IL in stloc/ldloc instructions to access the
+             variable (or starg/ldarg instructions if this variable is a function parameter).
+             </param>
+             <returns>
+             [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppILLocalVariableSymbol.ManagedToNativeImpl(XapiOutgoingCall)">
+            <summary>
+            Obtain a pointer to the native object used to call into native. This method
+            is invoked from IXapiMarshalableElement&lt;IntPtr&gt;.ManagedToNative or from
+            a derived classes's implementation of this function.
+            </summary>
+            <param name="outerCall">Outgoing managed-&gt;native call</param>
+            <returns>Native object</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppILLocalVariableSymbol.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppILLocalVariableSymbol.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppLocalVariableSymbol">
+             <summary>
+             Represents a symbol for a C++/CLI local variable or function parameter in a PDB.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+            
+             Derived classes: DkmMCppILLocalVariableSymbol, DkmMCppStaticLocalVariableSymbol
+             </summary>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppLocalVariableSymbol.Tag">
+            <summary>
+            DkmMCppLocalVariableSymbol is an abstract base class. This enum indicates which
+            derived class this object is an instance of.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppLocalVariableSymbol.Tag.ILLocalVariableSymbol">
+            <summary>
+            Object is an instance of 'DkmMCppILLocalVariableSymbol'.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppLocalVariableSymbol.Tag.StaticLocalVariableSymbol">
+            <summary>
+            Object is an instance of 'DkmMCppStaticLocalVariableSymbol'.
+            </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppLocalVariableSymbol.TagValue">
+            <summary>
+            DkmMCppLocalVariableSymbol is an abstract base class. This enum indicates which
+            derived class this object is an instance of.
+            </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppLocalVariableSymbol.Name">
+             <summary>
+             The name of the variable.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppLocalVariableSymbol.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppLocalVariableSymbol.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppMethodScope">
+             <summary>
+             Represents a scope within a method implemented in C++/CLI.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppMethodScope.Method">
+             <summary>
+             The method containing this scope.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppMethodScope.Module">
+             <summary>
+             The module for which this method belongs to.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppMethodScope.ILRange">
+             <summary>
+             The range of IL offsets within the method for which this scope is valid.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppMethodScope.Parent">
+             <summary>
+             [Optional] The parent of this scope, null for the root scope of a method.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppMethodScope.Variables">
+             <summary>
+             The variables defined within this scope.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppMethodScope.Create(Microsoft.VisualStudio.Debugger.Clr.DkmClrMethodId,Microsoft.VisualStudio.Debugger.Symbols.DkmModule,Microsoft.VisualStudio.Debugger.Clr.DkmILRange,Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppMethodScope,System.Collections.ObjectModel.ReadOnlyCollection{Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppLocalVariableSymbol})">
+             <summary>
+             Create a new DkmMCppMethodScope object instance.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="Method">
+             [In] The method containing this scope.
+             </param>
+             <param name="Module">
+             [In] The module for which this method belongs to.
+             </param>
+             <param name="ILRange">
+             [In] The range of IL offsets within the method for which this scope is valid.
+             </param>
+             <param name="Parent">
+             [In,Optional] The parent of this scope, null for the root scope of a method.
+             </param>
+             <param name="Variables">
+             [In] The variables defined within this scope.
+             </param>
+             <returns>
+             [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppMethodScope.ManagedToNativeImpl(XapiOutgoingCall)">
+            <summary>
+            Obtain a pointer to the native object used to call into native. This method
+            is invoked from IXapiMarshalableElement&lt;IntPtr&gt;.ManagedToNative or from
+            a derived classes's implementation of this function.
+            </summary>
+            <param name="outerCall">Outgoing managed-&gt;native call</param>
+            <returns>Native object</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppMethodScope.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppMethodScope.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppStaticLocalVariableSymbol">
+             <summary>
+             Represents a C++/CLI local variable of static storage duration.  Static local
+             variables are backed by an RVA, rather than an IL slot.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppStaticLocalVariableSymbol.RVA">
+             <summary>
+             The address of the static variable, relative to the base address of the
+             variable's module.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppStaticLocalVariableSymbol.Type">
+             <summary>
+             The type of the variable.  Every static local variable is required to have a
+             native type.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppStaticLocalVariableSymbol.Create(System.String,System.Int32,Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType)">
+             <summary>
+             Create a new DkmMCppStaticLocalVariableSymbol object instance.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="Name">
+             [In] The name of the variable.
+             </param>
+             <param name="RVA">
+             [In] The address of the static variable, relative to the base address of the
+             variable's module.
+             </param>
+             <param name="Type">
+             [In] The type of the variable.  Every static local variable is required to have a
+             native type.
+             </param>
+             <returns>
+             [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppStaticLocalVariableSymbol.ManagedToNativeImpl(XapiOutgoingCall)">
+            <summary>
+            Obtain a pointer to the native object used to call into native. This method
+            is invoked from IXapiMarshalableElement&lt;IntPtr&gt;.ManagedToNative or from
+            a derived classes's implementation of this function.
+            </summary>
+            <param name="outerCall">Outgoing managed-&gt;native call</param>
+            <returns>Native object</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppStaticLocalVariableSymbol.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.Cpp.DkmMCppStaticLocalVariableSymbol.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
         </member>
         <member name="T:Microsoft.VisualStudio.Debugger.DkmException">
             <summary>
@@ -28782,7 +29377,7 @@
             
              Implementations of this interface may restrict when they are called using a filter
              defined in their component configuration. The following properties may be used:
-             BaseDebugMonitorId, EngineId, RuntimeId, SourceId.
+             BaseDebugMonitorId, EngineId, ExceptionCategory, RuntimeId, SourceId.
              </summary>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmExceptionTriggerHitNotification.OnExceptionTriggerHit(Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTriggerHit,Microsoft.VisualStudio.Debugger.DkmEventDescriptorS)">
@@ -28814,7 +29409,7 @@
             
              Implementations of this interface may restrict when they are called using a filter
              defined in their component configuration. The following properties may be used:
-             BaseDebugMonitorId, EngineId, RuntimeId, SourceId.
+             BaseDebugMonitorId, EngineId, ExceptionCategory, RuntimeId, SourceId.
              </summary>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmExceptionTriggerHitReceived.OnExceptionTriggerHitReceived(Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTriggerHit,Microsoft.VisualStudio.Debugger.DkmEventDescriptorS)">
@@ -32524,6 +33119,30 @@
             [In] Describes the event being processed.
             </param>
         </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmExceptionAnalyzer">
+             <summary>
+             Interface which allows a concord component to to analyze an exception and come up
+             with an improved description of the problem.
+            
+             Implementations of this interface may restrict when they are called using a filter
+             defined in their component configuration. The following properties may be used:
+             BaseDebugMonitorId, EngineId, ExceptionCategory, RuntimeId, SourceId.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmExceptionAnalyzer.TryGetAnalyzedDescription(Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTriggerHit)">
+            <summary>
+            Tries to get a detailed information about the source of the problem.
+            </summary>
+            <param name="hit">
+            [In] Provides information about an exception trigger which was satisfied (hit) by
+            an exception coming from the target process.
+            </param>
+            <returns>
+            [Out,Optional] Result of the analysis.
+            </returns>
+        </member>
         <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmExceptionManager">
              <summary>
              Interface implemented by the exception manager component to allow exception triggers
@@ -32996,6 +33615,59 @@
             <param name="originalMemory">
             [In] The original code bytes which were restored in the target process.
             </param>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmMCppSymbolProvider">
+             <summary>
+             Symbol provider for managed C++.
+            
+             Implementations of this interface may restrict when they are called using a filter
+             defined in their component configuration. The following properties may be used:
+             RuntimeId, SymbolProviderId.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmMCppSymbolProvider.GetManagedCppMethodScope(Microsoft.VisualStudio.Debugger.Clr.DkmClrInstructionSymbol,Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppInspectionSession)">
+            <summary>
+            Returns symbol information concerning the innermost active scope of the location
+            indicated by the given instruction symbol, which is assumed to have been compiled
+            with managed C++.
+            </summary>
+            <param name="clrInstruction">
+            [In] DkmClrInstructionSymbol represents an IL instruction that runs under the
+            Common Language Runtime (CLR) in the target process. This object contains the
+            method version number. So in Edit-and-Continue scenarios, the instruction symbol
+            would be different for different versions of the method. This object does not
+            contain information about generic binding parameters. So different generic
+            instantiations of a method (ex: MyMethod&lt;string&gt; and MyMethod&lt;int&gt;)
+            are represented by the same instruction symbol since the CLR represents them with
+            a single method token.
+            </param>
+            <param name="inspectionSession">
+            [In] Inspection session to use for the creation of native C++ types, if needed.
+            </param>
+            <returns>
+            [Out] The innermost active scope of the given instruction symbol.
+            </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmMCppSymbolProvider.GetManagedCppFunctionParameters(Microsoft.VisualStudio.Debugger.Clr.DkmClrInstructionSymbol)">
+            <summary>
+            Obtains the parameters to the managed C++ function represented by the given
+            function symbol.
+            </summary>
+            <param name="clrInstruction">
+            [In] DkmClrInstructionSymbol represents an IL instruction that runs under the
+            Common Language Runtime (CLR) in the target process. This object contains the
+            method version number. So in Edit-and-Continue scenarios, the instruction symbol
+            would be different for different versions of the method. This object does not
+            contain information about generic binding parameters. So different generic
+            instantiations of a method (ex: MyMethod&lt;string&gt; and MyMethod&lt;int&gt;)
+            are represented by the same instruction symbol since the CLR represents them with
+            a single method token.
+            </param>
+            <returns>
+            [Out] The parameters to the given function.
+            </returns>
         </member>
         <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmManagedAsyncTaskDecoder">
              <summary>
@@ -34731,7 +35403,7 @@
         <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmVisualStudioServices.GetLanguageSettings(Microsoft.VisualStudio.Debugger.Evaluation.DkmLanguage,Microsoft.VisualStudio.Debugger.DkmLanguageRegistrySetting[]@)">
             <summary>
             Reads language-specific from the registry.  The settings are stored under
-            HKLM\Software\Microsoft\VisualStudio\14.0\AD7Metrics\ExpressionEvaluator\[Languag
+            HKLM\Software\Microsoft\VisualStudio\15.0\AD7Metrics\ExpressionEvaluator\[Languag
              Guid]\[Vendor Guid].
             </summary>
             <param name="language">
@@ -36223,6 +36895,25 @@
             [Out,Optional] Error messages, if any.
             </param>
         </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmNativeEditAndContinueUpdate140A">
+             <summary>
+             Interface implemented by native edit and continue engine to allow cancellation.
+            
+             Implementations of this interface may restrict when they are called using a filter
+             defined in their component configuration. The following properties may be used:
+             BaseDebugMonitorId, EngineId, RuntimeId, TransportKind.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmNativeEditAndContinueUpdate140A.CancelApplyCodeChange(Microsoft.VisualStudio.Debugger.Native.DkmNativeRuntimeInstance)">
+            <summary>
+            Cancels any Edit and Continue operation in flight.
+            </summary>
+            <param name="nativeRuntimeInstance">
+            [In] Represents the native code executing in a target process.
+            </param>
+        </member>
         <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmPerformanceMeasurement140">
              <summary>
              Interface used to gather performance data from the debuggee.
@@ -36295,6 +36986,21 @@
         <member name="F:Microsoft.VisualStudio.Debugger.DkmApiVersion.VS14RTM">
             <summary>
             Visual Studio 14 Release to Manufacturing (RTM) version
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DkmApiVersion.VS14Win10Tools1Dot1">
+            <summary>
+            Visual Studio 14 Windows 10 Tools 1.1
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DkmApiVersion.VS14Update1">
+            <summary>
+            Visual Studio 14 Update 1
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DkmApiVersion.VS15RTM">
+            <summary>
+            Visual Studio 15 Release to Manufacturing (RTM) version
             </summary>
         </member>
         <member name="T:Microsoft.VisualStudio.Debugger.DkmAsyncBreakStatus">
@@ -39447,6 +40153,17 @@
             
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.DkmProcess.SetDetachUnavailable(System.Int32)">
+             <summary>
+             Called by a component to indicate that detach is not allowed on the process.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+             <param name="ReasonCode">
+             [In] HRESULT indicating why detach is not available. This should be a failed
+             HRESULT value (value less than zero).
+             </param>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.DkmProcess.RemoveExceptionTrigger(System.Guid,Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTrigger)">
              <summary>
@@ -46212,6 +46929,19 @@
             and control will immediately return to the caller.
             </summary>
         </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTriggerHit.TryGetAnalyzedDescription">
+             <summary>
+             Tries to get a detailed information about the source of the problem.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <returns>
+             [Out,Optional] Result of the analysis.
+             </returns>
+        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTriggerHit.ManagedToNativeImpl(XapiOutgoingCall)">
             <summary>
             Obtain a pointer to the native object used to call into native. This method
@@ -51190,6 +51920,12 @@
             being used to debug the process.
             </summary>
         </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Start.DkmProcessLaunchFlags.ProfilingLaunch">
+            <summary>
+            Indicates that this process launch is for profiling and so the
+            IDkmProfileProcessLaunch140 callbacks should be called.
+            </summary>
+        </member>
         <member name="T:Microsoft.VisualStudio.Debugger.Start.DkmProcessLaunchModeFlags">
             <summary>
             Flag traits of a DkmProcessLaunchRequest.
@@ -52793,6 +53529,16 @@
              [Out,Optional] Error messages, if any.
              </param>
         </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.DkmNativeRuntimeInstance.CancelApplyCodeChange">
+             <summary>
+             Cancels any Edit and Continue operation in flight.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Native.DkmNativeRuntimeInstance.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
             <summary>
             Convert a native dispatcher object to managed
@@ -52900,6 +53646,1044 @@
             <returns>[Optional] Managed object. Null if input object is null.</returns>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Native.DkmWin32ExceptionInformation.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppExpression">
+             <summary>
+             The result of compiling a native expression.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+            
+             Derived classes: DkmCompiledNativeCppTypeExpression,
+             DkmCompiledNativeCppValueExpression
+             </summary>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppExpression.Tag">
+            <summary>
+            DkmCompiledNativeCppExpression is an abstract base class. This enum indicates
+            which derived class this object is an instance of.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppExpression.Tag.CompiledNativeCppValueExpression">
+            <summary>
+            Object is an instance of 'DkmCompiledNativeCppValueExpression'.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppExpression.Tag.CompiledNativeCppTypeExpression">
+            <summary>
+            Object is an instance of 'DkmCompiledNativeCppTypeExpression'.
+            </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppExpression.TagValue">
+            <summary>
+            DkmCompiledNativeCppExpression is an abstract base class. This enum indicates
+            which derived class this object is an instance of.
+            </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppExpression.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppExpression.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppTypeExpression">
+             <summary>
+             The result of compiling a type expression.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppTypeExpression.Type">
+             <summary>
+             The type represented by the expression text.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppTypeExpression.Create(Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType)">
+             <summary>
+             Create a new DkmCompiledNativeCppTypeExpression object instance.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="Type">
+             [In] The type represented by the expression text.
+             </param>
+             <returns>
+             [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppTypeExpression.ManagedToNativeImpl(XapiOutgoingCall)">
+            <summary>
+            Obtain a pointer to the native object used to call into native. This method
+            is invoked from IXapiMarshalableElement&lt;IntPtr&gt;.ManagedToNative or from
+            a derived classes's implementation of this function.
+            </summary>
+            <param name="outerCall">Outgoing managed-&gt;native call</param>
+            <returns>Native object</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppTypeExpression.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppTypeExpression.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppValueExpression">
+             <summary>
+             The result of compiling a native expression that evaluates to a value.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppValueExpression.InspectionQuery">
+             <summary>
+             Inspection query use to evaluate the value of the expression.  The query does not
+             contain any return instructions, but finishes with the expression value on the
+             top of the stack.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppValueExpression.Type">
+             <summary>
+             The type of the result of the expression.  This may or may not be the type of the
+             value returned by the inspection query, depending on the value of
+             QueryResultIsAddress.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppValueExpression.Create(Microsoft.VisualStudio.Debugger.Evaluation.IL.DkmCompiledILInspectionQuery,Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType)">
+             <summary>
+             Create a new DkmCompiledNativeCppValueExpression object instance.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="InspectionQuery">
+             [In] Inspection query use to evaluate the value of the expression.  The query
+             does not contain any return instructions, but finishes with the expression value
+             on the top of the stack.
+             </param>
+             <param name="Type">
+             [In] The type of the result of the expression.  This may or may not be the type
+             of the value returned by the inspection query, depending on the value of
+             QueryResultIsAddress.
+             </param>
+             <returns>
+             [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppValueExpression.ManagedToNativeImpl(XapiOutgoingCall)">
+            <summary>
+            Obtain a pointer to the native object used to call into native. This method
+            is invoked from IXapiMarshalableElement&lt;IntPtr&gt;.ManagedToNative or from
+            a derived classes's implementation of this function.
+            </summary>
+            <param name="outerCall">Outgoing managed-&gt;native call</param>
+            <returns>Native object</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppValueExpression.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmCompiledNativeCppValueExpression.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppArrayType">
+             <summary>
+             Represents a C++ array type (e.g. int[5]).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppArrayType.ElementType">
+             <summary>
+             Represents a symbol for a C++ type.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppArrayType.ElementCount">
+             <summary>
+             The number of elements in the array.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppArrayType.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppArrayType.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCVQualifiers">
+             <summary>
+             const/volatile qualifiers that can be used on a native C++ type.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCVQualifiers.None">
+            <summary>
+            No const/volatile qualifiers.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCVQualifiers.Const">
+            <summary>
+            C++ 'const' keyword.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCVQualifiers.Volatile">
+            <summary>
+            C++ 'volatile' keyword.
+            </summary>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationError">
+             <summary>
+             An error that occurred from DkmNativeCppInspectionSession::CompileExpression().
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationError.FailureReason">
+             <summary>
+             The reason why a native expression failed to compile.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationError.Message">
+             <summary>
+             A human-readable error message.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationError.Create(Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationFailureReason,System.String)">
+             <summary>
+             Create a new DkmNativeCppCompilationError object instance.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="FailureReason">
+             [In] The reason why a native expression failed to compile.
+             </param>
+             <param name="Message">
+             [In] A human-readable error message.
+             </param>
+             <returns>
+             [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationError.ManagedToNativeImpl(XapiOutgoingCall)">
+            <summary>
+            Obtain a pointer to the native object used to call into native. This method
+            is invoked from IXapiMarshalableElement&lt;IntPtr&gt;.ManagedToNative or from
+            a derived classes's implementation of this function.
+            </summary>
+            <param name="outerCall">Outgoing managed-&gt;native call</param>
+            <returns>Native object</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationError.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationError.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationFailureReason">
+             <summary>
+             The reason why a native expression failed to compile.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationFailureReason.UndefinedSymbol">
+            <summary>
+            Indicates that the expression referred to a symbol that does not exist.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationFailureReason.IllegalSideEffect">
+            <summary>
+            Indicates that the expression requires side effects, but the inspection context
+            provided does not allow side effects.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationFailureReason.Other">
+            <summary>
+            Expression compilation failed for reasons that are not covered by this
+            enumeration.  The cause of failure can be displayed via the message of the
+            DkmNativeCppCompilationError, but it cannot be programmatically examined.
+            </summary>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppEnumType">
+             <summary>
+             Represents a C++ enum type.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppEnumType.Underlying">
+             <summary>
+             The underlying type of the enumeration.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppEnumType.QualifiedName">
+             <summary>
+             Qualified name of this symbol.  Qualifiers are separated by "::".  The
+             unqualified name always appears at the end of the qualified name.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppEnumType.Module">
+             <summary>
+             The module of this symbol.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppEnumType.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppEnumType.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppFunctionType">
+             <summary>
+             Represents the type of a C++ function.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppFunctionType.ReturnType">
+             <summary>
+             The return type of this function.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppFunctionType.ArgumentTypes">
+             <summary>
+             The types of each argument to the function.  For instance member functions, this
+             does not include the 'this' pointer.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppFunctionType.CallingConvention">
+             <summary>
+             The calling convention of this function.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppFunctionType.IsEllipsis">
+             <summary>
+             True if this function contains the "..." specifier, allowing variable arguments
+             at the end of the argument list.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppFunctionType.ObjectPointerType">
+             <summary>
+             [Optional] If this is an instance member function, specifies the type of the
+             'this' pointer parameter.  Otherwise, null.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppFunctionType.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppFunctionType.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppInspectionSession">
+             <summary>
+             Represents a context for managing the lifetime of DkmNativeCppType objects.  Each
+             type context is tied to a DkmInspectionSession.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppInspectionSession.InspectionSession">
+             <summary>
+             DkmInspectionSession allows the various components which inspect data to store
+             private data which is associated with a group of evaluations.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppInspectionSession.UniqueId">
+             <summary>
+             The unique id of this DkmNativeCppInspectionSession.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppInspectionSession.Create(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionSession,Microsoft.VisualStudio.Debugger.DkmDataItem)">
+             <summary>
+             Create a new DkmNativeCppInspectionSession object instance.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="InspectionSession">
+             [In] DkmInspectionSession allows the various components which inspect data to
+             store private data which is associated with a group of evaluations.
+             </param>
+             <param name="DataItem">
+             [In,Optional] Data object to add to the new DkmNativeCppInspectionSession
+             instance. Pass 'null' in the case that the caller doesn't need to add a data
+             item.
+             </param>
+             <returns>
+             [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppInspectionSession.FindCppType(System.Int32)">
+             <summary>
+             Find a DkmNativeCppType element within this DkmNativeCppInspectionSession. If no
+             element with the given input key is present, FindCppType will fail.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="Id">
+             [In] Search key used to find the element.
+             </param>
+             <returns>
+             [Out,Optional] Result of the search.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppInspectionSession.GetCppTypes">
+             <summary>
+             GetCppTypes enumerates the DkmNativeCppType elements of this
+             DkmNativeCppInspectionSession object.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <returns>
+             [Out] Array containing the enumerated elements.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppInspectionSession.CompileExpression(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType,System.Boolean,Microsoft.VisualStudio.Debugger.DkmInstructionAddress,System.String,System.Collections.ObjectModel.ReadOnlyCollection{Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppNamedExpressionParameter},Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCompilationError@)">
+             <summary>
+             Compiles a given expression into native IL.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="InspectionContext">
+             [In] Options and target context to use while performing the inspection operation.
+             </param>
+             <param name="TypeContext">
+             [In,Optional] Optional type specifying the context in which to evaluate the
+             expression.  If non-null, the expression text may use the 'this' pointer to bind
+             to an instance of this type.
+             </param>
+             <param name="IsThisPointerAvailable">
+             [In] True if a 'this' pointer is available to evaluate the expression.  The
+             generated IL will expect the 'this' pointer to be passed in as the first IL
+             parameter, which will come before any named parameters.  The type of the 'this'
+             pointer should be be a pointer to the type indicated in the 'TypeContext'
+             parameter. If no 'this' pointer is available, 'IsThisPointerAvailable' should be
+             set to false.  In this case, the resultant IL will not expect a 'this' pointer,
+             but expression will be restricted to global and static members only.
+             'IsThisPointerAvailable' should always be false whenever 'TypeContext' is NULL.
+             </param>
+             <param name="InstructionAddress">
+             [In] The instruction address at which the resultant query will execute.  This may
+             affect the content of the returned inspection query in optimized code debugging
+             scenarios.
+             </param>
+             <param name="Text">
+             [In] The expression to compile.
+             </param>
+             <param name="Parameters">
+             [In,Optional] Optional list of named parameters available for use in the
+             expression.
+             </param>
+             <param name="Error">
+             [Out,Optional] If the expression failed to compile, specifies the reason for the
+             failure.
+             </param>
+             <returns>
+             [Out,Optional] Result of compiling the expression.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppInspectionSession.GetPrimitiveType(Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind,Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCVQualifiers)">
+             <summary>
+             Creates a C++ primitive type.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="Kind">
+             [In] Represents a kind of primitive type in C++.
+             </param>
+             <param name="Qualifiers">
+             [In] const/volatile qualifiers on this type.
+             </param>
+             <returns>
+             [Out] Represents a primitive type.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppInspectionSession.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppInspectionSession.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppNamedExpressionParameter">
+             <summary>
+             Named parameter that may be used in CompileNativeExpression().
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppNamedExpressionParameter.Name">
+             <summary>
+             The name of this parameter.  This name must be a legal C++ identifier, with the
+             exception that '$' is a valid character.  Expressions passed to
+             CompileNativeExpression() may use the parameter name to refer to the parameter.
+             In the resultant IL, parameters are read via a DkmILLoad instruction.  The first
+             parameter (index 0) is an implicit 'this' pointer, present only if 'TypeContext'
+             is non-null.  Named parameter follow immediately after.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppNamedExpressionParameter.Type">
+             <summary>
+             The type of this parameter.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppNamedExpressionParameter.Create(System.String,Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType)">
+             <summary>
+             Create a new DkmNativeCppNamedExpressionParameter object instance.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="Name">
+             [In] The name of this parameter.  This name must be a legal C++ identifier, with
+             the exception that '$' is a valid character.  Expressions passed to
+             CompileNativeExpression() may use the parameter name to refer to the parameter.
+             In the resultant IL, parameters are read via a DkmILLoad instruction.  The first
+             parameter (index 0) is an implicit 'this' pointer, present only if 'TypeContext'
+             is non-null.  Named parameter follow immediately after.
+             </param>
+             <param name="Type">
+             [In] The type of this parameter.
+             </param>
+             <returns>
+             [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppNamedExpressionParameter.ManagedToNativeImpl(XapiOutgoingCall)">
+            <summary>
+            Obtain a pointer to the native object used to call into native. This method
+            is invoked from IXapiMarshalableElement&lt;IntPtr&gt;.ManagedToNative or from
+            a derived classes's implementation of this function.
+            </summary>
+            <param name="outerCall">Outgoing managed-&gt;native call</param>
+            <returns>Native object</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppNamedExpressionParameter.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppNamedExpressionParameter.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPointerType">
+             <summary>
+             Represents a pointer type (e.g. int*).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPointerType.ElementType">
+             <summary>
+             Represents a symbol for a C++ type.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPointerType.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPointerType.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveType">
+             <summary>
+             Represents a primitive type.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveType.Kind">
+             <summary>
+             Represents a kind of primitive type in C++.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveType.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveType.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind">
+             <summary>
+             Represents a kind of primitive type in C++.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.Unknown">
+            <summary>
+            Unknown C++ type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.Char">
+            <summary>
+            C++ 'char' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.UnsignedChar">
+            <summary>
+            C++ 'unsigned char' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.Short">
+            <summary>
+            C++ 'short' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.UnsignedShort">
+            <summary>
+            C++ 'unsigned short' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.Int">
+            <summary>
+            C++ 'int' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.UnsignedInt">
+            <summary>
+            C++ 'unsigned int' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.Long">
+            <summary>
+            C++ 'long' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.UnsignedLong">
+            <summary>
+            C++ 'unsigned long' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.Int64">
+            <summary>
+            C++ '__int64' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.UnsignedInt64">
+            <summary>
+            C++ 'unsigned __int64' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.Bool">
+            <summary>
+            C++ 'bool' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.WCharT">
+            <summary>
+            C++ 'wchar_t' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.Char16T">
+            <summary>
+            C++ 'char16_t' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.Char32T">
+            <summary>
+            C++ 'char32_t' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.Float">
+            <summary>
+            C++ 'float' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.Double">
+            <summary>
+            C++ 'double' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.HRESULT">
+            <summary>
+            C++ 'HRESULT' type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppPrimitiveTypeKind.Void">
+            <summary>
+            C++ 'void' type.
+            </summary>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppReferenceType">
+             <summary>
+             Represents a reference type (e.g. int&amp;).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppReferenceType.ElementType">
+             <summary>
+             Represents a symbol for a C++ type.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppReferenceType.IsRValueReference">
+             <summary>
+             True if this type represents an r-value reference.  False if this type represents
+             an l-value reference.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppReferenceType.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppReferenceType.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType">
+             <summary>
+             Represents a symbol for a C++ type.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+            
+             Derived classes: DkmNativeCppArrayType, DkmNativeCppEnumType,
+             DkmNativeCppPrimitiveType, DkmNativeCppFunctionType, DkmNativeCppPointerType,
+             DkmNativeCppReferenceType, DkmNativeCppUserDefinedType
+             </summary>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.Tag">
+            <summary>
+            DkmNativeCppType is an abstract base class. This enum indicates which derived
+            class this object is an instance of.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.Tag.PrimitiveType">
+            <summary>
+            Object is an instance of 'DkmNativeCppPrimitiveType'.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.Tag.PointerType">
+            <summary>
+            Object is an instance of 'DkmNativeCppPointerType'.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.Tag.ReferenceType">
+            <summary>
+            Object is an instance of 'DkmNativeCppReferenceType'.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.Tag.ArrayType">
+            <summary>
+            Object is an instance of 'DkmNativeCppArrayType'.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.Tag.EnumType">
+            <summary>
+            Object is an instance of 'DkmNativeCppEnumType'.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.Tag.UserDefinedType">
+            <summary>
+            Object is an instance of 'DkmNativeCppUserDefinedType'.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.Tag.FunctionType">
+            <summary>
+            Object is an instance of 'DkmNativeCppFunctionType'.
+            </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.TagValue">
+            <summary>
+            DkmNativeCppType is an abstract base class. This enum indicates which derived
+            class this object is an instance of.
+            </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.InspectionSession">
+             <summary>
+             The inspection session which controls the lifetime of this symbol object.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.Id">
+             <summary>
+             Unique identifier for this type, across all modules loaded in this debug session.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.Size">
+             <summary>
+             The size, in bytes, of an object of this type.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.Qualifiers">
+             <summary>
+             const/volatile qualifiers on this type.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.GetSymbolInterface">
+             <summary>
+             Obtains a pointer to the IDiaSymbol object, when available, that backs this
+             member.  For non-class/struct/union types, a dia symbol may or may not be
+             available, depending on how the type got created.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <returns>
+             [Out,Optional] A pointer to the underlying IDiaSymbol object used to represent
+             this member.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.GetPointerType(Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCVQualifiers)">
+             <summary>
+             Creates a C++ pointer type.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="Qualifiers">
+             [In] const/volatile qualifiers on this type.
+             </param>
+             <returns>
+             [Out] Represents a pointer type (e.g. int*).
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.GetReferenceType(System.Boolean,Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCVQualifiers)">
+             <summary>
+             Creates a C++ pointer type.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="IsRValueReference">
+             [In] True if this type should be an r-value reference, false if this type should
+             be an l-value reference.
+             </param>
+             <param name="Qualifiers">
+             [In] const/volatile qualifiers on this type.
+             </param>
+             <returns>
+             [Out] Represents a reference type (e.g. int&amp;).
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.GetArrayType(System.Int32,Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppCVQualifiers)">
+             <summary>
+             Creates a C++ array type.
+            
+             Location constraint: API must be called from an IDE component (component level
+             &gt; 100,000).
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <param name="ElementCount">
+             [In] The number of elements in the array.
+             </param>
+             <param name="Qualifiers">
+             [In] const/volatile qualifiers on this type.
+             </param>
+             <returns>
+             [Out] Represents a C++ array type (e.g. int[5]).
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppType.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppUserDefinedType">
+             <summary>
+             Represents a C++ class/struct/union.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppUserDefinedType.QualifiedName">
+             <summary>
+             Qualified name of this symbol.  Qualifiers are separated by "::".  The
+             unqualified name always appears at the end of the qualified name.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppUserDefinedType.Module">
+             <summary>
+             The module of this symbol.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppUserDefinedType.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Native.Cpp.DkmNativeCppUserDefinedType.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
             <summary>
             Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
             </summary>
@@ -57515,6 +59299,17 @@
              canceled). This will never fire if appending the work item fails.
              </param>
         </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Telemetry.DkmTelemetryEvent.GetCanCollectPrivateInformation">
+             <summary>
+             Queries the VS Telemetry Service to determine if private user information can be
+             collected.
+            
+             This API was introduced in Visual Studio 14 Update 1 (DkmApiVersion.VS14Update1).
+             </summary>
+             <returns>
+             [Out] True if private user information can be collected.
+             </returns>
+        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Telemetry.DkmTelemetryEvent.ManagedToNativeImpl(XapiOutgoingCall)">
             <summary>
             Obtain a pointer to the native object used to call into native. This method
@@ -58075,7 +59870,7 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_LOAD_DLL_DIA">
             <summary>
-            msdia120.dll cannot be loaded.
+            msdia140.dll cannot be loaded.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_DUMP_CORRUPTED">
@@ -58625,12 +60420,22 @@
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_MSVSMON_TOO_OLD">
             <summary>
-            The remote debugger is older than this version of Visual Studio $(var.VSGeneralBrandVersionRelease), and Visual Studio is no longer compatible with it. Please upgrade your remote debugger to match Visual Studio.
+            The remote debugger is older than this version of Visual Studio $(var.VSGeneralBrandVersionRelease), and Visual Studio is no longer compatible with it. Upgrade your remote debugger to match Visual Studio.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_IDE_TOO_OLD">
             <summary>
             The remote debugger is newer than your version of Visual Studio $(var.VSGeneralBrandVersionRelease), and the remote debugger is no longer compatible with it. Either upgrade Visual Studio to match your remote debugger, or downgrade the remote debugger.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_REMOTE_VERSION_IOT">
+            <summary>
+            The remote debugger on your Windows IoT device is older than this version of Visual Studio $(var.VSGeneralBrandVersion). To enable debugging .NET Native applications upgrade the remote debugger on your Windows IoT device. Alternately, uncheck 'Compile with .NET Native tool chain' under project properties to debug a CoreCLR version of the app. You can find more information at http://go.microsoft.com/fwlink/?LinkId=624436
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_PRELAUNCH_TARGET_NOT_SUPPORTED">
+            <summary>
+            Prelaunch is only supported on desktop versions of Windows 10 or newer.
             </summary>
         </member>
         <member name="F:Microsoft.VisualStudio.Debugger.DkmExceptionCode.E_SYMBOLS_NOT_LOADED">

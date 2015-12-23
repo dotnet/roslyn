@@ -429,6 +429,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return Type.IsPointer;
         }
 
+        protected override bool IsFunctionPointerImpl()
+        {
+            // We can exploit the fact that the only time a pointer will ever have a null element type will be function pointers.
+            return this.IsPointer && this.GetElementType() == null;
+        }
+
         protected override bool IsPrimitiveImpl()
         {
             throw new NotImplementedException();
