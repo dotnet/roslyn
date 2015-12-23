@@ -720,5 +720,42 @@ enum E
                 Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(24, 9)
                 );
         }
+
+        [Fact]
+        public void ParamsArraysCSharp()
+        {
+            const string source = @"
+class C
+{
+    public void M0(int a, params int[] b)
+    {
+    }
+
+    public void M1()
+    {
+        M0(1);
+        M0(1, 2);
+        M0(1, 2, 3, 4);
+        M0(1, 2, 3, 4, 5);
+        M0(1, 2, 3, 4, 5, 6);
+        M0(1, new int[] { 2, 3, 4 });
+        M0(1, new int[] { 2, 3, 4, 5 });
+        M0(1, new int[] { 2, 3, 4, 5, 6 });
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ParamsArrayTestAnalyzer() }, null, null, false,
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(13, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(13, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(14, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(14, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }").WithLocation(16, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }").WithLocation(16, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15)
+                );
+        }
     }
 }

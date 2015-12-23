@@ -548,4 +548,75 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.LiteralExpression);
         }
     }
+
+    /// <summary>Analyzer used to test IOperation treatment of params array arguments.</summary>
+    public class ParamsArrayTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor LongParamsDescriptor = new DiagnosticDescriptor(
+            "LongParams",
+            "Long Params",
+            "Params array argument has more than 3 elements.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(LongParamsDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
+
+                     foreach (IArgument argument in invocation.ArgumentsInSourceOrder)
+                     {
+                         if (argument.Parameter.IsParams)
+                         {
+                             IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
+                             if (arrayValue != null)
+                             {
+                                 Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
+                                 if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
+                                 {
+                                     operationContext.ReportDiagnostic(Diagnostic.Create(LongParamsDescriptor, argument.Value.Syntax.GetLocation()));
+                                 }
+                             }
+                         }
+                     }
+
+                     foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
+                     {
+                         if (argument.Parameter.IsParams)
+                         {
+                             IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
+                             if (arrayValue != null)
+                             {
+                                 Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
+                                 if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
+                                 {
+                                     operationContext.ReportDiagnostic(Diagnostic.Create(LongParamsDescriptor, argument.Value.Syntax.GetLocation()));
+                                 }
+                             }
+                         }
+                     }
+                 },
+                 OperationKind.InvocationExpression);
+        }
+
+        static long IntegralValue(object value)
+        {
+            if (value is long)
+            {
+                return (long)value;
+            }
+
+            if (value is int)
+            {
+                return (int)value;
+            }
+
+            return 0;
+        }
+    }
 }
