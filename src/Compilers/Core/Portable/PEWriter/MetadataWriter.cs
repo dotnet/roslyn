@@ -746,7 +746,7 @@ namespace Microsoft.Cci
             }
 
             var writer = PooledBlobBuilder.GetInstance();
-            this.SerializeCustomAttributeSignature(customAttribute, false, writer);
+            this.SerializeCustomAttributeSignature(customAttribute, writer);
             result = builder.GetBlobIndex(writer);
             _customAttributeSignatureIndex.Add(customAttribute, result);
             writer.Free();
@@ -3433,52 +3433,41 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeCustomAttributeSignature(ICustomAttribute customAttribute, bool writeOnlyNamedArguments, BlobBuilder writer)
+        private void SerializeCustomAttributeSignature(ICustomAttribute customAttribute, BlobBuilder writer)
         {
-            if (!writeOnlyNamedArguments)
+            writer.WriteUInt16(0x0001);
+
+            var parameters = customAttribute.Constructor(Context).GetParameters(Context);
+            var arguments = customAttribute.GetArguments(Context);
+            Debug.Assert(parameters.Length == arguments.Length);
+
+            for (int i = 0; i < parameters.Length; i++)
             {
-                writer.WriteUInt16(0x0001);
-                var parameters = customAttribute.Constructor(Context).GetParameters(Context).GetEnumerator();
-                foreach (var argument in customAttribute.GetArguments(Context))
-                {
-                    var success = parameters.MoveNext();
-                    Debug.Assert(success);
-                    if (!success)
-                    {
-                        // TODO: md error    
-                        break;
-                    }
-
-                    this.SerializeMetadataExpression(writer, argument, parameters.Current.GetType(Context));
-                }
-
-                Debug.Assert(!parameters.MoveNext());
-
-                writer.WriteUInt16(customAttribute.NamedArgumentCount);
-            }
-            else
-            {
-                writer.WriteCompressedInteger(customAttribute.NamedArgumentCount);
+                SerializeMetadataExpression(writer, arguments[i], parameters[i].GetType(Context));
             }
 
-            if (customAttribute.NamedArgumentCount > 0)
+            writer.WriteUInt16(customAttribute.NamedArgumentCount);
+
+            SerializeCustomAttributeNamedArguments(customAttribute, writer);
+        }
+
+        private void SerializeCustomAttributeNamedArguments(ICustomAttribute customAttribute, BlobBuilder writer)
+        {
+            foreach (IMetadataNamedArgument namedArgument in customAttribute.GetNamedArguments(Context))
             {
-                foreach (IMetadataNamedArgument namedArgument in customAttribute.GetNamedArguments(Context))
+                writer.WriteByte(namedArgument.IsField ? (byte)0x53 : (byte)0x54);
+                if (this.module.IsPlatformType(namedArgument.Type, PlatformType.SystemObject))
                 {
-                    writer.WriteByte(namedArgument.IsField ? (byte)0x53 : (byte)0x54);
-                    if (this.module.IsPlatformType(namedArgument.Type, PlatformType.SystemObject))
-                    {
-                        writer.WriteByte(0x51);
-                    }
-                    else
-                    {
-                        this.SerializeTypeReference(namedArgument.Type, writer, true, true);
-                    }
-
-                    writer.WriteSerializedString(namedArgument.ArgumentName);
-
-                    this.SerializeMetadataExpression(writer, namedArgument.ArgumentValue, namedArgument.Type);
+                    writer.WriteByte(0x51);
                 }
+                else
+                {
+                    this.SerializeTypeReference(namedArgument.Type, writer, true, true);
+                }
+
+                writer.WriteSerializedString(namedArgument.ArgumentName);
+
+                this.SerializeMetadataExpression(writer, namedArgument.ArgumentValue, namedArgument.Type);
             }
         }
 
@@ -3524,7 +3513,7 @@ namespace Microsoft.Cci
                     {
                         // handle null case
                         writer.WriteByte(0x0e); // serialize string type
-                        writer.WriteByte(0xFF); // null string
+                        writer.WriteSerializedString(null);
                         return;
                     }
 
@@ -3553,15 +3542,8 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    IMetadataTypeOf t = expression as IMetadataTypeOf;
-                    if (t != null)
-                    {
-                        this.SerializeTypeName(t.TypeToGet, writer);
-                    }
-                    else
-                    {
-                        // TODO: error
-                    }
+                    var t = (IMetadataTypeOf)expression;
+                    this.SerializeTypeName(t.TypeToGet, writer);
                 }
             }
         }
@@ -3734,9 +3716,12 @@ namespace Microsoft.Cci
                 }
 
                 writer.WriteSerializedString(typeName);
+
                 var customAttributeWriter = PooledBlobBuilder.GetInstance();
-                this.SerializeCustomAttributeSignature(customAttribute, true, customAttributeWriter);
+                customAttributeWriter.WriteCompressedInteger(customAttribute.NamedArgumentCount);
+                SerializeCustomAttributeNamedArguments(customAttribute, customAttributeWriter);
                 writer.WriteCompressedInteger((uint)customAttributeWriter.Count);
+
                 customAttributeWriter.WriteContentTo(writer);
                 customAttributeWriter.Free();
             }
