@@ -36,12 +36,15 @@ namespace Microsoft.CodeAnalysis.Editor
                 return null;
             }
 
-            TDirectiveTriviaSyntax matchingDirective;
+            TDirectiveTriviaSyntax matchingDirective = null;
             if (IsConditionalDirective(directive))
             {
                 // #if/#elif/#else/#endif directive cases.
                 var matchingDirectives = GetMatchingConditionalDirectives(directive, cancellationToken);
-                matchingDirective = matchingDirectives[(matchingDirectives.IndexOf(directive) + 1) % matchingDirectives.Count];
+                if (matchingDirectives?.Count > 0)
+                {
+                    matchingDirective = matchingDirectives[(matchingDirectives.IndexOf(directive) + 1) % matchingDirectives.Count];
+                }
             }
             else
             {

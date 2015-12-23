@@ -590,5 +590,74 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
+        <WorkItem(7534, "https://github.com/dotnet/roslyn/issues/7534")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Async Function TestUnmatchedIncompleteConditionalDirective() As Task
+            Dim code =
+<Text>
+Class C
+    Sub Test()
+#If$$
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+            Dim expected =
+<Text>
+Class C
+    Sub Test()
+[|#If|]
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+
+            Await TestAsync(code, expected)
+        End Function
+
+        <WorkItem(7534, "https://github.com/dotnet/roslyn/issues/7534")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Async Function TestUnmatchedCompleteConditionalDirective() As Task
+            Dim code =
+<Text>
+Class C
+    Sub Test()
+#If$$ CHK Then
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+            Dim expected =
+<Text>
+Class C
+    Sub Test()
+[|#If|] CHK Then
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+
+            Await TestAsync(code, expected)
+        End Function
+
+        <WorkItem(7534, "https://github.com/dotnet/roslyn/issues/7534")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        Public Async Function TestUnmatchedConditionalDirective() As Task
+            Dim code =
+<Text>
+Class C
+    Sub Test()
+#Else$$
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+            Dim expected =
+<Text>
+Class C
+    Sub Test()
+[|#Else|]
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf)
+
+            Await TestAsync(code, expected)
+        End Function
+
     End Class
 End Namespace

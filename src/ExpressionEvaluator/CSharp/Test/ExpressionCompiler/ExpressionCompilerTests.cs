@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CSharpMetadataContext previous = default(CSharpMetadataContext);
             int startOffset;
             int endOffset;
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes));
+            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes));
             ImmutableArray<MetadataBlock> typeBlocks;
             ImmutableArray<MetadataBlock> methodBlocks;
             Guid moduleVersionId;
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // With different references.
             var fewerReferences = references.Remove(referenceA);
             Assert.Equal(fewerReferences.Length, references.Length - 1);
-            runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), fewerReferences, exeBytes, new SymReader(pdbBytes));
+            runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), fewerReferences, exeBytes, SymReaderFactory.CreateReader(pdbBytes));
             GetContextState(runtime, "C.F", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
             // Different references. No reuse.
@@ -1090,7 +1090,7 @@ class B : A
                 assemblyName: moduleId.ToString("D"),
                 references: ImmutableArray.Create(MscorlibRef),
                 exeBytes: exeBytes.ToArray(),
-                symReader: new SymReader(pdbBytes.ToArray()));
+                symReader: SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
@@ -1142,7 +1142,7 @@ class B : A
                 assemblyName: moduleId.ToString("D"),
                 references: ImmutableArray.Create(MscorlibRef),
                 exeBytes: exeBytes.ToArray(),
-                symReader: new SymReader(pdbBytes.ToArray()));
+                symReader: SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
@@ -1193,7 +1193,7 @@ class B : A
                 assemblyName: moduleId.ToString("D"),
                 references: ImmutableArray.Create(MscorlibRef),
                 exeBytes: exeBytes.ToArray(),
-                symReader: new SymReader(pdbBytes.ToArray()));
+                symReader: SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
@@ -3830,7 +3830,7 @@ class C
                     referenceN0, // From D1
                     referenceN1, // From D2
                     referenceN2); // From D2
-            var runtime = CreateRuntimeInstance(assemblyName, references, exeBytes, new SymReader(pdbBytes));
+            var runtime = CreateRuntimeInstance(assemblyName, references, exeBytes, SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
@@ -4551,7 +4551,7 @@ class C
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
                 references: ImmutableArray.Create(MscorlibRef),
                 exeBytes: exeBytes.ToArray(),
-                symReader: new SymReader(pdbBytes.ToArray()));
+                symReader: SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
@@ -4728,7 +4728,7 @@ struct S
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
                 references: ImmutableArray.Create(MscorlibRef),
                 exeBytes: exeBytes.ToArray(),
-                symReader: new SymReader(pdbBytes.ToArray()));
+                symReader: SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.<>c__DisplayClass2.<Test>b__1");
@@ -5181,7 +5181,7 @@ class C
                 assemblyName: GetUniqueName(),
                 references: ImmutableArray.Create(WinRtRefs),
                 exeBytes: ilBytes.ToArray(),
-                symReader: new SymReader(ilPdbBytes.ToArray()));
+                symReader: SymReaderFactory.CreateReader(ilPdbBytes.ToArray()));
 
             var context = CreateMethodContext(runtime, "C.M");
 
@@ -5527,7 +5527,7 @@ class C
                 includeLocalSignatures: false);
 
             modulesBuilder.Add(corruptMetadata);
-            modulesBuilder.Add(exeReference.ToModuleInstance(exeBytes, new SymReader(pdbBytes)));
+            modulesBuilder.Add(exeReference.ToModuleInstance(exeBytes, SymReaderFactory.CreateReader(pdbBytes)));
             modulesBuilder.AddRange(references.Select(r => r.ToModuleInstance(fullImage: null, symReader: null)));
             var modules = modulesBuilder.ToImmutableAndFree();
 
@@ -5580,7 +5580,7 @@ public class C
             var result = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
             Assert.True(result);
 
-            var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef), exeBytes, new SymReader(pdbBytes));
+            var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef), exeBytes, SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(runtime, "C.M");
 
             var expectedError = "error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.";
@@ -5666,7 +5666,7 @@ public class Source
             var result = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
             Assert.True(result);
 
-            var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef, libAv1Ref, libBv2Ref), exeBytes, new SymReader(pdbBytes));
+            var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef, libAv1Ref, libBv2Ref), exeBytes, SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(runtime, "Source.Test");
 
             string error;
@@ -5972,10 +5972,8 @@ public class C
                 pdbStream2.Position = 0;
                 peStream2.Position = 0;
 
-                // Note: This SymReader will behave differently from the ISymUnmanagedReader
-                // we receive during real debugging.  We're just using it as a rough
-                // approximation of ISymUnmanagedReader3, which is unavailable here.
-                var symReader = new SymReader(new[] { pdbStream1, pdbStream2 }, peStream2, null);
+                var symReader = SymReaderFactory.CreateReader(pdbStream1);
+                symReader.UpdateSymbolStore(pdbStream2);
 
                 var runtime = CreateRuntimeInstance(
                     GetUniqueName(),

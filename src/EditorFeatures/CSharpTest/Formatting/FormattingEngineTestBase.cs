@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
                 options = options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTab);
 
-                var root = syntaxTree.GetRoot();
+                var root = await syntaxTree.GetRootAsync();
                 var rules = formattingRuleProvider.CreateRule(workspace.CurrentSolution.GetDocument(syntaxTree), 0).Concat(Formatter.GetDefaultFormattingRules(workspace, root.Language));
 
                 AssertFormat(workspace, expected, options, rules, clonedBuffer, root);
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                     }
                 }
 
-                var root = syntaxTree.GetRoot();
+                var root = await syntaxTree.GetRootAsync();
                 var rules = formattingRuleProvider.CreateRule(workspace.CurrentSolution.GetDocument(syntaxTree), 0).Concat(Formatter.GetDefaultFormattingRules(workspace, root.Language));
                 AssertFormat(workspace, expected, options, rules, clonedBuffer, root, spans);
 

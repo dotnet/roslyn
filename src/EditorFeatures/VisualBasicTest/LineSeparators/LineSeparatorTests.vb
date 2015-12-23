@@ -293,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(lines)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Dim spans = Await New VisualBasicLineSeparatorService().GetLineSeparatorsAsync(document,
-                    (Await document.GetSyntaxTreeAsync()).GetRoot().FullSpan)
+                    (Await document.GetSyntaxRootAsync()).FullSpan)
                 Return spans.OrderBy(Function(span) span.Start)
             End Using
         End Function

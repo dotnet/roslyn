@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
 
             Document document = await fixture.UpdateDocumentAsync(text, SourceCodeKind.Regular);
 
-            var root = (await document.GetSyntaxTreeAsync()).GetRoot();
+            var root = await document.GetSyntaxRootAsync();
             var node = FindExpressionSyntaxFromSpan(root, textSpan);
 
             var typeInference = document.GetLanguageService<ITypeInferenceService>();

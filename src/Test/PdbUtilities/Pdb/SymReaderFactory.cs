@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
@@ -40,9 +43,32 @@ namespace Roslyn.Test.PdbUtilities
             return reader;
         }
 
-        public static ISymUnmanagedReader CreateReader(Stream pdbStream, MetadataReader metadataReaderOpt)
+        public static ISymUnmanagedReader CreateReader(byte[] pdbImage, byte[] peImageOpt = null)
         {
-            return CreateReader(pdbStream, new DummyMetadataImport(metadataReaderOpt));
+            return CreateReader(new MemoryStream(pdbImage), (peImageOpt != null) ? new MemoryStream(peImageOpt) : null);
+        }
+
+        public static ISymUnmanagedReader CreateReader(ImmutableArray<byte> pdbImage, ImmutableArray<byte> peImageOpt = default(ImmutableArray<byte>))
+        {
+            return CreateReader(new MemoryStream(pdbImage.ToArray()), peImageOpt.IsDefault ? null : new MemoryStream(peImageOpt.ToArray()));
+        }
+
+        public static ISymUnmanagedReader CreateReader(Stream pdbStream, Stream peStreamOpt = null)
+        {
+            if (peStreamOpt != null)
+            {
+                var peReader = new PEReader(peStreamOpt);
+                return CreateReader(pdbStream, peReader.GetMetadataReader(), peReader);
+            }
+            else
+            {
+                return CreateReader(pdbStream, null, null);
+            }
+        }
+
+        public static ISymUnmanagedReader CreateReader(Stream pdbStream, MetadataReader metadataReaderOpt, IDisposable metadataMemoryOwnerOpt)
+        {
+            return CreateReader(pdbStream, metadataImporter: new DummyMetadataImport(metadataReaderOpt, metadataMemoryOwnerOpt));
         }
 
         public static ISymUnmanagedReader CreateReader(Stream pdbStream, object metadataImporter)

@@ -745,7 +745,7 @@ End Class");
             {
                 var file = context.GenerateSource("System.Console", project: context.DefaultProject);
                 var document = context.GetDocument(file);
-                Microsoft.CodeAnalysis.Formatting.Formatter.FormatAsync(document).Wait();
+                await Formatting.Formatter.FormatAsync(document);
             }
         }
 

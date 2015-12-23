@@ -361,21 +361,21 @@ Inner i;
         }
 
         [Fact]
-        public static void FindSourceDeclarationsAsync_Solution_Test_NullProject()
+        public static async Task FindSourceDeclarationsAsync_Solution_Test_NullProject()
         {
-            Assert.Throws<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
             {
-                var declarations = SymbolFinder.FindSourceDeclarationsAsync((Solution)null, "Test", true).Result;
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync((Solution)null, "Test", true);
             });
         }
 
         [Fact]
-        public static void FindSourceDeclarationsAsync_Solution_Test_NullString()
+        public static async Task FindSourceDeclarationsAsync_Solution_Test_NullString()
         {
-            Assert.Throws<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
             {
                 var solution = GetSolution(WorkspaceKind.SingleClass);
-                var declarations = SymbolFinder.FindSourceDeclarationsAsync(solution, null, true).Result;
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(solution, null, true);
             });
         }
 
