@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -274,7 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundFieldAccess : IFieldReferenceExpression
     {
         IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
-       
+
+        ISymbol IMemberReferenceExpression.Member => this.FieldSymbol;
+
         IFieldSymbol IFieldReferenceExpression.Field => this.FieldSymbol;
 
         protected override OperationKind ExpressionKind => OperationKind.FieldReferenceExpression;
@@ -285,8 +288,60 @@ namespace Microsoft.CodeAnalysis.CSharp
         IPropertySymbol IPropertyReferenceExpression.Property => this.PropertySymbol;
        
         IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
-       
+
+        ISymbol IMemberReferenceExpression.Member => this.PropertySymbol;
+
         protected override OperationKind ExpressionKind => OperationKind.PropertyReferenceExpression;
+    }
+
+    partial class BoundEventAccess : IEventReferenceExpression
+    {
+        IEventSymbol IEventReferenceExpression.Event => this.EventSymbol;
+
+        IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
+
+        ISymbol IMemberReferenceExpression.Member => this.EventSymbol;
+
+        protected override OperationKind ExpressionKind => OperationKind.EventReferenceExpression;
+    }
+
+    partial class BoundEventAssignmentOperator : IEventAssignmentExpression
+    {
+
+        IEventSymbol IEventAssignmentExpression.Event => this.Event;
+
+        IExpression IEventAssignmentExpression.EventInstance => this.ReceiverOpt;
+
+        IExpression IEventAssignmentExpression.HandlerValue => this.Argument;
+
+        bool IEventAssignmentExpression.Adds => this.IsAddition;
+
+        protected override OperationKind ExpressionKind => OperationKind.EventAssignmentExpression;
+    }
+
+    partial class BoundDelegateCreationExpression : IMethodBindingExpression
+    {
+        IExpression IMemberReferenceExpression.Instance
+        {
+            get
+            {
+                BoundMethodGroup methodGroup = this.Argument as BoundMethodGroup;
+                if (methodGroup != null)
+                {
+                    return methodGroup.InstanceOpt;
+                }
+
+                return null;
+            }
+        }
+
+        bool IMethodBindingExpression.IsVirtual => this.MethodOpt != null && (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) && !this.SuppressVirtualCalls;
+       
+        ISymbol IMemberReferenceExpression.Member => this.MethodOpt;
+       
+        IMethodSymbol IMethodBindingExpression.Method => this.MethodOpt;
+       
+        protected override OperationKind ExpressionKind => OperationKind.MethodBindingExpression;
     }
 
     partial class BoundParameter : IParameterReferenceExpression
@@ -345,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.LambdaExpression;
     }
 
-    partial class BoundConversion : IConversionExpression
+    partial class BoundConversion : IConversionExpression, IMethodBindingExpression
     {
         IExpression IConversionExpression.Operand => this.Operand;
 
@@ -397,7 +452,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IHasOperatorExpression.UsesOperatorMethod => this.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || this.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined;
 
-        protected override OperationKind ExpressionKind => OperationKind.ConversionExpression;
+        // Consider introducing a different bound node type for method group conversions. These aren't truly conversions, but represent selection of a particular method.
+        protected override OperationKind ExpressionKind => this.ConversionKind == ConversionKind.MethodGroup ? OperationKind.MethodBindingExpression : OperationKind.ConversionExpression;
+
+        IMethodSymbol IMethodBindingExpression.Method => this.ConversionKind == ConversionKind.MethodGroup ? this.SymbolOpt as IMethodSymbol : null;
+       
+        bool IMethodBindingExpression.IsVirtual
+        {
+            get
+            {
+                IMethodSymbol method = ((IMethodBindingExpression)this).Method;
+                return method != null && (method.IsAbstract || method.IsOverride || method.IsVirtual) && !this.SuppressVirtualCalls;
+            }
+        }
+
+        IExpression IMemberReferenceExpression.Instance
+        {
+            get
+            {
+                if (this.ConversionKind == ConversionKind.MethodGroup)
+                {
+                    BoundMethodGroup methodGroup = this.Operand as BoundMethodGroup;
+                    if (methodGroup != null)
+                    {
+                        return methodGroup.InstanceOpt;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        ISymbol IMemberReferenceExpression.Member => ((IMethodBindingExpression)this).Method;
     }
 
     partial class BoundAsOperator : IConversionExpression
@@ -542,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundBaseReference : IInstanceReferenceExpression
     {
-        bool IInstanceReferenceExpression.IsExplicit => true;
+        bool IInstanceReferenceExpression.IsExplicit => this.Syntax.Kind() == SyntaxKind.BaseExpression;
 
         IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
         
@@ -551,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundThisReference : IInstanceReferenceExpression
     {
-        bool IInstanceReferenceExpression.IsExplicit => true;
+        bool IInstanceReferenceExpression.IsExplicit => this.Syntax.Kind() == SyntaxKind.ThisExpression;
 
         IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
 
