@@ -38,6 +38,11 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.LogAnalyzerEx
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.OnAnalyzerException.get -> System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic>
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.ReportSuppressedDiagnostics.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
+Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.Analyze = 1 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
+Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.Default = Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.Analyze | Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.ReportDiagnostics -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
+Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.None = 0 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
+Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.ReportDiagnostics = 16 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Operation.get -> Microsoft.CodeAnalysis.Semantics.IOperation
@@ -649,6 +654,7 @@ Microsoft.CodeAnalysis.SourceFileResolver.PathMap.get -> System.Collections.Immu
 Microsoft.CodeAnalysis.SourceFileResolver.SourceFileResolver(System.Collections.Immutable.ImmutableArray<string> searchPaths, string baseDirectory, System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string, string>> pathMap) -> void
 Microsoft.CodeAnalysis.StrongNameProvider.StrongNameProvider() -> void
 abstract Microsoft.CodeAnalysis.Diagnostic.IsSuppressed.get -> bool
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.ConfigureGeneratedCodeAnalysis(Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags analysisMode) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.EnableConcurrentExecution() -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void

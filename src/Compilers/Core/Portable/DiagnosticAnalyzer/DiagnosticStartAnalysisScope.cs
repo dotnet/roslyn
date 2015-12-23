@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -92,6 +93,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override void EnableConcurrentExecution()
         {
             _scope.EnableConcurrentExecution(_analyzer);
+        }
+
+        public override void ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags mode)
+        {
+            _scope.ConfigureGeneratedCodeAnalysis(_analyzer, mode);
         }
     }
 
@@ -232,6 +238,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private ImmutableArray<CompilationStartAnalyzerAction> _compilationStartActions = ImmutableArray<CompilationStartAnalyzerAction>.Empty;
         private ImmutableHashSet<DiagnosticAnalyzer> _concurrentAnalyzers = ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+        private ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _generatedCodeConfigurationMap = new ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
 
         public ImmutableArray<CompilationStartAnalyzerAction> CompilationStartActions
         {
@@ -241,6 +248,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsConcurrentAnalyzer(DiagnosticAnalyzer analyzer)
         {
             return _concurrentAnalyzers.Contains(analyzer);
+        }
+
+        public GeneratedCodeAnalysisFlags GetGeneratedCodeAnalysisFlags(DiagnosticAnalyzer analyzer)
+        {
+            GeneratedCodeAnalysisFlags mode;
+            return _generatedCodeConfigurationMap.TryGetValue(analyzer, out mode) ? mode : GeneratedCodeAnalysisFlags.Default;
         }
 
         public void RegisterCompilationStartAction(DiagnosticAnalyzer analyzer, Action<CompilationStartAnalysisContext> action)
@@ -253,6 +266,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void EnableConcurrentExecution(DiagnosticAnalyzer analyzer)
         {
             _concurrentAnalyzers = _concurrentAnalyzers.Add(analyzer);
+        }
+
+        public void ConfigureGeneratedCodeAnalysis(DiagnosticAnalyzer analyzer, GeneratedCodeAnalysisFlags mode)
+        {
+            _generatedCodeConfigurationMap.AddOrUpdate(analyzer, addValue: mode, updateValueFactory: (a, c) => mode);
         }
     }
 

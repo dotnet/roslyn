@@ -525,6 +525,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Marks the given event as fully analyzed for the given analyzers.
+        /// </summary>
+        public void MarkEventComplete(CompilationEvent compilationEvent, IEnumerable<DiagnosticAnalyzer> analyzers)
+        {
+            foreach (var analyzer in analyzers)
+            {
+                GetAnalyzerState(analyzer).MarkEventComplete(compilationEvent);
+            }
+        }
+
+        /// <summary>
         /// Attempts to start processing a symbol for the given analyzer's symbol actions.
         /// </summary>
         /// <returns>
@@ -581,6 +592,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Marks the given symbol declaration as fully analyzed for the given analyzers.
+        /// </summary>
+        public void MarkDeclarationComplete(SyntaxReference decl, IEnumerable<DiagnosticAnalyzer> analyzers)
+        {
+            foreach (var analyzer in analyzers)
+            {
+                GetAnalyzerState(analyzer).MarkDeclarationComplete(decl);
+            }
+        }
+
+        /// <summary>
         /// Marks all the symbol declarations for the given symbol as fully analyzed for all the given analyzers.
         /// </summary>
         public void MarkDeclarationsComplete(ImmutableArray<SyntaxReference> declarations, IEnumerable<DiagnosticAnalyzer> analyzers)
@@ -609,6 +631,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void MarkSyntaxAnalysisComplete(SyntaxTree tree, DiagnosticAnalyzer analyzer)
         {
             GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(tree);
+        }
+
+        /// <summary>
+        /// Marks the given tree as fully syntactically analyzed for the given analyzers.
+        /// </summary>
+        public void MarkSyntaxAnalysisComplete(SyntaxTree tree, IEnumerable<DiagnosticAnalyzer> analyzers)
+        {
+            foreach (var analyzer in analyzers)
+            {
+                GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(tree);
+            }
         }
     }
 }
