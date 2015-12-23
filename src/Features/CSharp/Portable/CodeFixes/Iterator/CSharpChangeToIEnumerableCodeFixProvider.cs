@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         {
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbol = model.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
+            // IMethod symbol can either be a regular method or an accessor
             if (methodSymbol?.ReturnType == null || methodSymbol.ReturnsVoid)
             {
                 return null;
@@ -40,31 +41,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
             var type = methodSymbol.ReturnType;
 
-            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
-            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerator");
-            var ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1");
-            var ienumeratorGenericSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerator`1");
-
-            if (ienumerableGenericSymbol == null ||
-                ienumerableSymbol == null ||
-                ienumeratorGenericSymbol == null ||
-                ienumeratorSymbol == null)
+            INamedTypeSymbol ienumerableSymbol, ienumerableGenericSymbol;
+            if (!TryGetIEnumerableSymbols(model, out ienumerableSymbol, out ienumerableGenericSymbol))
             {
                 return null;
             }
 
-            
-
-            if (type.GetBaseTypesAndThis().AsImmutable().Concat(type.AllInterfaces).Contains(t =>
-                    SymbolEquivalenceComparer.Instance.Equals(t, ienumerableSymbol)))
+            if (type.InheritsFromOrEquals(ienumerableSymbol, includeInterfaces: true))
             {
-                if (type.GetArity() != 1)
+                var arity = type.GetArity();
+                if (arity == 1)
+                {
+                    var typeArg = type.GetTypeArguments().First();
+                    ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeArg);
+                }
+                else if (arity == 0 && type is IArrayTypeSymbol)
+                {
+                    ienumerableGenericSymbol = ienumerableGenericSymbol.Construct((type as IArrayTypeSymbol).ElementType);
+                }
+                else
                 {
                     return null;
                 }
-
-                var typeArg = type.GetTypeArguments().First();
-                ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeArg);
             }
             else
             {
@@ -106,6 +104,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 string.Format(CSharpFeaturesResources.ChangeReturnType,
                     type.ToMinimalDisplayString(model, node.SpanStart),
                     ienumerableGenericSymbol.ToMinimalDisplayString(model, node.SpanStart)), newDocument);
+        }
+
+        private static bool TryGetIEnumerableSymbols(SemanticModel model, out INamedTypeSymbol ienumerableSymbol, out INamedTypeSymbol ienumerableGenericSymbol)
+        {
+            ienumerableSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
+            ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1");
+
+            if (ienumerableGenericSymbol == null ||
+                ienumerableSymbol == null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
