@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public ISymUnmanagedReader CreateSymReader()
             {
                 var pdbStream = new MemoryStream(EmittedAssemblyPdb.ToArray());
-                return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null);
+                return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null, metadataMemoryOwnerOpt: null);
             }
 
             public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, bool useRefEmitter = false)

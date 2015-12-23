@@ -54,6 +54,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="EventListenerCrash_Workaround.cs" />
     <Compile Include="GlobalAssemblyCacheTests.cs" />
     <Compile Include="MetadataShadowCopyProviderTests.cs" />
   </ItemGroup>

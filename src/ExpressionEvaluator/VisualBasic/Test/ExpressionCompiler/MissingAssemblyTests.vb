@@ -343,7 +343,7 @@ End Class
                 GetUniqueName(),
                 ImmutableArray.Create(CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference),
                 exeBytes,
-                New SymReader(pdbBytes))
+                SymReaderFactory.CreateReader(pdbBytes))
             Dim context = CreateMethodContext(
                 runtime,
                 "C.M")
@@ -580,7 +580,7 @@ End Class"
             Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
             Assert.True(result)
 
-            Dim runtime = CreateRuntimeInstance(GetUniqueName(), references, exeBytes, New SymReader(pdbBytes))
+            Dim runtime = CreateRuntimeInstance(GetUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes))
             Return CreateMethodContext(runtime, methodName)
         End Function
 

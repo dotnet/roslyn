@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Text
@@ -11,7 +13,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
     public class SourceTextTests
     {
         private static readonly Encoding s_utf8 = Encoding.UTF8;
-        private static readonly Encoding s_utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
         private static readonly Encoding s_unicode = Encoding.Unicode;
         private const string HelloWorld = "Hello, World!";
 
@@ -34,24 +35,32 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         [Fact]
         public void Encoding1()
         {
+            var utf8NoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
             Assert.Same(s_utf8, SourceText.From(HelloWorld, s_utf8).Encoding);
             Assert.Same(s_unicode, SourceText.From(HelloWorld, s_unicode).Encoding);
 
             var bytes = s_unicode.GetBytes(HelloWorld);
             Assert.Same(s_unicode, SourceText.From(bytes, bytes.Length, s_unicode).Encoding);
+            Assert.Equal(utf8NoBOM, SourceText.From(bytes, bytes.Length, null).Encoding);
 
             var stream = new MemoryStream(bytes);
             Assert.Same(s_unicode, SourceText.From(stream, s_unicode).Encoding);
+            Assert.Equal(utf8NoBOM, SourceText.From(stream, null).Encoding);
         }
 
         [Fact]
         public void EncodingBOM()
         {
-            var bytes = s_utf8Bom.GetPreamble().Concat(s_utf8Bom.GetBytes("abc")).ToArray();
-            Assert.Equal(s_utf8.EncodingName, SourceText.From(bytes, bytes.Length, s_unicode).Encoding.EncodingName);
+            var utf8BOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+
+            var bytes = utf8BOM.GetPreamble().Concat(utf8BOM.GetBytes("abc")).ToArray();
+            Assert.Equal(utf8BOM, SourceText.From(bytes, bytes.Length, s_unicode).Encoding);
+            Assert.Equal(utf8BOM, SourceText.From(bytes, bytes.Length, null).Encoding);
 
             var stream = new MemoryStream(bytes);
-            Assert.Equal(s_utf8.EncodingName, SourceText.From(stream, s_unicode).Encoding.EncodingName);
+            Assert.Equal(utf8BOM, SourceText.From(stream, s_unicode).Encoding);
+            Assert.Equal(utf8BOM, SourceText.From(stream, null).Encoding);
         }
 
         [Fact]

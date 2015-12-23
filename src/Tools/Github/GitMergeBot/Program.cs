@@ -22,7 +22,7 @@ namespace ConsoleApplication2
         /// <returns> The name of the branch that was created </returns>
         static async Task<string> MakePrBranch(GitHubClient github, string user, string repo, string sha, string branchNamePrefix)
         {
-            var branchName = branchNamePrefix + DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
+            var branchName = branchNamePrefix + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
 
             var resp = await github.Connection.Post<string>(
                 uri: new Uri($"https://api.github.com/repos/{user}/{repo}/git/refs"),
@@ -55,10 +55,11 @@ This is an automatically generated pull request from {fromBranch} into {intoBran
 git remote add roslyn-bot ""https://github.com/roslyn-bot/roslyn.git""
 git fetch roslyn-bot
 git checkout {newBranchName}
-git pull upstream {intoBranch}
+git reset --hard upstream/{intoBranch}
+git merge upstream/{fromBranch}
 # Fix merge conflicts
 git commit
-git push roslyn-bot {newBranchName} -f 
+git push roslyn-bot {newBranchName} --force
 ```
 
 Once the merge can be made and all the tests pass, you are free to merge the pull request.
@@ -71,7 +72,7 @@ Once the merge can be made and all the tests pass, you are free to merge the pul
         {
 
             var remoteIntoBranch = await GetShaFromBranch(github, remoteUser, repoName, fromBranch);
-            var newBranchName = await MakePrBranch(github, myUser, repoName, remoteIntoBranch, $"{fromBranch}-{intoBranch}");
+            var newBranchName = await MakePrBranch(github, myUser, repoName, remoteIntoBranch, $"merge-{fromBranch}-into-{intoBranch}");
             await SubmitPullRequest(github, remoteUser, myUser, repoName, newBranchName, fromBranch, intoBranch);
             return;
         }

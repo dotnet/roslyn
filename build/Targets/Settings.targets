@@ -1,0 +1,274 @@
+<Project DefaultTargets="Build" InitialTargets="RestoreToolsetCheck" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="OutDir;Configuration">
+
+  <PropertyGroup>
+    <ProjectDir>$(MSBuildThisFileDirectory)..\..\</ProjectDir>
+    <NuGetToolPath Condition="">$(ProjectDir)nuget.exe</NuGetToolPath>
+    <ToolsetPackagesDir>$(ProjectDir)build\ToolsetPackages\</ToolsetPackagesDir>
+    <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(NUGET_PACKAGES)</NuGetPackageRoot> <!-- Respect environment variable if set -->
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and
+                                 '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and
+                                 '$(OS)' != 'Windows_NT'">$([System.Environment]::GetFolderPath(SpecialFolder.Personal))\.nuget\packages</NuGetPackageRoot>
+
+    <!-- 
+        $(OS) is only specific enough for windows builds.  For non-windows builds the identifier
+        is specified on the command line of MSBuild
+    -->
+    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
+
+    <!-- Turn on hard-linking on Windows to reduce copy time and disk space -->
+    <CreateHardLinksForCopyLocalIfPossible Condition="'$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyLocalIfPossible>
+  </PropertyGroup>
+
+  <!-- Import the global NuGet packages -->
+  <PropertyGroup>
+    <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.2.0-beta-20151211-01\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\1.1.1-beta1-20150818-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
+  </PropertyGroup>
+
+  <Target Name="RestoreToolsetCheck"
+      Condition="'$(BuildingProject)' == 'true'">
+      <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
+             Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
+  </Target>
+
+  <!-- Prevent vsix manifests from being copied to the shared output directory, makes build more deterministic -->
+  <PropertyGroup>
+    <CopyVsixManifestToOutput>false</CopyVsixManifestToOutput>
+  </PropertyGroup>
+
+  <!-- This file is imported by all projects at the beginning of the project files -->
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
+          Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(MSBuildProjectExtension)' != '.vcxproj'" />
+
+  <!-- NuGet props aren't imported by default on *nix so we do that here -->
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.props"
+          Condition="'$(OS)' != 'Windows_NT'" />
+
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DevEnvDir)' == ''">
+    <DevEnvDir>$(VSINSTALLDIR)\Common7\IDE</DevEnvDir>
+    <DevEnvDir Condition="'$(VisualStudioVersion)' == '12.0'">$(VS120COMNTOOLS)\..\IDE</DevEnvDir>
+    <DevEnvDir Condition="'$(VisualStudioVersion)' == '14.0'">$(VS140COMNTOOLS)\..\IDE</DevEnvDir>
+    <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring(0, $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
+    <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
+    <VisualStudioCodename>Dev$(VisualStudioReferenceMajorVersion)</VisualStudioCodename>
+
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+
+    <VSLToolsPath Condition="'$(VSLToolsPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..'))</VSLToolsPath>
+    <VSLTargetsPath Condition="'$(VSLTargetsPath)' == ''">$(MSBuildThisFileDirectory)</VSLTargetsPath>
+
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+
+    <SignAssembly Condition="'$(SignAssembly)' == ''">true</SignAssembly>
+
+    <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
+
+    <!-- If we're on Visual Studio 2015 RTM and  we still have Roslyn installed, our VSIX-producing packages are not going to install, so let's not even try.
+         Update 1 supports this, so we'll use csi.exe's existence as a simple proxy for whether we have Update 1 installed or not. -->
+    <DeployExtension Condition="'$(DeployExtension)' == '' AND Exists('$(DevEnvDir)\CommonExtensions\Microsoft\Roslyn\Language Services\extension.vsixmanifest') AND !Exists('$(MSBuildBinPath)\csi.exe')">false</DeployExtension>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(VisualStudioVersion)' == '12.0'">
+      <PropertyGroup>
+        <MSBuildAssemblyNameFragment>v12.0</MSBuildAssemblyNameFragment>
+      </PropertyGroup>
+    </When>
+
+    <Otherwise>
+      <PropertyGroup>
+        <MSBuildAssemblyNameFragment>Core</MSBuildAssemblyNameFragment>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <!-- Build reliability -->
+  <PropertyGroup>
+    <OverwriteReadOnlyFiles Condition="'$(OverwriteReadOnlyFiles)' == ''">true</OverwriteReadOnlyFiles>
+  </PropertyGroup>
+
+  <!-- Don't validate our .vsixmanifests for correct schemas. Right now our build machines are on Visual Studio 2015 RTM, but we want to set a property
+       (Experimental) that was added in Update 1. Since the schema is pulled from the box, you can't build with RTM unless we either disable schema
+       validation or otherwise copy the schemas in and then point the target to those. Since schema changes happen fairly rarely, I'll just disable
+       schema validation and turn it on as soon as we're on update 1 only. -->
+  <PropertyGroup>
+    <BypassVsixValidation>true</BypassVsixValidation>
+  </PropertyGroup>
+
+  <!-- Project language -->
+  <PropertyGroup Condition="'$(ProjectLanguage)' == ''">
+    <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.csproj' OR '$(Language)' == 'C#'">CSharp</ProjectLanguage>
+    <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.vbproj' OR '$(Language)' == 'VB'">VB</ProjectLanguage>
+    <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.vcxproj' OR '$(Language)' == 'C++'">C++</ProjectLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <!-- Use the compiler server -->
+    <UseSharedCompilation>true</UseSharedCompilation>
+  </PropertyGroup>
+
+  <!-- Import the props files from the toolset NuGet packages if we're not in a bootstrap build -->
+  <ImportGroup Label="GlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
+    <Import Project="$(ToolsetCompilerPropsFilePath)"
+            Condition="Exists('$(ToolsetCompilerPropsFilePath)')" />
+  </ImportGroup>
+
+  <ImportGroup>
+    <Import Project="$(RoslynDiagnosticsPropsFilePath)"
+            Condition="Exists('$(RoslynDiagnosticsPropsFilePath)') And ('$(UseRoslynAnalyzers)' == 'true')" />
+  </ImportGroup>
+
+  <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
+    <CscToolPath>$(BootstrapBuildPath)</CscToolPath>
+    <CscToolExe>csc.cmd</CscToolExe>
+    <VbcToolPath>$(BootstrapBuildPath)</VbcToolPath>
+    <VbcToolExe>vbc.cmd</VbcToolExe>
+  </PropertyGroup>
+
+  <!-- Common project settings -->
+  <PropertyGroup>
+    <DeployToSamplesSubfolder Condition="'$(DeployToSamplesSubfolder)' == ''">false</DeployToSamplesSubfolder>
+    <FileAlignment>512</FileAlignment>
+    <HighEntropyVA>true</HighEntropyVA>
+  </PropertyGroup>
+
+  <!--
+    If TargetNetFX20 is true the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
+    Use the latest Framework toolset to build, but set msbuild properties below
+    so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
+  -->
+  <PropertyGroup Condition="'$(TargetNetFX20)' == 'true'">
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
+    <NoStdLib>true</NoStdLib>
+    <FrameworkPathOverride>$(NuGetPackageRoot)\Microsoft.NetFX20\1.0.3\lib\net20</FrameworkPathOverride>
+    <NuGetTargetMoniker>.NETFramework,Version=v2.0</NuGetTargetMoniker>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
+    <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutDir Condition="'$(OutDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\$(Configuration)'))\</OutDir>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\Obj\$(MSBuildProjectName)'))\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Capture the root, so we'll always have it even if we're building to a sub-folder -->
+    <VSLOutDir>$(OutDir)</VSLOutDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DeployToSamplesSubfolder)' == 'true'">
+    <OutDir>$(OutDir)\Samples\$(MSBuildProjectName)</OutDir>
+  </PropertyGroup>
+
+  <PropertyGroup>
+  <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
+       that any builds of portable projects end up in a sub folder of $(OutDir). Search for this flag in
+       Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
+    <WindowsAppContainer>false</WindowsAppContainer>
+  </PropertyGroup>
+
+  <Choose>
+    <!-- VB specific settings -->
+    <When Condition="'$(ProjectLanguage)' == 'VB'">
+      <PropertyGroup>
+        <MyType>Empty</MyType>
+        <OptionCompare>Binary</OptionCompare>
+        <OptionExplicit>On</OptionExplicit>
+        <OptionInfer>On</OptionInfer>
+        <OptionStrict>On</OptionStrict>
+        <RootNamespace></RootNamespace>
+        <VBRuntime>Embed</VBRuntime>
+      </PropertyGroup>
+      <ItemGroup>
+        <Import Include="Microsoft.VisualBasic" />
+        <Import Include="System" />
+        <Import Include="System.Collections" />
+        <Import Include="System.Collections.Generic" />
+        <Import Include="System.Diagnostics" />
+      </ItemGroup>
+      <ItemGroup Condition="'$(TargetNetFX20)' != 'true'">
+        <Import Include="System.Linq" />
+      </ItemGroup>
+      <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+        <DebugSymbols>true</DebugSymbols>
+        <DefineDebug>true</DefineDebug>
+        <DefineTrace>true</DefineTrace>
+        <DebugType>full</DebugType>
+      </PropertyGroup>
+      <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <DefineTrace>true</DefineTrace>
+        <Optimize>true</Optimize>
+        <DebugType>pdbonly</DebugType>
+      </PropertyGroup>
+    </When>
+
+    <!-- C# specific settings -->
+    <When Condition="'$(ProjectLanguage)' == 'CSharp'">
+      <PropertyGroup>
+        <WarningLevel>4</WarningLevel>
+        <ErrorReport>prompt</ErrorReport>
+
+        <!-- Suppress the following warnings by default for C# projects
+                1591: So far we've chosen to implicitly implement interfaces and as a consequence
+                      the methods are public.  We don't want to duplicate documentation for them
+                      and hence suppress this warning until we get closer to release and a more
+                      thorough documentation story
+
+        -->
+        <NoWarn>1591</NoWarn>
+      </PropertyGroup>
+      <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+      </PropertyGroup>
+      <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <DebugType>pdbonly</DebugType>
+        <DefineConstants>TRACE</DefineConstants>
+        <Optimize>true</Optimize>
+      </PropertyGroup>
+    </When>
+
+    <!-- C++ specific settings -->
+    <When Condition="'$(ProjectLanguage)' == 'C++'">
+      <PropertyGroup>
+        <!-- Put intermediate outputs in the same place as managed projects for sanity -->
+        <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
+
+        <!-- We just always want to build with whatever toolset matches the VS you're building with -->
+        <PlatformToolset>v$(VisualStudioReferenceMajorVersion)0</PlatformToolset>
+      </PropertyGroup>
+    </When>
+  </Choose>
+
+  <PropertyGroup>
+    <!-- SN is in the Framework SDK tools path, but TargetFrameworkSDKToolsDirectory isn't always available  -->
+    <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' != '' ">$(TargetFrameworkSDKToolsDirectory)\sn.exe</SnToolPath>
+    <SnToolPath Condition=" '$(TargetFrameworkSDKToolsDirectory)' == '' ">$(MSBuildProgramFiles32)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\sn.exe</SnToolPath>
+
+    <EditBinToolPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio $(VisualStudioVersion)\VC\bin\editbin.exe</EditBinToolPath>
+
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CopyVSReferencesToOutput>True</CopyVSReferencesToOutput>
+    <AuthenticodeCertificateName>MicrosoftSHA1</AuthenticodeCertificateName>
+    <FakeSignToolPath>$(NuGetPackageRoot)\FakeSign\0.9.2\tools\FakeSign.exe</FakeSignToolPath>
+  </PropertyGroup>
+ </Project>

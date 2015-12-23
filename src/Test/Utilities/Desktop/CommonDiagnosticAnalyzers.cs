@@ -708,5 +708,100 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class GeneratedCodeAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly GeneratedCodeAnalysisFlags? _generatedCodeAnalysisFlagsOpt;
+
+            public static readonly DiagnosticDescriptor Warning = new DiagnosticDescriptor(
+                "GeneratedCodeAnalyzerWarning",
+                "Title",
+                "GeneratedCodeAnalyzerMessage for '{0}'",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public static readonly DiagnosticDescriptor Error = new DiagnosticDescriptor(
+                "GeneratedCodeAnalyzerError",
+                "Title",
+                "GeneratedCodeAnalyzerMessage for '{0}'",
+                "Category",
+                DiagnosticSeverity.Error,
+                true);
+
+            public static readonly DiagnosticDescriptor Summary = new DiagnosticDescriptor(
+                "GeneratedCodeAnalyzerSummary",
+                "Title2",
+                "GeneratedCodeAnalyzer received callbacks for: '{0}' types and '{1}' files",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
+            {
+                _generatedCodeAnalysisFlagsOpt = generatedCodeAnalysisFlagsOpt;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Warning, Error, Summary);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationStartAction(this.OnCompilationStart);
+
+                if (_generatedCodeAnalysisFlagsOpt.HasValue)
+                {
+                    // Configure analysis on generated code.
+                    context.ConfigureGeneratedCodeAnalysis(_generatedCodeAnalysisFlagsOpt.Value);
+                }
+            }
+
+            private void OnCompilationStart(CompilationStartAnalysisContext context)
+            {
+                var sortedCallbackSymbolNames = new SortedSet<string>();
+                var sortedCallbackTreePaths = new SortedSet<string>();
+                context.RegisterSymbolAction(symbolContext =>
+                {
+                    sortedCallbackSymbolNames.Add(symbolContext.Symbol.Name);
+                    ReportSymbolDiagnostics(symbolContext.Symbol, symbolContext.ReportDiagnostic);
+                }, SymbolKind.NamedType);
+
+                context.RegisterSyntaxTreeAction(treeContext =>
+                {
+                    sortedCallbackTreePaths.Add(treeContext.Tree.FilePath);
+                    ReportTreeDiagnostics(treeContext.Tree, treeContext.ReportDiagnostic);
+                });
+
+                context.RegisterCompilationEndAction(endContext =>
+                {
+                    var arg1 = sortedCallbackSymbolNames.Join(",");
+                    var arg2 = sortedCallbackTreePaths.Join(",");
+
+                    // Summary diagnostics about received callbacks.
+                    var diagnostic = Diagnostic.Create(Summary, Location.None, arg1, arg2);
+                    endContext.ReportDiagnostic(diagnostic);
+                });
+            }
+
+            private void ReportSymbolDiagnostics(ISymbol symbol, Action<Diagnostic> addDiagnostic)
+            {
+                ReportDiagnosticsCore(addDiagnostic, symbol.Locations[0], symbol.Name);
+            }
+
+            private void ReportTreeDiagnostics(SyntaxTree tree, Action<Diagnostic> addDiagnostic)
+            {
+                ReportDiagnosticsCore(addDiagnostic, tree.GetRoot().GetLastToken().GetLocation(), tree.FilePath);
+            }
+
+            private void ReportDiagnosticsCore(Action<Diagnostic> addDiagnostic, Location location, params object[] messageArguments)
+            {
+                // warning diagnostic
+                var diagnostic = Diagnostic.Create(Warning, location, messageArguments);
+                addDiagnostic(diagnostic);
+
+                // error diagnostic
+                diagnostic = Diagnostic.Create(Error, location, messageArguments);
+                addDiagnostic(diagnostic);
+            }
+        }
     }
 }

@@ -174,6 +174,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Hence, end actions are never executed concurrently with non-end actions operating on the same analysis unit.
         /// </remarks>
         public abstract void EnableConcurrentExecution();
+
+        /// <summary>
+        /// Configure analysis mode of generated code for this analyzer.
+        /// Non-configured analyzers will default to <see cref="GeneratedCodeAnalysisFlags.Default"/> mode for generated code.
+        /// It is recommended for the analyzer to always invoke this API with the required <see cref="GeneratedCodeAnalysisFlags"/> setting.
+        /// </summary>
+        public abstract void ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags analysisMode);
+    }
+
+    /// <summary>
+    /// Flags to configure mode of generated code analysis.
+    /// </summary>
+    [Flags]
+    public enum GeneratedCodeAnalysisFlags
+    {
+        /// <summary>
+        /// Disable analyzer action callbacks and diagnostic reporting for generated code.
+        /// </summary>
+        None = 0x00,
+
+        /// <summary>
+        /// Enable analyzer action callbacks for generated code.
+        /// </summary>
+        Analyze = 0x01,
+
+        /// <summary>
+        /// Enable reporting diagnostics on generated code.
+        /// </summary>
+        ReportDiagnostics = 0x10,
+
+        /// <summary>
+        /// Default analysis mode for generated code.
+        /// </summary>
+        /// <remarks>
+        /// This mode will always guarantee that analyzer action callbacks are enabled for generated code, i.e. <see cref="Analyze"/> will be set.
+        /// However, the default diagnostic reporting mode is liable to change in future.
+        /// </remarks>
+        Default = Analyze | ReportDiagnostics,
     }
 
     /// <summary>
