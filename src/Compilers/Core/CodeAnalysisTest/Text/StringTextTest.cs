@@ -236,16 +236,17 @@ bar baz";
         [Fact]
         public void FromStream_CheckSum_NoBOM()
         {
-            // Note: The 0x95 is outside the ASCII range, so a question mark will
-            // be substituted in decoded text. Note, however, that the checksum
-            // should be derived from the original input.
+            // Note: The 0x95 is outside the ASCII range, so a question mark 0x3f will
+            // be substituted in decoded text. The checksum is derived from the
+            // decoded text since that is the text exposed by the SourceText.
             var bytes = new byte[] { 0x61, 0x62, 0x95 };
+            var bytesForChecksum = new byte[] { 0x61, 0x62, 0x3f };
 
             var source = SourceText.From(new MemoryStream(bytes), Encoding.ASCII);
             Assert.Equal("ab?", source.ToString());
 
             var checksum = source.GetChecksum();
-            AssertEx.Equal(CryptographicHashProvider.ComputeSha1(bytes), checksum);
+            AssertEx.Equal(CryptographicHashProvider.ComputeSha1(bytesForChecksum), checksum);
         }
 
         [Fact]
