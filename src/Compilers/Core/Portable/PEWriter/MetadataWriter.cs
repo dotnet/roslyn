@@ -1126,7 +1126,7 @@ namespace Microsoft.Cci
             writer.WriteCompressedInteger(methodInstanceReference.GetGenericMethod(Context).GenericParameterCount);
             foreach (ITypeReference typeref in methodInstanceReference.GetGenericArguments(Context))
             {
-                this.SerializeTypeReference(typeref, writer, false, true);
+                this.SerializeTypeReference(SerializeTypeReferenceModifiers(typeref, writer), writer, false, true);
             }
 
             result = builder.GetBlobIndex(writer);
@@ -3419,8 +3419,8 @@ namespace Microsoft.Cci
         private void SerializeFieldSignature(IFieldReference fieldReference, BlobBuilder writer)
         {
             writer.WriteByte(0x06);
-
-            this.SerializeTypeReference(fieldReference.GetType(Context), writer, false, true);
+            var typeReference = SerializeTypeReferenceModifiers(fieldReference.GetType(Context), writer);
+            this.SerializeTypeReference(typeReference, writer, false, true);
         }
 
         private void SerializeGenericMethodInstanceSignature(BlobBuilder writer, IGenericMethodInstanceReference genericMethodInstanceReference)
@@ -3429,7 +3429,7 @@ namespace Microsoft.Cci
             writer.WriteCompressedInteger(genericMethodInstanceReference.GetGenericMethod(Context).GenericParameterCount);
             foreach (ITypeReference genericArgument in genericMethodInstanceReference.GetGenericArguments(Context))
             {
-                this.SerializeTypeReference(genericArgument, writer, false, true);
+                this.SerializeTypeReference(SerializeTypeReferenceModifiers(genericArgument, writer), writer, false, true);
             }
         }
 
@@ -3792,16 +3792,7 @@ namespace Microsoft.Cci
         {
             while (true)
             {
-                var modifiedTypeReference = typeReference as IModifiedTypeReference;
-                if (modifiedTypeReference != null)
-                {
-                    foreach (ICustomModifier customModifier in modifiedTypeReference.CustomModifiers)
-                    {
-                        this.SerializeCustomModifier(customModifier, writer);
-                    }
-
-                    typeReference = modifiedTypeReference.UnmodifiedType;
-                }
+                Debug.Assert(!(typeReference is IModifiedTypeReference));
 
                 switch (typeReference.TypeCode(Context))
                 {
@@ -3859,6 +3850,7 @@ namespace Microsoft.Cci
 
                             writer.WriteByte(0x0f);
                             typeReference = pointerTypeReference.GetTargetType(Context);
+                            typeReference = SerializeTypeReferenceModifiers(typeReference, writer);
                             treatRefAsPotentialTypeSpec = true;
                             continue;
                         }
@@ -3905,7 +3897,9 @@ namespace Microsoft.Cci
                     Debug.Assert(noTokens == false, "Custom attributes cannot have multi-dimensional arrays");
 
                     writer.WriteByte(0x14);
-                    this.SerializeTypeReference(arrayTypeReference.GetElementType(Context), writer, false, true);
+                    typeReference = SerializeTypeReferenceModifiers(arrayTypeReference.GetElementType(Context), writer);
+                    this.SerializeTypeReference(typeReference, writer, false, true);
+
                     writer.WriteCompressedInteger(arrayTypeReference.Rank);
                     writer.WriteCompressedInteger(IteratorHelper.EnumerableCount(arrayTypeReference.Sizes));
                     foreach (ulong size in arrayTypeReference.Sizes)
@@ -3945,7 +3939,7 @@ namespace Microsoft.Cci
                 if (arrayTypeReference != null && arrayTypeReference.IsSZArray)
                 {
                     writer.WriteByte(0x1d);
-                    typeReference = arrayTypeReference.GetElementType(Context);
+                    typeReference = SerializeTypeReferenceModifiers(arrayTypeReference.GetElementType(Context), writer);
                     treatRefAsPotentialTypeSpec = true;
                     continue;
                 }
@@ -3972,7 +3966,7 @@ namespace Microsoft.Cci
                     writer.WriteCompressedInteger((uint)consolidatedTypeArguments.Count);
                     foreach (ITypeReference typeArgument in consolidatedTypeArguments)
                     {
-                        this.SerializeTypeReference(typeArgument, writer, false, true);
+                        this.SerializeTypeReference(SerializeTypeReferenceModifiers(typeArgument, writer), writer, false, true);
                     }
 
                     consolidatedTypeArguments.Free();
@@ -4012,6 +4006,22 @@ namespace Microsoft.Cci
 
                 return;
             }
+        }
+
+        private ITypeReference SerializeTypeReferenceModifiers(ITypeReference typeReference, BlobBuilder writer)
+        {
+            var modifiedTypeReference = typeReference as IModifiedTypeReference;
+            if (modifiedTypeReference != null)
+            {
+                foreach (ICustomModifier customModifier in modifiedTypeReference.CustomModifiers)
+                {
+                    this.SerializeCustomModifier(customModifier, writer);
+                }
+
+                typeReference = modifiedTypeReference.UnmodifiedType;
+            }
+
+            return typeReference;
         }
 
         private uint GetNumberOfInheritedTypeParameters(ITypeReference type)
