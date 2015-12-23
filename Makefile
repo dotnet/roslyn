@@ -11,7 +11,7 @@ MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Sig
 ifeq ($(OS_NAME),Linux)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=ubuntu.14.04
 	MONO_TOOLSET_NAME = mono.linux.4
-	ROSLYN_TOOLSET_NAME = roslyn.linux.1
+	ROSLYN_TOOLSET_NAME = roslyn.linux.2
 else ifeq ($(OS_NAME),Darwin)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=osx.10.10
 	MONO_TOOLSET_NAME = mono.mac.5
