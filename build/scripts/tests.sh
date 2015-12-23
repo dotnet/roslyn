@@ -3,8 +3,10 @@
 MONO_PATH=$1
 BUILD_CONFIGURATION=$2
 XUNIT_VERSION=$3
+MONO_DIR="$(dirname $MONO_PATH)"
 
 export MONO_THREADS_PER_CPU=50
+export PATH=$MONO_DIR:$PATH
 
 # This function will update the PATH variable to put the desired
 # version of Mono ahead of the system one. 
