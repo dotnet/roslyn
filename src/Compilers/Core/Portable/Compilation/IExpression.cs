@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a method other than as the target of an invocation.
     /// </summary>
-    public interface IMethodReferenceExpression : IMemberReferenceExpression
+    public interface IMethodBindingExpression : IMemberReferenceExpression
     {
         /// <summary>
         /// Referenced method.
@@ -285,9 +285,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         IExpression EventInstance { get; }
 
         /// <summary>
-        /// Value supplied for the event.
+        /// Handler supplied for the event.
         /// </summary>
-        IExpression Value { get; }
+        IExpression HandlerValue { get; }
 
         /// <summary>
         /// True for adding a binding, false for removing one.

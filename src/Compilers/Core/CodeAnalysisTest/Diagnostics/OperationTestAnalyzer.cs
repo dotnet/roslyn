@@ -54,6 +54,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor HandlerAddedDescriptor = new DiagnosticDescriptor(
+            "HandlerAdded",
+            "Handler Added",
+            "Event handler added.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor HandlerRemovedDescriptor = new DiagnosticDescriptor(
+            "HandlerRemoved",
+            "Handler Removed",
+            "Event handler removed.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         public static readonly DiagnosticDescriptor PropertyReferenceDescriptor = new DiagnosticDescriptor(
             "PropertyReference",
             "Property Reference",
@@ -70,15 +86,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
            DiagnosticSeverity.Warning,
            isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MethodReferenceDescriptor = new DiagnosticDescriptor(
-          "MethodReference",
-          "Method Reference",
-          "Method reference found.",
+        public static readonly DiagnosticDescriptor MethodBindingDescriptor = new DiagnosticDescriptor(
+          "MethodBinding",
+          "Method Binding",
+          "Method binding found.",
           "Testing",
           DiagnosticSeverity.Warning,
           isEnabledByDefault: true);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(EventReferenceDescriptor, PropertyReferenceDescriptor, FieldReferenceDescriptor, MethodReferenceDescriptor);
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(EventReferenceDescriptor, HandlerAddedDescriptor, HandlerRemovedDescriptor, PropertyReferenceDescriptor, FieldReferenceDescriptor, MethodBindingDescriptor);
 
         public sealed override void Initialize(AnalysisContext context)
         {
@@ -88,6 +104,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      operationContext.ReportDiagnostic(Diagnostic.Create(EventReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
                  },
                  OperationKind.EventReferenceExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IEventAssignmentExpression eventAssignment = (IEventAssignmentExpression)operationContext.Operation;
+                     if (eventAssignment.Event.Name == "Mumble")
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds ? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.EventAssignmentExpression);
 
             context.RegisterOperationAction(
                 (operationContext) =>
@@ -113,9 +140,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     operationContext.ReportDiagnostic(Diagnostic.Create(MethodReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                     operationContext.ReportDiagnostic(Diagnostic.Create(MethodBindingDescriptor, operationContext.Operation.Syntax.GetLocation()));
                  },
-                 OperationKind.MethodReferenceExpression);
+                 OperationKind.MethodBindingExpression);
         }
     }
 

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         ParameterReferenceExpression,
         SyntheticLocalReferenceExpression,
         FieldReferenceExpression,
-        MethodReferenceExpression,
+        MethodBindingExpression,
         PropertyReferenceExpression,
         EventReferenceExpression,
         LateBoundMemberReferenceExpression,
