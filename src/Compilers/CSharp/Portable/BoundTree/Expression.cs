@@ -86,7 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<IArgument> sourceOrderArguments = ArrayBuilder<IArgument>.GetInstance(this.Arguments.Length);
                 for (int argumentIndex = 0; argumentIndex < this.Arguments.Length; argumentIndex++)
                 {
-                    sourceOrderArguments.Add(DeriveArgument(this.ArgsToParamsOpt.IsDefault ? argumentIndex : this.ArgsToParamsOpt[argumentIndex], argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters));
+                    IArgument argument = DeriveArgument(this.ArgsToParamsOpt.IsDefault ? argumentIndex : this.ArgsToParamsOpt[argumentIndex], argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters);
+                    sourceOrderArguments.Add(argument);
+                    if (argument.Kind == ArgumentKind.ParamArray)
+                    {
+                        break;
+                    }
                 }
 
                 return sourceOrderArguments.ToImmutableAndFree();
@@ -170,9 +175,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         RefKind refMode = !argumentRefKinds.IsDefaultOrEmpty ? argumentRefKinds[argumentIndex] : RefKind.None;
                         return
                             refMode == RefKind.None
-                            ? ((argumentIndex >= parameters.Length - 1 && parameters.Length > 0 && parameters[parameters.Length - 1].IsParams)
-                                ? (IArgument)new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex))
-                                : new SimpleArgument(parameters[parameterIndex], argument))
+                            ? (argumentIndex >= parameters.Length - 1 &&
+                               parameters.Length > 0 &&
+                               parameters[parameters.Length - 1].IsParams &&
+                               // An argument that is an array of the appropriate type is not a params argument.
+                               (boundArguments.Length > argumentIndex + 1 ||
+                                argument.Type.TypeKind != TypeKind.Array ||
+                                !argument.Type.Equals(parameters[parameters.Length - 1].Type, true))
+                               ? (IArgument)new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex))
+                               : new SimpleArgument(parameters[parameterIndex], argument))
                             : (IArgument)new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
                     }
 
@@ -191,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     paramArrayArguments.Add(boundArguments[index]);
                 }
 
-                return new ArrayCreation(arrayType, paramArrayArguments.ToImmutableAndFree(), boundArguments.Length > 0 ? boundArguments[0].Syntax : null);
+                return new ArrayCreation(arrayType, paramArrayArguments.ToImmutableAndFree(), boundArguments.Length - 1 > firstArgumentElementIndex ? boundArguments[firstArgumentElementIndex].Syntax : null);
             }
 
             return null;
