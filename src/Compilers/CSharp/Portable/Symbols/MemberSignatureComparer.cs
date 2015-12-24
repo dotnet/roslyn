@@ -46,6 +46,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeSymbolEqualityOptions: TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeSymbolEqualityOptions.IgnoreDynamic);
 
         /// <summary>
+        /// Same as <see cref="ExplicitImplementationComparer"/> except that it specially treats nullable types.  
+        /// </summary>
+        public static readonly MemberSignatureComparer ExplicitImplementationLookupComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerRefOutDifference: true,
+            considerCallingConvention: true,
+            typeSymbolEqualityOptions: TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeSymbolEqualityOptions.IgnoreDynamic,
+            useSpecialHandlingForNullableTypes: true);
+
+        /// <summary>
         /// This instance is used when trying to determine if one member implicitly implements another,
         /// according to the C# definition.
         /// The member names, parameters, and (return) types must match. Custom modifiers are ignored.
@@ -487,13 +500,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        public static bool HaveSameReturnTypes(MethodSymbol member1, MethodSymbol member2, bool considerCustomModifiers)
+        public static bool HaveSameReturnTypes(MethodSymbol member1, MethodSymbol member2, TypeSymbolEqualityOptions typeSymbolEqualityOptions)
         {
-            return HaveSameReturnTypes(member1, GetTypeMap(member1), member2, GetTypeMap(member2), 
-                                       (considerCustomModifiers ? 
-                                            TypeSymbolEqualityOptions.None : 
-                                            TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds) | 
-                                       TypeSymbolEqualityOptions.IgnoreDynamic);
+            return HaveSameReturnTypes(member1, GetTypeMap(member1), member2, GetTypeMap(member2), typeSymbolEqualityOptions);
         }
 
         private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, TypeSymbolEqualityOptions typeSymbolEqualityOptions)

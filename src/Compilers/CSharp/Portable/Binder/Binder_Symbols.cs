@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            diagnostics.Add(new LasyUseSiteDiagnosticsInfo(constructedType), syntax.GetLocation());
+                            diagnostics.Add(new LasyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
                         }
 
                         return constructedType;
@@ -362,10 +362,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.ERR_ArrayOfStaticClass, node.ElementType, type.TypeSymbol);
                         }
 
-                        if (type.IsRestrictedType())
+                        if (ShouldCheckConstraints)
                         {
-                            // CS0611: Array elements cannot be of type '{0}'
-                            Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node.ElementType, type.TypeSymbol);
+                            if (type.IsRestrictedType())
+                            {
+                                // CS0611: Array elements cannot be of type '{0}'
+                                Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node.ElementType, type.TypeSymbol);
+                            }
+                        }
+                        else
+                        {
+                            diagnostics.Add(new LazyArrayElementCantBeRefAnyDiagnosticInfo(type), node.ElementType.GetLocation());
                         }
 
                         for (int i = node.RankSpecifiers.Count - 1; i >= 0; i--)

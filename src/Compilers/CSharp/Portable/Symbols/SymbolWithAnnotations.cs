@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeSymbolWithAnnotations Update(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
         {
-            if (CustomModifiers != customModifiers || TypeSymbol != typeSymbol)
+            if (CustomModifiers != customModifiers || !TypeSymbol.Equals(typeSymbol, TypeSymbolEqualityOptions.AllAspects))
             {
                 return DoUpdate(typeSymbol, customModifiers);
             }
@@ -683,7 +683,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var newUnderlying = typeMap.SubstituteType(this._underlying);
                 if ((object)newUnderlying != this._underlying)
                 {
-                    if ((newUnderlying.TypeSymbol == this._underlying.TypeSymbol || newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
+                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeSymbolEqualityOptions.AllAspects) || 
+                            newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
                         newUnderlying.CustomModifiers.IsEmpty)
                     {
                         return new LazyNullableType(_compilation, _nullableTypeSyntax, newUnderlying);

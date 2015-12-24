@@ -973,6 +973,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static void ReportImplicitImplementationMatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol implicitImpl, DiagnosticBag diagnostics)
         {
+            bool reportedAnError = false;
+
             if (interfaceMember.Kind == SymbolKind.Method)
             {
                 var interfaceMethod = (MethodSymbol)interfaceMember;
@@ -982,10 +984,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (interfaceMethodIsAccessor && !implicitImplIsAccessor && !interfaceMethod.IsIndexedPropertyAccessor())
                 {
                     diagnostics.Add(ErrorCode.ERR_MethodImplementingAccessor, implicitImpl.Locations[0], implicitImpl, interfaceMethod, implementingType);
+                    reportedAnError = true;
                 }
                 else if (!interfaceMethodIsAccessor && implicitImplIsAccessor)
                 {
                     diagnostics.Add(ErrorCode.ERR_AccessorImplementingMethod, implicitImpl.Locations[0], implicitImpl, interfaceMethod, implementingType);
+                    reportedAnError = true;
                 }
                 else
                 {
@@ -995,12 +999,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // CS0629: Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'
                         diagnostics.Add(ErrorCode.ERR_InterfaceImplementedByConditional, implicitImpl.Locations[0], implicitImpl, interfaceMethod, implementingType);
+                        reportedAnError = true;
                     }
-                    else
+                    else if(ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics))
                     {
-                        ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics);
+                        reportedAnError = true;
                     }
                 }
+            }
+
+            if (!reportedAnError)
+            {
+                CheckNullableReferenceTypeMismatchOnImplementingMember(implicitImpl, interfaceMember, false, diagnostics);
             }
 
             // In constructed types, it is possible to see multiple members with the same (runtime) signature.
@@ -1018,6 +1028,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // CONSIDER: Dev10 does not seem to report this for indexers or their accessors.
                         diagnostics.Add(ErrorCode.WRN_MultipleRuntimeImplementationMatches, member.Locations[0], member, interfaceMember, implementingType);
+                    }
+                }
+            }
+        }
+
+        internal static void CheckNullableReferenceTypeMismatchOnImplementingMember(Symbol implementingMember, Symbol interfaceMember, bool isExplicit, DiagnosticBag diagnostics)
+        {
+            if (((CSharpParseOptions)implementingMember.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
+                !implementingMember.IsImplicitlyDeclared && !implementingMember.IsAccessor() &&
+                implementingMember.DeclaringCompilation?.RespectNullableAnnotations(interfaceMember) == true)
+            {
+                Symbol implementedMember;
+                MethodSymbol implementedMethod;
+
+                if (implementingMember.Kind == SymbolKind.Method && (implementedMethod = (MethodSymbol)interfaceMember).IsGenericMethod)
+                {
+                    implementedMember = implementedMethod.Construct(((MethodSymbol)implementingMember).TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                }
+                else
+                {
+                    implementedMember = interfaceMember;
+                }
+
+                TypeSymbolWithAnnotations implementingMemberType = implementingMember.GetTypeOrReturnType();
+                TypeSymbolWithAnnotations implementedMemberType = implementedMember.GetTypeOrReturnType();
+
+                if (!implementingMemberType.Equals(implementedMemberType, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) &&
+                    implementingMemberType.Equals(implementedMemberType, TypeSymbolEqualityOptions.SameType))
+                {
+                    diagnostics.Add(implementingMember.Kind == SymbolKind.Method ?
+                                        (isExplicit ? 
+                                            ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation : 
+                                            ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation) :
+                                        (isExplicit ? 
+                                            ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation : 
+                                            ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation),
+                                    implementingMember.Locations[0], new FormattedSymbol(interfaceMember, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                }
+
+                ImmutableArray<ParameterSymbol> implementingParameters = implementingMember.GetParameters();
+                ImmutableArray<ParameterSymbol> implementedParameters = implementedMember.GetParameters();
+
+                for (int i = 0; i < implementingParameters.Length; i++)
+                {
+                    if (!implementingParameters[i].Type.Equals(implementedParameters[i].Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes) &&
+                        implementingParameters[i].Type.Equals(implementedParameters[i].Type, TypeSymbolEqualityOptions.SameType))
+                    {
+                        diagnostics.Add(isExplicit ? 
+                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation : 
+                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, 
+                                        implementingMember.Locations[0],
+                                        new FormattedSymbol(implementingParameters[i], SymbolDisplayFormat.ShortFormat),
+                                        new FormattedSymbol(interfaceMember, SymbolDisplayFormat.MinimallyQualifiedFormat));
                     }
                 }
             }
@@ -1082,10 +1145,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, DiagnosticBag diagnostics)
+        private static bool ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, DiagnosticBag diagnostics)
         {
             Debug.Assert(interfaceMethod.Arity == implicitImpl.Arity);
 
+            bool result = false;
             var arity = interfaceMethod.Arity;
 
             if (arity > 0)
@@ -1117,9 +1181,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             implicitImpl.Locations[0] :
                             implementingType.Locations[0];
                         diagnostics.Add(ErrorCode.ERR_ImplBadConstraints, location, typeParameter2.Name, implicitImpl, typeParameter1.Name, interfaceMethod);
+                        result = true;
                     }
                 }
             }
+
+            return result;
         }
 
         /// <summary>

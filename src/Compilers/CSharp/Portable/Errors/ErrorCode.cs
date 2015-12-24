@@ -1331,5 +1331,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         HDN_NullCheckIsProbablyAlwaysTrue = 8205,
         HDN_NullCheckIsProbablyAlwaysFalse = 8206,
         HDN_ExpressionIsProbablyNeverNull = 8207,
+        WRN_NullabilityMismatchInTypeOnOverride = 8208,
+        WRN_NullabilityMismatchInReturnTypeOnOverride = 8209,
+        WRN_NullabilityMismatchInParameterTypeOnOverride = 8210,
+        WRN_NullabilityMismatchInParameterTypeOnPartial = 8211,
+        WRN_NullabilityMismatchInTypeOnImplicitImplementation = 8212,
+        WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation = 8213,
+        WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation = 8214,
+        WRN_NullabilityMismatchInTypeOnExplicitImplementation = 8215,
+        WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation = 8216,
+        WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation = 8217,
     }
 }

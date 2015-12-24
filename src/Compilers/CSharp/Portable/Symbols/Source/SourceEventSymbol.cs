@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
         }
 
-        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbolWithAnnotations type)
+        protected void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbolWithAnnotations type)
         {
             Debug.Assert((object)eventWithCustomModifiers != null);
 
@@ -510,9 +510,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // We do an extra check before copying the type to handle the case where the overriding
             // event (incorrectly) has a different type than the overridden event.  In such cases,
             // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-            if (type.TypeSymbol.Equals(overriddenEventType, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            if (type.TypeSymbol.Equals(overriddenEventType, TypeSymbolEqualityOptions.SameType))
             {
-                type = type.Update(overriddenEventType, ImmutableArray<CustomModifier>.Empty);
+                type = type.Update(CustomModifierUtils.CopyTypeCustomModifiers(overriddenEventType, type.TypeSymbol, RefKind.None, this.ContainingAssembly),
+                                   ImmutableArray<CustomModifier>.Empty);
             }
         }
 
