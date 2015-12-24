@@ -3756,99 +3756,94 @@ namespace Microsoft.Cci
             }
         }
 
+        private void SerializePrimitiveSignatureType(BlobBuilder writer, PrimitiveTypeCode primitiveType)
+        {
+            switch (primitiveType)
+            {
+                case PrimitiveTypeCode.Void:
+                    writer.WriteByte(0x01);
+                    return;
+                case PrimitiveTypeCode.Boolean:
+                    writer.WriteByte(0x02);
+                    return;
+                case PrimitiveTypeCode.Char:
+                    writer.WriteByte(0x03);
+                    return;
+                case PrimitiveTypeCode.Int8:
+                    writer.WriteByte(0x04);
+                    return;
+                case PrimitiveTypeCode.UInt8:
+                    writer.WriteByte(0x05);
+                    return;
+                case PrimitiveTypeCode.Int16:
+                    writer.WriteByte(0x06);
+                    return;
+                case PrimitiveTypeCode.UInt16:
+                    writer.WriteByte(0x07);
+                    return;
+                case PrimitiveTypeCode.Int32:
+                    writer.WriteByte(0x08);
+                    return;
+                case PrimitiveTypeCode.UInt32:
+                    writer.WriteByte(0x09);
+                    return;
+                case PrimitiveTypeCode.Int64:
+                    writer.WriteByte(0x0a);
+                    return;
+                case PrimitiveTypeCode.UInt64:
+                    writer.WriteByte(0x0b);
+                    return;
+                case PrimitiveTypeCode.Float32:
+                    writer.WriteByte(0x0c);
+                    return;
+                case PrimitiveTypeCode.Float64:
+                    writer.WriteByte(0x0d);
+                    return;
+                case PrimitiveTypeCode.String:
+                    writer.WriteByte(0x0e);
+                    return;
+                case PrimitiveTypeCode.IntPtr:
+                    writer.WriteByte(0x18);
+                    return;
+                case PrimitiveTypeCode.UIntPtr:
+                    writer.WriteByte(0x19);
+                    return;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(primitiveType);
+            }
+        }
+
         private void SerializeTypeReference(ITypeReference typeReference, BlobBuilder writer, bool noTokens, bool treatRefAsPotentialTypeSpec)
         {
             while (true)
             {
+                // BYREF is specified directly in RetType, Param, LocalVarSig signatures
+                Debug.Assert(!(typeReference is IManagedPointerTypeReference));
+				
                 Debug.Assert(!(typeReference is IModifiedTypeReference));
 
-                switch (typeReference.TypeCode(Context))
+                var primitiveType = typeReference.TypeCode(Context);
+                if (primitiveType != PrimitiveTypeCode.Pointer && primitiveType != PrimitiveTypeCode.NotPrimitive)
                 {
-                    case PrimitiveTypeCode.Void:
-                        writer.WriteByte(0x01);
-                        return;
-                    case PrimitiveTypeCode.Boolean:
-                        writer.WriteByte(0x02);
-                        return;
-                    case PrimitiveTypeCode.Char:
-                        writer.WriteByte(0x03);
-                        return;
-                    case PrimitiveTypeCode.Int8:
-                        writer.WriteByte(0x04);
-                        return;
-                    case PrimitiveTypeCode.UInt8:
-                        writer.WriteByte(0x05);
-                        return;
-                    case PrimitiveTypeCode.Int16:
-                        writer.WriteByte(0x06);
-                        return;
-                    case PrimitiveTypeCode.UInt16:
-                        writer.WriteByte(0x07);
-                        return;
-                    case PrimitiveTypeCode.Int32:
-                        writer.WriteByte(0x08);
-                        return;
-                    case PrimitiveTypeCode.UInt32:
-                        writer.WriteByte(0x09);
-                        return;
-                    case PrimitiveTypeCode.Int64:
-                        writer.WriteByte(0x0a);
-                        return;
-                    case PrimitiveTypeCode.UInt64:
-                        writer.WriteByte(0x0b);
-                        return;
-                    case PrimitiveTypeCode.Float32:
-                        writer.WriteByte(0x0c);
-                        return;
-                    case PrimitiveTypeCode.Float64:
-                        writer.WriteByte(0x0d);
-                        return;
-                    case PrimitiveTypeCode.String:
-                        writer.WriteByte(0x0e);
-                        return;
-                    case PrimitiveTypeCode.Pointer:
-                        var pointerTypeReference = typeReference as IPointerTypeReference;
-                        if (pointerTypeReference != null)
-                        {
-                            if (noTokens)
-                            {
-                                this.SerializeTypeName(pointerTypeReference, writer);
-                                return;
-                            }
-
-                            writer.WriteByte(0x0f);
-                            typeReference = pointerTypeReference.GetTargetType(Context);
-                            typeReference = SerializeTypeReferenceModifiers(typeReference, writer);
-                            treatRefAsPotentialTypeSpec = true;
-                            continue;
-                        }
-
-                        break;
-                    case PrimitiveTypeCode.Reference:
-                        var managedPointerTypeReference = typeReference as IManagedPointerTypeReference;
-                        if (managedPointerTypeReference != null)
-                        {
-                            if (noTokens)
-                            {
-                                this.SerializeTypeName(managedPointerTypeReference, writer);
-                                return;
-                            }
-
-                            writer.WriteByte(0x10);
-                            typeReference = managedPointerTypeReference.GetTargetType(Context);
-                            treatRefAsPotentialTypeSpec = true;
-                            continue;
-                        }
-
-                        break;
-                    case PrimitiveTypeCode.IntPtr:
-                        writer.WriteByte(0x18);
-                        return;
-                    case PrimitiveTypeCode.UIntPtr:
-                        writer.WriteByte(0x19);
-                        return;
+                    SerializePrimitiveSignatureType(writer, primitiveType);
+                    return;
                 }
 
+                var pointerTypeReference = typeReference as IPointerTypeReference;
+                if (pointerTypeReference != null)
+                {
+                    if (noTokens)
+                    {
+                        this.SerializeTypeName(pointerTypeReference, writer);
+                        return;
+                    }
+
+                    writer.WriteByte(0x0f);
+                    typeReference = pointerTypeReference.GetTargetType(Context);
+                    typeReference = SerializeTypeReferenceModifiers(typeReference, writer);
+                    treatRefAsPotentialTypeSpec = true;
+                    continue;
+                }
 
                 IGenericTypeParameterReference genericTypeParameterReference = typeReference.AsGenericTypeParameterReference;
                 if (genericTypeParameterReference != null)
