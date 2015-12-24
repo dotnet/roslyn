@@ -43,13 +43,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For Each decl In ns.Members
                         ComputeDeclarationsCore(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken)
                     Next
-                    builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken))
+                    Dim declInfo = GetDeclarationInfo(model, node, getSymbol, cancellationToken)
+                    builder.Add(declInfo)
 
                     Dim name = ns.NamespaceStatement.Name
+                    Dim nsSymbol = declInfo.DeclaredSymbol
                     While (name.Kind() = SyntaxKind.QualifiedName)
                         name = (CType(name, QualifiedNameSyntax)).Left
-                        Dim declaredSymbol = If(getSymbol, model.GetSymbolInfo(name, cancellationToken).Symbol, Nothing)
+                        Dim declaredSymbol = If(getSymbol, nsSymbol?.ContainingNamespace, Nothing)
                         builder.Add(New DeclarationInfo(name, ImmutableArray(Of SyntaxNode).Empty, declaredSymbol))
+                        nsSymbol = declaredSymbol
                     End While
 
                     Return
