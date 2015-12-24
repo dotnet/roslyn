@@ -615,13 +615,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' If the state of the slot is 'assigned' we need to clear it 
             '    and possibly propagate it to all the parents
+            If Me._tryState IsNot Nothing Then
+                Dim tryState = Me._tryState.Value
+                tryState.Unassign(slot)
+                Me._tryState = tryState
+            End If
+
             If Me.State.IsAssigned(slot) Then
                 Me.State.Unassign(slot)
-                If Me._tryState IsNot Nothing Then
-                    Dim tryState = Me._tryState.Value
-                    tryState.Unassign(slot)
-                    Me._tryState = tryState
-                End If
 
                 '  propagate to parents
                 While id.ContainingSlot > 0
