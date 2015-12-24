@@ -270,8 +270,7 @@
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 
-    <Exec Command="&quot;$(FakeSignToolPath)&quot; &quot;@(IntermediateAssembly)&quot;" />
-
+    <Exec Command='$(ManagedExecutor) "$(FakeSignToolPath)" "@(IntermediateAssembly)"' />
   </Target>
 
   <!-- ====================================================================================

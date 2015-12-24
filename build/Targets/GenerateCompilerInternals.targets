@@ -33,10 +33,6 @@
       $(CleanDependsOn)
     </CleanDependsOn>
   </PropertyGroup>
-
-  <PropertyGroup>
-	<MonoPrefix Condition="'$(OS)' != 'Windows_NT'">mono </MonoPrefix>
-  </PropertyGroup>
   
   <Target
     Name="GenerateSyntaxModel"
@@ -45,13 +41,13 @@
     Condition="'$(BuildingProject)' == 'true' AND ('$(Language)' == 'VB' or '$(Language)' == 'C#')"
   >
     <PropertyGroup>
-      <SyntaxGenerator Condition="'$(Language)' == 'VB'">$(MonoPrefix) "$(VBSyntaxGeneratorToolPath)"</SyntaxGenerator>
-      <SyntaxGenerator Condition="'$(Language)' == 'C#'">$(MonoPrefix) "$(CSharpSyntaxGeneratorToolPath)"</SyntaxGenerator>
+      <SyntaxGenerator Condition="'$(Language)' == 'VB'">$(VBSyntaxGeneratorToolPath)</SyntaxGenerator>
+      <SyntaxGenerator Condition="'$(Language)' == 'C#'">$(CSharpSyntaxGeneratorToolPath)</SyntaxGenerator>
       <GeneratedSyntaxModel>@(SyntaxDefinition -> '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModel>
     </PropertyGroup>
 
     <Exec
-      Command='$(SyntaxGenerator) "@(SyntaxDefinition)" "$(GeneratedSyntaxModel)"'
+      Command='$(ManagedExecutor) "$(SyntaxGenerator)" "@(SyntaxDefinition)" "$(GeneratedSyntaxModel)"'
       Outputs="$(GeneratedSyntaxModel)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
@@ -81,7 +77,7 @@
     </PropertyGroup>
 
     <Exec
-      Command='$(SyntaxGenerator) &quot;@(SyntaxGetTextDefinition)&quot; &quot;$(GeneratedSyntaxModelGetText)&quot; /gettext'
+      Command='$(ManagedExecutor) "$(SyntaxGenerator)" "@(SyntaxGetTextDefinition)" "$(GeneratedSyntaxModelGetText)" /gettext'
       Outputs="$(GeneratedSyntaxModelGetText)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
@@ -107,13 +103,13 @@
     Condition="'$(BuildingProject)' == 'true' AND ('$(Language)' == 'VB' or '$(Language)' == 'C#')"
   >
     <PropertyGroup>
-      <SyntaxGenerator Condition="'$(Language)' == 'VB'">$(MonoPrefix) "$(VBSyntaxGeneratorToolPath)"</SyntaxGenerator>
-      <SyntaxGenerator Condition="'$(Language)' == 'C#'">$(MonoPrefix) "$(CSharpSyntaxGeneratorToolPath)"</SyntaxGenerator>
+      <SyntaxGenerator Condition="'$(Language)' == 'VB'">$(VBSyntaxGeneratorToolPath)</SyntaxGenerator>
+      <SyntaxGenerator Condition="'$(Language)' == 'C#'">$(CSharpSyntaxGeneratorToolPath)</SyntaxGenerator>
       <GeneratedSyntaxModelTests>@(SyntaxTestDefinition -> '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelTests>
     </PropertyGroup>
 
     <Exec
-      Command='$(SyntaxGenerator) &quot;@(SyntaxTestDefinition)&quot; &quot;$(GeneratedSyntaxModelTests)&quot; /test'
+      Command='$(ManagedExecutor) "$(SyntaxGenerator)" "@(SyntaxTestDefinition)" "$(GeneratedSyntaxModelTests)" /test'
       Outputs="$(GeneratedSyntaxModelTests)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
@@ -139,12 +135,12 @@
     Condition="'$(BuildingProject)' == 'true' AND ('$(Language)' == 'VB' or '$(Language)' == 'C#')"
   >
     <PropertyGroup>
-      <BoundTreeGenerator>$(MonoPrefix) "$(BoundTreeGeneratorToolPath)"</BoundTreeGenerator>
+      <BoundTreeGenerator>$(BoundTreeGeneratorToolPath)</BoundTreeGenerator>
       <GeneratedBoundTree>@(BoundTreeDefinition -> '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedBoundTree>
     </PropertyGroup>
 
     <Exec
-      Command='$(BoundTreeGenerator) $(Language) "@(BoundTreeDefinition)" "$(GeneratedBoundTree)"'
+      Command='$(ManagedExecutor) "$(BoundTreeGenerator)" $(Language) "@(BoundTreeDefinition)" "$(GeneratedBoundTree)"'
       Outputs="$(GeneratedBoundTree)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
@@ -175,13 +171,13 @@
     Condition="'$(BuildingProject)' == 'true' AND ('$(Language)' == 'VB' or '$(Language)' == 'C#')"
   >
     <PropertyGroup>
-      <ErrorFactsGenerator Condition="'$(Language)' == 'VB'">$(MonoPrefix) "$(VBErrorFactsGeneratorToolPath)"</ErrorFactsGenerator>
-      <ErrorFactsGenerator Condition="'$(Language)' == 'C#'">$(MonoPrefix) "$(CSharpErrorFactsGeneratorToolPath)"</ErrorFactsGenerator>
+      <ErrorFactsGenerator Condition="'$(Language)' == 'VB'">$(VBErrorFactsGeneratorToolPath)</ErrorFactsGenerator>
+      <ErrorFactsGenerator Condition="'$(Language)' == 'C#'">$(CSharpErrorFactsGeneratorToolPath)</ErrorFactsGenerator>
       <GeneratedErrorFacts>@(ErrorCode -> '$(IntermediateOutputPath)ErrorFacts.Generated$(DefaultLanguageSourceExtension)')</GeneratedErrorFacts>
     </PropertyGroup>
 
     <Exec
-      Command='$(ErrorFactsGenerator) "@(ErrorCode)" "$(GeneratedErrorFacts)"'
+      Command='$(ManagedExecutor) "$(ErrorFactsGenerator)" "@(ErrorCode)" "$(GeneratedErrorFacts)"'
       Outputs="$(GeneratedErrorFacts)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />

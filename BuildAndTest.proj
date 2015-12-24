@@ -17,6 +17,7 @@
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <XunitVersion>2.1.0</XunitVersion>
+    <ManagedExecutor Condition="'$(OS)' != 'Windows_NT'">mono</ManagedExecutor>
   </PropertyGroup>
 
   <Target Name="Build">
@@ -78,7 +79,7 @@
                       Exclude="$(OutputDirectory)\**\Roslyn.Interactive*;$(OutputDirectory)\**\MakeConst*" />
     </ItemGroup>
 
-    <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
+    <Exec Command="$(ManagedExecutor) Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
 
   </Target>
 
