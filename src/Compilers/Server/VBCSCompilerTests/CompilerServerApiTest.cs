@@ -249,7 +249,6 @@ class Hello
                 dispatcher.ListenAndDispatchConnections(keepAlive);
             });
 
-
             await readySource.Task.ConfigureAwait(true);
             foreach (var source in list)
             {

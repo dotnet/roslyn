@@ -169,10 +169,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Checks the completed connection objects.
         /// </summary>
-        /// <returns>True if everything completed normally and false if there were any client disconnections.</returns>
+        /// <returns>False if the server needs to begin shutting down</returns>
         private bool CheckConnectionTask(List<Task<ConnectionData>> connectionList, ref TimeSpan? keepAlive, ref bool isKeepAliveDefault)
         {
-            var allFine = true;
+            var shutdown = false;
             var processedCount = 0;
             var i = 0;
             while (i < connectionList.Count)
@@ -189,9 +189,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 var connectionData = current.Result;
                 ChangeKeepAlive(connectionData.KeepAlive, ref keepAlive, ref isKeepAliveDefault);
-                if (connectionData.CompletionReason == CompletionReason.ClientDisconnect || connectionData.CompletionReason == CompletionReason.ClientException)
+
+                switch (connectionData.CompletionReason)
                 {
-                    allFine = false;
+                    case CompletionReason.CompilationCompleted:
+                    case CompletionReason.CompilationNotStarted:
+                        // These are all normal shutdown states.  Nothing to do here.
+                        break;
+                    case CompletionReason.ClientDisconnect:
+                        // Have to assume the worst here which is user pressing Ctrl+C at the command line and
+                        // hence wanting all compilation to end.  
+                        shutdown = true;
+                        break;
+                    case CompletionReason.ClientException:
+                    case CompletionReason.ClientShutdownRequest:
+                        shutdown = true;
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Unexpected enum value {connectionData.CompletionReason}");
                 }
             }
 
@@ -200,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 _diagnosticListener.ConnectionCompleted(processedCount);
             }
 
-            return allFine;
+            return !shutdown;
         }
 
         private void ChangeKeepAlive(TimeSpan? value, ref TimeSpan? keepAlive, ref bool isKeepAliveDefault)

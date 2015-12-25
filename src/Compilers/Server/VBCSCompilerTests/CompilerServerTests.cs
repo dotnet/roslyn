@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -1359,7 +1360,7 @@ class Program
             var exited = proc.HasExited;
             if (!exited)
             {
-                proc.Kill();
+                Kill(proc);
                 Assert.True(false, "Compiler server did not exit in time");
             }
         }
@@ -1408,7 +1409,28 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact, WorkItem(1024619, "DevDiv")]
+        [Fact]
+        public async Task ShutdownRequestDirect()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            using (var client = new NamedPipeClientStream(serverData.PipeName))
+            {
+                await client.ConnectAsync();
+
+                var memoryStream = new MemoryStream();
+                await BuildRequest.CreateShutdown().WriteAsync(memoryStream);
+                memoryStream.Position = 0;
+                await memoryStream.CopyToAsync(client);
+
+                var response = await BuildResponse.ReadAsync(client);
+                Assert.Equal(BuildResponse.ResponseType.Shutdown, response.Type);
+                Assert.Equal(Process.GetCurrentProcess().Id, ((ShutdownBuildResponse)response).ServerProcessId);
+                await Verify(serverData, connections: 1, completed: 1);
+            }
+        }
+
+        [Fact] 
+        [WorkItem(1024619, "DevDiv")]
         public async Task Bug1024619_01()
         {
             using (var serverData = ServerUtil.CreateServer())
@@ -1440,7 +1462,8 @@ class Program
             }
         }
 
-        [Fact, WorkItem(1024619, "DevDiv")]
+        [Fact]
+        [WorkItem(1024619, "DevDiv")]
         public async Task Bug1024619_02()
         {
             using (var serverData = ServerUtil.CreateServer())

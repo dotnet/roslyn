@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Write a Request to the stream.
         /// </summary>
-        public async Task WriteAsync(Stream outStream, CancellationToken cancellationToken)
+        public async Task WriteAsync(Stream outStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var memoryStream = new MemoryStream())
             using (var writer = new BinaryWriter(memoryStream, Encoding.Unicode))
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <param name="stream"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<BuildResponse> ReadAsync(Stream stream, CancellationToken cancellationToken)
+        public static async Task<BuildResponse> ReadAsync(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Log("Reading response length");
             // Read the response length
