@@ -91,6 +91,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return new BuildRequest(BuildProtocolConstants.ProtocolVersion, language, requestArgs.ToImmutable());
         }
 
+        public static BuildRequest CreateShutdown()
+        {
+            var requestArgs = ImmutableArray.Create(new Argument(ArgumentId.Shutdown, argumentIndex: 0, value: ""));
+            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, requestArgs);
+        }
+
         /// <summary>
         /// Read a Request from the given stream.
         /// 
@@ -250,7 +256,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             MismatchedVersion,
             Completed,
-            AnalyzerInconsistency
+            AnalyzerInconsistency,
+            Shutdown,
         }
 
         public abstract ResponseType Type { get; }
@@ -326,6 +333,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         return new MismatchedVersionBuildResponse();
                     case ResponseType.AnalyzerInconsistency:
                         return new AnalyzerInconsistencyBuildResponse();
+                    case ResponseType.Shutdown:
+                        return ShutdownBuildResponse.Create(reader);
                     default:
                         throw new InvalidOperationException("Received invalid response type from server.");
                 }
@@ -365,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             ErrorOutput = errorOutput;
         }
 
-        public override ResponseType Type { get { return ResponseType.Completed; } }
+        public override ResponseType Type => ResponseType.Completed;
 
         public static CompletedBuildResponse Create(BinaryReader reader)
         {
@@ -386,9 +395,32 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
     }
 
+    internal sealed class ShutdownBuildResponse : BuildResponse
+    {
+        public readonly int ServerProcessId;
+
+        public ShutdownBuildResponse(int serverProcessId)
+        {
+            ServerProcessId = serverProcessId;
+        }
+
+        public override ResponseType Type => ResponseType.Shutdown;
+
+        protected override void AddResponseBody(BinaryWriter writer)
+        {
+            writer.Write(ServerProcessId);
+        }
+
+        public static ShutdownBuildResponse Create(BinaryReader reader)
+        {
+            var serverProcessId = reader.ReadInt32();
+            return new ShutdownBuildResponse(serverProcessId);
+        }
+    }
+
     internal sealed class MismatchedVersionBuildResponse : BuildResponse
     {
-        public override ResponseType Type { get { return ResponseType.MismatchedVersion; } }
+        public override ResponseType Type => ResponseType.MismatchedVersion; 
 
         /// <summary>
         /// MismatchedVersion has no body.
@@ -398,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
     internal sealed class AnalyzerInconsistencyBuildResponse : BuildResponse
     {
-        public override ResponseType Type { get { return ResponseType.AnalyzerInconsistency; } }
+        public override ResponseType Type => ResponseType.AnalyzerInconsistency;
 
         /// <summary>
         /// AnalyzerInconsistency has no body.
@@ -430,12 +462,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             // The current directory of the client
             CurrentDirectory = 0x51147221,
+
             // A comment line argument. The argument index indicates which one (0 .. N)
             CommandLineArgument,
+
             // The "LIB" environment variable of the client
             LibEnvVariable,
+
             // Request a longer keep alive time for the server
             KeepAlive,
+
+            // Request a server shutdown from the client
+            Shutdown,
         }
 
         /// <summary>
