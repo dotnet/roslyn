@@ -175,7 +175,7 @@ class Hello
         [Fact]
         public void KeepAliveAfterSingleConnection()
         {
-            var connection = CreateClientConnection(CompletionReason.Completed);
+            var connection = CreateClientConnection(CompletionReason.CompilationCompleted);
             var host = CreateClientConnectionHost(
                 Task.FromResult(connection),
                 new TaskCompletionSource<IClientConnection>().Task);
@@ -199,7 +199,7 @@ class Hello
             var list = new List<Task<IClientConnection>>();
             for (var i = 0; i < count; i++)
             {
-                var connection = CreateClientConnection(CompletionReason.Completed);
+                var connection = CreateClientConnection(CompletionReason.CompilationCompleted);
                 list.Add(Task.FromResult(connection));
             }
 
@@ -253,7 +253,7 @@ class Hello
             await readySource.Task.ConfigureAwait(true);
             foreach (var source in list)
             {
-                source.SetResult(new ConnectionData(CompletionReason.Completed));
+                source.SetResult(new ConnectionData(CompletionReason.CompilationCompleted));
             }
 
             await dispatcherTask.ConfigureAwait(true);

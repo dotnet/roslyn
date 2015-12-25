@@ -16,23 +16,11 @@ using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 // This file describes data structures about the protocol from client program to server that is 
 // used. The basic protocol is this.
 //
-// Server creates a named pipe with name ProtocolConstants.PipeName, with the server process id
-// appended to that pipe name.
-//
-// Client enumerates all processes on the machine, search for one with the correct fully qualified
-// executable name. If none are found, that executable is started. The client then connects
-// to the named pipe, and writes a single request, as represented by the Request structure.
-// If a pipe is disconnected, and it didn't create that process, the clients continues trying to 
-// connect.
-//
 // After the server pipe is connected, it forks off a thread to handle the connection, and creates
 // a new instance of the pipe to listen for new clients. When it gets a request, it validates
 // the security and elevation level of the client. If that fails, it disconnects the client. Otherwise,
 // it handles the request, sends a response (described by Response class) back to the client, then
 // disconnects the pipe and ends the thread.
-//
-// NOTE: Changes to the protocol information in this file must also be reflected in protocol.h in the
-// unmanaged csc project, as well as the code in protocol.cpp.
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -114,10 +102,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // Read the length of the request
             var lengthBuffer = new byte[4];
             Log("Reading length of request");
-            await ReadAllAsync(inStream,
-                                                      lengthBuffer,
-                                                      4,
-                                                      cancellationToken).ConfigureAwait(false);
+            await ReadAllAsync(inStream, lengthBuffer, 4, cancellationToken).ConfigureAwait(false);
             var length = BitConverter.ToInt32(lengthBuffer, 0);
 
             // Back out if the request is > 1MB
@@ -131,10 +116,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // Read the full request
             var responseBuffer = new byte[length];
-            await ReadAllAsync(inStream,
-                                                      responseBuffer,
-                                                      length,
-                                                      cancellationToken).ConfigureAwait(false);
+            await ReadAllAsync(inStream, responseBuffer, length, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// The compilation completed and results were provided to the client.
         /// </summary>
-        Completed,
+        CompilationCompleted,
 
         /// <summary>
         /// The compilation process was initiated and the client disconnected before 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     {
                         Log("Begin writing response.");
                         await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
-                        reason = CompletionReason.Completed;
+                        reason = CompletionReason.CompilationCompleted;
                         Log("End writing response.");
                     }
                     catch
