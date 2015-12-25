@@ -89,5 +89,5 @@ run_make bootstrap
 echo Building CrossPlatform.sln
 run_make all BOOTSTRAP=true BUILD_LOG_PATH=Binaries/Build.log
 
-make tests
+make test
 

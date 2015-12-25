@@ -6,7 +6,7 @@
 
 # Running Tests
 
-After building run `make tests` in order to run the unit tests.
+After building run `make test` in order to run the unit tests.
 
 # Contributing
 
