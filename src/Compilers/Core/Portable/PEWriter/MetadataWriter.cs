@@ -3442,8 +3442,12 @@ namespace Microsoft.Cci
             {
                 writer.WriteByte(namedArgument.IsField ? (byte)0x53 : (byte)0x54);
 
-                // FieldOrPropType:
-                if (module.IsPlatformType(namedArgument.Type, PlatformType.SystemObject))
+                var arrayType = namedArgument.Type as IArrayTypeReference;
+                if (arrayType != null)
+                {
+                    SerializeCustomAttributeArrayType(arrayType, writer);
+                }
+                else if (module.IsPlatformType(namedArgument.Type, PlatformType.SystemObject))
                 {
                     writer.WriteByte(0x51);
                 }
@@ -3454,7 +3458,7 @@ namespace Microsoft.Cci
 
                 writer.WriteSerializedString(namedArgument.ArgumentName);
 
-                this.SerializeMetadataExpression(writer, namedArgument.ArgumentValue, namedArgument.Type);
+                SerializeMetadataExpression(writer, namedArgument.ArgumentValue, namedArgument.Type);
             }
         }
 
@@ -3470,12 +3474,16 @@ namespace Microsoft.Cci
                 {
                     // implicit conversion from array to object
                     Debug.Assert(this.module.IsPlatformType(targetType, PlatformType.SystemObject));
-                    SerializeCustomAttributeElementType(a.Type, writer);
+
+                    SerializeCustomAttributeArrayType((IArrayTypeReference)a.Type, writer);
 
                     targetElementType = a.ElementType;
                 }
                 else
                 {
+                    // In FixedArg the element type of the parameter array has to match the element type of the argument array,
+                    // but in NamedArg T[] can be assigned to object[]. In that case we need to encode the arguments using 
+                    // the parameter element type not the argument element type.
                     targetElementType = targetArrayType.GetElementType(this.Context);
                 }
 
@@ -3483,7 +3491,7 @@ namespace Microsoft.Cci
 
                 foreach (IMetadataExpression elemValue in a.Elements)
                 {
-                    this.SerializeMetadataExpression(writer, elemValue, targetElementType);
+                    SerializeMetadataExpression(writer, elemValue, targetElementType);
                 }
             }
             else
@@ -3492,17 +3500,17 @@ namespace Microsoft.Cci
 
                 if (this.module.IsPlatformType(targetType, PlatformType.SystemObject))
                 {
+                    // special case null argument assigned to Object parameter - treat as null string
                     if (c != null &&
                         c.Value == null &&
                         this.module.IsPlatformType(c.Type, PlatformType.SystemObject))
                     {
-                        // handle null case
-                        writer.WriteByte(0x0e); // serialize string type
+                        writer.WriteByte(0x0e);
                         writer.WriteSerializedString(null);
                         return;
                     }
 
-                    this.SerializeCustomAttributeElementType(expression.Type, writer);
+                    SerializeCustomAttributeElementType(expression.Type, writer);
                 }
 
                 if (c != null)
@@ -3936,41 +3944,37 @@ namespace Microsoft.Cci
             }
         }
 
+        private void SerializeCustomAttributeArrayType(IArrayTypeReference arrayTypeReference, BlobBuilder writer)
+        {
+            // A single-dimensional, zero-based array is specified as a single byte 0x1D followed by the FieldOrPropType of the element type. 
+        
+            // only non-jagged SZ arrays are allowed in attributes 
+            // (need to encode the type of the SZ array if the parameter type is Object):
+            Debug.Assert(arrayTypeReference.IsSZArray);
+
+            writer.WriteByte(0x1d);
+
+            var elementType = arrayTypeReference.GetElementType(Context);
+            Debug.Assert(!(elementType is IModifiedTypeReference));
+
+            if (module.IsPlatformType(elementType, PlatformType.SystemObject))
+            {
+                writer.WriteByte(0x51);
+            }
+            else
+            {
+                SerializeCustomAttributeElementType(elementType, writer);
+            }
+        }
+
         private void SerializeCustomAttributeElementType(ITypeReference typeReference, BlobBuilder writer)
         {
             // Spec:
             // The FieldOrPropType shall be exactly one of:
             // ELEMENT_TYPE_BOOLEAN, ELEMENT_TYPE_CHAR, ELEMENT_TYPE_I1, ELEMENT_TYPE_U1, ELEMENT_TYPE_I2, ELEMENT_TYPE_U2, ELEMENT_TYPE_I4, 
             // ELEMENT_TYPE_U4, ELEMENT_TYPE_I8, ELEMENT_TYPE_U8, ELEMENT_TYPE_R4, ELEMENT_TYPE_R8, ELEMENT_TYPE_STRING.
-            // A single-dimensional, zero-based array is specified as a single byte 0x1D followed by the FieldOrPropType of the element type. 
             // An enum is specified as a single byte 0x55 followed by a SerString.
             
-            Debug.Assert(!(typeReference is IModifiedTypeReference));
-            Debug.Assert(!(typeReference is IManagedPointerTypeReference));
-            Debug.Assert(!(typeReference is IPointerTypeReference));
-            Debug.Assert(typeReference.AsGenericTypeParameterReference == null);
-            Debug.Assert(typeReference.AsGenericMethodParameterReference == null);
-            Debug.Assert(!module.IsPlatformType(typeReference, PlatformType.SystemTypedReference));
-
-            var arrayTypeReference = typeReference as IArrayTypeReference;
-            if (arrayTypeReference != null)
-            {
-                // only non-jagged SZ arrays are allowed in attributes 
-                // (need to encode the type of the SZ array if the parameter type is Object):
-                Debug.Assert(arrayTypeReference.IsSZArray);
-
-                writer.WriteByte(0x1d);
-
-                typeReference = arrayTypeReference.GetElementType(Context);
-                Debug.Assert(!(typeReference is IModifiedTypeReference));
-
-                if (module.IsPlatformType(typeReference, PlatformType.SystemObject))
-                {
-                    writer.WriteByte(0x51);
-                    return;
-                }
-            }
-
             var primitiveType = typeReference.TypeCode(Context);
             if (primitiveType != PrimitiveTypeCode.NotPrimitive)
             {
