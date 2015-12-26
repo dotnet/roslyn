@@ -15,7 +15,7 @@ ifeq ($(OS_NAME),Linux)
 else ifeq ($(OS_NAME),Darwin)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=osx.10.10
 	MONO_TOOLSET_NAME = mono.mac.5
-	ROSLYN_TOOLSET_NAME = roslyn.mac.1
+	ROSLYN_TOOLSET_NAME = roslyn.mac.2
 endif
 
 ifneq ($(BUILD_LOG_PATH),)
@@ -43,7 +43,7 @@ bootstrap: toolset
 	cp Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) ; \
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
-tests:
+test:
 	build/scripts/tests.sh $(MONO_PATH) $(BUILD_CONFIGURATION) $(XUNIT_VERSION)
 
 clean:
