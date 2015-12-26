@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             }
 
             var parentElement = parentStartTag.Parent as XmlElementSyntax;
-            if (parentStartTag == null)
+            if (parentElement == null)
             {
                 return false;
             }

@@ -29,7 +29,7 @@ namespace Roslyn.Test.Utilities
             _compareWithInequalityOperator = compInequality;
         }
 
-        public void RunAll()
+        public void RunAll(bool checkIEquatable = true)
         {
             if (_compareWithEqualityOperator != null)
             {
@@ -43,13 +43,21 @@ namespace Roslyn.Test.Utilities
                 InequalityOperator2();
             }
 
-            ImplementsIEquatable();
+            if (checkIEquatable)
+            {
+                ImplementsIEquatable();
+            }
+
             ObjectEquals1();
             ObjectEquals2();
             ObjectEquals3();
             GetHashCode1();
-            EquatableEquals1();
-            EquatableEquals2();
+
+            if (checkIEquatable)
+            {
+                EquatableEquals1();
+                EquatableEquals2();
+            }
         }
 
         private void EqualityOperator1()
@@ -130,8 +138,8 @@ namespace Roslyn.Test.Utilities
                 var unitValue = unit.Value;
                 foreach (var value in unit.EqualValues)
                 {
-                    Assert.Equal(value, unitValue);
-                    Assert.Equal(unitValue, value);
+                    Assert.True(value.Equals(unitValue));
+                    Assert.True(unitValue.Equals(value));
                 }
             }
         }
@@ -161,7 +169,7 @@ namespace Roslyn.Test.Utilities
             var allValues = _equalityUnits.SelectMany(x => x.AllValues);
             foreach (var value in allValues)
             {
-                Assert.NotEqual((object)42, value);
+                Assert.False(value.Equals((object)42));
             }
         }
 

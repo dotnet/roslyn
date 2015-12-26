@@ -231,6 +231,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
         }
 
+        [Fact]
+        public void LocalizableResourceStringEquality()
+        {
+            var resourceManager = GetTestResourceManagerInstance();
+            var unit = EqualityUnit
+                .Create(new LocalizableResourceString(@"ResourceWithArguments", resourceManager, typeof(CustomResourceManager), "arg"))
+                .WithEqualValues(
+                    new LocalizableResourceString(@"ResourceWithArguments", resourceManager, typeof(CustomResourceManager), "arg"))
+                .WithNotEqualValues(
+                    new LocalizableResourceString(@"ResourceWithArguments", resourceManager, typeof(CustomResourceManager), "otherarg"),
+                    new LocalizableResourceString(@"Resource1", resourceManager, typeof(CustomResourceManager)));
+            EqualityUtil.RunAll(unit, checkIEquatable: false);
+
+
+            var str = new LocalizableResourceString(@"ResourceWithArguments", resourceManager, typeof(CustomResourceManager), "arg");
+            var threw = false;
+            str.OnException += (sender, e) => { threw = true; };
+            Assert.False(str.Equals(42));
+            Assert.False(str.Equals(42));
+            Assert.False(threw);
+        }
+
         [Fact, WorkItem(887)]
         public void TestDescriptorIsExceptionSafe()
         {
