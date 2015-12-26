@@ -144,6 +144,27 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             return new ServerData(cts, taskSource.Task, pipeName);
         }
 
+        internal static async Task<BuildResponse> Send(string pipeName, BuildRequest request)
+        {
+            using (var client = new NamedPipeClientStream(pipeName))
+            {
+                await client.ConnectAsync();
+
+                var memoryStream = new MemoryStream();
+                await request.WriteAsync(memoryStream);
+                memoryStream.Position = 0;
+                await memoryStream.CopyToAsync(client);
+
+                return await BuildResponse.ReadAsync(client);
+            }
+        }
+
+        internal static async Task<int> SendShutdown(string pipeName)
+        {
+            var response = await Send(pipeName, BuildRequest.CreateShutdown());
+            return ((ShutdownBuildResponse)response).ServerProcessId;
+        }
+
         private static async Task<int> CreateServerFailsConnectionCore(string pipeName, CancellationToken cancellationToken)
         {
             var connections = 0;

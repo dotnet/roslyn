@@ -11,6 +11,7 @@ using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -94,6 +95,13 @@ class Hello
                 BuildProtocolConstants.ProtocolVersion,
                 RequestLanguage.CSharpCompile,
                 builder.ToImmutable());
+        }
+
+        private static async Task Verify(ServerData serverData, int connections, int completed)
+        {
+            var serverStats = await serverData.Complete().ConfigureAwait(true);
+            Assert.Equal(connections, serverStats.Connections);
+            Assert.Equal(completed, serverStats.CompletedConnections);
         }
 
         /// <summary>
@@ -353,5 +361,54 @@ class Hello
             var result = VBCSCompiler.Run(mutexName, host.Object, keepAlive: TimeSpan.FromSeconds(1));
             Assert.Equal(CommonCompiler.Succeeded, result);
         }
+
+        [Fact]
+        public async Task ShutdownRequestDirect()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            {
+                var serverProcessId = await ServerUtil.SendShutdown(serverData.PipeName);
+                Assert.Equal(Process.GetCurrentProcess().Id, serverProcessId);
+                await Verify(serverData, connections: 1, completed: 1);
+            }
+        }
+
+        /// <summary>
+        /// A shutdown request should not abort an existing compilation.  It should be allowed to run to 
+        /// completion.
+        /// </summary>
+        [Fact]
+        public async Task ShutdownDoesNotAbortCompilation()
+        {
+            var host = new TestableCompilerServerHost();
+
+            using (var startedMre = new ManualResetEvent(initialState: false))
+            using (var finishedMre = new ManualResetEvent(initialState: false))
+            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            {
+                // Create a compilation that is guaranteed to complete after the shutdown is seen. 
+                host.RunCompilation = (request, cancellationToken) =>
+                {
+                    startedMre.Set();
+                    finishedMre.WaitOne();
+                    return s_emptyBuildResponse;
+                };
+
+                var compileTask = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
+                startedMre.WaitOne();
+
+                // The compilation is now in progress, send the shutdown.
+                await ServerUtil.SendShutdown(serverData.PipeName);
+                Assert.False(compileTask.IsCompleted);
+                finishedMre.Set();
+
+                var response = await compileTask;
+                Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
+                Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
+
+                await Verify(serverData, connections: 2, completed: 2);
+            }
+        }
+
     }
 }

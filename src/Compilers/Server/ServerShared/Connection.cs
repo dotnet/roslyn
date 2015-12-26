@@ -200,15 +200,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return request.Arguments.Length == 1 && request.Arguments[0].ArgumentId == BuildProtocolConstants.ArgumentId.Shutdown;
         }
 
-        protected virtual Task<BuildResponse> ServeBuildRequest(BuildRequest request, CancellationToken cancellationToken)
+        protected virtual Task<BuildResponse> ServeBuildRequest(BuildRequest buildRequest, CancellationToken cancellationToken)
         {
-            return Task.Run(() =>
+            Func<BuildResponse> func = () =>
             {
                 try
                 {
                     // Do the compilation
                     Log("Begin compilation");
-                    BuildResponse response = ServeBuildRequestCore(request, cancellationToken);
+
+                    var request = BuildProtocolUtil.GetRunRequest(buildRequest);
+                    var response = _compilerServerHost.RunCompilation(request, cancellationToken);
+
                     Log("End compilation");
                     return response;
                 }
@@ -216,42 +219,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            });
-        }
+            };
 
-        private BuildResponse ServeBuildRequestCore(BuildRequest buildRequest, CancellationToken cancellationToken)
-        {
-            var request = BuildProtocolUtil.GetRunRequest(buildRequest);
-            CommonCompiler compiler;
-            if (!_compilerServerHost.TryCreateCompiler(request, out compiler))
-            {
-                // TODO: is this the right option?  Right now it will cause the fall back in the command line 
-                // to fail because it's a valid response.  Probably should add a "server failed" response
-                // for command line to deal with.
-
-                // We can't do anything with a request we don't know about. 
-                Log($"Got request with id '{request.Language}'");
-                return new CompletedBuildResponse(-1, false, "", "");
-            }
-
-            Log($"CurrentDirectory = '{request.CurrentDirectory}'");
-            Log($"LIB = '{request.LibDirectory}'");
-            for (int i = 0; i < request.Arguments.Length; ++i)
-            {
-                Log($"Argument[{i}] = '{request.Arguments[i]}'");
-            }
-
-            bool utf8output = compiler.Arguments.Utf8Output;
-            if (!_compilerServerHost.CheckAnalyzers(request.CurrentDirectory, compiler.Arguments.AnalyzerReferences))
-            {
-                return new AnalyzerInconsistencyBuildResponse();
-            }
-
-            Log($"****Running {request.Language} compiler...");
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            int returnCode = compiler.Run(output, cancellationToken);
-            Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
-            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
+            var task = new Task<BuildResponse>(func, cancellationToken, TaskCreationOptions.LongRunning);
+            task.Start();
+            return task;
         }
 
         private void Log(string message)

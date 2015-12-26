@@ -1409,26 +1409,6 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact]
-        public async Task ShutdownRequestDirect()
-        {
-            using (var serverData = ServerUtil.CreateServer())
-            using (var client = new NamedPipeClientStream(serverData.PipeName))
-            {
-                await client.ConnectAsync();
-
-                var memoryStream = new MemoryStream();
-                await BuildRequest.CreateShutdown().WriteAsync(memoryStream);
-                memoryStream.Position = 0;
-                await memoryStream.CopyToAsync(client);
-
-                var response = await BuildResponse.ReadAsync(client);
-                Assert.Equal(BuildResponse.ResponseType.Shutdown, response.Type);
-                Assert.Equal(Process.GetCurrentProcess().Id, ((ShutdownBuildResponse)response).ServerProcessId);
-                await Verify(serverData, connections: 1, completed: 1);
-            }
-        }
-
         [Fact] 
         [WorkItem(1024619, "DevDiv")]
         public async Task Bug1024619_01()

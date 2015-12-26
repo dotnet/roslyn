@@ -117,6 +117,7 @@
     <Compile Include="MockEngine.cs" />
     <Compile Include="RunKeepAliveTests.cs" />
     <Compile Include="ServerUtil.cs" />
+    <Compile Include="TestableCompilerServerHost.cs" />
     <Compile Include="TestableDiagnosticListener.cs" />
   </ItemGroup>
   <ItemGroup>

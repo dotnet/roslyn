@@ -11,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 
+using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
+
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal struct RunRequest
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 case LanguageNames.CSharp:
                     compiler = new CSharpCompilerServer(
-                        this,
+                        AssemblyReferenceProvider,
                         args: request.Arguments,
                         clientDirectory: ClientDirectory,
                         baseDirectory: request.CurrentDirectory,
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return true;
                 case LanguageNames.VisualBasic:
                     compiler = new VisualBasicCompilerServer(
-                        this,
+                        AssemblyReferenceProvider,
                         args: request.Arguments,
                         clientDirectory: ClientDirectory,
                         baseDirectory: request.CurrentDirectory,
@@ -81,6 +83,40 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     compiler = null;
                     return false;
             }
+        }
+
+        public BuildResponse RunCompilation(RunRequest request, CancellationToken cancellationToken)
+        {
+            Log($"CurrentDirectory = '{request.CurrentDirectory}'");
+            Log($"LIB = '{request.LibDirectory}'");
+            for (int i = 0; i < request.Arguments.Length; ++i)
+            {
+                Log($"Argument[{i}] = '{request.Arguments[i]}'");
+            }
+
+            CommonCompiler compiler;
+            if (!TryCreateCompiler(request, out compiler))
+            {
+                // TODO: is this the right option?  Right now it will cause the fall back in the command line 
+                // to fail because it's a valid response.  Probably should add a "server failed" response
+                // for command line to deal with.
+
+                // We can't do anything with a request we don't know about. 
+                Log($"Got request with id '{request.Language}'");
+                return new CompletedBuildResponse(returnCode:  -1, utf8output: false, output:  "", errorOutput: "");
+            }
+
+            bool utf8output = compiler.Arguments.Utf8Output;
+            if (!CheckAnalyzers(request.CurrentDirectory, compiler.Arguments.AnalyzerReferences))
+            {
+                return new AnalyzerInconsistencyBuildResponse();
+            }
+
+            Log($"****Running {request.Language} compiler...");
+            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+            int returnCode = compiler.Run(output, cancellationToken);
+            Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
+            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
         }
     }
 }
