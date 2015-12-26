@@ -3874,26 +3874,47 @@ namespace Microsoft.Cci
                 }
 
                 var arrayTypeReference = typeReference as IArrayTypeReference;
-                if (arrayTypeReference?.IsSZArray == false)
+                if (arrayTypeReference != null)
                 {
-                    writer.WriteByte(0x14);
-                    typeReference = SerializeTypeReferenceModifiers(arrayTypeReference.GetElementType(Context), writer);
-                    this.SerializeTypeReference(typeReference, writer, true);
-
-                    writer.WriteCompressedInteger(arrayTypeReference.Rank);
-                    writer.WriteCompressedInteger(IteratorHelper.EnumerableCount(arrayTypeReference.Sizes));
-                    foreach (ulong size in arrayTypeReference.Sizes)
+                    if (arrayTypeReference.IsSZArray)
                     {
-                        writer.WriteCompressedInteger((uint)size);
+                        writer.WriteByte(0x1d);
+                        typeReference = SerializeTypeReferenceModifiers(arrayTypeReference.GetElementType(Context), writer);
+                        treatRefAsPotentialTypeSpec = true;
+                        continue;
                     }
-
-                    writer.WriteCompressedInteger(IteratorHelper.EnumerableCount(arrayTypeReference.LowerBounds));
-                    foreach (int lowerBound in arrayTypeReference.LowerBounds)
+                    else
                     {
-                        writer.WriteCompressedSignedInteger(lowerBound);
-                    }
+                        writer.WriteByte(0x14);
+                        typeReference = SerializeTypeReferenceModifiers(arrayTypeReference.GetElementType(Context), writer);
+                        this.SerializeTypeReference(typeReference, writer, true);
 
-                    return;
+                        writer.WriteCompressedInteger((uint)arrayTypeReference.Rank);
+                        writer.WriteCompressedInteger((uint)arrayTypeReference.Sizes.Length);
+                        foreach (int size in arrayTypeReference.Sizes)
+                        {
+                            writer.WriteCompressedInteger((uint)size);
+                        }
+
+                        if (arrayTypeReference.LowerBounds.IsDefault)
+                        {
+                            writer.WriteCompressedInteger((uint)arrayTypeReference.Rank);
+                            for (int i = 0; i < arrayTypeReference.Rank; i++)
+                            {
+                                writer.WriteCompressedSignedInteger(0);
+                            }
+                        }
+                        else
+                        {
+                            writer.WriteCompressedInteger((uint)arrayTypeReference.LowerBounds.Length);
+                            foreach (int lowerBound in arrayTypeReference.LowerBounds)
+                            {
+                                writer.WriteCompressedSignedInteger(lowerBound);
+                            }
+                        }
+
+                        return;
+                    }
                 }
 
                 if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
@@ -3906,14 +3927,6 @@ namespace Microsoft.Cci
                 {
                     writer.WriteByte(0x1c);
                     return;
-                }
-
-                if (arrayTypeReference != null && arrayTypeReference.IsSZArray)
-                {
-                    writer.WriteByte(0x1d);
-                    typeReference = SerializeTypeReferenceModifiers(arrayTypeReference.GetElementType(Context), writer);
-                    treatRefAsPotentialTypeSpec = true;
-                    continue;
                 }
 
                 IGenericMethodParameterReference genericMethodParameterReference = typeReference.AsGenericMethodParameterReference;

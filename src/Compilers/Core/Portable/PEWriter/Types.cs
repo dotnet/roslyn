@@ -42,7 +42,7 @@ namespace Microsoft.Cci
         /// A possibly empty list of lower bounds for dimension indices. When not explicitly specified, a lower bound defaults to zero.
         /// The first lower bound in the list corresponds to the first dimension. Dimensions cannot be skipped.
         /// </summary>
-        IEnumerable<int> LowerBounds
+        ImmutableArray<int> LowerBounds
         {
             get;
             // ^ ensures count(result) <= Rank;
@@ -51,7 +51,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The number of array dimensions.
         /// </summary>
-        uint Rank
+        int Rank
         {
             get;
             // ^ ensures result > 0;
@@ -62,7 +62,7 @@ namespace Microsoft.Cci
         /// The first upper bound in the list corresponds to the first dimension. Dimensions cannot be skipped.
         /// An unspecified upper bound means that instances of this type can have an arbitrary upper bound for that dimension.
         /// </summary>
-        IEnumerable<ulong> Sizes
+        ImmutableArray<int> Sizes
         {
             get;
             // ^ ensures count(result) <= Rank;
