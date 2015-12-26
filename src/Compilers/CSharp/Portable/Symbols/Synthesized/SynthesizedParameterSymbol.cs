@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
             if (Type.ContainsDynamic() && 
                 compilation.HasDynamicEmitAttributes() &&
-                compilation.GetSpecialType(SpecialType.System_Boolean).SpecialType == SpecialType.System_Boolean)
+                compilation.HasSpecialType(SpecialType.System_Boolean))
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length, this.RefKind));
             }
