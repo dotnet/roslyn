@@ -3120,7 +3120,14 @@ namespace Microsoft.Cci
                     writer.WriteByte(0x10);
                 }
 
-                this.SerializeTypeReference(local.Type, writer);
+                if (module.IsPlatformType(local.Type, PlatformType.SystemTypedReference))
+                {
+                    writer.WriteByte(0x16);
+                }
+                else
+                {
+                    SerializeTypeReference(local.Type, writer);
+                }
             }
         }
 
@@ -3413,7 +3420,15 @@ namespace Microsoft.Cci
                 this.SerializeCustomModifier(modifiers[i], writer);
             }
 
-            this.SerializeTypeReference(parameterTypeInformation.GetType(Context), writer);
+            var type = parameterTypeInformation.GetType(Context);
+            if (module.IsPlatformType(type, PlatformType.SystemTypedReference))
+            {
+                writer.WriteByte(0x16);
+            }
+            else
+            {
+                this.SerializeTypeReference(type, writer);
+            }
         }
 
         private void SerializeFieldSignature(IFieldReference fieldReference, BlobBuilder writer)
@@ -3765,7 +3780,16 @@ namespace Microsoft.Cci
                 writer.WriteByte(0x10);
             }
 
-            this.SerializeTypeReference(signature.GetType(Context), writer);
+            var returnType = signature.GetType(Context);
+            if (module.IsPlatformType(returnType, PlatformType.SystemTypedReference))
+            {
+                writer.WriteByte(0x16);
+            }
+            else
+            {
+                this.SerializeTypeReference(returnType, writer);
+            }
+
             foreach (IParameterTypeInformation parameterTypeInformation in @params)
             {
                 this.SerializeParameterInformation(parameterTypeInformation, writer);
@@ -3844,6 +3868,9 @@ namespace Microsoft.Cci
             {
                 // BYREF is specified directly in RetType, Param, LocalVarSig signatures
                 Debug.Assert(!(typeReference is IManagedPointerTypeReference));
+
+                // TYPEDREF is only allowed in RetType, Param, LocalVarSig signatures
+                Debug.Assert(!module.IsPlatformType(typeReference, PlatformType.SystemTypedReference));
 				
                 Debug.Assert(!(typeReference is IModifiedTypeReference));
 
@@ -3913,12 +3940,6 @@ namespace Microsoft.Cci
 
                         return;
                     }
-                }
-
-                if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
-                {
-                    writer.WriteByte(0x16);
-                    return;
                 }
 
                 if (module.IsPlatformType(typeReference, PlatformType.SystemObject))
