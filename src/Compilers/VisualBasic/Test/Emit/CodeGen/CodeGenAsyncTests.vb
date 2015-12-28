@@ -8556,6 +8556,225 @@ After 12]]>
 
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
+
+        <Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")>
+        Public Sub HoistUsing001()
+            Dim source =
+<compilation name="Async">
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+    Class D
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Console.WriteLine("disposed")
+        End Sub
+    End Class
+
+    Sub Main()
+        Console.WriteLine(Test.Result)
+    End Sub
+
+    Private Async Function Test() As Task(Of String)
+        Console.WriteLine("Pre")
+
+        Using window = New D
+            Console.WriteLine("show")
+
+            For index = 1 To 2
+                Await Task.Delay(100)
+            Next
+        End Using
+
+        Console.WriteLine("Post")
+        Return "result"
+    End Function
+End Module
+
+    </file>
+</compilation>
+
+            Dim expectedOutput = <![CDATA[Pre
+show
+disposed
+Post
+result]]>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")>
+        Public Sub HoistUsing002()
+            Dim source =
+<compilation name="Async">
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+    Class D
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Console.WriteLine("disposed")
+        End Sub
+    End Class
+
+    Sub Main()
+        Console.WriteLine(Test.Result)
+    End Sub
+
+    Private Async Function Test() As Task(Of String)
+        Console.WriteLine("Pre")
+
+        Dim window = New D
+        Try
+            Console.WriteLine("show")
+
+            For index = 1 To 2
+                Await Task.Delay(100)
+            Next
+        Finally
+            window.Dispose()
+        End Try
+
+        Console.WriteLine("Post")
+        Return "result"
+    End Function
+End Module
+
+    </file>
+</compilation>
+
+            Dim expectedOutput = <![CDATA[Pre
+show
+disposed
+Post
+result]]>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")>
+        Public Sub HoistUsing003()
+            Dim source =
+<compilation name="Async">
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+    Class D
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Console.WriteLine("disposed")
+        End Sub
+    End Class
+
+    Sub Main()
+        Console.WriteLine(Test.Result)
+    End Sub
+
+    Private Async Function Test() As Task(Of String)
+        Console.WriteLine("Pre")
+
+        Dim window as D
+        Try
+            window = New D
+
+            Console.WriteLine("show")
+
+            For index = 1 To 2
+                Await Task.Delay(100)
+            Next
+        Finally
+            window.Dispose()
+        End Try
+
+        Console.WriteLine("Post")
+        Return "result"
+    End Function
+End Module
+
+    </file>
+</compilation>
+
+            Dim expectedOutput = <![CDATA[Pre
+show
+disposed
+Post
+result]]>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")>
+        Public Sub HoistUsing004()
+            Dim source =
+<compilation name="Async">
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+    Class D
+        Implements IDisposable
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Console.WriteLine("disposed")
+        End Sub
+    End Class
+
+    Sub Main()
+        Console.WriteLine(Test.Result)
+    End Sub
+
+    Private Async Function Test() As Task(Of String)
+        Console.WriteLine("Pre")
+
+        Using window1 = New D
+            Console.WriteLine("show")
+
+            Using window = New D
+                Console.WriteLine("show")
+
+                For index = 1 To 2
+                    Await Task.Delay(100)
+                Next
+            End Using
+        End Using
+
+        Console.WriteLine("Post")
+        Return "result"
+    End Function
+End Module
+
+    </file>
+</compilation>
+
+            Dim expectedOutput = <![CDATA[Pre
+show
+show
+disposed
+disposed
+Post
+result]]>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
     End Class
 End Namespace
 
