@@ -182,7 +182,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var builder = ImmutableArray.CreateBuilder<CompilationEvent>();
             foreach (var symbol in declaredSymbols)
-            {   
+            {
+                Debug.Assert(symbol.ContainingAssembly == compilation.Assembly);
                 builder.Add(new SymbolDeclaredCompilationEvent(compilation, symbol));
             }
 
