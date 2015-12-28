@@ -1947,6 +1947,163 @@ class Program
 ");
         }
 
+        [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
+        public void SwitchOnNullableInt64WithInt32Label()
+        {
+            var text = @"public static class C
+{
+    public static bool F(long? x)
+    {
+        switch (x)
+        {
+            case 1:
+                return true;
+            default:
+                return false;
+        }
+    }
+    static void Main()
+    {
+        System.Console.WriteLine(F(1));
+    }
+}";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "True");
+            compVerifier.VerifyIL("C.F(long?)",
+@"
+{
+        // Code size       28 (0x1c)
+        .maxstack  2
+        .locals init (long? V_0,
+                      long V_1)
+        IL_0000:  ldarg.0
+        IL_0001:  stloc.0
+        IL_0002:  ldloca.s   V_0
+        IL_0004:  call       ""bool long?.HasValue.get""
+        IL_0009:  brfalse.s  IL_001a
+        IL_000b:  ldloca.s   V_0
+        IL_000d:  call       ""long long?.GetValueOrDefault()""
+        IL_0012:  stloc.1
+        IL_0013:  ldloc.1
+        IL_0014:  ldc.i4.1
+        IL_0015:  conv.i8
+        IL_0016:  bne.un.s   IL_001a
+        IL_0018:  ldc.i4.1
+        IL_0019:  ret
+        IL_001a:  ldc.i4.0
+        IL_001b:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
+        public void SwitchOnNullableWithNonConstant()
+        {
+            var text = @"public static class C
+{
+    public static bool F(int? x)
+    {
+        int i = 4;
+        switch (x)
+        {
+            case i:
+                return true;
+            default:
+                return false;
+        }
+    }
+    static void Main()
+    {
+        System.Console.WriteLine(F(1));
+    }
+}";
+            var compilation = base.CreateCSharpCompilation(text);
+            // (8,13): error CS0150: A constant value is expected
+            //             case i:
+            var expected = Diagnostic(ErrorCode.ERR_ConstantExpected, "case i:");
+
+            compilation.VerifyDiagnostics(expected);
+        }
+
+        [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
+        public void SwitchOnNullableWithNonCompatibleType()
+        {
+            var text = @"public static class C
+{
+    public static bool F(int? x)
+    {
+        switch (x)
+        {
+            case default(System.DateTime):
+                return true;
+            default:
+                return false;
+        }
+    }
+    static void Main()
+    {
+        System.Console.WriteLine(F(1));
+    }
+}";
+            var compilation = base.CreateCSharpCompilation(text);
+
+            // (7,18): error CS0029: Cannot implicitly convert type 'System.DateTime' to 'int?'
+            //             case default(System.DateTime):
+            var expected = Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(System.DateTime)").WithArguments("System.DateTime", "int?");
+
+            compilation.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void SwitchOnNullableInt64WithInt32LabelWithEnum()
+        {
+            var text = @"public static class C
+{
+    public static bool F(long? x)
+    {
+        switch (x)
+        {
+            case (int)Foo.X:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public enum Foo : int { X  = 1 }
+
+    static void Main()
+    {
+        System.Console.WriteLine(F(1));
+    }
+}";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "True");
+            compVerifier.VerifyIL("C.F(long?)",
+@"
+{
+        // Code size       28 (0x1c)
+        .maxstack  2
+        .locals init (long? V_0,
+                      long V_1)
+        IL_0000:  ldarg.0
+        IL_0001:  stloc.0
+        IL_0002:  ldloca.s   V_0
+        IL_0004:  call       ""bool long?.HasValue.get""
+        IL_0009:  brfalse.s  IL_001a
+        IL_000b:  ldloca.s   V_0
+        IL_000d:  call       ""long long?.GetValueOrDefault()""
+        IL_0012:  stloc.1
+        IL_0013:  ldloc.1
+        IL_0014:  ldc.i4.1
+        IL_0015:  conv.i8
+        IL_0016:  bne.un.s   IL_001a
+        IL_0018:  ldc.i4.1
+        IL_0019:  ret
+        IL_001a:  ldc.i4.0
+        IL_001b:  ret
+}"
+            );
+        }
+
         // TODO: Add more targeted tests for verifying switch bucketing
 
         #region "String tests"
