@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.Text
                     chunks.Add(chunk);
                 }
 
-                return new LargeText(chunks.ToImmutableAndFree(), reader.CurrentEncoding, default(ImmutableArray<byte>), checksumAlgorithm);
+                var checksum = CalculateChecksum(stream, checksumAlgorithm);
+                return new LargeText(chunks.ToImmutableAndFree(), reader.CurrentEncoding, checksum, checksumAlgorithm);
             }
         }
 
