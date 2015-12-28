@@ -766,8 +766,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         onException(e);
                     }
-
-                    workList.Execute();
                 };
             if (str == null)
             {
@@ -1003,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            internal void Execute()
+            private void Execute()
             {
                 Debug.Assert(_state != State.Executing);
                 _state = State.Executing;
