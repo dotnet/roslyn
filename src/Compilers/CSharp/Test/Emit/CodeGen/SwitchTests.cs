@@ -1947,7 +1947,7 @@ class Program
 ");
         }
 
-        [Fact]
+        [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
         public void SwitchOnNullableInt64WithInt32Label()
         {
             var text = @"public static class C
@@ -1995,7 +1995,7 @@ class Program
             );
         }
 
-        [Fact]
+        [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
         public void SwitchOnNullableWithNonConstant()
         {
             var text = @"public static class C
@@ -2017,13 +2017,14 @@ class Program
     }
 }";
             var compilation = base.CreateCSharpCompilation(text);
-
+            // (8,13): error CS0150: A constant value is expected
+            //             case i:
             var expected = Diagnostic(ErrorCode.ERR_ConstantExpected, "case i:");
 
             compilation.VerifyDiagnostics(expected);
         }
 
-        [Fact]
+        [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
         public void SwitchOnNullableWithNonCompatibleType()
         {
             var text = @"public static class C
@@ -2045,6 +2046,8 @@ class Program
 }";
             var compilation = base.CreateCSharpCompilation(text);
 
+            // (7,18): error CS0029: Cannot implicitly convert type 'System.DateTime' to 'int?'
+            //             case default(System.DateTime):
             var expected = Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(System.DateTime)").WithArguments("System.DateTime", "int?");
 
             compilation.VerifyDiagnostics(expected);
