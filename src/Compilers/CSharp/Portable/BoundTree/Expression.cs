@@ -108,7 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<IArgument> sourceOrderArguments = ArrayBuilder<IArgument>.GetInstance(this.Arguments.Length);
                 for (int argumentIndex = 0; argumentIndex < this.Arguments.Length; argumentIndex++)
                 {
-                    sourceOrderArguments.Add(DeriveArgument(this.ArgsToParamsOpt.IsDefault ? argumentIndex : this.ArgsToParamsOpt[argumentIndex], argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters));
+                    IArgument argument = DeriveArgument(this.ArgsToParamsOpt.IsDefault ? argumentIndex : this.ArgsToParamsOpt[argumentIndex], argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters);
+                    sourceOrderArguments.Add(argument);
+                    if (argument.ArgumentKind == ArgumentKind.ParamArray)
+                    {
+                        break;
+                    }
                 }
 
                 return sourceOrderArguments.ToImmutableAndFree();
@@ -197,9 +202,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         RefKind refMode = !argumentRefKinds.IsDefaultOrEmpty ? argumentRefKinds[argumentIndex] : RefKind.None;
                         return
                             refMode == RefKind.None
-                            ? ((argumentIndex >= parameters.Length - 1 && parameters.Length > 0 && parameters[parameters.Length - 1].IsParams)
-                                ? (IArgument)new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex))
-                                : new SimpleArgument(parameters[parameterIndex], argument))
+                            ? (argumentIndex >= parameters.Length - 1 &&
+                               parameters.Length > 0 &&
+                               parameters[parameters.Length - 1].IsParams &&
+                               // An argument that is an array of the appropriate type is not a params argument.
+                               (boundArguments.Length > argumentIndex + 1 ||
+                                argument.Type.TypeKind != TypeKind.Array ||
+                                !argument.Type.Equals(parameters[parameters.Length - 1].Type, true))
+                               ? (IArgument)new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex))
+                               : new SimpleArgument(parameters[parameterIndex], argument))
                             : (IArgument)new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
                     }
 
@@ -218,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     paramArrayArguments.Add(boundArguments[index]);
                 }
 
-                return new ArrayCreation(arrayType, paramArrayArguments.ToImmutableAndFree(), boundArguments.Length > 0 ? boundArguments[0].Syntax : null);
+                return new ArrayCreation(arrayType, paramArrayArguments.ToImmutableAndFree(), boundArguments.Length - 1 > firstArgumentElementIndex ? boundArguments[firstArgumentElementIndex].Syntax : null);
             }
 
             return null;
@@ -314,7 +325,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundFieldAccess : IFieldReferenceExpression
     {
         IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
-       
+
+        ISymbol IMemberReferenceExpression.Member => this.FieldSymbol;
+
         IFieldSymbol IFieldReferenceExpression.Field => this.FieldSymbol;
 
         protected override OperationKind ExpressionKind => OperationKind.FieldReferenceExpression;
@@ -325,8 +338,60 @@ namespace Microsoft.CodeAnalysis.CSharp
         IPropertySymbol IPropertyReferenceExpression.Property => this.PropertySymbol;
        
         IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
-       
+
+        ISymbol IMemberReferenceExpression.Member => this.PropertySymbol;
+
         protected override OperationKind ExpressionKind => OperationKind.PropertyReferenceExpression;
+    }
+
+    partial class BoundEventAccess : IEventReferenceExpression
+    {
+        IEventSymbol IEventReferenceExpression.Event => this.EventSymbol;
+
+        IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
+
+        ISymbol IMemberReferenceExpression.Member => this.EventSymbol;
+
+        protected override OperationKind ExpressionKind => OperationKind.EventReferenceExpression;
+    }
+
+    partial class BoundEventAssignmentOperator : IEventAssignmentExpression
+    {
+
+        IEventSymbol IEventAssignmentExpression.Event => this.Event;
+
+        IExpression IEventAssignmentExpression.EventInstance => this.ReceiverOpt;
+
+        IExpression IEventAssignmentExpression.HandlerValue => this.Argument;
+
+        bool IEventAssignmentExpression.Adds => this.IsAddition;
+
+        protected override OperationKind ExpressionKind => OperationKind.EventAssignmentExpression;
+    }
+
+    partial class BoundDelegateCreationExpression : IMethodBindingExpression
+    {
+        IExpression IMemberReferenceExpression.Instance
+        {
+            get
+            {
+                BoundMethodGroup methodGroup = this.Argument as BoundMethodGroup;
+                if (methodGroup != null)
+                {
+                    return methodGroup.InstanceOpt;
+                }
+
+                return null;
+            }
+        }
+
+        bool IMethodBindingExpression.IsVirtual => this.MethodOpt != null && (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) && !this.SuppressVirtualCalls;
+       
+        ISymbol IMemberReferenceExpression.Member => this.MethodOpt;
+       
+        IMethodSymbol IMethodBindingExpression.Method => this.MethodOpt;
+       
+        protected override OperationKind ExpressionKind => OperationKind.MethodBindingExpression;
     }
 
     partial class BoundParameter : IParameterReferenceExpression
@@ -453,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind => OperationKind.LambdaExpression;
     }
 
-    partial class BoundConversion : IConversionExpression
+    partial class BoundConversion : IConversionExpression, IMethodBindingExpression
     {
         IExpression IConversionExpression.Operand => this.Operand;
 
@@ -505,7 +570,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IHasOperatorExpression.UsesOperatorMethod => this.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || this.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined;
 
-        protected override OperationKind ExpressionKind => OperationKind.ConversionExpression;
+        // Consider introducing a different bound node type for method group conversions. These aren't truly conversions, but represent selection of a particular method.
+        protected override OperationKind ExpressionKind => this.ConversionKind == ConversionKind.MethodGroup ? OperationKind.MethodBindingExpression : OperationKind.ConversionExpression;
+
+        IMethodSymbol IMethodBindingExpression.Method => this.ConversionKind == ConversionKind.MethodGroup ? this.SymbolOpt as IMethodSymbol : null;
+       
+        bool IMethodBindingExpression.IsVirtual
+        {
+            get
+            {
+                IMethodSymbol method = ((IMethodBindingExpression)this).Method;
+                return method != null && (method.IsAbstract || method.IsOverride || method.IsVirtual) && !this.SuppressVirtualCalls;
+            }
+        }
+
+        IExpression IMemberReferenceExpression.Instance
+        {
+            get
+            {
+                if (this.ConversionKind == ConversionKind.MethodGroup)
+                {
+                    BoundMethodGroup methodGroup = this.Operand as BoundMethodGroup;
+                    if (methodGroup != null)
+                    {
+                        return methodGroup.InstanceOpt;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        ISymbol IMemberReferenceExpression.Member => ((IMethodBindingExpression)this).Method;
     }
 
     partial class BoundAsOperator : IConversionExpression
@@ -592,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundBaseReference : IInstanceReferenceExpression
     {
-        bool IInstanceReferenceExpression.IsExplicit => true;
+        bool IInstanceReferenceExpression.IsExplicit => this.Syntax.Kind() == SyntaxKind.BaseExpression;
 
         IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
         
@@ -601,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundThisReference : IInstanceReferenceExpression
     {
-        bool IInstanceReferenceExpression.IsExplicit => true;
+        bool IInstanceReferenceExpression.IsExplicit => this.Syntax.Kind() == SyntaxKind.ThisExpression;
 
         IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
 

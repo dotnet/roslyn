@@ -1047,5 +1047,119 @@ End Class
                 Exit Select").WithLocation(38, 13),
                 Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "Case Else").WithLocation(50, 13))
         End Sub
+
+        <Fact>
+        Public Sub ExplicitVsImplicitInstancesVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Overridable Sub M1()
+        Me.M1()
+        M1()
+    End Sub
+    Public Sub M2()
+    End Sub
+End Class
+
+Class D
+    Inherits C
+    Public Overrides Sub M1()
+        MyBase.M1()
+        M1()
+        M2()
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New ExplicitVsImplicitInstanceAnalyzer}, Nothing, Nothing, False,
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "Me").WithLocation(3, 9),
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M1").WithLocation(4, 9),
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "MyBase").WithLocation(13, 9),
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M1").WithLocation(14, 9),
+               Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M2").WithLocation(15, 9))
+        End Sub
+
+        <Fact>
+        Public Sub EventAndMethodReferencesVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Delegate Sub MumbleEventHandler(sender As Object, args As System.EventArgs)
+
+Class C
+    Public Event Mumble As MumbleEventHandler
+
+    Public Sub OnMumble(args As System.EventArgs)
+        AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)
+        RaiseEvent Mumble(Me, args)
+        ' Dim o As object = AddressOf Mumble
+        Dim d As MumbleEventHandler = AddressOf Mumbler
+        Mumbler(Me, Nothing)
+        RemoveHandler Mumble, AddressOf Mumbler
+    End Sub
+
+    Private Sub Mumbler(sender As Object, args As System.EventArgs) 
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
+                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(7, 20),
+                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(7, 51),
+                 Diagnostic(MemberReferenceAnalyzer.FieldReferenceDescriptor.Id, "Mumble").WithLocation(8, 20),
+                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(10, 39),
+                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(12, 9),
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(12, 9),
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 23),
+                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(12, 31))
+        End Sub
+
+        <Fact>
+        Public Sub ParamArraysVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M0(a As Integer, ParamArray b As Integer())
+    End Sub
+
+    Public Sub M1()
+        M0(1)
+        M0(1, 2)
+        M0(1, 2, 3, 4)
+        M0(1, 2, 3, 4, 5)
+        M0(1, 2, 3, 4, 5, 6)
+        M0(1, New Integer() { 2, 3, 4 })
+        M0(1, New Integer() { 2, 3, 4, 5 })
+        M0(1, New Integer() { 2, 3, 4, 5, 6 })
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New ParamsArrayTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5)").WithLocation(9, 9),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5)").WithLocation(9, 9),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6)").WithLocation(10, 9),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6)").WithLocation(10, 9),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
+                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15))
+        End Sub
     End Class
 End Namespace

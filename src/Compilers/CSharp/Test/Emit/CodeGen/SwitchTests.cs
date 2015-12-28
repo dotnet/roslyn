@@ -6689,7 +6689,7 @@ namespace ConsoleApplication1
             compVerifier.VerifyIL("ConsoleApplication1.Program.SwtchTest",
 @"
 {
-  // Code size       96 (0x60)
+  // Code size       94 (0x5e)
   .maxstack  2
   .locals init (int? V_0, //i
                 int V_1,
@@ -6715,22 +6715,20 @@ namespace ConsoleApplication1
   IL_0033:  call       ""void System.Console.WriteLine(string)""
   IL_0038:  ldloc.0
   IL_0039:  stloc.2
-  IL_003a:  ldc.i4.2
-  IL_003b:  stloc.1
-  IL_003c:  ldloca.s   V_2
-  IL_003e:  call       ""bool int?.HasValue.get""
-  IL_0043:  brtrue.s   IL_0050
-  IL_0045:  ldloca.s   V_3
-  IL_0047:  initobj    ""int?""
-  IL_004d:  ldloc.3
-  IL_004e:  br.s       IL_005e
-  IL_0050:  ldloca.s   V_2
-  IL_0052:  call       ""int int?.GetValueOrDefault()""
-  IL_0057:  ldloc.1
-  IL_0058:  add
-  IL_0059:  newobj     ""int?..ctor(int)""
-  IL_005e:  stloc.0
-  IL_005f:  ret
+  IL_003a:  ldloca.s   V_2
+  IL_003c:  call       ""bool int?.HasValue.get""
+  IL_0041:  brtrue.s   IL_004e
+  IL_0043:  ldloca.s   V_3
+  IL_0045:  initobj    ""int?""
+  IL_004b:  ldloc.3
+  IL_004c:  br.s       IL_005c
+  IL_004e:  ldloca.s   V_2
+  IL_0050:  call       ""int int?.GetValueOrDefault()""
+  IL_0055:  ldc.i4.2
+  IL_0056:  add
+  IL_0057:  newobj     ""int?..ctor(int)""
+  IL_005c:  stloc.0
+  IL_005d:  ret
 }
 "
             );

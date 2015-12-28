@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             var fn = script.CreateDelegate();
 
             Assert.Equal(3, fn().Result);
-            AssertEx.ThrowsArgumentException("globals", () => fn(new object()));
+            Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
         }
 
         [Fact]
@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             var script = CSharpScript.Create<int>("X + Y", globalsType: typeof(Globals));
             var fn = script.CreateDelegate();
 
-            AssertEx.ThrowsArgumentException("globals", () => fn());
-            AssertEx.ThrowsArgumentException("globals", () => fn(new object()));
+            Assert.ThrowsAsync<ArgumentException>("globals", () => fn());
+            Assert.ThrowsAsync<ArgumentException>("globals", () => fn(new object()));
             Assert.Equal(4, fn(new Globals { X = 1, Y = 3 }).Result);
         }
 
@@ -159,7 +159,7 @@ d.Do()"
             var script = CSharpScript.Create("X + Y");
 
             // Global variables passed to a script without a global type
-            AssertEx.ThrowsArgumentException("globals", () => script.RunAsync(new Globals { X = 1, Y = 2 }));
+            Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new Globals { X = 1, Y = 2 }));
         }
 
         [Fact]
@@ -168,7 +168,7 @@ d.Do()"
             var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
 
             //  The script requires access to global variables but none were given
-            AssertEx.ThrowsArgumentException("globals", () => script.RunAsync());
+            Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync());
         }
 
         [Fact]
@@ -177,7 +177,7 @@ d.Do()"
             var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
 
             //  The globals of type 'System.Object' is not assignable to 'Microsoft.CodeAnalysis.CSharp.Scripting.Test.ScriptTests+Globals'
-            AssertEx.ThrowsArgumentException("globals", () => script.RunAsync(new object()));
+            Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new object()));
         }
 
         [Fact]
@@ -185,7 +185,7 @@ d.Do()"
         {
             var state = await CSharpScript.RunAsync("X + Y", globals: new Globals());
 
-            AssertEx.ThrowsArgumentNull("previousState", () => state.Script.ContinueAsync(null));
+            await Assert.ThrowsAsync<ArgumentNullException>("previousState", () => state.Script.ContinueAsync(null));
         }
 
         [Fact]
@@ -194,7 +194,7 @@ d.Do()"
             var state1 = await CSharpScript.RunAsync("X + Y + 1", globals: new Globals());
             var state2 = await CSharpScript.RunAsync("X + Y + 2", globals: new Globals());
 
-            AssertEx.ThrowsArgumentException("previousState", () => state1.Script.ContinueAsync(state2));
+            await Assert.ThrowsAsync<ArgumentException>("previousState", () => state1.Script.ContinueAsync(state2));
         }
 
         [Fact]

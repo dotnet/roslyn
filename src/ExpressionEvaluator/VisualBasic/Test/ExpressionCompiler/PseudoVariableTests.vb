@@ -836,7 +836,7 @@ End Class"
                 assemblyNameB,
                 ImmutableArray.Create(MscorlibRef, referenceA2).AddIntrinsicAssembly(),
                 exeBytes,
-                New SymReader(pdbBytes))
+                SymReaderFactory.CreateReader(pdbBytes))
 
             ' GetType(Exception), GetType(A(Of B(Of Object))), GetType(B(Of A(Of Object)()))
             Dim context = CreateMethodContext(
@@ -925,8 +925,8 @@ End Class"
 
             Dim modulesBuilder = ArrayBuilder(Of ModuleInstance).GetInstance()
             modulesBuilder.Add(MscorlibRef.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing))
-            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage:=exeA, symReader:=New SymReader(pdbA)))
-            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage:=exeB, symReader:=New SymReader(pdbB)))
+            modulesBuilder.Add(referenceA.ToModuleInstance(fullImage:=exeA, symReader:=SymReaderFactory.CreateReader(pdbA)))
+            modulesBuilder.Add(referenceB.ToModuleInstance(fullImage:=exeB, symReader:=SymReaderFactory.CreateReader(pdbB)))
             modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing))
 
             Using runtime = New RuntimeInstance(modulesBuilder.ToImmutableAndFree())

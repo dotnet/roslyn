@@ -260,9 +260,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(SparseSwitchDescriptor, 
-                                                NoDefaultSwitchDescriptor,
-                                                OnlyDefaultSwitchDescriptor); }
+            get
+            {
+                return ImmutableArray.Create(SparseSwitchDescriptor,
+                                              NoDefaultSwitchDescriptor,
+                                              OnlyDefaultSwitchDescriptor);
+            }
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -280,7 +283,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      {
                          foreach (ICaseClause clause in switchCase.Clauses)
                          {
-                            switch (clause.CaseKind)
+                             switch (clause.CaseKind)
                              {
                                  case CaseKind.SingleValue:
                                      {
@@ -382,7 +385,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
 
                      long span = maxCaseValue - minCaseValue + 1;
-                     if (caseValueCount == 0 && !hasDefault || 
+                     if (caseValueCount == 0 && !hasDefault ||
                          caseValueCount != 0 && span / caseValueCount > 100)
                      {
                          Report(operationContext, switchOperation.Value.Syntax, SparseSwitchDescriptor);
@@ -453,9 +456,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(BigParamarrayArgumentsDescriptor, 
-                OutOfNumericalOrderArgumentsDescriptor, 
-                UseDefaultArgumentDescriptor); }
+            get
+            {
+                return ImmutableArray.Create(BigParamarrayArgumentsDescriptor,
+              OutOfNumericalOrderArgumentsDescriptor,
+              UseDefaultArgumentDescriptor);
+            }
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -473,7 +479,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          }
 
                          TestAscendingArgument(operationContext, argument.Value, ref priorArgumentValue);
-                         
+
                          if (argument.ArgumentKind == ArgumentKind.ParamArray)
                          {
                              IArrayCreationExpression arrayArgument = argument.Value as IArrayCreationExpression;
@@ -556,7 +562,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.LiteralExpression);
         }
     }
-    
+
     /// <summary>Analyzer used to test IArgument IOperations.</summary>
     public class NullArgumentTestAnalyzer : DiagnosticAnalyzer
     {
@@ -809,6 +815,214 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
         {
             context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
+        }
+    }
+    
+    /// <summary>Analyzer used to test for explicit vs. implicit instance references.</summary>
+    public class ExplicitVsImplicitInstanceAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor ImplicitInstanceDescriptor = new DiagnosticDescriptor(
+            "ImplicitInstance",
+            "Implicit Instance",
+            "Implicit instance found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ExplicitInstanceDescriptor = new DiagnosticDescriptor(
+            "ExplicitInstance",
+            "Explicit Instance",
+            "Explicit instance found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(ImplicitInstanceDescriptor, ExplicitInstanceDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IInstanceReferenceExpression instanceReference = (IInstanceReferenceExpression)operationContext.Operation;
+                     operationContext.ReportDiagnostic(Diagnostic.Create(instanceReference.IsExplicit? ExplicitInstanceDescriptor : ImplicitInstanceDescriptor, instanceReference.Syntax.GetLocation()));
+                 },
+                 OperationKind.InstanceReferenceExpression,
+                 OperationKind.BaseClassInstanceReferenceExpression);
+        }
+    }
+
+    /// <summary>Analyzer used to test for member references.</summary>
+    public class MemberReferenceAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor EventReferenceDescriptor = new DiagnosticDescriptor(
+            "EventReference",
+            "Event Reference",
+            "Event reference found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor HandlerAddedDescriptor = new DiagnosticDescriptor(
+            "HandlerAdded",
+            "Handler Added",
+            "Event handler added.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor HandlerRemovedDescriptor = new DiagnosticDescriptor(
+            "HandlerRemoved",
+            "Handler Removed",
+            "Event handler removed.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor PropertyReferenceDescriptor = new DiagnosticDescriptor(
+            "PropertyReference",
+            "Property Reference",
+            "Property reference found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor FieldReferenceDescriptor = new DiagnosticDescriptor(
+            "FieldReference",
+            "Field Reference",
+            "Field reference found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MethodBindingDescriptor = new DiagnosticDescriptor(
+            "MethodBinding",
+            "Method Binding",
+            "Method binding found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(EventReferenceDescriptor, HandlerAddedDescriptor, HandlerRemovedDescriptor, PropertyReferenceDescriptor, FieldReferenceDescriptor, MethodBindingDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(EventReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.EventReferenceExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IEventAssignmentExpression eventAssignment = (IEventAssignmentExpression)operationContext.Operation;
+                     if (eventAssignment.Event.Name == "Mumble")
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.EventAssignmentExpression);
+
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    operationContext.ReportDiagnostic(Diagnostic.Create(EventReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                },
+                OperationKind.EventAssignmentExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(PropertyReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.PropertyReferenceExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(FieldReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.FieldReferenceExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(MethodBindingDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.MethodBindingExpression);
+        }
+    }
+    
+    /// <summary>Analyzer used to test IOperation treatment of params array arguments.</summary>
+    public class ParamsArrayTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor LongParamsDescriptor = new DiagnosticDescriptor(
+            "LongParams",
+            "Long Params",
+            "Params array argument has more than 3 elements.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(LongParamsDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
+
+                     foreach (IArgument argument in invocation.ArgumentsInSourceOrder)
+                     {
+                         if (argument.Parameter.IsParams)
+                         {
+                             IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
+                             if (arrayValue != null)
+                             {
+                                 Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
+                                 if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
+                                 {
+                                     operationContext.ReportDiagnostic(Diagnostic.Create(LongParamsDescriptor, argument.Value.Syntax.GetLocation()));
+                                 }
+                             }
+                         }
+                     }
+
+                     foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
+                     {
+                         if (argument.Parameter.IsParams)
+                         {
+                             IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
+                             if (arrayValue != null)
+                             {
+                                 Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
+                                 if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
+                                 {
+                                     operationContext.ReportDiagnostic(Diagnostic.Create(LongParamsDescriptor, argument.Value.Syntax.GetLocation()));
+                                 }
+                             }
+                         }
+                     }
+                 },
+                 OperationKind.InvocationExpression);
+        }
+
+        static long IntegralValue(object value)
+        {
+            if (value is long)
+            {
+                return (long)value;
+            }
+
+            if (value is int)
+            {
+                return (int)value;
+            }
+
+            return 0;
         }
     }
 }

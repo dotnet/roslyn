@@ -784,7 +784,7 @@ class C
 ";
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NullArgumentTestAnalyzer() }, null, null, false, 
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NullArgumentTestAnalyzer() }, null, null, false,
                 Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(16, 12),
                 Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(17, 16),
                 Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(18, 12),
@@ -823,7 +823,7 @@ class C
 ";
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberInitializerTestAnalyzer() }, null, null, false, 
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberInitializerTestAnalyzer() }, null, null, false,
             Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, "Field = 2").WithLocation(19, 30),
             Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, @"Property1 = """"").WithLocation(20, 30),
             Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, @"Property1 = """"").WithLocation(21, 30),
@@ -979,6 +979,118 @@ public class C
                 break;").WithLocation(18, 13),
                 Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "default:").WithLocation(19, 13),
                 Diagnostic(CaseTestAnalyzer.HasDefaultCaseDescriptor.Id, "default:").WithLocation(33, 13));
+        }
+
+        [Fact]
+        public void ImplicitVsExplicitInstancesCSharp()
+        {
+            const string source = @"
+class C
+{
+    public virtual void M1()
+    {
+        this.M1();
+        M1();
+    }
+    public void M2()
+    {
+    }
+}
+
+class D : C
+{
+    public override void M1()
+    {
+        base.M1();
+        M1();
+        M2();
+    }
+}";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ExplicitVsImplicitInstanceAnalyzer() }, null, null, false,
+                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "this").WithLocation(6, 9),
+                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M1").WithLocation(7, 9),
+                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "base").WithLocation(18, 9),
+                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M1").WithLocation(19, 9),
+                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M2").WithLocation(20, 9)
+                );
+        }
+
+        [Fact]
+        public void EventAndMethodReferencesCSharp()
+        {
+            const string source = @"
+public delegate void MumbleEventHandler(object sender, System.EventArgs args);
+
+class C
+{
+    public event MumbleEventHandler Mumble;
+
+    public void OnMumble(System.EventArgs args)
+    {
+        Mumble += new MumbleEventHandler(Mumbler);
+        Mumble(this, args);
+        object o = Mumble;
+        MumbleEventHandler d = Mumbler;
+        Mumbler(this, null);
+        Mumble -= new MumbleEventHandler(Mumbler);
+    }
+
+    private void Mumbler(object sender, System.EventArgs args) 
+    {
+    }
+}";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberReferenceAnalyzer() }, null, null, false,
+                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += new MumbleEventHandler(Mumbler)").WithLocation(10, 9),
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble += new MumbleEventHandler(Mumbler)").WithLocation(10, 9),
+                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "new MumbleEventHandler(Mumbler)").WithLocation(10, 19),
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(11, 9),
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 20),
+                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(13, 32),
+                Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "Mumble -= new MumbleEventHandler(Mumbler)").WithLocation(15, 9),
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble -= new MumbleEventHandler(Mumbler)").WithLocation(15, 9),
+                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "new MumbleEventHandler(Mumbler)").WithLocation(15, 19)
+                );
+        }
+        
+        [Fact]
+        public void ParamsArraysCSharp()
+        {
+            const string source = @"
+class C
+{
+    public void M0(int a, params int[] b)
+    {
+    }
+
+    public void M1()
+    {
+        M0(1);
+        M0(1, 2);
+        M0(1, 2, 3, 4);
+        M0(1, 2, 3, 4, 5);
+        M0(1, 2, 3, 4, 5, 6);
+        M0(1, new int[] { 2, 3, 4 });
+        M0(1, new int[] { 2, 3, 4, 5 });
+        M0(1, new int[] { 2, 3, 4, 5, 6 });
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ParamsArrayTestAnalyzer() }, null, null, false,
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(13, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(13, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(14, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(14, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }").WithLocation(16, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }").WithLocation(16, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15),
+                Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5, 6 }").WithLocation(17, 15)
+                );
         }
     }
 }
