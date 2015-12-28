@@ -217,7 +217,11 @@ lSelect:
                 Case BoundKind.DirectCast
                     Return VisitDirectCast(DirectCast(node, BoundDirectCast))
                 Case BoundKind.FieldAccess
-                    Return VisitFieldAccess(DirectCast(node, BoundFieldAccess))
+                    Dim fieldAccess = DirectCast(node, BoundFieldAccess)
+                    If fieldAccess.FieldSymbol.IsCapturedFrame Then
+                        Return CreateLiteralExpression(node)
+                    End If
+                    Return VisitFieldAccess(fieldAccess)
                 Case BoundKind.Lambda
                     Return VisitLambda(DirectCast(node, BoundLambda))
                 Case BoundKind.NewT
