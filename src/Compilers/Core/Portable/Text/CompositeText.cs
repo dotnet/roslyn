@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Combines continguous segments with lengths that are each less than or equal to the specified segment size.
+        /// Combines contiguous segments with lengths that are each less than or equal to the specified segment size.
         /// </summary>
         private static void CombineSegments(ArrayBuilder<SourceText> segments, int segmentSize)
         {

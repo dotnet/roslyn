@@ -127,8 +127,8 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new InvalidDataException();
             }
 
-            Debug.Assert(encoding != null);
-            return new StringText(text, encoding, checksumAlgorithm: checksumAlgorithm);
+            var checksum = CalculateChecksum(stream, checksumAlgorithm);
+            return new StringText(text, encoding, checksum, checksumAlgorithm);
         }
 
         /// <summary>
@@ -171,8 +171,9 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new InvalidDataException();
             }
 
-            Debug.Assert(encoding != null);
-            return new StringText(text, encoding, checksumAlgorithm: checksumAlgorithm);
+            // Since we have the bytes in hand, it's easy to compute the checksum.
+            var checksum = CalculateChecksum(buffer, 0, length, checksumAlgorithm);
+            return new StringText(text, encoding, checksum, checksumAlgorithm);
         }
 
         /// <summary>
@@ -430,7 +431,16 @@ namespace Microsoft.CodeAnalysis.Text
             return _lazyChecksum;
         }
 
-        private static ImmutableArray<byte> CalculateChecksum(Stream stream, SourceHashAlgorithm algorithmId)
+        private static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
+        {
+            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
+            {
+                Debug.Assert(algorithm != null);
+                return ImmutableArray.Create(algorithm.ComputeHash(buffer, offset, count));
+            }
+        }
+
+        internal static ImmutableArray<byte> CalculateChecksum(Stream stream, SourceHashAlgorithm algorithmId)
         {
             using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
             {

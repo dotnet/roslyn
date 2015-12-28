@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableDictionary<string, SuppressMessageInfo>>();
         }
 
-        public static Diagnostic ApplySourceSuppressions(Diagnostic diagnostic, Compilation compilation, ISymbol symbolOpt = null)
+        public Diagnostic ApplySourceSuppressions(Diagnostic diagnostic, ISymbol symbolOpt = null)
         {
             if (diagnostic.IsSuppressed)
             {
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             SuppressMessageInfo info;
-            if (IsDiagnosticSuppressed(diagnostic, compilation, out info))
+            if (IsDiagnosticSuppressed(diagnostic, out info))
             {
                 // Attach the suppression info to the diagnostic.
                 diagnostic = diagnostic.WithIsSuppressed(true);
@@ -95,10 +95,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return diagnostic;
         }
 
-        public static bool IsDiagnosticSuppressed(Diagnostic diagnostic, Compilation compilation, out AttributeData suppressingAttribute)
+        public bool IsDiagnosticSuppressed(Diagnostic diagnostic, out AttributeData suppressingAttribute)
         {
             SuppressMessageInfo info;
-            if (IsDiagnosticSuppressed(diagnostic, compilation, out info))
+            if (IsDiagnosticSuppressed(diagnostic, out info))
             {
                 suppressingAttribute = info.Attribute;
                 return true;
@@ -106,12 +106,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             suppressingAttribute = null;
             return false;
-        }
-
-        private static bool IsDiagnosticSuppressed(Diagnostic diagnostic, Compilation compilation, out SuppressMessageInfo info)
-        {
-            var suppressMessageState = AnalyzerDriver.GetOrCreateCachedCompilationData(compilation).SuppressMessageAttributeState;
-            return suppressMessageState.IsDiagnosticSuppressed(diagnostic, out info);
         }
 
         private bool IsDiagnosticSuppressed(Diagnostic diagnostic, out SuppressMessageInfo info, ISymbol symbolOpt = null)

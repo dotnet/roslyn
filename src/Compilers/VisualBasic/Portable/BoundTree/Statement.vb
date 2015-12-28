@@ -1001,4 +1001,72 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.ExpressionStatement
         End Function
     End Class
+
+    Partial Class BoundAddRemoveHandlerStatement
+        Implements IEventAssignmentExpression
+
+        Protected MustOverride ReadOnly Property IAdds As Boolean Implements IEventAssignmentExpression.Adds
+
+        Private ReadOnly Property IConstantValue As [Optional](Of Object) Implements IExpression.ConstantValue
+            Get
+                Return New [Optional](Of Object)()
+            End Get
+        End Property
+
+        Private ReadOnly Property IEvent As IEventSymbol Implements IEventAssignmentExpression.Event
+            Get
+                Dim eventAccess As BoundEventAccess = TryCast(Me.EventAccess, BoundEventAccess)
+                If eventAccess IsNot Nothing Then
+                    Return eventAccess.EventSymbol
+                End If
+
+                Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property IEventInstance As IExpression Implements IEventAssignmentExpression.EventInstance
+            Get
+                Dim eventAccess As BoundEventAccess = TryCast(Me.EventAccess, BoundEventAccess)
+                If eventAccess IsNot Nothing Then
+                    Return eventAccess.ReceiverOpt
+                End If
+
+                Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property IResultType As ITypeSymbol Implements IExpression.ResultType
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property IHandlerValue As IExpression Implements IEventAssignmentExpression.HandlerValue
+            Get
+                Return Me.Handler
+            End Get
+        End Property
+
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.EventAssignmentExpression
+        End Function
+    End Class
+
+    Partial Class BoundAddHandlerStatement
+
+        Protected Overrides ReadOnly Property IAdds As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+    End Class
+
+    Partial Class BoundRemoveHandlerStatement
+
+        Protected Overrides ReadOnly Property IAdds As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+    End Class
 End Namespace

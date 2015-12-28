@@ -295,7 +295,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             AttributeData attribute;
-            if (!SuppressMessageAttributeState.IsDiagnosticSuppressed(this, compilation, out attribute))
+            var suppressMessageState = new SuppressMessageAttributeState(compilation);
+            if (!suppressMessageState.IsDiagnosticSuppressed(this, out attribute))
             {
                 attribute = null;
             }

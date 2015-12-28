@@ -1091,6 +1091,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+            Get
+                Return Me.PropertySymbol
+            End Get
+        End Property
+
         Private ReadOnly Property IProperty As IPropertySymbol Implements IPropertyReferenceExpression.Property
             Get
                 Return Me.PropertySymbol
@@ -1099,6 +1105,64 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.PropertyReferenceExpression
+        End Function
+    End Class
+
+    Partial Class BoundEventAccess
+        Implements IEventReferenceExpression
+
+        Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
+            Get
+                Return Me.ReceiverOpt
+            End Get
+        End Property
+
+        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+            Get
+                Return Me.EventSymbol
+            End Get
+        End Property
+
+        Private ReadOnly Property IEvent As IEventSymbol Implements IEventReferenceExpression.Event
+            Get
+                Return Me.EventSymbol
+            End Get
+        End Property
+
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.EventReferenceExpression
+        End Function
+    End Class
+
+    Partial Class BoundDelegateCreationExpression
+        Implements IMethodBindingExpression
+
+        Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
+            Get
+                Return Me.ReceiverOpt
+            End Get
+        End Property
+
+        Private ReadOnly Property IIsVirtual As Boolean Implements IMethodBindingExpression.IsVirtual
+            Get
+                Return Me.Method IsNot Nothing AndAlso (Me.Method.IsOverridable OrElse Me.Method.IsOverrides OrElse Me.Method.IsMustOverride) AndAlso Not Me.SuppressVirtualCalls
+            End Get
+        End Property
+
+        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+            Get
+                Return Me.Method
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethod As IMethodSymbol Implements IMethodBindingExpression.Method
+            Get
+                Return Me.Method
+            End Get
+        End Property
+
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.MethodBindingExpression
         End Function
     End Class
 
@@ -1114,6 +1178,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
             Get
                 Return Me.ReceiverOpt
+            End Get
+        End Property
+
+        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+            Get
+                Return Me.FieldSymbol
             End Get
         End Property
 

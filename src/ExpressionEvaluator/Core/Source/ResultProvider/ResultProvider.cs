@@ -766,6 +766,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         onException(e);
                     }
+
+                    workList.Execute();
                 };
             if (str == null)
             {
