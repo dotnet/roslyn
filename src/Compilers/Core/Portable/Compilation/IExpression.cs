@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         ITypeSymbol ResultType { get; }
         /// <summary>
-        /// If the expression evaluates to a constant value, the value of the expression, and otherwise null.
+        /// If the expression evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression, and otherwise <see cref="Optional{Object}.HasValue"/> is false.
         /// </summary>
-        object ConstantValue { get; }
+        Optional<object> ConstantValue { get; }
     }
 
     /// <summary>
@@ -205,18 +205,23 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a reference to a member of a class or struct.
+    /// Represents a reference to a member of a class, struct, or interface.
     /// </summary>
     public interface IMemberReferenceExpression : IReferenceExpression
     {
         /// <summary>
-        /// Instance of the class or struct. Null if the reference is to a static/shared member.
+        /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
         IExpression Instance { get; }
+
+        /// <summary>
+        /// Referenced member.  
+        /// </summary>  
+        ISymbol Member { get; }
     }
 
     /// <summary>
-    /// Represents a reference to a field of a class or struct.
+    /// Represents a reference to a field.
     /// </summary>
     public interface IFieldReferenceExpression : IMemberReferenceExpression
     {
@@ -227,14 +232,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a reference to a method of a class or struct.
+    /// Represents a reference to a method other than as the target of an invocation.
     /// </summary>
-    public interface IMethodReferenceExpression : IMemberReferenceExpression
+    public interface IMethodBindingExpression : IMemberReferenceExpression
     {
         /// <summary>
         /// Referenced method.
         /// </summary>
         IMethodSymbol Method { get; }
+
         /// <summary>
         /// Indicates whether the reference uses virtual semantics.
         /// </summary>
@@ -242,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
     
     /// <summary>
-    /// Represents a reference to a property of a class or struct.
+    /// Represents a reference to a property.
     /// </summary>
     public interface IPropertyReferenceExpression : IMemberReferenceExpression
     {
@@ -250,6 +256,43 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Referenced property.
         /// </summary>
         IPropertySymbol Property { get; }
+    }
+
+    /// <summary>
+    /// Represents a reference to an event.
+    /// </summary>
+    public interface IEventReferenceExpression : IMemberReferenceExpression
+    {
+        /// <summary>
+        /// Referenced event.
+        /// </summary>
+        IEventSymbol Event { get; }
+    }
+
+    /// <summary>
+    /// Represents a binding of an event.
+    /// </summary>
+    public interface IEventAssignmentExpression : IExpression
+    {
+        /// <summary>
+        /// Event being bound.
+        /// </summary>
+        IEventSymbol Event { get; }
+
+        /// <summary>
+        /// Instance used to refer to the event being bound.
+        /// </summary>
+        IExpression EventInstance { get; }
+
+        /// <summary>
+        /// Handler supplied for the event.
+        /// </summary>
+        IExpression HandlerValue { get; }
+
+        /// <summary>
+        /// True for adding a binding, false for removing one.
+        /// </summary>
+        bool Adds { get; }
     }
 
     /// <summary>

@@ -9,6 +9,143 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     // These analyzers are not intended for any actual use. They exist solely to test IOperation support.
 
+    /// <summary>Analyzer used to test for explicit vs. implicit instance references.</summary>
+    public class ExplicitVsImplicitInstanceAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor ImplicitInstanceDescriptor = new DiagnosticDescriptor(
+            "ImplicitInstance",
+            "Implicit Instance",
+            "Implicit instance found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ExplicitInstanceDescriptor = new DiagnosticDescriptor(
+            "ExplicitInstance",
+            "Explicit Instance",
+            "Explicit instance found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(ImplicitInstanceDescriptor, ExplicitInstanceDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IInstanceReferenceExpression instanceReference = (IInstanceReferenceExpression)operationContext.Operation;
+                     operationContext.ReportDiagnostic(Diagnostic.Create(instanceReference.IsExplicit ? ExplicitInstanceDescriptor : ImplicitInstanceDescriptor, instanceReference.Syntax.GetLocation()));
+                 },
+                 OperationKind.InstanceReferenceExpression,
+                 OperationKind.BaseClassInstanceReferenceExpression);
+        }
+    }
+
+    /// <summary>Analyzer used to test for member references.</summary>
+    public class MemberReferenceAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor EventReferenceDescriptor = new DiagnosticDescriptor(
+            "EventReference",
+            "Event Reference",
+            "Event reference found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor HandlerAddedDescriptor = new DiagnosticDescriptor(
+            "HandlerAdded",
+            "Handler Added",
+            "Event handler added.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor HandlerRemovedDescriptor = new DiagnosticDescriptor(
+            "HandlerRemoved",
+            "Handler Removed",
+            "Event handler removed.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor PropertyReferenceDescriptor = new DiagnosticDescriptor(
+            "PropertyReference",
+            "Property Reference",
+            "Property reference found.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor FieldReferenceDescriptor = new DiagnosticDescriptor(
+           "FieldReference",
+           "Field Reference",
+           "Field reference found.",
+           "Testing",
+           DiagnosticSeverity.Warning,
+           isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MethodBindingDescriptor = new DiagnosticDescriptor(
+          "MethodBinding",
+          "Method Binding",
+          "Method binding found.",
+          "Testing",
+          DiagnosticSeverity.Warning,
+          isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(EventReferenceDescriptor, HandlerAddedDescriptor, HandlerRemovedDescriptor, PropertyReferenceDescriptor, FieldReferenceDescriptor, MethodBindingDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(EventReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.EventReferenceExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IEventAssignmentExpression eventAssignment = (IEventAssignmentExpression)operationContext.Operation;
+                     if (eventAssignment.Event.Name == "Mumble")
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds ? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.EventAssignmentExpression);
+
+            context.RegisterOperationAction(
+                (operationContext) =>
+                {
+                    operationContext.ReportDiagnostic(Diagnostic.Create(EventReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                },
+                OperationKind.EventAssignmentExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(PropertyReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.PropertyReferenceExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(FieldReferenceDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.FieldReferenceExpression);
+
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     operationContext.ReportDiagnostic(Diagnostic.Create(MethodBindingDescriptor, operationContext.Operation.Syntax.GetLocation()));
+                 },
+                 OperationKind.MethodBindingExpression);
+        }
+    }
+
     /// <summary>Analyzer used to test for bad statements and expressions.</summary>
     public class BadStuffTestAnalyzer : DiagnosticAnalyzer
     {
@@ -108,13 +245,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                              IExpression conditionLeft = condition.Left;
                              IExpression conditionRight = condition.Right;
 
-                             if (conditionRight.ConstantValue != null &&
+                             if (conditionRight.ConstantValue.HasValue &&
                                  conditionRight.ResultType.SpecialType == SpecialType.System_Int32 &&
                                  conditionLeft.Kind == OperationKind.LocalReferenceExpression)
                              {
                                  // Test is known to be a comparison of a local against a constant.
 
-                                 int testValue = (int)conditionRight.ConstantValue;
+                                 int testValue = (int)conditionRight.ConstantValue.Value;
                                  ILocalSymbol testVariable = ((ILocalReferenceExpression)conditionLeft).Local;
 
                                  if (forLoop.Before.Length == 1)
@@ -125,12 +262,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          IAssignmentExpression setupAssignment = (IAssignmentExpression)((IExpressionStatement)setup).Expression;
                                          if (setupAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
                                              ((ILocalReferenceExpression)setupAssignment.Target).Local == testVariable &&
-                                             setupAssignment.Value.ConstantValue != null &&
+                                             setupAssignment.Value.ConstantValue.HasValue &&
                                              setupAssignment.Value.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
                                              // Setup is known to be an assignment of a constant to the local used in the test.
 
-                                             int initialValue = (int)setupAssignment.Value.ConstantValue;
+                                             int initialValue = (int)setupAssignment.Value.ConstantValue.Value;
 
                                              if (forLoop.AtLoopBottom.Length == 1)
                                              {
@@ -156,7 +293,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                              if (!advanceOperation.UsesOperatorMethod &&
                                                                  advanceOperation.Left.Kind == OperationKind.LocalReferenceExpression &&
                                                                  ((ILocalReferenceExpression)advanceOperation.Left).Local == testVariable &&
-                                                                 advanceOperation.Right.ConstantValue != null &&
+                                                                 advanceOperation.Right.ConstantValue.HasValue &&
                                                                  advanceOperation.Right.ResultType.SpecialType == SpecialType.System_Int32)
                                                              {
                                                                  // Advance binary operation is known to involve a reference to the local used in the test and a constant.
@@ -171,7 +308,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                                          if (advanceAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
                                                              ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable &&
-                                                             advanceAssignment.Value.ConstantValue != null &&
+                                                             advanceAssignment.Value.ConstantValue.HasValue &&
                                                              advanceAssignment.Value.ResultType.SpecialType == SpecialType.System_Int32)
                                                          {
                                                              // Advance binary operation is known to involve a reference to the local used in the test and a constant.
@@ -182,7 +319,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                                                      if (advanceIncrement != null)
                                                      {
-                                                         int incrementValue = (int)advanceIncrement.ConstantValue;
+                                                         int incrementValue = (int)advanceIncrement.ConstantValue.Value;
                                                          if (advanceOperationCode == BinaryOperationKind.IntegerSubtract)
                                                          {
                                                              advanceOperationCode = BinaryOperationKind.IntegerAdd;
@@ -287,10 +424,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          hasNonDefault = true;
                                          ISingleValueCaseClause singleValueClause = (ISingleValueCaseClause)clause;
                                          IExpression singleValueExpression = singleValueClause.Value;
-                                         if (singleValueExpression?.ConstantValue != null &&
+                                         if (singleValueExpression != null &&
+                                             singleValueExpression.ConstantValue.HasValue &&
                                              singleValueExpression.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
-                                             int singleValue = (int)singleValueExpression.ConstantValue;
+                                             int singleValue = (int)singleValueExpression.ConstantValue.Value;
                                              caseValueCount += IncludeClause(singleValue, singleValue, ref minCaseValue, ref maxCaseValue);
                                          }
                                          else
@@ -306,13 +444,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          IRangeCaseClause rangeClause = (IRangeCaseClause)clause;
                                          IExpression rangeMinExpression = rangeClause.MinimumValue;
                                          IExpression rangeMaxExpression = rangeClause.MaximumValue;
-                                         if (rangeMinExpression?.ConstantValue != null &&
+                                         if (rangeMinExpression != null &&
+                                             rangeMinExpression.ConstantValue.HasValue &&
                                              rangeMinExpression.ResultType.SpecialType == SpecialType.System_Int32 &&
-                                             rangeMaxExpression?.ConstantValue != null &&
+                                             rangeMaxExpression != null &&
+                                             rangeMaxExpression.ConstantValue.HasValue &&
                                              rangeMaxExpression.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
-                                             int rangeMinValue = (int)rangeMinExpression.ConstantValue;
-                                             int rangeMaxValue = (int)rangeMaxExpression.ConstantValue;
+                                             int rangeMinValue = (int)rangeMinExpression.ConstantValue.Value;
+                                             int rangeMaxValue = (int)rangeMaxExpression.ConstantValue.Value;
                                              caseValueCount += IncludeClause(rangeMinValue, rangeMaxValue, ref minCaseValue, ref maxCaseValue);
                                          }
                                          else
@@ -327,12 +467,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                          hasNonDefault = true;
                                          IRelationalCaseClause relationalClause = (IRelationalCaseClause)clause;
                                          IExpression relationalValueExpression = relationalClause.Value;
-                                         if (relationalValueExpression?.ConstantValue != null &&
+                                         if (relationalValueExpression != null &&
+                                             relationalValueExpression.ConstantValue.HasValue &&
                                              relationalValueExpression.ResultType.SpecialType == SpecialType.System_Int32)
                                          {
                                              int rangeMinValue = int.MaxValue;
                                              int rangeMaxValue = int.MinValue;
-                                             int relationalValue = (int)relationalValueExpression.ConstantValue;
+                                             int relationalValue = (int)relationalValueExpression.ConstantValue.Value;
                                              switch (relationalClause.Relation)
                                              {
                                                  case BinaryOperationKind.IntegerEquals:
@@ -489,10 +630,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private static void TestAscendingArgument(OperationAnalysisContext operationContext, IExpression argument, ref long priorArgumentValue)
         {
-            object argumentValue = argument.ConstantValue;
-            if (argumentValue != null && argument.ResultType.SpecialType == SpecialType.System_Int32)
+            Optional<object> argumentValue = argument.ConstantValue;
+            if (argumentValue.HasValue && argument.ResultType.SpecialType == SpecialType.System_Int32)
             {
-                int integerArgument = (int)argumentValue;
+                int integerArgument = (int)argumentValue.Value;
                 if (integerArgument < priorArgumentValue)
                 {
                     Report(operationContext, argument.Syntax, OutOfNumericalOrderArgumentsDescriptor);
@@ -535,13 +676,84 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      ILiteralExpression literal = (ILiteralExpression)operationContext.Operation;
                      if (literal.ResultType.SpecialType == SpecialType.System_Int32 &&
-                         literal.ConstantValue != null &&
-                         (int)literal.ConstantValue == 17)
+                         literal.ConstantValue.HasValue &&
+                         (int)literal.ConstantValue.Value == 17)
                      {
                          operationContext.ReportDiagnostic(Diagnostic.Create(SeventeenDescriptor, literal.Syntax.GetLocation()));
                      }
                  },
                  OperationKind.LiteralExpression);
+        }
+    }
+
+    /// <summary>Analyzer used to test IOperation treatment of params array arguments.</summary>
+    public class ParamsArrayTestAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor LongParamsDescriptor = new DiagnosticDescriptor(
+            "LongParams",
+            "Long Params",
+            "Params array argument has more than 3 elements.",
+            "Testing",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(LongParamsDescriptor);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
+
+                     foreach (IArgument argument in invocation.ArgumentsInSourceOrder)
+                     {
+                         if (argument.Parameter.IsParams)
+                         {
+                             IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
+                             if (arrayValue != null)
+                             {
+                                 Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
+                                 if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
+                                 {
+                                     operationContext.ReportDiagnostic(Diagnostic.Create(LongParamsDescriptor, argument.Value.Syntax.GetLocation()));
+                                 }
+                             }
+                         }
+                     }
+
+                     foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
+                     {
+                         if (argument.Parameter.IsParams)
+                         {
+                             IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
+                             if (arrayValue != null)
+                             {
+                                 Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
+                                 if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
+                                 {
+                                     operationContext.ReportDiagnostic(Diagnostic.Create(LongParamsDescriptor, argument.Value.Syntax.GetLocation()));
+                                 }
+                             }
+                         }
+                     }
+                 },
+                 OperationKind.InvocationExpression);
+        }
+
+        static long IntegralValue(object value)
+        {
+            if (value is long)
+            {
+                return (long)value;
+            }
+
+            if (value is int)
+            {
+                return (int)value;
+            }
+
+            return 0;
         }
     }
 }

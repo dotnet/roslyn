@@ -750,7 +750,7 @@ class UseLinq
             var result = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
             Assert.True(result);
 
-            var runtime = CreateRuntimeInstance(GetUniqueName(), references, exeBytes, new SymReader(pdbBytes));
+            var runtime = CreateRuntimeInstance(GetUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes));
             return CreateMethodContext(runtime, methodName);
         }
 

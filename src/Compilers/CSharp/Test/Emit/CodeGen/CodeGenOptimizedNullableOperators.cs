@@ -2166,29 +2166,27 @@ class Program
             // TODO: We will clean this up in a later checkin.
             // TODO: When we do so, add tests for ++ -- +=, etc.
 
-            string expectedIL2 = @"{
-  // Code size       42 (0x2a)
+            string expectedIL2 = @"
+{
+  // Code size       40 (0x28)
   .maxstack  2
-  .locals init (int V_0,
-  int? V_1,
-  int? V_2)
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  call       ""int? Program.N()""
-  IL_0007:  stloc.1
-  IL_0008:  ldloca.s   V_1
-  IL_000a:  call       ""bool int?.HasValue.get""
-  IL_000f:  brtrue.s   IL_001b
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  initobj    ""int?""
-  IL_0019:  ldloc.2
-  IL_001a:  ret
-  IL_001b:  ldloc.0
-  IL_001c:  ldloca.s   V_1
-  IL_001e:  call       ""int int?.GetValueOrDefault()""
-  IL_0023:  add
-  IL_0024:  newobj     ""int?..ctor(int)""
-  IL_0029:  ret
+  .locals init (int? V_0,
+                int? V_1)
+  IL_0000:  call       ""int? Program.N()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       ""bool int?.HasValue.get""
+  IL_000d:  brtrue.s   IL_0019
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  initobj    ""int?""
+  IL_0017:  ldloc.1
+  IL_0018:  ret
+  IL_0019:  ldc.i4.1
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       ""int int?.GetValueOrDefault()""
+  IL_0021:  add
+  IL_0022:  newobj     ""int?..ctor(int)""
+  IL_0027:  ret
 }";
 
             var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
@@ -2196,5 +2194,232 @@ class Program
             comp.VerifyIL("Program.M1", expectedIL1);
             comp.VerifyIL("Program.M2", expectedIL2);
         }
+
+        [Fact]
+        public void TestNullableBinOpsOneZero()
+        {
+            // If one side of the nullable binop is non-null then we skip calling HasValue and GetValueOrDefault
+            // on that side.
+
+            string source = @"
+class Program
+{
+    static void Main() 
+    {
+        int? N = 42;
+        System.Console.WriteLine(0 + N);
+        System.Console.WriteLine(N + 0);
+        System.Console.WriteLine(0 - N);
+        System.Console.WriteLine(N - 0);
+        System.Console.WriteLine(0 * N);
+        System.Console.WriteLine(N * 0);
+        System.Console.WriteLine(1 * N);
+        System.Console.WriteLine(N * 1);
+    }
+}
+";
+
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+42
+42
+-42
+42
+0
+0
+42
+42")
+                .VerifyIL("Program.Main",
+ @"
+{
+  // Code size      349 (0x15d)
+  .maxstack  3
+  .locals init (int? V_0,
+                int? V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  newobj     ""int?..ctor(int)""
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  call       ""bool int?.HasValue.get""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  initobj    ""int?""
+  IL_001a:  ldloc.1
+  IL_001b:  br.s       IL_0029
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       ""int int?.GetValueOrDefault()""
+  IL_0024:  newobj     ""int?..ctor(int)""
+  IL_0029:  box        ""int?""
+  IL_002e:  call       ""void System.Console.WriteLine(object)""
+  IL_0033:  dup
+  IL_0034:  stloc.0
+  IL_0035:  ldloca.s   V_0
+  IL_0037:  call       ""bool int?.HasValue.get""
+  IL_003c:  brtrue.s   IL_0049
+  IL_003e:  ldloca.s   V_1
+  IL_0040:  initobj    ""int?""
+  IL_0046:  ldloc.1
+  IL_0047:  br.s       IL_0055
+  IL_0049:  ldloca.s   V_0
+  IL_004b:  call       ""int int?.GetValueOrDefault()""
+  IL_0050:  newobj     ""int?..ctor(int)""
+  IL_0055:  box        ""int?""
+  IL_005a:  call       ""void System.Console.WriteLine(object)""
+  IL_005f:  dup
+  IL_0060:  stloc.0
+  IL_0061:  ldloca.s   V_0
+  IL_0063:  call       ""bool int?.HasValue.get""
+  IL_0068:  brtrue.s   IL_0075
+  IL_006a:  ldloca.s   V_1
+  IL_006c:  initobj    ""int?""
+  IL_0072:  ldloc.1
+  IL_0073:  br.s       IL_0083
+  IL_0075:  ldc.i4.0
+  IL_0076:  ldloca.s   V_0
+  IL_0078:  call       ""int int?.GetValueOrDefault()""
+  IL_007d:  sub
+  IL_007e:  newobj     ""int?..ctor(int)""
+  IL_0083:  box        ""int?""
+  IL_0088:  call       ""void System.Console.WriteLine(object)""
+  IL_008d:  dup
+  IL_008e:  stloc.0
+  IL_008f:  ldloca.s   V_0
+  IL_0091:  call       ""bool int?.HasValue.get""
+  IL_0096:  brtrue.s   IL_00a3
+  IL_0098:  ldloca.s   V_1
+  IL_009a:  initobj    ""int?""
+  IL_00a0:  ldloc.1
+  IL_00a1:  br.s       IL_00af
+  IL_00a3:  ldloca.s   V_0
+  IL_00a5:  call       ""int int?.GetValueOrDefault()""
+  IL_00aa:  newobj     ""int?..ctor(int)""
+  IL_00af:  box        ""int?""
+  IL_00b4:  call       ""void System.Console.WriteLine(object)""
+  IL_00b9:  dup
+  IL_00ba:  stloc.0
+  IL_00bb:  ldloca.s   V_0
+  IL_00bd:  call       ""bool int?.HasValue.get""
+  IL_00c2:  brtrue.s   IL_00cf
+  IL_00c4:  ldloca.s   V_1
+  IL_00c6:  initobj    ""int?""
+  IL_00cc:  ldloc.1
+  IL_00cd:  br.s       IL_00d5
+  IL_00cf:  ldc.i4.0
+  IL_00d0:  newobj     ""int?..ctor(int)""
+  IL_00d5:  box        ""int?""
+  IL_00da:  call       ""void System.Console.WriteLine(object)""
+  IL_00df:  dup
+  IL_00e0:  stloc.0
+  IL_00e1:  ldloca.s   V_0
+  IL_00e3:  call       ""bool int?.HasValue.get""
+  IL_00e8:  brtrue.s   IL_00f5
+  IL_00ea:  ldloca.s   V_1
+  IL_00ec:  initobj    ""int?""
+  IL_00f2:  ldloc.1
+  IL_00f3:  br.s       IL_00fb
+  IL_00f5:  ldc.i4.0
+  IL_00f6:  newobj     ""int?..ctor(int)""
+  IL_00fb:  box        ""int?""
+  IL_0100:  call       ""void System.Console.WriteLine(object)""
+  IL_0105:  dup
+  IL_0106:  stloc.0
+  IL_0107:  ldloca.s   V_0
+  IL_0109:  call       ""bool int?.HasValue.get""
+  IL_010e:  brtrue.s   IL_011b
+  IL_0110:  ldloca.s   V_1
+  IL_0112:  initobj    ""int?""
+  IL_0118:  ldloc.1
+  IL_0119:  br.s       IL_0127
+  IL_011b:  ldloca.s   V_0
+  IL_011d:  call       ""int int?.GetValueOrDefault()""
+  IL_0122:  newobj     ""int?..ctor(int)""
+  IL_0127:  box        ""int?""
+  IL_012c:  call       ""void System.Console.WriteLine(object)""
+  IL_0131:  stloc.0
+  IL_0132:  ldloca.s   V_0
+  IL_0134:  call       ""bool int?.HasValue.get""
+  IL_0139:  brtrue.s   IL_0146
+  IL_013b:  ldloca.s   V_1
+  IL_013d:  initobj    ""int?""
+  IL_0143:  ldloc.1
+  IL_0144:  br.s       IL_0152
+  IL_0146:  ldloca.s   V_0
+  IL_0148:  call       ""int int?.GetValueOrDefault()""
+  IL_014d:  newobj     ""int?..ctor(int)""
+  IL_0152:  box        ""int?""
+  IL_0157:  call       ""void System.Console.WriteLine(object)""
+  IL_015c:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullableBinOpsOneZero1()
+        {
+            // If one side of the nullable binop is non-null then we skip calling HasValue and GetValueOrDefault
+            // on that side.
+
+            string source = @"
+class Program
+{
+    static void Main() 
+    {
+        System.Console.WriteLine(0 + (int?)42);
+        System.Console.WriteLine((int?)42 + 0);
+        System.Console.WriteLine(0 - (int?)42);
+        System.Console.WriteLine((int?)42 - 0);
+        System.Console.WriteLine(0 * (int?)42);
+        System.Console.WriteLine((int?)42 * 0);
+        System.Console.WriteLine(1 * (int?)42);
+        System.Console.WriteLine((int?)42 * 1);
+    }
+}
+";
+
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+42
+42
+-42
+42
+0
+0
+42
+42")
+                .VerifyIL("Program.Main",
+ @"
+{
+  // Code size       97 (0x61)
+  .maxstack  2
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  box        ""int""
+  IL_0007:  call       ""void System.Console.WriteLine(object)""
+  IL_000c:  ldc.i4.s   42
+  IL_000e:  box        ""int""
+  IL_0013:  call       ""void System.Console.WriteLine(object)""
+  IL_0018:  ldc.i4.0
+  IL_0019:  ldc.i4.s   42
+  IL_001b:  sub
+  IL_001c:  box        ""int""
+  IL_0021:  call       ""void System.Console.WriteLine(object)""
+  IL_0026:  ldc.i4.s   42
+  IL_0028:  box        ""int""
+  IL_002d:  call       ""void System.Console.WriteLine(object)""
+  IL_0032:  ldc.i4.0
+  IL_0033:  box        ""int""
+  IL_0038:  call       ""void System.Console.WriteLine(object)""
+  IL_003d:  ldc.i4.0
+  IL_003e:  box        ""int""
+  IL_0043:  call       ""void System.Console.WriteLine(object)""
+  IL_0048:  ldc.i4.s   42
+  IL_004a:  box        ""int""
+  IL_004f:  call       ""void System.Console.WriteLine(object)""
+  IL_0054:  ldc.i4.s   42
+  IL_0056:  box        ""int""
+  IL_005b:  call       ""void System.Console.WriteLine(object)""
+  IL_0060:  ret
+}");
+        }
+
     }
 }

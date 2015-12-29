@@ -18,6 +18,10 @@ namespace Microsoft.DiaSymReader
         /// correct <see cref="ISymUnmanagedReader"/> that will read the debugging symbols
         /// associated with the module.
         /// </summary>
+        /// <param name="metadataImporter">An instance of IMetadataImport providing metadata for the specified PE file.</param>
+        /// <param name="fileName">PE file path.</param>
+        /// <param name="searchPath">Alternate path to search for debug data.</param>
+        /// <param name="reader">The new reader instance.</param>
         [PreserveSig]
         new int GetReaderForFile(
             [MarshalAs(UnmanagedType.Interface)]object metadataImporter,
@@ -31,6 +35,9 @@ namespace Microsoft.DiaSymReader
         /// that will read the debugging symbols from the given
         /// symbol store.
         /// </summary>
+        /// <param name="metadataImporter">An instance of IMetadataImport providing metadata for the corresponding PE file.</param>
+        /// <param name="stream">PDB stream.</param>
+        /// <param name="reader">The new reader instance.</param>
         [PreserveSig]
         new int GetReaderFromStream(
             [MarshalAs(UnmanagedType.Interface)]object metadataImporter,
@@ -46,13 +53,14 @@ namespace Microsoft.DiaSymReader
         /// </summary>
         /// <remarks>
         /// This version of the function can search for the PDB in areas other than
-        /// right next to the module.
-        /// The search policy can be controlled by combining CorSymSearchPolicyAttributes
-        /// e.g AllowReferencePathAccess|AllowSymbolServerAccess will look for the pdb next
-        /// to the PE file and on a symbol server, but won't query the registry or use the path
-        /// in the PE file.
-        /// If a searchPath is provided, those directories will always be searched.
+        /// right next to the module, controlled by the <paramref name="searchPolicy"/>.
+        /// If a <paramref name="searchPath"/> is provided, those directories will always be searched.
         /// </remarks>
+        /// <param name="metadataImporter">An instance of IMetadataImport providing metadata for the specified PE file.</param>
+        /// <param name="fileName">PE file path.</param>
+        /// <param name="searchPath">Alternate path to search for debug data.</param>
+        /// <param name="searchPolicy">Search policy.</param>
+        /// <param name="reader">The new reader instance.</param>
         [PreserveSig]
         int GetReaderForFile2(
             [MarshalAs(UnmanagedType.Interface)]object metadataImporter,

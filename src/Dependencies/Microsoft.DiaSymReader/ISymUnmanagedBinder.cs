@@ -12,10 +12,13 @@ namespace Microsoft.DiaSymReader
     public interface ISymUnmanagedBinder
     {
         /// <summary>
-        /// Given a metadata interface and a file name, returns the
-        /// correct <see cref="ISymUnmanagedReader"/> that will read the debugging symbols
-        /// associated with the module.
+        /// Given a metadata interface and a file name, returns a new instance of <see cref="ISymUnmanagedReader"/> 
+        /// that will read the debugging symbols associated with the specified PE file.
         /// </summary>
+        /// <param name="metadataImporter">An instance of IMetadataImport providing metadata for the specified PE file.</param>
+        /// <param name="fileName">PE file path.</param>
+        /// <param name="searchPath">Alternate path to search for debug data.</param>
+        /// <param name="reader">The new reader instance.</param>
         [PreserveSig]
         int GetReaderForFile(
             [MarshalAs(UnmanagedType.Interface)]object metadataImporter,
@@ -29,6 +32,9 @@ namespace Microsoft.DiaSymReader
         /// that will read the debugging symbols from the given
         /// symbol store.
         /// </summary>
+        /// <param name="metadataImporter">An instance of IMetadataImport providing metadata for the corresponding PE file.</param>
+        /// <param name="stream">PDB stream.</param>
+        /// <param name="reader">The new reader instance.</param>
         [PreserveSig]
         int GetReaderFromStream(
             [MarshalAs(UnmanagedType.Interface)]object metadataImporter,

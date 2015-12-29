@@ -29,7 +29,7 @@ using Foo = System.Data;")
         public async Task Name()
         {
             CodeImport import = await GetCodeImportAsync(1);
-            AssertEx.Throws<COMException>(() => { var value = import.Name; });
+            Assert.Throws<COMException>(() => { var value = import.Name; });
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -37,7 +37,7 @@ using Foo = System.Data;")
         public async Task FullName()
         {
             CodeImport import = await GetCodeImportAsync(1);
-            AssertEx.Throws<COMException>(() => { var value = import.FullName; });
+            Assert.Throws<COMException>(() => { var value = import.FullName; });
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -72,7 +72,7 @@ using Foo = System.Data;")
         public async Task GetStartPoint_Attributes()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributes));
+            Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -80,7 +80,7 @@ using Foo = System.Data;")
         public async Task GetStartPoint_AttributesWithDelimiter()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
+            Assert.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -88,7 +88,7 @@ using Foo = System.Data;")
         public async Task GetStartPoint_Body()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartBody));
+            Assert.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartBody));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -96,7 +96,7 @@ using Foo = System.Data;")
         public async Task GetStartPoint_BodyWithDelimiter()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
+            Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -104,7 +104,7 @@ using Foo = System.Data;")
         public async Task GetStartPoint_Header()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeader));
+            Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -112,7 +112,7 @@ using Foo = System.Data;")
         public async Task GetStartPoint_HeaderWithAttributes()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
+            Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -120,7 +120,7 @@ using Foo = System.Data;")
         public async Task GetStartPoint_Name()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartName));
+            Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -139,7 +139,7 @@ using Foo = System.Data;")
         public async Task GetStartPoint_Whole()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartWhole));
+            Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -158,7 +158,7 @@ using Foo = System.Data;")
         public async Task GetEndPoint_Attributes()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributes));
+            Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -166,7 +166,7 @@ using Foo = System.Data;")
         public async Task GetEndPoint_AttributesWithDelimiter()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
+            Assert.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -174,7 +174,7 @@ using Foo = System.Data;")
         public async Task GetEndPoint_Body()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartBody));
+            Assert.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartBody));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -182,7 +182,7 @@ using Foo = System.Data;")
         public async Task GetEndPoint_BodyWithDelimiter()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
+            Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -190,7 +190,7 @@ using Foo = System.Data;")
         public async Task GetEndPoint_Header()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeader));
+            Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -198,7 +198,7 @@ using Foo = System.Data;")
         public async Task GetEndPoint_HeaderWithAttributes()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
+            Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -206,7 +206,7 @@ using Foo = System.Data;")
         public async Task GetEndPoint_Name()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartName));
+            Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -226,7 +226,7 @@ using Foo = System.Data;")
         public async Task GetEndPoint_Whole()
         {
             CodeImport import = await GetCodeImportAsync(2);
-            AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartWhole));
+            Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]

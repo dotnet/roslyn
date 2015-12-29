@@ -609,7 +609,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             displayType =>
                             {
                                 completionRoutine(GetResult(inspectionContext, dataItem, declaredType, declaredTypeInfo, displayName.Result, displayValue.Result, displayType.Result, parent));
-                                workList.Execute();
                             },
                             onException),
                         onException),
@@ -641,6 +640,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         onException(e);
                     }
+
+                    workList.Execute();
                 };
             if (str == null)
             {
