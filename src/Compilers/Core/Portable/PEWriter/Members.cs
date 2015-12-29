@@ -24,47 +24,47 @@ namespace Microsoft.Cci
         /// C/C++ style calling convention for unmanaged methods. The call stack is cleaned up by the caller, 
         /// which makes this convention suitable for calling methods that accept extra arguments.
         /// </summary>
-        C = 1,
+        C = SignatureCallingConvention.CDecl,
 
         /// <summary>
         /// The convention for calling managed methods with a fixed number of arguments.
         /// </summary>
-        Default = 0,
+        Default = SignatureCallingConvention.Default,
 
         /// <summary>
         /// The convention for calling managed methods that accept extra arguments.
         /// </summary>
-        ExtraArguments = 5,
+        ExtraArguments = SignatureCallingConvention.VarArgs,
 
         /// <summary>
         /// Arguments are passed in registers when possible. This calling convention is not yet supported.
         /// </summary>
-        FastCall = 4,
+        FastCall = SignatureCallingConvention.FastCall,
 
         /// <summary>
         /// Win32 API calling convention for calling unmanaged methods via PlatformInvoke. The call stack is cleaned up by the callee.
         /// </summary>
-        Standard = 2,
+        Standard = SignatureCallingConvention.StdCall,
 
         /// <summary>
         /// C++ member unmanaged method (non-vararg) calling convention. The callee cleans the stack and the this pointer is pushed on the stack last.
         /// </summary>
-        ThisCall = 3,
+        ThisCall = SignatureCallingConvention.ThisCall,
 
         /// <summary>
         /// The convention for calling a generic method.
         /// </summary>
-        Generic = 0x10,
+        Generic = SignatureAttributes.Generic,
 
         /// <summary>
         /// The convention for calling an instance method with an implicit this parameter (the method does not have an explicit parameter definition for this).
         /// </summary>
-        HasThis = 0x20,
+        HasThis = SignatureAttributes.Instance,
 
         /// <summary>
         /// The convention for calling an instance method that explicitly declares its first parameter to correspond to the this instance.
         /// </summary>
-        ExplicitThis = 0x40
+        ExplicitThis = SignatureAttributes.ExplicitThis
     }
 
     /// <summary>
