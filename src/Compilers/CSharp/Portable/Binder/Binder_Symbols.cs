@@ -1282,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // '{0}' is an ambiguous reference between '{1}' and '{2}'
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
                                     new object[] {
-                                        where,
+                                        (where as NameSyntax)?.ErrorDisplayName() ?? simpleName,
                                         new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
                                         new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
                             }
@@ -1421,14 +1421,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 //  SPEC:   is present, and a compile-time error results.
 
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbiguousAttribute, originalSymbols,
-                                    new object[] { where, first, second });
+                                    new object[] { (where as NameSyntax)?.ErrorDisplayName() ?? simpleName, first, second });
                             }
                             else
                             {
                                 // '{0}' is an ambiguous reference between '{1}' and '{2}'
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
                                     new object[] {
-                                        where,
+                                        (where as NameSyntax)?.ErrorDisplayName() ?? simpleName,
                                         new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
                                         new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
                             }
