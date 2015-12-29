@@ -18,9 +18,10 @@ The following will be considered inputs to the compiler for the purpose of deter
   - `@` response files
   - Analyzers
   - Rulesets
-- The current culture
+- The current culture (for the language in which diagnostics and exception messages are produced).
 - The default encoding (or the current code page) if the encoding is not specified
 - The existence, non-existence, and contents of files on the compiler's search paths (specified, e.g. by `/lib` or `/recurse`)
 - The CLR platform on which the compiler is run (e.g. the result of `double` arithmetic performed for constant-folding may use excess precision on some platforms).
+- The value of `%LIBPATH%`, as it can affect analyzer dependency loading.
 
-At the moment the compiler also depends on the time of day and random numbers for GUIDs, so it is not deterministic unless you specify `/features:deterministic`.
+At the moment the compiler also depends on the time of day and random numbers for GUIDs, so it is not deterministic unless you specify `/deterministic`.
