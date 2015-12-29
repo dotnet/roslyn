@@ -11961,7 +11961,7 @@ class C : I
 {
     interface IFoo
     {
-        void M<M>(M m);
+        void M<M>(M m); // OK (constraint applies to types but not methods)
     }
     
     class C<C>
@@ -11972,13 +11972,14 @@ class C : I
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeVariableSameAsParent, Line = 5, Column = 16 }, // Dev10 not report this if there next 2 errors
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeVariableSameAsParent, Line = 8, Column = 13 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeVariableSameAsParent, Line = 10, Column = 28 });
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (8,13): error CS0694: Type parameter 'C' has the same name as the containing type, or method
+                //     class C<C>
+                Diagnostic(ErrorCode.ERR_TypeVariableSameAsParent, "C").WithArguments("C").WithLocation(8, 13),
+                // (10,28): error CS0694: Type parameter 'S' has the same name as the containing type, or method
+                //         public struct S<T, S>
+                Diagnostic(ErrorCode.ERR_TypeVariableSameAsParent, "S").WithArguments("S").WithLocation(10, 28)
+                );
         }
 
         [Fact]
