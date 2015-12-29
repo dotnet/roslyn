@@ -1179,8 +1179,18 @@ namespace Microsoft.Cci
                 return existing.Key;
             }
 
+            Debug.Assert((methodReference.CallingConvention & CallingConvention.Generic) != 0 == (methodReference.GenericParameterCount > 0));
+
             var writer = PooledBlobBuilder.GetInstance();
-            this.SerializeSignature(methodReference, methodReference.GenericParameterCount, methodReference.ExtraParameters, writer);
+
+            ushort genericParameterCount = methodReference.GenericParameterCount;
+            writer.WriteByte((byte)methodReference.CallingConvention);
+            if (genericParameterCount > 0)
+            {
+                writer.WriteCompressedInteger(genericParameterCount);
+            }
+
+            SerializeReturnValueAndParameters(methodReference, methodReference.ExtraParameters, writer);
 
             signatureBlob = writer.ToImmutableArray();
             result = builder.GetBlobIndex(signatureBlob);
@@ -1309,7 +1319,10 @@ namespace Microsoft.Cci
             }
 
             var writer = PooledBlobBuilder.GetInstance();
-            this.SerializeSignature(propertyDef, 0, ImmutableArray<IParameterTypeInformation>.Empty, writer);
+
+            writer.WriteByte((byte)((int)propertyDef.CallingConvention | (int)SignatureKind.Property));
+            SerializeReturnValueAndParameters(propertyDef, ImmutableArray<IParameterTypeInformation>.Empty, writer);
+
             var blob = writer.ToImmutableArray();
             var result = builder.GetBlobIndex(blob);
             _signatureIndex.Add(propertyDef, KeyValuePair.Create(result, blob));
@@ -3734,24 +3747,10 @@ namespace Microsoft.Cci
             // TODO: xml for older platforms
         }
 
-        private void SerializeSignature(ISignature signature, ushort genericParameterCount, ImmutableArray<IParameterTypeInformation> extraArgumentTypes, BlobBuilder writer)
+        private void SerializeReturnValueAndParameters(ISignature signature, ImmutableArray<IParameterTypeInformation> varargParameters, BlobBuilder writer)
         {
-            byte header = (byte)signature.CallingConvention;
-            if (signature is IPropertyDefinition)
-            {
-                header |= 0x08;
-            }
-
-            writer.WriteByte(header);
-            if (genericParameterCount > 0)
-            {
-                writer.WriteCompressedInteger(genericParameterCount);
-            }
-
-            var @params = signature.GetParameters(Context);
-            uint numberOfRequiredParameters = (uint)@params.Length;
-            uint numberOfOptionalParameters = (uint)extraArgumentTypes.Length;
-            writer.WriteCompressedInteger(numberOfRequiredParameters + numberOfOptionalParameters);
+            var declaredParameters = signature.GetParameters(Context);
+            writer.WriteCompressedInteger((uint)(declaredParameters.Length + varargParameters.Length));
 
             foreach (ICustomModifier customModifier in signature.ReturnValueCustomModifiers)
             {
@@ -3773,17 +3772,17 @@ namespace Microsoft.Cci
                 this.SerializeTypeReference(returnType, writer);
             }
 
-            foreach (IParameterTypeInformation parameterTypeInformation in @params)
+            foreach (IParameterTypeInformation parameter in declaredParameters)
             {
-                this.SerializeParameterInformation(parameterTypeInformation, writer);
+                this.SerializeParameterInformation(parameter, writer);
             }
 
-            if (numberOfOptionalParameters > 0)
+            if (varargParameters.Length > 0)
             {
                 writer.WriteByte(0x41);
-                foreach (IParameterTypeInformation extraArgumentTypeInformation in extraArgumentTypes)
+                foreach (IParameterTypeInformation parameter in varargParameters)
                 {
-                    this.SerializeParameterInformation(extraArgumentTypeInformation, writer);
+                    this.SerializeParameterInformation(parameter, writer);
                 }
             }
         }
