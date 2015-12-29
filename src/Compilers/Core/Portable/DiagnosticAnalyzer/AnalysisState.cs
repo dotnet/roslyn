@@ -478,10 +478,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var analyzer in analyzers)
             {
                 var analyzerState = GetAnalyzerState(analyzer);
-                foreach (var pendingEvent in analyzerState.PendingEvents_NoLock)
-                {
-                    uniqueEvents.Add(pendingEvent);
-                }
+                analyzerState.AddPendingEvents(uniqueEvents);
             }
 
             return uniqueEvents;

@@ -40,15 +40,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         public async override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId documentId, ImmutableHashSet<string> diagnosticIds, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // Fix all code path, we can make computation concurrent if we are computing diagnostics across a project/solution.
-            var diagnostics = await (new IDELatestDiagnosticGetter(this, diagnosticIds, concurrent: documentId == null).GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken)).ConfigureAwait(false);
+            var diagnostics = await (new IDELatestDiagnosticGetter(this, diagnosticIds).GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken)).ConfigureAwait(false);
             return FilterSuppressedDiagnostics(diagnostics, includeSuppressedDiagnostics);
         }
 
         public async override Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, ImmutableHashSet<string> diagnosticIds, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // Fix all code path, we can make computation concurrent if we are computing project diagnostics across solution.
-            var diagnostics = await (new IDELatestDiagnosticGetter(this, diagnosticIds, concurrent: projectId == null).GetProjectDiagnosticsAsync(solution, projectId, cancellationToken)).ConfigureAwait(false);
+            var diagnostics = await (new IDELatestDiagnosticGetter(this, diagnosticIds).GetProjectDiagnosticsAsync(solution, projectId, cancellationToken)).ConfigureAwait(false);
             return FilterSuppressedDiagnostics(diagnostics, includeSuppressedDiagnostics);
         }
 
@@ -86,12 +84,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private abstract class DiagnosticsGetter
         {
             protected readonly DiagnosticIncrementalAnalyzer Owner;
-
             private ImmutableArray<DiagnosticData>.Builder _builder;
 
             public DiagnosticsGetter(DiagnosticIncrementalAnalyzer owner)
             {
                 this.Owner = owner;
+                _builder = null;
             }
 
             protected StateManager StateManager
@@ -99,10 +97,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 get { return this.Owner._stateManager; }
             }
 
-            protected virtual bool ConcurrentDocumentComputation => false;
-
             protected abstract Task AppendDocumentDiagnosticsOfStateTypeAsync(Document document, StateType stateType, CancellationToken cancellationToken);
-            protected abstract Task AppendProjectAndDocumentDiagnosticsAsync(Project project, Document document, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken);
+            protected abstract Task AppendProjectStateDiagnosticsAsync(Project project, Document document, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken);
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
             {
@@ -115,8 +111,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     var document = solution.GetDocument(documentId);
 
-                    await AppendDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
-                    await AppendProjectAndDocumentDiagnosticsAsync(document.Project, document, d => d.DocumentId == documentId, cancellationToken).ConfigureAwait(false);
+                    await AppendSyntaxAndDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+                    await AppendProjectStateDiagnosticsAsync(document.Project, document, d => d.DocumentId == documentId, cancellationToken).ConfigureAwait(false);
                     return GetDiagnosticData();
                 }
 
@@ -168,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return SpecializedTasks.EmptyTask;
                 }
 
-                return AppendProjectAndDocumentDiagnosticsAsync(project, null, d => d.ProjectId == project.Id, cancellationToken);
+                return AppendProjectStateDiagnosticsAsync(project, null, d => d.ProjectId == project.Id, cancellationToken);
             }
 
             private async Task AppendDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
@@ -192,35 +188,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return;
                 }
 
-                await AppendProjectAndDocumentDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
+                await AppendProjectStateDiagnosticsAsync(project, null, d => true, cancellationToken).ConfigureAwait(false);
 
-                if (!ConcurrentDocumentComputation)
+                var documents = project.Documents.ToImmutableArray();
+                var tasks = new Task[documents.Length];
+                for (int i = 0; i < documents.Length; i++)
                 {
-                    foreach (var document in project.Documents)
-                    {
-                        await AppendDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-                else
-                {
-                    var documents = project.Documents.ToImmutableArray();
-                    var tasks = new Task[documents.Length];
-                    for (int i = 0; i < documents.Length; i++)
-                    {
-                        var document = documents[i];
-                        tasks[i] = Task.Run(async () => await AppendDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false), cancellationToken);
-                    };
+                    var document = documents[i];
+                    tasks[i] = Task.Run(async () => await AppendSyntaxAndDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false), cancellationToken);
+                };
 
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
-                }
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
-            protected Task AppendProjectAndDocumentDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-            {
-                return AppendProjectAndDocumentDiagnosticsAsync(project, null, d => true, cancellationToken);
-            }
-
-            protected async Task AppendDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+            protected async Task AppendSyntaxAndDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
             {
                 if (document == null)
                 {
@@ -231,15 +212,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 await AppendDocumentDiagnosticsOfStateTypeAsync(document, StateType.Document, cancellationToken).ConfigureAwait(false);
             }
 
-            protected virtual void AppendDiagnostics(IEnumerable<DiagnosticData> items)
+            protected void AppendDiagnostics(IEnumerable<DiagnosticData> items)
             {
-                _builder = _builder ?? ImmutableArray.CreateBuilder<DiagnosticData>();
-                _builder.AddRange(items);
+                if (_builder == null)
+                {
+                    Interlocked.CompareExchange(ref _builder, ImmutableArray.CreateBuilder<DiagnosticData>(), null);
+                }
+
+                lock (_builder)
+                {
+                    _builder.AddRange(items);
+                }
             }
 
             protected virtual ImmutableArray<DiagnosticData> GetDiagnosticData()
             {
-                return _builder != null ? _builder.ToImmutable() : ImmutableArray<DiagnosticData>.Empty;
+                return _builder != null ? _builder.ToImmutableArray() : ImmutableArray<DiagnosticData>.Empty;
             }
 
             protected static ProjectId GetProjectId(object key)
@@ -352,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
             }
 
-            protected override async Task AppendProjectAndDocumentDiagnosticsAsync(
+            protected override async Task AppendProjectStateDiagnosticsAsync(
                 Project project, Document document, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken)
             {
                 var documents = document == null ? project.Documents.ToList() : SpecializedCollections.SingletonEnumerable(document);
@@ -363,16 +351,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                     var state = stateSet.GetState(StateType.Project);
 
-                    await AppendProjectAndDocumentDiagnosticsAsync(state, project, predicate, cancellationToken).ConfigureAwait(false);
+                    await AppendExistingDiagnosticsFromStateAsync(state, project, predicate, cancellationToken).ConfigureAwait(false);
 
                     foreach (var current in documents)
                     {
-                        await AppendProjectAndDocumentDiagnosticsAsync(state, current, predicate, cancellationToken).ConfigureAwait(false);
+                        await AppendExistingDiagnosticsFromStateAsync(state, current, predicate, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
 
-            private async Task AppendProjectAndDocumentDiagnosticsAsync(DiagnosticState state, object documentOrProject, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken)
+            private async Task AppendExistingDiagnosticsFromStateAsync(DiagnosticState state, object documentOrProject, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -389,10 +377,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private abstract class LatestDiagnosticsGetter : DiagnosticsGetter
         {
             protected readonly ImmutableHashSet<string> DiagnosticIds;
+            private readonly Dictionary<ProjectId, CompilationWithAnalyzers> _compilationWithAnalyzersMap;
 
             public LatestDiagnosticsGetter(DiagnosticIncrementalAnalyzer owner, ImmutableHashSet<string> diagnosticIds) : base(owner)
             {
                 this.DiagnosticIds = diagnosticIds;
+                _compilationWithAnalyzersMap = new Dictionary<ProjectId, CompilationWithAnalyzers>();
             }
 
             protected abstract Task<AnalysisData> GetDiagnosticAnalysisDataAsync(Solution solution, DiagnosticAnalyzerDriver analyzerDriver, StateSet stateSet, StateType stateType, VersionArgument versions);
@@ -403,29 +393,66 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return AppendDiagnosticsOfStateTypeAsync(document, stateType, d => true, cancellationToken);
             }
 
-            protected override Task AppendProjectAndDocumentDiagnosticsAsync(Project project, Document document, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken)
+            protected override Task AppendProjectStateDiagnosticsAsync(Project project, Document document, Func<DiagnosticData, bool> predicate, CancellationToken cancellationToken)
             {
                 return AppendDiagnosticsOfStateTypeAsync(project, StateType.Project, predicate, cancellationToken);
             }
 
             protected async Task<DiagnosticAnalyzerDriver> GetDiagnosticAnalyzerDriverAsync(object documentOrProject, StateType stateType, CancellationToken cancellationToken)
             {
+                // We can run analysis concurrently for explicit diagnostic requests.
+                const bool concurrentAnalysis = true;
+
+                // We need to compute suppressed diagnostics - diagnostic clients may or may not request for suppressed diagnostics.
+                const bool reportSuppressedDiagnostics = true;
+
                 var document = documentOrProject as Document;
                 if (document != null)
                 {
                     Contract.Requires(stateType != StateType.Project);
+                    var compilationWithAnalyzersOpt = await GetCompilationWithAnalyzersAsync(document.Project, concurrentAnalysis, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                     var root = document.SupportsSyntaxTree ? await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-                    return new DiagnosticAnalyzerDriver(document, root?.FullSpan, root, this.Owner, cancellationToken);
+                    return new DiagnosticAnalyzerDriver(document, root?.FullSpan, root, Owner, concurrentAnalysis, reportSuppressedDiagnostics, compilationWithAnalyzersOpt, cancellationToken);
                 }
 
                 var project = documentOrProject as Project;
                 if (project != null)
                 {
                     Contract.Requires(stateType == StateType.Project);
-                    return new DiagnosticAnalyzerDriver(project, this.Owner, cancellationToken);
+                    var compilationWithAnalyzersOpt = await GetCompilationWithAnalyzersAsync(project, concurrentAnalysis, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                    return new DiagnosticAnalyzerDriver(project, Owner, concurrentAnalysis, reportSuppressedDiagnostics, compilationWithAnalyzersOpt, cancellationToken);
                 }
 
                 return Contract.FailWithReturn<DiagnosticAnalyzerDriver>("Can't reach here");
+            }
+
+            private async Task<CompilationWithAnalyzers> GetCompilationWithAnalyzersAsync(Project project, bool concurrentAnalysis, bool reportSuppressedDiagnostics, CancellationToken cancellationToken)
+            {
+                CompilationWithAnalyzers compilationWithAnalyzers;
+                lock (_compilationWithAnalyzersMap)
+                {
+                    if (_compilationWithAnalyzersMap.TryGetValue(project.Id, out compilationWithAnalyzers))
+                    {
+                        return compilationWithAnalyzers;
+                    }
+                }
+
+                if (project.SupportsCompilation)
+                {
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    compilationWithAnalyzers = Owner.GetCompilationWithAnalyzers(project, compilation, concurrentAnalysis, reportSuppressedDiagnostics);
+                }
+                else
+                {
+                    compilationWithAnalyzers = null;
+                }
+
+                lock (_compilationWithAnalyzersMap)
+                {
+                    _compilationWithAnalyzersMap[project.Id] = compilationWithAnalyzers;
+                }
+
+                return compilationWithAnalyzers;
             }
 
             protected async Task<VersionArgument> GetVersionsAsync(object documentOrProject, StateType stateType, CancellationToken cancellationToken)
@@ -505,47 +532,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private class IDELatestDiagnosticGetter : LatestDiagnosticsGetter
         {
-            private readonly bool _concurrent;
-            private ConcurrentBag<DiagnosticData> _concurrentBag;
-
-            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, bool concurrent = false) : this(owner, null, concurrent)
+            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner) : this(owner, null)
             {
             }
 
-            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, ImmutableHashSet<string> diagnosticIds, bool concurrent = false) : base(owner, diagnosticIds)
+            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, ImmutableHashSet<string> diagnosticIds) : base(owner, diagnosticIds)
             {
-                _concurrent = concurrent;
-            }
-
-            protected override bool ConcurrentDocumentComputation => _concurrent;
-
-            protected override void AppendDiagnostics(IEnumerable<DiagnosticData> items)
-            {
-                if (!ConcurrentDocumentComputation)
-                {
-                    base.AppendDiagnostics(items);
-                    return;
-                }
-
-                if (_concurrentBag == null)
-                {
-                    Interlocked.CompareExchange(ref _concurrentBag, new ConcurrentBag<DiagnosticData>(), null);
-                }
-
-                foreach (var item in items)
-                {
-                    _concurrentBag.Add(item);
-                }
-            }
-
-            protected override ImmutableArray<DiagnosticData> GetDiagnosticData()
-            {
-                if (!ConcurrentDocumentComputation)
-                {
-                    return base.GetDiagnosticData();
-                }
-
-                return _concurrentBag != null ? _concurrentBag.ToImmutableArray() : ImmutableArray<DiagnosticData>.Empty;
             }
 
             public async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, CancellationToken cancellationToken)
