@@ -875,11 +875,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
-        /// If the <paramref name="symbol"/> is a method symbol, returns True if the method's return type is "awaitable".
-        /// If the <paramref name="symbol"/> is a type symbol, returns True if that type is "awaitable".
+        /// If the <paramref name="symbol"/> is a method symbol, returns <see langword="true"/> if the method's return type is "awaitable", but not if it's <see langword="dynamic"/>.
+        /// If the <paramref name="symbol"/> is a type symbol, returns <see langword="true"/> if that type is "awaitable".
         /// An "awaitable" is any type that exposes a GetAwaiter method which returns a valid "awaiter". This GetAwaiter method may be an instance method or an extension method.
         /// </summary>
-        public static bool IsAwaitable(this ISymbol symbol, SemanticModel semanticModel, int position)
+        public static bool IsAwaitableNonDynamic(this ISymbol symbol, SemanticModel semanticModel, int position)
         {
             IMethodSymbol methodSymbol = symbol as IMethodSymbol;
             ITypeSymbol typeSymbol = null;

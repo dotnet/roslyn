@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private void AddDescriptionForNamedType(INamedTypeSymbol symbol)
             {
-                if (symbol.IsAwaitable(_semanticModel, _position))
+                if (symbol.IsAwaitableNonDynamic(_semanticModel, _position))
                 {
                     AddAwaitablePrefix();
                 }
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private void AddDescriptionForMethod(IMethodSymbol method)
             {
                 // TODO : show duplicated member case
-                var awaitable = method.IsAwaitable(_semanticModel, _position);
+                var awaitable = method.IsAwaitableNonDynamic(_semanticModel, _position);
                 var extension = method.IsExtensionMethod || method.MethodKind == MethodKind.ReducedExtension;
                 if (awaitable && extension)
                 {
