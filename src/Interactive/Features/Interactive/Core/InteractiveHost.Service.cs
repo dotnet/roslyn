@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                             {
                                 var c = new Control();
                                 c.CreateControl();
-                                s_UIThreadScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+                                s_UIThreadScheduler = TaskScheduler.Current;
                                 resetEvent.Set();
                                 Application.Run();
                             });
