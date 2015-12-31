@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim typeTo = conversion.Type
 
             If conversion.Operand.IsNothingLiteral Then
-                Debug.Assert(typeTo.IsValueType AndAlso Not typeTo.IsTypeParameter)
+                Debug.Assert(typeTo.IsValueType OrElse typeTo.IsTypeParameter)
 
                 If used Then
                     'TODO: used
