@@ -24,7 +24,7 @@
   <!-- Import the global NuGet packages -->
   <PropertyGroup>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.2.0-beta-20151211-01\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.2.0-beta1-20151231-01\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\1.1.1-beta1-20150818-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
   </PropertyGroup>
@@ -141,12 +141,20 @@
             Condition="Exists('$(RoslynDiagnosticsPropsFilePath)') And ('$(UseRoslynAnalyzers)' == 'true')" />
   </ImportGroup>
 
+  <!-- Otherwise, use the task from the bootstrap location -->
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
+             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             Condition="'$(BootstrapBuildPath)' != ''" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc"
+             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             Condition="'$(BootstrapBuildPath)' != ''" />
+
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
-    <CscToolPath>$(BootstrapBuildPath)</CscToolPath>
-    <CscToolExe>csc.cmd</CscToolExe>
-    <VbcToolPath>$(BootstrapBuildPath)</VbcToolPath>
-    <VbcToolExe>vbc.cmd</VbcToolExe>
+    <UseSharedCompilation>true</UseSharedCompilation>
+    <CSharpCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
+    <VisualBasicCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup>
+
 
   <!-- Common project settings -->
   <PropertyGroup>

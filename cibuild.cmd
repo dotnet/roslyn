@@ -67,7 +67,7 @@ if defined Perf (
   set Target=BuildAndTest
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile=%RoslynRoot%Binaries\Build.log || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile=%RoslynRoot%Binaries\Build.log;verbosity=diagnostic || goto :BuildFailed
 
 call :TerminateCompilerServer
 
