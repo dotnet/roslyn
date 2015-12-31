@@ -2101,24 +2101,35 @@ public class A
     }
 }";
 
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                // Case a1
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 7, Column = 36 },
-                // Case a2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 8, Column = 41 },
-                // Case a5
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 15, Column = 34 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 15, Column = 36 },
-                // Case a6
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 16, Column = 34 },
-                // Case a7
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 17, Column = 39 },
-                // Case a10
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 24, Column = 44 },
-                // Case a11
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 25, Column = 49 },
-                // Case a12
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnexpectedUnboundGenericName, Line = 26, Column = 36 });
+            CSharpCompilationOptions options = TestOptions.ReleaseExe;
+            CreateCompilationWithMscorlib(text, options: options).VerifyDiagnostics(
+                // (7,35): error CS1031: Type expected
+                //         object a1 = typeof(Action<0>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(7, 35),
+                // (8,35): error CS1031: Type expected
+                //         object a2 = typeof(Action<static>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(8, 35),
+                // (15,33): error CS1031: Type expected
+                //         object a5 = typeof(Func<0,1>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(15, 33),
+                // (15,35): error CS1031: Type expected
+                //         object a5 = typeof(Func<0,1>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "1").WithLocation(15, 35),
+                // (16,33): error CS1031: Type expected
+                //         object a6 = typeof(Func<0,bool>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(16, 33),
+                // (17,33): error CS1031: Type expected
+                //         object a7 = typeof(Func<static,bool>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(17, 33),
+                // (24,43): error CS1031: Type expected
+                //         object a10 = typeof(Action<Action<0>>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(24, 43),
+                // (25,43): error CS1031: Type expected
+                //         object a11 = typeof(Action<Action<static>>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(25, 43),
+                // (26,36): error CS7003: Unexpected use of an unbound generic name
+                //         object a12 = typeof(Action<Action<>>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "Action<>").WithLocation(26, 36));
         }
 
         #region Mocks

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(es.SemicolonToken);
             Assert.False(es.SemicolonToken.IsMissing);
         }
-        
+
         private void TestPostfixUnaryOperator(SyntaxKind kind)
         {
             var text = "a" + SyntaxFacts.GetText(kind) + ";";
