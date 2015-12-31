@@ -182,7 +182,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var builder = ImmutableArray.CreateBuilder<CompilationEvent>();
             foreach (var symbol in declaredSymbols)
-            {   
+            {
+                Debug.Assert(symbol.ContainingAssembly == compilation.Assembly);
                 builder.Add(new SymbolDeclaredCompilationEvent(compilation, symbol));
             }
 
@@ -477,10 +478,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var analyzer in analyzers)
             {
                 var analyzerState = GetAnalyzerState(analyzer);
-                foreach (var pendingEvent in analyzerState.PendingEvents_NoLock)
-                {
-                    uniqueEvents.Add(pendingEvent);
-                }
+                analyzerState.AddPendingEvents(uniqueEvents);
             }
 
             return uniqueEvents;

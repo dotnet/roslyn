@@ -1491,5 +1491,19 @@ partial class PartialType
             var diagnostic = Diagnostic(diagnosticId, squiggledText).WithArguments(arguments).WithLocation(line, column);
             builder.Add(diagnostic);
         }
+
+        [Fact]
+        public void TestEnsureNoMergedNamespaceSymbolAnalyzer()
+        {
+            var source = @"namespace N1.N2 { }";
+            
+            var metadataReference = CreateCompilationWithMscorlib(source).ToMetadataReference();
+            var compilation = CreateCompilationWithMscorlib(source, new[] { metadataReference });
+            compilation.VerifyDiagnostics();
+
+            // Analyzer reports a diagnostic if it receives a merged namespace symbol across assemblies in compilation.
+            var analyzers = new DiagnosticAnalyzer[] { new EnsureNoMergedNamespaceSymbolAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers);
+        }
     }
 }
