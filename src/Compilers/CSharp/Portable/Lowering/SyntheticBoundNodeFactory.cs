@@ -1007,9 +1007,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Array(TypeSymbol elementType, BoundExpression[] elements)
+        public BoundExpression ArrayOrEmpty(TypeSymbol elementType, BoundExpression[] elements)
         {
-            return Array(elementType, elements.AsImmutableOrNull());
+            return ArrayOrEmpty(elementType, elements.AsImmutableOrNull());
+        }
+
+        public BoundExpression ArrayOrEmpty(TypeSymbol elementType, ImmutableArray<BoundExpression> elements)
+        {
+            if (elements.Length == 0)
+            {
+                MethodSymbol arrayEmpty = WellKnownMethod(CodeAnalysis.WellKnownMember.System_Array__Empty, isOptional: true);
+                if ((object)arrayEmpty != null)
+                {
+                    arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(elementType));
+                    return Call(null, arrayEmpty);
+                }
+            }
+
+            return Array(elementType, elements);
         }
 
         public BoundExpression Array(TypeSymbol elementType, ImmutableArray<BoundExpression> elements)
