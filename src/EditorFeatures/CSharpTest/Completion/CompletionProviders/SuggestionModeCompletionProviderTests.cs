@@ -569,7 +569,7 @@ class a
                 var document1 = await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular);
                 await CheckResultsAsync(document1, position, isBuilder);
 
-                if (CanUseSpeculativeSemanticModel(document1, position))
+                if (await CanUseSpeculativeSemanticModelAsync(document1, position))
                 {
                     var document2 = await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
                     await CheckResultsAsync(document2, position, isBuilder);

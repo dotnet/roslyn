@@ -1444,6 +1444,74 @@ class Q : P
             Assert.Contains(aliasY, actual_lookupSymbols);
         }
 
+        [Fact]
+        public void ExtensionMethodCall()
+        {
+            var source =
+@"static class E
+{
+    internal static void F(this object o)
+    {
+    }
+}
+class C
+{
+    void M()
+    {
+        /*<bind>*/this.F/*</bind>*/();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            compilation.VerifyDiagnostics();
+            var exprs = GetExprSyntaxList(tree);
+            var expr = GetExprSyntaxForBinding(exprs);
+            var method = (MethodSymbol)model.GetSymbolInfo(expr).Symbol;
+            Assert.Equal("object.F()", method.ToDisplayString());
+            var reducedFrom = method.ReducedFrom;
+            Assert.NotNull(reducedFrom);
+            Assert.Equal("E.F(object)", reducedFrom.ToDisplayString());
+        }
+
+        [WorkItem(3651, "https://github.com/dotnet/roslyn/issues/3651")]
+        [Fact]
+        public void ExtensionMethodDelegateCreation()
+        {
+            var source =
+@"static class E
+{
+    internal static void F(this object o)
+    {
+    }
+}
+class C
+{
+    void M()
+    {
+        (new System.Action<object>(/*<bind>*/E.F/*</bind>*/))(this);
+        (new System.Action(/*<bind1>*/this.F/*</bind1>*/))();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            compilation.VerifyDiagnostics();
+            var exprs = GetExprSyntaxList(tree);
+
+            var expr = GetExprSyntaxForBinding(exprs, index: 0);
+            var method = (MethodSymbol)model.GetSymbolInfo(expr).Symbol;
+            Assert.Null(method.ReducedFrom);
+            Assert.Equal("E.F(object)", method.ToDisplayString());
+
+            expr = GetExprSyntaxForBinding(exprs, index: 1);
+            method = (MethodSymbol)model.GetSymbolInfo(expr).Symbol;
+            Assert.Equal("object.F()", method.ToDisplayString());
+            var reducedFrom = method.ReducedFrom;
+            Assert.NotNull(reducedFrom);
+            Assert.Equal("E.F(object)", reducedFrom.ToDisplayString());
+        }
+
         #endregion tests
 
         #region regressions

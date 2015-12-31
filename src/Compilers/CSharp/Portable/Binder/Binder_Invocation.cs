@@ -718,11 +718,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!result.Succeeded)
             {
-                // If the arguments had an error reported about them then suppress further error
-                // reporting for overload resolution. 
-
-                if (!analyzedArguments.HasErrors)
+                if (analyzedArguments.HasErrors)
                 {
+                    // Errors for arguments have already been reported, except for unbound lambdas.
+                    // We report those now.
+                    foreach (var argument in analyzedArguments.Arguments)
+                    {
+                        var unboundLambda = argument as UnboundLambda;
+                        if (unboundLambda != null)
+                        {
+                            var boundWithErrors = unboundLambda.BindForErrorRecovery();
+                            diagnostics.AddRange(boundWithErrors.Diagnostics);
+                        }
+                    }
+                }
+                else
+                {
+                    // Since there were no argument errors to report, we report an error on the invocation itself.
                     string name = (object)delegateTypeOpt == null ? methodName : null;
                     result.ReportDiagnostics(this, GetLocationForOverloadResolutionDiagnostic(node, expression), diagnostics, name,
                         methodGroup.Receiver, analyzedArguments, methodGroup.Methods.ToImmutable(),

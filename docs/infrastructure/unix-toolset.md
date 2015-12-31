@@ -12,11 +12,11 @@ The value of *version number* will simply be the one number higher than the curr
 
 To build the toolset do the following:
 
-- Run cibuild.sh locally
+- Run `make bootstrap` locally
 - Rename `Binaries/Bootstrap` to the *toolset name* above
-- Bzip the directory: `tar -jcvf <toolset name>.tar.bz2 Binaries/<toolset name>.
+- Bzip the directory: `tar -jcvf <toolset name>.tar.bz2 Binaries/<toolset name>`.
 - Upload the file to the Azure in the dotnetci storage account in the roslyn container.  
-- Send a PR to change [cibuild.sh](https://github.com/dotnet/roslyn/blob/master/cibuild.sh) to use the new toolset.  
+- Send a PR to change [Makefile](https://github.com/dotnet/roslyn/blob/master/Makefile) to use the new toolset.  
 
 ### Existing Roslyn Toolsets
 This table describes the existing Mono toolsets and the commit they were built from.  
@@ -24,6 +24,7 @@ This table describes the existing Mono toolsets and the commit they were built f
 | Version | Linux | Mac |
 | --- | --- | --- |
 | 1 | [8dbfd942f07be971f423722891717e2ba9d9bebb](https://github.com/dotnet/roslyn/commit/8dbfd942f07be971f423722891717e2ba9d9bebb) | [8dbfd942f07be971f423722891717e2ba9d9bebb](https://github.com/dotnet/roslyn/commit/8dbfd942f07be971f423722891717e2ba9d9bebb) |
+| 2 | [5486cb18322e9782fccff6741f18933b545be0fa](https://github.com/dotnet/roslyn/commit/5486cb18322e9782fccff6741f18933b545be0fa) | [34870a4d27547b9ba628cbbc4a02028648d62d82](https://github.com/dotnet/roslyn/commit/34870a4d27547b9ba628cbbc4a02028648d62d82)|
 
 ### Building Mono
 The new *toolset name* will be chosen as one of the following:
@@ -53,5 +54,3 @@ This table describes the existing Mono toolsets and the commit they were built f
 | --- | --- | --- |
 | 1 | [43af8d475d853c8408ddaddbed4cfd61d2919780](https://github.com/jaredpar/mono/commit/43af8d475d853c8408ddaddbed4cfd61d2919780) | [43af8d475d853c8408ddaddbed4cfd61d2919780](https://github.com/jaredpar/mono/commit/43af8d475d853c8408ddaddbed4cfd61d2919780) |
 | 5 | [<not migrated> | [Mono 4.2.1.60](https://github.com/mono/mono/tree/mono-4.2.1.60) |
-
-

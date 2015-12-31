@@ -102,7 +102,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 }
                 else
                 {
-                    string qualifiedName = _symReader.PdbReader.MetadataImport.GetQualifiedTypeName(typeHandle);
+                    string qualifiedName = _symReader.PdbReader.GetMetadataImport().GetQualifiedTypeName(typeHandle);
                     if (qualifiedName == "System.Decimal")
                     {
                         translatedValue = sigReader.ReadDecimal();

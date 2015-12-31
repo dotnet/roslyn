@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             await TestWithOptionsAsync(document, provider, position, expectedResults);
 
             // speculative semantic model
-            if (CanUseSpeculativeSemanticModel(document, position))
+            if (await CanUseSpeculativeSemanticModelAsync(document, position))
             {
                 var buffer = testDocument.TextBuffer;
                 using (var edit = buffer.CreateEdit())

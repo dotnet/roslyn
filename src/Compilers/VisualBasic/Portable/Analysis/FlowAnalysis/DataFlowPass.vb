@@ -604,62 +604,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary> Unassign a slot for a regular variable </summary>
         Private Sub SetSlotUnassigned(slot As Integer)
-            Dim id As VariableIdentifier = variableBySlot(slot)
-
-            Dim type As TypeSymbol = GetVariableType(id.Symbol)
-            Debug.Assert(Not IsEmptyStructType(type))
-
             If slot >= Me.State.Assigned.Capacity Then
                 Normalize(Me.State)
             End If
 
-            ' If the state of the slot is 'assigned' we need to clear it 
-            '    and possibly propagate it to all the parents
-            If Me.State.IsAssigned(slot) Then
-                Me.State.Unassign(slot)
-                If Me._tryState IsNot Nothing Then
-                    Dim tryState = Me._tryState.Value
-                    tryState.Unassign(slot)
-                    Me._tryState = tryState
-                End If
-
-                '  propagate to parents
-                While id.ContainingSlot > 0
-
-                    '  check the parent
-                    Dim parentSlot = id.ContainingSlot
-                    Dim parentIdentifier = variableBySlot(parentSlot)
-                    Dim parentSymbol As Symbol = parentIdentifier.Symbol
-
-                    If Not Me.State.IsAssigned(parentSlot) Then
-                        Exit While
-                    End If
-
-                    '  unassign and continue loop
-                    Me.State.Unassign(parentSlot)
-                    If Me._tryState IsNot Nothing Then
-                        Dim tryState = Me._tryState.Value
-                        tryState.Unassign(parentSlot)
-                        Me._tryState = tryState
-                    End If
-
-                    If parentSymbol.Kind = SymbolKind.Local AndAlso DirectCast(parentSymbol, LocalSymbol).IsFunctionValue Then
-                        Me.State.Unassign(SlotKind.FunctionValue)
-                        If Me._tryState IsNot Nothing Then
-                            Dim tryState = Me._tryState.Value
-                            tryState.Unassign(SlotKind.FunctionValue)
-                            Me._tryState = tryState
-                        End If
-                    End If
-
-                    id = parentIdentifier
-
-                End While
+            If Me._tryState IsNot Nothing Then
+                Dim tryState = Me._tryState.Value
+                SetSlotUnassigned(slot, tryState)
+                Me._tryState = tryState
             End If
 
-            If IsTrackableStructType(type) Then
+            SetSlotUnassigned(slot, Me.State)
+        End Sub
 
-                ' NOTE: we need to unassign the children in all cases
+        Private Sub SetSlotUnassigned(slot As Integer, ByRef state As LocalState)
+            Dim id As VariableIdentifier = variableBySlot(slot)
+            Dim type As TypeSymbol = GetVariableType(id.Symbol)
+            Debug.Assert(Not IsEmptyStructType(type))
+
+            ' If the state of the slot is 'assigned' we need to clear it 
+            '    and possibly propagate it to all the parents
+            state.Unassign(slot)
+
+            'unassign struct children (if possible)
+            If IsTrackableStructType(type) Then
                 For Each field In GetStructInstanceFields(type)
                     ' get child's slot
 
@@ -668,11 +636,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim childSlot = VariableSlot(field, slot)
 
                     If childSlot >= SlotKind.FirstAvailable Then
-                        SetSlotUnassigned(childSlot)
+                        SetSlotUnassigned(childSlot, state)
                     End If
                 Next
-
             End If
+
+            '  propagate to parents
+            While id.ContainingSlot > 0
+                '  check the parent
+                Dim parentSlot = id.ContainingSlot
+                Dim parentIdentifier = variableBySlot(parentSlot)
+                Dim parentSymbol As Symbol = parentIdentifier.Symbol
+
+                If Not state.IsAssigned(parentSlot) Then
+                    Exit While
+                End If
+
+                '  unassign and continue loop
+                state.Unassign(parentSlot)
+
+                If parentSymbol.Kind = SymbolKind.Local AndAlso DirectCast(parentSymbol, LocalSymbol).IsFunctionValue Then
+                    state.Unassign(SlotKind.FunctionValue)
+                End If
+
+                id = parentIdentifier
+            End While
         End Sub
 
         ''' <summary>Assign a slot for a regular variable in a given state.</summary>

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#define SIMULATED_EVENT_QUEUE
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,12 +12,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     public class CompilationWithAnalyzers
     {
         private readonly Compilation _compilation;
+        private readonly CompilationData _compilationData;
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly CompilationWithAnalyzersOptions _analysisOptions;
         private readonly CancellationToken _cancellationToken;
@@ -119,16 +123,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyArguments(compilation, analyzers, analysisOptions);
 
-            _compilation = compilation
+            compilation = compilation
                 .WithOptions(compilation.Options.WithReportSuppressedDiagnostics(analysisOptions.ReportSuppressedDiagnostics))
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
+            _compilation = compilation;
             _analyzers = analyzers;
             _analysisOptions = analysisOptions;
             _cancellationToken = cancellationToken;
 
-            _analysisState = new AnalysisState(analyzers);
+            _compilationData = new CompilationData(_compilation);
+            _analysisState = new AnalysisState(analyzers, _compilationData);
             _analysisResult = new AnalysisResult(analysisOptions.LogAnalyzerExecutionTime, analyzers);
-            _driverPool = new ObjectPool<AnalyzerDriver>(() => compilation.AnalyzerForLanguage(analyzers, AnalyzerManager.Instance));
+            _driverPool = new ObjectPool<AnalyzerDriver>(() => _compilation.AnalyzerForLanguage(analyzers, AnalyzerManager.Instance));
             _executingConcurrentTreeTasksOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<SyntaxTree, Tuple<Task, CancellationTokenSource>>() : null;
             _concurrentTreeTaskTokensOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<Task, int>() : null;
             _executingCompilationOrNonConcurrentTreeTask = null;
@@ -485,7 +491,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Below invocation will force GetDiagnostics on the model's tree to generate compilation events.
                 Action generateCompilationEvents = () =>
-                    AnalyzerDriver.GetOrCreateCachedSemanticModel(model.SyntaxTree, _compilation, cancellationToken);
+                {
+                    var mappedModel = _compilationData.GetOrCreateCachedSemanticModel(model.SyntaxTree, _compilation, cancellationToken);
+
+                    // Invoke GetDiagnostics to populate the compilation's event queue.
+                    mappedModel.GetDeclarationDiagnostics();
+                };
 
                 Func<AsyncQueue<CompilationEvent>> getEventQueue = () => GetPendingEvents(analyzers, model.SyntaxTree);
 
@@ -512,10 +523,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 AnalyzerDriver driver = null;
                 Task computeTask = null;
                 CancellationTokenSource cts;
-                generateCompilationEventsOpt?.Invoke();
-
-                // Populate the events cache from the generated compilation events.
-                await PopulateEventsCacheAsync(cancellationToken).ConfigureAwait(false);
 
                 try
                 {
@@ -527,6 +534,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Debug.Assert(!driver.WhenInitializedTask.IsCanceled);
 
                     cancellationToken.ThrowIfCancellationRequested();
+
+#if SIMULATED_EVENT_QUEUE
+                    await _analysisState.GenerateSimulatedCompilationEventsAsync(analysisScope, _compilation, _compilationData.GetOrCreateCachedSemanticModel, driver, cancellationToken).ConfigureAwait(false);
+#else
+                    generateCompilationEventsOpt?.Invoke();
+
+                    // Populate the events cache from the generated compilation events.
+                    await PopulateEventsCacheAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
                     // Track if this task was suspended by another tree diagnostics request for the same tree.
                     // If so, we wait for the high priority requests to complete before restarting analysis.
@@ -622,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Start the initialization task, if required.
                     if (driver.WhenInitializedTask == null)
                     {
-                        driver.Initialize(_compilation, _analysisOptions, categorizeDiagnostics: true, cancellationToken: cancellationToken);
+                        driver.Initialize(_compilation, _analysisOptions, _compilationData, categorizeDiagnostics: true, cancellationToken: cancellationToken);
                     }
 
                     // Wait for driver initialization to complete: this executes the Initialize and CompilationStartActions to compute all registered actions per-analyzer.
@@ -957,6 +973,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(compilation));
             }
 
+            var suppressMessageState = new SuppressMessageAttributeState(compilation);
             foreach (var diagnostic in diagnostics.ToImmutableArray())
             {
                 if (diagnostic != null)
@@ -964,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
                     if (effectiveDiagnostic != null)
                     {
-                        effectiveDiagnostic = SuppressMessageAttributeState.ApplySourceSuppressions(effectiveDiagnostic, compilation);
+                        effectiveDiagnostic = suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic);
                         yield return effectiveDiagnostic;
                     }
                 }

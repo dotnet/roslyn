@@ -1189,16 +1189,13 @@ class C
             var source =
 @"using System;
 
-public class C
+class C
 {
-    public static void Main()
+    static void Main()
     {
-        Func<dynamic, object> f = x => x;
-        T(f(null));
+        Func<dynamic, dynamic[], object> f = (x, y) => x;
+        f(null, null);
     }
-
-    public static void T(object o) { }
-    
 }";
 
             // Make sure we emit without errors when dynamic attributes are not present. 
@@ -1207,7 +1204,7 @@ public class C
                 Signature(
                     "C+<>c", 
                     "<Main>b__0_0",
-                    ".method assembly hidebysig instance System.Object <Main>b__0_0(System.Object x) cil managed")
+                    ".method assembly hidebysig instance System.Object <Main>b__0_0(System.Object x, System.Object[] y) cil managed")
             });
         }
 
@@ -1218,16 +1215,13 @@ public class C
             var source =
 @"using System;
 
-public class C
+class C
 {
-    public static void Main()
+    static void Main()
     {
-        Func<dynamic, object> f = x => x;
-        T(f(null));
+        Func<dynamic, dynamic[], object> f = (x, y) => x;
+        f(null, null);
     }
-
-    public static void T(object o) { }
-    
 }";
 
             CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
@@ -1235,8 +1229,40 @@ public class C
                 Signature(
                     "C+<>c", 
                     "<Main>b__0_0",
-                    ".method assembly hidebysig instance System.Object <Main>b__0_0([System.Runtime.CompilerServices.DynamicAttribute()] System.Object x) cil managed")
+                    ".method assembly hidebysig instance System.Object <Main>b__0_0([System.Runtime.CompilerServices.DynamicAttribute()] System.Object x, [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] System.Object[] y) cil managed")
             });
+        }
+
+        [Fact]
+        [WorkItem(6126, "https://github.com/dotnet/roslyn/issues/6126")]
+        public void DynamicLambdaParametersMissingBoolean()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct IntPtr { }
+    public class MulticastDelegate { }
+}";
+            var source1 =
+@"delegate void D<T>(T t);
+class C
+{
+    static void Main()
+    {
+        D<dynamic[]> d = o => { };
+        d(null);
+    }
+}";
+            var comp = CreateCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+            comp = CreateCompilation(source1, references: new[] { ref0, SystemCoreRef });
+            comp.VerifyDiagnostics();
+            // Make sure we emit without errors when System.Boolean is missing.
+            CompileAndVerify(comp, verify: false);
         }
     }
 }

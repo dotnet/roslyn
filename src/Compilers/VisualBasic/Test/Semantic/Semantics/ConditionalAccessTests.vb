@@ -2436,6 +2436,62 @@ C1
 
         End Sub
 
+        <Fact(), WorkItem(7388, "https://github.com/dotnet/roslyn/issues/7388")>
+        Public Sub ConstrainedToClass()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim v As New A(Of Object)
+        System.Console.WriteLine(A(Of Object).test(v))
+    End Sub
+
+End Module
+
+Public Class A(Of T As Class)
+    Public ReadOnly Property Value As T
+        Get
+            Return CType(CObj(42), T)
+        End Get
+    End Property
+
+    Public Shared Function test(val As A(Of T)) As T
+        Return val?.Value
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+42
+]]>)
+
+            verifier.VerifyIL("A(Of T).test(A(Of T))",
+            <![CDATA[
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000d
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    "T"
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+  IL_000d:  ldarg.0
+  IL_000e:  call       "Function A(Of T).get_Value() As T"
+  IL_0013:  ret
+}
+]]>)
+
+        End Sub
+
         <Fact()>
         Public Sub CodeGen_01()
 

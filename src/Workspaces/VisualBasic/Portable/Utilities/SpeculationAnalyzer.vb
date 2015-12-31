@@ -519,10 +519,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Protected Overrides Function ConversionsAreCompatible(originalModel As SemanticModel, originalExpression As ExpressionSyntax, newModel As SemanticModel, newExpression As ExpressionSyntax) As Boolean
+            If originalExpression Is Nothing OrElse originalModel Is Nothing OrElse newExpression Is Nothing OrElse newModel Is Nothing Then
+                Return False
+            End If
+
             Return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression))
         End Function
 
         Protected Overrides Function ConversionsAreCompatible(originalExpression As ExpressionSyntax, originalTargetType As ITypeSymbol, newExpression As ExpressionSyntax, newTargetType As ITypeSymbol) As Boolean
+            If originalExpression Is Nothing OrElse originalTargetType Is Nothing OrElse newExpression Is Nothing OrElse newTargetType Is Nothing Then
+                Return False
+            End If
+
             Dim originalConversion = Me.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType)
             Dim newConversion = Me.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType)
 

@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync =
                 async (d, diagIds, c) =>
                 {
-                    var root = d.GetSyntaxRootAsync().Result;
+                    var root = await d.GetSyntaxRootAsync();
                     var diags = await testDriver.GetDocumentDiagnosticsAsync(provider, d, root.FullSpan);
                     diags = diags.Where(diag => diagIds.Contains(diag.Id));
                     return diags;
@@ -347,11 +347,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             if (compareTokens)
             {
                 TokenUtilities.AssertTokensEqual(
-                    expected, addedDocument.GetTextAsync().Result.ToString(), GetLanguage());
+                    expected, (await addedDocument.GetTextAsync()).ToString(), GetLanguage());
             }
             else
             {
-                Assert.Equal(expected, addedDocument.GetTextAsync().Result.ToString());
+                Assert.Equal(expected, (await addedDocument.GetTextAsync()).ToString());
             }
 
             var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var action = fixActions.ElementAt(index);
 
                 Assert.Equal(action.Title, FeaturesResources.GenerateNewType);
-                var operations = action.GetOperationsAsync(CancellationToken.None).Result;
+                var operations = await action.GetOperationsAsync(CancellationToken.None);
                 Tuple<Solution, Solution> oldSolutionAndNewSolution = null;
 
                 if (!isNewFile)

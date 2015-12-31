@@ -59,14 +59,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var ns = (NamespaceDeclarationSyntax)node;
                         foreach (var decl in ns.Members) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken));
+                        var declInfo = GetDeclarationInfo(model, node, getSymbol, cancellationToken);
+                        builder.Add(declInfo);
 
                         NameSyntax name = ns.Name;
+                        INamespaceSymbol nsSymbol = declInfo.DeclaredSymbol as INamespaceSymbol;
                         while (name.Kind() == SyntaxKind.QualifiedName)
                         {
                             name = ((QualifiedNameSyntax)name).Left;
-                            var declaredSymbol = getSymbol ? model.GetSymbolInfo(name, cancellationToken).Symbol : null;
+                            var declaredSymbol = getSymbol ? nsSymbol?.ContainingNamespace : null;
                             builder.Add(new DeclarationInfo(name, ImmutableArray<SyntaxNode>.Empty, declaredSymbol));
+                            nsSymbol = declaredSymbol;
                         }
 
                         return;

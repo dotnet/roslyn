@@ -1068,7 +1068,7 @@ class C
                 editHandler.Apply(
                     workspace,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
-                    actions.First().GetOperationsAsync(CancellationToken.None).Result,
+                    Await actions.First().GetOperationsAsync(CancellationToken.None),
                     "unused",
                     CancellationToken.None)
 
