@@ -1653,6 +1653,21 @@ End Class
     End Sub
 
     <Fact>
+    Public Sub PublicSign_NoKey()
+        Dim options = TestOptions.ReleaseDll.WithPublicSign(True)
+        Dim comp = CreateCompilationWithMscorlib(
+            <compilation>
+                <file name="a.vb"><![CDATA[
+Public Class C
+End Class
+]]>
+                </file>
+            </compilation>, options:=options
+        )
+        comp.VerifyDiagnostics()
+    End Sub
+
+    <Fact>
     Public Sub PublicSign_FromKeyFileNoStrongNameProvider()
         Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey)
         Dim options = TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(True)
@@ -1697,6 +1712,46 @@ End Class
         Dim options = TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(True)
         Dim compilation = CreateCompilationWithMscorlib(source, options:=options)
         PublicSignCore(compilation)
+    End Sub
+
+    <Fact>
+    Public Sub PublicSign_DelaySignAttribute()
+        Dim source =
+            <compilation>
+                <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyDelaySign(True)>
+Public Class C
+End Class
+]]>
+                </file>
+            </compilation>
+        Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey)
+        Dim options = TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(True)
+        Dim comp = CreateCompilationWithMscorlib(source, options:=options)
+
+        comp.VerifyDiagnostics(
+            Diagnostic(ERRID.ERR_CmdOptionConflictsSource).WithArguments("System.Reflection.AssemblyDelaySignAttribute", "PublicSign").WithLocation(1, 1))
+    End Sub
+
+    <Fact>
+    Public Sub PublicSignAndDelaySign()
+        Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey)
+        Dim options = TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(True).WithDelaySign(True)
+
+        Dim comp = CreateCompilationWithMscorlib(
+            <compilation>
+                <file name="a.vb"><![CDATA[
+Public Class C
+End Class
+]]>
+                </file>
+            </compilation>,
+            options:=options
+        )
+
+        comp.VerifyDiagnostics(
+            Diagnostic(ERRID.ERR_MutuallyExclusiveOptions).WithArguments("PublicSign", "DelaySign").WithLocation(1, 1))
+
     End Sub
 
     <Fact, WorkItem(769840, "DevDiv")>

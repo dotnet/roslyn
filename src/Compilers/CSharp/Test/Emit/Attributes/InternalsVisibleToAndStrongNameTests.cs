@@ -487,6 +487,44 @@ public class C {}
         }
 
         [Fact]
+        public void PublicSign_DelaySignAttribute()
+        {
+            var pubKeyFile = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey);
+
+            var comp = CreateCompilationWithMscorlib(@"
+[assembly: System.Reflection.AssemblyDelaySign(true)]
+public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithCryptoKeyFile(pubKeyFile.Path)
+                    .WithPublicSign(true));
+
+            comp.VerifyDiagnostics(
+    // warning CS1616: Option 'PublicSign' overrides attribute 'System.Reflection.AssemblyDelaySignAttribute' given in a source file or added module
+    Diagnostic(ErrorCode.WRN_CmdOptionConflictsSource).WithArguments("PublicSign", "System.Reflection.AssemblyDelaySignAttribute").WithLocation(1, 1));
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.Null(comp.Options.DelaySign);
+            Assert.False(comp.IsRealSigned);
+            Assert.NotNull(comp.Options.CryptoKeyFile);
+
+            var outStrm = new MemoryStream();
+            var emitResult = comp.Emit(outStrm);
+            Assert.True(emitResult.Success);
+
+            outStrm.Position = 0;
+
+            // Verify that the sign bit is set
+            using (var reader = new PEReader(outStrm))
+            {
+                Assert.True(reader.HasMetadata);
+
+                var flags = reader.PEHeaders.CorHeader.Flags;
+                Assert.True(flags.HasFlag(CorFlags.StrongNameSigned));
+            }
+        }
+
+
+        [Fact]
         public void KeyContainerNoSNProvider_PublicSign()
         {
             var comp = CreateCompilationWithMscorlib("public class C {}",
@@ -532,6 +570,23 @@ public class C {}
                 Assert.True(flags.HasFlag(CorFlags.StrongNameSigned));
             }
         }
+
+        [Fact]
+        public void PublicSignAndDelaySign()
+        {
+            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
+
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithPublicSign(true)
+                    .WithDelaySign(true)
+                    .WithCryptoKeyFile(snk.Path));
+
+            comp.VerifyDiagnostics(
+    // error CS7102: Compilation options 'PublicSign' and 'DelaySign' can't both be specified at the same time.
+    Diagnostic(ErrorCode.ERR_MutuallyExclusiveOptions).WithArguments("PublicSign", "DelaySign").WithLocation(1, 1));
+        }
+
 
         [Fact]
         public void PublicKeyFromOptions_InvalidCompilationOptions()
