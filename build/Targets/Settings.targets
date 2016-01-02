@@ -53,7 +53,7 @@
        built against the xplat MSBuild references so it can't be loaded properly. Providing
        a response file works around the problem by directly adding the public sign argument
        to all unix compilations. This shouldn't present a problem as it's impossible to
-       fully sign on unix at the moment anyway -->
+       fully sign on unix at the moment anyway. Tracked by #7756. -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
       <CompilerResponseFile>$(MSBuildThisFileDirectory)..\scripts\extra_unix_args.rsp</CompilerResponseFile>
   </PropertyGroup>
@@ -141,7 +141,8 @@
             Condition="Exists('$(RoslynDiagnosticsPropsFilePath)') And ('$(UseRoslynAnalyzers)' == 'true')" />
   </ImportGroup>
 
-  <!-- Otherwise, use the task from the bootstrap location -->
+  <!-- Otherwise, use the task from the bootstrap location. This is necessary
+       to support new properties on the build task. -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
              AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
