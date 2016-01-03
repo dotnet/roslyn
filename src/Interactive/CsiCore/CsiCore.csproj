@@ -42,6 +42,10 @@
       <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
       <Name>CSharpScripting</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Tools\CommonNetCoreReferences\CommonNetCoreReferences.csproj">
+      <Project>{b5a6057a-eb4c-49fb-987d-943137e72e47}</Project>
+      <Name>CommonNetCoreReferences</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="csi.rsp">
