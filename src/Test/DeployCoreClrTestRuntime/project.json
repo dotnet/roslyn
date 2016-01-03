@@ -1,7 +1,5 @@
 ﻿{
   "dependencies": {
-    "Microsoft.NETCore.Platforms": "1.0.1-beta-23504",
-    "Microsoft.NETCore.Runtime.CoreCLR": "1.0.1-beta-23504",
     "Microsoft.NETCore.TestHost": "1.0.0-beta-23504",
     "System.Runtime": "4.0.21-beta-23504",
     "xunit.console.netcore": "1.0.2-prerelease-00104"
@@ -12,6 +10,8 @@
     }
   },
   "runtimes": {
-    "win7-x64": { }
+    "win7-x64": { },
+    "ubuntu.14.04-x64": { },
+    "osx.10.10-x64": {}
   }
 }
