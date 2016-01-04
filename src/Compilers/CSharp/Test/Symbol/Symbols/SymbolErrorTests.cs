@@ -1519,15 +1519,15 @@ namespace n3
 }";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-                // (16,25): error CS0104: 'IFoo<X>' is an ambiguous reference between 'n1.IFoo<T>' and 'n3.n2.IFoo<V>'
-                //     public class C<X> : IFoo<X>
-                Diagnostic(ErrorCode.ERR_AmbigContext, "IFoo<X>").WithArguments("IFoo<X>", "n1.IFoo<T>", "n3.n2.IFoo<V>"),
                 // (22,9): error CS0104: 'A' is an ambiguous reference between 'n1.A' and 'n3.n2.A'
                 //         A a;
-                Diagnostic(ErrorCode.ERR_AmbigContext, "A").WithArguments("A", "n1.A", "n3.n2.A"),
-                // (22,11): warning CS0169: The field 'n3.S.a' is never used
+                Diagnostic(ErrorCode.ERR_AmbigContext, "A").WithArguments("A", "n1.A", "n3.n2.A").WithLocation(22, 9),
+                // (16,25): error CS0104: 'IFoo<>' is an ambiguous reference between 'n1.IFoo<T>' and 'n3.n2.IFoo<V>'
+                //     public class C<X> : IFoo<X>
+                Diagnostic(ErrorCode.ERR_AmbigContext, "IFoo<X>").WithArguments("IFoo<>", "n1.IFoo<T>", "n3.n2.IFoo<V>").WithLocation(16, 25),
+                // (22,11): warning CS0169: The field 'S.a' is never used
                 //         A a;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("n3.S.a")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("n3.S.a").WithLocation(22, 11)
             );
 
             var ns3 = comp.SourceModule.GlobalNamespace.GetMember<NamespaceSymbol>("n3");
