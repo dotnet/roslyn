@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             private static readonly ManualResetEventSlim s_clientExited = new ManualResetEventSlim(false);
 
-            private static TaskScheduler s_UIThreadScheduler;
+            private static Control s_control;
 
             private InteractiveAssemblyLoader _assemblyLoader;
             private MetadataShadowCopyProvider _metadataFileProvider;
@@ -256,9 +256,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                         {
                             var uiThread = new Thread(() =>
                             {
-                                var c = new Control();
-                                c.CreateControl();
-                                s_UIThreadScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+                                s_control = new Control();
+                                s_control.CreateControl();
                                 resetEvent.Set();
                                 Application.Run();
                             });
@@ -815,31 +814,27 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private async Task<ScriptState<object>> ExecuteOnUIThread(Script<object> script, ScriptState<object> stateOpt)
             {
-                return await Task.Factory.StartNew(async () =>
-                {
-                    try
+                return await ((Task<ScriptState<object>>)s_control.Invoke(
+                    (Func<Task<ScriptState<object>>>)(() =>
                     {
-                        var task = (stateOpt == null) ?
-                            script.RunAsync(_globals, CancellationToken.None) :
-                            script.ContinueAsync(stateOpt, CancellationToken.None);
-
-                        return await task.ConfigureAwait(false);
-                    }
-                    catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
-                    {
-                        Console.Error.WriteLine(e.InnerException.Message);
-                        return null;
-                    }
-                    catch (Exception e)
-                    {
-                        // TODO (tomat): format exception
-                        Console.Error.WriteLine(e);
-                        return null;
-                    }
-                },
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                s_UIThreadScheduler).Unwrap().ConfigureAwait(false);
+                        try
+                        {
+                            return (stateOpt == null) ?
+                                script.RunAsync(_globals, CancellationToken.None) :
+                                script.ContinueAsync(stateOpt, CancellationToken.None);
+                        }
+                        catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
+                        {
+                            Console.Error.WriteLine(e.InnerException.Message);
+                            return null;
+                        }
+                        catch (Exception e)
+                        {
+                            // TODO (tomat): format exception
+                            Console.Error.WriteLine(e);
+                            return null;
+                        }
+                    }))).ConfigureAwait(false);
             }
 
             private void DisplayInteractiveErrors(ImmutableArray<Diagnostic> diagnostics, TextWriter output)
