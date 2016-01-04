@@ -159,11 +159,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // this is a no-op.  Emitting an error here, or when the original parameter was bound, would
             // adversely effect the compilation or potentially change overload resolution.  
             var compilation = this.DeclaringCompilation;
-            if (Type.ContainsDynamic() && 
-                compilation.HasDynamicEmitAttributes() &&
-                compilation.GetSpecialType(SpecialType.System_Boolean).SpecialType == SpecialType.System_Boolean)
+            if (Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length, this.RefKind));
+                var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
+                var diagnostic = boolType.GetUseSiteDiagnostic();
+                if ((diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error))
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length, this.RefKind));
+                }
             }
         }
 

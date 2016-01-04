@@ -1850,5 +1850,40 @@ class MyClass
                 Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, diagnostics.Single().Id)
             End Using
         End Sub
+
+        <WpfFact>
+        Public Sub TestEnsureNoMergedNamespaceSymbolAnalyzer()
+            Dim test = <Workspace>
+                           <Project Language="C#" AssemblyName="BaseAssembly" CommonReferences="true">
+                               <Document>
+                                   namespace N1.N2 { class C1 { } }
+                               </Document>
+                           </Project>
+                           <Project Language="C#" AssemblyName="MainAssembly" CommonReferences="true">
+                               <ProjectReference>BaseAssembly</ProjectReference>
+                               <Document>
+                                   namespace N1.N2 { class C2 { } }
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single(Function(p As Project) p.Name = "MainAssembly")
+
+                ' Analyzer reports a diagnostic if it receives a merged namespace symbol across assemblies in compilation.
+                Dim analyzer = New EnsureNoMergedNamespaceSymbolAnalyzer()
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnostics = diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                Assert.Equal(0, diagnostics.Count())
+            End Using
+        End Sub
     End Class
 End Namespace

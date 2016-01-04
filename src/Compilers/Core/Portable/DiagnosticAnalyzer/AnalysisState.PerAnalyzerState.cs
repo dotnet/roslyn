@@ -36,7 +36,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _currentlyAnalyzingDeclarationsMapPool = currentlyAnalyzingDeclarationsMapPool;
             }
 
-            public IEnumerable<CompilationEvent> PendingEvents_NoLock => _pendingEvents.Keys;
+            public void AddPendingEvents(HashSet<CompilationEvent> uniqueEvents)
+            {
+                lock (_gate)
+                {
+                    foreach (var pendingEvent in _pendingEvents.Keys)
+                    {
+                        uniqueEvents.Add(pendingEvent);
+                    }
+                }
+            }
 
             public bool HasPendingSyntaxAnalysis(SyntaxTree treeOpt)
             {

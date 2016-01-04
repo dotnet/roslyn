@@ -366,6 +366,38 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class EnsureNoMergedNamespaceSymbolAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "DiagnosticId";
+            public const string Title = "Title";
+            public const string Message = "Message";
+            public const string Category = "Category";
+            public const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+
+            internal static DiagnosticDescriptor Rule =
+                new DiagnosticDescriptor(DiagnosticId, Title, Message,
+                                         Category, Severity, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+                 ImmutableArray.Create(Rule);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.Namespace);
+            }
+
+            private void AnalyzeSymbol(SymbolAnalysisContext context)
+            {
+                // Ensure we are not invoked for merged namespace symbol, but instead for constituent namespace scoped to the source assembly.
+                var ns = (INamespaceSymbol)context.Symbol;
+                if (ns.ContainingAssembly != context.Compilation.Assembly || ns.ConstituentNamespaces.Length > 1)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, ns.Locations[0]));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class AnalyzerWithNoSupportedDiagnostics : DiagnosticAnalyzer
         {
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
