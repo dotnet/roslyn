@@ -690,8 +690,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var actualTimePassed = DateTime.UtcNow - start + TimeSpan.FromMilliseconds(TimerPrecision);
             var isTargetCollected = observed.Weak.Target == null;
 
-            if (!isTargetCollected && !string.IsNullOrEmpty(dumpFileName))
+            if (!isTargetCollected)
             {
+                if (string.IsNullOrEmpty(dumpFileName))
+                {
+                    dumpFileName = Path.GetRandomFileName();
+                }
+
                 if (string.Compare(Path.GetExtension(dumpFileName), ".dmp", StringComparison.OrdinalIgnoreCase) != 0)
                 {
                     dumpFileName += ".dmp";
@@ -700,9 +705,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 DumpProcess(dumpFileName);
                 Assert.True(false, $"Target object not collected.  Process dump saved to '{dumpFileName}'");
             }
-
-            Assert.True(isTargetCollected,
-                string.Format("Target object ({0}) was not collected after {1} ms", observed.Weak.Target, actualTimePassed));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1070,11 +1072,11 @@ End Class";
             TestRecoverableSyntaxTree(sol, did);
         }
 
-        private void TestRecoverableSyntaxTree(Solution sol, DocumentId did, [CallerMemberName] string callingTest = null)
+        private void TestRecoverableSyntaxTree(Solution sol, DocumentId did)
         {
             // get it async and wait for it to get GC'd
             var observed = GetObservedSyntaxTreeRootAsync(sol, did);
-            StopObservingAndWaitForReferenceToGo(observed, dumpFileName: callingTest);
+            StopObservingAndWaitForReferenceToGo(observed);
 
             var doc = sol.GetDocument(did);
 
@@ -1093,7 +1095,7 @@ End Class";
 
             // get it async and wait for it to get GC'd
             var observed2 = GetObservedSyntaxTreeRootAsync(doc2.Project.Solution, did);
-            StopObservingAndWaitForReferenceToGo(observed2, dumpFileName: callingTest);
+            StopObservingAndWaitForReferenceToGo(observed2);
 
             // access the tree & root again (recover it)
             var tree2 = doc2.GetSyntaxTreeAsync().Result;
