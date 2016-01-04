@@ -1010,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.InvocationExpression);
         }
 
-        static long IntegralValue(object value)
+        private static long IntegralValue(object value)
         {
             if (value is long)
             {

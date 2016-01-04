@@ -199,19 +199,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (name == null)
                     {
-                        RefKind refMode = !argumentRefKinds.IsDefaultOrEmpty ? argumentRefKinds[argumentIndex] : RefKind.None;
-                        return
-                            refMode == RefKind.None
-                            ? (argumentIndex >= parameters.Length - 1 &&
-                               parameters.Length > 0 &&
-                               parameters[parameters.Length - 1].IsParams &&
-                               // An argument that is an array of the appropriate type is not a params argument.
-                               (boundArguments.Length > argumentIndex + 1 ||
-                                argument.Type.TypeKind != TypeKind.Array ||
-                                !argument.Type.Equals(parameters[parameters.Length - 1].Type, true))
-                               ? (IArgument)new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex))
-                               : new SimpleArgument(parameters[parameterIndex], argument))
-                            : (IArgument)new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
+                        RefKind refMode = argumentRefKinds.IsDefaultOrEmpty ? RefKind.None : argumentRefKinds[argumentIndex];
+
+                        if (refMode != RefKind.None)
+                        {
+                            return (IArgument)new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
+                        }
+
+                        if (argumentIndex >= parameters.Length - 1 &&
+                            parameters.Length > 0 &&
+                            parameters[parameters.Length - 1].IsParams &&
+                            // An argument that is an array of the appropriate type is not a params argument.
+                            (boundArguments.Length > argumentIndex + 1 ||
+                             argument.Type.TypeKind != TypeKind.Array ||
+                             !argument.Type.Equals(parameters[parameters.Length - 1].Type, true)))
+                        {
+                            return (IArgument)new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex));
+                        }
+                        else
+                        {
+                            return new SimpleArgument(parameters[parameterIndex], argument);
+                        }
                     }
 
                     return new Argument(ArgumentKind.Named, parameters[parameterIndex], argument);
