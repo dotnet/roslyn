@@ -1664,7 +1664,9 @@ End Class
                 </file>
             </compilation>, options:=options
         )
-        comp.VerifyDiagnostics()
+        comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicSignNoKey).WithLocation(1, 1))
+        Assert.True(comp.Options.PublicSign)
+        Assert.True(comp.Assembly.PublicKey.IsDefaultOrEmpty)
     End Sub
 
     <Fact>
