@@ -1031,69 +1031,111 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundAddRemoveHandlerStatement
-        Implements IEventAssignmentExpression
+        Implements IExpressionStatement
 
-        Protected MustOverride ReadOnly Property IAdds As Boolean Implements IEventAssignmentExpression.Adds
-
-        Private ReadOnly Property IConstantValue As [Optional](Of Object) Implements IExpression.ConstantValue
-            Get
-                Return New [Optional](Of Object)()
-            End Get
-        End Property
-
-        Private ReadOnly Property IEvent As IEventSymbol Implements IEventAssignmentExpression.Event
-            Get
-                Dim eventAccess As BoundEventAccess = TryCast(Me.EventAccess, BoundEventAccess)
-                If eventAccess IsNot Nothing Then
-                    Return eventAccess.EventSymbol
-                End If
-
-                Return Nothing
-            End Get
-        End Property
-
-        Private ReadOnly Property IEventInstance As IExpression Implements IEventAssignmentExpression.EventInstance
-            Get
-                Dim eventAccess As BoundEventAccess = TryCast(Me.EventAccess, BoundEventAccess)
-                If eventAccess IsNot Nothing Then
-                    Return eventAccess.ReceiverOpt
-                End If
-
-                Return Nothing
-            End Get
-        End Property
-
-        Private ReadOnly Property IResultType As ITypeSymbol Implements IExpression.ResultType
-            Get
-                Return Nothing
-            End Get
-        End Property
-
-        Private ReadOnly Property IHandlerValue As IExpression Implements IEventAssignmentExpression.HandlerValue
-            Get
-                Return Me.Handler
-            End Get
-        End Property
+        Protected Shared ExpressionsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundAddRemoveHandlerStatement, IEventAssignmentExpression)
 
         Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.EventAssignmentExpression
+            Return OperationKind.ExpressionStatement
         End Function
+
+        Protected MustOverride ReadOnly Property IExpression As IExpression Implements IExpressionStatement.Expression
+
+        Protected Class EventAssignmentExpression
+            Implements IEventAssignmentExpression
+
+            Private ReadOnly _statement As BoundAddRemoveHandlerStatement
+            Private ReadOnly _adds As Boolean
+
+            Public Sub New(statement As BoundAddRemoveHandlerStatement, adds As Boolean)
+                _statement = statement
+                _adds = adds
+            End Sub
+
+            Public ReadOnly Property Adds As Boolean Implements IEventAssignmentExpression.Adds
+                Get
+                    Return _adds
+                End Get
+            End Property
+
+            Public ReadOnly Property ConstantValue As [Optional](Of Object) Implements IExpression.ConstantValue
+                Get
+                    Return New [Optional](Of Object)()
+                End Get
+            End Property
+
+            Public ReadOnly Property [Event] As IEventSymbol Implements IEventAssignmentExpression.Event
+                Get
+                    Dim eventAccess As BoundEventAccess = TryCast(_statement.EventAccess, BoundEventAccess)
+                    If eventAccess IsNot Nothing Then
+                        Return eventAccess.EventSymbol
+                    End If
+
+                    Return Nothing
+                End Get
+            End Property
+
+            Public ReadOnly Property EventInstance As IExpression Implements IEventAssignmentExpression.EventInstance
+                Get
+                    Dim eventAccess As BoundEventAccess = TryCast(_statement.EventAccess, BoundEventAccess)
+                    If eventAccess IsNot Nothing Then
+                        Return eventAccess.ReceiverOpt
+                    End If
+
+                    Return Nothing
+                End Get
+            End Property
+
+            Public ReadOnly Property HandlerValue As IExpression Implements IEventAssignmentExpression.HandlerValue
+                Get
+                    Return _statement.Handler
+                End Get
+            End Property
+
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return _statement.HasErrors
+                End Get
+            End Property
+
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                Get
+                    Return OperationKind.EventAssignmentExpression
+                End Get
+            End Property
+
+            Public ReadOnly Property ResultType As ITypeSymbol Implements IExpression.ResultType
+                Get
+                    Return Nothing
+                End Get
+            End Property
+
+            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                Get
+                    Return _statement.Syntax
+                End Get
+            End Property
+        End Class
     End Class
 
     Partial Class BoundAddHandlerStatement
 
-        Protected Overrides ReadOnly Property IAdds As Boolean
+        Protected Overrides ReadOnly Property IExpression As IExpression
             Get
-                Return True
+                Return ExpressionsMappings.GetValue(Me, Function(statement)
+                                                            Return New EventAssignmentExpression(statement, True)
+                                                        End Function)
             End Get
         End Property
     End Class
 
     Partial Class BoundRemoveHandlerStatement
 
-        Protected Overrides ReadOnly Property IAdds As Boolean
+        Protected Overrides ReadOnly Property IExpression As IExpression
             Get
-                Return False
+                Return ExpressionsMappings.GetValue(Me, Function(statement)
+                                                            Return New EventAssignmentExpression(statement, False)
+                                                        End Function)
             End Get
         End Property
     End Class

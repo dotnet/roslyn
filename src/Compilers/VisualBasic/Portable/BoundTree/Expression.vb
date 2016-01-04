@@ -53,6 +53,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Me.nodes.Add(caseClause)
                                 End If
                             End If
+                        Case OperationKind.ExpressionStatement
+                            Dim expression = DirectCast(operation, IExpressionStatement).Expression
+                            If expression.Kind = OperationKind.EventAssignmentExpression Then
+                                Me.nodes.Add(expression)
+                            End If
                     End Select
                 End If
                 Return MyBase.Visit(node)
