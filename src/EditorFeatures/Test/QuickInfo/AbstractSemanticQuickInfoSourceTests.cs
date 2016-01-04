@@ -289,10 +289,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             };
         }
 
-        protected static bool CanUseSpeculativeSemanticModel(Document document, int position)
+        protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
             var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var node = document.GetSyntaxRootAsync().Result.FindToken(position).Parent;
+            var node = (await document.GetSyntaxRootAsync()).FindToken(position).Parent;
 
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }

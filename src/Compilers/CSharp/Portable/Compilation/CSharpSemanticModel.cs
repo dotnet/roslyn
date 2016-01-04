@@ -2797,11 +2797,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (boundNode.Kind)
             {
                 case BoundKind.MethodGroup:
-                    symbols = GetMethodGroupSemanticSymbols(boundNode, boundNodeForSyntacticParent, binderOpt, out resultKind, out isDynamic, out memberGroup);
+                    symbols = GetMethodGroupSemanticSymbols((BoundMethodGroup)boundNode, boundNodeForSyntacticParent, binderOpt, out resultKind, out isDynamic, out memberGroup);
                     break;
 
                 case BoundKind.PropertyGroup:
-                    symbols = GetPropertyGroupSemanticSymbols(boundNode, boundNodeForSyntacticParent, binderOpt, out resultKind, out memberGroup);
+                    symbols = GetPropertyGroupSemanticSymbols((BoundPropertyGroup)boundNode, boundNodeForSyntacticParent, binderOpt, out resultKind, out memberGroup);
                     break;
 
                 case BoundKind.BadExpression:
@@ -3610,7 +3610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // that allows us to return more specific symbols (a specific overload or applicable candidates)
         // we return these. The complete set of symbols of the method group is then returned in methodGroup parameter.
         private ImmutableArray<Symbol> GetMethodGroupSemanticSymbols(
-            BoundExpression boundNode,
+            BoundMethodGroup boundNode,
             BoundNode boundNodeForSyntacticParent,
             Binder binderOpt,
             out LookupResultKind resultKind,
@@ -3621,8 +3621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<Symbol> symbols = ImmutableArray<Symbol>.Empty;
 
-            BoundMethodGroup mgNode = (BoundMethodGroup)boundNode;
-            resultKind = mgNode.ResultKind;
+            resultKind = boundNode.ResultKind;
             if (resultKind == LookupResultKind.Empty)
             {
                 resultKind = LookupResultKind.Viable;
@@ -3632,7 +3631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // The method group needs filtering.
             Binder binder = binderOpt ?? GetEnclosingBinder(GetAdjustedNodePosition(boundNode.Syntax));
-            methodGroup = GetReducedAndFilteredMethodGroupSymbols(binder, mgNode).Cast<MethodSymbol, Symbol>();
+            methodGroup = GetReducedAndFilteredMethodGroupSymbols(binder, boundNode).Cast<MethodSymbol, Symbol>();
 
             // We want to get the actual node chosen by overload resolution, if possible. 
             if (boundNodeForSyntacticParent != null)
@@ -3666,7 +3665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var delegateCreation = (BoundDelegateCreationExpression)boundNodeForSyntacticParent;
                         if (delegateCreation.Argument == boundNode && (object)delegateCreation.MethodOpt != null)
                         {
-                            symbols = ImmutableArray.Create<Symbol>(delegateCreation.MethodOpt);
+                            symbols = CreateReducedExtensionMethodIfPossible(delegateCreation, boundNode.ReceiverOpt);
                         }
                         break;
 
@@ -3726,7 +3725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
             }
-            else if (methodGroup.Length == 1 && !mgNode.HasAnyErrors)
+            else if (methodGroup.Length == 1 && !boundNode.HasAnyErrors)
             {
                 // During speculative binding, there won't be a parent bound node. The parent bound
                 // node may also be absent if the syntactic parent has errors or if one is simply
@@ -3757,7 +3756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // NB: It is not safe to pass a null binderOpt during speculative binding.
         private ImmutableArray<Symbol> GetPropertyGroupSemanticSymbols(
-            BoundExpression boundNode,
+            BoundPropertyGroup boundNode,
             BoundNode boundNodeForSyntacticParent,
             Binder binderOpt,
             out LookupResultKind resultKind,
@@ -3767,15 +3766,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<Symbol> symbols = ImmutableArray<Symbol>.Empty;
 
-            BoundPropertyGroup pgNode = (BoundPropertyGroup)boundNode;
-            resultKind = pgNode.ResultKind;
+            resultKind = boundNode.ResultKind;
             if (resultKind == LookupResultKind.Empty)
             {
                 resultKind = LookupResultKind.Viable;
             }
 
             // The property group needs filtering.
-            propertyGroup = pgNode.Properties.Cast<PropertySymbol, Symbol>();
+            propertyGroup = boundNode.Properties.Cast<PropertySymbol, Symbol>();
 
             // We want to get the actual node chosen by overload resolution, if possible. 
             if (boundNodeForSyntacticParent != null)
@@ -3815,7 +3813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
             }
-            else if (propertyGroup.Length == 1 && !pgNode.HasAnyErrors)
+            else if (propertyGroup.Length == 1 && !boundNode.HasAnyErrors)
             {
                 // During speculative binding, there won't be a parent bound node. The parent bound
                 // node may also be absent if the syntactic parent has errors or if one is simply
@@ -4146,6 +4144,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol reduced = method.ReduceExtensionMethod(receiver.Type);
                 // If the extension method can't be applied to the receiver of the given
                 // type, we should also return the original call method.
+                method = reduced ?? method;
+            }
+            return ImmutableArray.Create<Symbol>(method);
+        }
+
+        private static ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundDelegateCreationExpression delegateCreation, BoundExpression receiverOpt)
+        {
+            var method = delegateCreation.MethodOpt;
+            Debug.Assert((object)method != null);
+
+            if (delegateCreation.IsExtensionMethod && method.IsExtensionMethod && (receiverOpt != null))
+            {
+                MethodSymbol reduced = method.ReduceExtensionMethod(receiverOpt.Type);
                 method = reduced ?? method;
             }
             return ImmutableArray.Create<Symbol>(method);

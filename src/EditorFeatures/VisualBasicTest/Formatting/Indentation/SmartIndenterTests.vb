@@ -2004,9 +2004,8 @@ End Module</text>.Value
         <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestSmartIndenterConstructorThrows1()
-            AssertEx.Throws(Of ArgumentNullException)(
-                Function() New SmartIndent(Nothing),
-                allowDerived:=True)
+            Assert.Throws(Of ArgumentNullException)(
+                Function() New SmartIndent(Nothing))
         End Sub
 
         <WpfFact>

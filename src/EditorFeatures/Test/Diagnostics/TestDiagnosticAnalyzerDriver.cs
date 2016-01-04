@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var diagnostics = new List<Diagnostic>();
             foreach (var document in project.Documents)
             {
-                var span = document.GetSyntaxRootAsync().Result.FullSpan;
+                var span = (await document.GetSyntaxRootAsync()).FullSpan;
                 var documentDiagnostics = await GetDocumentDiagnosticsAsync(workspaceAnalyzerOpt, document, span);
                 diagnostics.AddRange(documentDiagnostics);
             }

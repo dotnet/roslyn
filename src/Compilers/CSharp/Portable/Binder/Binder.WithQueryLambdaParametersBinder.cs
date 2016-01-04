@@ -72,10 +72,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We only construct transparent query variables using anonymous types, so if we're trying to navigate through
                     // some other type, we must have some query API where the types don't match up as expected.
-                    // We should report this as an error of some sort.
-                    // TODO: DevDiv #737822 - reword error message and add test.
                     var info = new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedTransparentIdentifierAccess, name, receiver.ExpressionSymbol ?? receiverType);
-                    Error(diagnostics, info, node);
+                    if (receiver.Type?.IsErrorType() != true)
+                    {
+                        Error(diagnostics, info, node);
+                    }
+
                     return new BoundBadExpression(
                         node,
                         LookupResultKind.Empty,

@@ -431,7 +431,16 @@ namespace Microsoft.CodeAnalysis.Text
             return _lazyChecksum;
         }
 
-        private static ImmutableArray<byte> CalculateChecksum(Stream stream, SourceHashAlgorithm algorithmId)
+        private static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
+        {
+            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
+            {
+                Debug.Assert(algorithm != null);
+                return ImmutableArray.Create(algorithm.ComputeHash(buffer, offset, count));
+            }
+        }
+
+        internal static ImmutableArray<byte> CalculateChecksum(Stream stream, SourceHashAlgorithm algorithmId)
         {
             using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
             {
@@ -441,15 +450,6 @@ namespace Microsoft.CodeAnalysis.Text
                     stream.Seek(0, SeekOrigin.Begin);
                 }
                 return ImmutableArray.Create(algorithm.ComputeHash(stream));
-            }
-        }
-
-        private static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
-        {
-            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
-            {
-                Debug.Assert(algorithm != null);
-                return ImmutableArray.Create(algorithm.ComputeHash(buffer, offset, count));
             }
         }
 

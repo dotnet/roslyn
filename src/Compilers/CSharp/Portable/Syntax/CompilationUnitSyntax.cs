@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public sealed partial class CompilationUnitSyntax : CSharpSyntaxNode, ICompilationUnitSyntax
     {
-        SyntaxList<SyntaxNode> ICompilationUnitSyntax.Members => this.Members;
-
         /// <summary>
         /// Returns #r directives specified in the compilation.
         /// </summary>

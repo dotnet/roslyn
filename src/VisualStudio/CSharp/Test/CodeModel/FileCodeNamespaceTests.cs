@@ -108,7 +108,7 @@ namespace A.B
         public async Task GetStartPoint_Attributes()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -116,7 +116,7 @@ namespace A.B
         public async Task GetStartPoint_AttributesWithDelimiter()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
+            Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -136,7 +136,7 @@ namespace A.B
         public async Task GetStartPoint_BodyWithDelimiter()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -144,7 +144,7 @@ namespace A.B
         public async Task GetStartPoint_Header()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeader));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -152,7 +152,7 @@ namespace A.B
         public async Task GetStartPoint_HeaderWithAttributes()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -160,7 +160,7 @@ namespace A.B
         public async Task GetStartPoint_Name()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -180,7 +180,7 @@ namespace A.B
         public async Task GetStartPoint_Whole()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -199,7 +199,7 @@ namespace A.B
         public async Task GetEndPoint_Attributes()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -207,7 +207,7 @@ namespace A.B
         public async Task GetEndPoint_AttributesWithDelimiter()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
+            Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -227,7 +227,7 @@ namespace A.B
         public async Task GetEndPoint_BodyWithDelimiter()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -235,7 +235,7 @@ namespace A.B
         public async Task GetEndPoint_Header()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -243,7 +243,7 @@ namespace A.B
         public async Task GetEndPoint_HeaderWithAttributes()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -251,7 +251,7 @@ namespace A.B
         public async Task GetEndPoint_Name()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -271,7 +271,7 @@ namespace A.B
         public async Task GetEndPoint_Whole()
         {
             CodeNamespace testObject = await GetCodeNamespaceAsync("A.B");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]

@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 assemblyNameC,
                 ImmutableArray.Create(MscorlibRef, referenceAS1, referenceAS2, referenceBS2, referenceBS1, referenceBS2),
                 exeBytesC1,
-                new SymReader(pdbBytesC1)))
+                SymReaderFactory.CreateReader(pdbBytesC1)))
             {
                 ImmutableArray<MetadataBlock> typeBlocks;
                 ImmutableArray<MetadataBlock> methodBlocks;
@@ -357,7 +357,7 @@ public class B
             compilationA.EmitAndGetReferences(out exeBytesA, out pdbBytesA, out referencesA);
             var referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display: assemblyNameA);
             var identityA = referenceA.GetAssemblyIdentity();
-            var moduleA = referenceA.ToModuleInstance(exeBytesA, new SymReader(pdbBytesA));
+            var moduleA = referenceA.ToModuleInstance(exeBytesA, SymReaderFactory.CreateReader(pdbBytesA));
 
             var assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName();
             var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, assemblyName: assemblyNameB, references: new[] { referenceA });
@@ -366,7 +366,7 @@ public class B
             ImmutableArray<MetadataReference> referencesB;
             compilationB.EmitAndGetReferences(out exeBytesB, out pdbBytesB, out referencesB);
             var referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display: assemblyNameB);
-            var moduleB = referenceB.ToModuleInstance(exeBytesB, new SymReader(pdbBytesB));
+            var moduleB = referenceB.ToModuleInstance(exeBytesB, SymReaderFactory.CreateReader(pdbBytesB));
 
             var moduleBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
             moduleBuilder.AddRange(referencesA.Select(r => r.ToModuleInstance(null, null)));
@@ -493,7 +493,7 @@ class C
             compilationA.EmitAndGetReferences(out exeBytesA, out pdbBytesA, out referencesA);
             var referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display: assemblyNameA);
             var identityA = referenceA.GetAssemblyIdentity();
-            var moduleA = referenceA.ToModuleInstance(exeBytesA, new SymReader(pdbBytesA));
+            var moduleA = referenceA.ToModuleInstance(exeBytesA, SymReaderFactory.CreateReader(pdbBytesA));
 
             var assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName();
             var compilationB = CreateCompilation(
@@ -506,7 +506,7 @@ class C
             ImmutableArray<MetadataReference> referencesB;
             compilationB.EmitAndGetReferences(out exeBytesB, out pdbBytesB, out referencesB);
             var referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display: assemblyNameB);
-            var moduleB = referenceB.ToModuleInstance(exeBytesB, new SymReader(pdbBytesB));
+            var moduleB = referenceB.ToModuleInstance(exeBytesB, SymReaderFactory.CreateReader(pdbBytesB));
 
             // Include an empty assembly to verify that not all assemblies
             // with no references are treated as mscorlib.
@@ -681,7 +681,7 @@ public class B
             compilationA.EmitAndGetReferences(out exeBytesA, out pdbBytesA, out referencesA);
             var referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display: assemblyNameA);
             var identityA = referenceA.GetAssemblyIdentity();
-            var moduleA = referenceA.ToModuleInstance(exeBytesA, new SymReader(pdbBytesA));
+            var moduleA = referenceA.ToModuleInstance(exeBytesA, SymReaderFactory.CreateReader(pdbBytesA));
 
             var assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName();
             var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, assemblyName: assemblyNameB, references: new[] { referenceA });
@@ -690,7 +690,7 @@ public class B
             ImmutableArray<MetadataReference> referencesB;
             compilationB.EmitAndGetReferences(out exeBytesB, out pdbBytesB, out referencesB);
             var referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display: assemblyNameB);
-            var moduleB = referenceB.ToModuleInstance(exeBytesB, new SymReader(pdbBytesB));
+            var moduleB = referenceB.ToModuleInstance(exeBytesB, SymReaderFactory.CreateReader(pdbBytesB));
 
             var moduleBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
             moduleBuilder.AddRange(referencesA.Select(r => r.ToModuleInstance(null, null)));

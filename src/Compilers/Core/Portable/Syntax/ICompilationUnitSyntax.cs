@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+﻿using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Syntax
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Interface implemented by any node that is the root 'CompilationUnit' of a <see cref="SyntaxTree"/>.  i.e. 
@@ -19,8 +14,10 @@ namespace Microsoft.CodeAnalysis.Syntax
     /// </summary>
     public interface ICompilationUnitSyntax
     {
-        SyntaxList<SyntaxNode> Members { get; }
-
+        /// <summary>
+        /// Represents the end of the source file. This <see cref="SyntaxToken"/> may have
+        /// <see cref="SyntaxTrivia"/> (whitespace, comments, directives) attached to it.
+        /// </summary>
         SyntaxToken EndOfFileToken { get; }
     }
 }
