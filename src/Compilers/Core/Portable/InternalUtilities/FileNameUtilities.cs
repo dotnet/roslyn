@@ -173,11 +173,10 @@ namespace Roslyn.Utilities
         /// Get file name from path.
         /// </summary>
         /// <remarks>Unlike <see cref="System.IO.Path.GetFileName"/> doesn't check for invalid path characters.</remarks>
-        internal static string GetFileName(string path, bool includeExtension = true)
+        internal static string GetFileName(string path)
         {
             int fileNameStart = IndexOfFileName(path);
-            var fileName = (fileNameStart <= 0) ? path : path.Substring(fileNameStart);
-            return includeExtension ? fileName : RemoveExtension(fileName);
+            return (fileNameStart <= 0) ? path : path.Substring(fileNameStart);
         }
     }
 }
