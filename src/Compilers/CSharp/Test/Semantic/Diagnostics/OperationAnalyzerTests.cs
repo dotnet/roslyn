@@ -833,6 +833,52 @@ class C
         }
 
         [Fact]
+        public void AssignmentCSharp()
+        {
+            const string source = @"
+struct Bar
+{
+    public bool Field;
+}
+
+class Foo
+{
+    public int Field;
+    public string Property1 { set; get; }
+    public Bar Property2 { set; get; }
+}
+
+class C
+{
+    public void M1()
+    {
+        var x1 = new Foo();
+        var x2 = new Foo() { Field = 2};
+        var x3 = new Foo() { Property1 = """"};
+        var x4 = new Foo() { Property1 = """", Field = 2};
+        var x5 = new Foo() { Property2 = new Bar { Field = true } };
+    }
+
+    public void M2()
+    {
+        var x1 = new Foo() { Property2 = new Bar { Field = true } };
+        x1.Field = 10;
+        x1.Property1 = null;
+
+        var x2 = new Bar();
+        x2.Field = true;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentTestAnalyzer() }, null, null, false,
+                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "x1.Field = 10").WithLocation(28, 9),
+                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "x1.Property1 = null").WithLocation(29, 9),
+                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "x2.Field = true").WithLocation(32, 9));
+        }
+
+        [Fact]
         public void ArrayInitializerCSharp()
         {
             const string source = @"

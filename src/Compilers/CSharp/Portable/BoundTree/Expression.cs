@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
@@ -87,6 +88,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.Visit(decl.DeclaredType);
                     this.Visit(decl.InitializerOpt);
                     this.VisitList(decl.ArgumentsOpt);
+                }
+                return null;
+            }
+
+            // Skip visiting `BoundAssignmentOperator` nodes (but not their children) if they are used for initializing members in object creation.
+            // The corresponding operations are covered by `IMemberInitializer`.
+            public override BoundNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
+            {
+                foreach (BoundAssignmentOperator assignment in node.Initializers)
+                {
+                    this.Visit(assignment.Left);
+                    this.Visit(assignment.Right);
                 }
                 return null;
             }
@@ -418,6 +431,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundObjectCreationExpression : IObjectCreationExpression
     {
+        private static readonly ConditionalWeakTable<BoundObjectCreationExpression, IMemberInitializer[]> s_memberInitializersMappings =
+            new ConditionalWeakTable<BoundObjectCreationExpression, IMemberInitializer[]>();
+
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
         ImmutableArray<IArgument> IObjectCreationExpression.ConstructorArguments => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters);
@@ -431,37 +447,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                BoundExpression initializer = this.InitializerExpressionOpt;
-                if (initializer != null)
-                {
-                    var objInitializerExp = initializer as BoundObjectInitializerExpression;
-                    if (objInitializerExp != null)
+                var initializers = s_memberInitializersMappings.GetValue(this,
+                    objCreationExp =>
                     {
-                        var builder = ArrayBuilder<IMemberInitializer>.GetInstance(objInitializerExp.Initializers.Length);
-                        foreach (var memberAssignment in objInitializerExp.Initializers)
+                        BoundExpression initializer = this.InitializerExpressionOpt;
+                        if (initializer != null)
                         {
-                            var assignment = memberAssignment as BoundAssignmentOperator;
-                            var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
-
-                            if (leftSymbol == null)
+                            var objInitializerExp = initializer as BoundObjectInitializerExpression;
+                            if (objInitializerExp != null)
                             {
-                                continue;
-                            }
+                                var builder = ArrayBuilder<IMemberInitializer>.GetInstance(objInitializerExp.Initializers.Length);
+                                foreach (var memberAssignment in objInitializerExp.Initializers)
+                                {
+                                    var assignment = memberAssignment as BoundAssignmentOperator;
+                                    var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
 
-                            switch (leftSymbol.Kind)
-                            {
-                                case SymbolKind.Field:
-                                    builder.Add(new FieldInitializer(assignment.Syntax, (IFieldSymbol)leftSymbol, assignment.Right));
-                                    break;
-                                case SymbolKind.Property:
-                                    builder.Add(new PropertyInitializer(assignment.Syntax, ((IPropertySymbol)leftSymbol).SetMethod, assignment.Right));
-                                    break;
+                                    if (leftSymbol == null)
+                                    {
+                                        continue;
+                                    }
+
+                                    switch (leftSymbol.Kind)
+                                    {
+                                        case SymbolKind.Field:
+                                            builder.Add(new FieldInitializer(assignment.Syntax, (IFieldSymbol)leftSymbol, assignment.Right));
+                                            break;
+                                        case SymbolKind.Property:
+                                            builder.Add(new PropertyInitializer(assignment.Syntax, ((IPropertySymbol)leftSymbol).SetMethod, assignment.Right));
+                                            break;
+                                    }
+                                }
+                                return builder.ToArrayAndFree();
                             }
                         }
-                        return builder.ToImmutableAndFree();
-                    }
-                }
-                return ImmutableArray.Create<IMemberInitializer>();
+                        return new IMemberInitializer[] { };
+                    });
+                var immBuilder = ArrayBuilder<IMemberInitializer>.GetInstance(initializers.Length);
+                immBuilder.AddRange(initializers);
+                return immBuilder.ToImmutableAndFree();                
             }
         }
 
@@ -744,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IReferenceExpression IAssignmentExpression.Target => this.Operand as IReferenceExpression;
 
-        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<BoundIncrementOperator, IExpression> IncrementValueMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundIncrementOperator, IExpression>();
+        private static readonly ConditionalWeakTable<BoundIncrementOperator, IExpression> IncrementValueMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundIncrementOperator, IExpression>();
 
         IExpression IAssignmentExpression.Value => IncrementValueMappings.GetValue(this, (increment) => new BoundLiteral(this.Syntax, Semantics.Expression.SynthesizeNumeric(increment.Type, 1), increment.Type));
 

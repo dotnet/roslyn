@@ -657,6 +657,47 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
+    /// <summary>Analyzer used to test IAssignmentExpression IOperations.</summary>
+    public class AssignmentTestAnalyzer : DiagnosticAnalyzer
+    {
+        /// <summary>Diagnostic category "Reliability".</summary>
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor DoNotUseMemberAssignmentDescriptor = new DiagnosticDescriptor(
+            "DoNotUseMemberAssignment",
+            "Do Not Use Member Assignment",
+            "Do not assign values to object members",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+        
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(DoNotUseMemberAssignmentDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     var assignment = (IAssignmentExpression)operationContext.Operation;
+                     var kind = assignment.Target.Kind;
+                     if (kind == OperationKind.FieldReferenceExpression ||
+                         kind == OperationKind.PropertyReferenceExpression)
+                     {
+                         Report(operationContext, assignment.Syntax, DoNotUseMemberAssignmentDescriptor);
+                     }
+                 },
+                 OperationKind.AssignmentExpression);
+        }
+
+        private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
+        }
+    }
+
     /// <summary>Analyzer used to test IArrayInitializer IOperations.</summary>
     public class ArrayInitializerTestAnalyzer : DiagnosticAnalyzer
     {

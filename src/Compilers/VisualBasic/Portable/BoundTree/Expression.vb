@@ -63,6 +63,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return MyBase.Visit(node)
             End Function
 
+            ' Skip visiting `BoundAssignmentOperator` nodes (but Not their children) if they are used for initializing members in object creation.
+            ' The corresponding operations are covered by `IMemberInitializer`.
+            Public Overrides Function VisitObjectInitializerExpression(node As BoundObjectInitializerExpression) As BoundNode
+                For Each assignment As BoundAssignmentOperator In node.Initializers
+                    Me.Visit(assignment.Left)
+                    Me.Visit(assignment.LeftOnTheRightOpt)
+                    Me.Visit(assignment.Right)
+                Next
+                Return Nothing
+            End Function
         End Class
     End Class
 
@@ -1004,6 +1014,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundObjectCreationExpression
         Implements IObjectCreationExpression
 
+        Private Shared MemberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, IMemberInitializer())
+
         Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IObjectCreationExpression.ArgumentMatchingParameter
             Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.ConstructorOpt.Parameters)
         End Function
@@ -1022,25 +1034,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IMemberInitializers As ImmutableArray(Of IMemberInitializer) Implements IObjectCreationExpression.MemberInitializers
             Get
-                Dim objInitializerExp As BoundObjectInitializerExpressionBase = Me.InitializerOpt
-                If objInitializerExp IsNot Nothing Then
-                    Dim builder = ArrayBuilder(Of IMemberInitializer).GetInstance(objInitializerExp.Initializers.Length)
-                    For Each memberAssignment In objInitializerExp.Initializers
-                        Dim assignment = TryCast(memberAssignment, BoundAssignmentOperator)
-                        Dim left = assignment?.Left
-                        If left IsNot Nothing Then
-                            Select Case left.Kind
-                                Case BoundKind.FieldAccess
-                                    builder.Add(New FieldInitializer(assignment.Syntax, DirectCast(left, BoundFieldAccess).FieldSymbol, assignment.Right))
-                                Case BoundKind.PropertyAccess
-                                    builder.Add(New PropertyInitializer(assignment.Syntax, DirectCast(left, BoundPropertyAccess).PropertySymbol.SetMethod, assignment.Right))
-                            End Select
-                        End If
-                    Next
-                    Return builder.ToImmutableAndFree()
-                End If
+                Dim initializer = MemberInitializersMappings.GetValue(Me, Function(objCreationStmt)
+                                                                              Dim objInitializerExp As BoundObjectInitializerExpressionBase = Me.InitializerOpt
+                                                                              If objInitializerExp IsNot Nothing Then
+                                                                                  Dim builder = ArrayBuilder(Of IMemberInitializer).GetInstance(objInitializerExp.Initializers.Length)
+                                                                                  For Each memberAssignment In objInitializerExp.Initializers
+                                                                                      Dim assignment = TryCast(memberAssignment, BoundAssignmentOperator)
+                                                                                      Dim left = assignment?.Left
+                                                                                      If left IsNot Nothing Then
+                                                                                          Select Case left.Kind
+                                                                                              Case BoundKind.FieldAccess
+                                                                                                  builder.Add(New FieldInitializer(assignment.Syntax, DirectCast(left, BoundFieldAccess).FieldSymbol, assignment.Right))
+                                                                                              Case BoundKind.PropertyAccess
+                                                                                                  builder.Add(New PropertyInitializer(assignment.Syntax, DirectCast(left, BoundPropertyAccess).PropertySymbol.SetMethod, assignment.Right))
+                                                                                          End Select
+                                                                                      End If
+                                                                                  Next
+                                                                                  Return builder.ToArrayAndFree()
+                                                                              End If
 
-                Return ImmutableArray.Create(Of IMemberInitializer)()
+                                                                              Return New IMemberInitializer() {}
+                                                                          End Function)
+
+                Dim immBuilder = ArrayBuilder(Of IMemberInitializer).GetInstance(initializer.Length)
+                immBuilder.AddRange(initializer)
+                Return immBuilder.ToImmutableAndFree()
             End Get
         End Property
 

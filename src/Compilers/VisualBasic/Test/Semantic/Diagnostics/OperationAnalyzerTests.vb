@@ -829,6 +829,51 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub AssignmentVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class Bar
+    Public Field As Boolean
+End Class
+
+Class Foo
+    Public Field As Integer
+    Public Property Prop1 As String
+    Public Property Prop2 As Bar
+End Class
+
+Class C
+    Public Sub M1()
+        Dim f1 = New Foo()
+        Dim f2 = New Foo() With {.Field = 10}
+        Dim f3 = New Foo With {.Prop1 = Nothing}
+        Dim f4 = New Foo With {.Field = 10, .Prop1 = Nothing}
+        Dim f5 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+    End Sub
+
+    Public Sub M2()
+        Dim f1 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+        f1.Field = 0
+        f1.Prop1 = Nothing
+
+        Dim f2 = New Bar()
+        f2.Field = True
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New AssignmentTestAnalyzer}, Nothing, Nothing, False,
+                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Field = 0").WithLocation(22, 9),
+                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Prop1 = Nothing").WithLocation(23, 9),
+                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f2.Field = True").WithLocation(26, 9))
+        End Sub
+
+        <Fact>
         Public Sub ArrayInitializerVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
