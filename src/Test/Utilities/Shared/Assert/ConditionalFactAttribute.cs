@@ -49,4 +49,15 @@ namespace Roslyn.Test.Utilities
 
         public override string SkipReason => "Current culture is not en-US";
     }
+
+    public class IsRelease : ExecutionCondition
+    {
+#if DEBUG
+        public override bool ShouldSkip => true;
+#else
+        public override bool ShouldSkip => false;
+#endif
+
+        public override string SkipReason => "Not in release mode.";
+    }
 }
