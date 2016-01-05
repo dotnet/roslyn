@@ -826,13 +826,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                         catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
                         {
                             Console.Error.WriteLine(e.InnerException.Message);
-                            return null;
+                            return Task.FromResult<ScriptState<object>>(null);
                         }
                         catch (Exception e)
                         {
                             // TODO (tomat): format exception
                             Console.Error.WriteLine(e);
-                            return null;
+                            return Task.FromResult<ScriptState<object>>(null);
                         }
                     }))).ConfigureAwait(false);
             }
