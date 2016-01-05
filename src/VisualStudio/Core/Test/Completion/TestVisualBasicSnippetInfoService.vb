@@ -20,14 +20,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
             MyBase.New(Nothing, asyncListeners)
         End Sub
 
-        Friend Async Function SetSnippetShortcuts(newSnippetShortcuts As String()) As Task
-            Await InitialCachePopulationTask
-
+        Friend Sub SetSnippetShortcuts(newSnippetShortcuts As String())
             SyncLock cacheGuard
-                snippets = newSnippetShortcuts.Select(Function(shortcut) New SnippetInfo(shortcut, "title", "description", "path")).ToList()
-                snippetShortcuts = GetShortcutsHashFromSnippets(snippets)
+                Snippets = newSnippetShortcuts.Select(Function(shortcut) New SnippetInfo(shortcut, "title", "description", "path")).ToList()
+                snippetShortcuts = GetShortcutsHashFromSnippets(Snippets)
             End SyncLock
-        End Function
+        End Sub
     End Class
 End Namespace
 
