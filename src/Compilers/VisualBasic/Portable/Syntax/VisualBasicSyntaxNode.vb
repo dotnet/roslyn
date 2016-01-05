@@ -532,18 +532,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.IsEquivalentTo(TryCast(other, VisualBasicSyntaxNode))
         End Function
 
-        Protected NotOverridable Overrides Function FindTokenCore(position As Integer, findInsideTrivia As Boolean) As SyntaxToken
-            Return MyBase.FindTokenCore(position, findInsideTrivia)
-        End Function
-
-        Protected Overrides Function FindTokenCore(position As Integer, stepInto As Func(Of SyntaxTrivia, Boolean)) As SyntaxToken
-            Return MyBase.FindTokenCore(position, stepInto)
-        End Function
-
-        Protected NotOverridable Overrides Function FindTriviaCore(position As Integer, findInsideTrivia As Boolean) As SyntaxTrivia
-            Return MyBase.FindTriviaCore(position, findInsideTrivia)
-        End Function
-
         Protected Overrides ReadOnly Property SyntaxTreeCore As SyntaxTree
             Get
                 Return Me.SyntaxTree

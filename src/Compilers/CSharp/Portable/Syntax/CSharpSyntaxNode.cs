@@ -715,21 +715,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override SyntaxToken FindTokenCore(int position, bool findInsideTrivia)
-        {
-            return base.FindTokenCore(position, findInsideTrivia);
-        }
-
-        protected override SyntaxToken FindTokenCore(int position, Func<SyntaxTrivia, bool> stepInto)
-        {
-            return base.FindTokenCore(position, stepInto);
-        }
-
-        protected override SyntaxTrivia FindTriviaCore(int position, bool findInsideTrivia)
-        {
-            return base.FindTriviaCore(position, findInsideTrivia);
-        }
-
         protected internal override SyntaxNode ReplaceCore<TNode>(
             IEnumerable<TNode> nodes = null,
             Func<TNode, TNode, SyntaxNode> computeReplacementNode = null,
