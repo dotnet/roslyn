@@ -458,7 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' (e.g. a summary element, a returns element, exception element and so on).
         ''' </param>
         Public Shared Function DocumentationComment(ParamArray content As XmlNodeSyntax()) As DocumentationCommentTriviaSyntax
-            Return DocumentationCommentTrivia(List(content)).WithLeadingTrivia(DocumentationCommentExteriorTrivia("''' ")).WithTrailingTrivia(EndOfLine(Environment.NewLine))
+            Return DocumentationCommentTrivia(List(content)).WithLeadingTrivia(DocumentationCommentExteriorTrivia("''' ")).WithTrailingTrivia(EndOfLine(""))
         End Function
 
         ''' <summary>
@@ -812,43 +812,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="name">The name of the xml element.</param>
         ''' <param name="content">A list of syntax nodes that represents the content of the xml multi line element.</param>
         Public Shared Function XmlMultiLineElement(name As XmlNameSyntax, content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
-            Return XmlElement(XmlElementStartTag(name), content.Insert(0, XmlNewLine()).Add(XmlNewLine()), XmlElementEndTag(name))
+            Return XmlElement(XmlElementStartTag(name), content.Insert(0, XmlNewLine("\r\n")).Add(XmlNewLine("\r\n")), XmlElementEndTag(name))
         End Function
 
         ''' <summary>
         ''' Creates the syntax representation of an xml text that contains a newline token with a documentation comment 
         ''' exterior trivia at the end (continued documentation comment).
         ''' </summary>
-        Public Shared Function XmlNewLine() As XmlTextSyntax
-            Return XmlText(XmlTextNewLine())
+        ''' <param name="text">The raw text within the new line.</param>
+        Public Shared Function XmlNewLine(text As String) As XmlTextSyntax
+            Return XmlText(XmlTextNewLine(text))
         End Function
 
         ''' <summary>
         ''' Creates the syntax representation of an xml newline token with a documentation comment exterior trivia at 
         ''' the end (continued documentation comment).
         ''' </summary>
-        Public Shared Function XmlTextNewLine() As SyntaxToken
-            Return XmlTextNewLine(True)
-        End Function
-
-        ''' <summary>
-        ''' Creates the syntax representation of an xml newline token for xml documentation comments.
-        ''' </summary>
-        ''' <param name="continueXmlDocumentationComment">
-        ''' If set to true, a documentation comment exterior token will be added to the trailing trivia
-        ''' of the new token.</param>
-        Public Shared Function XmlTextNewLine(continueXmlDocumentationComment As Boolean) As SyntaxToken
-            Dim token As SyntaxToken = XmlTextNewLine(
-                Environment.NewLine,
-                Environment.NewLine,
-                TriviaList(),
-                TriviaList())
-
-            If continueXmlDocumentationComment Then
-                token = token.WithTrailingTrivia(DocumentationCommentExteriorTrivia("''' "))
-            End If
-
-            Return token
+        ''' <param name="text">The raw text within the new line.</param>
+        Public Shared Function XmlTextNewLine(text As String) As SyntaxToken
+            Return XmlTextNewLine(text, True)
         End Function
 
 
@@ -876,11 +858,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If set to true, a documentation comment exterior token will be added to the trailing trivia
         ''' of the new token.</param>
         Public Shared Function XmlTextNewLine(text As String, continueXmlDocumentationComment As Boolean) As SyntaxToken
-            Dim value = Environment.NewLine
             Dim token = New SyntaxToken(
                 InternalSyntax.SyntaxFactory.DocumentationCommentLineBreakToken(
                     text,
-                    value,
+                    text,
                     DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode),
                     DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)))
 

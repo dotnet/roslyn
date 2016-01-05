@@ -553,11 +553,11 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestDocumentationComment()
         Dim expected =
-            "''' <summary>" & Environment.NewLine &
-            "''' This class provides extension methods for the <see cref=""TypeName""/> class." & Environment.NewLine &
-            "''' </summary>" & Environment.NewLine &
-            "''' <threadsafety static=""true"" instance=""false""/>" & Environment.NewLine &
-            "''' <preliminary/>" & Environment.NewLine
+            "''' <summary>\r\n" &
+            "''' This class provides extension methods for the <see cref=""TypeName""/> class.\r\n" &
+            "''' </summary>\r\n" &
+            "''' <threadsafety static=""true"" instance=""false""/>\r\n" &
+            "''' <preliminary/>"
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
@@ -567,9 +567,9 @@ End Module
                         SyntaxFactory.CrefReference(
                             SyntaxFactory.ParseTypeName("TypeName"))),
                     SyntaxFactory.XmlText(" class.")),
-                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlThreadSafetyElement(),
-                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlPreliminaryElement())
 
         Dim actual = documentationComment.ToFullString()
@@ -581,14 +581,14 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlSummaryElement()
         Dim expected =
-            "''' <summary>" & Environment.NewLine &
-            "''' This class provides extension methods." & Environment.NewLine &
-            "''' </summary>" & Environment.NewLine
+            "''' <summary>\r\n" &
+            "''' This class provides extension methods.\r\n" &
+            "''' </summary>"
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                SyntaxFactory.XmlText("This class provides extension methods.")))
+                    SyntaxFactory.XmlText("This class provides extension methods.")))
 
         Dim actual = documentationComment.ToFullString()
 
@@ -599,9 +599,9 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlSeeElementAndXmlSeeAlsoElement()
         Dim expected =
-            "''' <summary>" & Environment.NewLine &
-            "''' This class provides extension methods for the <see cref=""TypeName""/> class and the <seealso cref=""TypeName2""/> class." & Environment.NewLine &
-            "''' </summary>" & Environment.NewLine
+            "''' <summary>\r\n" &
+            "''' This class provides extension methods for the <see cref=""TypeName""/> class and the <seealso cref=""TypeName2""/> class.\r\n" &
+            "''' </summary>"
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
@@ -625,22 +625,22 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlNewLineElement()
         Dim expected =
-            "''' <summary>" & Environment.NewLine &
-            "''' This is a summary." & Environment.NewLine &
-            "''' </summary>" & Environment.NewLine &
-            "''' " & Environment.NewLine &
-            "''' " & Environment.NewLine &
-            "''' <remarks>" & Environment.NewLine &
-            "''' " & Environment.NewLine &
-            "''' </remarks>" & Environment.NewLine
+            "''' <summary>\r\n" &
+            "''' This is a summary.\r\n" &
+            "''' </summary>\r\n" &
+            "''' \r\n" &
+            "''' \r\n" &
+            "''' <remarks>\r\n" &
+            "''' \r\n" &
+            "''' </remarks>"
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
                     SyntaxFactory.XmlText("This is a summary.")),
-                SyntaxFactory.XmlNewLine(),
-                SyntaxFactory.XmlNewLine(),
-                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlRemarksElement())
 
         Dim actual = documentationComment.ToFullString()
@@ -652,19 +652,19 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlParamAndParamRefElement()
         Dim expected =
-            "''' <summary>" & Environment.NewLine &
-            "''' <paramref name=""b""/>" & Environment.NewLine &
-            "''' </summary>" & Environment.NewLine &
-            "''' <param name=""a""></param>" & Environment.NewLine &
-            "''' <param name=""b""></param>" & Environment.NewLine
+            "''' <summary>\r\n" &
+            "''' <paramref name=""b""/>\r\n" &
+            "''' </summary>\r\n" &
+            "''' <param name=""a""></param>\r\n" &
+            "''' <param name=""b""></param>"
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
                     SyntaxFactory.XmlParamRefElement("b")),
-                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlParamElement("a"),
-                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlParamElement("b"))
 
         Dim actual = documentationComment.ToFullString()
@@ -676,17 +676,17 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlReturnsElement()
         Dim expected =
-            "''' <summary>" & Environment.NewLine &
-            "''' " & Environment.NewLine &
-            "''' </summary>" & Environment.NewLine &
-            "''' <returns>" & Environment.NewLine &
-            "''' Returns a value." & Environment.NewLine &
-            "''' </returns>" & Environment.NewLine
+            "''' <summary>\r\n" &
+            "''' \r\n" &
+            "''' </summary>\r\n" &
+            "''' <returns>\r\n" &
+            "''' Returns a value.\r\n" &
+            "''' </returns>"
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(),
-                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlReturnsElement(
                     SyntaxFactory.XmlText("Returns a value.")))
 
@@ -699,17 +699,17 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlRemarksElement()
         Dim expected =
-            "''' <summary>" & Environment.NewLine &
-            "''' " & Environment.NewLine &
-            "''' </summary>" & Environment.NewLine &
-            "''' <remarks>" & Environment.NewLine &
-            "''' Same as in class <see cref=""TypeName""/>." & Environment.NewLine &
-            "''' </remarks>" & Environment.NewLine
+            "''' <summary>\r\n" &
+            "''' \r\n" &
+            "''' </summary>\r\n" &
+            "''' <remarks>\r\n" &
+            "''' Same as in class <see cref=""TypeName""/>.\r\n" &
+            "''' </remarks>"
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(),
-                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlRemarksElement(
                     SyntaxFactory.XmlText("Same as in class "),
                     SyntaxFactory.XmlSeeElement(
@@ -726,15 +726,15 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlExceptionElement()
         Dim expected =
-            "''' <summary>" & Environment.NewLine &
-            "''' " & Environment.NewLine &
-            "''' </summary>" & Environment.NewLine &
-            "''' <exception cref=""InvalidOperationException"">This exception will be thrown if the object is in an invalid state when calling this method.</exception>" & Environment.NewLine
+            "''' <summary>\r\n" &
+            "''' \r\n" &
+            "''' </summary>\r\n" &
+            "''' <exception cref=""InvalidOperationException"">This exception will be thrown if the object is in an invalid state when calling this method.</exception>"
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(),
-                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlExceptionElement(
                     SyntaxFactory.CrefReference(
                         SyntaxFactory.ParseTypeName("InvalidOperationException")),
@@ -749,15 +749,15 @@ End Module
     <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlPermissionElement()
         Dim expected =
-            "''' <summary>" & Environment.NewLine &
-            "''' " & Environment.NewLine &
-            "''' </summary>" & Environment.NewLine &
-            "''' <permission cref=""MyPermission"">Needs MyPermission to execute.</permission>" & Environment.NewLine
+            "''' <summary>\r\n" &
+            "''' \r\n" &
+            "''' </summary>\r\n" &
+            "''' <permission cref=""MyPermission"">Needs MyPermission to execute.</permission>"
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(),
-                SyntaxFactory.XmlNewLine(),
+                SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlPermissionElement(
                     SyntaxFactory.CrefReference(
                         SyntaxFactory.ParseTypeName("MyPermission")),

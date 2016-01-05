@@ -29,7 +29,7 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlExceptionElement(cref
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlMultiLineElement(localName As String, content As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlNodeSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlElementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlMultiLineElement(name As Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlNameSyntax, content As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlNodeSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlElementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlNameAttribute(parameterName As String) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlNameAttributeSyntax
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlNewLine() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlTextSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlNewLine(text As String) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlTextSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlNullKeywordElement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlEmptyElementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlParaElement(ParamArray content As Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlNodeSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlElementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlParaElement(content As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlNodeSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlElementSyntax
@@ -54,8 +54,7 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlText(ParamArray textT
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlText(value As String) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlTextSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlTextLiteral(text As String, value As String) -> Microsoft.CodeAnalysis.SyntaxToken
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlTextLiteral(value As String) -> Microsoft.CodeAnalysis.SyntaxToken
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlTextNewLine() -> Microsoft.CodeAnalysis.SyntaxToken
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlTextNewLine(continueXmlDocumentationComment As Boolean) -> Microsoft.CodeAnalysis.SyntaxToken
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlTextNewLine(text As String) -> Microsoft.CodeAnalysis.SyntaxToken
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlTextNewLine(text As String, continueXmlDocumentationComment As Boolean) -> Microsoft.CodeAnalysis.SyntaxToken
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlTextNewLine(text As String, value As String, leading As Microsoft.CodeAnalysis.SyntaxTriviaList, trailing As Microsoft.CodeAnalysis.SyntaxTriviaList) -> Microsoft.CodeAnalysis.SyntaxToken
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.XmlThreadSafetyElement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlEmptyElementSyntax

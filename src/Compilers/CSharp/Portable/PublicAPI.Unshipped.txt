@@ -69,7 +69,7 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlExceptionElement(Microsoft
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlMultiLineElement(Microsoft.CodeAnalysis.CSharp.Syntax.XmlNameSyntax name, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.XmlNodeSyntax> content) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlElementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlMultiLineElement(string localName, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.XmlNodeSyntax> content) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlElementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlNameAttribute(string parameterName) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlNameAttributeSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlNewLine() -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlTextSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlNewLine(string text) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlTextSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlNullKeywordElement() -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlEmptyElementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlParaElement(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.XmlNodeSyntax> content) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlElementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlParaElement(params Microsoft.CodeAnalysis.CSharp.Syntax.XmlNodeSyntax[] content) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlElementSyntax
@@ -98,8 +98,7 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlTextAttribute(string name,
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlTextAttribute(string name, string value) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlTextAttributeSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlTextLiteral(string text, string value) -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlTextLiteral(string value) -> Microsoft.CodeAnalysis.SyntaxToken
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlTextNewLine() -> Microsoft.CodeAnalysis.SyntaxToken
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlTextNewLine(bool continueXmlDocumentationComment) -> Microsoft.CodeAnalysis.SyntaxToken
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlTextNewLine(string text) -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlTextNewLine(string text, bool continueXmlDocumentationComment) -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlThreadSafetyElement() -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlEmptyElementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlThreadSafetyElement(bool static, bool instance) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlEmptyElementSyntax

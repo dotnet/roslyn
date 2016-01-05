@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(content))
                 .WithLeadingTrivia(DocumentationCommentExterior("/// "))
-                .WithTrailingTrivia(EndOfLine(Environment.NewLine));
+                .WithTrailingTrivia(EndOfLine(""));
         }
 
         /// <summary>
@@ -1058,11 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="textTokens">A list of tokens used for the value of the xml text attribute.</param>
         public static XmlTextAttributeSyntax XmlTextAttribute(XmlNameSyntax name, SyntaxKind quoteKind, SyntaxTokenList textTokens)
         {
-            return XmlTextAttribute(
-                name,
-                Token(quoteKind),
-                textTokens,
-                Token(quoteKind))
+            return XmlTextAttribute(name, Token(quoteKind), textTokens, Token(quoteKind))
                 .WithLeadingTrivia(Whitespace(" "));
         }
 
@@ -1085,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return XmlElement(
                 XmlElementStartTag(name),
-                content.Insert(0, XmlNewLine()).Add(XmlNewLine()),
+                content.Insert(0, XmlNewLine("\r\n")).Add(XmlNewLine("\r\n")),
                 XmlElementEndTag(name));
         }
 
@@ -1093,38 +1089,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Creates the syntax representation of an xml text that contains a newline token with a documentation comment 
         /// exterior trivia at the end (continued documentation comment).
         /// </summary>
-        public static XmlTextSyntax XmlNewLine()
+        /// <param name="text">The raw text within the new line.</param>
+        public static XmlTextSyntax XmlNewLine(string text)
         {
-            return XmlText(XmlTextNewLine());
+            return XmlText(XmlTextNewLine(text));
         }
 
         /// <summary>
         /// Creates the syntax representation of an xml newline token with a documentation comment exterior trivia at 
         /// the end (continued documentation comment).
         /// </summary>
-        public static SyntaxToken XmlTextNewLine()
+        /// <param name="text">The raw text within the new line.</param>
+        public static SyntaxToken XmlTextNewLine(string text)
         {
-            return XmlTextNewLine(true);
-        }
-
-        /// <summary>
-        /// Creates the syntax representation of an xml newline token for xml documentation comments.
-        /// </summary>
-        /// <param name="continueXmlDocumentationComment">
-        /// If set to true, a documentation comment exterior token will be added to the trailing trivia
-        /// of the new token.</param>
-        public static SyntaxToken XmlTextNewLine(bool continueXmlDocumentationComment)
-        {
-            SyntaxToken token = XmlTextNewLine(
-                TriviaList(),
-                Environment.NewLine,
-                Environment.NewLine,
-                TriviaList());
-
-            if (continueXmlDocumentationComment)
-                token = token.WithTrailingTrivia(DocumentationCommentExterior("/// "));
-
-            return token;
+            return XmlTextNewLine(text, true);
         }
 
         /// <summary>
@@ -1153,12 +1131,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// of the new token.</param>
         public static SyntaxToken XmlTextNewLine(string text, bool continueXmlDocumentationComment)
         {
-            var value = Environment.NewLine;
             var token = new SyntaxToken(
                 InternalSyntax.SyntaxFactory.XmlTextNewLine(
                     (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, 
                     text, 
-                    value, 
+                    text, 
                     (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
 
             if (continueXmlDocumentationComment)
