@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var data = await _executor.GetSyntaxAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticCreatedFromCacheIfNeeded(StateType.Syntax, document, stateSet, data.Items);
+                            RaiseDiagnosticsCreatedFromCacheIfNeeded(StateType.Syntax, document, stateSet, data.Items);
                             continue;
                         }
 
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticCreatedFromCacheIfNeeded(StateType.Document, document, stateSet, data.Items);
+                            RaiseDiagnosticsCreatedFromCacheIfNeeded(StateType.Document, document, stateSet, data.Items);
                             continue;
                         }
 
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var data = await _executor.GetDocumentAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticCreatedFromCacheIfNeeded(StateType.Document, document, stateSet, data.Items);
+                            RaiseDiagnosticsCreatedFromCacheIfNeeded(StateType.Document, document, stateSet, data.Items);
                             continue;
                         }
 
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                    project.CanReusePersistedDependentSemanticVersion(versions.ProjectVersion, versions.DataVersion, existingData.DataVersion);
         }
 
-        private void RaiseDiagnosticCreatedFromCacheIfNeeded(StateType type, Document document, StateSet stateSet, ImmutableArray<DiagnosticData> items)
+        private void RaiseDiagnosticsCreatedFromCacheIfNeeded(StateType type, Document document, StateSet stateSet, ImmutableArray<DiagnosticData> items)
         {
             RaiseDocumentDiagnosticsUpdatedIfNeeded(type, document, stateSet, ImmutableArray<DiagnosticData>.Empty, items);
         }
