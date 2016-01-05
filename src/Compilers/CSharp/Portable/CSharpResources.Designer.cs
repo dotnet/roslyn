@@ -12435,6 +12435,186 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter &apos;{0}&apos; doesn&apos;t match implemented member &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter doesn&apos;t match implemented member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter &apos;{0}&apos; doesn&apos;t match implicitly implemented member &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter doesn&apos;t match implicitly implemented member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter &apos;{0}&apos; doesn&apos;t match overridden member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnOverride {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnOverride", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter doesn&apos;t match overridden member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnOverride_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnOverride_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter &apos;{0}&apos; doesn&apos;t match partial method declaration..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnPartial {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnPartial", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter doesn&apos;t match partial method declaration..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnPartial_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnPartial_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match implemented member &apos;{0}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match implemented member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match implicitly implemented member &apos;{0}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match implicitly implemented member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match overridden member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOnOverride {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOnOverride", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match overridden member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOnOverride_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOnOverride_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match implemented member &apos;{0}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeOnExplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnExplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match implemented member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeOnExplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnExplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match implicitly implemented member &apos;{0}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeOnImplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnImplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match implicitly implemented member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match overridden member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeOnOverride {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnOverride", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match overridden member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeOnOverride_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnOverride_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Possible null reference argument for parameter &apos;{0}&apos; in &apos;{1}&apos;..
         /// </summary>
         internal static string WRN_NullReferenceArgument {

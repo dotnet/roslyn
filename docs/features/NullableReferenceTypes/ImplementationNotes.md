@@ -84,4 +84,5 @@ Array type syntax is extended as follows to allow nullable modifiers:
 -	string?[][,]? X5; // not-nullable one-dimensional array of nullable two-dimensional arrays of nullable strings
 -	string?[]?[,] x6; // nullable one-dimensional array of not-nullable two-dimensional arrays of nullable strings
 
-
+Warnings are reported when there is a signature mismatch with respect to nullability of reference types during overriding, 
+interface implementing, or partial method implementing. 

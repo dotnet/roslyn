@@ -816,6 +816,12 @@ class B : A
 ";
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics(
+    // (32,29): warning CS8209: Nullability of reference types in return type doesn't match overridden member.
+    //     public override string? M1()
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(32, 29),
+    // (42,28): warning CS8209: Nullability of reference types in return type doesn't match overridden member.
+    //     public override string M3()
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M3").WithLocation(42, 28),
     // (47,29): error CS0508: 'B.M4()': return type must be 'string?' to match overridden member 'A.M4()'
     //     public override string? M4()
     Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M4").WithArguments("B.M4()", "A.M4()", "string?").WithLocation(47, 29),
@@ -896,6 +902,12 @@ class B : A
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
+    // (27,26): warning CS8210: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+    //     public override void M1(string? x)
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(27, 26),
+    // (35,26): warning CS8210: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+    //     public override void M3(string x)
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("x").WithLocation(35, 26),
     // (39,26): error CS0115: 'B.M4(string)': no suitable method found to override
     //     public override void M4(string? x)
     Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("B.M4(string)").WithLocation(39, 26),
@@ -1076,6 +1088,1239 @@ class B : A
             Assert.False(b.GetMember<MethodSymbol>("M3").Parameters[0].Type.IsNullableType());
             Assert.True(b.GetMember<MethodSymbol>("M4").Parameters[0].Type.IsNullableType());
             Assert.True(b.GetMember<MethodSymbol>("M5").Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        public void Overriding_16()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+abstract class A
+{
+    public abstract event System.Action<string> E1; 
+    public abstract event System.Action<string>? E2; 
+    public abstract event System.Action<string?>? E3; 
+}
+
+class B1 : A
+{
+    public override event System.Action<string?> E1 {add {} remove{}}
+    public override event System.Action<string> E2 {add {} remove{}}
+    public override event System.Action<string?>? E3 {add {} remove{}}
+}
+
+class B2 : A
+{
+    public override event System.Action<string?> E1; // 2
+    public override event System.Action<string> E2; // 2
+    public override event System.Action<string?>? E3; // 2
+
+    void Dummy()
+    {
+        var e1 = E1;
+        var e2 = E2;
+        var e3 = E3;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (19,49): warning CS8208: Nullability of reference types in type doesn't match overridden member.
+    //     public override event System.Action<string> E2;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E2").WithLocation(19, 49),
+    // (18,50): warning CS8208: Nullability of reference types in type doesn't match overridden member.
+    //     public override event System.Action<string?> E1;
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E1").WithLocation(18, 50),
+    // (26,49): warning CS8208: Nullability of reference types in type doesn't match overridden member.
+    //     public override event System.Action<string> E2; // 2
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E2").WithLocation(26, 49),
+    // (25,50): warning CS8208: Nullability of reference types in type doesn't match overridden member.
+    //     public override event System.Action<string?> E1; // 2
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E1").WithLocation(25, 50)
+                );
+
+            foreach (string typeName in new[] { "B1", "B2" })
+            {
+                var type = compilation.GetTypeByMetadataName(typeName);
+
+                foreach (string memberName in new[] { "E1", "E2" })
+                {
+                    var member = type.GetMember<EventSymbol>(memberName);
+                    Assert.False(member.Type.Equals(member.OverriddenEvent.Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                }
+
+                var e3 = type.GetMember<EventSymbol>("E3");
+                Assert.True(e3.Type.Equals(e3.OverriddenEvent.Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            foreach (string typeName in new[] { "A", "B1", "B2" })
+            {
+                var type = compilation.GetTypeByMetadataName(typeName);
+
+                foreach (var ev in type.GetMembers().OfType<EventSymbol>())
+                {
+                    Assert.True(ev.Type.Equals(ev.AddMethod.Parameters.Last().Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(ev.Type.Equals(ev.RemoveMethod.Parameters.Last().Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                }
+            }
+        }
+
+        [Fact]
+        public void Implementing_01()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+interface IA
+{
+    event System.Action<string> E1; 
+    event System.Action<string>? E2; 
+    event System.Action<string?>? E3; 
+}
+
+class B1 : IA
+{
+    public event System.Action<string?> E1 {add {} remove{}}
+    public event System.Action<string> E2 {add {} remove{}}
+    public event System.Action<string?>? E3 {add {} remove{}}
+}
+
+class B2 : IA
+{
+    public event System.Action<string?> E1; // 2
+    public event System.Action<string> E2; // 2
+    public event System.Action<string?>? E3; // 2
+
+    void Dummy()
+    {
+        var e1 = E1;
+        var e2 = E2;
+        var e3 = E3;
+    }
+}
+
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (26,40): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string> IA.E2'.
+    //     public event System.Action<string> E2; // 2
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E2").WithArguments("event Action<string> IA.E2").WithLocation(26, 40),
+    // (25,41): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string> IA.E1'.
+    //     public event System.Action<string?> E1; // 2
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E1").WithArguments("event Action<string> IA.E1").WithLocation(25, 41),
+    // (19,40): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string> IA.E2'.
+    //     public event System.Action<string> E2 {add {} remove{}}
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E2").WithArguments("event Action<string> IA.E2").WithLocation(19, 40),
+    // (18,41): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string> IA.E1'.
+    //     public event System.Action<string?> E1 {add {} remove{}}
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E1").WithArguments("event Action<string> IA.E1").WithLocation(18, 41)
+                );
+
+            var ia = compilation.GetTypeByMetadataName("IA");
+
+            foreach (string memberName in new[] { "E1", "E2" })
+            {
+                var member = ia.GetMember<EventSymbol>(memberName);
+
+                foreach (string typeName in new[] { "B1", "B2" })
+                {
+                    var type = compilation.GetTypeByMetadataName(typeName);
+
+                    var impl = (EventSymbol)type.FindImplementationForInterfaceMember(member);
+                    Assert.False(impl.Type.Equals(member.Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                }
+            }
+
+            var e3 = ia.GetMember<EventSymbol>("E3");
+
+            foreach (string typeName in new[] { "B1", "B2" })
+            {
+                var type = compilation.GetTypeByMetadataName(typeName);
+
+                var impl = (EventSymbol)type.FindImplementationForInterfaceMember(e3);
+                Assert.True(impl.Type.Equals(e3.Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            foreach (string typeName in new[] { "IA", "B1", "B2" })
+            {
+                var type = compilation.GetTypeByMetadataName(typeName);
+
+                foreach (var ev in type.GetMembers().OfType<EventSymbol>())
+                {
+                    Assert.True(ev.Type.Equals(ev.AddMethod.Parameters.Last().Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(ev.Type.Equals(ev.RemoveMethod.Parameters.Last().Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                }
+            }
+        }
+
+        [Fact]
+        public void Implementing_02()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+interface IA
+{
+    event System.Action<string> E1; 
+    event System.Action<string>? E2; 
+    event System.Action<string?>? E3; 
+}
+
+class B1 : IA
+{
+    event System.Action<string?> IA.E1 {add {} remove{}}
+    event System.Action<string> IA.E2 {add {} remove{}}
+    event System.Action<string?>? IA.E3 {add {} remove{}}
+}
+
+interface IB
+{
+    //event System.Action<string> E1; 
+    //event System.Action<string>? E2; 
+    event System.Action<string?>? E3; 
+}
+
+class B2 : IB
+{
+    //event System.Action<string?> IB.E1; // 2
+    //event System.Action<string> IB.E2; // 2
+    event System.Action<string?>? IB.E3; // 2
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (34,37): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+    //     event System.Action<string?>? IB.E3; // 2
+    Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(34, 37),
+    // (34,40): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    //     event System.Action<string?>? IB.E3; // 2
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(34, 40),
+    // (34,40): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    //     event System.Action<string?>? IB.E3; // 2
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(34, 40),
+    // (34,38): error CS0539: 'B2.' in explicit interface declaration is not a member of interface
+    //     event System.Action<string?>? IB.E3; // 2
+    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("B2.").WithLocation(34, 38),
+    // (34,38): error CS0065: 'B2.': event property must have both add and remove accessors
+    //     event System.Action<string?>? IB.E3; // 2
+    Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("B2.").WithLocation(34, 38),
+    // (30,12): error CS0535: 'B2' does not implement interface member 'IB.E3'
+    // class B2 : IB
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IB").WithArguments("B2", "IB.E3").WithLocation(30, 12),
+    // (18,37): warning CS8215: Nullability of reference types in type doesn't match implemented member 'event Action<string> IA.E1'.
+    //     event System.Action<string?> IA.E1 {add {} remove{}}
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E1").WithArguments("event Action<string> IA.E1").WithLocation(18, 37),
+    // (19,36): warning CS8215: Nullability of reference types in type doesn't match implemented member 'event Action<string> IA.E2'.
+    //     event System.Action<string> IA.E2 {add {} remove{}}
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E2").WithArguments("event Action<string> IA.E2").WithLocation(19, 36)
+                );
+
+            var ia = compilation.GetTypeByMetadataName("IA");
+            var b1 = compilation.GetTypeByMetadataName("B1");
+
+            foreach (string memberName in new[] { "E1", "E2" })
+            {
+                var member = ia.GetMember<EventSymbol>(memberName);
+
+                var impl = (EventSymbol)b1.FindImplementationForInterfaceMember(member);
+                Assert.False(impl.Type.Equals(member.Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            var e3 = ia.GetMember<EventSymbol>("E3");
+            {
+                var impl = (EventSymbol)b1.FindImplementationForInterfaceMember(e3);
+                Assert.True(impl.Type.Equals(e3.Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            foreach (string typeName in new[] { "IA", "B1" })
+            {
+                var type = compilation.GetTypeByMetadataName(typeName);
+
+                foreach (var ev in type.GetMembers().OfType<EventSymbol>())
+                {
+                    Assert.True(ev.Type.Equals(ev.AddMethod.Parameters.Last().Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(ev.Type.Equals(ev.RemoveMethod.Parameters.Last().Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                }
+            }
+        }
+
+        [Fact]
+        public void Overriding_17()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+abstract class A1
+{
+    public abstract string?[] P1 {get; set;} 
+    public abstract string[] P2 {get; set;} 
+
+    public abstract string?[] this[int x] {get; set;} 
+    public abstract string[] this[short x] {get; set;} 
+}
+
+abstract class A2
+{
+    public abstract string?[]? P3 {get; set;} 
+
+    public abstract string?[]? this[long x] {get; set;} 
+}
+
+class B1 : A1
+{
+    public override string[] P1 {get; set;} 
+    public override string[]? P2 {get; set;} 
+    
+    public override string[] this[int x] // 1
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+    
+    public override string[]? this[short x] // 2
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+
+class B2 : A2
+{
+    public override string?[]? P3 {get; set;} 
+    
+    public override string?[]? this[long x] // 3
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (28,31): warning CS8208: Nullability of reference types in type doesn't match overridden member.
+    //     public override string[]? P2 {get; set;} 
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "P2").WithLocation(28, 31),
+    // (30,30): warning CS8208: Nullability of reference types in type doesn't match overridden member.
+    //     public override string[] this[int x] // 1
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "this").WithLocation(30, 30),
+    // (36,31): warning CS8208: Nullability of reference types in type doesn't match overridden member.
+    //     public override string[]? this[short x] // 2
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "this").WithLocation(36, 31),
+    // (27,30): warning CS8208: Nullability of reference types in type doesn't match overridden member.
+    //     public override string[] P1 {get; set;} 
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "P1").WithLocation(27, 30)
+                );
+
+            foreach (var member in compilation.GetTypeByMetadataName("B1").GetMembers().OfType<PropertySymbol>())
+            {
+                Assert.False(member.Type.Equals(member.OverriddenProperty.Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            foreach (var member in compilation.GetTypeByMetadataName("B2").GetMembers().OfType<PropertySymbol>())
+            {
+                Assert.True(member.Type.Equals(member.OverriddenProperty.Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            foreach (string typeName in new[] { "A1", "B1", "A2", "B2" })
+            {
+                var type = compilation.GetTypeByMetadataName(typeName);
+
+                foreach (var property in type.GetMembers().OfType<PropertySymbol>())
+                {
+                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                }
+            }
+        }
+
+        [Fact]
+        public void Implementing_03()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+interface IA
+{
+    string?[] P1 {get; set;} 
+    string[] P2 {get; set;} 
+    string?[] this[int x] {get; set;} 
+    string[] this[short x] {get; set;} 
+}
+interface IA2
+{
+    string?[]? P3 {get; set;} 
+    string?[]? this[long x] {get; set;} 
+}
+class B : IA, IA2
+{
+    public string[] P1 {get; set;} 
+    public string[]? P2 {get; set;} 
+    public string?[]? P3 {get; set;} 
+
+    public string[] this[int x] // 1
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+
+    public string[]? this[short x] // 2
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+
+    public string?[]? this[long x]
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (23,22): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.P2'.
+    //     public string[]? P2 {get; set;} 
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "P2").WithArguments("string[] IA.P2").WithLocation(23, 22),
+    // (26,21): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.this[int x]'.
+    //     public string[] this[int x] // 1
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "this").WithArguments("string[] IA.this[int x]").WithLocation(26, 21),
+    // (32,22): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.this[short x]'.
+    //     public string[]? this[short x] // 2
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "this").WithArguments("string[] IA.this[short x]").WithLocation(32, 22),
+    // (22,21): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.P1'.
+    //     public string[] P1 {get; set;} 
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "P1").WithArguments("string[] IA.P1").WithLocation(22, 21)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+
+            foreach (var member in compilation.GetTypeByMetadataName("IA").GetMembers().OfType<PropertySymbol>())
+            {
+                var impl = (PropertySymbol)b.FindImplementationForInterfaceMember(member);
+                Assert.False(impl.Type.Equals(member.Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            foreach (var member in compilation.GetTypeByMetadataName("IA2").GetMembers().OfType<PropertySymbol>())
+            {
+                var impl = (PropertySymbol)b.FindImplementationForInterfaceMember(member);
+                Assert.True(impl.Type.Equals(member.Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            foreach (string typeName in new[] { "IA", "IA2", "B" })
+            {
+                var type = compilation.GetTypeByMetadataName(typeName);
+
+                foreach (var property in type.GetMembers().OfType<PropertySymbol>())
+                {
+                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                }
+            }
+        }
+
+        [Fact]
+        public void Implementing_04()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+interface IA
+{
+    string?[] P1 {get; set;} 
+    string[] P2 {get; set;} 
+    string?[] this[int x] {get; set;} 
+    string[] this[short x] {get; set;} 
+}
+interface IA2
+{
+    string?[]? P3 {get; set;} 
+    string?[]? this[long x] {get; set;} 
+}
+class B : IA, IA2
+{
+    string[] IA.P1 {get; set;} 
+    string[]? IA.P2 {get; set;} 
+    string?[]? IA2.P3 {get; set;} 
+
+    string[] IA.this[int x] // 1
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+
+    string[]? IA.this[short x] // 2
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+
+    string?[]? IA2.this[long x]
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (22,17): warning CS8215: Nullability of reference types in type doesn't match implemented member 'string[] IA.P1'.
+    //     string[] IA.P1 {get; set;} 
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "P1").WithArguments("string[] IA.P1").WithLocation(22, 17),
+    // (23,18): warning CS8215: Nullability of reference types in type doesn't match implemented member 'string[] IA.P2'.
+    //     string[]? IA.P2 {get; set;} 
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "P2").WithArguments("string[] IA.P2").WithLocation(23, 18),
+    // (26,17): warning CS8215: Nullability of reference types in type doesn't match implemented member 'string[] IA.this[int x]'.
+    //     string[] IA.this[int x] // 1
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "this").WithArguments("string[] IA.this[int x]").WithLocation(26, 17),
+    // (32,18): warning CS8215: Nullability of reference types in type doesn't match implemented member 'string[] IA.this[short x]'.
+    //     string[]? IA.this[short x] // 2
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "this").WithArguments("string[] IA.this[short x]").WithLocation(32, 18)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+
+            foreach (var member in compilation.GetTypeByMetadataName("IA").GetMembers().OfType<PropertySymbol>())
+            {
+                var impl = (PropertySymbol)b.FindImplementationForInterfaceMember(member);
+                Assert.False(impl.Type.Equals(member.Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            foreach (var member in compilation.GetTypeByMetadataName("IA2").GetMembers().OfType<PropertySymbol>())
+            {
+                var impl = (PropertySymbol)b.FindImplementationForInterfaceMember(member);
+                Assert.True(impl.Type.Equals(member.Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            foreach (string typeName in new[] { "IA", "IA2", "B" })
+            {
+                var type = compilation.GetTypeByMetadataName(typeName);
+
+                foreach (var property in type.GetMembers().OfType<PropertySymbol>())
+                {
+                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                }
+            }
+        }
+
+        [Fact]
+        public void Overriding_18()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+abstract class A
+{
+    public abstract string[] M1(); 
+    public abstract T[] M2<T>() where T : class; 
+    public abstract T?[]? M3<T>() where T : class; 
+}
+
+class B : A
+{
+    public override string?[] M1()
+    {
+        return new string?[] {};
+    } 
+
+    public override S?[] M2<S>()
+    {
+        return new S?[] {};
+    } 
+
+    public override S?[]? M3<S>()
+    {
+        return new S?[] {};
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (23,26): warning CS8209: Nullability of reference types in return type doesn't match overridden member.
+    //     public override S?[] M2<S>()
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M2").WithLocation(23, 26),
+    // (18,31): warning CS8209: Nullability of reference types in return type doesn't match overridden member.
+    //     public override string?[] M1()
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(18, 31)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            foreach (string memberName in new[] { "M1", "M2" })
+            {
+                var member = b.GetMember<MethodSymbol>(memberName);
+                Assert.False(member.ReturnType.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).ReturnType, 
+                    TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            var m3 = b.GetMember<MethodSymbol>("M3");
+            Assert.True(m3.ReturnType.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).ReturnType,
+                TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+        }
+
+        [Fact]
+        public void Implementing_05()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+interface IA
+{
+    string[] M1(); 
+    T[] M2<T>() where T : class; 
+    T?[]? M3<T>() where T : class; 
+}
+
+class B : IA
+{
+    public string?[] M1()
+    {
+        return new string?[] {};
+    } 
+
+    public S?[] M2<S>() where S : class
+    {
+        return new S?[] {};
+    } 
+
+    public S?[]? M3<S>() where S : class
+    {
+        return new S?[] {};
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (23,17): warning CS8213: Nullability of reference types in return type doesn't match implicitly implemented member 'T[] IA.M2<T>()'.
+    //     public S?[] M2<S>() where S : class
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "M2").WithArguments("T[] IA.M2<T>()").WithLocation(23, 17),
+    // (18,22): warning CS8213: Nullability of reference types in return type doesn't match implicitly implemented member 'string[] IA.M1()'.
+    //     public string?[] M1()
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(18, 22)
+                );
+
+            var ia = compilation.GetTypeByMetadataName("IA");
+            var b = compilation.GetTypeByMetadataName("B");
+
+            foreach (var memberName in new[] { "M1", "M2"})
+            {
+                var member = ia.GetMember<MethodSymbol>(memberName);
+                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                Assert.False(implementing.ReturnType.Equals(implemented.ReturnType,
+                    TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            {
+                var member = ia.GetMember<MethodSymbol>("M3");
+                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                Assert.True(implementing.ReturnType.Equals(implemented.ReturnType,
+                    TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+        }
+
+        [Fact]
+        public void Implementing_06()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+interface IA
+{
+    string[] M1(); 
+    T[] M2<T>() where T : class; 
+    T?[]? M3<T>() where T : class; 
+}
+
+class B : IA
+{
+    string?[] IA.M1()
+    {
+        return new string?[] {};
+    } 
+
+    S?[] IA.M2<S>() 
+    {
+        return new S?[] {};
+    } 
+
+    S?[]? IA.M3<S>() 
+    {
+        return new S?[] {};
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (23,13): warning CS8216: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
+    //     S?[] IA.M2<S>() 
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M2").WithArguments("T[] IA.M2<T>()").WithLocation(23, 13),
+    // (18,18): warning CS8216: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
+    //     string?[] IA.M1()
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(18, 18)
+                );
+
+            var ia = compilation.GetTypeByMetadataName("IA");
+            var b = compilation.GetTypeByMetadataName("B");
+
+            foreach (var memberName in new[] { "M1", "M2" })
+            {
+                var member = ia.GetMember<MethodSymbol>(memberName);
+                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                Assert.False(implementing.ReturnType.Equals(implemented.ReturnType,
+                    TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            {
+                var member = ia.GetMember<MethodSymbol>("M3");
+                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                Assert.True(implementing.ReturnType.Equals(implemented.ReturnType,
+                    TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+        }
+
+        [Fact]
+        public void Overriding_19()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+abstract class A
+{
+    public abstract void M1(string[] x); 
+    public abstract void M2<T>(T[] x) where T : class; 
+    public abstract void M3<T>(T?[]? x) where T : class; 
+}
+
+class B : A
+{
+    public override void M1(string?[] x)
+    {
+    } 
+
+    public override void M2<T>(T?[] x)
+    {
+    } 
+
+    public override void M3<T>(T?[]? x)
+    {
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (22,26): warning CS8210: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+    //     public override void M2<T>(T?[] x)
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("x").WithLocation(22, 26),
+    // (18,26): warning CS8210: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+    //     public override void M1(string?[] x)
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(18, 26)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            foreach (string memberName in new[] { "M1", "M2" })
+            {
+                var member = b.GetMember<MethodSymbol>(memberName);
+                Assert.False(member.Parameters[0].Type.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).Parameters[0].Type,
+                    TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            var m3 = b.GetMember<MethodSymbol>("M3");
+            Assert.True(m3.Parameters[0].Type.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).Parameters[0].Type,
+                TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+        }
+
+        [Fact]
+        public void Implementing_07()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+interface IA
+{
+    void M1(string[] x); 
+    void M2<T>(T[] x) where T : class; 
+    void M3<T>(T?[]? x) where T : class; 
+}
+class B : IA
+{
+    public void M1(string?[] x)
+    {
+    } 
+
+    public void M2<T>(T?[] x)  where T : class
+    {
+    } 
+
+    public void M3<T>(T?[]? x)  where T : class
+    {
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (20,17): warning CS8214: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'void IA.M2<T>(T[] x)'.
+    //     public void M2<T>(T?[] x)  where T : class
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "M2").WithArguments("x", "void IA.M2<T>(T[] x)").WithLocation(20, 17),
+    // (16,17): warning CS8214: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'void IA.M1(string[] x)'.
+    //     public void M1(string?[] x)
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "M1").WithArguments("x", "void IA.M1(string[] x)").WithLocation(16, 17)
+                );
+
+            var ia = compilation.GetTypeByMetadataName("IA");
+            var b = compilation.GetTypeByMetadataName("B");
+
+            foreach (var memberName in new[] { "M1", "M2" })
+            {
+                var member = ia.GetMember<MethodSymbol>(memberName);
+                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
+                    TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            {
+                var member = ia.GetMember<MethodSymbol>("M3");
+                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
+                    TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+        }
+
+        [Fact]
+        public void Implementing_08()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+interface IA
+{
+    void M1(string[] x); 
+    void M2<T>(T[] x) where T : class; 
+    void M3<T>(T?[]? x) where T : class; 
+}
+class B : IA
+{
+    void IA.M1(string?[] x)
+    {
+    } 
+
+    void IA.M2<T>(T?[] x)  
+    {
+    } 
+
+    void IA.M3<T>(T?[]? x)  
+    {
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (20,13): warning CS8217: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M2<T>(T[] x)'.
+    //     void IA.M2<T>(T?[] x)  
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "M2").WithArguments("x", "void IA.M2<T>(T[] x)").WithLocation(20, 13),
+    // (16,13): warning CS8217: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M1(string[] x)'.
+    //     void IA.M1(string?[] x)
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "M1").WithArguments("x", "void IA.M1(string[] x)").WithLocation(16, 13)
+                );
+
+            var ia = compilation.GetTypeByMetadataName("IA");
+            var b = compilation.GetTypeByMetadataName("B");
+
+            foreach (var memberName in new[] { "M1", "M2" })
+            {
+                var member = ia.GetMember<MethodSymbol>(memberName);
+                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
+                    TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            {
+                var member = ia.GetMember<MethodSymbol>("M3");
+                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+                Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
+                    TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+        }
+
+        [Fact]
+        public void Overriding_20()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+abstract class A1
+{
+    public abstract int this[string?[] x] {get; set;} 
+}
+abstract class A2
+{
+    public abstract int this[string[] x] {get; set;} 
+}
+abstract class A3
+{
+    public abstract int this[string?[]? x] {get; set;} 
+}
+
+class B1 : A1
+{
+    public override int this[string[] x] // 1
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+class B2 : A2
+{
+    public override int this[string[]? x] // 2
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+class B3 : A3
+{
+    public override int this[string?[]? x] // 3
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (24,25): warning CS8210: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+    //     public override int this[string[] x] // 1
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "this").WithArguments("x").WithLocation(24, 25),
+    // (32,25): warning CS8210: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+    //     public override int this[string[]? x] // 2
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "this").WithArguments("x").WithLocation(32, 25)
+                );
+
+            foreach (string typeName in new[] { "B1", "B2" })
+            {
+                foreach (var member in compilation.GetTypeByMetadataName(typeName).GetMembers().OfType<PropertySymbol>())
+                {
+                    Assert.False(member.Parameters[0].Type.Equals(member.OverriddenProperty.Parameters[0].Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                }
+            }
+
+            foreach (var member in compilation.GetTypeByMetadataName("B3").GetMembers().OfType<PropertySymbol>())
+            {
+                Assert.True(member.Parameters[0].Type.Equals(member.OverriddenProperty.Parameters[0].Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            foreach (string typeName in new[] {"A1", "A2", "A3", "B1", "B2", "B3"})
+            {
+                var type = compilation.GetTypeByMetadataName(typeName);
+
+                foreach (var property in type.GetMembers().OfType<PropertySymbol>())
+                {
+                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                }
+            }
+        }
+
+        [Fact]
+        public void Implementing_09()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+interface IA1
+{
+    int this[string?[] x] {get; set;} 
+}
+interface IA2
+{
+    int this[string[] x] {get; set;} 
+}
+interface IA3
+{
+    int this[string?[]? x] {get; set;} 
+}
+
+class B1 : IA1
+{
+    public int this[string[] x] // 1
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+class B2 : IA2
+{
+    public int this[string[]? x] // 2
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+class B3 : IA3
+{
+    public int this[string?[]? x] // 3
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (32,16): warning CS8214: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'int IA2.this[string[] x]'.
+    //     public int this[string[]? x] // 2
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "this").WithArguments("x", "int IA2.this[string[] x]").WithLocation(32, 16),
+    // (24,16): warning CS8214: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'int IA1.this[string[] x]'.
+    //     public int this[string[] x] // 1
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "this").WithArguments("x", "int IA1.this[string[] x]").WithLocation(24, 16)
+                );
+
+            foreach (string[] typeName in new[] { new []{ "IA1", "B1" }, new []{ "IA2", "B2" } })
+            {
+                var implemented = compilation.GetTypeByMetadataName(typeName[0]).GetMembers().OfType<PropertySymbol>().Single();
+                var implementing = (PropertySymbol)compilation.GetTypeByMetadataName(typeName[1]).FindImplementationForInterfaceMember(implemented);
+                Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            {
+                var implemented = compilation.GetTypeByMetadataName("IA3").GetMembers().OfType<PropertySymbol>().Single();
+                var implementing = (PropertySymbol)compilation.GetTypeByMetadataName("B3").FindImplementationForInterfaceMember(implemented);
+                Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            foreach (string typeName in new[] { "IA1", "IA2", "IA3", "B1", "B2", "B3" })
+            {
+                var type = compilation.GetTypeByMetadataName(typeName);
+
+                foreach (var property in type.GetMembers().OfType<PropertySymbol>())
+                {
+                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                }
+            }
+        }
+
+        [Fact]
+        public void Implementing_10()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+interface IA1
+{
+    int this[string?[] x] {get; set;} 
+}
+interface IA2
+{
+    int this[string[] x] {get; set;} 
+}
+interface IA3
+{
+    int this[string?[]? x] {get; set;} 
+}
+
+class B1 : IA1
+{
+    int IA1.this[string[] x] // 1
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+class B2 : IA2
+{
+    int IA2.this[string[]? x] // 2
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+class B3 : IA3
+{
+    int IA3.this[string?[]? x] // 3
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (24,13): warning CS8217: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'int IA1.this[string[] x]'.
+    //     int IA1.this[string[] x] // 1
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "this").WithArguments("x", "int IA1.this[string[] x]").WithLocation(24, 13),
+    // (32,13): warning CS8217: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'int IA2.this[string[] x]'.
+    //     int IA2.this[string[]? x] // 2
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "this").WithArguments("x", "int IA2.this[string[] x]").WithLocation(32, 13)
+                );
+
+            foreach (string[] typeName in new[] { new[] { "IA1", "B1" }, new[] { "IA2", "B2" } })
+            {
+                var implemented = compilation.GetTypeByMetadataName(typeName[0]).GetMembers().OfType<PropertySymbol>().Single();
+                var implementing = (PropertySymbol)compilation.GetTypeByMetadataName(typeName[1]).FindImplementationForInterfaceMember(implemented);
+                Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            {
+                var implemented = compilation.GetTypeByMetadataName("IA3").GetMembers().OfType<PropertySymbol>().Single();
+                var implementing = (PropertySymbol)compilation.GetTypeByMetadataName("B3").FindImplementationForInterfaceMember(implemented);
+                Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            foreach (string typeName in new[] { "IA1", "IA2", "IA3", "B1", "B2", "B3" })
+            {
+                var type = compilation.GetTypeByMetadataName(typeName);
+
+                foreach (var property in type.GetMembers().OfType<PropertySymbol>())
+                {
+                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+                }
+            }
+        }
+
+        [Fact]
+        public void PartialMethods_01()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+partial class C1
+{
+    partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+}
+
+partial class C1
+{
+    partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+    { }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // (16,18): warning CS8211: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
+    //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("x").WithLocation(16, 18),
+    // (16,18): warning CS8211: Nullability of reference types in type of parameter 'y' doesn't match partial method declaration.
+    //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("y").WithLocation(16, 18),
+    // (16,18): warning CS8211: Nullability of reference types in type of parameter 'z' doesn't match partial method declaration.
+    //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("z").WithLocation(16, 18)
+                );
+
+            var c1 = compilation.GetTypeByMetadataName("C1");
+
+            var m1 = c1.GetMember<MethodSymbol>("M1");
+            var m1Impl = m1.PartialImplementationPart;
+            var m1Def = m1.ConstructIfGeneric(m1Impl.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations));
+
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.False(m1Impl.Parameters[i].Type.Equals(m1Def.Parameters[i].Type,
+                    TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+            }
+
+            Assert.True(m1Impl.Parameters[3].Type.Equals(m1Def.Parameters[3].Type,
+                TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
         }
 
         [Fact]
@@ -2572,6 +3817,134 @@ class C
     // (31,21): warning CS8201: Possible null reference assignment.
     //         object y3 = x3;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(31, 21)
+                );
+        }
+
+        [Fact]
+        public void TargetingUnannotatedAPIs_08()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+public abstract class A1
+{
+    public abstract event System.Action E1;
+    public abstract string P2 { get; set; }
+    public abstract string M3(string x);
+    public abstract event System.Action E4;
+    public abstract string this[string x] { get; set; }
+}
+
+public interface IA2
+{
+    event System.Action E5;
+    string P6 { get; set; }
+    string M7(string x);
+    event System.Action E8;
+    string this[string x] { get; set; }
+}
+", options: TestOptions.DebugDll);
+
+            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+class B1 : A1
+{
+    static void Main()
+    {
+    }
+
+    public override string? P2 { get; set; }
+    public override event System.Action? E1;
+    public override string? M3(string? x)
+    {
+        var dummy = E1;
+        throw new System.NotImplementedException();
+    }
+    public override event System.Action? E4
+    {
+        add { }
+        remove { }
+    }
+
+    public override string? this[string? x]
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+
+        set
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}
+
+class B2 : IA2
+{
+    public string? P6 { get; set; }
+    public event System.Action? E5;
+    public event System.Action? E8
+    {
+        add { }
+        remove { }
+    }
+
+    public string? M7(string? x)
+    {
+        var dummy = E5;
+        throw new System.NotImplementedException();
+    }
+
+    public string? this[string? x]
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+
+        set
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}
+
+class B3 : IA2
+{
+    string? IA2.P6 { get; set; }
+
+    event System.Action? IA2.E5
+    {
+        add { }
+        remove { }
+    }
+
+    event System.Action? IA2.E8
+    {
+        add { }
+        remove { }
+    }
+
+    string? IA2.M7(string? x)
+    {
+        throw new System.NotImplementedException();
+    }
+    
+    string? IA2.this[string? x]
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+
+        set
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+
+            c.VerifyDiagnostics(
                 );
         }
 

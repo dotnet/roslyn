@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         CompareNullableModifiersForReferenceTypes = 1 << 3,
 
         IgnoreCustomModifiersAndArraySizesAndLowerBounds = IgnoreCustomModifiers | IgnoreArraySizesAndLowerBounds,
-        SameType = IgnoreDynamic | IgnoreCustomModifiers | IgnoreArraySizesAndLowerBounds
+        SameType = IgnoreDynamic | IgnoreCustomModifiers | IgnoreArraySizesAndLowerBounds,
+        AllAspects = CompareNullableModifiersForReferenceTypes,
     }
 }

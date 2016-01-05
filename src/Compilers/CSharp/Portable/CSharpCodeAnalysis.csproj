@@ -345,7 +345,9 @@
     <Compile Include="Errors\DiagnosticBagExtensions.cs" />
     <Compile Include="Errors\DiagnosticInfoWithSymbols.cs" />
     <Compile Include="Errors\ErrorFacts.cs" />
-    <Compile Include="Errors\LasyUseSiteDiagnosticsInfo.cs" />
+    <Compile Include="Errors\LasyUseSiteDiagnosticsInfoForNullableType.cs" />
+    <Compile Include="Errors\LazyArrayElementCantBeRefAnyDiagnosticInfo.cs" />
+    <Compile Include="Errors\LazyDiagnosticInfo.cs" />
     <Compile Include="Errors\LazyObsoleteDiagnosticInfo.cs" />
     <Compile Include="Errors\MessageID.cs" />
     <Compile Include="Errors\MessageProvider.cs" />

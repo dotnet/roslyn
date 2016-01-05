@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if ((object)explicitlyImplementedEvent != null)
             {
                 CopyEventCustomModifiers(explicitlyImplementedEvent, ref _type);
+
+                TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, explicitlyImplementedEvent, true, diagnostics);
             }
 
             AccessorDeclarationSyntax addSyntax = null;
