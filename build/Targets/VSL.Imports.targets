@@ -264,9 +264,6 @@
     <Message Text="Adding optimization data to @(IntermediateAssembly)"/>
     <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;" />
 
-    <Message Text="Re-signing after merging optimization data" Condition="'$(DelaySign)' != 'true' AND '$(SignAssembly)' == 'true'" />
-    <Exec Command="&quot;$(SnToolPath)&quot; -q -R &quot;@(IntermediateAssembly)&quot; &quot;$(AssemblyOriginatorKeyFile)&quot;" Condition="'$(DelaySign)' != 'true' AND '$(SignAssembly)' == 'true'" />
-
   </Target>
 
   <!-- ====================================================================================
