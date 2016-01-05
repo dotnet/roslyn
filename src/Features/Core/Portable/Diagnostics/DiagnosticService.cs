@@ -30,7 +30,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // queue to serialize events.
             _eventMap = new EventMap();
-            _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
+
+            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
+            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
+            _eventQueue = new SimpleTaskQueue(new DiagnosticEventTaskScheduler(blockingUpperBound: 100));
 
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
 

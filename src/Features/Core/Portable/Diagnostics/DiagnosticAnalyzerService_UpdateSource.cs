@@ -20,7 +20,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private DiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService) : this()
         {
             _eventMap = new EventMap();
-            _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
+
+            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
+            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
+            _eventQueue = new SimpleTaskQueue(new DiagnosticEventTaskScheduler(blockingUpperBound: 100));
 
             registrationService.Register(this);
         }

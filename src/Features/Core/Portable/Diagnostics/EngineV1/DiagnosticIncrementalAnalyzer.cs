@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var data = await _executor.GetSyntaxAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticsCreated(StateType.Syntax, document.Id, stateSet, new SolutionArgument(document), data.Items);
+                            RaiseDiagnosticCreatedFromCacheIfNeeded(StateType.Syntax, document, stateSet, data.Items);
                             continue;
                         }
 
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticsCreated(StateType.Document, document.Id, stateSet, new SolutionArgument(document), data.Items);
+                            RaiseDiagnosticCreatedFromCacheIfNeeded(StateType.Document, document, stateSet, data.Items);
                             continue;
                         }
 
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var data = await _executor.GetDocumentAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticsCreated(StateType.Document, document.Id, stateSet, new SolutionArgument(document), data.Items);
+                            RaiseDiagnosticCreatedFromCacheIfNeeded(StateType.Document, document, stateSet, data.Items);
                             continue;
                         }
 
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var data = await _executor.GetProjectAnalysisDataAsync(analyzerDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
-                            RaiseProjectDiagnosticsUpdated(project, stateSet, data.Items);
+                            RaiseProjectDiagnosticsUpdatedIfNeeded(project, stateSet, ImmutableArray<DiagnosticData>.Empty, data.Items);
                             continue;
                         }
 
@@ -615,6 +615,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             return VersionStamp.CanReusePersistedVersion(versions.TextVersion, existingData.TextVersion) &&
                    project.CanReusePersistedDependentSemanticVersion(versions.ProjectVersion, versions.DataVersion, existingData.DataVersion);
+        }
+
+        private void RaiseDiagnosticCreatedFromCacheIfNeeded(StateType type, Document document, StateSet stateSet, ImmutableArray<DiagnosticData> items)
+        {
+            RaiseDocumentDiagnosticsUpdatedIfNeeded(type, document, stateSet, ImmutableArray<DiagnosticData>.Empty, items);
         }
 
         private void RaiseDocumentDiagnosticsUpdatedIfNeeded(
