@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
 {
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
 
             // TODO: Check options and bail.
             var optionSet = GetOptionSet(context.Options);
+            Debug.Assert(variableDeclaration.Variables.Count == 1, "More than 1 variable declared, cannot use var");
             var diagnostic = AnalyzeVariableDeclaration(variableDeclaration, context.SemanticModel, context.CancellationToken);
 
             if (diagnostic != null)
@@ -88,18 +90,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
         }
 
         // TODO: move this helper to a common place.
-        private bool IsTypeApparentFromRHS()
+        private bool IsTypeApparentFromRHS(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            var initializer = variableDeclaration.Variables.Single().Initializer;
+            var initializerExpression = initializer.Value;
+
+            // default(T)
+            if (initializerExpression.IsKind(SyntaxKind.DefaultExpression))
+            {
+                return true;
+            }
+
             // constructors of form = new TypeSomething();
             // object creation expression that contains a typename and not an anonymous object creation expression.
+            if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression) && 
+                !initializerExpression.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
+            {
+                return true;
+            }
 
             // invocation expression
             // a. int.Parse, TextSpan.From static methods? 
             // return type or 1 ref/out type matches some part of identifier name within a dotted name.
             // also consider Generic method invocation with type parameters *and* not inferred
-            // c. Factory Methods
+            if (initializerExpression.IsKind(SyntaxKind.InvocationExpression))
+            {
+                var invocation = (InvocationExpressionSyntax)initializerExpression;
 
-            throw new NotImplementedException();
+                // literals.
+                if (invocation.IsAnyLiteralExpression())
+                {
+                    return true;
+                }
+
+                // if memberaccessexpression, get method symbol and check IsStatic.
+                var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
+                if (!symbol.IsKind(SymbolKind.Method))
+                {
+                    return false;
+                }
+
+                var methodSymbol = (IMethodSymbol)symbol;
+                if (!methodSymbol.IsStatic || methodSymbol.ReturnsVoid)
+                {
+                    // if its a ref/out method, then the return type may not be obvious from the name.
+                    return false;
+                }
+
+                var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
+
+                IList<string> nameParts;
+                if (invocation.Expression.TryGetNameParts(out nameParts))
+                {
+                    var typeNameIndex = nameParts.IndexOf(methodSymbol.Name) - 1;
+                    if (typeNameIndex >= 0)
+                    {
+                        // returned type is spelled out in the invocation.
+                        return declaredTypeSymbol.Name == nameParts[typeNameIndex];
+                    }
+                }
+            }
+
+            // c. Factory Methods?
+
+            return false;
         }
 
         private bool IntrinsicTypeInDeclaration()
@@ -141,10 +195,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
                 return null;
             }
 
-            return IsReplaceableByVar(declaredType, semanticModel, cancellationToken, out diagnosticSpan)
-                ? Diagnostic.Create(s_descriptorUseImplicitTyping, declarationStatement.SyntaxTree.GetLocation(diagnosticSpan))
+            var isReplaceable = IsReplaceableByVar(declaredType, semanticModel, cancellationToken, out diagnosticSpan);
+            var isTypeApparent = IsTypeApparentFromRHS((VariableDeclarationSyntax)declarationStatement, semanticModel, cancellationToken);
+
+            return isReplaceable 
+                ? CreateDiagnostic(declarationStatement, diagnosticSpan)
                 : null;
         }
+
+        private static Diagnostic CreateDiagnostic(SyntaxNode declarationStatement, TextSpan diagnosticSpan) 
+            => Diagnostic.Create(s_descriptorUseImplicitTyping, declarationStatement.SyntaxTree.GetLocation(diagnosticSpan));
 
         private bool IsReplaceableByVar(TypeSyntax typeName, SemanticModel semanticModel, CancellationToken cancellationToken, out TextSpan issueSpan)
         {
@@ -173,7 +233,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
                 typeName.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
                 var variableDeclaration = (VariableDeclarationSyntax)typeName.Parent;
-                Debug.Assert(variableDeclaration.Variables.Count == 1);
 
                 // implicitly typed variables cannot be constants.
                 var localDeclarationStatement = variableDeclaration.Parent as LocalDeclarationStatementSyntax;
@@ -199,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
         private bool CheckAssignment(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // var cannot be assigned null
-            if (initializer.IsKind(SyntaxKind.NullLiteralExpression))
+            if (initializer.Value.IsKind(SyntaxKind.NullLiteralExpression))
             {
                 return false;
             }
