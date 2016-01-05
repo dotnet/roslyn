@@ -1424,6 +1424,17 @@ class Q : P
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
         }
 
+        [Fact]
+        public void TestLookupVerbatimVar()
+        {
+            var source = "class C { public static void Main() { @var v = 1; } }";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (1,39): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public static void Main() { @var v = 1; } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(1, 39)
+                );
+        }
+
         private void TestLookupSymbolsNestedNamespaces(List<ISymbol> actual_lookupSymbols)
         {
             var namespaceX = (NamespaceSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("X") && sym.Kind == SymbolKind.Namespace).Single();

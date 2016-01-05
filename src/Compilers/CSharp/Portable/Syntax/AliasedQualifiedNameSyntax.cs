@@ -15,5 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             return this.Name;
         }
+
+        internal override string ErrorDisplayName()
+        {
+            return Alias.ErrorDisplayName() + "::" + Name.ErrorDisplayName();
+        }
     }
 }

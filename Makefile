@@ -1,12 +1,12 @@
 SHELL = /bin/bash
 OS_NAME = $(shell uname -s)
-NUGET_PACKAGE_NAME = nuget.future.4
+NUGET_PACKAGE_NAME = nuget.future.5
 BUILD_CONFIGURATION = Debug
 BOOTSTRAP_PATH = $(shell pwd)/Binaries/Bootstrap
 BUILD_LOG_PATH =
 XUNIT_VERSION = 2.1.0
 
-MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:SignAssembly=false /p:DebugSymbols=false /p:Configuration=$(BUILD_CONFIGURATION)
+MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:DebugSymbols=false /p:Configuration=$(BUILD_CONFIGURATION)
 
 ifeq ($(OS_NAME),Linux)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=ubuntu.14.04
