@@ -605,90 +605,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetLastToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
-        internal SyntaxToken FindTokenInternal(int position)
-        {
-            // While maintaining invariant   curNode.Position <= position < curNode.FullSpan.End
-            // go down the tree until a token is found
-            SyntaxNodeOrToken curNode = this;
-
-            while (true)
-            {
-                Debug.Assert(curNode.Kind() != SyntaxKind.None);
-                Debug.Assert(curNode.FullSpan.Contains(position));
-
-                var node = curNode.AsNode();
-
-                if (node != null)
-                {
-                    //find a child that includes the position
-                    curNode = node.ChildThatContainsPosition(position);
-                }
-                else
-                {
-                    return curNode.AsToken();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Finds a token according to the following rules:
-        /// 1) If position matches the End of the node/s FullSpan and the node is CompilationUnit,
-        ///   then EoF is returned. 
-        /// 
-        /// 2) If node.FullSpan.Contains(position) the token that contains given position is
-        ///    returned. If stepInto is not Nothing, then structured trivia that satisfies the
-        ///    condition will also be visited during the search.
-        /// 
-        /// 3) Otherwise an IndexOutOfRange is thrown
-        /// </summary>
-        private SyntaxToken FindToken(int position, Func<SyntaxTrivia, bool> findInsideTrivia)
-        {
-            var token = this.FindToken(position, findInsideTrivia: false);
-            if (findInsideTrivia != null)
-            {
-                var trivia = GetTriviaFromSyntaxToken(position, token);
-
-                if (trivia.HasStructure && findInsideTrivia(trivia))
-                {
-                    token = ((CSharpSyntaxNode)trivia.GetStructure()).FindTokenInternal(position);
-                }
-            }
-
-            return token;
-        }
-
-        private static SyntaxTrivia GetTriviaFromSyntaxToken(int position, SyntaxToken token)
-        {
-            var span = token.Span;
-            var trivia = new SyntaxTrivia();
-            if (position < span.Start && token.HasLeadingTrivia)
-            {
-                trivia = GetTriviaThatContainsPosition(token.LeadingTrivia, position);
-            }
-            else if (position >= span.End && token.HasTrailingTrivia)
-            {
-                trivia = GetTriviaThatContainsPosition(token.TrailingTrivia, position);
-            }
-            return trivia;
-        }
-
-        private bool TryGetEofAt(int position, out SyntaxToken Eof)
-        {
-            if (position == this.EndPosition)
-            {
-                CompilationUnitSyntax cu = this as CompilationUnitSyntax;
-                if (cu != null)
-                {
-                    Eof = cu.EndOfFileToken;
-                    Debug.Assert(Eof.EndPosition == position);
-                    return true;
-                }
-            }
-
-            Eof = default(SyntaxToken);
-            return false;
-        }
-
         /// <summary>
         /// Finds a token according to the following rules:
         /// 1) If position matches the End of the node/s FullSpan and the node is CompilationUnit,
@@ -701,23 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new SyntaxToken FindToken(int position, bool findInsideTrivia = false)
         {
-            if (findInsideTrivia)
-            {
-                return this.FindToken(position, SyntaxTrivia.Any);
-            }
-
-            SyntaxToken EoF;
-            if (this.TryGetEofAt(position, out EoF))
-            {
-                return EoF;
-            }
-
-            if (!this.FullSpan.Contains(position))
-            {
-                throw new ArgumentOutOfRangeException(nameof(position));
-            }
-
-            return this.FindTokenInternal(position);
+            return base.FindToken(position, findInsideTrivia);
         }
 
         /// <summary>
@@ -764,24 +664,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return nonTriviaToken;
         }
 
-        internal static SyntaxTrivia GetTriviaThatContainsPosition(SyntaxTriviaList list, int position)
-        {
-            foreach (var trivia in list)
-            {
-                if (trivia.FullSpan.Contains(position))
-                {
-                    return trivia;
-                }
-
-                if (trivia.Position > position)
-                {
-                    break;
-                }
-            }
-
-            return default(SyntaxTrivia);
-        }
-
         #endregion
 
         #region Trivia Lookup
@@ -795,14 +677,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="stepInto">Specifies a function that determines per trivia node, whether to
         /// descend into structured trivia of that node.</param>
         /// <returns></returns>
-        public SyntaxTrivia FindTrivia(int position, Func<SyntaxTrivia, bool> stepInto)
+        public new SyntaxTrivia FindTrivia(int position, Func<SyntaxTrivia, bool> stepInto)
         {
-            if (this.FullSpan.Contains(position))
-            {
-                return FindTriviaByOffset(this, position - this.Position, stepInto);
-            }
-
-            return default(SyntaxTrivia);
+            return base.FindTrivia(position, stepInto);
         }
 
         /// <summary>
@@ -813,71 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="findInsideTrivia">Whether to search inside structured trivia.</param>
         public new SyntaxTrivia FindTrivia(int position, bool findInsideTrivia = false)
         {
-            return FindTrivia(position, findInsideTrivia ? SyntaxTrivia.Any : null);
-        }
-
-        internal static SyntaxTrivia FindTriviaByOffset(SyntaxNode node, int textOffset, Func<SyntaxTrivia, bool> stepInto = null)
-        {
-            if (textOffset >= 0)
-            {
-                foreach (var element in node.ChildNodesAndTokens())
-                {
-                    var fullWidth = element.FullWidth;
-                    if (textOffset < fullWidth)
-                    {
-                        if (element.IsNode)
-                        {
-                            return FindTriviaByOffset(element.AsNode(), textOffset, stepInto);
-                        }
-                        else if (element.IsToken)
-                        {
-                            var token = element.AsToken();
-                            var leading = token.LeadingWidth;
-                            if (textOffset < token.LeadingWidth)
-                            {
-                                foreach (var trivia in token.LeadingTrivia)
-                                {
-                                    if (textOffset < trivia.FullWidth)
-                                    {
-                                        if (trivia.HasStructure && stepInto != null && stepInto(trivia))
-                                        {
-                                            return FindTriviaByOffset((CSharpSyntaxNode)trivia.GetStructure(), textOffset, stepInto);
-                                        }
-
-                                        return trivia;
-                                    }
-
-                                    textOffset -= trivia.FullWidth;
-                                }
-                            }
-                            else if (textOffset >= leading + token.Width)
-                            {
-                                textOffset -= leading + token.Width;
-                                foreach (var trivia in token.TrailingTrivia)
-                                {
-                                    if (textOffset < trivia.FullWidth)
-                                    {
-                                        if (trivia.HasStructure && stepInto != null && stepInto(trivia))
-                                        {
-                                            return FindTriviaByOffset((CSharpSyntaxNode)trivia.GetStructure(), textOffset, stepInto);
-                                        }
-
-                                        return trivia;
-                                    }
-
-                                    textOffset -= trivia.FullWidth;
-                                }
-                            }
-
-                            return default(SyntaxTrivia);
-                        }
-                    }
-
-                    textOffset -= fullWidth;
-                }
-            }
-
-            return default(SyntaxTrivia);
+            return base.FindTrivia(position, findInsideTrivia);
         }
 
         #endregion
@@ -904,17 +717,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override SyntaxToken FindTokenCore(int position, bool findInsideTrivia)
         {
-            return FindToken(position, findInsideTrivia);
+            return base.FindTokenCore(position, findInsideTrivia);
         }
 
         protected override SyntaxToken FindTokenCore(int position, Func<SyntaxTrivia, bool> stepInto)
         {
-            return FindToken(position, stepInto.ToLanguageSpecific());
+            return base.FindTokenCore(position, stepInto);
         }
 
         protected override SyntaxTrivia FindTriviaCore(int position, bool findInsideTrivia)
         {
-            return FindTrivia(position, findInsideTrivia);
+            return base.FindTriviaCore(position, findInsideTrivia);
         }
 
         protected internal override SyntaxNode ReplaceCore<TNode>(
