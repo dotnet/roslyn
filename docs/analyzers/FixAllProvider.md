@@ -117,4 +117,4 @@ Following guidelines should help in the implementation:
  - **GetSupportedFixAllScopes:** Virtual method to get all the supported FixAll scopes. By default, it returns all the three supported scopes: document, project and solution scopes. Generally, you need not override this method. However, you may do so if you wish to support a subset of these scopes.
  - **GetSupportedFixAllDiagnosticIds:** Virtual method to get all the fixable diagnostic ids. By default, it returns the underlying code fixer's `FixableDiagnosticIds`. Generally, you need not override this method. However, you may do so if you wish to support FixAll only for a subset of these ids.
 
-See [PublicSurfaceAreaFixAllProvider](http://source.roslyn.io/#q=PublicSurfaceAreaFixAllProvider) for an example implementation of a custom FixAllProvider.
+See [DeclarePublicAPIFix](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Unfactored/Roslyn/Core/ApiDesign/DeclarePublicAPIFix.cs) for an example implementation of a custom FixAllProvider.
