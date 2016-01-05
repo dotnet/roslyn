@@ -7217,15 +7217,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Public sign was specified and requires a public key, but no public key was specified.
-        /// </summary>
-        internal static string ERR_PublicSignNoKey {
-            get {
-                return ResourceManager.GetString("ERR_PublicSignNoKey", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The range variable &apos;{0}&apos; has already been declared.
         /// </summary>
         internal static string ERR_QueryDuplicateRangeVariable {

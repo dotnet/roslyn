@@ -1664,7 +1664,11 @@ End Class
                 </file>
             </compilation>, options:=options
         )
-        comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicSignNoKey).WithLocation(1, 1))
+
+        AssertTheseDiagnostics(comp,
+<errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+</errors>)
         Assert.True(comp.Options.PublicSign)
         Assert.True(comp.Assembly.PublicKey.IsDefaultOrEmpty)
     End Sub
@@ -1731,8 +1735,11 @@ End Class
         Dim options = TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(True)
         Dim comp = CreateCompilationWithMscorlib(source, options:=options)
 
-        comp.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_CmdOptionConflictsSource).WithArguments("System.Reflection.AssemblyDelaySignAttribute", "PublicSign").WithLocation(1, 1))
+        AssertTheseDiagnostics(comp,
+<errors>
+BC37207: Attribute 'System.Reflection.AssemblyDelaySignAttribute' given in a source file conflicts with option 'PublicSign'.
+</errors>)
+        Assert.True(comp.Options.PublicSign)
     End Sub
 
     <Fact>
@@ -1751,9 +1758,13 @@ End Class
             options:=options
         )
 
-        comp.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_MutuallyExclusiveOptions).WithArguments("PublicSign", "DelaySign").WithLocation(1, 1))
+        AssertTheseDiagnostics(comp,
+<errors>
+BC2046: Compilation options 'PublicSign' and 'DelaySign' can't both be specified at the same time.
+</errors>)
 
+        Assert.True(comp.Options.PublicSign)
+        Assert.True(comp.Options.DelaySign)
     End Sub
 
     <Fact, WorkItem(769840, "DevDiv")>
