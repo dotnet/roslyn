@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 refs.AddRange(references);
             }
-            refs.Add(MscorlibRef_v45);
+            refs.Add(MscorlibRef_v4_0_30316_17626);
             return CreateCompilation(source, refs, options, assemblyName);
         }
 
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 refs.AddRange(references);
             }
-            refs.Add(MscorlibRef_v45);
+            refs.Add(MscorlibRef_v4_0_30316_17626);
             return CreateCompilation(new[] { Parse(text, sourceFileName, TestOptions.ExperimentalParseOptions) }, refs, options, assemblyName);
         }
 
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null)
         {
-            var refs = new List<MetadataReference>() { MscorlibRef_v45, SystemCoreRef, CSharpRef };
+            var refs = new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef };
 
             return CreateCompilation(new[] { Parse(text, options: parseOptions) }, refs, options);
         }
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
-                references: (references != null) ? new[] { MscorlibRef_v45 }.Concat(references) : new[] { MscorlibRef_v45 },
+                references: (references != null) ? new[] { MscorlibRef_v4_0_30316_17626 }.Concat(references) : new[] { MscorlibRef_v4_0_30316_17626 },
                 options: options,
                 syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Script),
                 previousScriptCompilation: previous,

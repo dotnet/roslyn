@@ -541,7 +541,7 @@ public abstract class C
         [Fact]
         public void SubmissionEntryPoint()
         {
-            var references = new[] { MscorlibRef_v45, SystemCoreRef };
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source0 =
 @"{
     await System.Threading.Tasks.Task.Delay(100);

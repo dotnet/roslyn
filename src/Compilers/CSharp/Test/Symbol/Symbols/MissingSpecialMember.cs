@@ -505,7 +505,7 @@ namespace System
         [WorkItem(530436, "DevDiv")]
         public void AllSpecialTypes()
         {
-            var comp = CreateCompilation("", new[] { MscorlibRef_v45 });
+            var comp = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
 
             for (var special = SpecialType.None + 1; special <= SpecialType.Count; special++)
             {
@@ -519,7 +519,7 @@ namespace System
         [WorkItem(530436, "DevDiv")]
         public void AllSpecialTypeMembers()
         {
-            var comp = CreateCompilation("", new[] { MscorlibRef_v45 });
+            var comp = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
 
             foreach (SpecialMember special in Enum.GetValues(typeof(SpecialMember)))
             {
@@ -536,9 +536,9 @@ namespace System
         {
             var refs = new[]
             {
-                MscorlibRef_v45,
+                MscorlibRef_v4_0_30316_17626,
                 SystemRef_v4_0_30319_17929,
-                SystemCoreRef_v45,
+                SystemCoreRef_v4_0_30319_17929,
                 MsvbRef_v4_0_30319_17929,
                 CSharpRef,
                 SystemXmlRef,
@@ -573,9 +573,9 @@ namespace System
         {
             var refs = new[]
             {
-                MscorlibRef_v45,
+                MscorlibRef_v4_0_30316_17626,
                 SystemRef_v4_0_30319_17929,
-                SystemCoreRef_v45,
+                SystemCoreRef_v4_0_30319_17929,
                 MsvbRef_v4_0_30319_17929,
                 CSharpRef,
                 SystemXmlRef,

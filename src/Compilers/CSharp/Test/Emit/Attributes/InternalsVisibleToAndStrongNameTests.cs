@@ -1331,7 +1331,7 @@ public class C
 {
   static void Foo() {}
 }",
-                new MetadataReference[] { MscorlibRef_v45 },
+                new MetadataReference[] { MscorlibRef_v4_0_30316_17626 },
                 options: TestOptions.ReleaseDll.WithDelaySign(true).WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
             using (var metadata = ModuleMetadata.CreateFromImage(other.EmitToArray()))
@@ -1849,7 +1849,7 @@ public class C
 {
   static void Foo() {}
 }",
-      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v45 });
+      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
             var tempFile = Temp.CreateFile();
 
@@ -1875,7 +1875,7 @@ public class C
 {
   static void Foo() {}
 }",
-      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v45 });
+      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
             var tempFile = Temp.CreateFile();
 
@@ -1903,7 +1903,7 @@ public class C
 {
   static void Foo() {}
 }",
-      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v45 });
+      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
             var tempFile = Temp.CreateFile();
 
@@ -1930,7 +1930,7 @@ public class C
 {
   static void Foo() {}
 }",
-      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v45 });
+      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
             var tempFile = Temp.CreateFile();
 
@@ -1959,7 +1959,7 @@ public class C
 {
   static void Foo() {}
 }",
-      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v45 });
+      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
             var tempFile = Temp.CreateFile();
 
@@ -1983,7 +1983,7 @@ public class C
 {
   static void Foo() {}
 }",
-      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v45 });
+      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
             var tempFile = Temp.CreateFile();
 
@@ -2012,7 +2012,7 @@ public class C
 {
   static void Foo() {}
 }",
-      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v45 });
+      options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider), references: new[] { MscorlibRef_v4_0_30316_17626 });
 
             var tempFile = Temp.CreateFile();
 

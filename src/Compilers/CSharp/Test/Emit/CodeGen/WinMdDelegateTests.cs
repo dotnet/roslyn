@@ -131,8 +131,8 @@ namespace WinRTDelegateLibrary
 }";
             // We need the 4.5 refs here
             var coreRefs45 = new[] {
-                MscorlibRef_v45,
-                SystemCoreRef_v45
+                MscorlibRef_v4_0_30316_17626,
+                SystemCoreRef_v4_0_30319_17929
             };
 
             var winRtDelegateLibrary = CreateCompilation(

@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenExprLambdaTests : CSharpTestBase
     {
-        //TODO: 4.6 should be the default
+        //TODO: 4.6 should be the default for most testcases
+        //      for now I do not want to do such a large change at once
+        //      when 4.6 is the default, this override and ExpressionAssemblyRef below will not be needed.
         protected override Compilation GetCompilationForEmit(
             IEnumerable<string> source,
             IEnumerable<MetadataReference> additionalRefs,
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.
         /// </summary>
-        protected static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
+        protected new static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
 
 
         #region A string containing expression-tree dumping utilities
@@ -2321,6 +2323,43 @@ public class Test
   IL_0037:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
   IL_003c:  call       ""void System.Console.WriteLine(object)""
   IL_0041:  ret
+}
+                    ");
+
+            var comp45 = CreateCompilationWithMscorlib45(
+                new[] { text, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                TestOptions.ReleaseExe);
+
+            // no use Array.Empty here since it is not available
+            CompileAndVerify(
+                comp45, 
+                expectedOutput: expectedOutput).
+                    VerifyIL("Test.Main",
+                    @"
+{
+  // Code size       68 (0x44)
+  .maxstack  7
+  IL_0000:  ldnull
+  IL_0001:  ldtoken    ""int Test.ModAdd2(params int[])""
+  IL_0006:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_000b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0010:  ldc.i4.1
+  IL_0011:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0016:  dup
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldtoken    ""int""
+  IL_001d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0022:  ldc.i4.0
+  IL_0023:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0028:  call       ""System.Linq.Expressions.NewArrayExpression System.Linq.Expressions.Expression.NewArrayInit(System.Type, params System.Linq.Expressions.Expression[])""
+  IL_002d:  stelem.ref
+  IL_002e:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_0033:  ldc.i4.0
+  IL_0034:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0039:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003e:  call       ""void System.Console.WriteLine(object)""
+  IL_0043:  ret
 }
                     ");
 

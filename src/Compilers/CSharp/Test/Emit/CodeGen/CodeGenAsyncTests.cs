@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
             options = options ?? TestOptions.ReleaseExe;
 
-            IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v45, CSharpRef };
+            IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef };
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
             return CreateCompilationWithMscorlib45(source, options: options, references: references);
@@ -3565,7 +3565,7 @@ System.Console.WriteLine(x);";
         [Fact]
         public void AwaitInInteractiveExpression()
         {
-            var references = new[] { MscorlibRef_v45, SystemCoreRef };
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source0 =
 @"static async System.Threading.Tasks.Task<int> F()
 {
@@ -3581,7 +3581,7 @@ System.Console.WriteLine(x);";
         [Fact]
         public void AwaitInInteractiveGlobalStatement()
         {
-            var references = new[] { MscorlibRef_v45, SystemCoreRef };
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source0 =
 @"await System.Threading.Tasks.Task.FromResult(5);";
             var s0 = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script), references);

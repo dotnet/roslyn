@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
         private string Dump(MetadataReference winmd, MetadataReference[] additionalRefs = null)
         {
-            IEnumerable<MetadataReference> references = new[] { MscorlibRef_v45, _systemRuntimeRef, _systemObjectModelRef, _windowsRuntimeUIXamlRef, _interopServicesWindowsRuntimeRef, winmd };
+            IEnumerable<MetadataReference> references = new[] { MscorlibRef_v4_0_30316_17626, _systemRuntimeRef, _systemObjectModelRef, _windowsRuntimeUIXamlRef, _interopServicesWindowsRuntimeRef, winmd };
 
             if (additionalRefs != null)
             {

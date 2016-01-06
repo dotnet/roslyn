@@ -1933,7 +1933,7 @@ public abstract class ClassITest28 //: ITest28
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, new MetadataReference[] { MscorlibRef_v45 }, options: TestOptions.DebugDll);
+            var piaCompilation = CreateCompilation(pia, new MetadataReference[] { MscorlibRef_v4_0_30316_17626 }, options: TestOptions.DebugDll);
 
             CompileAndVerify(piaCompilation);
 
@@ -1982,7 +1982,7 @@ class UsePia
             };
 
             var compilation = CreateCompilation(consumer,
-                                                new MetadataReference[] { MscorlibRef_v45, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
+                                                new MetadataReference[] { MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
                                                 options: TestOptions.DebugExe);
 
             var verifier = CompileAndVerify(compilation, symbolValidator: metadataValidator);
@@ -1990,7 +1990,7 @@ class UsePia
             verifier.VerifyIL("UsePia.Test", expected);
 
             compilation = CreateCompilationWithMscorlib(consumer,
-                                                        new MetadataReference[] { MscorlibRef_v45, piaCompilation.EmitToImageReference(embedInteropTypes: true) },
+                                                        new MetadataReference[] { MscorlibRef_v4_0_30316_17626, piaCompilation.EmitToImageReference(embedInteropTypes: true) },
                                                         options: TestOptions.DebugExe);
 
             verifier = CompileAndVerify(compilation, symbolValidator: metadataValidator);

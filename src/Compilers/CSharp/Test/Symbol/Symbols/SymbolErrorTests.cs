@@ -15363,7 +15363,7 @@ End Structure";
             var vbcomp = VisualBasic.VisualBasicCompilation.Create(
                 "Test",
                 new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(textdll) },
-                new[] { MscorlibRef_v45 },
+                new[] { MscorlibRef_v4_0_30316_17626 },
                 new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var ref1 = vbcomp.EmitToImageReference(embedInteropTypes: true);
@@ -19303,12 +19303,12 @@ internal abstract event System.EventHandler E;";
         [Fact]
         public void AbstractInSubmission()
         {
-            var references = new[] { MscorlibRef_v45, SystemCoreRef };
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source =
 @"internal abstract void M();
 internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
-            var submission = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script), new[] { MscorlibRef_v45, SystemCoreRef });
+            var submission = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script), new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
             submission.VerifyDiagnostics(
                 // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
                 // internal abstract void M();

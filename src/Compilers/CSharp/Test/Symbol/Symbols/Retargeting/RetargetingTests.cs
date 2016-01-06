@@ -696,7 +696,7 @@ class C1<T>
 
             NamedTypeSymbol c1 = comp1.Assembly.GlobalNamespace.GetTypeMembers("C1").Single();
 
-            var comp2 = CreateCompilation("", new[] { MscorlibRef_v45, new CSharpCompilationReference(comp1) }, TestOptions.ReleaseDll);
+            var comp2 = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(comp1) }, TestOptions.ReleaseDll);
 
             NamedTypeSymbol c1r = comp2.GlobalNamespace.GetTypeMembers("C1").Single();
 

@@ -1394,7 +1394,7 @@ struct S<T> where T : class
             var compilation0 = CreateCompilationWithMscorlib45(
                 source,
                 options: TestOptions.DebugDll,
-                references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v45, CSharpRef });
+                references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
 
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
@@ -1465,7 +1465,7 @@ class C
             var compilation0 = CreateCompilationWithMscorlib45(
                 source,
                 options: TestOptions.DebugDll,
-                references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v45, CSharpRef });
+                references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
 
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
@@ -1537,7 +1537,7 @@ class C
             var compilation0 = CreateCompilationWithMscorlib45(
                 source,
                 options: TestOptions.DebugDll,
-                references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v45, CSharpRef });
+                references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
 
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
