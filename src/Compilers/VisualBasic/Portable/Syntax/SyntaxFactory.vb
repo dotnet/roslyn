@@ -812,7 +812,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="name">The name of the xml element.</param>
         ''' <param name="content">A list of syntax nodes that represents the content of the xml multi line element.</param>
         Public Shared Function XmlMultiLineElement(name As XmlNameSyntax, content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
-            Return XmlElement(XmlElementStartTag(name), content.Insert(0, XmlNewLine("\r\n")).Add(XmlNewLine("\r\n")), XmlElementEndTag(name))
+            Return XmlElement(XmlElementStartTag(name), content, XmlElementEndTag(name))
         End Function
 
         ''' <summary>

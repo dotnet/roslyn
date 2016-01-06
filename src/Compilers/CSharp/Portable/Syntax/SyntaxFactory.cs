@@ -1081,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return XmlElement(
                 XmlElementStartTag(name),
-                content.Insert(0, XmlNewLine("\r\n")).Add(XmlNewLine("\r\n")),
+                content,
                 XmlElementEndTag(name));
         }
 

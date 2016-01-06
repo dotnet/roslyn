@@ -562,11 +562,13 @@ End Module
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
                     SyntaxFactory.XmlText("This class provides extension methods for the "),
                     SyntaxFactory.XmlSeeElement(
                         SyntaxFactory.CrefReference(
                             SyntaxFactory.ParseTypeName("TypeName"))),
-                    SyntaxFactory.XmlText(" class.")),
+                    SyntaxFactory.XmlText(" class."),
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlThreadSafetyElement(),
                 SyntaxFactory.XmlNewLine("\r\n"),
@@ -588,7 +590,9 @@ End Module
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlText("This class provides extension methods.")))
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlText("This class provides extension methods."),
+                    SyntaxFactory.XmlNewLine("\r\n")))
 
         Dim actual = documentationComment.ToFullString()
 
@@ -606,6 +610,7 @@ End Module
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
                     SyntaxFactory.XmlText("This class provides extension methods for the "),
                     SyntaxFactory.XmlSeeElement(
                         SyntaxFactory.CrefReference(
@@ -614,7 +619,8 @@ End Module
                     SyntaxFactory.XmlSeeAlsoElement(
                         SyntaxFactory.CrefReference(
                             SyntaxFactory.ParseTypeName("TypeName2"))),
-                    SyntaxFactory.XmlText(" class.")))
+                    SyntaxFactory.XmlText(" class."),
+                    SyntaxFactory.XmlNewLine("\r\n")))
 
         Dim actual = documentationComment.ToFullString()
 
@@ -637,11 +643,15 @@ End Module
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlText("This is a summary.")),
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlText("This is a summary."),
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlNewLine("\r\n"),
-                SyntaxFactory.XmlRemarksElement())
+                SyntaxFactory.XmlRemarksElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine("\r\n")))
 
         Dim actual = documentationComment.ToFullString()
 
@@ -661,7 +671,9 @@ End Module
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlParamRefElement("b")),
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlParamRefElement("b"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlParamElement("a"),
                 SyntaxFactory.XmlNewLine("\r\n"),
@@ -685,10 +697,14 @@ End Module
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
-                SyntaxFactory.XmlSummaryElement(),
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlReturnsElement(
-                    SyntaxFactory.XmlText("Returns a value.")))
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlText("Returns a value."),
+                    SyntaxFactory.XmlNewLine("\r\n")))
 
         Dim actual = documentationComment.ToFullString()
 
@@ -708,14 +724,18 @@ End Module
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
-                SyntaxFactory.XmlSummaryElement(),
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlRemarksElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
                     SyntaxFactory.XmlText("Same as in class "),
                     SyntaxFactory.XmlSeeElement(
                         SyntaxFactory.CrefReference(
                             SyntaxFactory.ParseTypeName("TypeName"))),
-                    SyntaxFactory.XmlText(".")))
+                    SyntaxFactory.XmlText("."),
+                    SyntaxFactory.XmlNewLine("\r\n")))
 
         Dim actual = documentationComment.ToFullString()
 
@@ -733,7 +753,9 @@ End Module
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
-                SyntaxFactory.XmlSummaryElement(),
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlExceptionElement(
                     SyntaxFactory.CrefReference(
@@ -756,7 +778,9 @@ End Module
 
         Dim documentationComment As DocumentationCommentTriviaSyntax =
             SyntaxFactory.DocumentationComment(
-                SyntaxFactory.XmlSummaryElement(),
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlPermissionElement(
                     SyntaxFactory.CrefReference(

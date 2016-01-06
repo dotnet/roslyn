@@ -2874,10 +2874,12 @@ public class Program
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
                     SyntaxFactory.XmlText("This class provides extension methods for the "),
                     SyntaxFactory.XmlSeeElement(
                         SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName("TypeName"))),
-                    SyntaxFactory.XmlText(" class.")),
+                    SyntaxFactory.XmlText(" class."),
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlThreadSafetyElement(),
                 SyntaxFactory.XmlNewLine("\r\n"),
@@ -2898,7 +2900,9 @@ public class Program
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlText("This class provides extension methods.")));
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlText("This class provides extension methods."),
+                    SyntaxFactory.XmlNewLine("\r\n")));
 
             var actual = documentationComment.ToFullString();
 
@@ -2915,13 +2919,15 @@ public class Program
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
                     SyntaxFactory.XmlText("This class provides extension methods for the "),
                     SyntaxFactory.XmlSeeElement(
                         SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName("TypeName"))),
                     SyntaxFactory.XmlText(" class and the "),
                     SyntaxFactory.XmlSeeAlsoElement(
                         SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName("TypeName2"))),
-                    SyntaxFactory.XmlText(" class.")));
+                    SyntaxFactory.XmlText(" class."),
+                    SyntaxFactory.XmlNewLine("\r\n")));
 
             var actual = documentationComment.ToFullString();
 
@@ -2944,11 +2950,15 @@ public class Program
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlText("This is a summary.")),
                     SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlText("This is a summary."),
+                    SyntaxFactory.XmlNewLine("\r\n")),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlRemarksElement(
                     SyntaxFactory.XmlNewLine("\r\n"),
-                    SyntaxFactory.XmlNewLine("\r\n"),
-                    SyntaxFactory.XmlRemarksElement());
+                    SyntaxFactory.XmlNewLine("\r\n")));
 
             var actual = documentationComment.ToFullString();
 
@@ -2968,7 +2978,9 @@ public class Program
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlParamRefElement("b")),
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlParamRefElement("b"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlParamElement("a"),
                 SyntaxFactory.XmlNewLine("\r\n"),
@@ -2992,10 +3004,14 @@ public class Program
                 "/// </returns>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
-                SyntaxFactory.XmlSummaryElement(),
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlReturnsElement(
-                    SyntaxFactory.XmlText("Returns a value.")));
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlText("Returns a value."),
+                    SyntaxFactory.XmlNewLine("\r\n")));
 
             var actual = documentationComment.ToFullString();
 
@@ -3015,12 +3031,16 @@ public class Program
                 "/// </remarks>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
-                SyntaxFactory.XmlSummaryElement(),
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlRemarksElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
                     SyntaxFactory.XmlText("Same as in class "),
                     SyntaxFactory.XmlSeeElement(SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName("TypeName"))),
-                    SyntaxFactory.XmlText(".")));
+                    SyntaxFactory.XmlText("."),
+                    SyntaxFactory.XmlNewLine("\r\n")));
 
             var actual = documentationComment.ToFullString();
 
@@ -3038,7 +3058,9 @@ public class Program
                 "/// <exception cref=\"InvalidOperationException\">This exception will be thrown if the object is in an invalid state when calling this method.</exception>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
-                SyntaxFactory.XmlSummaryElement(),
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"), 
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlExceptionElement(
                     SyntaxFactory.TypeCref(
@@ -3061,7 +3083,9 @@ public class Program
                 "/// <permission cref=\"MyPermission\">Needs MyPermission to execute.</permission>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
-                SyntaxFactory.XmlSummaryElement(),
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
                 SyntaxFactory.XmlNewLine("\r\n"),
                 SyntaxFactory.XmlPermissionElement(
                     SyntaxFactory.TypeCref(
