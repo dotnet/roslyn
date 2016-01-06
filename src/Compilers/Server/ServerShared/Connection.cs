@@ -110,14 +110,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     return await HandleShutdownRequest(cancellationToken).ConfigureAwait(false);
                 }
+                else if (!allowCompilationRequests)
+                {
+                    return await HandleRejectedRequest(cancellationToken).ConfigureAwait(false);
+                }
                 else
                 {
-                    // TODO: change to send actual close message to client
-                    if (!allowCompilationRequests)
-                    {
-                        return new ConnectionData(CompletionReason.CompilationNotStarted);
-                    }
-
                     return await HandleCompilationRequest(request, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -165,6 +163,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // Begin the tear down of the Task which didn't complete. 
             buildCts.Cancel();
             return new ConnectionData(reason, keepAlive);
+        }
+
+        private async Task<ConnectionData> HandleRejectedRequest(CancellationToken cancellationToken)
+        {
+            var response = new RejectedBuildResponse();
+            await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+            return new ConnectionData(CompletionReason.CompilationNotStarted);
         }
 
         private async Task<ConnectionData> HandleShutdownRequest(CancellationToken cancellationToken)

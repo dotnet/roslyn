@@ -258,6 +258,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Completed,
             AnalyzerInconsistency,
             Shutdown,
+            Rejected,
         }
 
         public abstract ResponseType Type { get; }
@@ -335,6 +336,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         return new AnalyzerInconsistencyBuildResponse();
                     case ResponseType.Shutdown:
                         return ShutdownBuildResponse.Create(reader);
+                    case ResponseType.Rejected:
+                        return new RejectedBuildResponse();
                     default:
                         throw new InvalidOperationException("Received invalid response type from server.");
                 }
@@ -431,6 +434,17 @@ namespace Microsoft.CodeAnalysis.CommandLine
     internal sealed class AnalyzerInconsistencyBuildResponse : BuildResponse
     {
         public override ResponseType Type => ResponseType.AnalyzerInconsistency;
+
+        /// <summary>
+        /// AnalyzerInconsistency has no body.
+        /// </summary>
+        /// <param name="writer"></param>
+        protected override void AddResponseBody(BinaryWriter writer) { }
+    }
+
+    internal sealed class RejectedBuildResponse : BuildResponse
+    {
+        public override ResponseType Type => ResponseType.Rejected;
 
         /// <summary>
         /// AnalyzerInconsistency has no body.

@@ -214,5 +214,37 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             Assert.True(validated);
         }
+
+        [Fact]
+        public async Task NoCompilationsRejectBuildRequest()
+        {
+            var stream = new TestableStream();
+            await s_emptyCSharpBuildRequest.WriteAsync(stream.ReadStream, CancellationToken.None).ConfigureAwait(true);
+            stream.ReadStream.Position = 0;
+
+            var connection = CreateConnection(stream);
+            var connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
+            Assert.Equal(CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
+
+            stream.WriteStream.Position = 0;
+            var response = await BuildResponse.ReadAsync(stream.WriteStream).ConfigureAwait(false);
+            Assert.Equal(BuildResponse.ResponseType.Rejected, response.Type);
+        }
+
+        [Fact]
+        public async Task NoCompilationsProcessShutdown()
+        {
+            var stream = new TestableStream();
+            await BuildRequest.CreateShutdown().WriteAsync(stream.ReadStream, CancellationToken.None).ConfigureAwait(true);
+            stream.ReadStream.Position = 0;
+
+            var connection = CreateConnection(stream);
+            var connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
+            Assert.Equal(CompletionReason.ClientShutdownRequest, connectionData.CompletionReason);
+
+            stream.WriteStream.Position = 0;
+            var response = await BuildResponse.ReadAsync(stream.WriteStream).ConfigureAwait(false);
+            Assert.Equal(BuildResponse.ResponseType.Shutdown, response.Type);
+        }
     }
 }
