@@ -614,12 +614,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(markup)
 
-                Dim service = New DiagnosticService(AggregateAsynchronousOperationListener.EmptyListeners)
+                Dim asyncListener = New AsynchronousOperationListener()
+                Dim listeners = AsynchronousOperationListener.CreateListeners(ValueTuple.Create(FeatureAttribute.DiagnosticService, asyncListener))
+
+                Dim service = New DiagnosticService(listeners)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
                 Dim table = New VisualStudioDiagnosticListTable(workspace, service, tableManagerProvider)
 
-                RunCompilerAnalyzer(workspace, service)
+                RunCompilerAnalyzer(workspace, service, New AggregateAsynchronousOperationListener(listeners, FeatureAttribute.DiagnosticService))
+
+                Await asyncListener.CreateWaitTask()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                 Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
@@ -646,13 +651,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        Private Sub RunCompilerAnalyzer(workspace As TestWorkspace, registrationService As IDiagnosticUpdateSourceRegistrationService)
+        Private Sub RunCompilerAnalyzer(workspace As TestWorkspace, registrationService As IDiagnosticUpdateSourceRegistrationService, listener As IAsynchronousOperationListener)
             Dim snapshot = workspace.CurrentSolution
 
             Dim notificationService = New TestForegroundNotificationService()
 
             Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()
-            Dim analyzerService = New TestDiagnosticAnalyzerService(compilerAnalyzersMap, registrationService:=registrationService)
+            Dim analyzerService = New MyDiagnosticAnalyzerService(compilerAnalyzersMap, registrationService, listener)
 
             Dim service = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)(), SolutionCrawlerRegistrationService)
             service.Register(workspace)
@@ -669,6 +674,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                                       workspace, projectId, If(documentId Is Nothing, Nothing, New DiagnosticDataLocation(documentId, TextSpan.FromBounds(0, 10), "test", 20, 20, 20, 20)),
                                       title:="Title", description:="Description", helpLink:=link)
         End Function
+
+        Private Class MyDiagnosticAnalyzerService
+            Inherits DiagnosticAnalyzerService
+
+            Friend Sub New(
+                    analyzersMap As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)),
+                    registrationService As IDiagnosticUpdateSourceRegistrationService,
+                    listener As IAsynchronousOperationListener)
+                MyBase.New(New HostAnalyzerManager(ImmutableArray.Create(Of AnalyzerReference)(New TestAnalyzerReferenceByLanguage(analyzersMap)), hostDiagnosticUpdateSource:=Nothing),
+                      hostDiagnosticUpdateSource:=Nothing,
+                      registrationService:=registrationService,
+                      listener:=listener)
+            End Sub
+        End Class
 
         Private Class TestDiagnosticService
             Implements IDiagnosticService
