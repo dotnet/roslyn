@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 
                 encoder.EndVariables();
                 
-                BlobIdx blobIndex = builder.GetBlobIndex(writer);
+                BlobIdx blobIndex = metadata.GetBlobIndex(writer);
                 
                 localSignatureRowId = GetOrAddStandAloneSignatureIndex(blobIndex);
                 writer.Free();
@@ -748,12 +748,12 @@ namespace Microsoft.CodeAnalysis.Emit
                     var ok = map.TryGetValue(typeIndex, out mapIndex);
                     Debug.Assert(ok);
 
-                    builder.AddEncLogEntry(
+                    metadata.AddEncLogEntry(
                         token: mapTokenType | mapIndex,
                         code: addCode);
                 }
 
-                builder.AddEncLogEntry(
+                metadata.AddEncLogEntry(
                     token: tokenType | index[member],
                     code: EditAndContinueOperation.Default);
             }
@@ -769,12 +769,12 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 if (index.IsAddedNotChanged(member))
                 {
-                    builder.AddEncLogEntry(
+                    metadata.AddEncLogEntry(
                         token: TokenTypeIds.TypeDef | _typeDefs[(INamedTypeDefinition)member.ContainingTypeDefinition],
                         code: addCode);
                 }
 
-                builder.AddEncLogEntry(
+                metadata.AddEncLogEntry(
                     token: tokenType | index[member],
                     code: EditAndContinueOperation.Default);
             }
@@ -787,11 +787,11 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 var methodDef = _parameterDefList[i].Key;
 
-                builder.AddEncLogEntry(
+                metadata.AddEncLogEntry(
                     token: TokenTypeIds.MethodDef | _methodDefs[methodDef],
                     code: EditAndContinueOperation.AddParameter);
 
-                builder.AddEncLogEntry(
+                metadata.AddEncLogEntry(
                     token: TokenTypeIds.ParamDef | (parameterFirstId + i),
                     code: EditAndContinueOperation.Default);
             }
@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var member in index.GetRows())
             {
-                builder.AddEncLogEntry(
+                metadata.AddEncLogEntry(
                     token: tokenType | index[member],
                     code: EditAndContinueOperation.Default);
             }
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             for (int i = 0; i < nTokens; i++)
             {
-                builder.AddEncLogEntry(
+                metadata.AddEncLogEntry(
                     token: tokenType | (firstRowId + i),
                     code: EditAndContinueOperation.Default);
             }
@@ -871,7 +871,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var token in tokens)
             {
-                builder.AddEncMapEntry(token);
+                metadata.AddEncMapEntry(token);
             }
 
             tokens.Free();
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var typeId in _eventMap.GetRows())
             {
-                builder.AddEventMap(
+                metadata.AddEventMap(
                     typeDefinitionRowId: typeId,
                     eventList: _eventMap[typeId]);
             }
@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var typeId in _propertyMap.GetRows())
             {
-                builder.AddPropertyMap(
+                metadata.AddPropertyMap(
                     typeDefinitionRowId: typeId,
                     propertyList: _propertyMap[typeId]);
             }
