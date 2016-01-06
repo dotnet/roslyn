@@ -752,6 +752,7 @@
     <Compile Include="Syntax\GenericNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\BinaryExpressionSyntax.cs" />
     <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
+    <Compile Include="Syntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\PropertyDeclarationSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.cs" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.cs" />
