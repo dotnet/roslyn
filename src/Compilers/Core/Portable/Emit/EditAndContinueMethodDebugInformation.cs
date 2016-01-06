@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return mapBuilder.ToImmutableAndFree();
         }
 
-        internal void SerializeLocalSlots(Cci.BlobBuilder writer)
+        internal void SerializeLocalSlots(BlobBuilder writer)
         {
             int syntaxOffsetBaseline = -1;
             foreach (LocalSlotDebugInfo localSlot in this.LocalSlots)
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Emit
             lambdas = lambdasBuilder.ToImmutableAndFree();
         }
 
-        internal void SerializeLambdaMap(Cci.BlobBuilder writer)
+        internal void SerializeLambdaMap(BlobBuilder writer)
         {
             Debug.Assert(this.MethodOrdinal >= -1);
             writer.WriteCompressedInteger((uint)(this.MethodOrdinal + 1));

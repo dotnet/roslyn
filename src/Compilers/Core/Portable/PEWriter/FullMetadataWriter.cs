@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
@@ -40,35 +41,35 @@ namespace Microsoft.Cci
             bool hasPdbStream,
             CancellationToken cancellationToken)
         {
-            var heaps = new MetadataHeapsBuilder();
-            MetadataHeapsBuilder debugHeapsOpt;
+            var builder = new MetadataBuilder();
+            MetadataBuilder debugBuilderOpt;
             switch (context.ModuleBuilder.EmitOptions.DebugInformationFormat)
             {
                 case DebugInformationFormat.PortablePdb:
-                    debugHeapsOpt = hasPdbStream ? new MetadataHeapsBuilder() : null;
+                    debugBuilderOpt = hasPdbStream ? new MetadataBuilder() : null;
                     break;
 
                 case DebugInformationFormat.Embedded:
-                    debugHeapsOpt = heaps;
+                    debugBuilderOpt = builder;
                     break;
 
                 default:
-                    debugHeapsOpt = null;
+                    debugBuilderOpt = null;
                     break;
             }
 
-            return new FullMetadataWriter(context, heaps, debugHeapsOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            return new FullMetadataWriter(context, builder, debugBuilderOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
         }
 
         private FullMetadataWriter(
             EmitContext context,
-            MetadataHeapsBuilder heaps,
-            MetadataHeapsBuilder debugHeapsOpt,
+            MetadataBuilder builder,
+            MetadataBuilder debugBuilderOpt,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(heaps, debugHeapsOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(builder, debugBuilderOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -305,15 +306,15 @@ namespace Microsoft.Cci
             }
         }
 
-        protected override void PopulateEncLogTableRows(List<EncLogRow> table, ImmutableArray<int> rowCounts)
+        protected override void PopulateEncLogTableRows(ImmutableArray<int> rowCounts)
         {
         }
 
-        protected override void PopulateEncMapTableRows(List<EncMapRow> table, ImmutableArray<int> rowCounts)
+        protected override void PopulateEncMapTableRows(ImmutableArray<int> rowCounts)
         {
         }
 
-        protected override void PopulateEventMapTableRows(List<EventMapRow> table)
+        protected override void PopulateEventMapTableRows()
         {
             ITypeDefinition lastParent = null;
             foreach (IEventDefinition eventDef in this.GetEventDefs())
@@ -324,15 +325,14 @@ namespace Microsoft.Cci
                 }
 
                 lastParent = eventDef.ContainingTypeDefinition;
-                int eventIndex = this.GetEventDefIndex(eventDef);
-                EventMapRow r = new EventMapRow();
-                r.Parent = (uint)this.GetTypeDefIndex(lastParent);
-                r.EventList = (uint)eventIndex;
-                table.Add(r);
+
+                builder.AddEventMap(
+                    typeDefinitionRowId: GetTypeDefIndex(lastParent),
+                    eventList: GetEventDefIndex(eventDef));
             }
         }
 
-        protected override void PopulatePropertyMapTableRows(List<PropertyMapRow> table)
+        protected override void PopulatePropertyMapTableRows()
         {
             ITypeDefinition lastParent = null;
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
@@ -343,11 +343,10 @@ namespace Microsoft.Cci
                 }
 
                 lastParent = propertyDef.ContainingTypeDefinition;
-                int propertyIndex = this.GetPropertyDefIndex(propertyDef);
-                PropertyMapRow r = new PropertyMapRow();
-                r.Parent = (uint)this.GetTypeDefIndex(lastParent);
-                r.PropertyList = (uint)propertyIndex;
-                table.Add(r);
+
+                builder.AddPropertyMap(
+                    typeDefinitionRowId: GetTypeDefIndex(lastParent),
+                    propertyList: GetPropertyDefIndex(propertyDef));
             }
         }
 

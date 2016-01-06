@@ -765,11 +765,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected abstract IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics);
 
-        private IEnumerable<Cci.ManagedResource> _lazyManagedResources;
+        private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
 
-        IEnumerable<Cci.ManagedResource> Cci.IModule.GetResources(EmitContext context)
+        ImmutableArray<Cci.ManagedResource> Cci.IModule.GetResources(EmitContext context)
         {
-            if (_lazyManagedResources == null)
+            if (_lazyManagedResources.IsDefault)
             {
                 var builder = ArrayBuilder<Cci.ManagedResource>.GetInstance();
 

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void EnsureResourceSorting()
         {
             //confirm that we sort the resources in the order required by the serialization format.
-            var resources = Microsoft.Cci.PeWriter.SortResources(BuildResources()).ToArray();
+            var resources = Cci.NativeResourceWriter.SortResources(BuildResources()).ToArray();
 
             var elem = resources[0];
             Assert.Equal("a", elem.TypeName);

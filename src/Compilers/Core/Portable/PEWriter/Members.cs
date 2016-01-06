@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -184,7 +185,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Offset of the field.
         /// </summary>
-        uint Offset
+        int Offset
         {
             get;
             // ^ requires this.ContainingTypeDefinition.Layout == LayoutKind.Explicit;
@@ -262,16 +263,17 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// Each local has an attributes field in the PDB.  To match the native compiler,
-        /// we emit "1" for locals that should definitely not bind in the debugger and "0"
+        /// we emit <see cref="LocalVariableAttributes.DebuggerHidden"/> for locals that should 
+        /// definitely not bind in the debugger and <see cref="LocalVariableAttributes.None"/>
         /// for all other locals.
         /// </summary>
         /// <remarks>
-        /// A value of "1" is a sufficient, but not a necessary, condition for hiding the
-        /// local in the debugger.  Locals with value "0" may also be hidden.
+        /// A value of <see cref="LocalVariableAttributes.DebuggerHidden"/> is a sufficient, but not a necessary, condition for hiding the
+        /// local in the debugger.  Locals with value <see cref="LocalVariableAttributes.None"/> may also be hidden.
         /// 
         /// Hidden locals must still be emitted because they participate in evaluation.
         /// </remarks>
-        uint PdbAttributes { get; }
+        LocalVariableAttributes PdbAttributes { get; }
 
         /// <summary>
         /// Should return the synthesized dynamic attributes of the local definition if any. Else null.
@@ -955,16 +957,6 @@ namespace Microsoft.Cci
         /// The name of the method.
         /// </summary>
         new string Name { get; }
-    }
-
-    internal enum EncFuncCode
-    {
-        Default = 0,
-        AddMethod = 1,
-        AddField = 2,
-        AddParameter = 3,
-        AddProperty = 4,
-        AddEvent = 5
     }
 
     internal static class Extensions

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
+using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string name,
             SynthesizedLocalKind kind,
             LocalDebugId id,
-            uint pdbAttributes,
+            LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags,
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     nameOpt: null,
                     kind: SynthesizedLocalKind.EmitterTemp,
                     id: LocalDebugId.None,
-                    pdbAttributes: Cci.PdbWriter.HiddenLocalAttributesValue,
+                    pdbAttributes: LocalVariableAttributes.DebuggerHidden,
                     constraints: constraints,
                     isDynamic: false,
                     dynamicTransformFlags: dynamicTransformFlags);
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string nameOpt,
             SynthesizedLocalKind kind,
             LocalDebugId id,
-            uint pdbAttributes,
+            LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags)
