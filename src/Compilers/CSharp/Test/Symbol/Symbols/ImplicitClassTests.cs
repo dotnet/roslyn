@@ -54,7 +54,7 @@ void Foo()
             var scriptClass = ((NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMembers().Single());
             Assert.Equal(0, scriptClass.GetAttributes().Length);
             Assert.Equal(0, scriptClass.Interfaces.Length);
-            Assert.Equal(c.ObjectType, scriptClass.BaseType);
+            Assert.Equal(null, scriptClass.BaseType);
             Assert.Equal(0, scriptClass.Arity);
             Assert.True(scriptClass.IsImplicitlyDeclared);
             Assert.Equal(SyntaxKind.CompilationUnit, scriptClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());

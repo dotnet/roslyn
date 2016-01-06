@@ -79,11 +79,11 @@ $$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.
         public async Task InactiveRegion()
         {
             await VerifyItemIsAbsentAsync(@"class C {
-#if false 
+#if false
 $$
 #endif", @"String");
             await VerifyItemIsAbsentAsync(@"class C {
-#if false 
+#if false
 $$
 #endif", @"System");
         }
@@ -92,11 +92,11 @@ $$
         public async Task ActiveRegion()
         {
             await VerifyItemIsAbsentAsync(@"class C {
-#if true 
+#if true
 $$
 #endif", @"String");
             await VerifyItemExistsAsync(@"class C {
-#if true 
+#if true
 $$
 #endif", @"System");
         }
@@ -107,13 +107,13 @@ $$
             await VerifyItemIsAbsentAsync(@"using System;
 
 class C {
-#if false 
+#if false
 $$
 #endif", @"String");
             await VerifyItemIsAbsentAsync(@"using System;
 
 class C {
-#if false 
+#if false
 $$
 #endif", @"System");
         }
@@ -124,13 +124,13 @@ $$
             await VerifyItemExistsAsync(@"using System;
 
 class C {
-#if true 
+#if true
 $$
 #endif", @"String");
             await VerifyItemExistsAsync(@"using System;
 
 class C {
-#if true 
+#if true
 $$
 #endif", @"System");
         }
@@ -2569,7 +2569,7 @@ $@"({FeaturesResources.LocalVariable}) 'a a
 class Program {
     string field = 0;
     static void Main()     {
-        var an = new {  new $$  }; 
+        var an = new {  new $$  };
     }
 }
 ";
@@ -2739,7 +2739,7 @@ class A
 {
     public event Func<String, String> E;
 }
- 
+
 class Program
 {
     static void Main(string[] args)
@@ -3090,11 +3090,11 @@ class Program
 using System;
 public class X : Attribute
 { }
- 
+
 public class XAttribute : Attribute
 { }
- 
- 
+
+
 [@X$$]
 class Class3 { }
 ";
@@ -3108,7 +3108,7 @@ class Class3 { }
         {
             await VerifyItemExistsAsync(@"
 using System;
- 
+
 class Program
 {
     static void Main()
@@ -3125,7 +3125,7 @@ class Program
         {
             await VerifyItemExistsAsync(@"
 using System;
- 
+
 class Program
 {
     static void Main()
@@ -3142,7 +3142,7 @@ class Program
         {
             await VerifyItemExistsAsync(@"
 using System;
- 
+
 class Program
 {
     static void Main()
@@ -3159,7 +3159,7 @@ class Program
         {
             await VerifyItemExistsAsync(@"
 using System;
- 
+
 class Program
 {
     static void Main()
@@ -3279,7 +3279,7 @@ class Program
 public class Foo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
-    public static void Bar() 
+    public static void Bar()
     {
     }
 }";
@@ -3310,7 +3310,7 @@ class Program
 public class Foo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
-    public static void Bar() 
+    public static void Bar()
     {
     }
 }";
@@ -3341,7 +3341,7 @@ class Program
 public class Foo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-    public static void Bar() 
+    public static void Bar()
     {
     }
 }";
@@ -3383,12 +3383,12 @@ class Program
 public class Foo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
-    public static void Bar() 
+    public static void Bar()
     {
     }
 
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
-    public static void Bar(int x) 
+    public static void Bar(int x)
     {
     }
 }";
@@ -3420,12 +3420,12 @@ class Program
 public class Foo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
-    public static void Bar() 
+    public static void Bar()
     {
     }
 
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
-    public static void Bar(int x) 
+    public static void Bar(int x)
     {
     }
 }";
@@ -3457,12 +3457,12 @@ class Program
 public class Foo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
-    public static void Bar() 
+    public static void Bar()
     {
     }
 
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
-    public static void Bar(int x) 
+    public static void Bar(int x)
     {
     }
 }";
@@ -3774,14 +3774,14 @@ class Program
             var referencedCode = @"
 public class B
 {
-    public virtual void Foo(int original) 
+    public virtual void Foo(int original)
     {
     }
 }
 
 public class D : B
 {
-    public override void Foo(int derived) 
+    public override void Foo(int derived)
     {
     }
 }";
@@ -3814,7 +3814,7 @@ class Program
 [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
 public class C
 {
-    public void Foo() 
+    public void Foo()
     {
     }
 }";
@@ -3847,7 +3847,7 @@ class Program
 [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
 public class B
 {
-    public void Foo() 
+    public void Foo()
     {
     }
 }
@@ -3886,7 +3886,7 @@ class Program : B
 public class B
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
-    public void Foo() 
+    public void Foo()
     {
     }
 }";
@@ -4727,7 +4727,7 @@ class Program
 {
     public void M()
     {
-        $$    
+        $$
     }
 }";
 
@@ -4813,7 +4813,7 @@ class Program
 {
     public void M()
     {
-        $$    
+        $$
     }
 }";
 
@@ -4899,7 +4899,7 @@ class Program
 {
     public void M()
     {
-        $$    
+        $$
     }
 }";
 
@@ -5018,7 +5018,7 @@ class Program
 {
     public void M()
     {
-        $$    
+        $$
     }
 }";
 
@@ -5050,7 +5050,7 @@ class Program
 {
     public void M()
     {
-        $$    
+        $$
     }
 }";
 
@@ -5154,7 +5154,7 @@ class Program
 {
     public void M()
     {
-        $$    
+        $$
     }
 }";
 
@@ -5323,7 +5323,7 @@ class Program
 {
     public void M()
     {
-        $$    
+        $$
     }
 }";
 
@@ -5427,7 +5427,7 @@ class Program
 {
     public void M()
     {
-        $$    
+        $$
     }
 }";
 
@@ -6085,7 +6085,7 @@ class A
 {
     static void Foo() { }
     void Bar() { }
- 
+
     static void Main()
     {
         A A = new A();
@@ -6357,7 +6357,7 @@ class Program
 class Program
 {
     RegistryKey foo;
- 
+
     static void Main(string[] args)
     {
         foo.$$
@@ -6510,6 +6510,13 @@ class C
 }";
 
             await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(7788)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NothingAfterBaseDotInScriptContext()
+        {
+            await VerifyItemIsAbsentAsync(@"base.$$", @"ToString", sourceCodeKind: SourceCodeKind.Script);
         }
 
         [WorkItem(858086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858086")]
@@ -7276,10 +7283,10 @@ class X
 {
   private int _field;
 
-  public sealed class InnerTest : Test 
+  public sealed class InnerTest : Test
   {
-    
-    public void SomeTest() 
+
+    public void SomeTest()
     {
         $$
     }
@@ -7477,8 +7484,8 @@ class Program
 using IAlias = IFoo;
 ///<summary>summary for interface IFoo</summary>
 interface IFoo {  }
-class C 
-{ 
+class C
+{
     I$$
 }
 ";
@@ -7489,8 +7496,8 @@ class C
         public async Task WithinNameOf()
         {
             var markup = @"
-class C 
-{ 
+class C
+{
     void foo()
     {
         var x = nameof($$)
@@ -7557,7 +7564,7 @@ class C
     class D
     {
         public int x;
-        public static int y;   
+        public static int y;
     }
 
   void foo()
@@ -7581,12 +7588,12 @@ class C
         var x = nameof(T.z.$$)
     }
 }
- 
+
 public class T
 {
-    public U z; 
+    public U z;
 }
- 
+
 public class U
 {
     public int nope;
@@ -7606,12 +7613,12 @@ public class U
         var x = nameof(U.$$)
     }
 }
- 
+
 public class T
 {
-    public U z; 
+    public U z;
 }
- 
+
 public class U
 {
     public int nope;
@@ -8249,7 +8256,7 @@ public static class Test
 ";
             await VerifyItemExistsAsync(markup, "TestA");
         }
-        
+
         [WorkItem(7932, "https://github.com/dotnet/roslyn/issues/7932")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExtensionMethodWithinParentClassOfferedForCompletion()
