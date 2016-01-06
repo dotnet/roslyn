@@ -70,18 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     if (this.CanAddImport(node, cancellationToken))
                     {
                         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                        var allSymbolReferences = new List<SymbolReference>();
-
-                        var finder = new SymbolReferenceFinder(this, document, semanticModel, diagnostic, node, cancellationToken);
-
-                        // Look for exact matches first:
-                        await FindResults(project, allSymbolReferences, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        if (allSymbolReferences.Count == 0)
-                        {
-                            // No exact matches found.  Fall back to fuzzy searching.
-                            await FindResults(project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        }
+                        var allSymbolReferences = await FindResultsAsync(document, semanticModel, diagnostic, node, cancellationToken).ConfigureAwait(false);
 
                         // Nothing found at all. No need to proceed.
                         if (allSymbolReferences.Count == 0)
@@ -89,10 +78,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             return;
                         }
 
-                        cancellationToken.ThrowIfCancellationRequested();
-
                         foreach (var reference in allSymbolReferences)
                         {
+                            cancellationToken.ThrowIfCancellationRequested();
+
                             var description = this.GetDescription(reference.SearchResult.Symbol, semanticModel, node);
                             if (description != null)
                             {
@@ -106,7 +95,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private async Task FindResults(Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+        private async Task<List<SymbolReference>> FindResultsAsync(
+            Document document, SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var allSymbolReferences = new List<SymbolReference>();
+
+            var finder = new SymbolReferenceFinder(this, document, semanticModel, diagnostic, node, cancellationToken);
+
+            // Look for exact matches first:
+            await FindResultsAsync(document.Project, allSymbolReferences, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (allSymbolReferences.Count == 0)
+            {
+                // No exact matches found.  Fall back to fuzzy searching.
+                await FindResultsAsync(document.Project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+
+            return allSymbolReferences;
+        }
+
+        private async Task FindResultsAsync(Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             await FindResultsInCurrentProject(project, allSymbolReferences, finder, exact).ConfigureAwait(false);
             await FindResultsInUnreferencedProjects(project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
