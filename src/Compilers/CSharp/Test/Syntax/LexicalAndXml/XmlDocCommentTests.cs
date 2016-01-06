@@ -2894,9 +2894,10 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlSummaryElement()
         {
-            var expected = @"/// <summary>
-/// This class provides extension methods.
-/// </summary>";
+            var expected = 
+                "/// <summary>\r\n" +
+                "/// This class provides extension methods.\r\n" +
+                "/// </summary>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
@@ -2913,9 +2914,10 @@ public class Program
         [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlSeeElementAndXmlSeeAlsoElement()
         {
-            var expected = @"/// <summary>
-/// This class provides extension methods for the <see cref=""TypeName""/> class and the <seealso cref=""TypeName2""/> class.
-/// </summary>";
+            var expected = 
+                "/// <summary>\r\n" + 
+                "/// This class provides extension methods for the <see cref=\"TypeName\"/> class and the <seealso cref=\"TypeName2\"/> class.\r\n" +
+                "/// </summary>";
 
             DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
                 SyntaxFactory.XmlSummaryElement(
