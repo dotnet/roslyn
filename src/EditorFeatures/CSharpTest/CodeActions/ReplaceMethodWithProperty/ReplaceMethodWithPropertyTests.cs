@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             return new ReplaceMethodWithPropertyCodeRefactoringProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithGetName()
         {
             await TestAsync(
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C { int Foo { get { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithoutGetName()
         {
             await TestAsync(
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C { int Foo { get { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         [WorkItem(6034, "https://github.com/dotnet/roslyn/issues/6034")]
         public async Task TestMethodWithArrowBody()
         {
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C { int Foo => 0; }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithoutBody()
         {
             await TestAsync(
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C { int Foo { get; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithModifiers()
         {
             await TestAsync(
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C { public static int Foo { get { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithAttributes()
         {
             await TestAsync(
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C { [A]int Foo { get { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithTrivia_1()
         {
             await TestAsync(
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestIfDefMethod()
         {
             await TestAsync(
@@ -113,7 +113,7 @@ compareTokens: false);
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithTrivia_2()
         {
             await TestAsync(
@@ -147,7 +147,7 @@ index: 1,
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestExplicitInterfaceMethod_1()
         {
             await TestAsync(
@@ -155,7 +155,7 @@ compareTokens: false);
 @"class C { int I.Foo { get { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestExplicitInterfaceMethod_2()
         {
             await TestAsync(
@@ -163,7 +163,7 @@ compareTokens: false);
 @"interface I { int Foo { get; } } class C : I { int I.Foo { get { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestExplicitInterfaceMethod_3()
         {
             await TestAsync(
@@ -171,77 +171,77 @@ compareTokens: false);
 @"interface I { int Foo { get; } } class C : I { int I.Foo { get { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestInAttribute()
         {
             await TestMissingAsync(
 @"class C { [At[||]tr]int GetFoo() { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestInMethod()
         {
             await TestMissingAsync(
 @"class C { int GetFoo() { [||] } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestVoidMethod()
         {
             await TestMissingAsync(
 @"class C { void [||]GetFoo() { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestAsyncMethod()
         {
             await TestMissingAsync(
 @"class C { async Task [||]GetFoo() { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestGenericMethod()
         {
             await TestMissingAsync(
 @"class C { int [||]GetFoo<T>() { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestExtensionMethod()
         {
             await TestMissingAsync(
 @"static class C { int [||]GetFoo(this int i) { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithParameters_1()
         {
             await TestMissingAsync(
 @"class C { int [||]GetFoo(int i) { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithParameters_2()
         {
             await TestMissingAsync(
 @"class C { int [||]GetFoo(int i = 0) { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestNotInSignature_1()
         {
             await TestMissingAsync(
 @"class C { [At[||]tr]int GetFoo() { } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestNotInSignature_2()
         {
             await TestMissingAsync(
 @"class C { int GetFoo() { [||] } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReferenceNotInMethod()
         {
             await TestAsync(
@@ -249,7 +249,7 @@ compareTokens: false);
 @"class C { int Foo { get { } } void Bar() { var x = Foo; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReferenceSimpleInvocation()
         {
             await TestAsync(
@@ -257,7 +257,7 @@ compareTokens: false);
 @"class C { int Foo { get { } } void Bar() { var x = Foo; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReferenceMemberAccessInvocation()
         {
             await TestAsync(
@@ -265,7 +265,7 @@ compareTokens: false);
 @"class C { int Foo { get { } } void Bar() { var x = this.Foo; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReferenceBindingMemberInvocation()
         {
             await TestAsync(
@@ -273,7 +273,7 @@ compareTokens: false);
 @"class C { int Foo { get { } } void Bar() { C x; var v = x?.Foo; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReferenceInMethod()
         {
             await TestAsync(
@@ -281,7 +281,7 @@ compareTokens: false);
 @"class C { int Foo { get { return Foo; } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestOverride()
         {
             await TestAsync(
@@ -289,7 +289,7 @@ compareTokens: false);
 @"class C { public virtual int Foo { get { } } } class D : C { public override int Foo { get { } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReference_NonInvoked()
         {
             await TestAsync(
@@ -297,7 +297,7 @@ compareTokens: false);
 @"using System; class C { int Foo { get { } } void Bar() { Action<int> i = {|Conflict:Foo|}; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReference_ImplicitReference()
         {
             await TestAsync(
@@ -305,7 +305,7 @@ compareTokens: false);
 @"using System.Collections; class C { public IEnumerator Enumerator { get { } } void Bar() { {|Conflict:foreach (var x in this) { }|} } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet()
         {
             await TestAsync(
@@ -314,7 +314,7 @@ compareTokens: false);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSetReference_NonInvoked()
         {
             await TestAsync(
@@ -323,7 +323,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet_SetterAccessibility()
         {
             await TestAsync(
@@ -332,7 +332,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet_ExpressionBodies()
         {
             await TestAsync(
@@ -341,7 +341,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet_GetInSetReference()
         {
             await TestAsync(
@@ -350,7 +350,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet_UpdateSetParameterName_1()
         {
             await TestAsync(
@@ -359,7 +359,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet_UpdateSetParameterName_2()
         {
             await TestAsync(
@@ -368,7 +368,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet_SetReferenceInSetter()
         {
             await TestAsync(
@@ -377,7 +377,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestVirtualGetWithOverride_1()
         {
             await TestAsync(
@@ -386,7 +386,7 @@ index: 1);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestVirtualGetWithOverride_2()
         {
             await TestAsync(
@@ -395,7 +395,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestGetWithInterface()
         {
             await TestAsync(
@@ -404,7 +404,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestWithPartialClasses()
         {
             await TestAsync(
@@ -413,7 +413,7 @@ index: 0);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSetCaseInsensitive()
         {
             await TestAsync(

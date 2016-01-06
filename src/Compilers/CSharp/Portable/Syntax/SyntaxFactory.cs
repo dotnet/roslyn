@@ -2303,12 +2303,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Determines whether the given text is considered a syntactically complete submission.
+        /// Throws <see cref="ArgumentException"/> if the tree was not compiled as an interactive submission.
         /// </summary>
         public static bool IsCompleteSubmission(SyntaxTree tree)
         {
             if (tree == null)
             {
                 throw new ArgumentNullException(nameof(tree));
+            }
+            if (tree.Options.Kind != SourceCodeKind.Script)
+            {
+                throw new ArgumentException(CSharpResources.SyntaxTreeIsNotASubmission);
             }
 
             if (!tree.HasCompilationUnitRoot)

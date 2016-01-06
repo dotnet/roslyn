@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
         [WorkItem(956453)]
         [WorkItem(1007071)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         public async Task TestPragmaWarningOnEveryNodes()
         {
             await TestPragmaAsync(TestResource.AllInOneCSharpCode, CSharpParseOptions.Default, verifier: t => t.IndexOf("#pragma warning disable", StringComparison.Ordinal) >= 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         public async Task TestSuppressionWithAttributeOnEveryNodes()
         {
             await TestSuppressionWithAttributeAsync(

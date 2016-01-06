@@ -26,19 +26,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
             End Function
         End Class
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub GetSmartIndent1()
             Dim workspace = New TestWorkspace()
 
             Dim provider = New SmartIndentProvider()
 
-            AssertEx.Throws(Of Exception)(
-                Function() provider.CreateSmartIndent(Nothing),
-                allowDerived:=True)
+            Assert.ThrowsAny(Of ArgumentException)(
+                Function() provider.CreateSmartIndent(Nothing))
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub GetSmartIndent2()
             Dim workspace = New TestWorkspace()
@@ -61,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
             Assert.NotNull(smartIndenter)
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub GetSmartIndent3()
             Dim workspace = New TestWorkspace()

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New CompilationUnitOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestImports() As Task
             Const code = "
 {|span:$$Imports System
@@ -26,7 +26,7 @@ End Class
                 Region("span", "Imports ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestImportsAliases() As Task
             Const code = "
 {|span:$$Imports System
@@ -38,7 +38,7 @@ End Class
                 Region("span", "Imports ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestComments() As Task
             Const code = "
 {|span1:$$'Top
@@ -55,7 +55,7 @@ End Class
                 Region("span2", "' Bottom ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestImportsAndComments() As Task
             Const code = "
 {|span1:$$'Top

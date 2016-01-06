@@ -644,11 +644,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)
         {
+            if (originalModel == null || originalExpression == null || newModel == null || newExpression == null)
+            {
+                return false;
+            }
+
             return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
         }
 
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
+            if (originalExpression == null || originalTargetType == null || newExpression == null || newTargetType == null)
+            {
+                return false;
+            }
+
             var originalConversion = this.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType);
             var newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType);
             return ConversionsAreCompatible(originalConversion, newConversion);

@@ -1141,6 +1141,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             ((IInteractiveWindowOperations2)operations).Copy();
         }
 
+        internal static void CopyCode(this IInteractiveWindowOperations operations)
+        {
+            ((IInteractiveWindowOperations2)operations).CopyCode();
+        }
+
         internal static void DeleteLine(this IInteractiveWindowOperations operations)
         {
             ((IInteractiveWindowOperations2)operations).DeleteLine();

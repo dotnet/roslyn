@@ -633,7 +633,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithInheritenceCascadingWithClass()
             Using result = RenameEngineResult.Create(
@@ -1068,7 +1068,7 @@ class C
                 editHandler.Apply(
                     workspace,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
-                    actions.First().GetOperationsAsync(CancellationToken.None).Result,
+                    Await actions.First().GetOperationsAsync(CancellationToken.None),
                     "unused",
                     CancellationToken.None)
 

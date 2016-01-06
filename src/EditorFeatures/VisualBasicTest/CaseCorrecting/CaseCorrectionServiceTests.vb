@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             Dim hostDocument = workspace.Documents.First()
             Dim buffer = hostDocument.GetTextBuffer()
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-            Dim span = (Await document.GetSyntaxTreeAsync(CancellationToken.None)).GetRoot(CancellationToken.None).FullSpan
+            Dim span = (Await document.GetSyntaxRootAsync()).FullSpan
 
             Dim newDocument = Await CaseCorrector.CaseCorrectAsync(document, span, CancellationToken.None)
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, CancellationToken.None)

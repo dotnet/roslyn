@@ -2,8 +2,7 @@
 
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.DocumentationCommentFormatting
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.SignatureHelp
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text

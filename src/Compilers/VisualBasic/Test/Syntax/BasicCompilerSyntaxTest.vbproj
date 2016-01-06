@@ -96,7 +96,7 @@
     <Compile Include="IncrementalParser\SyntaxDifferences.vb" />
     <Compile Include="LocationTests.vb" />
     <Compile Include="Parser\DeclarationTests.vb" />
-    <Compile Include="Parser\FuzzTesting.vb" />
+    <Compile Include="Parser\ParserRegressionTests.vb" />
     <Compile Include="Parser\InterpolatedStringParsingTests.vb" />
     <Compile Include="Parser\ParseAsyncTests.vb" />
     <Compile Include="Parser\ParseAttributes.vb" />
@@ -139,6 +139,7 @@
     <Compile Include="Syntax\SyntaxNormalizerTests.vb" />
     <Compile Include="Syntax\SyntaxListTests.vb" />
     <Compile Include="Syntax\SyntaxRewriterTests.vb" />
+    <Compile Include="Syntax\SyntaxSubmissionsTests.vb" />
     <Compile Include="Syntax\SyntaxTokenFactoryTests.vb" />
     <Compile Include="Syntax\SyntaxTokenListTests.vb" />
     <Compile Include="Syntax\SyntaxTreeTests.vb" />

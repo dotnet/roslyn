@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Sub
 #End Region
 
-        <WpfFact>
+        <Fact>
         Public Sub ErrorSpans_TopLevel()
             Dim source = <![CDATA[
 <span>Option Strict Off</span>
@@ -204,7 +204,7 @@ End Class
             TestSpans(source, Function(node) TopSyntaxComparer.HasLabel(node.Kind(), ignoreVariableDeclarations:=False))
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Sub ErrorSpans_StatementLevel_Update()
             Dim source = <![CDATA[
 Class C
@@ -407,13 +407,13 @@ End Class
         ''' <summary>
         ''' Verifies that <see cref="CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/> s.
         ''' </summary>
-        <WpfFact>
+        <Fact>
         Public Sub ErrorSpansAllKinds()
             TestErrorSpansAllKinds(AddressOf StatementSyntaxComparer.IgnoreLabeledChild)
             TestErrorSpansAllKinds(Function(kind) TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations:=False))
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Async Function AnalyzeDocumentAsync_InsignificantChangesInMethodBody() As Threading.Tasks.Task
             Dim source1 = "
 Class C
@@ -466,7 +466,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function AnalyzeDocumentAsync_SyntaxError_NoChange1() As Threading.Tasks.Task
             Dim source = "
 Class C
@@ -488,7 +488,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function AnalyzeDocumentAsync_SyntaxError_NoChange2() As Threading.Tasks.Task
             Dim source1 = "
 Class C
@@ -520,7 +520,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function AnalyzeDocumentAsync_SemanticError_NoChange() As Threading.Tasks.Task
             Dim source = "
 Class C
@@ -543,7 +543,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function AnalyzeDocumentAsync_SemanticError_Change() As Threading.Tasks.Task
             Dim source1 = "
 Class C
@@ -577,7 +577,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Sub FindMemberDeclaration1()
             Dim source = <text>
 Class C 
@@ -600,7 +600,7 @@ End Class
             Assert.Null(analyzer.FindMemberDeclaration(root, Int32.MinValue))
         End Sub
 
-        <WpfFact>
+        <Fact>
         Public Async Function AnalyzeDocumentAsync_Adding_A_New_File() As Threading.Tasks.Task
             Dim source1 = "
 Class C

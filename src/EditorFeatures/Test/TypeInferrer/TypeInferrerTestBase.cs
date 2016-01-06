@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
             base.Dispose();
         }
 
-        private static bool CanUseSpeculativeSemanticModel(Document document, int position)
+        private static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
             var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var node = document.GetSyntaxRootAsync().Result.FindToken(position).Parent;
+            var node = (await document.GetSyntaxRootAsync()).FindToken(position).Parent;
 
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
             var document = await fixture.UpdateDocumentAsync(text, SourceCodeKind.Regular);
             await TestWorkerAsync(document, textSpan, expectedType, useNodeStartPosition);
 
-            if (CanUseSpeculativeSemanticModel(document, textSpan.Start))
+            if (await CanUseSpeculativeSemanticModelAsync(document, textSpan.Start))
             {
                 var document2 = await fixture.UpdateDocumentAsync(text, SourceCodeKind.Regular, cleanBeforeUpdate: false);
                 await TestWorkerAsync(document2, textSpan, expectedType, useNodeStartPosition);

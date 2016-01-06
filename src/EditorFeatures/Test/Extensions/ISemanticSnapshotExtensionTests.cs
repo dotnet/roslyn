@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class ISemanticSnapshotExtensionTests
     {
-        [WpfFact]
+        [Fact]
         public async Task TryGetSymbolTouchingPositionOnLeadingTrivia()
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id);
                 Assert.NotNull(document);
 
-                var symbol = SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: CancellationToken.None).Result;
+                var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position);
                 Assert.Null(symbol);
             }
         }

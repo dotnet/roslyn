@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New PropertyDeclarationOutliner()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestReadOnlyProperty() As Task
             Const code = "
 Class C1
@@ -29,7 +29,7 @@ End Class
                 Region("span", "ReadOnly Property P1 As Integer ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestWriteOnlyProperty() As Task
             Const code = "
 Class C1

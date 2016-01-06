@@ -1531,22 +1531,23 @@ class Program
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (9,13): error CS1003: Syntax error, ',' expected
                 //         var x = 1;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", ""),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(9, 13),
                 // (9,18): error CS1513: } expected
                 //         var x = 1;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";"),
-                // (6,21): error CS0246: The type or namespace name 'Dictionary<object, object>' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(9, 18),
+                // (6,21): error CS0246: The type or namespace name 'Dictionary<,>' could not be found (are you missing a using directive or an assembly reference?)
                 //         var d = new Dictionary<object, object>()
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Dictionary<object, object>").WithArguments("Dictionary<object, object>"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Dictionary<object, object>").WithArguments("Dictionary<,>").WithLocation(6, 21),
                 // (8,13): error CS0747: Invalid initializer member declarator
                 //             {"s", 1 },
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"{""s"", 1 }"),
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"{""s"", 1 }").WithLocation(8, 13),
                 // (9,9): error CS0103: The name 'var' does not exist in the current context
                 //         var x = 1;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var"),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(9, 9),
                 // (9,9): error CS0747: Invalid initializer member declarator
                 //         var x = 1;
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var"));
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var").WithLocation(9, 9)
+                );
         }
 
         [WorkItem(543961, "DevDiv")]
@@ -1564,25 +1565,26 @@ class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (6,25): error CS1513: } expected
                 //     new List<int>() { { { 1 } } };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "{"),
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(6, 25),
                 // (6,25): error CS1003: Syntax error, ',' expected
                 //     new List<int>() { { { 1 } } };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(6, 25),
                 // (6,33): error CS1002: ; expected
                 //     new List<int>() { { { 1 } } };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}"),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 33),
                 // (6,34): error CS1597: Semicolon after method or accessor block is not valid
                 //     new List<int>() { { { 1 } } };
-                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";"),
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(6, 34),
                 // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}"),
-                // (6,9): error CS0246: The type or namespace name 'List<int>' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
+                // (6,9): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
                 //     new List<int>() { { { 1 } } };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<int>"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(6, 9),
                 // (6,23): error CS1920: Element initializer cannot be empty
                 //     new List<int>() { { { 1 } } };
-                Diagnostic(ErrorCode.ERR_EmptyElementInitializer, "{ "));
+                Diagnostic(ErrorCode.ERR_EmptyElementInitializer, "{ ").WithLocation(6, 23)
+                );
         }
 
         [WorkItem(544484, "DevDiv")]

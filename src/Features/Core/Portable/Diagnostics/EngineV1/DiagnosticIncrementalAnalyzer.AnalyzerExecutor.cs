@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             private void ValidateMemberDiagnostics(DiagnosticAnalyzer analyzer, Document document, SyntaxNode root, ImmutableArray<DiagnosticData> diagnostics)
             {
 #if RANGE
-                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this, CancellationToken.None);
+                var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this, ConcurrentAnalysis, ReportSuppressedDiagnostics, CancellationToken.None);
                 var expected = GetSemanticDiagnosticsAsync(documentBasedDriver, analyzer).WaitAndGetResult(documentBasedDriver.CancellationToken) ?? SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                 Contract.Requires(diagnostics.SetEquals(expected));
 #endif

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             return new AwaitHighlighter();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample2_2()
         {
             await TestAsync(
@@ -46,7 +46,7 @@ class AsyncExample
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample2_3()
         {
             await TestAsync(
@@ -78,7 +78,7 @@ class AsyncExample
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample2_4()
         {
             await TestAsync(
@@ -110,7 +110,7 @@ class AsyncExample
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample3_2()
         {
             await TestAsync(
@@ -143,7 +143,7 @@ class AsyncExample
         }
 
         [WorkItem(573625)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestNestedAwaits1()
         {
             await TestAsync(
@@ -179,7 +179,7 @@ class AsyncExample
         }
 
         [WorkItem(573625)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestNestedAwaits2()
         {
             await TestAsync(

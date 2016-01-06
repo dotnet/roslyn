@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Partial Public Class VisualBasicNavigationBarTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545000)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545000)>
         Public Async Function TestEventsInInterfaces() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("Foo", Glyph.EventPublic, bolded:=True)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544996)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544996)>
         Public Async Function TestEmptyStructure() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("S", Glyph.StructureInternal, bolded:=True, children:={}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544996)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544996)>
         Public Async Function TestEmptyInterface() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("I", Glyph.InterfaceInternal, bolded:=True, children:={}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(797455)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(797455)>
         Public Async Function TestUserDefinedOperators() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -81,7 +81,7 @@ End Class
                     Item("Operator -", Glyph.Operator, bolded:=True)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(797455)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(797455)>
         Public Async Function TestSingleConversion() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -101,7 +101,7 @@ End Class
                     Item("Narrowing Operator CType", Glyph.Operator, bolded:=True)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(797455)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(797455)>
         Public Async Function TestMultipleConversions() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -126,7 +126,7 @@ End Class
                     Item("Narrowing Operator CType(C) As String", Glyph.Operator, bolded:=True)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544993)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544993)>
         Public Async Function TestNestedClass() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -145,7 +145,7 @@ End Class
                 Item("Nested (N.C)", Glyph.ClassPublic, bolded:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544997)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544997)>
         Public Async Function TestDelegate() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -158,7 +158,7 @@ End Class
                 Item("Foo", Glyph.DelegateInternal, children:={}, bolded:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544995), WorkItem(545283)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544995), WorkItem(545283)>
         Public Async Function TestGenericType() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -172,7 +172,7 @@ End Class
                 Item("C(Of In T)", Glyph.InterfaceInternal, bolded:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545113)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545113)>
         Public Async Function TestMethodGroupWithGenericMethod() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -195,7 +195,7 @@ End Class
                      Item("S(Of T)()", Glyph.MethodPublic, bolded:=True)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545113)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545113)>
         Public Async Function TestSingleGenericMethod() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -214,7 +214,7 @@ End Class
                      Item("S(Of T)()", Glyph.MethodPublic, bolded:=True)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545285)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545285)>
         Public Async Function TestSingleGenericFunction() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -233,7 +233,7 @@ End Class
                      Item("S(Of T)() As Integer", Glyph.MethodPublic, bolded:=True)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Async Function TestSingleNonGenericMethod() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -252,7 +252,7 @@ End Class
                      Item("S", Glyph.MethodPublic, bolded:=True)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544994)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544994)>
         Public Async Function TestSelectedItemForNestedClass() As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -269,7 +269,7 @@ End Class
                 Item("Nested (C)", Glyph.ClassPublic, bolded:=True), False, Nothing, False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(899330)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(899330)>
         Public Async Function TestSelectedItemForNestedClassAlphabeticallyBeforeContainingClass() As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -286,7 +286,7 @@ End Class
                 Item("Nested (Z)", Glyph.ClassPublic, bolded:=True), False, Nothing, False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544990)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544990)>
         Public Async Function TestFinalizer() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -407,7 +407,7 @@ End Class
                 </Result>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Async Function TestPartialMethodInDifferentFile() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -430,7 +430,7 @@ End Class
                      Item("Foo", Glyph.MethodPublic, grayed:=True)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544991)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544991)>
         Public Async Function TestWithEventsField() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -449,7 +449,7 @@ End Class
                      Item("CancelKeyPress", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589)>
         Public Async Function TestWithEventsField_EventsFromInheritedInterfaces() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -489,7 +489,7 @@ End Class
                      Item("I3Event", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
         Public Async Function TestDoNotIncludeShadowedEvents() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -530,7 +530,7 @@ End Class
                      Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)})) ' Only one E for WithEvents handling
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
         Public Async Function TestEventList_EnsureInternalEventsInEventListAndInInheritedEventList() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -560,7 +560,7 @@ End Class
 
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
         Public Async Function TestEventList_EnsurePrivateEventsInEventListButNotInInheritedEventList() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -587,7 +587,7 @@ End Class
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
         Public Async Function TestEventList_TestAccessibilityThroughNestedAndDerivedTypes() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -731,7 +731,7 @@ End Class
                 </Result>)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Async Function TestNoListedEventToGenerateWithInvalidTypeName() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -750,7 +750,7 @@ End Class
                     bolded:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(530657)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(530657)>
         Public Async Function TestCodeGenerationItemsShouldNotAppearWhenWorkspaceDoesNotSupportDocumentChanges() As Task
             Dim workspaceSupportsChangeDocument = False
             Await AssertItemsAreAsync(
@@ -773,7 +773,7 @@ End Class
                 Item("M", Glyph.FieldPrivate, indent:=1, hasNavigationSymbolId:=False))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
         Public Async Function TestEnum() As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -794,7 +794,7 @@ End Enum
                     bolded:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Async Function TestEvents() As Task
             Await AssertItemsAreAsync(
                 <Workspace>

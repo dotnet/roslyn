@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
         ''' <remarks></remarks>
         Public Class FlowAnalysis
 
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestExitSub() As Threading.Tasks.Task
                 Dim code = <text>Class Test
     Sub Test()
@@ -23,7 +23,7 @@ End Class</text>
                 Await ExpectExtractMethodToFailAsync(code)
             End Function
 
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestExitFunction() As Threading.Tasks.Task
                 Dim code = <text>Class Test
     Function Test1() As Integer
@@ -38,7 +38,7 @@ End Class</text>
             End Function
 
             <WorkItem(540046)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestReturnStatement() As Task
                 Dim code = <text>Class A
     Function Test1() As Integer
@@ -63,7 +63,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestDoBranch() As Task
                 Dim code = <text>Class A
     Function Test1() As Integer
@@ -98,7 +98,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestDoBranchInvalidSelection() As Task
                 Dim code = <text>Class A
     Function Test1() As Integer
@@ -133,7 +133,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestDoBranchWithContinue() As Task
                 Dim code = <text>Class A
     Function Test1() As Integer
@@ -172,7 +172,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestInvalidSelectionLeftOfAssignment() As Task
                 Dim code = <text>Class A
     Protected x As Integer = 1
@@ -195,7 +195,7 @@ End Class</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestInvalidSelectionOfArrayLiterals() As Task
                 Dim code = <text>Class A
     Public Sub Test()
@@ -217,7 +217,7 @@ End Class</text>
             End Function
 
             <WorkItem(540154)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBugFix6313() As Task
                 Dim code = <text>Imports System
 
@@ -249,7 +249,7 @@ End Class</text>
             End Function
 
             <WorkItem(540154)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function BugFix6313_1() As Task
                 Dim code = <text>Imports System
 
@@ -266,7 +266,7 @@ End Class</text>
             End Function
 
             <WorkItem(540154)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function BugFix6313_2() As Threading.Tasks.Task
                 Dim code = <text>Imports System
 
@@ -283,7 +283,7 @@ End Class</text>
             End Function
 
             <WorkItem(540154)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBugFix6313_3() As Task
                 Dim code = <text>Imports System
 
@@ -329,7 +329,7 @@ End Class</text>
             End Function
 
             <WorkItem(540154)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBugFix6313_4() As Task
                 Dim code = <text>Imports System
 
@@ -387,7 +387,7 @@ End Class</text>
             End Function
 
             <WorkItem(540154)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestBugFix6313_5() As Task
                 Dim code = <text>Imports System
 
@@ -425,7 +425,7 @@ End Class</text>
             End Function
 
             <WorkItem(540154), WorkItem(541484)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function BugFix6313_6() As Task
                 Dim code = <text>Imports System
 
@@ -445,7 +445,7 @@ End Class</text>
             End Function
 
             <WorkItem(543670)>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function AnonymousLambdaInVarDecl() As Task
                 Dim code = <text>Imports System
 
@@ -459,7 +459,7 @@ End Module</text>
                 Await ExpectExtractMethodToFailAsync(code)
             End Function
 
-            <WpfFact, WorkItem(531451), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, WorkItem(531451), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestInvalidSelectionNonExecutableStatementSyntax_01() As Task
                 Dim code = <text>Module Program
     Sub Main(args As String())
@@ -480,7 +480,7 @@ End Module</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WpfFact, WorkItem(547156), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, WorkItem(547156), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestInvalidSelectionNonExecutableStatementSyntax_02() As Task
                 Dim code = <text>Module Program
     Sub Main()
@@ -492,7 +492,7 @@ End Module</text>
                 Await ExpectExtractMethodToFailAsync(code)
             End Function
 
-            <WpfFact, WorkItem(530625), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, WorkItem(530625), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestUnreachableEndInFunction() As Task
                 Dim code = <text>Module Program
     Function Foo() As Integer
@@ -523,7 +523,7 @@ End Module</text>
                 Await TestExtractMethodAsync(code, expected)
             End Function
 
-            <WpfFact, WorkItem(578066), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, WorkItem(578066), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestExitAsSupportedExitPoints() As Task
                 Dim code = <text>Imports System.Threading
 Imports System.Threading.Tasks

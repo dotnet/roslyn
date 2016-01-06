@@ -8,7 +8,7 @@ Imports Microsoft.VisualStudio.Text
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Public Class RenameNonRenameableSymbols
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameInheritedMetadataButRenameCascade()
             Using result = RenameEngineResult.Create(
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEventWithInvalidNames()
             Using result = RenameEngineResult.Create(

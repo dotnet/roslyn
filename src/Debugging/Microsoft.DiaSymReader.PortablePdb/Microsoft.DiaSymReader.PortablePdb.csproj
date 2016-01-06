@@ -2,8 +2,8 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
     <Import Project="Version.targets" />
+    <Import Project="..\..\..\build\Targets\Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -55,6 +55,7 @@
     <Compile Include="AsyncMethodData.cs" />
     <Compile Include="MethodMap.cs" />
     <Compile Include="Utilities\BlobWriter.cs" />
+    <Compile Include="Utilities\LazyMetadataImport.cs" />
     <Compile Include="Utilities\FileNameUtilities.cs" />
     <Compile Include="Utilities\HResult.cs" />
     <Compile Include="Utilities\InteropUtilities.cs" />
@@ -74,6 +75,7 @@
     <Compile Include="SymMethod.cs" />
     <Compile Include="SymReader.cs" />
     <Compile Include="SymVariable.cs" />
+    <Compile Include="Utilities\PEUtilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

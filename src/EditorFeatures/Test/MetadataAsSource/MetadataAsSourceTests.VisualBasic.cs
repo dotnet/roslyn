@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.VisualBasic.DocumentationCommentFormatting;
+using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     {
         public class VisualBasic
         {
-            [WpfFact, WorkItem(530123), Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Fact, WorkItem(530123), Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
             public async Task TestGenerateTypeInModule()
             {
                 var metadataSource = @"
@@ -32,7 +32,7 @@ End Module");
             }
 
             [WorkItem(530526)]
-            [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
             public async Task BracketedIdentifierSimplificationTest()
             {
                 var expected = $@"#Region ""{FeaturesResources.Assembly} mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
@@ -61,11 +61,11 @@ End Namespace";
 
                 using (var context = await TestContext.CreateAsync(LanguageNames.VisualBasic))
                 {
-                    context.GenerateAndVerifySource("System.ObsoleteAttribute", expected);
+                    await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected);
                 }
             }
 
-            [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
             public void ExtractXMLFromDocComment()
             {
                 var docCommentText = @"''' <summary>

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.G
         End Function
 
         <WorkItem(541991)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestEqualsOnSingleField() As Task
             Await TestAsync(
 NewLines("Class Z \n [|Private a As Integer|] \n End Class"),
@@ -27,7 +27,7 @@ index:=0)
         End Function
 
         <WorkItem(541991)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestGetHashCodeOnSingleField() As Task
             Await TestAsync(
 NewLines("Class Z \n [|Private a As Integer|] \n End Class"),
@@ -36,7 +36,7 @@ index:=1)
         End Function
 
         <WorkItem(541991)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestBothOnSingleField() As Task
             Await TestAsync(
 NewLines("Class Z \n [|Private a As Integer|] \n End Class"),
@@ -45,7 +45,7 @@ index:=2)
         End Function
 
         <WorkItem(545205)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestTypeWithNumberInName() As Task
             Await TestAsync(
 NewLines("Partial Class c1(Of V As {New}, U) \n [|Dim x As New V|] \n End Class"),

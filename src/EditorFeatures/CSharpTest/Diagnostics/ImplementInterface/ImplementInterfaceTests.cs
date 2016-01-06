@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new ImplementInterfaceCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMethod()
         {
             await TestAsync(
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface { void Method1 ( ) ; } class Class : IInterface { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMethodWhenClassBracesAreMissing()
         {
             await TestAsync(
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface { void Method1 ( ) ; } class Class : IInterface { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInheritance1()
         {
             await TestAsync(
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( ) ; } interface IInterface2 : IInterface1 { } class Class : IInterface2 { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInheritance2()
         {
             await TestAsync(
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { } interface IInterface2 : IInterface1 { void Method1 ( ) ; } class Class : IInterface2 { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInheritance3()
         {
             await TestAsync(
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( ) ; } interface IInterface2 : IInterface1 { void Method2 ( ) ; } class Class : IInterface2 { public void Method1 ( ) { throw new NotImplementedException ( ) ; } public void Method2 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInheritanceMatchingMethod()
         {
             await TestAsync(
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( ) ; } interface IInterface2 : IInterface1 { void Method1 ( ) ; } class Class : IInterface2 { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExistingConflictingMethodReturnType()
         {
             await TestAsync(
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( ) ; } class Class : IInterface1 { public int Method1 ( ) { return 0 ; } void IInterface1 . Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExistingConflictingMethodParameters()
         {
             await TestAsync(
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( int i ) ; } class Class : IInterface1 { public void Method1 ( int i ) { throw new NotImplementedException ( ) ; } public void Method1 ( string i ) { } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementGenericType()
         {
             await TestAsync(
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 < T > { void Method1 ( T t ) ; } class Class : IInterface1 < int > { public void Method1 ( int t ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementGenericTypeWithGenericMethod()
         {
             await TestAsync(
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 < T > { void Method1 < U > ( T t , U u ) ; } class Class : IInterface1 < int > { public void Method1 < U > ( int t , U u ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementGenericTypeWithGenericMethodWithNaturalConstraint()
         {
             await TestAsync(
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 < T > { void Method1 < U > ( T t , U u ) where U : IList < T > ; } class Class : IInterface1 < int > { public void Method1 < U > ( int t , U u ) where U : IList<int> { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementGenericTypeWithGenericMethodWithUnexpressibleConstraint()
         {
             await TestAsync(
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 < T > { void Method1 < U > ( T t , U u ) where U : T ; } class Class : IInterface1 < int > { void IInterface1 < int > . Method1 < U > ( int t , U u ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestArrayType()
         {
             await TestAsync(
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface I { string [ ] M ( ) ; } class C : I { public string [ ] M ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementThroughFieldMember()
         {
             await TestAsync(
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementThroughFieldMemberInterfaceWithIndexer()
         {
             await TestAsync(
@@ -143,7 +143,7 @@ index: 1);
         }
 
         [WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementThroughFieldMemberRemoveUnnecessaryCast()
         {
             await TestAsync(
@@ -153,7 +153,7 @@ index: 1);
         }
 
         [WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementThroughFieldMemberRemoveUnnecessaryCastAndThis()
         {
             await TestAsync(
@@ -162,7 +162,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementAbstract()
         {
             await TestAsync(
@@ -171,7 +171,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceWithRefOutParameters()
         {
             await TestAsync(
@@ -180,7 +180,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestConflictingMethods1()
         {
             await TestAsync(
@@ -188,7 +188,7 @@ index: 1);
 @"using System; class B { public int Method1 ( ) { } } class C : B , I { void I.Method1 ( ) { throw new NotImplementedException ( ) ; } } interface I { void Method1 ( ) ; } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestConflictingProperties()
         {
             await TestAsync(
@@ -197,7 +197,7 @@ index: 1);
         }
 
         [WorkItem(539043)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExplicitProperties()
         {
             await TestMissingAsync(
@@ -205,7 +205,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEscapedMethodName()
         {
             await TestAsync(
@@ -214,7 +214,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEscapedMethodKeyword()
         {
             await TestAsync(
@@ -223,7 +223,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEscapedInterfaceName1()
         {
             await TestAsync(
@@ -232,7 +232,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEscapedInterfaceName2()
         {
             await TestAsync(
@@ -241,7 +241,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEscapedInterfaceKeyword1()
         {
             await TestAsync(
@@ -250,7 +250,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEscapedInterfaceKeyword2()
         {
             await TestAsync(
@@ -259,7 +259,7 @@ index: 1);
         }
 
         [WorkItem(539522)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestPropertyFormatting()
         {
             await TestAsync(
@@ -294,7 +294,7 @@ public class A : DD
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestCommentPlacement()
         {
             await TestAsync(
@@ -324,7 +324,7 @@ compareTokens: false);
         }
 
         [WorkItem(539991)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestBracePlacement()
         {
             await TestAsync(
@@ -343,7 +343,7 @@ compareTokens: false);
         }
 
         [WorkItem(540318)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMissingWithIncompleteMember()
         {
             await TestMissingAsync(
@@ -351,7 +351,7 @@ compareTokens: false);
         }
 
         [WorkItem(541380)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExplicitProperty()
         {
             await TestAsync(
@@ -361,7 +361,7 @@ index: 1);
         }
 
         [WorkItem(541981)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoDelegateThroughField1()
         {
             await TestActionCountAsync(
@@ -382,7 +382,7 @@ index: 2);
         }
 
         [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIReadOnlyListThroughField()
         {
             await TestAsync(
@@ -397,7 +397,7 @@ index: 1);
         }
 
         [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIReadOnlyListThroughProperty()
         {
             await TestAsync(
@@ -412,7 +412,7 @@ index: 1);
         }
 
         [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceThroughField()
         {
             await TestAsync(
@@ -422,7 +422,7 @@ index: 1);
         }
 
         [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceThroughField_FieldImplementsMultipleInterfaces()
         {
             await TestActionCountAsync(
@@ -442,7 +442,7 @@ index: 1);
         }
 
         [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceThroughField_MultipleFieldsCanImplementInterface()
         {
             await TestActionCountAsync(
@@ -459,7 +459,7 @@ index: 2);
         }
 
         [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceThroughField_MultipleFieldsForMultipleInterfaces()
         {
             await TestActionCountAsync(
@@ -479,7 +479,7 @@ index: 1);
         }
 
         [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoImplementThroughIndexer()
         {
             await TestActionCountAsync(
@@ -488,7 +488,7 @@ count: 2);
         }
 
         [WorkItem(768799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoImplementThroughWriteOnlyProperty()
         {
             await TestActionCountAsync(
@@ -496,7 +496,7 @@ count: 2);
 count: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEvent()
         {
             await TestAsync(
@@ -505,7 +505,7 @@ count: 2);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEventAbstractly()
         {
             await TestAsync(
@@ -514,7 +514,7 @@ index: 0);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementEventExplicitly()
         {
             await TestAsync(
@@ -523,7 +523,7 @@ index: 1);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFaultToleranceInStaticMembers()
         {
             await TestAsync(
@@ -531,7 +531,7 @@ index: 2);
 @"using System ; interface IFoo { static string Name { set ; get ; } static int Foo ( string s ) ; } class Program : IFoo { public string Name { get { throw new NotImplementedException ( ) ; } set { throw new NotImplementedException ( ) ; } } public int Foo ( string s ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIndexers()
         {
             await TestAsync(
@@ -539,7 +539,7 @@ index: 2);
 @"using System ; public interface ISomeInterface { int this [ int index ] { get ; set ; } } class IndexerClass : ISomeInterface { public int this [ int index ] { get { throw new NotImplementedException ( ) ; } set { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIndexersExplicit()
         {
             await TestAsync(
@@ -548,7 +548,7 @@ index: 2);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIndexersWithASingleAccessor()
         {
             await TestAsync(
@@ -557,7 +557,7 @@ index: 1);
         }
 
         [WorkItem(542357)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestConstraints1()
         {
             await TestAsync(
@@ -566,7 +566,7 @@ index: 1);
         }
 
         [WorkItem(542357)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestConstraintsExplicit()
         {
             await TestAsync(
@@ -576,7 +576,7 @@ index: 1);
         }
 
         [WorkItem(542357)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUsingAddedForConstraint()
         {
             await TestAsync(
@@ -585,7 +585,7 @@ index: 1);
         }
 
         [WorkItem(542379)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIndexer()
         {
             await TestAsync(
@@ -594,7 +594,7 @@ index: 1);
         }
 
         [WorkItem(542588)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRecursiveConstraint1()
         {
             await TestAsync(
@@ -603,7 +603,7 @@ index: 1);
         }
 
         [WorkItem(542588)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRecursiveConstraint2()
         {
             await TestAsync(
@@ -613,7 +613,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint1()
         {
             await TestAsync(
@@ -622,7 +622,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint2()
         {
             await TestAsync(
@@ -631,7 +631,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint3()
         {
             await TestAsync(
@@ -641,7 +641,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint4()
         {
             await TestAsync(
@@ -650,7 +650,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint5()
         {
             await TestAsync(
@@ -659,7 +659,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint6()
         {
             await TestAsync(
@@ -668,7 +668,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint7()
         {
             await TestAsync(
@@ -677,7 +677,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint8()
         {
             await TestAsync(
@@ -686,7 +686,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint9()
         {
             await TestAsync(
@@ -695,7 +695,7 @@ index: 1);
         }
 
         [WorkItem(542621)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnexpressibleConstraint10()
         {
             await TestAsync(
@@ -704,7 +704,7 @@ index: 1);
         }
 
         [WorkItem(542669)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestArrayConstraint()
         {
             await TestAsync(
@@ -713,7 +713,7 @@ index: 1);
         }
 
         [WorkItem(542743)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMultipleClassConstraints()
         {
             await TestAsync(
@@ -722,7 +722,7 @@ index: 1);
         }
 
         [WorkItem(542751)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestClassConstraintAndRefConstraint()
         {
             await TestAsync(
@@ -731,7 +731,7 @@ index: 1);
         }
 
         [WorkItem(542505)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRenameConflictingTypeParameters1()
         {
             await TestAsync(
@@ -740,7 +740,7 @@ index: 1);
         }
 
         [WorkItem(542505)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRenameConflictingTypeParameters2()
         {
             await TestAsync(
@@ -750,7 +750,7 @@ index: 1);
         }
 
         [WorkItem(542505)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRenameConflictingTypeParameters3()
         {
             await TestAsync(
@@ -759,7 +759,7 @@ index: 1);
         }
 
         [WorkItem(542505)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRenameConflictingTypeParameters4()
         {
             await TestAsync(
@@ -769,7 +769,7 @@ index: 1);
         }
 
         [WorkItem(542506)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNameSimplification()
         {
             await TestAsync(
@@ -778,7 +778,7 @@ index: 1);
         }
 
         [WorkItem(542506)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNameSimplification2()
         {
             await TestAsync(
@@ -787,7 +787,7 @@ index: 1);
         }
 
         [WorkItem(542506)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNameSimplification3()
         {
             await TestAsync(
@@ -796,7 +796,7 @@ index: 1);
         }
 
         [WorkItem(544166)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementAbstractProperty()
         {
             await TestAsync(
@@ -806,7 +806,7 @@ index: 1);
         }
 
         [WorkItem(544210)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMissingOnWrongArity()
         {
             await TestMissingAsync(
@@ -814,7 +814,7 @@ index: 1);
         }
 
         [WorkItem(544281)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplicitDefaultValue()
         {
             await TestAsync(
@@ -823,7 +823,7 @@ index: 1);
         }
 
         [WorkItem(544281)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExplicitDefaultValue()
         {
             await TestAsync(
@@ -832,7 +832,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMissingInHiddenType()
         {
             await TestMissingAsync(
@@ -845,7 +845,7 @@ class Program : [|IComparable|]
 #line default");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestGenerateIntoVisiblePart()
         {
             await TestAsync(
@@ -879,7 +879,7 @@ partial class Program : IComparable
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestGenerateIfAvailableRegionExists()
         {
             await TestAsync(
@@ -913,7 +913,7 @@ compareTokens: false);
         }
 
         [WorkItem(545334)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoGenerateInVenusCase1()
         {
             await TestMissingAsync(
@@ -926,7 +926,7 @@ class Foo : [|IComparable|]
         }
 
         [WorkItem(545476)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestOptionalDateTime1()
         {
             await TestAsync(
@@ -935,7 +935,7 @@ class Foo : [|IComparable|]
         }
 
         [WorkItem(545476)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestOptionalDateTime2()
         {
             await TestAsync(
@@ -945,7 +945,7 @@ index: 1);
         }
 
         [WorkItem(545477)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIUnknownIDispatchAttributes1()
         {
             await TestAsync(
@@ -954,7 +954,7 @@ index: 1);
         }
 
         [WorkItem(545477)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIUnknownIDispatchAttributes2()
         {
             await TestAsync(
@@ -964,7 +964,7 @@ index: 1);
         }
 
         [WorkItem(545464)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestTypeNameConflict()
         {
             await TestAsync(
@@ -972,7 +972,7 @@ index: 1);
 @"using System ; interface IFoo { void Foo ( ) ; } public class Foo : IFoo { void IFoo . Foo ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStringLiteral()
         {
             await TestAsync(
@@ -981,7 +981,7 @@ index: 1);
         }
 
         [WorkItem(916114)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestOptionalNullableStructParameter1()
         {
             await TestAsync(
@@ -990,7 +990,7 @@ index: 1);
         }
 
         [WorkItem(916114)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestOptionalNullableStructParameter2()
         {
             await TestAsync(
@@ -999,7 +999,7 @@ index: 1);
         }
 
         [WorkItem(916114)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestOptionalNullableIntParameter()
         {
             await TestAsync(
@@ -1008,7 +1008,7 @@ index: 1);
         }
 
         [WorkItem(545613)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestOptionalWithNoDefaultValue()
         {
             await TestAsync(
@@ -1016,7 +1016,7 @@ index: 1);
 @"using System ; using System . Runtime . InteropServices ; interface I { void Foo ( [ Optional ] I o ) ; } class C : I { public void Foo ( [ Optional ] I o ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestIntegralAndFloatLiterals()
         {
             await TestAsync(
@@ -1206,7 +1206,7 @@ class C : I
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEnumLiterals()
         {
             await TestAsync(
@@ -1270,7 +1270,7 @@ class C : I
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestCharLiterals()
         {
             await TestAsync(
@@ -1372,7 +1372,7 @@ compareTokens: false);
         }
 
         [WorkItem(545695)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestRemoveParenthesesAroundTypeReference1()
         {
             await TestAsync(
@@ -1381,7 +1381,7 @@ compareTokens: false);
         }
 
         [WorkItem(545696)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDecimalConstants1()
         {
             await TestAsync(
@@ -1390,7 +1390,7 @@ compareTokens: false);
         }
 
         [WorkItem(545711)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNullablePrimitiveLiteral()
         {
             await TestAsync(
@@ -1399,7 +1399,7 @@ compareTokens: false);
         }
 
         [WorkItem(545715)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNullableEnumType()
         {
             await TestAsync(
@@ -1408,7 +1408,7 @@ compareTokens: false);
         }
 
         [WorkItem(545752)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestByteLiterals()
         {
             await TestAsync(
@@ -1417,7 +1417,7 @@ compareTokens: false);
         }
 
         [WorkItem(545736)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestCastedOptionalParameter1()
         {
             const string code = @"
@@ -1450,7 +1450,7 @@ class C : I
         }
 
         [WorkItem(545737)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestCastedEnumValue()
         {
             await TestAsync(
@@ -1459,7 +1459,7 @@ class C : I
         }
 
         [WorkItem(545785)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoCastFromZeroToEnum()
         {
             await TestAsync(
@@ -1468,7 +1468,7 @@ class C : I
         }
 
         [WorkItem(545793)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMultiDimArray()
         {
             await TestAsync(
@@ -1477,7 +1477,7 @@ class C : I
         }
 
         [WorkItem(545794)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestParametersAfterOptionalParameter()
         {
             await TestAsync(
@@ -1486,7 +1486,7 @@ class C : I
         }
 
         [WorkItem(545605)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestAttributeInParameter()
         {
             await TestAsync(
@@ -1522,7 +1522,7 @@ compareTokens: false);
         }
 
         [WorkItem(545897)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNameConflictBetweenMethodAndTypeParameter()
         {
             await TestAsync(
@@ -1531,7 +1531,7 @@ compareTokens: false);
         }
 
         [WorkItem(545895)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestTypeParameterReplacementWithOuterType()
         {
             await TestAsync(
@@ -1540,7 +1540,7 @@ compareTokens: false);
         }
 
         [WorkItem(545864)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFloatConstant()
         {
             await TestAsync(
@@ -1549,7 +1549,7 @@ compareTokens: false);
         }
 
         [WorkItem(544640)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestKeywordForTypeParameterName()
         {
             await TestAsync(
@@ -1558,7 +1558,7 @@ compareTokens: false);
         }
 
         [WorkItem(545922)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExtremeDecimals()
         {
             await TestAsync(
@@ -1567,7 +1567,7 @@ compareTokens: false);
         }
 
         [WorkItem(544659)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNonZeroScaleDecimals()
         {
             await TestAsync(
@@ -1576,7 +1576,7 @@ compareTokens: false);
         }
 
         [WorkItem(544639)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnterminatedComment()
         {
             await TestAsync(
@@ -1600,7 +1600,7 @@ class C : IServiceProvider /*
         }
 
         [WorkItem(529920)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNewLineBeforeDirective()
         {
             await TestAsync(
@@ -1625,7 +1625,7 @@ class C : IServiceProvider
         }
 
         [WorkItem(529947)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestCommentAfterInterfaceList1()
         {
             await TestAsync(
@@ -1646,7 +1646,7 @@ class C : IServiceProvider // Implement interface
         }
 
         [WorkItem(529947)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestCommentAfterInterfaceList2()
         {
             await TestAsync(
@@ -1670,7 +1670,7 @@ class C : IServiceProvider
 
         [WorkItem(994456)]
         [WorkItem(958699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposable_NoDisposePattern()
         {
             await TestAsync(
@@ -1689,7 +1689,7 @@ class C : IDisposable
 
         [WorkItem(994456)]
         [WorkItem(958699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposable_DisposePattern()
         {
             await TestAsync(
@@ -1705,7 +1705,7 @@ class C : IDisposable
 
         [WorkItem(994456)]
         [WorkItem(958699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableExplicitly_NoDisposePattern()
         {
             await TestAsync(
@@ -1724,7 +1724,7 @@ class C : IDisposable
 
         [WorkItem(994456)]
         [WorkItem(941469)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableExplicitly_DisposePattern()
         {
             await TestAsync(
@@ -1748,7 +1748,7 @@ class C : System.IDisposable
 
         [WorkItem(994456)]
         [WorkItem(958699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableAbstractly_NoDisposePattern()
         {
             await TestAsync(
@@ -1764,7 +1764,7 @@ abstract class C : IDisposable
 
         [WorkItem(994456)]
         [WorkItem(958699)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableThroughMember_NoDisposePattern()
         {
             await TestAsync(
@@ -1786,7 +1786,7 @@ class C : IDisposable
         }
 
         [WorkItem(941469)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableExplicitly_NoNamespaceImportForSystem()
         {
             await TestAsync(
@@ -1799,7 +1799,7 @@ $@"class C : System.IDisposable
         }
 
         [WorkItem(951968)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableViaBaseInterface_NoDisposePattern()
         {
             await TestAsync(
@@ -1831,7 +1831,7 @@ class C : I
         }
 
         [WorkItem(951968)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableViaBaseInterface()
         {
             await TestAsync(
@@ -1860,7 +1860,7 @@ class C : I
         }
 
         [WorkItem(951968)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementIDisposableExplicitlyViaBaseInterface()
         {
             await TestAsync(
@@ -1889,7 +1889,7 @@ class C : I
         }
 
         [WorkItem(941469)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDontImplementDisposePatternForLocallyDefinedIDisposable()
         {
             await TestAsync(
@@ -1919,7 +1919,7 @@ class C : I
 }", index: 1, compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDontImplementDisposePatternForStructures1()
         {
             await TestAsync(
@@ -1936,7 +1936,7 @@ struct S : IDisposable
 ", compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDontImplementDisposePatternForStructures2()
         {
             await TestAsync(
@@ -1954,7 +1954,7 @@ struct S : IDisposable
         }
 
         [WorkItem(545924)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestEnumNestedInGeneric()
         {
             await TestAsync(
@@ -1963,7 +1963,7 @@ struct S : IDisposable
         }
 
         [WorkItem(545939)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnterminatedString1()
         {
             await TestAsync(
@@ -1972,7 +1972,7 @@ struct S : IDisposable
         }
 
         [WorkItem(545939)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnterminatedString2()
         {
             await TestAsync(
@@ -1981,7 +1981,7 @@ struct S : IDisposable
         }
 
         [WorkItem(545939)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnterminatedString3()
         {
             await TestAsync(
@@ -1990,7 +1990,7 @@ struct S : IDisposable
         }
 
         [WorkItem(545939)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnterminatedString4()
         {
             await TestAsync(
@@ -1999,7 +1999,7 @@ struct S : IDisposable
         }
 
         [WorkItem(545940)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDecimalENotation()
         {
             await TestAsync(
@@ -2049,7 +2049,7 @@ class C : I
         }
 
         [WorkItem(545938)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestGenericEnumWithRenamedTypeParameters()
         {
             await TestAsync(
@@ -2058,7 +2058,7 @@ class C : I
         }
 
         [WorkItem(545919)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDoNotRenameTypeParameterToParameterName()
         {
             await TestAsync(
@@ -2067,7 +2067,7 @@ class C : I
         }
 
         [WorkItem(530265)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestAttributes()
         {
             await TestAsync(
@@ -2076,7 +2076,7 @@ class C : I
         }
 
         [WorkItem(530265)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestAttributesExplicit()
         {
             await TestAsync(
@@ -2086,7 +2086,7 @@ index: 1);
         }
 
         [WorkItem(546443)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestParameterNameWithTypeName()
         {
             await TestAsync(
@@ -2095,7 +2095,7 @@ index: 1);
         }
 
         [WorkItem(530521)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestUnboundGeneric()
         {
             await TestAsync(
@@ -2104,7 +2104,7 @@ index: 1);
         }
 
         [WorkItem(752436)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestQualifiedNameImplicitInterface()
         {
             await TestAsync(
@@ -2113,7 +2113,7 @@ index: 1);
         }
 
         [WorkItem(752436)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestQualifiedNameExplicitInterface()
         {
             await TestAsync(
@@ -2122,7 +2122,7 @@ index: 1);
         }
 
         [WorkItem(847464)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForPartialType()
         {
             await TestAsync(
@@ -2146,7 +2146,7 @@ partial class C : I
         }
 
         [WorkItem(847464)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForPartialType2()
         {
             await TestAsync(
@@ -2170,7 +2170,7 @@ partial class C { }
         }
 
         [WorkItem(847464)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForPartialType3()
         {
             await TestAsync(
@@ -2196,7 +2196,7 @@ partial class C : I2 { }
         }
 
         [WorkItem(752447)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestExplicitImplOfIndexedProperty()
         {
             var initial = @"
@@ -2239,7 +2239,7 @@ public class Test : IFoo
         }
 
         [WorkItem(602475)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplicitImplOfIndexedProperty()
         {
             var initial = @"
@@ -2297,7 +2297,7 @@ class Foo : [|IComparable|]
         }
 #endif
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForImplicitIDisposable()
         {
             await TestAsync(
@@ -2318,7 +2318,7 @@ class Program : IDisposable
 ", index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForExplicitIDisposable()
         {
             await TestAsync(
@@ -2341,7 +2341,7 @@ class Program : IDisposable
 ", index: 3);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForIDisposableNonApplicable1()
         {
             await TestAsync(
@@ -2368,7 +2368,7 @@ class Program : IDisposable
 ", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForIDisposableNonApplicable2()
         {
             await TestAsync(
@@ -2399,7 +2399,7 @@ class Program : IDisposable
 ", index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementInterfaceForExplicitIDisposableWithSealedClass()
         {
             await TestAsync(
@@ -2421,7 +2421,7 @@ sealed class Program : IDisposable
         }
 
         [WorkItem(939123)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoComAliasNameAttributeOnMethodParameters()
         {
             await TestAsync(
@@ -2433,7 +2433,7 @@ class C : I { public void M(int p) { throw new NotImplementedException(); } }");
         }
 
         [WorkItem(939123)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoComAliasNameAttributeOnMethodReturnType()
         {
             await TestAsync(
@@ -2447,7 +2447,7 @@ class C : I { public long M(int p) { throw new NotImplementedException(); } }");
         }
 
         [WorkItem(939123)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestNoComAliasNameAttributeOnIndexerParameters()
         {
             await TestAsync(
@@ -2459,7 +2459,7 @@ class C : I { public long this[int p] { get { throw new NotImplementedException(
         }
 
         [WorkItem(947819)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMissingOpenBrace()
         {
             await TestAsync(
@@ -2493,7 +2493,7 @@ namespace Scenarios
         }
 
         [WorkItem(994328)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDisposePatternWhenAdditionalUsingsAreIntroduced1()
         {
             //CSharpFeaturesResources.DisposePattern
@@ -2546,7 +2546,7 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
         }
 
         [WorkItem(994328)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDisposePatternWhenAdditionalUsingsAreIntroduced2()
         {
             await TestAsync(
@@ -2636,7 +2636,7 @@ partial class C
         }
 
         [WorkItem(1132014)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInaccessibleAttributes()
         {
             await TestAsync(

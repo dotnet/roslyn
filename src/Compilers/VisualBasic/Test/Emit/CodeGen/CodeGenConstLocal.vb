@@ -782,6 +782,37 @@ End Module
 ]]>)
 
         End Sub
+
+        <Fact()>
+        Public Sub TruncatePrecisionFloat()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        const temp1 as single = 23334800f / 5.5f
+        console.WriteLine(Microsoft.VisualBasic.Int(temp1))
+        console.WriteLine(Microsoft.VisualBasic.Int(23334800f / 5.5f))
+        console.WriteLine(temp1 * 5.5)
+
+        const temp2 as double = 23334800.0 / 5.5
+        console.WriteLine(Microsoft.VisualBasic.Int(temp2))
+        console.WriteLine(Microsoft.VisualBasic.Int(23334800.0 / 5.5))
+        console.WriteLine(temp2 * 5.5)
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+4242691
+4242691
+23334800.5
+4242690
+4242690
+23334800
+            ]]>)
+        End Sub
     End Class
 
 End Namespace

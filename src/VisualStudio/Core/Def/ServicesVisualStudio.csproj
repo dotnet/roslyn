@@ -51,6 +51,7 @@
     <Compile Include="Implementation\Library\FindResults\TreeItems\MetadataDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\SourceDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\ILibraryService.cs" />
+    <Compile Include="Implementation\Library\ObjectBrowser\ObjectBrowserTaskExtensions.cs" />
     <Compile Include="Implementation\Library\VsNavInfo\NavInfoNodeEnum.cs" />
     <Compile Include="Implementation\Library\VsNavInfo\Extensions.cs" />
     <Compile Include="Implementation\Library\VsNavInfo\NavInfo.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Implementation\TableDataSource\VisualStudioTodoListTable.cs" />
     <Compile Include="Implementation\Utilities\BrowserHelper.cs" />
     <Compile Include="Implementation\Utilities\HyperlinkStyleHelper.cs" />
+    <Compile Include="Implementation\Venus\VenusTaskExtensions.cs" />
     <Compile Include="Implementation\Versions\SemanticVersionTrackingService.cs" />
     <Compile Include="Implementation\ContainedLanguageRefactorNotifyService.cs" />
     <Compile Include="Implementation\VirtualMemoryNotificationListener.cs" />

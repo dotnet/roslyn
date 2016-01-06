@@ -3,6 +3,8 @@
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports VbObjectDisplay = Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay.ObjectDisplay
+Imports Parser = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Parser
+Imports Feature = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -1011,5 +1013,112 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxEquivalence.AreEquivalent(oldList.Node, newList.Node, ignoreChildNode, topLevel:=False)
         End Function
 
+        ''' <summary>
+        ''' Determines if a submission contains an LINQ query not followed by an empty line.
+        '''
+        ''' Examples:
+        ''' 1. <c>Dim x = 1</c> returns false since the statement is not a LINQ query
+        ''' 2. <c>
+        ''' Dim x = FROM {1, 2, 3}
+        '''
+        ''' </c> return false since the statement is followed by an empty new line.
+        ''' 3. <c>Dim x = FROM {1, 2, 3}</c> returns true since the LINQ statement is not followed by an empty new line.
+        ''' </summary>
+        ''' <param name="token">Last expected token of the last statement in a submission.</param>
+        ''' <param name="statementNode">Top level statement which token is part of.</param>
+        ''' <param name="endOfFileToken">Token that marks the end of submission.</param>
+        Private Shared Function IsPartOfLinqQueryNotFollowedByNewLine(token As SyntaxToken, statementNode As SyntaxNode, endOfFileToken As SyntaxToken) As Boolean
+            ' Checking if the submission ends with a new line.
+            For Each leadingTrivia In endOfFileToken.LeadingTrivia
+                If leadingTrivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
+                    Return False
+                End If
+            Next
+
+            ' Checking if the last token is part of a LINQ query.
+            Dim node = token.Parent
+            Do
+                If node.IsKind(SyntaxKind.QueryExpression) Then
+                    Return True
+                End If
+
+                If node Is statementNode Then
+                    Return False
+                End If
+
+                node = node.Parent
+            Loop
+        End Function
+
+        ''' <summary>
+        ''' Determines if a submission is complete.
+        ''' Returns false if the syntax is valid but incomplete.
+        ''' Returns true if the syntax is invalid or complete.
+        ''' Throws <see cref="ArgumentNullException"/> in case the tree is null.
+        ''' Throws <see cref="ArgumentException"/> in case the tree is not a submission.
+        ''' </summary>
+        ''' <param name="tree">Syntax tree.</param>
+        Public Shared Function IsCompleteSubmission(tree As SyntaxTree) As Boolean
+            If tree Is Nothing Then
+                Throw New ArgumentNullException(NameOf(tree))
+            End If
+
+            Dim options As VisualBasicParseOptions = DirectCast(tree.Options, VisualBasicParseOptions)
+            If options.Kind = SourceCodeKind.Regular Then
+                Throw New ArgumentException(VBResources.SyntaxTreeIsNotASubmission)
+            End If
+
+            Dim languageVersion As LanguageVersion = options.LanguageVersion
+
+            If Not tree.HasCompilationUnitRoot Then
+                Return False
+            End If
+
+            Dim compilationUnit As CompilationUnitSyntax = DirectCast(tree.GetRoot(), CompilationUnitSyntax)
+
+            For Each err In compilationUnit.GetDiagnostics()
+                Select Case DirectCast(err.Code, ERRID)
+                    Case ERRID.ERR_LbExpectedEndIf,
+                         ERRID.ERR_ExpectedEndRegion
+                        Return False
+                    Case ERRID.ERR_ExpectedEOS
+                        ' Invalid statements that should have been separated by a newline or a colon.
+                        ' For example: `If condition statement`
+                        Return True
+                End Select
+            Next
+
+            Dim lastTopLevelNode = compilationUnit.ChildNodes().LastOrDefault()
+            If lastTopLevelNode Is Nothing Then
+                ' Invalid submission. The compilation does not have any children.
+                Return True
+            End If
+
+            Dim lastToken = lastTopLevelNode.GetLastToken(includeZeroWidth:=True, includeSkipped:=True)
+
+            If IsPartOfLinqQueryNotFollowedByNewLine(lastToken, lastTopLevelNode, compilationUnit.EndOfFileToken) OrElse
+                    (lastToken.HasTrailingTrivia AndAlso lastToken.TrailingTrivia.Last().IsKind(SyntaxKind.LineContinuationTrivia)) Then
+                ' Even if the compilation is correct but has a line continuation trivia return statement as incomplete.
+                ' For example `Dim x = 12 _` has no compilation errors but should be treated as an incomplete statement.
+                Return False
+            ElseIf Not compilationUnit.HasErrors Then
+                ' No errors returned. This is a valid and complete submission.
+                Return True
+            ElseIf lastTopLevelNode.IsKind(SyntaxKind.IncompleteMember) OrElse lastToken.IsMissing Then
+                Return False
+            End If
+
+            For Each err In lastToken.GetDiagnostics()
+                Select Case DirectCast(err.Code, ERRID)
+                    Case ERRID.ERR_UnterminatedStringLiteral
+                        If Parser.CheckFeatureAvailability(languageVersion, Feature.MultilineStringLiterals) Then
+                            Return False
+                        End If
+                End Select
+            Next
+
+            ' By default mark submissions as invalid since there's at least one error.
+            Return True
+        End Function
     End Class
 End Namespace

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return SpecializedCollections.EmptyEnumerable<SearchResult<ISymbol>>();
                 }
 
-                var query = this.Exact ? new SearchQuery(name, ignoreCase: true) : new SearchQuery(GetInexactPredicate(name));
+                var query = this.Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name);
                 var symbols = await FindDeclarationsAsync(name, filter, query).ConfigureAwait(false);
 
                 if (Exact)
@@ -47,27 +47,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
                 // great way to store the original value we compute because it happens deep in the 
                 // compiler bowels when we call FindDeclarations.
-                return symbols.Select(s =>
+                using (var similarityChecker = new WordSimilarityChecker(name))
                 {
-                    double matchCost;
-                    var isCloseMatch = EditDistance.IsCloseMatch(name, s.Name, out matchCost);
+                    return symbols.Select(s =>
+                    {
+                        double matchCost;
+                        var areSimilar = similarityChecker.AreSimilar(s.Name, out matchCost);
 
-                    Debug.Assert(isCloseMatch);
-                    return SearchResult.Create(s.Name, nameNode, s, matchCost);
-                }).ToList();
-            }
-
-            private Func<string, bool> GetInexactPredicate(string name)
-            {
-                // Create the edit distance object outside of the lambda  That way we only create it
-                // once and it can cache all the information it needs while it does the IsCloseMatch
-                // check against all the possible candidates.
-                var editDistance = new EditDistance(name);
-                return n =>
-                {
-                    double matchCost;
-                    return editDistance.IsCloseMatch(n, out matchCost);
-                };
+                        Debug.Assert(areSimilar);
+                        return SearchResult.Create(s.Name, nameNode, s, matchCost);
+                    }).ToList();
+                }
             }
         }
 

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
     public class PreviewWorkspaceTests
     {
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewCreationDefault()
         {
             using (var previewWorkspace = new PreviewWorkspace())
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewCreationWithExplicitHostServices()
         {
             var assembly = typeof(ISolutionCrawlerRegistrationService).Assembly;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewCreationWithSolution()
         {
             using (var custom = new AdhocWorkspace())
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewAddRemoveProject()
         {
             using (var previewWorkspace = new PreviewWorkspace())
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewProjectChanges()
         {
             using (var previewWorkspace = new PreviewWorkspace())
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewServices()
         {
             using (var previewWorkspace = new PreviewWorkspace(MefV1HostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic.AsExportProvider())))
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6968")]
+        [WpfFact]
         public async Task TestPreviewDiagnosticTagger()
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class { }"))
@@ -192,8 +192,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 //// enable preview diagnostics
                 previewWorkspace.EnableDiagnostic();
 
-                var spans = await SquiggleUtilities.GetErrorSpans(workspace);
-                Assert.Equal(1, spans.Count);
+                var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpans(workspace);
+                const string AnalzyerCount = "Analyzer Count: ";
+                Assert.Equal(AnalzyerCount + 1, AnalzyerCount + diagnosticsAndErrorsSpans.Item1.Length);
+
+                const string SquigglesCount = "Squiggles Count: ";
+                Assert.Equal(SquigglesCount + 1, SquigglesCount + diagnosticsAndErrorsSpans.Item2.Count);
             }
         }
 
@@ -226,6 +230,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 var newDocument = oldDocument.WithText(oldText.WithChanges(new TextChange(new TextSpan(0, oldText.Length), "class C { }")));
 
                 // create a diff view
+                WpfTestCase.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPane)} creates a {nameof(IWpfDifferenceViewer)}");
+
                 var previewFactoryService = workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
                 var diffView = (IWpfDifferenceViewer)(await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None));
 

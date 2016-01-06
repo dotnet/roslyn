@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class ISymbolExtensionsTests : TestBase
     {
-        [WpfFact]
+        [Fact]
         public void GetGlyphGroupTests()
         {
             TestGlyph(
@@ -101,11 +101,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 SymbolKind.Alias,
                 target: (INamedTypeSymbol)CreateSymbolMock(SymbolKind.NamedType, typeKind: TypeKind.Class));
 
-            AssertEx.Throws<ArgumentException>(() =>
+            Assert.ThrowsAny<ArgumentException>(() =>
                 TestGlyph(
                     StandardGlyphGroup.GlyphGroupClass,
-                    (SymbolKind)1000),
-                allowDerived: true);
+                    (SymbolKind)1000));
 
             TestGlyph(
                 StandardGlyphGroup.GlyphGroupClass,
@@ -136,15 +135,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 SymbolKind.NamedType,
                 typeKind: TypeKind.Error);
 
-            AssertEx.Throws<Exception>(() =>
+            Assert.ThrowsAny<Exception>(() =>
                 TestGlyph(
                     StandardGlyphGroup.GlyphGroupClass,
                     SymbolKind.NamedType,
-                    typeKind: TypeKind.Unknown),
-                allowDerived: true);
+                    typeKind: TypeKind.Unknown));
         }
 
-        [WpfFact, WorkItem(545015)]
+        [Fact, WorkItem(545015)]
         public void TestRegularOperatorGlyph()
         {
             TestGlyph(
@@ -153,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 methodKind: MethodKind.UserDefinedOperator);
         }
 
-        [WpfFact, WorkItem(545015)]
+        [Fact, WorkItem(545015)]
         public void TestConversionOperatorGlyph()
         {
             TestGlyph(
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 methodKind: MethodKind.Conversion);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestWithEventsMemberGlyph()
         {
             TestGlyph(

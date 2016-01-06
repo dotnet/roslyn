@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxTreeExtensions
     {
+        public static bool IsScript(this SyntaxTree syntaxTree)
+        {
+            return syntaxTree.Options.Kind != SourceCodeKind.Regular;
+        }
+
         /// <summary>
         /// Returns the identifier, keyword, contextual keyword or preprocessor keyword touching this
         /// position, or a token of Kind = None if the caret is not touching either.
@@ -120,6 +125,83 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var lineVisibility = tree.GetLineVisibility(position, cancellationToken);
             return lineVisibility == LineVisibility.Hidden || lineVisibility == LineVisibility.BeforeFirstLineDirective;
+        }
+
+        public static bool IsBeforeFirstToken(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var firstToken = syntaxTree.GetRoot(cancellationToken).GetFirstToken(includeZeroWidth: true, includeSkipped: true);
+
+            return position <= firstToken.SpanStart;
+        }
+
+        public static SyntaxToken FindTokenOrEndToken(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(syntaxTree);
+
+            var root = syntaxTree.GetRoot(cancellationToken);
+            var compilationUnit = root as ICompilationUnitSyntax;
+            var result = root.FindToken(position, findInsideTrivia: true);
+            if (result.RawKind != 0)
+            {
+                return result;
+            }
+
+            // Special cases.  See if we're actually at the end of a:
+            // a) doc comment
+            // b) pp directive
+            // c) file
+
+            var triviaList = compilationUnit.EndOfFileToken.LeadingTrivia;
+            foreach (var trivia in triviaList.Reverse())
+            {
+                if (trivia.HasStructure)
+                {
+                    var token = trivia.GetStructure().GetLastToken(includeZeroWidth: true);
+                    if (token.Span.End == position)
+                    {
+                        return token;
+                    }
+                }
+            }
+
+            if (position == root.FullSpan.End)
+            {
+                return compilationUnit.EndOfFileToken;
+            }
+
+            return default(SyntaxToken);
+        }
+
+        internal static SyntaxTrivia FindTriviaAndAdjustForEndOfFile(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, bool findInsideTrivia = false)
+        {
+            var root = syntaxTree.GetRoot(cancellationToken);
+            var compilationUnit = root as ICompilationUnitSyntax;
+            var trivia = root.FindTrivia(position, findInsideTrivia);
+
+            // If we ask right at the end of the file, we'll get back nothing.
+            // We handle that case specially for now, though SyntaxTree.FindTrivia should
+            // work at the end of a file.
+            if (position == root.FullWidth())
+            {
+                var endOfFileToken = compilationUnit.EndOfFileToken;
+                if (endOfFileToken.HasLeadingTrivia)
+                {
+                    trivia = endOfFileToken.LeadingTrivia.Last();
+                }
+                else
+                {
+                    var token = endOfFileToken.GetPreviousToken(includeSkipped: true);
+                    if (token.HasTrailingTrivia)
+                    {
+                        trivia = token.TrailingTrivia.Last();
+                    }
+                }
+            }
+
+            return trivia;
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 null, new ImplementAbstractClassCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestSimpleMethods()
         {
             await TestAsync(
@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         }
 
         [WorkItem(543234)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestNotAvailableForStruct()
         {
             await TestMissingAsync(
 @"abstract class Foo { public abstract void Bar ( ) ; } struct [|Program|] : Foo { } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalIntParameter()
         {
             await TestAsync(
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; abstract class d { public abstract void foo ( int x = 3 ) ; } class b : d { public override void foo ( int x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalCharParameter()
         {
             await TestAsync(
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; abstract class d { public abstract void foo ( char x = 'a' ) ; } class b : d { public override void foo ( char x = 'a' ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalStringParameter()
         {
             await TestAsync(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; abstract class d { public abstract void foo ( string x = ""x"" ) ; } class b : d { public override void foo ( string x = ""x"" ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalShortParameter()
         {
             await TestAsync(
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; abstract class d { public abstract void foo ( short x = 3 ) ; } class b : d { public override void foo ( short x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalDecimalParameter()
         {
             await TestAsync(
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; abstract class d { public abstract void foo ( decimal x = 3 ) ; } class b : d { public override void foo ( decimal x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalDoubleParameter()
         {
             await TestAsync(
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; abstract class d { public abstract void foo ( double x = 3 ) ; } class b : d { public override void foo ( double x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalLongParameter()
         {
             await TestAsync(
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; abstract class d { public abstract void foo ( long x = 3 ) ; } class b : d { public override void foo ( long x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalFloatParameter()
         {
             await TestAsync(
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; abstract class d { public abstract void foo ( float x = 3 ) ; } class b : d { public override void foo ( float x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalUshortParameter()
         {
             await TestAsync(
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; abstract class d { public abstract void foo ( ushort x = 3 ) ; } class b : d { public override void foo ( ushort x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalUintParameter()
         {
             await TestAsync(
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; abstract class d { public abstract void foo ( uint x = 3 ) ; } class b : d { public override void foo ( uint x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalUlongParameter()
         {
             await TestAsync(
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
                 @"using System ; abstract class d { public abstract void foo ( ulong x = 3 ) ; } class b : d { public override void foo ( ulong x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalStructParameter()
         {
             await TestAsync(
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         }
 
         [WorkItem(916114)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalNullableStructParameter()
         {
             await TestAsync(
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         }
 
         [WorkItem(916114)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalNullableIntParameter()
         {
             await TestAsync(
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
 @"using System ; abstract class d { public abstract void m ( int? x = 5, int? y = default(int?) ) ; } class c : d { public override void m ( int? x = 5, int? y = default(int?) ) { throw new NotImplementedException ( ) ; } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalObjectParameter()
         {
             await TestAsync(
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         }
 
         [WorkItem(543883)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestDifferentAccessorAccessibility()
         {
             await TestAsync(
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
 @"using System ; abstract class c1 { public abstract c1 this [ c1 x ] { get ; internal set ; } } class c2 : c1 { public override c1 this [ c1 x ] { get { throw new NotImplementedException ( ) ; } internal set { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestEvent1()
         {
             await TestAsync(
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
 @"using System ; abstract class C { public abstract event Action E ; } class D : C { public override event Action E ; } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestIndexer1()
         {
             await TestAsync(
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
 @"using System ; abstract class C { public abstract int this [ string s ] { get { } internal set { } } } class D : C { public override int this [ string s ] { get { throw new NotImplementedException ( ) ; } internal set { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestMissingInHiddenType()
         {
             await TestMissingAsync(
@@ -196,7 +196,7 @@ class [|Program|] : Foo
 #line default");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestGenerateIntoNonHiddenPart()
         {
             await TestAsync(
@@ -232,7 +232,7 @@ partial class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestGenerateIfLocationAvailable()
         {
             await TestAsync(
@@ -273,7 +273,7 @@ compareTokens: false);
         }
 
         [WorkItem(545585)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOnlyGenerateUnimplementedAccessors()
         {
             await TestAsync(
@@ -282,7 +282,7 @@ compareTokens: false);
         }
 
         [WorkItem(545615)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestParamsArray()
         {
             await TestAsync(
@@ -291,7 +291,7 @@ compareTokens: false);
         }
 
         [WorkItem(545636)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestNullPointerType()
         {
             await TestAsync(
@@ -300,7 +300,7 @@ compareTokens: false);
         }
 
         [WorkItem(545637)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestErrorTypeCalledVar()
         {
             await TestAsync(
@@ -309,7 +309,7 @@ compareTokens: false);
         }
 
         [WorkItem(581500)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task Bugfix_581500()
         {
             await TestAsync(
@@ -342,7 +342,7 @@ abstract class A<T>
         }
 
         [WorkItem(625442)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task Bugfix_625442()
         {
             await TestAsync(

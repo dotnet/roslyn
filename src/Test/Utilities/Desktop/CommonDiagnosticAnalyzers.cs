@@ -366,6 +366,38 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class EnsureNoMergedNamespaceSymbolAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "DiagnosticId";
+            public const string Title = "Title";
+            public const string Message = "Message";
+            public const string Category = "Category";
+            public const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+
+            internal static DiagnosticDescriptor Rule =
+                new DiagnosticDescriptor(DiagnosticId, Title, Message,
+                                         Category, Severity, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+                 ImmutableArray.Create(Rule);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.Namespace);
+            }
+
+            private void AnalyzeSymbol(SymbolAnalysisContext context)
+            {
+                // Ensure we are not invoked for merged namespace symbol, but instead for constituent namespace scoped to the source assembly.
+                var ns = (INamespaceSymbol)context.Symbol;
+                if (ns.ContainingAssembly != context.Compilation.Assembly || ns.ConstituentNamespaces.Length > 1)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, ns.Locations[0]));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class AnalyzerWithNoSupportedDiagnostics : DiagnosticAnalyzer
         {
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
@@ -654,6 +686,153 @@ namespace Microsoft.CodeAnalysis
                     var diagnostic = Diagnostic.Create(Descriptor, symbolContext.Symbol.Locations[0]);
                     symbolContext.ReportDiagnostic(diagnostic);
                 }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class OperationAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly ActionKind _actionKind;
+
+            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+                "ID",
+                "Title1",
+                "{0} diagnostic",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public enum ActionKind
+            {
+                Operation,
+                OperationBlock,
+                OperationBlockEnd
+            }
+
+            public OperationAnalyzer(ActionKind actionKind)
+            {
+                _actionKind = actionKind;
+            }
+
+            private void ReportDiagnostic(Action<Diagnostic> addDiagnostic, Location location)
+            {
+                var diagnostic = Diagnostic.Create(Descriptor, location, _actionKind);
+                addDiagnostic(diagnostic);
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_actionKind == ActionKind.OperationBlockEnd)
+                {
+                    context.RegisterOperationBlockStartAction(oc =>
+                    {
+                        oc.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
+                    });
+                }
+                else if (_actionKind == ActionKind.Operation)
+                {
+                    context.RegisterOperationAction(c => ReportDiagnostic(c.ReportDiagnostic, c.Operation.Syntax.GetLocation()), Semantics.OperationKind.VariableDeclarationStatement);
+                }
+                else
+                {
+                    context.RegisterOperationBlockAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class GeneratedCodeAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly GeneratedCodeAnalysisFlags? _generatedCodeAnalysisFlagsOpt;
+
+            public static readonly DiagnosticDescriptor Warning = new DiagnosticDescriptor(
+                "GeneratedCodeAnalyzerWarning",
+                "Title",
+                "GeneratedCodeAnalyzerMessage for '{0}'",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public static readonly DiagnosticDescriptor Error = new DiagnosticDescriptor(
+                "GeneratedCodeAnalyzerError",
+                "Title",
+                "GeneratedCodeAnalyzerMessage for '{0}'",
+                "Category",
+                DiagnosticSeverity.Error,
+                true);
+
+            public static readonly DiagnosticDescriptor Summary = new DiagnosticDescriptor(
+                "GeneratedCodeAnalyzerSummary",
+                "Title2",
+                "GeneratedCodeAnalyzer received callbacks for: '{0}' types and '{1}' files",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
+            {
+                _generatedCodeAnalysisFlagsOpt = generatedCodeAnalysisFlagsOpt;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Warning, Error, Summary);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationStartAction(this.OnCompilationStart);
+
+                if (_generatedCodeAnalysisFlagsOpt.HasValue)
+                {
+                    // Configure analysis on generated code.
+                    context.ConfigureGeneratedCodeAnalysis(_generatedCodeAnalysisFlagsOpt.Value);
+                }
+            }
+
+            private void OnCompilationStart(CompilationStartAnalysisContext context)
+            {
+                var sortedCallbackSymbolNames = new SortedSet<string>();
+                var sortedCallbackTreePaths = new SortedSet<string>();
+                context.RegisterSymbolAction(symbolContext =>
+                {
+                    sortedCallbackSymbolNames.Add(symbolContext.Symbol.Name);
+                    ReportSymbolDiagnostics(symbolContext.Symbol, symbolContext.ReportDiagnostic);
+                }, SymbolKind.NamedType);
+
+                context.RegisterSyntaxTreeAction(treeContext =>
+                {
+                    sortedCallbackTreePaths.Add(treeContext.Tree.FilePath);
+                    ReportTreeDiagnostics(treeContext.Tree, treeContext.ReportDiagnostic);
+                });
+
+                context.RegisterCompilationEndAction(endContext =>
+                {
+                    var arg1 = sortedCallbackSymbolNames.Join(",");
+                    var arg2 = sortedCallbackTreePaths.Join(",");
+
+                    // Summary diagnostics about received callbacks.
+                    var diagnostic = Diagnostic.Create(Summary, Location.None, arg1, arg2);
+                    endContext.ReportDiagnostic(diagnostic);
+                });
+            }
+
+            private void ReportSymbolDiagnostics(ISymbol symbol, Action<Diagnostic> addDiagnostic)
+            {
+                ReportDiagnosticsCore(addDiagnostic, symbol.Locations[0], symbol.Name);
+            }
+
+            private void ReportTreeDiagnostics(SyntaxTree tree, Action<Diagnostic> addDiagnostic)
+            {
+                ReportDiagnosticsCore(addDiagnostic, tree.GetRoot().GetLastToken().GetLocation(), tree.FilePath);
+            }
+
+            private void ReportDiagnosticsCore(Action<Diagnostic> addDiagnostic, Location location, params object[] messageArguments)
+            {
+                // warning diagnostic
+                var diagnostic = Diagnostic.Create(Warning, location, messageArguments);
+                addDiagnostic(diagnostic);
+
+                // error diagnostic
+                diagnostic = Diagnostic.Create(Error, location, messageArguments);
+                addDiagnostic(diagnostic);
             }
         }
     }

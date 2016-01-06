@@ -65,6 +65,7 @@
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Integration.Test.Utilities" />
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
@@ -176,6 +177,7 @@
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
+    <Compile Include="Diagnostics\DiagnosticEventTaskScheduler.cs" />
     <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />
     <Compile Include="Common\UpdatedEventArgs.cs" />
     <Compile Include="Diagnostics\HostDiagnosticAnalyzerPackage.cs" />
@@ -269,8 +271,8 @@
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.DiagnosticState.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\EngineV1\MemberRangeMap.cs" />
-    <Compile Include="DocumentationCommentFormatting\AbstractDocumentationCommentFormattingService.cs" />
-    <Compile Include="DocumentationCommentFormatting\IDocumentationCommentFormattingService.cs" />
+    <Compile Include="DocumentationComments\AbstractDocumentationCommentFormattingService.cs" />
+    <Compile Include="DocumentationComments\IDocumentationCommentFormattingService.cs" />
     <Compile Include="EditAndContinue\AbstractEditAndContinueAnalyzer.cs" />
     <Compile Include="EditAndContinue\ActiveStatementFlags.cs" />
     <Compile Include="EditAndContinue\ActiveStatementId.cs" />

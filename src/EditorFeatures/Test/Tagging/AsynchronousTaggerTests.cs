@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                     };
                 var asyncListener = new TaggerOperationListener();
 
+                WpfTestCase.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
+
                 var notificationService = workspace.GetService<IForegroundNotificationService>();
 
                 var eventSource = CreateEventSource();
@@ -94,6 +96,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync("class Program {\r\n\r\n}"))
             {
+                WpfTestCase.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
+
                 var tagProvider = new OutliningTaggerProvider(
                     workspace.GetService<IForegroundNotificationService>(),
                     workspace.GetService<ITextEditorFactoryService>(),

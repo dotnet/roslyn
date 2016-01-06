@@ -34,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
         End Function
 
         <WorkItem(876520)>
-        <WpfFact>
+        <Fact>
         Public Async Function TestBreakpointSpansMultipleMethods() As Task
             ' Normal case: debugger passing BP spans "sub Foo() end sub"
             Await TestSpanWithLengthAsync(<text>

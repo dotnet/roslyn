@@ -342,6 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 SyntaxKind.OrderKeyword,
                 SyntaxKind.PreserveKeyword,
                 SyntaxKind.RegionKeyword,
+                SyntaxKind.ReferenceKeyword,
                 SyntaxKind.SkipKeyword,
                 SyntaxKind.StrictKeyword,
                 SyntaxKind.TextKeyword,

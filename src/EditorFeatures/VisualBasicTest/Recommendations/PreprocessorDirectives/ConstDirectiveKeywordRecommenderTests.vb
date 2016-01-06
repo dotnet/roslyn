@@ -2,17 +2,17 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class ConstDirectiveKeywordRecommenderTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashConstInFile()
             VerifyRecommendationsContain(<File>|</File>, "#Const")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashConstInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "#Const")
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInEnumBlockMemberDeclaration()
             VerifyRecommendationsMissing(<File>
@@ -23,25 +23,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         End Sub
 
         <WorkItem(544629)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashConstAfterSingleNonMatchingCharacter()
             VerifyRecommendationsContain(<File>a|</File>, "#Const")
         End Sub
 
         <WorkItem(544629)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashConstAfterPartialConstWithoutHash()
             VerifyRecommendationsContain(<File>Con|</File>, "#Const")
         End Sub
 
         <WorkItem(722, "https://github.com/dotnet/roslyn/issues/722")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterHashConst()
             VerifyRecommendationsMissing(<File>#Const |</File>, "#Const")
         End Sub
 
         <WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterHashRegion()
             VerifyRecommendationsMissing(<File>
                                          Class C

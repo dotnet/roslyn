@@ -4,7 +4,7 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParameterInMethod1() As Task
             Dim input =
 <Workspace>
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParameterInMethod2() As Task
             Dim input =
 <Workspace>
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParameterInMethod3() As Task
             Dim input =
 <Workspace>
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParameterCaseSensitivity1() As Task
             Dim input =
 <Workspace>
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParameterCaseSensitivity2() As Task
             Dim input =
 <Workspace>
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(542475)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestPartialParameter1() As Task
             Dim input =
 <Workspace>
@@ -131,7 +131,7 @@ partial class program
         End Function
 
         <WorkItem(542475)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestPartialParameter2() As Task
             Dim input =
 <Workspace>
@@ -153,7 +153,7 @@ partial class program
 
 #Region "FAR on partial methods"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParameter_CSharpWithSignaturesMatchFARParameterOnDefDecl() As Task
             Dim input =
 <Workspace>
@@ -173,7 +173,7 @@ partial class program
             Await TestAsync(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParameter_VBWithSignaturesMatchFARParameterOnDefDecl() As Task
             Dim input =
 <Workspace>
@@ -196,7 +196,7 @@ partial class program
 #End Region
 
         <WorkItem(543276)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousFunctionParameter1() As Task
             Dim input =
 <Workspace>
@@ -219,7 +219,7 @@ End Module
         End Function
 
         <WorkItem(624310)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousFunctionParameter3() As Task
             Dim input =
 <Workspace>
@@ -239,7 +239,7 @@ End Module
         End Function
 
         <WorkItem(624310)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousFunctionParameter4() As Task
             Dim input =
 <Workspace>
@@ -258,7 +258,7 @@ class Program
         End Function
 
         <WorkItem(543276)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousFunctionParameter2() As Task
             Dim input =
 <Workspace>
@@ -281,7 +281,7 @@ End Module
         End Function
 
         <WorkItem(529688)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestAnonymousFunctionParameter5() As Task
             Dim input =
 <Workspace>
@@ -301,7 +301,7 @@ End Module
         End Function
 
         <WorkItem(545654)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestReducedExtensionNamedParameter1() As Task
             Dim input =
 <Workspace>
@@ -330,7 +330,7 @@ End Module
         End Function
 
         <WorkItem(545654)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestReducedExtensionNamedParameter2() As Task
             Dim input =
 <Workspace>
@@ -359,7 +359,7 @@ End Module
         End Function
 
         <WorkItem(545618)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_TestAnonymousMethodParameter1() As Task
             Dim input =
 <Workspace>
@@ -382,7 +382,7 @@ class X
         End Function
 
         <WorkItem(545618)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_TestAnonymousMethodParameter2() As Task
             Dim input =
 <Workspace>
@@ -405,7 +405,7 @@ class X
         End Function
 
         <WorkItem(545618)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_TestAnonymousMethodParameter3() As Task
             Dim input =
 <Workspace>
@@ -428,7 +428,7 @@ class X
         End Function
 
         <WorkItem(545618)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_TestAnonymousMethodParameter4() As Task
             Dim input =
 <Workspace>
@@ -451,7 +451,7 @@ class X
         End Function
 
         <WorkItem(545618)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVB_TestAnonymousMethodParameter1() As Task
             Dim input =
 <Workspace>
@@ -472,7 +472,7 @@ end class
         End Function
 
         <WorkItem(545618)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVB_TestAnonymousMethodParameter2() As Task
             Dim input =
 <Workspace>
@@ -493,7 +493,7 @@ end class
         End Function
 
         <WorkItem(545618)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVB_TestAnonymousMethodParameter3() As Task
             Dim input =
 <Workspace>
@@ -514,7 +514,7 @@ end class
         End Function
 
         <WorkItem(545618)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVB_TestAnonymousMethodParameter4() As Task
             Dim input =
 <Workspace>

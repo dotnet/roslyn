@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_EnumTypeDotMemberAlways() As Task
             Dim markup = <Text><![CDATA[
 Class P
@@ -41,7 +41,7 @@ End Class
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_EnumTypeDotMemberNever() As Task
             Dim markup = <Text><![CDATA[
 Class P
@@ -68,7 +68,7 @@ End Class
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_EnumTypeDotMemberAdvanced() As Task
             Dim markup = <Text><![CDATA[
 Class P
@@ -106,7 +106,7 @@ End Class
                 hideAdvancedMembers:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTriggeredOnOpenParen() As Task
             Dim markup = <Text><![CDATA[
 Module Program
@@ -131,7 +131,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "Color.Y", usePreviousCharAsTrigger:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRightSideOfAssignment() As Task
             Dim markup = <Text><![CDATA[
 Module Program
@@ -152,7 +152,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "Color.Y", usePreviousCharAsTrigger:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDoNotCrashInObjectInitializer() As Task
             Dim markup = <Text><![CDATA[
 Module Program
@@ -176,7 +176,7 @@ End Module
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInYieldReturn() As Task
             Dim markup = <Text><![CDATA[
 Imports System
@@ -199,7 +199,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "Color.X")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInAsyncMethodReturnStatement() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Threading.Tasks
@@ -220,7 +220,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "Color.X")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInIndexedProperty() As Task
             Dim markup = <Text><![CDATA[
 Module Module1
@@ -256,7 +256,7 @@ End Module
             Await VerifyItemExistsAsync(markup, "Color.Y")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestFullyQualified() As Task
             Dim markup = <Text><![CDATA[
 Namespace ColorNamespace
@@ -278,7 +278,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "ColorNamespace.Color.Y", glyph:=CType(Glyph.EnumMember, Integer))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTriggeredForNamedArgument() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -296,7 +296,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "Color.X", usePreviousCharAsTrigger:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInObjectCreation() As Task
             Dim markup = <Text><![CDATA[
 ''' <completionlist cref="Program"/>
@@ -312,7 +312,7 @@ End Class
         End Function
 
         <WorkItem(954694)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAnyAccessibleMember() As Task
             Dim markup = <Text><![CDATA[
 Public Class Program
@@ -331,7 +331,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "Program.field1")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(815963)>
         Public Async Function TestLocalNoAs() As Task
             Dim markup = <Text><![CDATA[
@@ -349,7 +349,7 @@ End Class
         End Function
 
         <WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInTrivia() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -375,7 +375,7 @@ End Class
         End Function
 
         <WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotAfterInvocationWithCompletionListTagTypeAsFirstParameter() As Task
             Dim markup = <Text><![CDATA[
 Class C

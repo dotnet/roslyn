@@ -1424,6 +1424,17 @@ class Q : P
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
         }
 
+        [Fact]
+        public void TestLookupVerbatimVar()
+        {
+            var source = "class C { public static void Main() { @var v = 1; } }";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (1,39): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public static void Main() { @var v = 1; } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(1, 39)
+                );
+        }
+
         private void TestLookupSymbolsNestedNamespaces(List<ISymbol> actual_lookupSymbols)
         {
             var namespaceX = (NamespaceSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("X") && sym.Kind == SymbolKind.Namespace).Single();
@@ -1442,6 +1453,74 @@ class Q : P
             // Verify aliases to nested namespaces within namespace X *are* present in lookup symbols.
             var aliasY = (AliasSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("aliasY") && sym.Kind == SymbolKind.Alias).Single();
             Assert.Contains(aliasY, actual_lookupSymbols);
+        }
+
+        [Fact]
+        public void ExtensionMethodCall()
+        {
+            var source =
+@"static class E
+{
+    internal static void F(this object o)
+    {
+    }
+}
+class C
+{
+    void M()
+    {
+        /*<bind>*/this.F/*</bind>*/();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            compilation.VerifyDiagnostics();
+            var exprs = GetExprSyntaxList(tree);
+            var expr = GetExprSyntaxForBinding(exprs);
+            var method = (MethodSymbol)model.GetSymbolInfo(expr).Symbol;
+            Assert.Equal("object.F()", method.ToDisplayString());
+            var reducedFrom = method.ReducedFrom;
+            Assert.NotNull(reducedFrom);
+            Assert.Equal("E.F(object)", reducedFrom.ToDisplayString());
+        }
+
+        [WorkItem(3651, "https://github.com/dotnet/roslyn/issues/3651")]
+        [Fact]
+        public void ExtensionMethodDelegateCreation()
+        {
+            var source =
+@"static class E
+{
+    internal static void F(this object o)
+    {
+    }
+}
+class C
+{
+    void M()
+    {
+        (new System.Action<object>(/*<bind>*/E.F/*</bind>*/))(this);
+        (new System.Action(/*<bind1>*/this.F/*</bind1>*/))();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            compilation.VerifyDiagnostics();
+            var exprs = GetExprSyntaxList(tree);
+
+            var expr = GetExprSyntaxForBinding(exprs, index: 0);
+            var method = (MethodSymbol)model.GetSymbolInfo(expr).Symbol;
+            Assert.Null(method.ReducedFrom);
+            Assert.Equal("E.F(object)", method.ToDisplayString());
+
+            expr = GetExprSyntaxForBinding(exprs, index: 1);
+            method = (MethodSymbol)model.GetSymbolInfo(expr).Symbol;
+            Assert.Equal("object.F()", method.ToDisplayString());
+            var reducedFrom = method.ReducedFrom;
+            Assert.NotNull(reducedFrom);
+            Assert.Equal("E.F(object)", reducedFrom.ToDisplayString());
         }
 
         #endregion tests

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateEvent
                 New Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent.GenerateEventCodeFixProvider())
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventInCSharpFileFromImplementsWithParameterList() As Task
             Dim input =
         <Workspace>
@@ -48,7 +48,7 @@ public delegate void fooEventHandler(int x);
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Async Function TestGenerateEventInCSharpFileFromImplementsWithType() As Task
             Dim input =
         <Workspace>
@@ -81,7 +81,7 @@ public interface i
             Await TestAsync(input, expected)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         <WorkItem(737021)>
         Public Async Function TestGenerateEventInCSharpFileFromHandles() As Task
             Dim input =

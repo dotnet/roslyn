@@ -1045,6 +1045,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value for argument &apos;/shared:&apos; must not be empty.
+        /// </summary>
+        internal static string SharedArgumentMissing {
+            get {
+                return ResourceManager.GetString("SharedArgumentMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Size has to be positive..
         /// </summary>
         internal static string SizeHasToBePositive {

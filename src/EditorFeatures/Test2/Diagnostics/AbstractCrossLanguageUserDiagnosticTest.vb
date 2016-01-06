@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(codeActionIndex).Action
-                Dim operations = codeAction.GetOperationsAsync(CancellationToken.None).Result
+                Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
                 Dim edit = operations.OfType(Of ApplyChangesOperation)().First()
 
                 Dim oldSolution = workspace.CurrentSolution
@@ -46,25 +46,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 If fileNameToExpected Is Nothing Then
                     Dim updatedDocument = SolutionUtilities.GetSingleChangedDocument(oldSolution, updatedSolution)
 
-                    Verify(expected, verifyTokens, updatedDocument)
+                    Await VerifyAsync(expected, verifyTokens, updatedDocument)
                 Else
                     For Each kvp In fileNameToExpected
                         Dim updatedDocument = updatedSolution.Projects.SelectMany(Function(p) p.Documents).Single(Function(d) d.Name = kvp.Key)
-                        Verify(kvp.Value, verifyTokens, updatedDocument)
+                        Await VerifyAsync(kvp.Value, verifyTokens, updatedDocument)
                     Next
                 End If
             End Using
         End Function
 
-        Private Shared Sub Verify(expected As String, verifyTokens As Boolean, updatedDocument As Document)
-            Dim actual = updatedDocument.GetTextAsync().Result.ToString().Trim()
+        Private Shared Async Function VerifyAsync(expected As String, verifyTokens As Boolean, updatedDocument As Document) As Task
+            Dim actual = (Await updatedDocument.GetTextAsync()).ToString().Trim()
 
             If verifyTokens Then
                 Utilities.AssertEx.TokensAreEqual(expected, actual, updatedDocument.Project.Language)
             Else
                 AssertEx.Equal(expected, actual)
             End If
-        End Sub
+        End Function
 
         Friend Async Function GetDiagnosticAndFixAsync(workspace As TestWorkspace) As Task(Of Tuple(Of Diagnostic, CodeFixCollection))
             Return (Await GetDiagnosticAndFixesAsync(workspace)).FirstOrDefault()
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             Dim ids = New HashSet(Of String)(fixer.FixableDiagnosticIds)
             Dim diagnostics = docAndDiagnostics.Item2.Where(Function(d) ids.Contains(d.Id)).ToList()
-            Dim tree = _document.GetSyntaxTreeAsync().Result
+            Dim tree = Await _document.GetSyntaxTreeAsync()
 
             For Each diagnostic In diagnostics
                 Dim fixes = New List(Of CodeFix)
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 
             Dim syntaxFacts = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
-            Dim root = document.GetSyntaxRootAsync().Result
+            Dim root = Await document.GetSyntaxRootAsync()
             Dim start = syntaxFacts.GetContainingMemberDeclaration(root, invocationPoint)
 
             Dim result = Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, start.FullSpan)
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xmlDefinition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
-                Dim operations = codeAction.GetOperationsAsync(CancellationToken.None).Result
+                Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
                 Dim edit = operations.OfType(Of ApplyChangesOperation)().First()
                 Dim addedProjectReference = SolutionUtilities.GetSingleAddedProjectReference(workspace.CurrentSolution, edit.ChangedSolution)
 
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xmlDefinition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
-                Dim operations = codeAction.GetOperationsAsync(CancellationToken.None).Result
+                Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
 
                 Dim edit = operations.OfType(Of ApplyChangesOperation)().FirstOrDefault()
                 Assert.Equal(Nothing, edit)
@@ -159,10 +159,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             End Using
         End Function
 
-
         Protected Overridable Function GetNode(doc As Document, position As Integer) As SyntaxNode
             Return doc.GetSyntaxRootAsync().Result.FindToken(position).Parent
         End Function
-
     End Class
 End Namespace

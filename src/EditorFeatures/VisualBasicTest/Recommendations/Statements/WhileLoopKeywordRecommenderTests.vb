@@ -4,12 +4,12 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class WhileLoopKeywordRecommenderTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WhileInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "While")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WhileInLambda()
             VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
@@ -17,14 +17,14 @@ Dim x = Sub()
         End Sub</MethodBody>, "While")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WhileAfterStatement()
             VerifyRecommendationsContain(<MethodBody>
 Dim x
 |</MethodBody>, "While")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WhileAfterExitKeyword()
             VerifyRecommendationsContain(<MethodBody>
 While
@@ -32,7 +32,7 @@ Exit |
 Loop</MethodBody>, "While")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WhileAfterContinueKeyword()
             VerifyRecommendationsContain(<MethodBody>
 While
@@ -40,21 +40,21 @@ Continue |
 Loop</MethodBody>, "While")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WhileNotAfterContinueKeywordOutsideLoop()
             VerifyRecommendationsMissing(<MethodBody>
 Continue |
 </MethodBody>, "While")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WhileNotAfterExitKeywordOutsideLoop()
             VerifyRecommendationsMissing(<MethodBody>
 Exit |
 </MethodBody>, "While")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoWhileAfterExitInsideLambdaInsideWhileLoop()
             VerifyRecommendationsMissing(<MethodBody>
 While
@@ -65,7 +65,7 @@ Loop
 </MethodBody>, "While")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WhileAfterExitInsideWhileLoopInsideLambda()
             VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
@@ -76,7 +76,7 @@ Dim x = Sub()
 </MethodBody>, "While")
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterExitInFinallyBlock()
             Dim code =
 <MethodBody>

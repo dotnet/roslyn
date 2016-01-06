@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 {
     public partial class AddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestWhereExtension()
         {
             await TestAsync(
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = args . Where } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestSelectExtension()
         {
             await TestAsync(
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = args . Select } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestGroupByExtension()
         {
             await TestAsync(
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = args . GroupBy } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestJoinExtension()
         {
             await TestAsync(
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = args . Join } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task RegressionFor8455()
         {
             await TestMissingAsync(
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
         }
 
         [WorkItem(772321)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionMethod()
         {
             await TestAsync(
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 
         [WorkItem(772321)]
         [WorkItem(920398)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionPrivateMethod()
         {
             await TestAsync(
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 
         [WorkItem(772321)]
         [WorkItem(920398)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestExtensionWithThePresenceOfTheSameNameExtensionPrivateMethod()
         {
             await TestAsync(
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
         }
 
         [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod()
         {
             await TestAsync(
@@ -89,7 +89,7 @@ parseOptions: null);
         }
 
         [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod2()
         {
             await TestAsync(
@@ -99,7 +99,7 @@ parseOptions: null);
         }
 
         [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod3()
         {
             await TestAsync(
@@ -109,7 +109,7 @@ parseOptions: null);
         }
 
         [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod4()
         {
             await TestAsync(
@@ -119,7 +119,7 @@ parseOptions: null);
         }
 
         [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod5()
         {
             await TestAsync(
@@ -129,7 +129,7 @@ parseOptions: null);
         }
 
         [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod6()
         {
             await TestAsync(
@@ -139,7 +139,7 @@ parseOptions: null);
         }
 
         [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod7()
         {
             await TestAsync(
@@ -149,7 +149,7 @@ parseOptions: null);
         }
 
         [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod8()
         {
             await TestAsync(
@@ -159,7 +159,7 @@ parseOptions: null);
         }
 
         [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod9()
         {
             await TestAsync(
@@ -169,7 +169,7 @@ parseOptions: null);
         }
 
         [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod10()
         {
             await TestAsync(
@@ -179,7 +179,7 @@ parseOptions: null);
         }
 
         [WorkItem(269)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddUsingForAddExtentionMethod11()
         {
             await TestAsync(

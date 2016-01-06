@@ -43,6 +43,7 @@ class 123 { }
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
+                WpfTestCase.RequireWpfFact("This test uses IForegroundNotificationService")
                 Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
                 Dim provider = New DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners)
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
@@ -61,7 +62,7 @@ class 123 { }
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestMiscCSharpErrorSource() As Tasks.Task
             Dim code = <code>
 class 123 { }
@@ -85,7 +86,7 @@ class 123 { }
             End Using
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestMiscVBErrorSource() As Task
             Dim code = <code>
 Class 123

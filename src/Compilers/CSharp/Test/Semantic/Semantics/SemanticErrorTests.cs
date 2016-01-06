@@ -10480,19 +10480,19 @@ enum U64 : ulong { A = 0, B, C, D = ulong.MaxValue - 2, E, F, G, H }
 @"enum A {0}
 enum B : byte {1}
 enum C : byte {2}
-enum D : sbyte {2}",
+enum D : sbyte {3}",
                   CreateEnumValues(300, "E"),
                   CreateEnumValues(256, "E"),
                   CreateEnumValues(300, "E"),
                   CreateEnumValues(300, "E", sbyte.MinValue));
-           
+
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (4,676): error CS0543: 'D.E128': the enumerator value is too large to fit in its type
-                // enum D : sbyte { E0, E1, E2, E3, <snip>, E297, E298, E299,  }
-                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "E128").WithArguments("D.E128").WithLocation(4, 676),
                 // (3,1443): error CS0543: 'C.E256': the enumerator value is too large to fit in its type
-                // enum C : byte { E0, E1, E2, E3, <snip>, E297, E298, E299,  }
-                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "E256").WithArguments("C.E256").WithLocation(3, 1443));
+                // enum C : byte { E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15, E16, E17, E18, E19, E20, E21, E22, E23, E24, E25, E26, E27, E28, E29, E30, E31, E32, E33, E34, E35, E36, E37, E38, E39, E40, E41, E42, E43, E44, E45, E46, E47, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E58, E59, E60, E61, E62, E63, E64, E65, E66, E67, E68, E69, E70, E71, E72, E73, E74, E75, E76, E77, E78, E79, E80, E81, E82, E83, E84, E85, E86, E87, E88, E89, E90, E91, E92, E93, E94, E95, E96, E97, E98, E99, E100, E101, E102, E103, E104, E105, E106, E107, E108, E109, E110, E111, E112, E113, E114, E115, E116, E117, E118, E119, E120, E121, E122, E123, E124, E125, E126, E127, E128, E129, E130, E131, E132, E133, E134, E135, E136, E137, E138, E139, E140, E141, E142, E143, E144, E145, E146, E147, E148, E149, E150, E151, E152, E153, E154, E155, E156, E157, E158, E159, E160, E161, E162, E163, E164, E165, E166, E167, E168, E169, E170, E171, E172, E173, E174, E175, E176, E177, E178, E179, E180, E181, E182, E183, E184, E185, E186, E187, E188, E189, E190, E191, E192, E193, E194, E195, E196, E197, E198, E199, E200, E201, E202, E203, E204, E205, E206, E207, E208, E209, E210, E211, E212, E213, E214, E215, E216, E217, E218, E219, E220, E221, E222, E223, E224, E225, E226, E227, E228, E229, E230, E231, E232, E233, E234, E235, E236, E237, E238, E239, E240, E241, E242, E243, E244, E245, E246, E247, E248, E249, E250, E251, E252, E253, E254, E255, E256, E257, E258, E259, E260, E261, E262, E263, E264, E265, E266, E267, E268, E269, E270, E271, E272, E273, E274, E275, E276, E277, E278, E279, E280, E281, E282, E283, E284, E285, E286, E287, E288, E289, E290, E291, E292, E293, E294, E295, E296, E297, E298, E299,  }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "E256").WithArguments("C.E256").WithLocation(3, 1443),
+                // (4,1451): error CS0543: 'D.E256': the enumerator value is too large to fit in its type
+                // enum D : sbyte { E0 = -128, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15, E16, E17, E18, E19, E20, E21, E22, E23, E24, E25, E26, E27, E28, E29, E30, E31, E32, E33, E34, E35, E36, E37, E38, E39, E40, E41, E42, E43, E44, E45, E46, E47, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E58, E59, E60, E61, E62, E63, E64, E65, E66, E67, E68, E69, E70, E71, E72, E73, E74, E75, E76, E77, E78, E79, E80, E81, E82, E83, E84, E85, E86, E87, E88, E89, E90, E91, E92, E93, E94, E95, E96, E97, E98, E99, E100, E101, E102, E103, E104, E105, E106, E107, E108, E109, E110, E111, E112, E113, E114, E115, E116, E117, E118, E119, E120, E121, E122, E123, E124, E125, E126, E127, E128, E129, E130, E131, E132, E133, E134, E135, E136, E137, E138, E139, E140, E141, E142, E143, E144, E145, E146, E147, E148, E149, E150, E151, E152, E153, E154, E155, E156, E157, E158, E159, E160, E161, E162, E163, E164, E165, E166, E167, E168, E169, E170, E171, E172, E173, E174, E175, E176, E177, E178, E179, E180, E181, E182, E183, E184, E185, E186, E187, E188, E189, E190, E191, E192, E193, E194, E195, E196, E197, E198, E199, E200, E201, E202, E203, E204, E205, E206, E207, E208, E209, E210, E211, E212, E213, E214, E215, E216, E217, E218, E219, E220, E221, E222, E223, E224, E225, E226, E227, E228, E229, E230, E231, E232, E233, E234, E235, E236, E237, E238, E239, E240, E241, E242, E243, E244, E245, E246, E247, E248, E249, E250, E251, E252, E253, E254, E255, E256, E257, E258, E259, E260, E261, E262, E263, E264, E265, E266, E267, E268, E269, E270, E271, E272, E273, E274, E275, E276, E277, E278, E279, E280, E281, E282, E283, E284, E285, E286, E287, E288, E289, E290, E291, E292, E293, E294, E295, E296, E297, E298, E299,  }
+                Diagnostic(ErrorCode.ERR_EnumeratorOverflow, "E256").WithArguments("D.E256").WithLocation(4, 1451));
         }
 
         // Create string "{ E0, E1, ..., En }"
@@ -15340,13 +15340,23 @@ class ErrorCS1676
     }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] {
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_NewlineInConst, Line = 11, Column = 31 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_CloseParenExpected, Line = 11, Column = 34 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 11, Column = 34 },
-                    // new ErrorDescription { Code = (int)ErrorCode.ERR_CantConvAnonMethNoParams, Line = 9, Column = 13 },
-                });
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (11,31): error CS1010: Newline in constant
+                //             Console.WriteLine(");
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(11, 31),
+                // (11,34): error CS1026: ) expected
+                //             Console.WriteLine(");
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(11, 34),
+                // (11,34): error CS1002: ; expected
+                //             Console.WriteLine(");
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 34),
+                // (9,13): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'OutParam' because it has one or more out parameters
+                //         o = delegate  // CS1688
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, @"delegate  // CS1688
+        {
+            Console.WriteLine("");
+        }").WithArguments("OutParam").WithLocation(9, 13)
+                );
         }
 
         [Fact]
@@ -21657,6 +21667,200 @@ namespace CSSample
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "d3").WithArguments("CSSample.Program.d3", "null"));
         }
 
+        [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]
+        public void DelegateCreationWithRefOut()
+        {
+            var source = @"
+using System;
+public class Program
+{
+    static Func<T, T> Foo<T>(Func<T, T> t) { return t; }
+    static Func<string, string> Bar = Foo<string>(x => x);
+    static Func<string, string> BarP => Foo<string>(x => x);
+    static T Id<T>(T id) => id;
+
+    static void Test(Func<string, string> Baz)
+    {
+        var k = Bar;
+        var z1 = new Func<string, string>(ref Bar); // compat
+        var z2 = new Func<string, string>(ref Baz); // compat
+        var z3 = new Func<string, string>(ref k); // compat
+        var z4 = new Func<string, string>(ref x => x);
+        var z5 = new Func<string, string>(ref Foo<string>(x => x));
+        var z6 = new Func<string, string>(ref BarP); 
+        var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
+        var z8 = new Func<string, string>(ref Program.BarP); 
+        var z9 = new Func<string, string>(ref Program.Foo<string>(x => x));
+        var z10 = new Func<string, string>(ref Id); // compat
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (16,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z4 = new Func<string, string>(ref x => x);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x").WithLocation(16, 47),
+                // (17,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z5 = new Func<string, string>(ref Foo<string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Foo<string>(x => x)").WithLocation(17, 47),
+                // (18,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         var z6 = new Func<string, string>(ref BarP); 
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(18, 43),
+                // (19,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
+                // (20,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         var z8 = new Func<string, string>(ref Program.BarP); 
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref Program.BarP").WithArguments("Program.BarP").WithLocation(20, 43),
+                // (21,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z9 = new Func<string, string>(ref Program.Foo<string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Foo<string>(x => x)").WithLocation(21, 47));
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+                // (13,47): error CS0149: Method name expected
+                //         var z1 = new Func<string, string>(ref Bar); // compat
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Bar").WithLocation(13, 47),
+                // (14,47): error CS0149: Method name expected
+                //         var z2 = new Func<string, string>(ref Baz); // compat
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz").WithLocation(14, 47),
+                // (15,47): error CS0149: Method name expected
+                //         var z3 = new Func<string, string>(ref k); // compat
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "k").WithLocation(15, 47),
+                // (16,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z4 = new Func<string, string>(ref x => x);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x").WithLocation(16, 47),
+                // (17,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z5 = new Func<string, string>(ref Foo<string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Foo<string>(x => x)").WithLocation(17, 47),
+                // (18,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         var z6 = new Func<string, string>(ref BarP); 
+                Diagnostic(ErrorCode.ERR_RefProperty, "BarP").WithArguments("Program.BarP").WithLocation(18, 47),
+                // (19,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
+                // (20,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         var z8 = new Func<string, string>(ref Program.BarP); 
+                Diagnostic(ErrorCode.ERR_RefProperty, "Program.BarP").WithArguments("Program.BarP").WithLocation(20, 47),
+                // (21,47): error CS1510: A ref or out argument must be an assignable variable
+                //         var z9 = new Func<string, string>(ref Program.Foo<string>(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Foo<string>(x => x)").WithLocation(21, 47),
+                // (22,48): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
+                //         var z10 = new Func<string, string>(ref Id); // compat
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(22, 48));
+        }
+
+        [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]
+        public void DelegateCreationWithRefOut_Parens()
+        {
+            // these are allowed in compat mode without the parenthesis
+            // with parenthesis, it behaves like strict mode
+            var source = @"
+using System;
+public class Program
+{
+    static Func<T, T> Foo<T>(Func<T, T> t) { return t; }
+    static Func<string, string> Bar = Foo<string>(x => x);
+
+    static T Id<T>(T id) => id;
+
+    static void Test(Func<string, string> Baz)
+    {
+        var k = Bar;
+        var z1 = new Func<string, string>(ref (Bar)); 
+        var z2 = new Func<string, string>(ref (Baz)); 
+        var z3 = new Func<string, string>(ref (k)); 
+        var z10 = new Func<string, string>(ref (Id)); 
+        // these all are still valid for compat mode, no errors should be reported for compat mode
+        var z4 = new Func<string, string>(ref Bar); 
+        var z5 = new Func<string, string>(ref Baz); 
+        var z6 = new Func<string, string>(ref k); 
+        var z7 = new Func<string, string>(ref Id); 
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (13,48): error CS0149: Method name expected
+                //         var z1 = new Func<string, string>(ref (Bar)); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Bar").WithLocation(13, 48),
+                // (14,48): error CS0149: Method name expected
+                //         var z2 = new Func<string, string>(ref (Baz)); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz").WithLocation(14, 48),
+                // (15,48): error CS0149: Method name expected
+                //         var z3 = new Func<string, string>(ref (k)); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "k").WithLocation(15, 48),
+                // (16,49): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
+                //         var z10 = new Func<string, string>(ref (Id)); 
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(16, 49));
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+                // (13,48): error CS0149: Method name expected
+                //         var z1 = new Func<string, string>(ref (Bar)); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Bar").WithLocation(13, 48),
+                // (14,48): error CS0149: Method name expected
+                //         var z2 = new Func<string, string>(ref (Baz)); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz").WithLocation(14, 48),
+                // (15,48): error CS0149: Method name expected
+                //         var z3 = new Func<string, string>(ref (k)); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "k").WithLocation(15, 48),
+                // (16,49): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
+                //         var z10 = new Func<string, string>(ref (Id)); 
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(16, 49),
+                // (18,47): error CS0149: Method name expected
+                //         var z4 = new Func<string, string>(ref Bar); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Bar").WithLocation(18, 47),
+                // (19,47): error CS0149: Method name expected
+                //         var z5 = new Func<string, string>(ref Baz); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz").WithLocation(19, 47),
+                // (20,47): error CS0149: Method name expected
+                //         var z6 = new Func<string, string>(ref k); 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "k").WithLocation(20, 47),
+                // (21,47): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
+                //         var z7 = new Func<string, string>(ref Id); 
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(21, 47));
+        }
+
+        [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]
+        public void DelegateCreationWithRefOut_MultipleArgs()
+        {
+            var source = @"
+using System;
+public class Program
+{
+    static Func<string, string> BarP => null;
+    static void Test(Func<string, string> Baz)
+    {
+        var a = new Func<string, string>(ref Baz, Baz.Invoke);
+        var b = new Func<string, string>(Baz, ref Baz.Invoke);
+        var c = new Func<string, string>(ref Baz, ref Baz.Invoke);
+        var d = new Func<string, string>(ref BarP, BarP.Invoke);
+        var e = new Func<string, string>(BarP, ref BarP.Invoke);
+        var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (8,46): error CS0149: Method name expected
+                //         var a = new Func<string, string>(ref Baz, Baz.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz, Baz.Invoke").WithLocation(8, 46),
+                // (9,42): error CS0149: Method name expected
+                //         var b = new Func<string, string>(Baz, ref Baz.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz, ref Baz.Invoke").WithLocation(9, 42),
+                // (10,46): error CS0149: Method name expected
+                //         var c = new Func<string, string>(ref Baz, ref Baz.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz, ref Baz.Invoke").WithLocation(10, 46),
+                // (11,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         var d = new Func<string, string>(ref BarP, BarP.Invoke);
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(11, 42),
+                // (11,46): error CS0149: Method name expected
+                //         var d = new Func<string, string>(ref BarP, BarP.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, BarP.Invoke").WithLocation(11, 46),
+                // (12,42): error CS0149: Method name expected
+                //         var e = new Func<string, string>(BarP, ref BarP.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(12, 42),
+                // (13,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(13, 42),
+                // (13,46): error CS0149: Method name expected
+                //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(13, 46));
+        }
+
         [WorkItem(538430, "DevDiv")]
         [Fact]
         public void NestedGenericAccessibility()
@@ -22121,8 +22325,19 @@ class Program
 ";
             // Used to assert.
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (8,10): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
+    // (8,10): error CS1513: } expected
+    //         {
+    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 10),
+    // (9,14): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
+    //             .ToString();
+    Diagnostic(ErrorCode.ERR_ObjectRequired, "ToString").WithArguments("object.ToString()").WithLocation(9, 14),
+    // (7,15): error CS1643: Not all code paths return a value in anonymous method of type 'Program.D'
+    //         D d = delegate
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, @"delegate
+        {
+            .ToString();
+        }").WithArguments("anonymous method", "Program.D").WithLocation(7, 15)
+                );
         }
 
         [WorkItem(543473, "DevDiv")]
@@ -22156,13 +22371,13 @@ class Test
   }
 }";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (7,41): error CS0246: The type or namespace name 'List<int>' could not be found (are you missing a using directive or an assembly reference?)
+                // (7,41): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
                 //     var d = (Action<List<int>>)delegate(List<int> t) {};
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<int>"),
-                // (7,21): error CS0246: The type or namespace name 'List<int>' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(7, 41),
+                // (7,21): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
                 //     var d = (Action<List<int>>)delegate(List<int> t) {};
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<int>")
-        );
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(7, 21)
+                );
         }
 
         [Fact]

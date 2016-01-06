@@ -1,11 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Linq
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.DocumentationCommentFormatting
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
-Imports Microsoft.CodeAnalysis.Shared.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
 
