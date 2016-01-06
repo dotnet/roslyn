@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public abstract void Close();
 
-        public async Task<ConnectionData> HandleConnection(CancellationToken cancellationToken)
+        public async Task<ConnectionData> HandleConnection(bool allowCompilationRequests = true, CancellationToken cancellationToken = default(CancellationToken))
         {
             try
             {
@@ -112,6 +112,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 else
                 {
+                    // TODO: change to send actual close message to client
+                    if (!allowCompilationRequests)
+                    {
+                        return new ConnectionData(CompletionReason.CompilationNotStarted);
+                    }
+
                     return await HandleCompilationRequest(request, cancellationToken).ConfigureAwait(false);
                 }
             }

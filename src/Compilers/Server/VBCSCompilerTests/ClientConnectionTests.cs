@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             var stream = new Mock<Stream>(MockBehavior.Strict);
             var connection = CreateConnection(stream.Object);
-            var result = await connection.HandleConnection(CancellationToken.None).ConfigureAwait(true);
+            var result = await connection.HandleConnection().ConfigureAwait(true);
             Assert.Equal(CompletionReason.CompilationNotStarted, result.CompletionReason);
         }
 
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var connection = CreateConnection(stream.Object);
             connection.ServeBuildRequestFunc = delegate { return Task.FromResult(s_emptyBuildResponse); };
-            var connectionData = await connection.HandleConnection(CancellationToken.None).ConfigureAwait(true);
+            var connectionData = await connection.HandleConnection().ConfigureAwait(true);
             Assert.Equal(CompletionReason.ClientDisconnect, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
         }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return monitorTaskSource.Task;
             };
 
-            var handleTask = clientConnection.HandleConnection(CancellationToken.None);
+            var handleTask = clientConnection.HandleConnection();
 
             // Wait until the monitor task is actually created and running. 
             await readyTaskSource.Task.ConfigureAwait(false);
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var connection = CreateConnection(stream);
             connection.ServeBuildRequestFunc = (req, token) => Task.FromResult(s_emptyBuildResponse);
             connection.ValidateBuildRequestFunc = _ => { validated = true; };
-            await connection.HandleConnection(CancellationToken.None).ConfigureAwait(true);
+            await connection.HandleConnection().ConfigureAwait(true);
 
             Assert.True(validated);
         }

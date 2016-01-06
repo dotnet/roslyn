@@ -60,7 +60,7 @@ class Hello
         {
             var connection = new Mock<IClientConnection>();
             connection
-                .Setup(x => x.HandleConnection(It.IsAny<CancellationToken>()))
+                .Setup(x => x.HandleConnection(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(task);
             return connection.Object;
         }
@@ -140,7 +140,7 @@ class Hello
             var ex = new Exception();
             var clientConnection = new Mock<IClientConnection>();
             clientConnection
-                .Setup(x => x.HandleConnection(It.IsAny<CancellationToken>()))
+                .Setup(x => x.HandleConnection(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(FromException<ConnectionData>(ex));
 
             var task = Task.FromResult(clientConnection.Object);
@@ -274,7 +274,7 @@ class Hello
         {
             var client = new Mock<IClientConnection>();
             client
-                .Setup(x => x.HandleConnection(It.IsAny<CancellationToken>()))
+                .Setup(x => x.HandleConnection(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Throws(new Exception());
 
             var listenCancellationToken = default(CancellationToken);
@@ -410,5 +410,46 @@ class Hello
             }
         }
 
+        /// <summary>
+        /// Multiple clients should be able to send shutdown requests to the server.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task ShutdownRepeated()
+        {
+            var host = new TestableCompilerServerHost();
+
+            using (var startedMre = new ManualResetEvent(initialState: false))
+            using (var finishedMre = new ManualResetEvent(initialState: false))
+            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            {
+                // Create a compilation that is guaranteed to complete after the shutdown is seen. 
+                host.RunCompilation = (request, cancellationToken) =>
+                {
+                    startedMre.Set();
+                    finishedMre.WaitOne();
+                    return s_emptyBuildResponse;
+                };
+
+                var compileTask = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
+                startedMre.WaitOne();
+
+                for (var i = 0; i < 10; i++)
+                {
+                    // The compilation is now in progress, send the shutdown.
+                    var processId = await ServerUtil.SendShutdown(serverData.PipeName);
+                    Assert.Equal(Process.GetCurrentProcess().Id, processId);
+                    Assert.False(compileTask.IsCompleted);
+                }
+
+                finishedMre.Set();
+
+                var response = await compileTask;
+                Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
+                Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
+
+                await Verify(serverData, connections: 11, completed: 11);
+            }
+        }
     }
 }
