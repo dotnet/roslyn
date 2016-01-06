@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private abstract class SymbolReference : IComparable<SymbolReference>, IEquatable<SymbolReference>
         {
-            public readonly SearchResult<INamespaceOrTypeSymbol> SearchResult;
+            public readonly SymbolResult<INamespaceOrTypeSymbol> SearchResult;
 
-            protected SymbolReference(SearchResult<INamespaceOrTypeSymbol> searchResult)
+            protected SymbolReference(SymbolResult<INamespaceOrTypeSymbol> searchResult)
             {
                 this.SearchResult = searchResult;
             }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             private readonly ProjectId _projectId;
 
-            public ProjectSymbolReference(SearchResult<INamespaceOrTypeSymbol> searchResult, ProjectId projectId)
+            public ProjectSymbolReference(SymbolResult<INamespaceOrTypeSymbol> searchResult, ProjectId projectId)
                 : base(searchResult)
             {
                 _projectId = projectId;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             private readonly PortableExecutableReference _reference;
 
-            public MetadataSymbolReference(SearchResult<INamespaceOrTypeSymbol> searchResult, PortableExecutableReference reference)
+            public MetadataSymbolReference(SymbolResult<INamespaceOrTypeSymbol> searchResult, PortableExecutableReference reference)
                 : base(searchResult)
             {
                 _reference = reference;

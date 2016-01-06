@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected abstract Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
-            public abstract SymbolReference CreateReference<T>(SearchResult<T> symbol) where T : INamespaceOrTypeSymbol;
+            public abstract SymbolReference CreateReference<T>(SymbolResult<T> symbol) where T : INamespaceOrTypeSymbol;
 
-            public async Task<IEnumerable<SearchResult<ISymbol>>> FindDeclarationsAsync(string name, TSimpleNameSyntax nameNode, SymbolFilter filter)
+            public async Task<IEnumerable<SymbolResult<ISymbol>>> FindDeclarationsAsync(string name, TSimpleNameSyntax nameNode, SymbolFilter filter)
             {
                 if (name != null && string.IsNullOrWhiteSpace(name))
                 {
-                    return SpecializedCollections.EmptyEnumerable<SearchResult<ISymbol>>();
+                    return SpecializedCollections.EmptyEnumerable<SymbolResult<ISymbol>>();
                 }
 
                 var query = this.Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     _project, searchQuery, filter, _includeDirectReferences, cancellationToken);
             }
 
-            public override SymbolReference CreateReference<T>(SearchResult<T> searchResult)
+            public override SymbolReference CreateReference<T>(SymbolResult<T> searchResult)
             {
                 return new ProjectSymbolReference(
                     searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol), _project.Id);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _metadataReference = metadataReference;
             }
 
-            public override SymbolReference CreateReference<T>(SearchResult<T> searchResult)
+            public override SymbolReference CreateReference<T>(SymbolResult<T> searchResult)
             {
                 return new MetadataSymbolReference(
                     searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol),
