@@ -233,7 +233,7 @@ public partial class B : I
 }";
             _eventLibRef = CreateCompilation(
                 eventLibSrc,
-                references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef_v4_0_30319_17929 },
+                references: new[] { MscorlibRef_v45, SystemCoreRef_v45 },
                 options:
                     new CSharpCompilationOptions(
                         OutputKind.WindowsRuntimeMetadata,
@@ -306,7 +306,7 @@ class C
             var dynamicCommon = CreateCompilation(
                 DynamicCommonSrc,
                 references: new[] {
-                    MscorlibRef_v4_0_30316_17626,
+                    MscorlibRef_v45,
                     _eventLibRef,
                 },
                 options: new CSharpCompilationOptions(OutputKind.NetModule, allowUnsafe: true));
@@ -327,8 +327,8 @@ class C
             var verifier = CompileAndVerifyOnWin8Only(
                 src,
                 additionalRefs: new[] {
-                    MscorlibRef_v4_0_30316_17626,
-                    SystemCoreRef_v4_0_30319_17929,
+                    MscorlibRef_v45,
+                    SystemCoreRef_v45,
                     CSharpRef,
                     _eventLibRef,
                     dynamicCommonRef
@@ -2353,8 +2353,8 @@ public partial class A : I
             var verifier = CompileAndVerify(
                 new[] { src, DynamicCommonSrc },
                 additionalRefs: new[] {
-                    MscorlibRef_v4_0_30316_17626,
-                    SystemCoreRef_v4_0_30319_17929,
+                    MscorlibRef_v45,
+                    SystemCoreRef_v45,
                     _eventLibRef,
                 },
                 verify: OSVersion.IsWin8);

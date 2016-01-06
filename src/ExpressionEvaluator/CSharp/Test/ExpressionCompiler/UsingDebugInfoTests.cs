@@ -1081,7 +1081,7 @@ public class C2 : C1
             comp1.EmitAndGetReferences(out dllBytes1, out pdbBytes1, out unused);
             var ref1 = AssemblyMetadata.CreateFromImage(dllBytes1).GetReference(display: "A");
 
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, ref1 }, TestOptions.DebugDll, assemblyName: "B");
+            var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v45, ref1 }, TestOptions.DebugDll, assemblyName: "B");
             byte[] dllBytes2;
             byte[] pdbBytes2;
             comp2.EmitAndGetReferences(out dllBytes2, out pdbBytes2, out unused);
@@ -1090,7 +1090,7 @@ public class C2 : C1
             var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
             modulesBuilder.Add(ref1.ToModuleInstance(dllBytes1, SymReaderFactory.CreateReader(pdbBytes1)));
             modulesBuilder.Add(ref2.ToModuleInstance(dllBytes2, SymReaderFactory.CreateReader(pdbBytes2)));
-            modulesBuilder.Add(MscorlibRef_v4_0_30316_17626.ToModuleInstance(fullImage: null, symReader: null));
+            modulesBuilder.Add(MscorlibRef_v45.ToModuleInstance(fullImage: null, symReader: null));
             modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage: null, symReader: null));
 
             using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))

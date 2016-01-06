@@ -653,7 +653,7 @@ public class C
     }
 }";
             var comp = CompileAndVerify(source,
-                additionalRefs: new[] { CSharpRef, SystemCoreRef_v4_0_30319_17929 },
+                additionalRefs: new[] { CSharpRef, SystemCoreRef_v45 },
                 expectedOutput: string.Empty);
             comp.VerifyIL("C.Get",
 @"{

@@ -868,7 +868,7 @@ public class E : bar::C { }
                     t2 = Parse($"#r \"{p3}\"", options: TestOptions.Script),
                     t3 = Parse("#r \"Lib\"", options: TestOptions.Script),
                 },
-                references: new MetadataReference[] { MscorlibRef_v4_0_30316_17626, r1, r2 },
+                references: new MetadataReference[] { MscorlibRef_v45, r1, r2 },
                 options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                     new TestMetadataReferenceResolver(
                         assemblyNames: new Dictionary<string, PortableExecutableReference> { { "Lib", r3 } },
@@ -880,7 +880,7 @@ public class E : bar::C { }
 
             var refs = compilation.ExternalReferences;
             Assert.Equal(3, refs.Length);
-            Assert.Equal(MscorlibRef_v4_0_30316_17626, refs[0]);
+            Assert.Equal(MscorlibRef_v45, refs[0]);
             Assert.Equal(r1, refs[1]);
             Assert.Equal(r2, refs[2]);
 
@@ -3181,7 +3181,7 @@ public class C : A
             var aRef = CreateCompilation(@"public interface A { System.Diagnostics.Process PA { get; } }", new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v2_0_50727.System }, 
                 options: options, assemblyName: "A").EmitToImageReference();
 
-            var bRef = CreateCompilation(@"public interface B { System.Diagnostics.Process PB { get; } }", new[] { MscorlibRef_v4_0_30316_17626, TestReferences.NetFx.v4_0_30319.System },
+            var bRef = CreateCompilation(@"public interface B { System.Diagnostics.Process PB { get; } }", new[] { MscorlibRef_v45, TestReferences.NetFx.v4_0_30319.System },
                 options: options, assemblyName: "B").EmitToImageReference();
 
             var resolverC = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
@@ -3190,7 +3190,7 @@ public class C : A
                 { "System, 4.0.0.0", TestReferences.NetFx.v4_0_30319.System },
             });
 
-            var c = CreateSubmissionWithExactReferences("public interface C : A, B { System.Diagnostics.Process PC { get; } }", new[] { MscorlibRef_v4_0_30316_17626, aRef, bRef },
+            var c = CreateSubmissionWithExactReferences("public interface C : A, B { System.Diagnostics.Process PC { get; } }", new[] { MscorlibRef_v45, aRef, bRef },
                 options.WithMetadataReferenceResolver(resolverC));
 
             c.VerifyEmitDiagnostics();

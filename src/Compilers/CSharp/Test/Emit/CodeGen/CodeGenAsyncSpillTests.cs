@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncSpillTests : EmitMetadataTestBase
     {
-        private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
+        private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v45, SystemRef_v4_0_30319_17929, SystemCoreRef_v45 };
 
         public CodeGenAsyncSpillTests()
         {

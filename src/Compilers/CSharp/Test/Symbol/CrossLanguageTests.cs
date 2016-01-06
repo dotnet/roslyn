@@ -21,7 +21,7 @@ End Interface
             var vbcomp = VisualBasicCompilation.Create(
                 "Test",
                 new[] { VisualBasicSyntaxTree.ParseText(vbText) },
-                new[] { MscorlibRef_v4_0_30316_17626 },
+                new[] { MscorlibRef_v45 },
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var ref1 = vbcomp.EmitToImageReference(embedInteropTypes: true);
