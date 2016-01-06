@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     // We did an exact, case insensitive, search.  Case sensitive matches should
                     // be preffered though over insensitive ones.
-                    return symbols.Select(s => SearchResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1)).ToList();
+                    return symbols.Select(s => SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1)).ToList();
                 }
 
                 // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         var areSimilar = similarityChecker.AreSimilar(s.Name, out matchCost);
 
                         Debug.Assert(areSimilar);
-                        return SearchResult.Create(s.Name, nameNode, s, matchCost);
+                        return SymbolResult.Create(s.Name, nameNode, s, matchCost);
                     }).ToList();
                 }
             }
