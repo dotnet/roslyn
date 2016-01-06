@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 int lineNumber)
                 : base(listener)
             {
-                Name = Name;
+                Name = name;
                 Tag = tag;
                 FilePath = filePath;
                 LineNumber = lineNumber;
