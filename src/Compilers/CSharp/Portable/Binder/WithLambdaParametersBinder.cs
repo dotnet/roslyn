@@ -135,13 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
-            {
-                // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
-                return true;
-            }
-
             if (newSymbolKind == SymbolKind.RangeVariable)
             {
                 // The range variable '{0}' conflicts with a previous declaration of '{0}'

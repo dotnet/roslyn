@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis
         protected override bool AreEqual(object other)
         {
             var otherResourceString = other as LocalizableResourceString;
-            return other != null &&
+            return otherResourceString != null &&
                 _nameOfLocalizableResource == otherResourceString._nameOfLocalizableResource &&
                 _resourceManager == otherResourceString._resourceManager &&
                 _resourceSource == otherResourceString._resourceSource &&

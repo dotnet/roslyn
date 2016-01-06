@@ -4,8 +4,9 @@ Imports System.IO
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.Syntax
 
-Public Class FuzzTesting : Inherits BasicTestBase
+Public Class ParserRegressionTests : Inherits BasicTestBase
 
     <WorkItem(540022, "DevDiv")>
     <Fact>
@@ -918,20 +919,9 @@ End Enum
     End Sub
 
     <WorkItem(2867, "https://github.com/dotnet/roslyn/issues/2867")>
-    <Fact(Skip:="https://github.com/dotnet/roslyn/issues/7159")>
+    <ConditionalFact(GetType(IsRelease))>
     Public Sub TestBinary()
-        ' use a fixed seed so the test Is reproducible
-        Dim random = New System.Random(12345)
-        Const n As Integer = 40 * 1000 * 1000 ' 40 million "character"s
-        Dim builder = New System.Text.StringBuilder(n + 10)
-        For i As Integer = 0 To n - 1
-            builder.Append(ChrW(random.Next(&HFFFF)))
-        Next
-
-        Dim source = builder.ToString()
-        Dim tree = VisualBasicSyntaxTree.ParseText(source)
-
-        Assert.Equal(source, tree.ToString())
+        Dim tree = VisualBasicSyntaxTree.ParseText(New RandomizedSourceText())
         Assert.Equal(Syntax.InternalSyntax.Scanner.BadTokenCountLimit, tree.GetDiagnostics().Where(Function(d) d.Code = ERRID.ERR_IllegalChar).Count())
     End Sub
 

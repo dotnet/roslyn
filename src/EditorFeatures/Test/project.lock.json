@@ -44,7 +44,7 @@
         }
       },
       "Microsoft.DiaSymReader.Native/1.3.3": {},
-      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
         "compile": {
           "ref/net45/_._": {}
         },
@@ -392,7 +392,7 @@
         }
       },
       "Microsoft.DiaSymReader.Native/1.3.3": {},
-      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
         "compile": {
           "ref/net45/_._": {}
         },
@@ -740,7 +740,7 @@
         }
       },
       "Microsoft.DiaSymReader.Native/1.3.3": {},
-      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
         "compile": {
           "ref/net45/_._": {}
         },
@@ -1122,8 +1122,8 @@
         "runtimes/win-x86/native/Microsoft.DiaSymReader.Native.x86.dll"
       ]
     },
-    "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
-      "sha512": "q5wj+WWjvZ/GhT+Q42aub5rIcw45pEE/TvIfFBEgvxK2MTODxsDIKKSBHEdfJablXhfRZfY79YBdTbcfUzZqlA==",
+    "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+      "sha512": "/12zABXWCTHNRBN6bNHxoqvmnJ1UKVaDSOR1BsAM+sv2aXjGMEM7bcDecvT/1zMKilWDmJpiPJJNCxjdZPQRTA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -1157,7 +1157,7 @@
         "lib/wp80/_._",
         "lib/wpa81/_._",
         "Microsoft.NETCore.Portable.Compatibility.nuspec",
-        "package/services/metadata/core-properties/850feb86a46b458c8a8875eb3bbc1591.psmdcp",
+        "package/services/metadata/core-properties/59347eb927634aa588ffb5e7d86d33e5.psmdcp",
         "ref/dotnet/mscorlib.dll",
         "ref/dotnet/System.ComponentModel.DataAnnotations.dll",
         "ref/dotnet/System.Core.dll",

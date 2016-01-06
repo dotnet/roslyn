@@ -2061,6 +2061,77 @@ public class Test
             AssertEx.Equal(CreateCompilationWithMscorlib(tree).GetDiagnostics(), CreateCompilationWithMscorlib(tree).GetDiagnostics());
         }
 
+        /// <summary>
+        /// Test that invalid type argument lists produce clean error messages
+        /// with minimal noise
+        /// </summary>
+        [WorkItem(7177, "https://github.com/dotnet/roslyn/issues/7177")]
+        [Fact]
+        public void InvalidTypeArgumentList()
+        {
+            var text = @"using System;
+public class A
+{
+    static void Main(string[] args)
+    {
+        // Invalid type arguments
+        object a1 = typeof(Action<0>);
+        object a2 = typeof(Action<static>);
+
+        // Valid type arguments
+        object a3 = typeof(Action<string>);
+        object a4 = typeof(Action<>);
+
+        // Invalid with multiple types
+        object a5 = typeof(Func<0,1>);
+        object a6 = typeof(Func<0,bool>);
+        object a7 = typeof(Func<static,bool>);
+
+        // Valid with multiple types
+        object a8 = typeof(Func<string,bool>);
+        object a9 = typeof(Func<,>);
+
+        // Invalid with nested types
+        object a10 = typeof(Action<Action<0>>);
+        object a11 = typeof(Action<Action<static>>);
+        object a12 = typeof(Action<Action<>>);
+
+        // Valid with nested types
+        object a13 = typeof(Action<Action<string>>);
+    }
+}";
+
+            CSharpCompilationOptions options = TestOptions.ReleaseExe;
+            CreateCompilationWithMscorlib(text, options: options).VerifyDiagnostics(
+                // (7,35): error CS1031: Type expected
+                //         object a1 = typeof(Action<0>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(7, 35),
+                // (8,35): error CS1031: Type expected
+                //         object a2 = typeof(Action<static>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(8, 35),
+                // (15,33): error CS1031: Type expected
+                //         object a5 = typeof(Func<0,1>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(15, 33),
+                // (15,35): error CS1031: Type expected
+                //         object a5 = typeof(Func<0,1>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "1").WithLocation(15, 35),
+                // (16,33): error CS1031: Type expected
+                //         object a6 = typeof(Func<0,bool>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(16, 33),
+                // (17,33): error CS1031: Type expected
+                //         object a7 = typeof(Func<static,bool>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(17, 33),
+                // (24,43): error CS1031: Type expected
+                //         object a10 = typeof(Action<Action<0>>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "0").WithLocation(24, 43),
+                // (25,43): error CS1031: Type expected
+                //         object a11 = typeof(Action<Action<static>>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(25, 43),
+                // (26,36): error CS7003: Unexpected use of an unbound generic name
+                //         object a12 = typeof(Action<Action<>>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "Action<>").WithLocation(26, 36));
+        }
+
         #region Mocks
         internal class CustomErrorInfo : DiagnosticInfo
         {

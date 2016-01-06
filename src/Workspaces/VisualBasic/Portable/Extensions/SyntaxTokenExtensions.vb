@@ -291,21 +291,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension>
-        Public Function GetNextTokenOrEndOfFile(
-            token As SyntaxToken,
-            Optional includeZeroWidth As Boolean = False,
-            Optional includeSkipped As Boolean = False,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
-
-            Dim nextToken = token.GetNextToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments)
-
-            Return If(nextToken.Kind = SyntaxKind.None,
-                      token.GetAncestor(Of CompilationUnitSyntax).EndOfFileToken,
-                      nextToken)
-        End Function
-
-        <Extension>
         Public Function IsValidAttributeTarget(token As SyntaxToken) As Boolean
             Return token.Kind() = SyntaxKind.AssemblyKeyword OrElse
                    token.Kind() = SyntaxKind.ModuleKeyword

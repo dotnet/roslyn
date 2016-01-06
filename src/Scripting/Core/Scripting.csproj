@@ -48,6 +48,9 @@
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>Resolvers\RelativePathResolver.cs</Link>
     </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\ClrGlobalAssemblyCache.cs">
+      <Link>Resolvers\ClrGlobalAssemblyCache.cs</Link>
+    </Compile>
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>Resolvers\FusionAssemblyIdentity.cs</Link>
     </Compile>
@@ -59,6 +62,9 @@
     </Compile>
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>Resolvers\GlobalAssemblyCache.Location.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\MonoGlobalAssemblyCache.cs">
+      <Link>Resolvers\MonoGlobalAssemblyCache.cs</Link>
     </Compile>
     <Compile Include="Hosting\AssemblyLoader\AssemblyAndLocation.cs" />
     <Compile Include="Hosting\AssemblyLoader\AssemblyLoadResult.cs" />
