@@ -1123,6 +1123,23 @@ new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", output);
         }
 
+        [Fact, WorkItem(7280, "https://github.com/dotnet/roslyn/issues/7280")]
+        public void AsyncContinueOnDifferentThread()
+        {
+            Execute(@"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).ContinueWith(t => t.Result).Result)");
+            
+            var output = ReadOutputToEnd();
+            var error = ReadErrorOutputToEnd();
+
+            Assert.Equal("42", output);
+            Assert.Empty(error);
+        }
+
         #region Submission result printing - null/void/value.
 
         [Fact]

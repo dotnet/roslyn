@@ -31,29 +31,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return closure;
         }
-
-        public static Func<SyntaxToken, bool> ToLanguageSpecific(this Func<SyntaxToken, bool> predicate)
-        {
-            if (predicate == SyntaxToken.Any)
-            {
-                return SyntaxToken.Any;
-            }
-            else if (predicate == SyntaxToken.NonZeroWidth)
-            {
-                return SyntaxToken.NonZeroWidth;
-            }
-
-            return (predicate != null) ? t => predicate(t) : (Func<SyntaxToken, bool>)null;
-        }
-
-        public static Func<SyntaxTrivia, bool> ToLanguageSpecific(this Func<SyntaxTrivia, bool> predicate)
-        {
-            if (predicate == SyntaxTrivia.Any)
-            {
-                return SyntaxTrivia.Any;
-            }
-
-            return (predicate != null) ? t => predicate(t) : (Func<SyntaxTrivia, bool>)null;
-        }
     }
 }
