@@ -326,7 +326,7 @@ namespace Microsoft.Cci
 
                 lastParent = eventDef.ContainingTypeDefinition;
 
-                builder.AddEventMap(
+                metadata.AddEventMap(
                     typeDefinitionRowId: GetTypeDefIndex(lastParent),
                     eventList: GetEventDefIndex(eventDef));
             }
@@ -344,7 +344,7 @@ namespace Microsoft.Cci
 
                 lastParent = propertyDef.ContainingTypeDefinition;
 
-                builder.AddPropertyMap(
+                metadata.AddPropertyMap(
                     typeDefinitionRowId: GetTypeDefIndex(lastParent),
                     propertyList: GetPropertyDefIndex(propertyDef));
             }
