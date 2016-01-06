@@ -24,7 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.isFirstSymbolVisited &&
                 !IsEnumMember(symbol))
             {
-                symbol.Type.Accept(this.NotFirstVisitor);
+                var fieldSymbol = symbol as FieldSymbol;
+
+                if ((object)fieldSymbol == null)
+                {
+                    symbol.Type.Accept(this.NotFirstVisitor);
+                }
+                else
+                {
+                    VisitTypeSymbolWithAnnotations(fieldSymbol.Type);
+                }
+
                 AddSpace();
 
                 AddCustomModifiersIfRequired(symbol.CustomModifiers);
@@ -60,7 +70,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
             {
-                symbol.Type.Accept(this.NotFirstVisitor);
+                var propertySymbol = symbol as PropertySymbol;
+
+                if ((object)propertySymbol == null)
+                {
+                    symbol.Type.Accept(this.NotFirstVisitor);
+                }
+                else
+                {
+                    VisitTypeSymbolWithAnnotations(propertySymbol.Type);
+                }
+
                 AddSpace();
 
                 AddCustomModifiersIfRequired(symbol.TypeCustomModifiers);
@@ -132,7 +152,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
             {
-                symbol.Type.Accept(this.NotFirstVisitor);
+                var eventSymbol = symbol as EventSymbol;
+
+                if ((object)eventSymbol == null)
+                {
+                    symbol.Type.Accept(this.NotFirstVisitor);
+                }
+                else
+                {
+                    VisitTypeSymbolWithAnnotations(eventSymbol.Type); 
+                }
+
                 AddSpace();
             }
 
@@ -232,8 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (symbol.ReturnType != null)
                             {
-                                symbol.ReturnType.Accept(this.NotFirstVisitor);
+                                AddReturnType(symbol);
                             }
+
                             AddSpace();
                             AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers);
                             break;
@@ -393,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSpace();
                         AddKeyword(SyntaxKind.OperatorKeyword);
                         AddSpace();
-                        symbol.ReturnType.Accept(this.NotFirstVisitor);
+                        AddReturnType(symbol);
                     }
                     break;
 
@@ -403,9 +434,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isAccessor)
             {
-                AddTypeArguments(symbol.TypeArguments, default(ImmutableArray<ImmutableArray<CustomModifier>>));
+                AddTypeArguments(symbol, default(ImmutableArray<ImmutableArray<CustomModifier>>));
                 AddParameters(symbol);
                 AddTypeParameterConstraints(symbol);
+            }
+        }
+
+        private void AddReturnType(IMethodSymbol symbol)
+        {
+            var methodSymbol = symbol as MethodSymbol;
+
+            if ((object)methodSymbol == null)
+            {
+                symbol.ReturnType.Accept(this.NotFirstVisitor);
+            }
+            else
+            {
+                VisitTypeSymbolWithAnnotations(methodSymbol.ReturnType);
             }
         }
 
@@ -474,15 +519,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameter = symbol as ParameterSymbol;
                 if ((object)parameter != null)
                 {
-                    countOfCustomModifiersPrecedingByRef = parameter.CountOfCustomModifiersPrecedingByRef; 
-                }
+                    countOfCustomModifiersPrecedingByRef = parameter.CountOfCustomModifiersPrecedingByRef;
 
-                if (countOfCustomModifiersPrecedingByRef > 0)
+                    if (countOfCustomModifiersPrecedingByRef > 0)
+                    {
+                        AddCustomModifiersIfRequired(ImmutableArray.Create(symbol.CustomModifiers, 0, countOfCustomModifiersPrecedingByRef), leadingSpace: false, trailingSpace: true);
+                    }
+
+                    VisitTypeSymbolWithAnnotations(parameter.Type);
+                }
+                else
                 {
-                    AddCustomModifiersIfRequired(ImmutableArray.Create(symbol.CustomModifiers, 0, countOfCustomModifiersPrecedingByRef), leadingSpace: false, trailingSpace: true);
+                    symbol.Type.Accept(this.NotFirstVisitor);
                 }
-
-                symbol.Type.Accept(this.NotFirstVisitor);
 
                 if (countOfCustomModifiersPrecedingByRef == 0)
                 {

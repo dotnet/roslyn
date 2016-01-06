@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)initializerOpt?.Type != null)
                 {
                     // Default inferred reference types to a nullable state.
-                    declTypeOpt = TypeSymbolWithAnnotations.Create(initializerOpt.Type, makeNullableIfReferenceType: true);
+                    declTypeOpt = TypeSymbolWithAnnotations.Create(initializerOpt.Type, makeNullableIfReferenceType: declarator.IsFeatureStaticNullCheckingEnabled());
 
                     if (declTypeOpt.SpecialType == SpecialType.System_Void)
                     {

@@ -637,9 +637,9 @@ class B : A
     // (27,26): error CS0506: 'B.M2<T>(T?)': cannot override inherited member 'A.M2<T>(T?)' because it is not marked virtual, abstract, or override
     //     public override void M2<T>(T? x)
     Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M2").WithArguments("B.M2<T>(T?)", "A.M2<T>(T?)").WithLocation(27, 26),
-    // (31,26): error CS0506: 'B.M3<T>(T?)': cannot override inherited member 'A.M3<T>(T)' because it is not marked virtual, abstract, or override
+    // (31,26): error CS0506: 'B.M3<T>(T?)': cannot override inherited member 'A.M3<T>(T?)' because it is not marked virtual, abstract, or override
     //     public override void M3<T>(T? x)
-    Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M3").WithArguments("B.M3<T>(T?)", "A.M3<T>(T)").WithLocation(31, 26),
+    Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M3").WithArguments("B.M3<T>(T?)", "A.M3<T>(T?)").WithLocation(31, 26),
     // (35,26): error CS0506: 'B.M4<T>(T?)': cannot override inherited member 'A.M4<T>(T?)' because it is not marked virtual, abstract, or override
     //     public override void M4<T>(T? x)
     Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M4").WithArguments("B.M4<T>(T?)", "A.M4<T>(T?)").WithLocation(35, 26),
@@ -910,10 +910,10 @@ class B : A
     Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("x").WithLocation(35, 26),
     // (39,26): error CS0115: 'B.M4(string)': no suitable method found to override
     //     public override void M4(string? x)
-    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("B.M4(string)").WithLocation(39, 26),
+    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("B.M4(string?)").WithLocation(39, 26),
     // (43,26): error CS0115: 'B.M5(string)': no suitable method found to override
     //     public override void M5(string? x)
-    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M5").WithArguments("B.M5(string)").WithLocation(43, 26),
+    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M5").WithArguments("B.M5(string?)").WithLocation(43, 26),
     // (16,52): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
     //     public virtual void M4(System.Nullable<string> x)
     Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "string").WithLocation(16, 52),
@@ -1215,15 +1215,15 @@ class B2 : IA
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
-    // (26,40): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string> IA.E2'.
+    // (26,40): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string>? IA.E2'.
     //     public event System.Action<string> E2; // 2
-    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E2").WithArguments("event Action<string> IA.E2").WithLocation(26, 40),
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E2").WithArguments("event Action<string>? IA.E2").WithLocation(26, 40),
     // (25,41): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string> IA.E1'.
     //     public event System.Action<string?> E1; // 2
     Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E1").WithArguments("event Action<string> IA.E1").WithLocation(25, 41),
-    // (19,40): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string> IA.E2'.
+    // (19,40): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string>? IA.E2'.
     //     public event System.Action<string> E2 {add {} remove{}}
-    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E2").WithArguments("event Action<string> IA.E2").WithLocation(19, 40),
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E2").WithArguments("event Action<string>? IA.E2").WithLocation(19, 40),
     // (18,41): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string> IA.E1'.
     //     public event System.Action<string?> E1 {add {} remove{}}
     Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E1").WithArguments("event Action<string> IA.E1").WithLocation(18, 41)
@@ -1329,9 +1329,9 @@ class B2 : IB
     // (18,37): warning CS8215: Nullability of reference types in type doesn't match implemented member 'event Action<string> IA.E1'.
     //     event System.Action<string?> IA.E1 {add {} remove{}}
     Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E1").WithArguments("event Action<string> IA.E1").WithLocation(18, 37),
-    // (19,36): warning CS8215: Nullability of reference types in type doesn't match implemented member 'event Action<string> IA.E2'.
+    // (19,36): warning CS8215: Nullability of reference types in type doesn't match implemented member 'event Action<string>? IA.E2'.
     //     event System.Action<string> IA.E2 {add {} remove{}}
-    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E2").WithArguments("event Action<string> IA.E2").WithLocation(19, 36)
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E2").WithArguments("event Action<string>? IA.E2").WithLocation(19, 36)
                 );
 
             var ia = compilation.GetTypeByMetadataName("IA");
@@ -1511,15 +1511,15 @@ class B : IA, IA2
     // (23,22): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.P2'.
     //     public string[]? P2 {get; set;} 
     Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "P2").WithArguments("string[] IA.P2").WithLocation(23, 22),
-    // (26,21): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.this[int x]'.
+    // (26,21): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'string?[] IA.this[int x]'.
     //     public string[] this[int x] // 1
-    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "this").WithArguments("string[] IA.this[int x]").WithLocation(26, 21),
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "this").WithArguments("string?[] IA.this[int x]").WithLocation(26, 21),
     // (32,22): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.this[short x]'.
     //     public string[]? this[short x] // 2
     Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "this").WithArguments("string[] IA.this[short x]").WithLocation(32, 22),
-    // (22,21): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.P1'.
+    // (22,21): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'string?[] IA.P1'.
     //     public string[] P1 {get; set;} 
-    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "P1").WithArguments("string[] IA.P1").WithLocation(22, 21)
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "P1").WithArguments("string?[] IA.P1").WithLocation(22, 21)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -1598,15 +1598,15 @@ class B : IA, IA2
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
-    // (22,17): warning CS8215: Nullability of reference types in type doesn't match implemented member 'string[] IA.P1'.
+    // (22,17): warning CS8215: Nullability of reference types in type doesn't match implemented member 'string?[] IA.P1'.
     //     string[] IA.P1 {get; set;} 
-    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "P1").WithArguments("string[] IA.P1").WithLocation(22, 17),
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "P1").WithArguments("string?[] IA.P1").WithLocation(22, 17),
     // (23,18): warning CS8215: Nullability of reference types in type doesn't match implemented member 'string[] IA.P2'.
     //     string[]? IA.P2 {get; set;} 
     Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "P2").WithArguments("string[] IA.P2").WithLocation(23, 18),
-    // (26,17): warning CS8215: Nullability of reference types in type doesn't match implemented member 'string[] IA.this[int x]'.
+    // (26,17): warning CS8215: Nullability of reference types in type doesn't match implemented member 'string?[] IA.this[int x]'.
     //     string[] IA.this[int x] // 1
-    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "this").WithArguments("string[] IA.this[int x]").WithLocation(26, 17),
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "this").WithArguments("string?[] IA.this[int x]").WithLocation(26, 17),
     // (32,18): warning CS8215: Nullability of reference types in type doesn't match implemented member 'string[] IA.this[short x]'.
     //     string[]? IA.this[short x] // 2
     Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "this").WithArguments("string[] IA.this[short x]").WithLocation(32, 18)
@@ -2157,9 +2157,9 @@ class B3 : IA3
     // (32,16): warning CS8214: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'int IA2.this[string[] x]'.
     //     public int this[string[]? x] // 2
     Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "this").WithArguments("x", "int IA2.this[string[] x]").WithLocation(32, 16),
-    // (24,16): warning CS8214: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'int IA1.this[string[] x]'.
+    // (24,16): warning CS8214: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'int IA1.this[string?[] x]'.
     //     public int this[string[] x] // 1
-    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "this").WithArguments("x", "int IA1.this[string[] x]").WithLocation(24, 16)
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "this").WithArguments("x", "int IA1.this[string?[] x]").WithLocation(24, 16)
                 );
 
             foreach (string[] typeName in new[] { new []{ "IA1", "B1" }, new []{ "IA2", "B2" } })
@@ -2239,9 +2239,9 @@ class B3 : IA3
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
-    // (24,13): warning CS8217: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'int IA1.this[string[] x]'.
+    // (24,13): warning CS8217: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'int IA1.this[string?[] x]'.
     //     int IA1.this[string[] x] // 1
-    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "this").WithArguments("x", "int IA1.this[string[] x]").WithLocation(24, 13),
+    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "this").WithArguments("x", "int IA1.this[string?[] x]").WithLocation(24, 13),
     // (32,13): warning CS8217: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'int IA2.this[string[] x]'.
     //     int IA2.this[string[]? x] // 2
     Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "this").WithArguments("x", "int IA2.this[string[] x]").WithLocation(32, 13)
@@ -2974,9 +2974,9 @@ class CL1
     // (56,18): warning CS8201: Possible null reference assignment.
     //         CL1 u7 = x7;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x7").WithLocation(56, 18),
-    // (65,24): warning CS8204: Possible null reference argument for parameter 'p1' in 'void C.M6(CL1 p1, CL1 p2)'.
+    // (65,24): warning CS8204: Possible null reference argument for parameter 'p1' in 'void C.M6(CL1 p1, CL1? p2)'.
     //         M6(p2: x8, p1: y8);
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y8").WithArguments("p1", "void C.M6(CL1 p1, CL1 p2)").WithLocation(65, 24),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y8").WithArguments("p1", "void C.M6(CL1 p1, CL1? p2)").WithLocation(65, 24),
     // (72,16): warning CS8204: Possible null reference argument for parameter 'p1' in 'void C.M7(params CL1[] p1)'.
     //         M7(x9, y9);
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y9").WithArguments("p1", "void C.M7(params CL1[] p1)").WithLocation(72, 16),
@@ -8253,21 +8253,21 @@ class CL2
 ", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
-    // (10,24): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator +(string x, CL0 y)'.
+    // (10,24): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator +(string? x, CL0 y)'.
     //         CL0? z1 = x1 + y1;
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y1").WithArguments("y", "CL0 CL0.operator +(string x, CL0 y)").WithLocation(10, 24),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y1").WithArguments("y", "CL0 CL0.operator +(string? x, CL0 y)").WithLocation(10, 24),
     // (11,18): warning CS8207: Expression is probably never null.
     //         CL0 u1 = z1 ?? new CL0();
     Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z1").WithLocation(11, 18),
-    // (16,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL1.operator +(string x, CL1 y)'.
+    // (16,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1? CL1.operator +(string x, CL1? y)'.
     //         CL1 z2 = x2 + y2;
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL1 CL1.operator +(string x, CL1 y)").WithLocation(16, 18),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL1? CL1.operator +(string x, CL1? y)").WithLocation(16, 18),
     // (16,18): warning CS8201: Possible null reference assignment.
     //         CL1 z2 = x2 + y2;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2 + y2").WithLocation(16, 18),
-    // (21,23): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator +(string x, CL0 y)'.
+    // (21,23): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator +(string? x, CL0 y)'.
     //         CL2 u3 = x3 + y3 + z3;
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y3").WithArguments("y", "CL0 CL0.operator +(string x, CL0 y)").WithLocation(21, 23),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y3").WithArguments("y", "CL0 CL0.operator +(string? x, CL0 y)").WithLocation(21, 23),
     // (26,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL2 CL2.operator +(CL1 x, CL2 y)'.
     //         CL2 u4 = x4 + y4 + z4;
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4 + y4").WithArguments("x", "CL2 CL2.operator +(CL1 x, CL2 y)").WithLocation(26, 18)
@@ -8320,9 +8320,9 @@ class CL0
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator false(CL0 x)'.
     //         CL0? z1 = x1 && y1;
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "bool CL0.operator false(CL0 x)").WithLocation(10, 19),
-    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator &(CL0 x, CL0 y)'.
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator &(CL0 x, CL0? y)'.
     //         CL0? z1 = x1 && y1;
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0 CL0.operator &(CL0 x, CL0 y)").WithLocation(10, 19),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL0 CL0.operator &(CL0 x, CL0? y)").WithLocation(10, 19),
     // (11,18): warning CS8201: Possible null reference assignment.
     //         CL0 u1 = z1;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z1").WithLocation(11, 18),
@@ -8371,9 +8371,9 @@ class CL0
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator false(CL0 x)'.
     //         CL0? z1 = x1 && y1;
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "bool CL0.operator false(CL0 x)").WithLocation(10, 19),
-    // (10,25): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator &(CL0 x, CL0 y)'.
+    // (10,25): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator &(CL0? x, CL0 y)'.
     //         CL0? z1 = x1 && y1;
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y1").WithArguments("y", "CL0 CL0.operator &(CL0 x, CL0 y)").WithLocation(10, 25)
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y1").WithArguments("y", "CL0 CL0.operator &(CL0? x, CL0 y)").WithLocation(10, 25)
                 );
         }
 
@@ -8596,9 +8596,9 @@ class CL0
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
     //         CL0? u1 = x1 && y1 || z1;
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1 && y1").WithArguments("x", "bool CL0.operator true(CL0 x)").WithLocation(10, 19),
-    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator |(CL0 x, CL0 y)'.
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator |(CL0 x, CL0? y)'.
     //         CL0? u1 = x1 && y1 || z1;
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1 && y1").WithArguments("x", "CL0 CL0.operator |(CL0 x, CL0 y)").WithLocation(10, 19)
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1 && y1").WithArguments("x", "CL0 CL0.operator |(CL0 x, CL0? y)").WithLocation(10, 19)
                 );
         }
 
@@ -8719,9 +8719,9 @@ class CL0
 ", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
-    // (10,25): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator &(CL0 x, CL0 y)'.
+    // (10,25): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator &(CL0? x, CL0 y)'.
     //         CL0? u1 = x1 && !y1;
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "!y1").WithArguments("y", "CL0 CL0.operator &(CL0 x, CL0 y)").WithLocation(10, 25)
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "!y1").WithArguments("y", "CL0 CL0.operator &(CL0? x, CL0 y)").WithLocation(10, 25)
                 );
         }
 
@@ -9388,9 +9388,9 @@ class B : A
 ", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
-    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'C A.operator ++(A x)'.
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'C? A.operator ++(A x)'.
     //         B? u1 = ++x1;
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C A.operator ++(A x)").WithLocation(10, 19),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C? A.operator ++(A x)").WithLocation(10, 19),
     // (10,17): warning CS8204: Possible null reference argument for parameter 'x' in 'C.implicit operator B(C x)'.
     //         B? u1 = ++x1;
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "++x1").WithArguments("x", "C.implicit operator B(C x)").WithLocation(10, 17),
@@ -9650,18 +9650,18 @@ class CL1
 ", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
-    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL0.operator +(CL0 x, CL0 y)'.
+    // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL0.operator +(CL0 x, CL0? y)'.
     //         CL1? u1 = x1 += y1;
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL1 CL0.operator +(CL0 x, CL0 y)").WithLocation(10, 19),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "CL1 CL0.operator +(CL0 x, CL0? y)").WithLocation(10, 19),
     // (11,18): warning CS8207: Expression is probably never null.
     //         CL1 v1 = u1 ?? new CL1(); 
     Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u1").WithLocation(11, 18),
     // (12,18): warning CS8207: Expression is probably never null.
     //         CL1 w1 = x1 ?? new CL1(); 
     Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(12, 18),
-    // (17,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL0.operator +(CL0 x, CL0 y)'.
+    // (17,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL0.operator +(CL0 x, CL0? y)'.
     //         CL0 u2 = x2 += y2;
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL1 CL0.operator +(CL0 x, CL0 y)").WithLocation(17, 18),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("x", "CL1 CL0.operator +(CL0 x, CL0? y)").WithLocation(17, 18),
     // (17,18): warning CS8201: Possible null reference assignment.
     //         CL0 u2 = x2 += y2;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2 += y2").WithLocation(17, 18),
@@ -9755,9 +9755,9 @@ class CL1
     // (24,9): warning CS8201: Possible null reference assignment.
     //         x3 += y3;
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3 += y3").WithLocation(24, 9),
-    // (29,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL0.operator +(CL0 x, CL0 y)'.
+    // (29,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1? CL0.operator +(CL0 x, CL0? y)'.
     //         CL0? u4 = x4 += y4;
-    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4").WithArguments("x", "CL1 CL0.operator +(CL0 x, CL0 y)").WithLocation(29, 19),
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4").WithArguments("x", "CL1? CL0.operator +(CL0 x, CL0? y)").WithLocation(29, 19),
     // (29,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
     //         CL0? u4 = x4 += y4;
     Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4 += y4").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(29, 19),
@@ -10386,6 +10386,41 @@ class UsePia
     //         x2 = new ITest28() ?? x2;
     Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new ITest28()").WithLocation(15, 14)
                 );
+        }
+
+        [Fact]
+        public void SymbolDisplay_01()
+        {
+            var source = @"
+abstract class B
+{
+    string? F1; 
+    event System.Action? E1;
+    string? P1 {get; set;}
+    string?[][,] P2 {get; set;}
+    System.Action<string?> M1(string? x) {return null;}
+    string[]?[,] M2(string[][,]? x) {return null;}
+    void M3(string?* x) {}
+    public abstract string? this[System.Action? x] {get; set;} 
+
+    public static implicit operator B?(int x) { return null; }
+}
+
+delegate string? D1();
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            var b = compilation.GetTypeByMetadataName("B");
+            Assert.Equal("System.String? B.F1", b.GetMember("F1").ToTestDisplayString());
+            Assert.Equal("event System.Action? B.E1", b.GetMember("E1").ToTestDisplayString());
+            Assert.Equal("System.String? B.P1 { get; set; }", b.GetMember("P1").ToTestDisplayString());
+            Assert.Equal("System.String?[][,] B.P2 { get; set; }", b.GetMember("P2").ToTestDisplayString());
+            Assert.Equal("System.Action<System.String?> B.M1(System.String? x)", b.GetMember("M1").ToTestDisplayString());
+            Assert.Equal("System.String[]?[,] B.M2(System.String[][,]? x)", b.GetMember("M2").ToTestDisplayString());
+            Assert.Equal("void B.M3(System.String?* x)", b.GetMember("M3").ToTestDisplayString());
+            Assert.Equal("System.String? B.this[System.Action? x] { get; set; }", b.GetMember("this[]").ToTestDisplayString());
+            Assert.Equal("B.implicit operator B?(int)", b.GetMember("op_Implicit").ToDisplayString());
+            Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1").ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature)));
         }
 
         [Fact(Skip = "TODO")]
