@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.Metadata.Ecma335.Blobs;
+
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.Cci
@@ -113,10 +115,13 @@ namespace Microsoft.Cci
 
         private BlobIdx SerializeLocalConstantSignature(ILocalDefinition localConstant)
         {
-            var writer = new BlobBuilder();
+            var builder = new BlobBuilder();
+
+            // TODO: BlobEncoder.LocalConstantSignature
 
             // CustomMod*
-            SerializeCustomModifiers(localConstant.CustomModifiers, writer);
+            var encoder = new CustomModifiersEncoder<BlobEncoder>(new BlobEncoder(builder));
+            SerializeCustomModifiers(encoder, localConstant.CustomModifiers);
 
             var type = localConstant.Type;
             var typeCode = type.TypeCode(Context);
@@ -126,55 +131,56 @@ namespace Microsoft.Cci
             // PrimitiveConstant or EnumConstant
             if (value is decimal)
             {
-                writer.WriteByte(0x11);
-                writer.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
+                builder.WriteByte(0x11);
+                builder.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
 
-                writer.WriteDecimal((decimal)value);
+                builder.WriteDecimal((decimal)value);
             }
             else if (value is DateTime)
             {
-                writer.WriteByte(0x11);
-                writer.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
+                builder.WriteByte(0x11);
+                builder.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
 
-                writer.WriteDateTime((DateTime)value);
+                builder.WriteDateTime((DateTime)value);
             }
             else if (typeCode == PrimitiveTypeCode.String)
             {
-                writer.WriteByte((byte)ConstantTypeCode.String);
+                builder.WriteByte((byte)ConstantTypeCode.String);
                 if (value == null)
                 {
-                    writer.WriteByte(0xff);
+                    builder.WriteByte(0xff);
                 }
                 else
                 {
-                    writer.WriteUTF16((string)value);
+                    builder.WriteUTF16((string)value);
                 }
             }
             else if (value != null)
             {
                 // TypeCode
-                writer.WriteByte((byte)MetadataWriterUtilities.GetConstantTypeCode(value));
+                builder.WriteByte((byte)MetadataWriterUtilities.GetConstantTypeCode(value));
+
 
                 // Value
-                writer.WriteConstant(value);
+                builder.WriteConstant(value);
 
                 // EnumType
                 if (type.IsEnum)
                 {
-                    writer.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
+                    builder.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
                 }
             }
             else if (this.module.IsPlatformType(type, PlatformType.SystemObject))
             {
-                writer.WriteByte(0x1c);
+                builder.WriteByte(0x1c);
             }
             else
             {
-                writer.WriteByte((byte)(type.IsValueType ? 0x11 : 0x12));
-                writer.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
+                builder.WriteByte((byte)(type.IsValueType ? 0x11 : 0x12));
+                builder.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
             }
 
-            return _debugBuilderOpt.GetBlobIndex(writer);
+            return _debugBuilderOpt.GetBlobIndex(builder);
         }
 
         private static uint HasCustomDebugInformation(HasCustomDebugInformationTag tag, int rowId)
