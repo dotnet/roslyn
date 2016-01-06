@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                // Returns null for a submission class. This ensures that a submission class does not inherit methods such as ToString or GetHashCode.
                 return (this.TypeKind == TypeKind.Submission) ? null : this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
             }
         }
