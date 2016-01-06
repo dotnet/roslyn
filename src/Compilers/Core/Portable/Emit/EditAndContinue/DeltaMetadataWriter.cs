@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.Metadata.Ecma335.Blobs;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
@@ -617,8 +618,7 @@ namespace Microsoft.CodeAnalysis.Emit
             if (localVariables.Length > 0)
             {
                 var writer = PooledBlobBuilder.GetInstance();
-                writer.WriteByte(0x07);
-                writer.WriteCompressedInteger((uint)localVariables.Length);
+                var encoder = new BlobEncoder(writer).LocalVariableSignature(localVariables.Length);
 
                 foreach (ILocalDefinition local in localVariables)
                 {
@@ -626,18 +626,22 @@ namespace Microsoft.CodeAnalysis.Emit
                     if (signature == null)
                     {
                         int start = writer.Position;
-                        this.SerializeLocalVariableSignature(writer, local);
+                        encoder = SerializeLocalVariableSignature(encoder.AddVariable(), local);
                         signature = writer.ToArray(start, writer.Position - start);
                     }
                     else
                     {
+                        encoder = encoder.SkipVariable();
                         writer.WriteBytes(signature);
                     }
 
                     encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
-
+                
+                encoder.EndVariables();
+                
                 BlobIdx blobIndex = builder.GetBlobIndex(writer);
+                
                 localSignatureRowId = GetOrAddStandAloneSignatureIndex(blobIndex);
                 writer.Free();
             }
