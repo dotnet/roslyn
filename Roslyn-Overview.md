@@ -73,7 +73,7 @@ As part of their analysis the compiler may produce a set of diagnostics covering
 
 #### Scripting APIs
 
-As a part of the compiler layer, the team prototyped hosting/scripting APIs for executing code snippets and accumulating a runtime execution context.  The REPL used these APIs, but neither the REPL nor the Scripting APIs are part of the .NET Compiler Platform project currently.  The team is reviewing these designs before re-introducing these components.
+As a part of the compiler layer, the team created hosting/scripting APIs for executing code snippets and accumulating a runtime execution context.  The REPL uses these APIs.
 
 #### Workspaces APIs
 
