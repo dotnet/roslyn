@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace System.Reflection.Metadata.Ecma335
+namespace System.Reflection
 {
     internal partial class BlobBuilder
     {
