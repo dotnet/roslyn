@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -23,21 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected abstract string GetLanguage();
         protected abstract ParseOptions GetScriptOptions();
         protected abstract Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions);
-
-        protected void ApplyOptionsToWorkspace(Workspace workspace, IDictionary<OptionKey, object> options)
-        {
-            if (options != null)
-            {
-                var optionService = workspace.Services.GetService<IOptionService>();
-                var optionSet = optionService.GetOptions();
-                foreach (var option in options)
-                {
-                    optionSet = optionSet.WithChangedOption(option.Key, option.Value);
-                }
-
-                optionService.SetOptions(optionSet);
-            }
-        }
 
         private void TestAnnotations(
             string expectedText,
@@ -97,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
-                ApplyOptionsToWorkspace(workspace, options);
+                workspace.ApplyOptions(options);
 
                 var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey, fixProviderData);
                 Assert.True(actions == null || actions.Count == 0);
@@ -200,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 ? await TestWorkspace.CreateAsync(initialMarkup)
                 : await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
-                ApplyOptionsToWorkspace(workspace, options);
+                workspace.ApplyOptions(options);
 
                 var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey, fixProviderData);
                 await TestActionsAsync(
