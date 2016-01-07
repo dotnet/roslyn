@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
-namespace System.Reflection.Metadata.Ecma335
+namespace System.Reflection
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal unsafe partial class BlobBuilder

@@ -3,7 +3,7 @@
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace System.Reflection.Metadata.Ecma335
+namespace System.Reflection
 {
     internal unsafe static class BlobUtilities
     {
