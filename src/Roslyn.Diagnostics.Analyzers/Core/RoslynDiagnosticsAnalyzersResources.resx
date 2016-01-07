@@ -176,7 +176,7 @@
     <value>SymbolDeclaredEvent must be generated for source symbols</value>
   </data>
   <data name="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription" xml:space="preserve">
-    <value>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of it's base types must generate a symbol declared event.</value>
+    <value>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</value>
   </data>
   <data name="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage" xml:space="preserve">
     <value>SymbolDeclaredEvent must be generated for source symbols</value>
