@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string RemoveUnnecessaryCastDiagnosticId = "IDE0004";
         public const string RemoveUnnecessaryImportsDiagnosticId = "IDE0005";
         public const string UseImplicitTypingDiagnosticId = "IDE0007";
+        public const string UseExplicitTypingDiagnosticId = "IDE0008";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

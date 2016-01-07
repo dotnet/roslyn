@@ -151,7 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
                 }
             }
 
-            // c. Factory Methods?
+            // c. Factory Methods? - probably not.
+
+            // TODO: Cast expressions.
 
             return false;
         }
@@ -184,6 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
             if (declarationStatement.IsKind(SyntaxKind.VariableDeclaration))
             {
                 declaredType = ((VariableDeclarationSyntax)declarationStatement).Type;
+                var isTypeApparent = IsTypeApparentFromRHS((VariableDeclarationSyntax)declarationStatement, semanticModel, cancellationToken);
             }
             else if (declarationStatement.IsKind(SyntaxKind.ForEachStatement))
             {
@@ -196,7 +199,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
             }
 
             var isReplaceable = IsReplaceableByVar(declaredType, semanticModel, cancellationToken, out diagnosticSpan);
-            var isTypeApparent = IsTypeApparentFromRHS((VariableDeclarationSyntax)declarationStatement, semanticModel, cancellationToken);
 
             return isReplaceable 
                 ? CreateDiagnostic(declarationStatement, diagnosticSpan)

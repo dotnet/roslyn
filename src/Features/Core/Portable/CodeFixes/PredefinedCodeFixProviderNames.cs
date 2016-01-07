@@ -37,5 +37,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddOverloads = "Add Overloads to member";
         public const string AddNew = "Add new keyword to member";
         public const string UseImplicitTyping = "Use var";
+        public const string UseExplicitTyping = "Use typename instead of var";
     }
 }

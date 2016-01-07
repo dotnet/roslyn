@@ -74,6 +74,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsSuppression = "CodeActions.Suppression";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseImplicitTyping = "CodeActions.UseImplicitTyping";
+            public const string CodeActionsUseExplicitTyping = "CodeActions.UseExplicitTyping";
             public const string CodeGeneration = nameof(CodeGeneration);
             public const string CodeGenerationSortDeclarations = "CodeGeneration.SortDeclarations";
             public const string CodeModel = nameof(CodeModel);
