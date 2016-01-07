@@ -1683,5 +1683,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
+        Public Overrides ReadOnly Property MetadataId As MetadataId
+            Get
+                Return Nothing
+            End Get
+        End Property
     End Class
 End Namespace

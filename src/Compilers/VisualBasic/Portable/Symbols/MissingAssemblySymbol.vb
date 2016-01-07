@@ -143,6 +143,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End Get
         End Property
+
+        Public Overrides ReadOnly Property MetadataId As MetadataId
+            Get
+                Return Nothing
+            End Get
+        End Property
     End Class
 
     ''' <summary>
@@ -192,5 +198,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Function
     End Class
-
 End Namespace

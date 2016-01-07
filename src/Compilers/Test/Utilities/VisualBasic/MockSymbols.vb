@@ -802,4 +802,10 @@ Friend Class MockAssemblySymbol
     Friend Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), ignoreCase As Boolean) As NamedTypeSymbol
         Return Nothing
     End Function
+
+    Public Overrides ReadOnly Property MetadataId As MetadataId
+        Get
+            Return Nothing
+        End Get
+    End Property
 End Class

@@ -174,5 +174,7 @@ namespace Microsoft.CodeAnalysis
                 return _lazyDeclaresTheObjectClass == ThreeState.True;
             }
         }
+
+        public MetadataId MetadataId => _owner.Id;
     }
 }

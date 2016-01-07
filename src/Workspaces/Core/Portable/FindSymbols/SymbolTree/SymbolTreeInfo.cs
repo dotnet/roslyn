@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -181,25 +182,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         #region Construction
 
-        private static readonly ConditionalWeakTable<IAssemblySymbol, SymbolTreeInfo> s_assemblyInfos = new ConditionalWeakTable<IAssemblySymbol, SymbolTreeInfo>();
+        // Cache the symbol tree infos for assembly symbols that share the same underlying metadata.
+        private static readonly ConditionalWeakTable<MetadataId, SymbolTreeInfo> s_assemblyInfos = new ConditionalWeakTable<MetadataId, SymbolTreeInfo>();
 
         private static readonly SemaphoreSlim s_assemblyInfosGate = new SemaphoreSlim(1);
 
         /// <summary>
         /// this gives you SymbolTreeInfo for a metadata
         /// </summary>
-        public static async Task<SymbolTreeInfo> GetInfoForAssemblyAsync(Solution solution, IAssemblySymbol assembly, string filePath, CancellationToken cancellationToken)
+        public static async Task<SymbolTreeInfo> TryGetInfoForAssemblyAsync(Solution solution, IAssemblySymbol assembly, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             using (await s_assemblyInfosGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
+                var metadataId = assembly.MetadataId;
+                if (metadataId == null)
+                {
+                    return null;
+                }
+
                 SymbolTreeInfo info;
-                if (s_assemblyInfos.TryGetValue(assembly, out info))
+                if (s_assemblyInfos.TryGetValue(metadataId, out info))
                 {
                     return info;
                 }
 
-                info = await LoadOrCreateAsync(solution, assembly, filePath, cancellationToken).ConfigureAwait(false);
-                return s_assemblyInfos.GetValue(assembly, _ => info);
+                info = await LoadOrCreateAsync(solution, assembly, reference.FilePath, cancellationToken).ConfigureAwait(false);
+                return s_assemblyInfos.GetValue(metadataId, _ => info);
             }
         }
 

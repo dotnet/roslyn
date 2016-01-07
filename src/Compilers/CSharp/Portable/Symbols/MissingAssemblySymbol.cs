@@ -184,5 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
+
+        public override MetadataId MetadataId => null;
     }
 }

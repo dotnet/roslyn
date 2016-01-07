@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Linq;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -248,5 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get { return null; }
         }
+
+        public override MetadataId MetadataId => _assembly.MetadataId;
     }
 }

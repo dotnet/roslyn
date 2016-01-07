@@ -246,5 +246,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
             Return Me.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName)
         End Function
+
+        Public Overrides ReadOnly Property MetadataId As MetadataId
+            Get
+                Return _underlyingAssembly.MetadataId
+            End Get
+        End Property
     End Class
 End Namespace

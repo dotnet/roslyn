@@ -227,6 +227,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return Nothing
             End Get
         End Property
+
+        Public Overrides ReadOnly Property MetadataId As MetadataId
+            Get
+                Return _assembly.MetadataId
+            End Get
+        End Property
     End Class
 End Namespace
-
