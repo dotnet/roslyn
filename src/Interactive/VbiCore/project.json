@@ -1,5 +1,8 @@
 ﻿{
-  "dependencies": { },
+  "dependencies": {
+    "Microsoft.NETCore": "5.0.1-beta-23504",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1-beta-23504"
+  },
   "frameworks": {
     "dnxcore50": {
       "imports": "portable-net452"

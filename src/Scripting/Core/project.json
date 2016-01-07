@@ -1,11 +1,11 @@
 ﻿{
   "dependencies": {
-    "Microsoft.NETCore": "5.0.1-beta-23504",
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.1-beta-23504",
-    "System.Diagnostics.StackTrace": "4.0.1-beta-23504"
+    "Microsoft.NETCore": "5.0.0",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
+    "System.Diagnostics.StackTrace": "4.0.0"
   },
   "frameworks": {
-    "dotnet5.4": {
+    "dotnet": {
       "imports": "portable-net452"
     }
   }

@@ -82,8 +82,10 @@
 >>>>>>> 6d3af91... Add netcore test runtime project
     </ItemGroup>
 
+<!--
     <Exec Command="$(CoreClrTestDirectory)\CoreRun.exe $(CoreClrTestDirectory)\xunit.console.netcore.exe @(PortableTestAssemblies, ' ') -xml $(CoreClrTestDirectory)\TestResults.xml" />
 
+-->
     <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
 
   </Target>

@@ -1,7 +1,7 @@
 {
   "dependencies": { },
   "frameworks": {
-    "dotnet5.4": {
+    "dotnet": {
       "imports": "portable-net452"
     }
   }
