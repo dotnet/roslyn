@@ -158,7 +158,6 @@
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.Fixer.cs" />
     <Compile Include="DoNotInvokeDiagnosticDescriptorTests.cs" />
-    <Compile Include="DoNotInvokeDiagnosticDescriptorTests.Fixer.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTests.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTests.Fixer.cs" />
   </ItemGroup>

@@ -116,7 +116,6 @@
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatable.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.cs" />
     <Compile Include="DoNotInvokeDiagnosticDescriptor.cs" />
-    <Compile Include="DoNotInvokeDiagnosticDescriptor.Fixer.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbols.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbols.Fixer.cs" />
     <Compile Include="DiagnosticCategory.cs" />
@@ -130,6 +129,12 @@
   <ItemGroup>
     <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Analyzer.Utilities\Analyzer.Utilities.csproj">
+      <Project>{f8502e24-5eb1-4cdc-8887-1a0cc8008d96}</Project>
+      <Name>Analyzer.Utilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\Analyzers.Imports.targets" />

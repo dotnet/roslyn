@@ -108,7 +108,6 @@
     <Compile Include="CSharpOverrideObjectEqualsObjectWhenImplementingIequatable.cs" />
     <Compile Include="CSharpOverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.cs" />
     <Compile Include="CSharpDoNotInvokeDiagnosticDescriptor.cs" />
-    <Compile Include="CSharpDoNotInvokeDiagnosticDescriptor.Fixer.cs" />
     <Compile Include="CSharpSymbolDeclaredEventMustBeGeneratedForSourceSymbols.cs" />
     <Compile Include="CSharpSymbolDeclaredEventMustBeGeneratedForSourceSymbols.Fixer.cs" />
   </ItemGroup>

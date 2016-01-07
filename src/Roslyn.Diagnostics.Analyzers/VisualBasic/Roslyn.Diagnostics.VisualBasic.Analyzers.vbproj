@@ -106,7 +106,6 @@
     <Compile Include="BasicOverrideObjectEqualsObjectWhenImplementingIequatable.vb" />
     <Compile Include="BasicOverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.vb" />
     <Compile Include="BasicDoNotInvokeDiagnosticDescriptor.vb" />
-    <Compile Include="BasicDoNotInvokeDiagnosticDescriptor.Fixer.vb" />
     <Compile Include="BasicSymbolDeclaredEventMustBeGeneratedForSourceSymbols.vb" />
     <Compile Include="BasicSymbolDeclaredEventMustBeGeneratedForSourceSymbols.Fixer.vb" />
   </ItemGroup>
