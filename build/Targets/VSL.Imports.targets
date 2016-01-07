@@ -75,6 +75,19 @@
     </When>
   </Choose>
 
+  <!-- Because https://github.com/dotnet/roslyn/issues/7812 is not yet fixed, the IDE doesn't know if we set the PublicSign
+       flag. As a result, all design-time builds will thing we're real-signing, which causes semantics to get all screwed up.
+       The workaround for now is, for design-time builds only, to pass the DelaySign flag since that's "good enough". This
+       must be done in a target versus conditioning on BuildingProject, since BuildingProject itself is correctly set in a
+       target. -->
+  <Target Name="FixPublicSignFlagForDesignTimeBuilds" BeforeTargets="CoreCompile" Condition="'$(PublicSign)' == 'true'">
+    <PropertyGroup Condition="'$(BuildingProject)' == 'false'">
+      <!-- Turn off PublicSign, because leaving both to true will make the Csc task unhappy -->
+      <PublicSign>false</PublicSign>
+      <DelaySign>true</DelaySign>
+    </PropertyGroup>
+  </Target>
+
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
           Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
