@@ -1,18 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PortableTestUtils;
 
 using System;
+using System.Reflection;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
 using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
+using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class CsiTests : TestBase
     {
-        private string CsiPath => typeof(Csi).Assembly.Location;
+        private static readonly string CompilerVersion = typeof(Csi).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private string CsiPath => typeof(Csi).GetTypeInfo().Assembly.Location;
 
         /// <summary>
         /// csi should use the current working directory of its environment to resolve relative paths specified on command line.
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.False(result.ContainsErrors);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6523")]
+        [Fact]
         public void CurrentWorkingDirectory_Change()
         {
             var dir = Temp.CreateDirectory();
@@ -47,15 +49,15 @@ new C()
 Environment.Exit(0)
 ");
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
-Microsoft (R) Visual C# Interactive Compiler version 42.42.42.42
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
 > (1,7): error CS1504: Source file 'a.csx' could not be opened -- Could not find file.
 > (1,1): error CS0006: Metadata file 'C.dll' could not be found
 > > > > 1
-> C { }
+> C {{ }}
 > 
 ", result.Output);
 

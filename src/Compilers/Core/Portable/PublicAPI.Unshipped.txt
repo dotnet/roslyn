@@ -57,6 +57,8 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SyntaxNodeAct
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SyntaxTreeActionsCount.get -> int
 Microsoft.CodeAnalysis.Emit.DebugInformationFormat.Embedded = 3 -> Microsoft.CodeAnalysis.Emit.DebugInformationFormat
 Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb = 2 -> Microsoft.CodeAnalysis.Emit.DebugInformationFormat
+Microsoft.CodeAnalysis.ICompilationUnitSyntax
+Microsoft.CodeAnalysis.ICompilationUnitSyntax.EndOfFileToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.MetadataReference.MetadataReference(Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
 Microsoft.CodeAnalysis.ParseOptions.WithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
 Microsoft.CodeAnalysis.ScriptCompilationInfo
@@ -690,3 +692,4 @@ Microsoft.CodeAnalysis.Semantics.OperationExtensions
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.Semantics.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Semantics.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.Semantics.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Semantics.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetRootOperation(this Microsoft.CodeAnalysis.ISymbol symbol, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Semantics.IOperation
+Microsoft.CodeAnalysis.SyntaxNode.FindTrivia(int position, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, bool> stepInto) -> Microsoft.CodeAnalysis.SyntaxTrivia

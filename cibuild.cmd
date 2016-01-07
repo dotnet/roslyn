@@ -3,7 +3,7 @@
 REM Parse Arguments.
 
 set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.41.zip
+set NugetZipUrl=%NuGetZipUrlRoot%/nuget.42.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 set BuildRestore=false
@@ -48,7 +48,7 @@ if "%BuildRestore%" == "true" (
 )
 
 REM Set the build version only so the assembly version is set to the semantic version,
-REM which allows analyzers to laod because the compiler has binding redirects to the
+REM which allows analyzers to load because the compiler has binding redirects to the
 REM semantic version
 msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile=%RoslynRoot%Binaries\Bootstrap.log || goto :BuildFailed
 
@@ -59,7 +59,7 @@ copy "build\scripts\*" "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
 REM Clean the previous build
 msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile=%RoslynRoot%Binaries\BootstrapClean.log || goto :BuildFailed
 
-call :TerminateCompilerServer
+call :TerminateBuildProcesses
 
 if defined Perf (
   set Target=Build
@@ -69,7 +69,7 @@ if defined Perf (
 
 msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile=%RoslynRoot%Binaries\Build.log;verbosity=diagnostic || goto :BuildFailed
 
-call :TerminateCompilerServer
+call :TerminateBuildProcesses
 
 REM Verify that our project.lock.json files didn't change as a result of 
 REM restore.  If they do then the commit changed the dependencies without 
@@ -106,11 +106,14 @@ exit /b 0
 
 :BuildFailed
 echo Build failed with ERRORLEVEL %ERRORLEVEL%
-call :TerminateCompilerServer
+call :TerminateBuildProcesses
 exit /b 1
 
-:TerminateCompilerServer
+:TerminateBuildProcesses
 @REM Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
 @REM This prevents future CI runs from failing while trying to delete those files.
+@REM Kill any instances of msbuild.exe to ensure that we never reuse nodes (e.g. if a non-roslyn CI run
+@REM left some floating around).
 
 taskkill /F /IM vbcscompiler.exe 2> nul
+taskkill /F /IM msbuild.exe 2> nul

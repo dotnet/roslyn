@@ -177,6 +177,7 @@
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
+    <Compile Include="Diagnostics\DiagnosticEventTaskScheduler.cs" />
     <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />
     <Compile Include="Common\UpdatedEventArgs.cs" />
     <Compile Include="Diagnostics\HostDiagnosticAnalyzerPackage.cs" />

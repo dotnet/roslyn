@@ -793,27 +793,28 @@ class Test
             var ref1 = CompileIL(il1, appendDefaultHeader: false);
 
             CreateCompilationWithMscorlib(csharp, new[] { ref1 }).VerifyDiagnostics(
-                // (4,5): error CS1070: The type name 'Outer' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
-                //     Outer P { get; set; }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFoundFwd, "Outer").WithArguments("Outer", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (5,5): error CS1070: The type name 'Outer' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
                 //     Outer.Inner M() { return null; }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFoundFwd, "Outer").WithArguments("Outer", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (6,5): error CS1070: The type name 'Outer' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
-                //     Outer.Inner<string> F;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFoundFwd, "Outer").WithArguments("Outer", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (6,25): warning CS0169: The field 'Test.F' is never used
-                //     Outer.Inner<string> F;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("Test.F"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFoundFwd, "Outer").WithArguments("Outer", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 5),
                 // (8,5): error CS0246: The type or namespace name 'Generic' could not be found (are you missing a using directive or an assembly reference?)
                 //     Generic G0 { get; set; }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Generic").WithArguments("Generic"),
-                // (9,5): error CS1070: The type name 'Generic<int>' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Generic").WithArguments("Generic").WithLocation(8, 5),
+                // (9,5): error CS1070: The type name 'Generic<>' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
                 //     Generic<int> G1 { get; set; }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFoundFwd, "Generic<int>").WithArguments("Generic<int>", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (10,5): error CS0246: The type or namespace name 'Generic<int, int>' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFoundFwd, "Generic<int>").WithArguments("Generic<>", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 5),
+                // (10,5): error CS0246: The type or namespace name 'Generic<,>' could not be found (are you missing a using directive or an assembly reference?)
                 //     Generic<int, int> G2 { get; set; }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Generic<int, int>").WithArguments("Generic<int, int>"));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Generic<int, int>").WithArguments("Generic<,>").WithLocation(10, 5),
+                // (4,5): error CS1070: The type name 'Outer' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
+                //     Outer P { get; set; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFoundFwd, "Outer").WithArguments("Outer", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 5),
+                // (6,5): error CS1070: The type name 'Outer' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
+                //     Outer.Inner<string> F;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFoundFwd, "Outer").WithArguments("Outer", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 5),
+                // (6,25): warning CS0169: The field 'Test.F' is never used
+                //     Outer.Inner<string> F;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("Test.F").WithLocation(6, 25)
+                );
         }
 
         [Fact]
