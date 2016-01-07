@@ -1,20 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
@@ -37,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         internal abstract bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
+
+        protected abstract Compilation CreateCompilation(PortableExecutableReference reference);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -75,12 +75,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                         var finder = new SymbolReferenceFinder(this, document, semanticModel, diagnostic, node, cancellationToken);
 
+                        // Caches so we don't produce the same data multiple times while searching 
+                        // all over the solution.
+                        var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>>();
+                        var referenceToCompilation = new ConcurrentDictionary<PortableExecutableReference, Compilation>();
+
                         // Look for exact matches first:
-                        await FindResults(project, allSymbolReferences, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        await FindResults(projectToAssembly, referenceToCompilation, project, allSymbolReferences, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                         if (allSymbolReferences.Count == 0)
                         {
                             // No exact matches found.  Fall back to fuzzy searching.
-                            await FindResults(project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            await FindResults(projectToAssembly, referenceToCompilation, project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                         }
 
                         // Nothing found at all. No need to proceed.
@@ -106,17 +111,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private async Task FindResults(Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+        private async Task FindResults(
+            ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+            ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
+            Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             await FindResultsInCurrentProject(project, allSymbolReferences, finder, exact).ConfigureAwait(false);
-            await FindResultsInUnreferencedProjects(project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
-            await FindResultsInUnreferencedMetadataReferences(project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+            await FindResultsInUnreferencedProjects(projectToAssembly, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+            await FindResultsInUnreferencedMetadataReferences(referenceToCompilation, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task FindResultsInCurrentProject(
             Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact)
         {
-            AddRange(allSymbolReferences, await finder.FindInProjectAsync(project, includeDirectReferences: true, exact: exact).ConfigureAwait(false));
+            var references = await finder.FindInProjectAndDirectReferencesAsync(project, exact).ConfigureAwait(false);
+            AddRange(allSymbolReferences, references);
         }
 
         private async Task<Solution> AddImportAndReferenceAsync(
@@ -160,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
         private async Task FindResultsInUnreferencedProjects(
+            ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
             Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             // If we didn't find enough hits searching just in the project, then check 
@@ -176,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // direct references.  i.e. we don't want to search in its metadata references
                 // or in the projects it references itself. We'll be searching those entities
                 // individually.
-                AddRange(allSymbolReferences, await finder.FindInProjectAsync(unreferencedProject, includeDirectReferences: false, exact: exact).ConfigureAwait(false));
+                AddRange(allSymbolReferences, await finder.FindInProjectSourceOnlyAsync(projectToAssembly, unreferencedProject, exact: exact).ConfigureAwait(false));
                 if (allSymbolReferences.Count >= MaxResults)
                 {
                     return;
@@ -185,7 +195,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
         private async Task FindResultsInUnreferencedMetadataReferences(
-            Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+            ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
+            Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact,
+            CancellationToken cancellationToken)
         {
             if (allSymbolReferences.Count > 0)
             {
@@ -201,54 +213,44 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             var seenReferences = new HashSet<PortableExecutableReference>(comparer: this);
             seenReferences.AddAll(project.MetadataReferences.OfType<PortableExecutableReference>());
 
-            // Check all the other projects in the system so see if they have a metadata reference
-            // with a potential result.
-            foreach (var otherProject in project.Solution.Projects)
-            {
-                if (otherProject == project)
-                {
-                    continue;
-                }
+            var newReferences =
+                project.Solution.Projects.Where(p => p != project)
+                                         .SelectMany(p => p.MetadataReferences.OfType<PortableExecutableReference>())
+                                         .Distinct(comparer: this)
+                                         .Where(r => !seenReferences.Contains(r));
 
-                await FindResultsInMetadataReferences(
-                    otherProject, allSymbolReferences, finder, seenReferences, exact, cancellationToken).ConfigureAwait(false);
-                if (allSymbolReferences.Count >= MaxResults)
+            // Search all metadata references in parallel.
+            var findTasks = new HashSet<Task<List<SymbolReference>>>();
+
+            foreach (var reference in newReferences)
+            {
+                var compilation = referenceToCompilation.GetOrAdd(reference, CreateCompilation);
+
+                // Ignore netmodules.  First, they're incredibly esoteric and barely used.
+                // Second, the SymbolFinder api doesn't even support searching them. 
+                var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
+                if (assembly != null)
                 {
-                    break;
+                    findTasks.Add(finder.FindInMetadataAsync(project.Solution, assembly, reference, exact));
                 }
             }
-        }
 
-        private async Task FindResultsInMetadataReferences(
-            Project otherProject,
-            List<SymbolReference> allSymbolReferences,
-            SymbolReferenceFinder finder,
-            HashSet<PortableExecutableReference> seenReferences,
-            bool exact,
-            CancellationToken cancellationToken)
-        {
-            // See if this project has a metadata reference we haven't already looked at.
-            var newMetadataReferences = otherProject.MetadataReferences.OfType<PortableExecutableReference>();
-
-            Compilation compilation = null;
-            foreach (var reference in newMetadataReferences)
+            while (findTasks.Count > 0)
             {
-                // Make sure we don't check the same metadata reference multiple times from 
-                // different projects.
-                if (seenReferences.Add(reference))
-                {
-                    // Defer making the compilation until necessary.
-                    compilation = compilation ?? await otherProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                // Keep on looping through the 'find' tasks, processing each when they finish.
+                cancellationToken.ThrowIfCancellationRequested();
+                var doneTask = await Task.WhenAny(findTasks).ConfigureAwait(false);
 
-                    // Ignore netmodules.  First, they're incredibly esoteric and barely used.
-                    // Second, the SymbolFinder api doesn't even support searching them. 
-                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    if (assembly != null)
-                    {
-                        AddRange(allSymbolReferences, await finder.FindInMetadataAsync(otherProject.Solution, assembly, reference, exact).ConfigureAwait(false));
-                    }
-                }
+                // One of the tasks finished.  Remove it from the list we're waiting on.
+                findTasks.Remove(doneTask);
 
+                // Add its results to the final result set we're keeping.
+                AddRange(allSymbolReferences, await doneTask.ConfigureAwait(false));
+
+                // If we've got enough, no need to keep searching. 
+                // Note: Should we cancel the existing work?  IMO, no.  These tasks will
+                // cause our indices to be created if necessary.  And that's good for future searches.
+                // If the indices are already created, then searching them should be quick. 
                 if (allSymbolReferences.Count >= MaxResults)
                 {
                     break;
@@ -378,9 +380,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             }
 
-            internal Task<List<SymbolReference>> FindInProjectAsync(Project project, bool includeDirectReferences, bool exact)
+            internal Task<List<SymbolReference>> FindInProjectAndDirectReferencesAsync(
+                Project project, bool exact)
             {
-                var searchScope = new ProjectSearchScope(project, includeDirectReferences, exact, _cancellationToken);
+                var searchScope = new ProjectAndDirectReferencesSearchScope(project, exact, _cancellationToken);
+                return DoAsync(searchScope);
+            }
+
+            internal Task<List<SymbolReference>> FindInProjectSourceOnlyAsync(
+                ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+                Project project, bool exact)
+            {
+                var searchScope = new ProjectSourceOnlySearchScope(projectToAssembly, project, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 
