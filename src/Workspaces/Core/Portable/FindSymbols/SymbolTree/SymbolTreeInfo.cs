@@ -183,22 +183,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static readonly ConditionalWeakTable<IAssemblySymbol, SymbolTreeInfo> s_assemblyInfos = new ConditionalWeakTable<IAssemblySymbol, SymbolTreeInfo>();
 
+        private static readonly SemaphoreSlim s_assemblyInfosGate = new SemaphoreSlim(1);
+
         /// <summary>
         /// this gives you SymbolTreeInfo for a metadata
         /// </summary>
         public static async Task<SymbolTreeInfo> GetInfoForAssemblyAsync(Solution solution, IAssemblySymbol assembly, string filePath, CancellationToken cancellationToken)
         {
-            SymbolTreeInfo info;
-            if (s_assemblyInfos.TryGetValue(assembly, out info))
+            using (await s_assemblyInfosGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                return info;
-            }
+                SymbolTreeInfo info;
+                if (s_assemblyInfos.TryGetValue(assembly, out info))
+                {
+                    return info;
+                }
 
-            // IAssemblySymbol is immutable, even if we encounter a race, we might do same work twice but still will be correct.
-            // now, we can't use AsyncLazy here since constructing information requires a solution. if we ever get cancellation before
-            // finishing calculating, async lazy will hold onto solution graph until next call (if it ever gets called)
-            info = await LoadOrCreateAsync(solution, assembly, filePath, cancellationToken).ConfigureAwait(false);
-            return s_assemblyInfos.GetValue(assembly, _ => info);
+                info = await LoadOrCreateAsync(solution, assembly, filePath, cancellationToken).ConfigureAwait(false);
+                return s_assemblyInfos.GetValue(assembly, _ => info);
+            }
         }
 
         internal static SymbolTreeInfo Create(VersionStamp version, IAssemblySymbol assembly, CancellationToken cancellationToken)
