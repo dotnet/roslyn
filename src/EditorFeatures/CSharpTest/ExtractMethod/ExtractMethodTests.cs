@@ -8146,7 +8146,7 @@ class A
 {
     static void Foo<T, S>(T x) where T : IList<S>
     {
-        var y = GetY<T, S>(x);
+        var y = GetY(x);
     }
 
     private static int GetY<T, S>(T x) where T : IList<S>
@@ -8838,7 +8838,7 @@ class A
 {
     static void Foo<T, S, U>(T x) where T : IList<S> where S : IList<U>
     {
-        var y = GetY<T, S>(x);
+        var y = GetY(x);
     }
 
     private static int GetY<T, S>(T x) where T : IList<S>
@@ -8883,7 +8883,7 @@ class A
 {
     static void Foo<T, S>(S x) where S : I<T> where T : IComparable<T>
     {
-        var y = GetY<T, S>(x);
+        var y = GetY(x);
     }
 
     private static int GetY<T, S>(S x)
@@ -8931,7 +8931,7 @@ class A
 {
     static void Foo<T, S>(S x) where S : I<T> where T : class
     {
-        var y = GetY<T, S>(x);
+        var y = GetY(x);
     }
 
     private static int GetY<T, S>(S x)
@@ -9002,7 +9002,7 @@ class B : A
 {
     public override void Foo<T, S>(S x)
     {
-        var y = GetY<T, S>(x);
+        var y = GetY(x);
     }
 
     private static int GetY<T, S>(S x)

@@ -408,6 +408,49 @@ class C
         }
 
         [Fact]
+        public void TestGenericConstraintMethodTypeInference()
+        {
+            TestOverloadResolutionWithDiff
+            (
+@"
+using System;
+using System.Collections.Generic;
+
+class SimpleContainer : IEnumerable<int> {}
+
+class ComparableItem : IComparable<string> {}
+class ContainerOfComparable : IEnumerable<ComparableItem> {}
+
+class ResolveableMultiContainer : IEnumerable<string>, IEnumerable<char[]>, IComparer<string> {}
+class MultiPurposeContainer : IEnumerable<char>, IEquatable<string> {}
+
+class C
+{
+    void SimpleInference<TContainer, TItem>( TContainer c ) where TContainer : IEnumerable<TItem> {}
+
+    void ChainedInference<TContainer, TItem, TComparand>( TContainer c )
+        where TContainer : IEnumerable<TItem>
+        where TItem : IComparable<TComparand>
+    {
+    }
+
+    void MultipleChoiceInference<TContainer, TItem>( TContainer c ) where TContainer : IEnumerable<TItem>, IComparer<TItem> {}
+
+    void MultipleParameterInference<TContainer, TItem, TEquatable>( TContainer c ) where TContainer : IEnumerable<TItem>, IEquatable<TEquatable> {}
+
+    void M()
+    {
+        SimpleInference( default( SimpleContainer ) );                   //-C.SimpleInference<SimpleContainer, int>(SimpleContainer)
+        ChainedInference( default( ContainerOfComparable ) );            //-C.ChainedInference<ContainerOfComparable, ComparableItem, string>(ContainerOfComparable)
+        MultipleChoiceInference( default( ResolveableMultiContainer ) ); //-C.MultipleChoiceInference<ResolveableMultiContainer, string>(ResolveableMultiContainer)
+        MultipleParameterInference( default( MultiPurposeContainer ) );  //-C.MultipleParameterInference<MultiPurposeContainer, char, string>(MultiPurposeContainer)
+    }
+}
+"
+            );
+        }
+
+        [Fact]
         public void TestLambdaTypeInference()
         {
             TestOverloadResolutionWithDiff(
