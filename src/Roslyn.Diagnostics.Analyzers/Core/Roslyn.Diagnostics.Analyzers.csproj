@@ -95,7 +95,11 @@
     <None Include="uninstall.ps1" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DeclarePublicAPIAnalyzer.cs" />
+    <Compile Include="DeclarePublicAPIAnalyzer.Impl.cs" />
+    <Compile Include="DeclarePublicAPIFix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RoslynDiagnosticIds.cs" />
     <Compile Include="RoslynDiagnosticsAnalyzersResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

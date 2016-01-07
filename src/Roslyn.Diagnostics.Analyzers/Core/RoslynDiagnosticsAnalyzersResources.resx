@@ -172,24 +172,6 @@
   <data name="DoNotInvokeDiagnosticDescriptorMessage" xml:space="preserve">
     <value>Do not invoke Diagnostic.Descriptor</value>
   </data>
-  <data name="AddPublicTypesAndMembersToTheDeclaredAPITitle" xml:space="preserve">
-    <value>Add public types and members to the declared API</value>
-  </data>
-  <data name="AddPublicTypesAndMembersToTheDeclaredAPIDescription" xml:space="preserve">
-    <value>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
-  </data>
-  <data name="AddPublicTypesAndMembersToTheDeclaredAPIMessage" xml:space="preserve">
-    <value>Add public types and members to the declared API</value>
-  </data>
-  <data name="RemoveDeletedTypesAndMembersFromTheDeclaredAPITitle" xml:space="preserve">
-    <value>Remove deleted types and members from the declared API</value>
-  </data>
-  <data name="RemoveDeletedTypesAndMembersFromTheDeclaredAPIDescription" xml:space="preserve">
-    <value>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
-  </data>
-  <data name="RemoveDeletedTypesAndMembersFromTheDeclaredAPIMessage" xml:space="preserve">
-    <value>Remove deleted types and members from the declared API</value>
-  </data>
   <data name="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle" xml:space="preserve">
     <value>SymbolDeclaredEvent must be generated for source symbols</value>
   </data>
@@ -199,25 +181,40 @@
   <data name="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage" xml:space="preserve">
     <value>SymbolDeclaredEvent must be generated for source symbols</value>
   </data>
-  <data name="TheContentsOfThePublicAPIFilesAreInvalidTitle" xml:space="preserve">
+  <data name="DeclarePublicApiTitle" xml:space="preserve">
+    <value>Add public types and members to the declared API</value>
+  </data>
+  <data name="DeclarePublicApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' is not part of the declared API.</value>
+  </data>
+  <data name="DeclarePublicApiDescription" xml:space="preserve">
+    <value>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+  </data>
+  <data name="RemoveDeletedApiTitle" xml:space="preserve">
+    <value>Remove deleted types and members from the declared API</value>
+  </data>
+  <data name="RemoveDeletedApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' is part of the declared API, but is either not public or could not be found</value>
+  </data>
+  <data name="RemoveDeletedApiDescription" xml:space="preserve">
+    <value>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+  </data>
+  <data name="ExposedNoninstantiableTypeMessage" xml:space="preserve">
+    <value>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</value>
+  </data>
+  <data name="ExposedNoninstantiableTypeTitle" xml:space="preserve">
+    <value>Constructor make noninheritable base class inheritable</value>
+  </data>
+  <data name="PublicApiFilesInvalidTitle" xml:space="preserve">
     <value>The contents of the public API files are invalid</value>
   </data>
-  <data name="TheContentsOfThePublicAPIFilesAreInvalidDescription" xml:space="preserve">
-    <value>#N/A</value>
+  <data name="PublicApiFilesInvalidMessage" xml:space="preserve">
+    <value>The contents of the public API files are invalid: {0}</value>
   </data>
-  <data name="TheContentsOfThePublicAPIFilesAreInvalidMessage" xml:space="preserve">
-    <value>The contents of the public API files are invalid</value>
+  <data name="DuplicateSymbolsInPublicApiFilesTitle" xml:space="preserve">
+    <value>Do not duplicate symbols in public API files</value>
   </data>
-  <data name="CategoryApiDesign" xml:space="preserve">
-    <value>ApiDesign</value>
-  </data>
-  <data name="CategoryPerformance" xml:space="preserve">
-    <value>Performance</value>
-  </data>
-  <data name="CategoryReliability" xml:space="preserve">
-    <value>Reliability</value>
-  </data>
-  <data name="CategoryUsage" xml:space="preserve">
-    <value>Usage</value>
+  <data name="DuplicateSymbolsInPublicApiFilesMessage" xml:space="preserve">
+    <value>The symbol '{0}' appears more than once in the public API files.</value>
   </data>
 </root>
