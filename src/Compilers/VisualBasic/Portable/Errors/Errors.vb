@@ -1680,6 +1680,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InterpolatedStringFactoryError = 37251
         ERR_DebugEntryPointNotSourceMethodDefinition = 37252
         ERR_InvalidPathMap = 37253
+        ERR_PublicSignNoKey = 37254
 
         ERR_LastPlusOne
 
