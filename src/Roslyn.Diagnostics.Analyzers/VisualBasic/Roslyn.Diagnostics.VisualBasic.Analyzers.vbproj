@@ -107,14 +107,8 @@
     <Compile Include="BasicOverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.vb" />
     <Compile Include="BasicDoNotInvokeDiagnosticDescriptor.vb" />
     <Compile Include="BasicDoNotInvokeDiagnosticDescriptor.Fixer.vb" />
-    <Compile Include="BasicAddPublicTypesAndMembersToTheDeclaredAPI.vb" />
-    <Compile Include="BasicAddPublicTypesAndMembersToTheDeclaredAPI.Fixer.vb" />
-    <Compile Include="BasicRemoveDeletedTypesAndMembersFromTheDeclaredAPI.vb" />
-    <Compile Include="BasicRemoveDeletedTypesAndMembersFromTheDeclaredAPI.Fixer.vb" />
     <Compile Include="BasicSymbolDeclaredEventMustBeGeneratedForSourceSymbols.vb" />
     <Compile Include="BasicSymbolDeclaredEventMustBeGeneratedForSourceSymbols.Fixer.vb" />
-    <Compile Include="BasicTheContentsOfThePublicAPIFilesAreInvalid.vb" />
-    <Compile Include="BasicTheContentsOfThePublicAPIFilesAreInvalid.Fixer.vb" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\vb\Microsoft.CodeAnalysis.Analyzers.dll" />

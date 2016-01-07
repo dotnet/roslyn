@@ -113,14 +113,8 @@
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.cs" />
     <Compile Include="DoNotInvokeDiagnosticDescriptor.cs" />
     <Compile Include="DoNotInvokeDiagnosticDescriptor.Fixer.cs" />
-    <Compile Include="AddPublicTypesAndMembersToTheDeclaredAPI.cs" />
-    <Compile Include="AddPublicTypesAndMembersToTheDeclaredAPI.Fixer.cs" />
-    <Compile Include="RemoveDeletedTypesAndMembersFromTheDeclaredAPI.cs" />
-    <Compile Include="RemoveDeletedTypesAndMembersFromTheDeclaredAPI.Fixer.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbols.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbols.Fixer.cs" />
-    <Compile Include="TheContentsOfThePublicAPIFilesAreInvalid.cs" />
-    <Compile Include="TheContentsOfThePublicAPIFilesAreInvalid.Fixer.cs" />
     <Compile Include="DiagnosticCategory.cs" />
   </ItemGroup>
   <ItemGroup>

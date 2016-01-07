@@ -109,14 +109,8 @@
     <Compile Include="CSharpOverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.cs" />
     <Compile Include="CSharpDoNotInvokeDiagnosticDescriptor.cs" />
     <Compile Include="CSharpDoNotInvokeDiagnosticDescriptor.Fixer.cs" />
-    <Compile Include="CSharpAddPublicTypesAndMembersToTheDeclaredAPI.cs" />
-    <Compile Include="CSharpAddPublicTypesAndMembersToTheDeclaredAPI.Fixer.cs" />
-    <Compile Include="CSharpRemoveDeletedTypesAndMembersFromTheDeclaredAPI.cs" />
-    <Compile Include="CSharpRemoveDeletedTypesAndMembersFromTheDeclaredAPI.Fixer.cs" />
     <Compile Include="CSharpSymbolDeclaredEventMustBeGeneratedForSourceSymbols.cs" />
     <Compile Include="CSharpSymbolDeclaredEventMustBeGeneratedForSourceSymbols.Fixer.cs" />
-    <Compile Include="CSharpTheContentsOfThePublicAPIFilesAreInvalid.cs" />
-    <Compile Include="CSharpTheContentsOfThePublicAPIFilesAreInvalid.Fixer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />

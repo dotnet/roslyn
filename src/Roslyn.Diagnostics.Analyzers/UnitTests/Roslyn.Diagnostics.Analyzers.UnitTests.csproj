@@ -158,14 +158,8 @@
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.Fixer.cs" />
     <Compile Include="DoNotInvokeDiagnosticDescriptorTests.cs" />
     <Compile Include="DoNotInvokeDiagnosticDescriptorTests.Fixer.cs" />
-    <Compile Include="AddPublicTypesAndMembersToTheDeclaredAPITests.cs" />
-    <Compile Include="AddPublicTypesAndMembersToTheDeclaredAPITests.Fixer.cs" />
-    <Compile Include="RemoveDeletedTypesAndMembersFromTheDeclaredAPITests.cs" />
-    <Compile Include="RemoveDeletedTypesAndMembersFromTheDeclaredAPITests.Fixer.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTests.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTests.Fixer.cs" />
-    <Compile Include="TheContentsOfThePublicAPIFilesAreInvalidTests.cs" />
-    <Compile Include="TheContentsOfThePublicAPIFilesAreInvalidTests.Fixer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
