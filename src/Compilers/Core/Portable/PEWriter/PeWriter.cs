@@ -81,7 +81,6 @@ namespace Microsoft.Cci
 
             ManagedTextSection textSection;
             int moduleVersionIdOffsetInMetadataStream;
-            int pdbIdOffsetInPortablePdbStream;
 
             int entryPointToken;
             MetadataSizes metadataSizes;
@@ -98,9 +97,8 @@ namespace Microsoft.Cci
                 nativePdbWriterOpt?.SetEntryPoint((uint)debugEntryPointToken);
             }
 
-            mdWriter.SerializeMetadataAndIL(
+            mdWriter.SerializeManagedTextSection(
                 metadataBuilder,
-                debugMetadataBuilderOpt,
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceBuilder,
@@ -108,11 +106,23 @@ namespace Microsoft.Cci
                 properties.Machine,
                 textSectionLocation.RelativeVirtualAddress,
                 pdbPathOpt,
-                debugEntryPointToken,
                 out moduleVersionIdOffsetInMetadataStream,
-                out pdbIdOffsetInPortablePdbStream,
                 out textSection,
                 out metadataSizes);
+
+            int pdbIdOffsetInPortablePdbStream;
+            if (mdWriter.EmitStandaloneDebugMetadata)
+            {
+                mdWriter.SerializeStandaloneDebugMetadata(
+                    debugMetadataBuilderOpt,
+                    metadataSizes,
+                    debugEntryPointToken,
+                    out pdbIdOffsetInPortablePdbStream);
+            }
+            else
+            {
+                pdbIdOffsetInPortablePdbStream = 0;
+            }
 
             ContentId nativePdbContentId;
             if (nativePdbWriterOpt != null)

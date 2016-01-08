@@ -436,7 +436,7 @@ namespace Microsoft.Cci
         // Null otherwise.
         private readonly MetadataBuilder _debugMetadataOpt;
 
-        private bool EmitStandaloneDebugMetadata => _debugMetadataOpt != null && metadata != _debugMetadataOpt;
+        internal bool EmitStandaloneDebugMetadata => _debugMetadataOpt != null && metadata != _debugMetadataOpt;
 
         private readonly Dictionary<ICustomAttribute, BlobIdx> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobIdx>();
         private readonly Dictionary<ITypeReference, BlobIdx> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobIdx>();
@@ -1816,14 +1816,14 @@ namespace Microsoft.Cci
             pdbWriterOpt?.SetMetadataEmitter(this);
 
             // TODO: we can precalculate the exact size of IL stream
-            var ilWriter = new BlobBuilder(1024);
-            var metadataWriter = new BlobBuilder(4 * 1024);
-            var mappedFieldDataWriter = new BlobBuilder(0);
-            var managedResourceDataWriter = new BlobBuilder(0);
+            var ilBuilder = new BlobBuilder(1024);
+            var metadataBuilder = new BlobBuilder(4 * 1024);
+            var mappedFieldDataBuilder = new BlobBuilder(0);
+            var managedResourceDataBuilder = new BlobBuilder(0);
 
             // Add 4B of padding to the start of the separated IL stream, 
             // so that method RVAs, which are offsets to this stream, are never 0.
-            ilWriter.WriteUInt32(0);
+            ilBuilder.WriteUInt32(0);
 
             // this is used to handle edit-and-continue emit, so we should have a module
             // version ID that is imposed by the caller (the same as the previous module version ID).
@@ -1831,38 +1831,17 @@ namespace Microsoft.Cci
             // stream.
             Debug.Assert(this.module.Properties.PersistentIdentifier != default(Guid));
 
-            BuildMetadataAndIL(
-                pdbWriterOpt,
-                ilWriter,
-                mappedFieldDataWriter,
-                managedResourceDataWriter);
+            BuildMetadataAndIL(pdbWriterOpt, ilBuilder, mappedFieldDataBuilder, managedResourceDataBuilder);
 
-            int moduleVersionIdOffsetInMetadataStream;
-            int pdbIdOffsetInMetadataStream;
-            ManagedTextSection textSection;
+            Debug.Assert(mappedFieldDataBuilder.Count == 0);
+            Debug.Assert(managedResourceDataBuilder.Count == 0);
 
-            SerializeMetadataAndIL(
-                metadataWriter,
-                default(BlobBuilder),
-                ilWriter,
-                mappedFieldDataWriter,
-                managedResourceDataWriter,
-                imageCharacteristics: default(Characteristics),
-                machine: default(Machine),
-                textSectionRva: -1,
-                pdbPathOpt: null,
-                debugEntryPointToken: 0,
-                moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream,
-                pdbIdOffsetInPortablePdbStream: out pdbIdOffsetInMetadataStream,
-                textSection: out textSection,
-                metadataSizes: out metadataSizes);
+            var serializer = new TypeSystemMetadataSerializer(metadata, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
+            serializer.SerializeMetadata(metadataBuilder, methodBodyStreamRva: 0, mappedFieldDataStreamRva: 0);
+            metadataSizes = serializer.MetadataSizes;
 
-            ilWriter.WriteContentTo(ilStream);
-            metadataWriter.WriteContentTo(metadataStream);
-
-            Debug.Assert(mappedFieldDataWriter.Count == 0);
-            Debug.Assert(managedResourceDataWriter.Count == 0);
-            Debug.Assert(pdbIdOffsetInMetadataStream == 0);
+            ilBuilder.WriteContentTo(ilStream);
+            metadataBuilder.WriteContentTo(metadataStream);
         }
 
         public void BuildMetadataAndIL(
@@ -1891,20 +1870,17 @@ namespace Microsoft.Cci
             PopulateTables(methodBodyOffsets, mappedFieldDataBuilder, managedResourceDataBuilder);
         }
 
-        public void SerializeMetadataAndIL(
+        public void SerializeManagedTextSection(
             BlobBuilder metadataBuilder,
-            BlobBuilder debugMetadataBuilderOpt,
-            BlobBuilder ilBuilder, 
+            BlobBuilder ilBuilder,
             BlobBuilder mappedFieldDataBuilder,
             BlobBuilder managedResourceDataBuilder,
             Characteristics imageCharacteristics,
             Machine machine,
-            int textSectionRva, 
+            int textSectionRva,
             string pdbPathOpt,
-            int debugEntryPointToken,
             out int moduleVersionIdOffsetInMetadataStream,
-            out int pdbIdOffsetInPortablePdbStream,
-            out ManagedTextSection textSection, 
+            out ManagedTextSection textSection,
             out MetadataSizes metadataSizes)
         {
             var serializer = new TypeSystemMetadataSerializer(metadata, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
@@ -1914,38 +1890,30 @@ namespace Microsoft.Cci
             int methodBodyStreamRva;
             int mappedFieldDataStreamRva;
 
-            if (textSectionRva >= 0)
-            {
-                textSection = new ManagedTextSection(
-                    metadataSizes.MetadataSize,
-                    ilStreamSize: ilBuilder.Count,
-                    mappedFieldDataSize: mappedFieldDataBuilder.Count,
-                    resourceDataSize: managedResourceDataBuilder.Count,
-                    strongNameSignatureSize: CalculateStrongNameSignatureSize(module),
-                    imageCharacteristics: imageCharacteristics,
-                    machine: machine,
-                    pdbPathOpt: pdbPathOpt,
-                    isDeterministic: _deterministic);
+            textSection = new ManagedTextSection(
+                metadataSizes.MetadataSize,
+                ilStreamSize: ilBuilder.Count,
+                mappedFieldDataSize: mappedFieldDataBuilder.Count,
+                resourceDataSize: managedResourceDataBuilder.Count,
+                strongNameSignatureSize: CalculateStrongNameSignatureSize(module),
+                imageCharacteristics: imageCharacteristics,
+                machine: machine,
+                pdbPathOpt: pdbPathOpt,
+                isDeterministic: _deterministic);
 
-                methodBodyStreamRva = textSectionRva + textSection.OffsetToILStream;
-                mappedFieldDataStreamRva = textSectionRva + textSection.CalculateOffsetToMappedFieldDataStream();
-            }
-            else
-            {
-                textSection = null;
-                methodBodyStreamRva = 0;
-                mappedFieldDataStreamRva = 0;
-            }
+            methodBodyStreamRva = textSectionRva + textSection.OffsetToILStream;
+            mappedFieldDataStreamRva = textSectionRva + textSection.CalculateOffsetToMappedFieldDataStream();
 
             serializer.SerializeMetadata(metadataBuilder, methodBodyStreamRva, mappedFieldDataStreamRva);
             moduleVersionIdOffsetInMetadataStream = serializer.ModuleVersionIdOffset;
+        }
 
-            if (!EmitStandaloneDebugMetadata)
-            {
-                pdbIdOffsetInPortablePdbStream = 0;
-                return;
-            }
-
+        public void SerializeStandaloneDebugMetadata(
+            BlobBuilder debugMetadataBuilderOpt,
+            MetadataSizes metadataSizes,
+            int debugEntryPointToken,
+            out int pdbIdOffsetInPortablePdbStream)
+        {
             Debug.Assert(_debugMetadataOpt != null);
 
             var debugSerializer = new StandaloneDebugMetadataSerializer(_debugMetadataOpt, metadataSizes.RowCounts, debugEntryPointToken, IsMinimalDelta);
