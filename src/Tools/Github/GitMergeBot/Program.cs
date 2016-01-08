@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -30,6 +32,7 @@ namespace GitMergeBot
                 { "d|dest=", "The destination branch of the merge operation.", value => options.DestinationBranch = value },
                 { "su|sourceuser=", "The user hosting the source branch of the merge operation.", value => options.SourceUser = value },
                 { "du|destuser=", "The user hosting the destination branch of the merge operation.", value => options.DestinationUser = value },
+                { "f|force", "Force the creation of the PR even if an open PR already exists.", value => options.Force = value != null },
                 { "debug", "Print debugging information about the merge but don't actually create the pull request.", value => options.Debug = value != null },
                 { "h|help", "Show this message and exit.", value => options.ShowHelp = value != null }
             };
@@ -72,7 +75,14 @@ namespace GitMergeBot
             _client = new GitHubClient(new ProductHeaderValue(_options.SourceUser));
             _client.Credentials = new Credentials(_options.AuthToken);
             var remoteIntoBranch = await GetShaFromBranch(_options.DestinationUser, _options.RepoName, _options.SourceBranch);
-            var newBranchName = await MakePrBranch(_options.SourceUser, _options.RepoName, remoteIntoBranch, $"merge-{_options.SourceBranch}-into-{_options.DestinationBranch}");
+            var newBranchPrefix = $"merge-{_options.SourceBranch}-into-{_options.DestinationBranch}";
+            if (!_options.Force && await DoesOpenPrAlreadyExist(newBranchPrefix))
+            {
+                Console.WriteLine("Existing merge PRs exist; aboring creation.  Use `--force` option to override.");
+                return;
+            }
+
+            var newBranchName = await MakePrBranch(_options.SourceUser, _options.RepoName, remoteIntoBranch, newBranchPrefix);
             await SubmitPullRequest(newBranchName);
             return;
         }
@@ -82,6 +92,31 @@ namespace GitMergeBot
         {
             var refs = await _client.GitDatabase.Reference.Get(user, repo, $"heads/{branchName}");
             return refs.Object.Sha;
+        }
+
+        /// <returns>True if an existing auto merge PR is still open.</returns>
+        private async Task<bool> DoesOpenPrAlreadyExist(string newBranchPrefix)
+        {
+            return (await GetExistingMergePrs(newBranchPrefix)).Count > 0;
+        }
+
+        /// <returns>The existing open merge PRs.</returns>
+        private async Task<IList<PullRequest>> GetExistingMergePrs(string newBranchPrefix)
+        {
+            var prr = new PullRequestRequest()
+            {
+                Head = $"{_options.SourceUser}:{newBranchPrefix}"
+            };
+            var allPullRequests = await _client.PullRequest.GetAllForRepository(_options.DestinationUser, _options.RepoName);
+            var openPrs = allPullRequests.Where(pr => pr.Head.Ref.StartsWith(newBranchPrefix)).ToList();
+
+            Console.WriteLine($"Found {openPrs.Count} existing open merge pull requests.");
+            foreach (var pr in openPrs)
+            {
+                Console.WriteLine($"  Open PR: {pr.HtmlUrl}");
+            }
+
+            return openPrs;
         }
 
         /// <summary>

@@ -12,6 +12,7 @@ namespace GitMergeBot
         public string DestinationBranch { get; set; }
         public string SourceUser { get; set; }
         public string DestinationUser { get; set; }
+        public bool Force { get; set; }
         public bool Debug { get; set; }
         public bool ShowHelp { get; set; }
 
