@@ -54,24 +54,33 @@ namespace GitMergeBot
             {
                 var github = new GitHubClient(new ProductHeaderValue(options.SourceUser));
                 github.Credentials = new Credentials(options.AuthToken);
-                new Program().MakePullRequest(github, options).GetAwaiter().GetResult();
+                new Program(options).MakePullRequest().GetAwaiter().GetResult();
                 return 0;
             }
         }
 
-        public async Task MakePullRequest(GitHubClient github, Options options)
-        {
+        private Options _options;
+        private GitHubClient _client;
 
-            var remoteIntoBranch = await GetShaFromBranch(github, options.DestinationUser, options.RepoName, options.SourceBranch);
-            var newBranchName = await MakePrBranch(github, options, options.SourceUser, options.RepoName, remoteIntoBranch, $"merge-{options.SourceBranch}-into-{options.DestinationBranch}");
-            await SubmitPullRequest(github, options, newBranchName);
+        private Program(Options options)
+        {
+            _options = options;
+        }
+
+        public async Task MakePullRequest()
+        {
+            _client = new GitHubClient(new ProductHeaderValue(_options.SourceUser));
+            _client.Credentials = new Credentials(_options.AuthToken);
+            var remoteIntoBranch = await GetShaFromBranch(_options.DestinationUser, _options.RepoName, _options.SourceBranch);
+            var newBranchName = await MakePrBranch(_options.SourceUser, _options.RepoName, remoteIntoBranch, $"merge-{_options.SourceBranch}-into-{_options.DestinationBranch}");
+            await SubmitPullRequest(newBranchName);
             return;
         }
 
         /// <returns> The SHA at the tip of `branchName` in the repository `user/repo` </returns>
-        private async Task<string> GetShaFromBranch(GitHubClient github, string user, string repo, string branchName) 
+        private async Task<string> GetShaFromBranch(string user, string repo, string branchName) 
         {
-            var refs = await github.GitDatabase.Reference.Get(user, repo, $"heads/{branchName}");
+            var refs = await _client.GitDatabase.Reference.Get(user, repo, $"heads/{branchName}");
             return refs.Object.Sha;
         }
 
@@ -79,17 +88,17 @@ namespace GitMergeBot
         /// Creates a PR branch on the bot account with the branch head at `sha`.
         /// </summary>
         /// <returns> The name of the branch that was created </returns>
-        private async Task<string> MakePrBranch(GitHubClient github, Options options, string user, string repo, string sha, string branchNamePrefix)
+        private async Task<string> MakePrBranch(string user, string repo, string sha, string branchNamePrefix)
         {
             var branchName = branchNamePrefix + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
 
-            if (options.Debug)
+            if (_options.Debug)
             {
                 WriteDebugLine($"Create remote branch '{user}/{repo}/{branchName}' at {sha}");
             }
             else
             {
-                var resp = await github.Connection.Post<string>(
+                var resp = await _client.Connection.Post<string>(
                     uri: new Uri($"https://api.github.com/repos/{user}/{repo}/git/refs"),
                     body: $"{{\"ref\": \"refs/heads/{branchName}\", \"sha\": \"{sha}\"",
                     accepts: "*/*",
@@ -107,21 +116,21 @@ namespace GitMergeBot
         /// <summary>
         /// Creates a pull request 
         /// </summary>
-        private async Task SubmitPullRequest(GitHubClient github, Options options, string newBranchName)
+        private async Task SubmitPullRequest(string newBranchName)
         {
-            var remoteName = $"{options.SourceUser}-{options.RepoName}";
-            var prTitle = $"Merge {options.SourceBranch} into {options.DestinationBranch}";
+            var remoteName = $"{_options.SourceUser}-{_options.RepoName}";
+            var prTitle = $"Merge {_options.SourceBranch} into {_options.DestinationBranch}";
             var prMessage = $@"
-This is an automatically generated pull request from {options.SourceBranch} into {options.DestinationBranch}.
+This is an automatically generated pull request from {_options.SourceBranch} into {_options.DestinationBranch}.
 
 @dotnet/roslyn-infrastructure:
 
 ``` bash
-git remote add {remoteName} ""https://github.com/{options.SourceUser}/{options.RepoName}.git""
+git remote add {remoteName} ""https://github.com/{_options.SourceUser}/{_options.RepoName}.git""
 git fetch {remoteName}
 git checkout {newBranchName}
-git reset --hard upstream/{options.DestinationBranch}
-git merge upstream/{options.SourceBranch}
+git reset --hard upstream/{_options.DestinationBranch}
+git merge upstream/{_options.SourceBranch}
 # Fix merge conflicts
 git commit
 git push {remoteName} {newBranchName} --force
@@ -130,20 +139,20 @@ git push {remoteName} {newBranchName} --force
 Once the merge can be made and all the tests pass, you are free to merge the pull request.
 ".Trim();
 
-            if (options.Debug)
+            if (_options.Debug)
             {
                 WriteDebugLine($"Create PR with title: {prTitle}.");
                 WriteDebugLine($"Create PR with body:\r\n{prMessage}");
             }
             else
             {
-                await github.PullRequest.Create(
-                    owner: options.DestinationUser,
-                    name: options.RepoName,
+                await _client.PullRequest.Create(
+                    owner: _options.DestinationUser,
+                    name: _options.RepoName,
                     newPullRequest: new NewPullRequest(
                         title: prTitle,
-                        head: $"{options.SourceUser}:{newBranchName}",
-                        baseRef: options.DestinationBranch)
+                        head: $"{_options.SourceUser}:{newBranchName}",
+                        baseRef: _options.DestinationBranch)
                         {
                             Body = prMessage
                         }
