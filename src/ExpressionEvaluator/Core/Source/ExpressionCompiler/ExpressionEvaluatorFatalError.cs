@@ -55,13 +55,30 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal static bool CrashIfFailFastEnabled(Exception exception)
+        internal delegate bool IsFatalExceptionFilter(Exception exception);
+
+        internal static bool CrashIfFailFastEnabled(Exception exception, IsFatalExceptionFilter filter = null)
         {
             if (!IsFailFastEnabled)
             {
                 return false;
             }
 
+            if (filter == null)
+            {
+                filter = IsFatalException;
+            }
+
+            if (!filter(exception))
+            {
+                return false;
+            }
+
+            return FatalError.Report(exception);
+        }
+
+        internal static bool IsFatalException(Exception exception)
+        {
             if (exception is NotImplementedException)
             {
                 // This is part of the dispatcher mechanism.  A NotImplementedException indicates
@@ -70,19 +87,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             var dkmException = exception as DkmException;
-            if (dkmException != null)
+            if ((dkmException != null) && IsFatalExceptionCode(dkmException.Code))
             {
-                switch (dkmException.Code)
-                {
-                    case DkmExceptionCode.E_PROCESS_DESTROYED:
-                    case DkmExceptionCode.E_XAPI_REMOTE_CLOSED:
-                    case DkmExceptionCode.E_XAPI_REMOTE_DISCONNECTED:
-                    case DkmExceptionCode.E_XAPI_COMPONENT_DLL_NOT_FOUND:
-                        return false;
-                }
+                return false;
             }
 
-            return FatalError.Report(exception);
+            return true;
+        }
+
+        internal static bool IsFatalExceptionCode(DkmExceptionCode code)
+        {
+            switch (code)
+            {
+                case DkmExceptionCode.E_PROCESS_DESTROYED:
+                case DkmExceptionCode.E_XAPI_REMOTE_CLOSED:
+                case DkmExceptionCode.E_XAPI_REMOTE_DISCONNECTED:
+                case DkmExceptionCode.E_XAPI_COMPONENT_DLL_NOT_FOUND:
+                    return false;
+                default:
+                    return true;
+            }
         }
     }
 }

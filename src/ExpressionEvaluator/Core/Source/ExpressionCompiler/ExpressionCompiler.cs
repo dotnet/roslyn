@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     out error);
                 return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, this.CompilerId, r.Assembly, r.TypeName, r.Locals);
             }
-            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
+            catch (Exception e) when (CrashIfFailFastEnabled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     out error);
                 result = r.CompileResult.ToQueryResult(this.CompilerId, r.ResultProperties, runtimeInstance);
             }
-            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
+            catch (Exception e) when (CrashIfFailFastEnabled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Debug.Assert((r.ResultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
                 result = r.CompileResult.ToQueryResult(this.CompilerId, r.ResultProperties, runtimeInstance);
             }
-            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
+            catch (Exception e) when (CrashIfFailFastEnabled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     out error);
                 result = compileResult.ToQueryResult(this.CompilerId, default(ResultProperties), runtimeInstance);
             }
-            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
+            catch (Exception e) when (CrashIfFailFastEnabled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -379,6 +379,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             assembliesLoadedInRetryLoop?.Free();
 
             return compileResult;
+        }
+
+        private static bool CrashIfFailFastEnabled(Exception e)
+        {
+            return ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e, IsFatalException);
+        }
+
+        internal static bool IsFatalException(Exception e)
+        {
+            if (e is UnsupportedSignatureContent)
+            {
+                return false;
+            }
+            return ExpressionEvaluatorFatalError.IsFatalException(e);
         }
 
         private static DkmClrLocalVariableInfo ToLocalVariableInfo(LocalAndMethod local)
