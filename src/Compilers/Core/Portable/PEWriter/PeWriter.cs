@@ -72,17 +72,34 @@ namespace Microsoft.Cci
             // We emit the .text section as the first section in the PE image.
             var textSectionLocation = peBuilder.NextSectionLocation;
 
-            ManagedTextSection textSection;
+            mdWriter.BuildMetadataAndIL(
+                nativePdbWriterOpt,
+                ilBuilder,
+                mappedFieldDataBuilder,
+                managedResourceBuilder);
 
+            ManagedTextSection textSection;
             int moduleVersionIdOffsetInMetadataStream;
             int pdbIdOffsetInPortablePdbStream;
 
             int entryPointToken;
             MetadataSizes metadataSizes;
+
+            int debugEntryPointToken;
+            mdWriter.GetEntryPointTokens(out entryPointToken, out debugEntryPointToken);
+
+            // entry point can only be a MethodDef:
+            Debug.Assert(entryPointToken == 0 || (entryPointToken & 0xff000000) == 0x06000000);
+            Debug.Assert(debugEntryPointToken == 0 || (debugEntryPointToken & 0xff000000) == 0x06000000);
+
+            if (debugEntryPointToken != 0)
+            {
+                nativePdbWriterOpt?.SetEntryPoint((uint)debugEntryPointToken);
+            }
+
             mdWriter.SerializeMetadataAndIL(
                 metadataBuilder,
                 debugMetadataBuilderOpt,
-                nativePdbWriterOpt,
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceBuilder,
@@ -90,9 +107,9 @@ namespace Microsoft.Cci
                 properties.Machine,
                 textSectionLocation.RelativeVirtualAddress,
                 pdbPathOpt,
+                debugEntryPointToken,
                 out moduleVersionIdOffsetInMetadataStream,
                 out pdbIdOffsetInPortablePdbStream,
-                out entryPointToken,
                 out textSection,
                 out metadataSizes);
 
