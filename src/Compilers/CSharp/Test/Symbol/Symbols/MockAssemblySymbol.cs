@@ -105,6 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return null;
         }
 
-        public override MetadataId MetadataId => null;
+        public override AssemblyMetadata GetMetadata() => null;
     }
 }

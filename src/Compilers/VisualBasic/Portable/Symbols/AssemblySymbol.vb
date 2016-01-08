@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public MustOverride ReadOnly Property MetadataId As MetadataId Implements IAssemblySymbol.MetadataId
+        Public MustOverride Function GetMetadata() As AssemblyMetadata Implements IAssemblySymbol.GetMetadata
 
         ''' <summary>
         ''' Get the name of this assembly.

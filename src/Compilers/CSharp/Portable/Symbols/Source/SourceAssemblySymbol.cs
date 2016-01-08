@@ -2558,6 +2558,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        public override MetadataId MetadataId => null;
+        public override AssemblyMetadata GetMetadata() => null;
     }
 }

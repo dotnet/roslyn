@@ -803,9 +803,7 @@ Friend Class MockAssemblySymbol
         Return Nothing
     End Function
 
-    Public Overrides ReadOnly Property MetadataId As MetadataId
-        Get
-            Return Nothing
-        End Get
-    End Property
+    Public Overrides Function GetMetadata() As AssemblyMetadata
+        Return Nothing
+    End Function
 End Class

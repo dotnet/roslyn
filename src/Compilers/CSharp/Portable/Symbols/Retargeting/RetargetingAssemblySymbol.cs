@@ -285,6 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
         }
 
-        public override MetadataId MetadataId => _underlyingAssembly.MetadataId;
+        public override AssemblyMetadata GetMetadata() => _underlyingAssembly.GetMetadata();
     }
 }

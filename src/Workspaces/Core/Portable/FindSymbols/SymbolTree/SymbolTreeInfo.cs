@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (await s_assemblyInfosGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var metadataId = assembly.MetadataId;
+                var metadataId = assembly.GetMetadata()?.Id;
                 if (metadataId == null)
                 {
                     return null;

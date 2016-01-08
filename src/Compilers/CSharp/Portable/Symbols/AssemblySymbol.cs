@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public abstract MetadataId MetadataId { get; }
+        public abstract AssemblyMetadata GetMetadata();
 
         INamedTypeSymbol IAssemblySymbol.ResolveForwardedType(string fullyQualifiedMetadataName)
         {

@@ -74,13 +74,10 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// If this is an <see cref="IAssemblySymbol"/> for an <see cref="AssemblyMetadata"/>,
-        /// this returns the <see cref="Metadata.Id"/> for that <see cref="AssemblyMetadata"/>.
+        /// this returns that <see cref="AssemblyMetadata"/>.
         /// 
         /// Otherwise, this returns <code>null</code>.
-        /// 
-        /// If two assembly symbols are created from the same underlying <see cref="AssemblyMetadata"/>
-        /// object, then they will have the same Id.
         /// </summary>
-        MetadataId MetadataId { get; }
+        AssemblyMetadata GetMetadata();
     }
 }
