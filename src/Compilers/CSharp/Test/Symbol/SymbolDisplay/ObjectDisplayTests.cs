@@ -283,16 +283,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var decimalValue = new Decimal(12.5);
                 Assert.Equal("12,5", decimalValue.ToString());
                 Assert.Equal("12.5", ObjectDisplay.FormatLiteral(decimalValue, ObjectDisplayOptions.None));
+                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(decimalValue, ObjectDisplayOptions.UseCurrentCulture));
                 Assert.Equal("12.5M", ObjectDisplay.FormatLiteral(decimalValue, ObjectDisplayOptions.IncludeTypeSuffix));
 
                 double doubleValue = 12.5;
                 Assert.Equal("12,5", doubleValue.ToString());
                 Assert.Equal("12.5", ObjectDisplay.FormatLiteral(doubleValue, ObjectDisplayOptions.None));
+                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(doubleValue, ObjectDisplayOptions.UseCurrentCulture));
                 Assert.Equal("12.5D", ObjectDisplay.FormatLiteral(doubleValue, ObjectDisplayOptions.IncludeTypeSuffix));
 
                 float singleValue = 12.5F;
                 Assert.Equal("12,5", singleValue.ToString());
                 Assert.Equal("12.5", ObjectDisplay.FormatLiteral(singleValue, ObjectDisplayOptions.None));
+                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(singleValue, ObjectDisplayOptions.UseCurrentCulture));
                 Assert.Equal("12.5F", ObjectDisplay.FormatLiteral(singleValue, ObjectDisplayOptions.IncludeTypeSuffix));
             }
             finally

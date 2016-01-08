@@ -105,17 +105,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 
         internal override string FormatLiteral(double value)
         {
-            return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None);
+            return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseCurrentCulture);
         }
 
         internal override string FormatLiteral(float value)
         {
-            return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None);
+            return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseCurrentCulture);
         }
 
         internal override string FormatLiteral(decimal value)
         {
-            return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None);
+            return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseCurrentCulture);
         }
 
         internal override string FormatLiteral(DateTime value)

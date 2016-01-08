@@ -93,15 +93,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         End Function
 
         Friend Overrides Function FormatLiteral(value As Double) As String
-            Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None)
+            Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseCurrentCulture)
         End Function
 
         Friend Overrides Function FormatLiteral(value As Single) As String
-            Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None)
+            Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseCurrentCulture)
         End Function
 
         Friend Overrides Function FormatLiteral(value As Decimal) As String
-            Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None)
+            Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseCurrentCulture)
         End Function
 
         Friend Overrides Function GetPrimitiveTypeName(type As SpecialType) As String

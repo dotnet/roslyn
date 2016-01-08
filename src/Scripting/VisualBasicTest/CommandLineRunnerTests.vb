@@ -129,6 +129,32 @@ Type ""#help"" for more information.
 >", runner.Console.Out.ToString())
         End Sub
 
+        Public Sub TestDisplayResults()
+            Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
+CultureInfo.DefaultThreadCurrentCulture = GetCultureInfo(""en-GB"")
+Math.PI
+CultureInfo.DefaultThreadCurrentCulture = GetCultureInfo(""de-DE"")
+Math.PI")
+
+            runner.RunInteractive()
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+"Microsoft (R) Visual Basic Interactive Compiler version " + CompilerVersion + "
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> using static System.Globalization.CultureInfo;
+> DefaultThreadCurrentCulture = GetCultureInfo(""en-GB"")
+[en-GB]
+> Math.PI
+3.1415926535897931
+> DefaultThreadCurrentCulture = GetCultureInfo(""de-DE"")
+[de-DE]
+> Math.PI
+3,1415926535897931
+>", runner.Console.Out.ToString())
+        End Sub
+
     End Class
 
 End Namespace

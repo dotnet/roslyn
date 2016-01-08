@@ -531,7 +531,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         internal static ObjectDisplayOptions GetObjectDisplayOptions(bool useHexadecimalNumbers)
         {
-            return useHexadecimalNumbers ? ObjectDisplayOptions.UseHexadecimalNumbers : ObjectDisplayOptions.None;
+            return useHexadecimalNumbers
+                ? ObjectDisplayOptions.UseHexadecimalNumbers | ObjectDisplayOptions.UseCurrentCulture
+                : ObjectDisplayOptions.UseCurrentCulture;
         }
 
         /// <summary>

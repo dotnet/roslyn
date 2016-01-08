@@ -40,5 +40,10 @@ namespace Microsoft.CodeAnalysis
         /// In Visual Basic, replace non-printable characters with calls to ChrW and vb* constants.
         /// </summary>
         EscapeNonPrintableCharacters = 1 << 4,
+
+        /// <summary>
+        /// Whether or not to use the current culture instead of invariant culture.
+        /// </summary>
+        UseCurrentCulture = 1 << 5,
     }
 }

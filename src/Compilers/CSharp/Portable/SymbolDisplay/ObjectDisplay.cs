@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return value.ToString(CultureInfo.InvariantCulture);
+                return value.ToString(FormatCulture(options));
             }
         }
 
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return value.ToString(CultureInfo.InvariantCulture);
+                return value.ToString(FormatCulture(options));
             }
         }
 
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return value.ToString(CultureInfo.InvariantCulture);
+                return value.ToString(FormatCulture(options));
             }
         }
 
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return value.ToString(CultureInfo.InvariantCulture);
+                return value.ToString(FormatCulture(options));
             }
         }
 
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return value.ToString(CultureInfo.InvariantCulture);
+                return value.ToString(FormatCulture(options));
             }
         }
 
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                sb.Append(value.ToString(CultureInfo.InvariantCulture));
+                sb.Append(value.ToString(FormatCulture(options)));
             }
 
             if (options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix))
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                sb.Append(value.ToString(CultureInfo.InvariantCulture));
+                sb.Append(value.ToString(FormatCulture(options)));
             }
 
             if (options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix))
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                sb.Append(value.ToString(CultureInfo.InvariantCulture));
+                sb.Append(value.ToString(FormatCulture(options)));
             }
 
             if (options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix))
@@ -470,23 +470,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static string FormatLiteral(double value, ObjectDisplayOptions options)
         {
-            var result = value.ToString("R", CultureInfo.InvariantCulture);
+            var result = value.ToString("R", FormatCulture(options));
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "D" : result;
         }
 
         internal static string FormatLiteral(float value, ObjectDisplayOptions options)
         {
-            var result = value.ToString("R", CultureInfo.InvariantCulture);
+            var result = value.ToString("R", FormatCulture(options));
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "F" : result;
         }
 
         internal static string FormatLiteral(decimal value, ObjectDisplayOptions options)
         {
-            var result = value.ToString(CultureInfo.InvariantCulture);
+            var result = value.ToString(FormatCulture(options));
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "M" : result;
+        }
+
+        private static CultureInfo FormatCulture(ObjectDisplayOptions options)
+        {
+            return options.IncludesOption(ObjectDisplayOptions.UseCurrentCulture)
+                ? CultureInfo.CurrentCulture
+                : CultureInfo.InvariantCulture;
         }
     }
 }

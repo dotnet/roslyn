@@ -82,6 +82,35 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
         }
 
         [Fact]
+        public void DisplayResults()
+        {
+            var runner = CreateRunner(input:
+@"using static System.Globalization.CultureInfo;
+DefaultThreadCurrentCulture = GetCultureInfo(""en-GB"")
+Math.PI
+DefaultThreadCurrentCulture = GetCultureInfo(""de-DE"")
+Math.PI
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> using static System.Globalization.CultureInfo;
+> DefaultThreadCurrentCulture = GetCultureInfo(""en-GB"")
+[en-GB]
+> Math.PI
+3.1415926535897931
+> DefaultThreadCurrentCulture = GetCultureInfo(""de-DE"")
+[de-DE]
+> Math.PI
+3,1415926535897931
+>", runner.Console.Out.ToString());
+        }
+
+        [Fact]
         public void Void()
         {
             var runner = CreateRunner(input:
