@@ -886,11 +886,11 @@ class Program
             SyntaxToken tokenNotFromTree = SyntaxFactory.Token(SyntaxKind.ClassKeyword);
             SyntaxNode nodeNotFromTree = other.GetRoot();
 
-            Assert.True(nodeFromTree.SyntaxTree == tree);
-            Assert.True(nodeFromTree.SyntaxTree == model.SyntaxTree);
-            Assert.False(tokenNotFromTree.SyntaxTree == tree);
-            Assert.False(nodeNotFromTree.SyntaxTree == model.SyntaxTree);
-            Assert.True(nodeNotFromTree.SyntaxTree == other);
+            Assert.Equal(nodeFromTree.SyntaxTree, tree);
+            Assert.Equal(nodeFromTree.SyntaxTree, model.SyntaxTree);
+            Assert.NotEqual(tokenNotFromTree.SyntaxTree, tree);
+            Assert.NotEqual(nodeNotFromTree.SyntaxTree, model.SyntaxTree);
+            Assert.Equal(nodeNotFromTree.SyntaxTree, other);
         }
 
         [FAQ(14)]
@@ -1649,7 +1649,7 @@ class Class1
                                                        syntaxTrees: new[] { tree },
                                                        references: new[] { Mscorlib });
             var diagnostics = compilation.GetDiagnostics();
-            Assert.Equal(0, diagnostics.Count());
+            Assert.Empty(diagnostics);
             var model = compilation.GetSemanticModel(tree);
 
             Func<string, IMethodSymbol> getMethod = (name) => (from declaration in tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()
@@ -1661,7 +1661,7 @@ class Class1
 
             // Verify that a method has no attributes
             var methodSymbol = getMethod("Method1");
-            Assert.Equal(0, methodSymbol.GetAttributes().Count());
+            Assert.Empty(methodSymbol.GetAttributes());
 
             // Inspect the attributes that have been given to methods 2 and 3
             methodSymbol = getMethod("Method2");

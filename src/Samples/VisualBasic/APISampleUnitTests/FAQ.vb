@@ -1201,8 +1201,8 @@ End Module
             ' Get TypeSymbol corresponding to above ModifiedIdentifierSyntax.
             Dim variableType = (CType(model.GetDeclaredSymbol(modifiedIdentifier), ILocalSymbol)).Type
 
-            Assert.False(variableType.Equals(structType)) ' Type of variable is a closed generic type while that of the struct is an open generic type.
-            Assert.True(variableType.OriginalDefinition.Equals(structType)) ' OriginalDefinition for a closed generic type points to corresponding open generic type.
+            Assert.NotEqual(variableType, structType) ' Type of variable is a closed generic type while that of the struct is an open generic type.
+            Assert.Equal(variableType.OriginalDefinition, structType) ' OriginalDefinition for a closed generic type points to corresponding open generic type.
             Assert.Equal("NS.C(Of Integer).S(Of Long)", variableType.ToDisplayString())
             Assert.Equal("Global.NS.C(Of Integer).S(Of Long)", variableType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
         End Sub
@@ -1214,19 +1214,19 @@ End Module
 Imports System
 
 Public Class Program
-	Private Function Identity (a As Integer)
-		Return a
-	End Function
-	
-	Private Function Identity (a As Char)
-		Return a
-	End Function
-	
-	Public Sub Main()
-		Dim v1 = Identity(3)
-		Dim v2 = Identity("a"C)
+    Private Function Identity (a As Integer)
+        Return a
+    End Function
+    
+    Private Function Identity (a As Char)
+        Return a
+    End Function
+    
+    Public Sub Main()
+        Dim v1 = Identity(3)
+        Dim v2 = Identity("a"C)
         Dim v3 = Identity("arg1")
-	End Sub
+    End Sub
 End Class</source>.Value
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(source)
