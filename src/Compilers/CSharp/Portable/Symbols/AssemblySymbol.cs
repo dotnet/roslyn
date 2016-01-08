@@ -973,6 +973,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
+        /// 
+        /// Otherwise, this returns <code>null</code>.
+        /// </summary>
         public abstract AssemblyMetadata GetMetadata();
 
         INamedTypeSymbol IAssemblySymbol.ResolveForwardedType(string fullyQualifiedMetadataName)

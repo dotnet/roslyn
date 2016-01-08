@@ -2971,6 +2971,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public ModuleMetadata GetMetadataCopy() => _owner.Copy();
+        public ModuleMetadata GetNonDisposableMetadata() => _owner.Copy();
     }
 }

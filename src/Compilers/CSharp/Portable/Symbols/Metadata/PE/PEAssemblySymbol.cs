@@ -249,6 +249,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        public override AssemblyMetadata GetMetadata() => _assembly.GetMetadataCopy();
+        public override AssemblyMetadata GetMetadata() => _assembly.GetNonDisposableMetadata();
     }
 }

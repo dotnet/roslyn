@@ -73,8 +73,7 @@ namespace Microsoft.CodeAnalysis
         INamedTypeSymbol ResolveForwardedType(string fullyQualifiedMetadataName);
 
         /// <summary>
-        /// If this is an <see cref="IAssemblySymbol"/> for an <see cref="AssemblyMetadata"/>,
-        /// this returns that <see cref="AssemblyMetadata"/>.
+        /// If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
         /// 
         /// Otherwise, this returns <code>null</code>.
         /// </summary>

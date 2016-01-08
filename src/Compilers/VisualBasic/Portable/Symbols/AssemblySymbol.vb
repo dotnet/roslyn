@@ -78,6 +78,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        ''' <summary>
+        ''' If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
+        ''' 
+        ''' Otherwise, this returns <code>null</code>.
+        ''' </summary>
         Public MustOverride Function GetMetadata() As AssemblyMetadata Implements IAssemblySymbol.GetMetadata
 
         ''' <summary>

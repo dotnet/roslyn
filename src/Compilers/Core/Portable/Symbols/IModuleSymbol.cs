@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<IAssemblySymbol> ReferencedAssemblySymbols { get; }
 
         /// <summary>
-        /// If this is an <see cref="IModuleSymbol"/> for an <see cref="ModuleMetadata"/>,
-        /// this returns that <see cref="ModuleMetadata"/>.
+        /// If this symbol represents a metadata module returns the underlying <see cref="ModuleMetadata"/>.
         /// 
         /// Otherwise, this returns <code>null</code>.
         /// </summary>

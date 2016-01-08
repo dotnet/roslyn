@@ -175,6 +175,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public AssemblyMetadata GetMetadataCopy() => _owner.Copy();
+        public AssemblyMetadata GetNonDisposableMetadata() => _owner.Copy();
     }
 }

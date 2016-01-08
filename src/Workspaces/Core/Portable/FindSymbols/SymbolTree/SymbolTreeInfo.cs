@@ -192,20 +192,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (await s_assemblyInfosGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var metadataId = assembly.GetMetadata()?.Id;
-                if (metadataId == null)
+                var metadata = assembly.GetMetadata();
+                if (metadata == null)
                 {
                     return null;
                 }
 
                 SymbolTreeInfo info;
-                if (s_assemblyInfos.TryGetValue(metadataId, out info))
+                if (s_assemblyInfos.TryGetValue(metadata.Id, out info))
                 {
                     return info;
                 }
 
                 info = await LoadOrCreateAsync(solution, assembly, reference.FilePath, cancellationToken).ConfigureAwait(false);
-                return s_assemblyInfos.GetValue(metadataId, _ => info);
+                return s_assemblyInfos.GetValue(metadata.Id, _ => info);
             }
         }
 
