@@ -1831,15 +1831,19 @@ namespace Microsoft.Cci
             // stream.
             Debug.Assert(this.module.Properties.PersistentIdentifier != default(Guid));
 
+            BuildMetadataAndIL(
+                pdbWriterOpt,
+                ilWriter,
+                mappedFieldDataWriter,
+                managedResourceDataWriter);
+
             int moduleVersionIdOffsetInMetadataStream;
             int pdbIdOffsetInMetadataStream;
-            int entryPointToken;
+            ManagedTextSection textSection;
 
-            ManagedTextSection textSection; 
             SerializeMetadataAndIL(
                 metadataWriter,
                 default(BlobBuilder),
-                pdbWriterOpt,
                 ilWriter,
                 mappedFieldDataWriter,
                 managedResourceDataWriter,
@@ -1847,37 +1851,25 @@ namespace Microsoft.Cci
                 machine: default(Machine),
                 textSectionRva: -1,
                 pdbPathOpt: null,
+                debugEntryPointToken: 0,
                 moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream,
                 pdbIdOffsetInPortablePdbStream: out pdbIdOffsetInMetadataStream,
-                entryPointToken: out entryPointToken,
                 textSection: out textSection,
                 metadataSizes: out metadataSizes);
 
             ilWriter.WriteContentTo(ilStream);
             metadataWriter.WriteContentTo(metadataStream);
 
-            Debug.Assert(entryPointToken == 0);
             Debug.Assert(mappedFieldDataWriter.Count == 0);
             Debug.Assert(managedResourceDataWriter.Count == 0);
             Debug.Assert(pdbIdOffsetInMetadataStream == 0);
         }
 
-        public void SerializeMetadataAndIL(
-            BlobBuilder metadataBuilder,
-            BlobBuilder debugMetadataBuilderOpt,
+        public void BuildMetadataAndIL(
             PdbWriter nativePdbWriterOpt,
             BlobBuilder ilBuilder,
             BlobBuilder mappedFieldDataBuilder,
-            BlobBuilder managedResourceDataBuilder,
-            Characteristics imageCharacteristics,
-            Machine machine,
-            int textSectionRva,
-            string pdbPathOpt,
-            out int moduleVersionIdOffsetInMetadataStream,
-            out int pdbIdOffsetInPortablePdbStream,
-            out int entryPointToken,
-            out ManagedTextSection textSection,
-            out MetadataSizes metadataSizes)
+            BlobBuilder managedResourceDataBuilder)
         {
             // Extract information from object model into tables, indices and streams
             CreateIndices();
@@ -1897,43 +1889,28 @@ namespace Microsoft.Cci
             ReportReferencesToAddedSymbols();
 
             PopulateTables(methodBodyOffsets, mappedFieldDataBuilder, managedResourceDataBuilder);
+        }
 
-            int debugEntryPointToken;
-            if (IsFullMetadata)
-            {
-                // PE entry point is set for executable programs
-                IMethodReference entryPoint = module.PEEntryPoint;
-                entryPointToken = entryPoint != null ? GetMethodToken((IMethodDefinition)entryPoint.AsDefinition(Context)) : 0;
-
-                // debug entry point may be different from PE entry point, it may also be set for libraries
-                IMethodReference debugEntryPoint = module.DebugEntryPoint;
-                if (debugEntryPoint != null && debugEntryPoint != entryPoint)
-                {
-                    debugEntryPointToken = GetMethodToken((IMethodDefinition)debugEntryPoint.AsDefinition(Context));
-                }
-                else
-                {
-                    debugEntryPointToken = entryPointToken;
-                }
-
-                // entry point can only be a MethodDef:
-                Debug.Assert(entryPointToken == 0 || (entryPointToken & 0xff000000) == 0x06000000);
-                Debug.Assert(debugEntryPointToken == 0 || (debugEntryPointToken & 0xff000000) == 0x06000000);
-
-                if (debugEntryPointToken != 0)
-                {
-                    nativePdbWriterOpt?.SetEntryPoint((uint)debugEntryPointToken);
-                }
-            }
-            else
-            {
-                entryPointToken = debugEntryPointToken = 0;
-            }
-
+        public void SerializeMetadataAndIL(
+            BlobBuilder metadataBuilder,
+            BlobBuilder debugMetadataBuilderOpt,
+            BlobBuilder ilBuilder, 
+            BlobBuilder mappedFieldDataBuilder,
+            BlobBuilder managedResourceDataBuilder,
+            Characteristics imageCharacteristics,
+            Machine machine,
+            int textSectionRva, 
+            string pdbPathOpt,
+            int debugEntryPointToken,
+            out int moduleVersionIdOffsetInMetadataStream,
+            out int pdbIdOffsetInPortablePdbStream,
+            out ManagedTextSection textSection, 
+            out MetadataSizes metadataSizes)
+        {
             var serializer = new TypeSystemMetadataSerializer(metadata, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
 
             metadataSizes = serializer.MetadataSizes;
-            
+
             int methodBodyStreamRva;
             int mappedFieldDataStreamRva;
 
@@ -1974,6 +1951,31 @@ namespace Microsoft.Cci
             var debugSerializer = new StandaloneDebugMetadataSerializer(_debugMetadataOpt, metadataSizes.RowCounts, debugEntryPointToken, IsMinimalDelta);
             debugSerializer.SerializeMetadata(debugMetadataBuilderOpt);
             pdbIdOffsetInPortablePdbStream = debugSerializer.PdbIdOffset;
+        }
+
+        internal void GetEntryPointTokens(out int entryPointToken, out int debugEntryPointToken)
+        {
+            if (IsFullMetadata)
+            {
+                // PE entry point is set for executable programs
+                IMethodReference entryPoint = module.PEEntryPoint;
+                entryPointToken = entryPoint != null ? GetMethodToken((IMethodDefinition)entryPoint.AsDefinition(Context)) : 0;
+
+                // debug entry point may be different from PE entry point, it may also be set for libraries
+                IMethodReference debugEntryPoint = module.DebugEntryPoint;
+                if (debugEntryPoint != null && debugEntryPoint != entryPoint)
+                {
+                    debugEntryPointToken = GetMethodToken((IMethodDefinition)debugEntryPoint.AsDefinition(Context));
+                }
+                else
+                {
+                    debugEntryPointToken = entryPointToken;
+                }
+            }
+            else
+            {
+                entryPointToken = debugEntryPointToken = 0;
+            }
         }
 
         private static int CalculateStrongNameSignatureSize(IModule module)
