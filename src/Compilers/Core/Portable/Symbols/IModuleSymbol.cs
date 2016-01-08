@@ -38,5 +38,13 @@ namespace Microsoft.CodeAnalysis
         /// from ReferencedAssemblySymbols correspond to each other.
         /// </summary>
         ImmutableArray<IAssemblySymbol> ReferencedAssemblySymbols { get; }
+
+        /// <summary>
+        /// If this is an <see cref="IModuleSymbol"/> for an <see cref="ModuleMetadata"/>,
+        /// this returns that <see cref="ModuleMetadata"/>.
+        /// 
+        /// Otherwise, this returns <code>null</code>.
+        /// </summary>
+        ModuleMetadata GetMetadata();
     }
 }

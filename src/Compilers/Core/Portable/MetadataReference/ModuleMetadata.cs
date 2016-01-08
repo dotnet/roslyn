@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis
         private ModuleMetadata(PEReader peReader)
             : base(isImageOwner: true, id: new MetadataId())
         {
-            _module = new PEModule(peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0);
+            _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0);
         }
 
         private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes)
             : base(isImageOwner: true, id: new MetadataId())
         {
-            _module = new PEModule(peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes);
+            _module = new PEModule(this, peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes);
         }
 
         // creates a copy

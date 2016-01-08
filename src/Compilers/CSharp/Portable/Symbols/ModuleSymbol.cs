@@ -377,6 +377,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitModule(this);
         }
 
+        public abstract ModuleMetadata GetMetadata();
+
         #endregion
     }
 }

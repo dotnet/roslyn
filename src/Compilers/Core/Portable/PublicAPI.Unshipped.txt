@@ -87,6 +87,7 @@ Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb = 2 -> Microsoft.
 Microsoft.CodeAnalysis.IAssemblySymbol.GetMetadata() -> Microsoft.CodeAnalysis.AssemblyMetadata
 Microsoft.CodeAnalysis.ICompilationUnitSyntax
 Microsoft.CodeAnalysis.ICompilationUnitSyntax.EndOfFileToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.IModuleSymbol.GetMetadata() -> Microsoft.CodeAnalysis.ModuleMetadata
 Microsoft.CodeAnalysis.Metadata.Id.get -> Microsoft.CodeAnalysis.MetadataId
 Microsoft.CodeAnalysis.MetadataId
 Microsoft.CodeAnalysis.MetadataReference.MetadataReference(Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void

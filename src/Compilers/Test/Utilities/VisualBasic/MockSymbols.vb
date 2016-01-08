@@ -706,6 +706,10 @@ Friend Class MockModuleSymbol
             Return Nothing
         End Get
     End Property
+
+    Public Overrides Function GetMetadata() As ModuleMetadata
+        Return Nothing
+    End Function
 End Class
 
 Friend Class MockAssemblySymbol

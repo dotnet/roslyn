@@ -249,8 +249,9 @@ namespace D
                     compilation.Emit(exebits, pdbbits);
 
                     exebits.Position = 0;
-                    using (var module = new PEModule(new PEReader(exebits, PEStreamOptions.LeaveOpen), metadataOpt: IntPtr.Zero, metadataSizeOpt: 0))
+                    using (var metadata = ModuleMetadata.CreateFromStream(exebits, leaveOpen: true))
                     {
+                        var module = metadata.Module;
                         var metadataReader = module.MetadataReader;
                         MethodDefinitionHandle methodHandle = metadataReader.MethodDefinitions.Single(mh => metadataReader.GetString(metadataReader.GetMethodDefinition(mh).Name) == methodName);
                         int methodToken = metadataReader.GetToken(methodHandle);

@@ -682,5 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 yield return assemblySymbol.LookupTopLevelMetadataType(ref name, digThroughForwardedTypes: true);
             }
         }
+
+        public override ModuleMetadata GetMetadata() => _module.GetMetadataCopy();
     }
 }

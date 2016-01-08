@@ -457,5 +457,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Next
         End Function
 
+        Public Overrides Function GetMetadata() As ModuleMetadata
+            Return _module.GetMetadataCopy()
+        End Function
     End Class
 End Namespace
