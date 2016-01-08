@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Linq;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
