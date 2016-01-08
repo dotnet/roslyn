@@ -964,7 +964,7 @@ End Module", i));
 
         [WorkItem(997372)]
         [WorkItem(761326, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7618")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MultipleSimultaneousCompiles()
         {

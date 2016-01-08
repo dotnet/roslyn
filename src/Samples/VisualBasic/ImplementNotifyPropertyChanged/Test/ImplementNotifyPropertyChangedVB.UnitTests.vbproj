@@ -19,10 +19,6 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Shared\UnitTestFramework\UnitTestFramework.csproj">
-      <Project>{D571F126-F0B6-487E-BB79-E91EAEE46F4F}</Project>
-      <Name>UnitTestFramework</Name>
-    </ProjectReference>
     <Reference Include="Microsoft.CodeAnalysis">
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.dll</HintPath>
       <Private>false</Private>
@@ -35,6 +31,10 @@
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <ProjectReference Include="..\..\..\Shared\UnitTestFramework\UnitTestFramework.csproj">
+      <Project>{d571f126-f0b6-487e-bb79-e91eaee46f4f}</Project>
+      <Name>UnitTestFramework</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Impl\ImplementNotifyPropertyChangedVB.vbproj">
       <Project>{C182B3BA-431B-475E-ABA8-21A56283B493}</Project>
       <Name>ImplementNotifyPropertyChangedVB</Name>
