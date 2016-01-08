@@ -54,7 +54,7 @@ namespace Microsoft.Cci
             var managedResourceBuilder = new BlobBuilder(1024);
             var textSectionBlob = new BlobBuilder();
             var resourceSectionBlobOpt = (!IteratorHelper.EnumerableIsEmpty(nativeResourcesOpt) || nativeResourceSectionOpt != null) ? new BlobBuilder() : null;
-            var relocationSectionBlobOpt = properties.RequiresStartupStub ? new BlobBuilder() : null;
+            var relocationSectionBlobOpt = properties.Machine.RequiresStartupStub() ? new BlobBuilder() : null;
             var debugMetadataBuilderOpt = (getPortablePdbStreamOpt != null) ? new BlobBuilder(16 * 1024) : null;
 
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
@@ -68,7 +68,7 @@ namespace Microsoft.Cci
                 sectionCount: 1 + (resourceSectionBlobOpt != null ? 1 : 0) + (relocationSectionBlobOpt != null ? 1 : 0),
                 sectionAlignment: properties.SectionAlignment,
                 fileAlignment: properties.FileAlignment,
-                is32Bit: !properties.Requires64bits);
+                is32Bit: !properties.Machine.Requires64bits());
 
             // We emit the .text section as the first section in the PE image.
             var textSectionLocation = peBuilder.NextSectionLocation;
@@ -278,7 +278,7 @@ namespace Microsoft.Cci
             {
                 var location = peBuilder.NextSectionLocation;
 
-                WriteRelocSection(relocationSectionBlobOpt, properties, entryPointAddress);
+                WriteRelocSection(relocationSectionBlobOpt, properties.Machine, entryPointAddress);
 
                 peBuilder.AddSection(
                     ".reloc",
@@ -348,17 +348,17 @@ namespace Microsoft.Cci
             }
         }
                 
-        private static void WriteRelocSection(BlobBuilder builder, ModulePropertiesForSerialization properties, int entryPointAddress)
+        private static void WriteRelocSection(BlobBuilder builder, Machine machine, int entryPointAddress)
         {
             Debug.Assert(builder.Count == 0);
 
             builder.WriteUInt32((((uint)entryPointAddress + 2) / 0x1000) * 0x1000);
-            builder.WriteUInt32(properties.Requires64bits && !properties.RequiresAmdInstructionSet ? 14u : 12u);
+            builder.WriteUInt32(machine.Requires64bits() && !machine.RequiresAmdInstructionSet() ? 14u : 12u);
             uint offsetWithinPage = ((uint)entryPointAddress + 2) % 0x1000;
-            uint relocType = properties.Requires64bits ? 10u : 3u;
+            uint relocType = machine.Requires64bits() ? 10u : 3u;
             ushort s = (ushort)((relocType << 12) | offsetWithinPage);
             builder.WriteUInt16(s);
-            if (properties.Requires64bits && !properties.RequiresAmdInstructionSet)
+            if (machine.Requires64bits() && !machine.RequiresAmdInstructionSet())
             {
                 builder.WriteUInt32(relocType << 12);
             }

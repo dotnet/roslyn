@@ -1203,7 +1203,6 @@ namespace Microsoft.CodeAnalysis
                 targetRuntimeVersion: targetRuntimeVersion,
                 machine: machine,
                 prefer32Bit: platform == Platform.AnyCpu32BitPreferred,
-                trackDebugData: false,
                 baseAddress: baseAddress,
                 sizeOfHeapReserve: sizeOfHeapReserve,
                 sizeOfHeapCommit: sizeOfHeapCommit,

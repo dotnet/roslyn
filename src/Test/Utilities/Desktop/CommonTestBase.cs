@@ -507,7 +507,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 targetRuntimeVersion: "v4.0.30319",
                 machine: 0,
                 prefer32Bit: false,
-                trackDebugData: false,
                 baseAddress: Cci.ModulePropertiesForSerialization.DefaultExeBaseAddress32Bit,
                 sizeOfHeapReserve: Cci.ModulePropertiesForSerialization.DefaultSizeOfHeapReserve32Bit,
                 sizeOfHeapCommit: Cci.ModulePropertiesForSerialization.DefaultSizeOfHeapCommit32Bit,
