@@ -182,7 +182,7 @@ namespace Microsoft.Cci
         {
             CorFlags result = CorFlags.ILOnly;
 
-            if (Machine.Requires32bits())
+            if (Machine == Machine.I386)
             {
                 result |= CorFlags.Requires32Bit;
             }
@@ -199,30 +199,5 @@ namespace Microsoft.Cci
 
             return result;
         }
-    }
-
-    internal static class MachineExtensions
-    {
-        /// <summary>
-        /// If set, the module must include a machine code stub that transfers control to the virtual execution system.
-        /// </summary>
-        internal static bool RequiresStartupStub(this Machine machine) => machine == Machine.I386 || machine == 0;
-
-        /// <summary>
-        /// If set, the module contains instructions or assumptions that are specific to the AMD 64 bit instruction set. 
-        /// </summary>
-        internal static bool RequiresAmdInstructionSet(this Machine machine) => machine == Machine.Amd64;
-
-        /// <summary>
-        /// If set, the module contains instructions that assume a 32 bit instruction set. For example it may depend on an address being 32 bits.
-        /// This may be true even if the module contains only IL instructions because of PlatformInvoke and COM interop.
-        /// </summary>
-        internal static bool Requires32bits(this Machine machine) => machine == Machine.I386;
-
-        /// <summary>
-        /// If set, the module contains instructions that assume a 64 bit instruction set. For example it may depend on an address being 64 bits.
-        /// This may be true even if the module contains only IL instructions because of PlatformInvoke and COM interop.
-        /// </summary>
-        internal static bool Requires64bits(this Machine machine) => machine == Machine.Amd64 || machine == Machine.IA64;
     }
 }
