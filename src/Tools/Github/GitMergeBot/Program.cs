@@ -103,12 +103,8 @@ namespace GitMergeBot
         /// <returns>The existing open merge PRs.</returns>
         private async Task<IList<PullRequest>> GetExistingMergePrs(string newBranchPrefix)
         {
-            var prr = new PullRequestRequest()
-            {
-                Head = $"{_options.SourceUser}:{newBranchPrefix}"
-            };
             var allPullRequests = await _client.PullRequest.GetAllForRepository(_options.DestinationUser, _options.RepoName);
-            var openPrs = allPullRequests.Where(pr => pr.Head.Ref.StartsWith(newBranchPrefix)).ToList();
+            var openPrs = allPullRequests.Where(pr => pr.Head.Ref.StartsWith(newBranchPrefix) && pr.User.Login == _options.SourceUser).ToList();
 
             Console.WriteLine($"Found {openPrs.Count} existing open merge pull requests.");
             foreach (var pr in openPrs)
