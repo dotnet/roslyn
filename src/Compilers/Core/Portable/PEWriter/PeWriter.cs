@@ -208,7 +208,7 @@ namespace Microsoft.Cci
                 textSectionBlob,
                 textSectionLocation.RelativeVirtualAddress,
                 entryPointToken,
-                properties.GetCorHeaderFlags(),
+                properties.CorFlags,
                 properties.BaseAddress,
                 metadataBuilder,
                 ilBuilder,
