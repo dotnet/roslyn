@@ -168,6 +168,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, this.Type.CustomModifiers.Length, this.RefKind));
             }
+
+            if (Type.ContainsNullableReferenceTypes())
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(Type));
+            }
         }
 
         /// <summary>

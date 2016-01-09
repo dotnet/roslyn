@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, this.Type.CustomModifiers.Length, this.RefKind));
             }
+
+            if (this.Type.ContainsNullableReferenceTypes())
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(this.Type));
+            }
         }
 
         internal override ushort CountOfCustomModifiersPrecedingByRef

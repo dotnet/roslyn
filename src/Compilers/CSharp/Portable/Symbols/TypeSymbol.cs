@@ -567,6 +567,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract bool IsManagedType { get; }
 
+        internal abstract bool ContainsNullableReferenceTypes();
+
+        internal abstract void AddNullableTransforms(ArrayBuilder<bool> transforms);
+
+        internal abstract bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbol result);
+
         #region ITypeSymbol Members
 
         INamedTypeSymbol ITypeSymbol.BaseType

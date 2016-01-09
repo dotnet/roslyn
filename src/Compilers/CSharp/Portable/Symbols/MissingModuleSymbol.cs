@@ -179,6 +179,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override bool UtilizesNullableReferenceTypes
+        {
+            get { return false; }
+        }
+
         internal override CharSet? DefaultMarshallingCharSet
         {
             get { return null; }

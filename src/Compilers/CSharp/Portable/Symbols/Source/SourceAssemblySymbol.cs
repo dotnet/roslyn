@@ -592,6 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void ReportDiagnosticsForSynthesizedAttributes(CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             ReportDiagnosticsForUnsafeSynthesizedAttributes(compilation, diagnostics);
+            ReportDiagnosticsForNullableAttribute(compilation, diagnostics);
 
             CSharpCompilationOptions compilationOptions = compilation.Options;
             if (!compilationOptions.OutputKind.IsNetModule())
@@ -617,6 +618,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__WrapNonExceptionThrows, diagnostics, NoLocation.Singleton);
                 }
             }
+        }
+
+        private static void ReportDiagnosticsForNullableAttribute(CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
+            if (compilation.SourceModule.UtilizesNullableReferenceTypes)
+            {
+                DiagnosticInfo info = GetUseSiteDiagnosticForNullableAttribute(compilation);
+
+                if ((object)info != null)
+                {
+                    diagnostics.Add(info, Location.None);
+                }
+            }
+        }
+
+        internal static DiagnosticInfo GetUseSiteDiagnosticForNullableAttribute(CSharpCompilation compilation)
+        {
+            if ((object)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor) == null ||
+                (object)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags) == null)
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_NullableAttributeMissing, AttributeDescription.NullableAttribute.FullName);
+            }
+
+            return compilation.GetSpecialType(SpecialType.System_Boolean).GetUseSiteDiagnostic();
         }
 
         /// <summary>

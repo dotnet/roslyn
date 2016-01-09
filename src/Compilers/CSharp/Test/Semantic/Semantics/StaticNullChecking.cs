@@ -8,15 +8,36 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class StaticNullChecking : CompilingTestBase
     {
+        private static readonly string attributesDefinitions = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Event | // The type of the event is nullable, or has a nullable reference type as one of its constituents  
+                    AttributeTargets.Field | // The type of the field is a nullable reference type, or has a nullable reference type as one of its constituents  
+                    AttributeTargets.GenericParameter | // The generic parameter is a nullable reference type
+                    AttributeTargets.Module | // Nullable reference types in this module are annotated by means of NullableAttribute applied to other targets in it
+                    AttributeTargets.Parameter | // The type of the parameter is a nullable reference type, or has a nullable reference type as one of its constituents  
+                    AttributeTargets.ReturnValue, // The return type is a nullable reference type, or has a nullable reference type as one of its constituents  
+                   AllowMultiple = false)]
+    public class NullableAttribute : Attribute
+    {
+        public NullableAttribute() { }
+        public NullableAttribute(bool[] transformFlags)
+        {
+        }
+    }
+}
+"; 
+
         [Fact]
         public void Test0()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -24,7 +45,7 @@ class C
         string? x = null;
     }
 }
-");
+" });
 
             c.VerifyDiagnostics(
     // (6,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
@@ -62,6 +83,8 @@ class C
 ", new[] { core.ToMetadataReference() }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
+    // error CS8218: Compiler required type 'System.Runtime.CompilerServices.NullableAttribute' cannot be found. Are you missing a reference?
+    Diagnostic(ErrorCode.ERR_NullableAttributeMissing).WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 1),
     // (9,22): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
     //     static void Test(int? x) {}
     Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(9, 22),
@@ -89,6 +112,7 @@ class C
     static void Main()
     {
         object? x = null;
+        Test(x);
     }
 
     static void Test(object? x) {}
@@ -96,9 +120,8 @@ class C
 ", new[] { core.ToMetadataReference() }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
-    // (6,17): warning CS0219: The variable 'x' is assigned but its value is never used
-    //         object? x = null;
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 17)
+    // error CS8218: Compiler required type 'System.Runtime.CompilerServices.NullableAttribute' cannot be found. Are you missing a reference?
+    Diagnostic(ErrorCode.ERR_NullableAttributeMissing).WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 1)
                 );
         }
 
@@ -122,7 +145,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             //var a = compilation.GetTypeByMetadataName("A");
             //var aFoo = a.GetMember<MethodSymbol>("Foo");
@@ -153,7 +176,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics();
         }
 
@@ -177,7 +200,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics();
         }
 
         [Fact]
@@ -198,7 +221,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics();
         }
 
         [Fact]
@@ -221,7 +244,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics();
         }
 
         [Fact]
@@ -242,7 +265,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -272,7 +295,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -301,7 +324,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics();
 
@@ -341,7 +364,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics();
 
@@ -405,7 +428,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics(
                 );
 
@@ -445,7 +468,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             // TODO: The overriding is ambigous. We simply matched the first candidate. Should this be an error?
             compilation.VerifyDiagnostics();
@@ -508,7 +531,7 @@ class B : A
 
 class C<T> {}
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -541,7 +564,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -569,7 +592,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics(
     // (11,38): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
     //     public override void M1<T>(T? x) where T : struct
@@ -632,7 +655,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics(
     // (27,26): error CS0506: 'B.M2<T>(T?)': cannot override inherited member 'A.M2<T>(T?)' because it is not marked virtual, abstract, or override
     //     public override void M2<T>(T? x)
@@ -697,7 +720,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics(
     // (4,50): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
     //     public virtual void M1<T>(System.Nullable<T> x) where T : class
@@ -738,7 +761,7 @@ class B : A
 
 class C<T> {}
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics(
     // (4,42): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
     //     public virtual C<System.Nullable<T>> M1<T>() where T : class
@@ -814,7 +837,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics(
     // (32,29): warning CS8209: Nullability of reference types in return type doesn't match overridden member.
     //     public override string? M1()
@@ -899,7 +922,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (27,26): warning CS8210: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -997,7 +1020,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics(
     // (42,25): error CS0508: 'B.M3()': return type must be 'int?' to match overridden member 'A.M3()'
     //     public override int M3()
@@ -1068,7 +1091,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (35,26): error CS0115: 'B.M3(int)': no suitable method found to override
@@ -1129,7 +1152,7 @@ class B2 : A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (19,49): warning CS8208: Nullability of reference types in type doesn't match overridden member.
@@ -1212,7 +1235,7 @@ class B2 : IA
 }
 
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (26,40): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string>? IA.E2'.
@@ -1305,7 +1328,7 @@ class B2 : IB
     event System.Action<string?>? IB.E3; // 2
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (34,37): error CS0071: An explicit interface implementation of an event must use event accessor syntax
@@ -1419,7 +1442,7 @@ class B2 : A2
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (28,31): warning CS8208: Nullability of reference types in type doesn't match overridden member.
@@ -1505,7 +1528,7 @@ class B : IA, IA2
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (23,22): warning CS8212: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.P2'.
@@ -1595,7 +1618,7 @@ class B : IA, IA2
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (22,17): warning CS8215: Nullability of reference types in type doesn't match implemented member 'string?[] IA.P1'.
@@ -1674,7 +1697,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (23,26): warning CS8209: Nullability of reference types in return type doesn't match overridden member.
@@ -1734,7 +1757,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (23,17): warning CS8213: Nullability of reference types in return type doesn't match implicitly implemented member 'T[] IA.M2<T>()'.
@@ -1802,7 +1825,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (23,13): warning CS8216: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
@@ -1867,7 +1890,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (22,26): warning CS8210: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -1922,7 +1945,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (20,17): warning CS8214: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'void IA.M2<T>(T[] x)'.
@@ -1985,7 +2008,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (20,13): warning CS8217: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M2<T>(T[] x)'.
@@ -2066,7 +2089,7 @@ class B3 : A3
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (24,25): warning CS8210: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -2151,7 +2174,7 @@ class B3 : IA3
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (32,16): warning CS8214: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'int IA2.this[string[] x]'.
@@ -2236,7 +2259,7 @@ class B3 : IA3
     } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (24,13): warning CS8217: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'int IA1.this[string?[] x]'.
@@ -2293,7 +2316,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             compilation.VerifyDiagnostics(
     // (16,18): warning CS8211: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
@@ -2336,7 +2359,7 @@ class A
     string? Test2(string y2) { return y2; }
 }
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).
+            CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).
                 VerifyDiagnostics(
     // (5,10): error CS0111: Type 'A' already defines a member called 'Test1' with the same parameter types
     //     void Test1(string x2) {}
@@ -2362,14 +2385,14 @@ class A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
             compilation.VerifyDiagnostics();
         }
 
         [Fact()]
         public void Test1()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -2717,7 +2740,7 @@ struct S2
 {
     public S1 F5;
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,21): warning CS8201: Possible null reference assignment.
@@ -2852,7 +2875,7 @@ struct S2
         [Fact]
         public void PassingParameters_1()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -2947,7 +2970,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,12): warning CS8204: Possible null reference argument for parameter 'p' in 'void C.M1(CL1 p)'.
@@ -2998,7 +3021,7 @@ class CL1
         [Fact]
         public void PassingParameters_2()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3019,7 +3042,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,31): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.this[CL0 x].get'.
@@ -3031,7 +3054,7 @@ class CL0
         [Fact]
         public void PassingParameters_3()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3055,7 +3078,7 @@ class CL0 : System.Collections.IEnumerable
         throw new System.NotImplementedException();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,30): warning CS8204: Possible null reference argument for parameter 'x' in 'void CL0.Add(CL0 x)'.
@@ -3067,7 +3090,7 @@ class CL0 : System.Collections.IEnumerable
         [Fact]
         public void RefOutParameters_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3112,7 +3135,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,14): warning CS8201: Possible null reference assignment.
@@ -3136,7 +3159,7 @@ class CL1
         [Fact]
         public void RefOutParameters_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3190,7 +3213,7 @@ struct S1
     public CL1 F1;
     public CL1? F2;
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,14): warning CS8201: Possible null reference assignment.
@@ -3214,7 +3237,7 @@ struct S1
         [Fact]
         public void RefOutParameters_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3249,7 +3272,7 @@ struct S1
     public CL1 F1;
     public CL1? F2;
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (14,14): warning CS8201: Possible null reference assignment.
@@ -3264,7 +3287,7 @@ struct S1
         [Fact]
         public void TargetingUnannotatedAPIs_01()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
 public class CL0 
 {
     public object F1;
@@ -3286,7 +3309,7 @@ public struct S1
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -3405,7 +3428,7 @@ public struct S2
     public object? F2;
 }
 
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
     // (63,16): warning CS8203: Possible null reference return.
@@ -3420,14 +3443,14 @@ public struct S2
         [Fact]
         public void TargetingUnannotatedAPIs_02()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -3475,7 +3498,7 @@ class C
     }
 }
 
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
     // (21,21): warning CS8207: Expression is probably never null.
@@ -3502,14 +3525,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_03()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -3539,7 +3562,7 @@ class C
     }
 }
 
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
     // (20,22): warning CS8207: Expression is probably never null.
@@ -3557,14 +3580,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_04()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -3611,7 +3634,7 @@ class C
     }
 }
 
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
     // (14,21): warning CS8201: Possible null reference assignment.
@@ -3632,14 +3655,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_05()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -3668,7 +3691,7 @@ class C
     }
 }
 
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
     // (14,21): warning CS8201: Possible null reference assignment.
@@ -3683,14 +3706,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_06()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -3746,7 +3769,7 @@ class C
     }
 }
 
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
     // (16,21): warning CS8201: Possible null reference assignment.
@@ -3767,14 +3790,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_07()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main()
@@ -3808,7 +3831,7 @@ class C
     }
 }
 
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
     // (16,21): warning CS8201: Possible null reference assignment.
@@ -3823,7 +3846,7 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_08()
         {
-            CSharpCompilation c0 = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(@"
 public abstract class A1
 {
     public abstract event System.Action E1;
@@ -3843,7 +3866,7 @@ public interface IA2
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class B1 : A1
 {
     static void Main()
@@ -3942,7 +3965,7 @@ class B3 : IA2
     }
 
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
                 );
@@ -3951,7 +3974,7 @@ class B3 : IA2
         [Fact]
         public void ReturningValues()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -3972,7 +3995,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,16): warning CS8203: Possible null reference return.
@@ -3984,7 +4007,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4063,7 +4086,7 @@ class CL2
     public override bool Equals(object obj) { return false; }
     public override int GetHashCode() { return 0; }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (16,18): warning CS8201: Possible null reference assignment.
@@ -4087,7 +4110,7 @@ class CL2
         [Fact]
         public void ConditionalBranching_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4166,7 +4189,7 @@ class CL2
     public override bool Equals(object obj) { return false; }
     public override int GetHashCode() { return 0; }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (16,18): warning CS8201: Possible null reference assignment.
@@ -4190,7 +4213,7 @@ class CL2
         [Fact]
         public void ConditionalBranching_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4241,7 +4264,7 @@ class CL1
 {
     public bool M1() { return true; }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,18): warning CS8201: Possible null reference assignment.
@@ -4265,7 +4288,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4311,7 +4334,7 @@ class CL1
     public CL1 M1() { return new CL1(); }
     public string? M2() { return null; }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,18): warning CS8201: Possible null reference assignment.
@@ -4329,7 +4352,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4365,7 +4388,7 @@ class CL1
     public CL1? M2() { return null; }
     public void M3(CL1 x) { }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,18): warning CS8201: Possible null reference assignment.
@@ -4386,7 +4409,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4438,7 +4461,7 @@ class CL1
     public CL1 M1() { return new CL1(); }
     public string? M2() { return null; }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,18): warning CS8201: Possible null reference assignment.
@@ -4465,7 +4488,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4517,7 +4540,7 @@ class CL1
     public CL1 M1() { return new CL1(); }
     public string? M2() { return null; }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,18): warning CS8201: Possible null reference assignment.
@@ -4544,7 +4567,7 @@ class CL1
         [Fact(Skip = "Unexpected warning")]
         public void ConditionalBranching_08()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4567,7 +4590,7 @@ class CL1
     public bool P1 { get { return true;} }
     public bool P2 { get { return true;} }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -4576,7 +4599,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_09()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4591,7 +4614,7 @@ class C
         y1.ToString();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,21): warning CS8207: Expression is probably never null.
@@ -4603,7 +4626,7 @@ class C
         [Fact]
         public void ConditionalBranching_10()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4618,7 +4641,7 @@ class C
         y1.ToString();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,21): warning CS8205: Result of the comparison is possibly always true.
@@ -4630,7 +4653,7 @@ class C
         [Fact]
         public void ConditionalBranching_11()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4645,7 +4668,7 @@ class C
         y1.ToString();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,9): warning CS8207: Expression is probably never null.
@@ -4657,7 +4680,7 @@ class C
         [Fact]
         public void ConditionalBranching_12()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4681,7 +4704,7 @@ class C
         y1.ToString();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (13,13): warning CS8206: Result of the comparison is possibly always false.
@@ -4693,7 +4716,7 @@ class C
         [Fact]
         public void ConditionalBranching_13()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4717,7 +4740,7 @@ class C
         y1.ToString();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (13,13): hidden CS8205: Result of the comparison is possibly always true.
@@ -4729,7 +4752,7 @@ class C
         [Fact]
         public void Loop_1()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4775,7 +4798,7 @@ class CL1
     public void M1() { }
     public void M2(CL1 x) { }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,13): warning CS8202: Possible dereference of a null reference.
@@ -4799,7 +4822,7 @@ class CL1
         [Fact]
         public void Loop_2()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4834,7 +4857,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (11,13): warning CS8206: Result of the comparison is possibly always false.
@@ -4849,7 +4872,7 @@ class CL1
         [Fact]
         public void Var_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4873,7 +4896,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -4882,7 +4905,7 @@ class CL1
         [Fact]
         public void Array_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4933,7 +4956,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (11,18): warning CS8201: Possible null reference assignment.
@@ -4954,7 +4977,7 @@ class CL1
         [Fact]
         public void Array_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -4998,7 +5021,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -5007,7 +5030,7 @@ class CL1
         [Fact]
         public void Array_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5028,7 +5051,7 @@ class C
         var z1 = u1?[u1[0]];
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,18): warning CS8202: Possible dereference of a null reference.
@@ -5040,7 +5063,7 @@ class C
         [Fact(Skip = "TODO")]
         public void Array_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5082,7 +5105,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             // TODO: Should probably get warnings about CL1?[] assigned to a CL1[] variable.
             c.VerifyDiagnostics(
@@ -5092,7 +5115,7 @@ class CL1
         [Fact]
         public void Array_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5112,7 +5135,7 @@ class C
         var z2 = u2.Length;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (18,18): warning CS8202: Possible dereference of a null reference.
@@ -5124,7 +5147,7 @@ class C
         [Fact]
         public void Array_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5147,7 +5170,7 @@ class C
         return u3;
     }
 }
-");
+" });
 
             c.VerifyDiagnostics(
     // (10,18): error CS8058: Feature 'static null checking' is only available in 'experimental' language version.
@@ -5168,7 +5191,7 @@ class C
         [Fact]
         public void Array_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5234,7 +5257,7 @@ class C
         u9[0][0,0].ToString();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (11,14): warning CS8201: Possible null reference assignment.
@@ -5306,7 +5329,7 @@ class C
         [Fact]
         public void Array_08()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5353,7 +5376,7 @@ class C
         u9[0][0,0].ToString();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (16,54): warning CS8201: Possible null reference assignment.
@@ -5410,7 +5433,7 @@ class C
         [Fact]
         public void ObjectInitializer_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5441,7 +5464,7 @@ class CL1
     public CL1 P1 {get; set;}
     public CL1? P2 {get; set;}
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (9,35): warning CS8201: Possible null reference assignment.
@@ -5456,7 +5479,7 @@ class CL1
         [Fact]
         public void Structs_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5516,7 +5539,7 @@ struct S2
 {
     public S1 F2;
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,14): warning CS8201: Possible null reference assignment.
@@ -5543,7 +5566,7 @@ struct S2
         [Fact]
         public void Structs_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5639,7 +5662,7 @@ struct S1
     public CL1? F1;
     public CL1? F3;
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (11,17): error CS0165: Use of unassigned local variable 'y1'
@@ -5672,7 +5695,7 @@ struct S1
         [Fact]
         public void Structs_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5719,7 +5742,7 @@ struct S2
 
     S2(CL1 x) { F2 = x; }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (9,14): warning CS8201: Possible null reference assignment.
@@ -5737,7 +5760,7 @@ struct S2
         [Fact]
         public void Structs_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5760,7 +5783,7 @@ struct TS2
         E2 = null;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,28): warning CS8201: Possible null reference assignment.
@@ -5772,7 +5795,7 @@ struct TS2
         [Fact]
         public void AnonymousTypes_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -5884,7 +5907,7 @@ struct S1
     public CL1? p1;
     public CL1? p2;
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,14): warning CS8207: Expression is probably never null.
@@ -5977,7 +6000,7 @@ struct S1
         [Fact]
         public void AnonymousTypes_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6012,7 +6035,7 @@ class CL1
 {
     public CL1? M1(CL1 x) { return null; }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (25,29): error CS0269: Use of unassigned out parameter 'x3'
@@ -6024,7 +6047,7 @@ class CL1
         [Fact]
         public void AnonymousTypes_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6044,7 +6067,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
@@ -6056,7 +6079,7 @@ class CL1
         [Fact]
         public void This()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6072,7 +6095,7 @@ class C
         this?.Test1();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (14,9): warning CS8207: Expression is probably never null.
@@ -6084,7 +6107,7 @@ class C
         [Fact]
         public void ReadonlyAutoProperties_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C1
 {
     static void Main()
@@ -6149,7 +6172,7 @@ struct S1
 {
     public C0? F1;
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,14): warning CS8201: Possible null reference assignment.
@@ -6173,7 +6196,7 @@ struct S1
         [Fact]
         public void ReadonlyAutoProperties_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 struct C1
 {
     static void Main()
@@ -6239,7 +6262,7 @@ struct S1
 {
     public C0? F1;
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (34,14): warning CS8201: Possible null reference assignment.
@@ -6260,7 +6283,7 @@ struct S1
         [Fact]
         public void NotAssigned()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6295,7 +6318,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (17,18): error CS0165: Use of unassigned local variable 'y1'
@@ -6310,7 +6333,7 @@ class CL1
         [Fact]
         public void Lambda_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6344,7 +6367,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -6353,7 +6376,7 @@ class CL1
         [Fact]
         public void Lambda_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6377,7 +6400,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -6386,7 +6409,7 @@ class CL1
         [Fact]
         public void Lambda_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6420,7 +6443,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,37): warning CS8203: Possible null reference return.
@@ -6441,7 +6464,7 @@ class CL1
         [Fact]
         public void Lambda_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6465,7 +6488,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,46): warning CS8201: Possible null reference assignment.
@@ -6480,7 +6503,7 @@ class CL1
         [Fact]
         public void Lambda_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6520,7 +6543,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (20,22): warning CS8203: Possible null reference return.
@@ -6541,7 +6564,7 @@ class CL1
         [Fact]
         public void Lambda_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6581,7 +6604,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -6590,7 +6613,7 @@ class CL1
         [Fact]
         public void Lambda_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6629,7 +6652,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (19,22): warning CS8203: Possible null reference return.
@@ -6650,7 +6673,7 @@ class CL1
         [Fact]
         public void Lambda_08()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6689,7 +6712,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -6698,7 +6721,7 @@ class CL1
         [Fact]
         public void Lambda_09()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6735,7 +6758,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (21,26): warning CS8201: Possible null reference assignment.
@@ -6750,7 +6773,7 @@ class CL1
         [Fact]
         public void Lambda_10()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6787,7 +6810,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (22,28): warning CS8203: Possible null reference return.
@@ -6802,7 +6825,7 @@ class CL1
         [Fact]
         public void Lambda_11()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6836,7 +6859,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,50): warning CS8201: Possible null reference assignment.
@@ -6857,7 +6880,7 @@ class CL1
         [Fact]
         public void Lambda_12()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6891,7 +6914,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,51): warning CS8201: Possible null reference assignment.
@@ -6912,7 +6935,7 @@ class CL1
         [Fact]
         public void Lambda_13()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6946,7 +6969,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -6955,7 +6978,7 @@ class CL1
         [Fact]
         public void Lambda_14()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -6989,7 +7012,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -6998,7 +7021,7 @@ class CL1
         [Fact(Skip = "TODO")]
         public void Lambda_15()
         {
-            CSharpCompilation notAnnotated = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation notAnnotated = CreateCompilationWithMscorlib(@"
 public class CL0 
 {
     public static void M1(System.Func<CL1<CL0>, CL0> x) {}
@@ -7015,7 +7038,7 @@ public class CL1<T>
 }
 ", options: TestOptions.DebugDll);
 
-            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C 
 {
     static void Main() {}
@@ -7040,7 +7063,7 @@ class C
                 };
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { notAnnotated.EmitToImageReference() });
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { notAnnotated.EmitToImageReference() });
 
             c.VerifyDiagnostics(
     // (20,29): warning CS8201: Possible null reference assignment.
@@ -7058,7 +7081,7 @@ class C
         [Fact]
         public void NewT_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7074,7 +7097,7 @@ class C
         x2 = new T2() ?? x2;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
@@ -7086,7 +7109,7 @@ class C
         [Fact]
         public void DynamicObjectCreation_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7108,7 +7131,7 @@ class CL0
     public CL0(int x) {}
     public CL0(long x) {}
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
@@ -7120,7 +7143,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7151,7 +7174,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
@@ -7163,7 +7186,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7194,7 +7217,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (9,22): warning CS8201: Possible null reference assignment.
@@ -7206,7 +7229,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7237,7 +7260,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (9,22): warning CS8201: Possible null reference assignment.
@@ -7249,7 +7272,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7280,7 +7303,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (9,22): warning CS8201: Possible null reference assignment.
@@ -7292,7 +7315,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7323,7 +7346,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
@@ -7335,7 +7358,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7366,7 +7389,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
@@ -7378,7 +7401,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7394,7 +7417,7 @@ class C
         x2 = x2[0] ?? x2;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -7403,7 +7426,7 @@ class C
         [Fact]
         public void DynamicIndexerAccess_08()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7434,7 +7457,7 @@ class CL0<T>
         set { }
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -7443,7 +7466,7 @@ class CL0<T>
         [Fact]
         public void DynamicIndexerAccess_09()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7484,7 +7507,7 @@ class CL1
         set { }
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,17): warning CS8201: Possible null reference assignment.
@@ -7496,7 +7519,7 @@ class CL1
         [Fact]
         public void DynamicIndexerAccess_10()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7527,7 +7550,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (9,14): warning CS8202: Possible dereference of a null reference.
@@ -7542,7 +7565,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7571,7 +7594,7 @@ class CL0
         return new CL0(); 
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
@@ -7583,7 +7606,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7612,7 +7635,7 @@ class CL0
         return new CL0(); 
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (9,22): warning CS8201: Possible null reference assignment.
@@ -7624,7 +7647,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7653,7 +7676,7 @@ class CL0
         return new CL0(); 
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (9,22): warning CS8201: Possible null reference assignment.
@@ -7665,7 +7688,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7694,7 +7717,7 @@ class CL0
         return new CL0(); 
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (9,22): warning CS8201: Possible null reference assignment.
@@ -7706,7 +7729,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7735,7 +7758,7 @@ class CL0
         return (int)x; 
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
@@ -7747,7 +7770,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7776,7 +7799,7 @@ class CL0
         return x; 
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (14,14): warning CS8207: Expression is probably never null.
@@ -7788,7 +7811,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7804,7 +7827,7 @@ class C
         x2 = x2.M1(0) ?? x2;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -7813,7 +7836,7 @@ class C
         [Fact]
         public void DynamicInvocation_08()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7841,7 +7864,7 @@ class CL0<T>
         return x; 
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -7850,7 +7873,7 @@ class CL0<T>
         [Fact]
         public void DynamicInvocation_09()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7879,7 +7902,7 @@ class CL0
         return new CL0(); 
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (9,14): warning CS8202: Possible dereference of a null reference.
@@ -7894,7 +7917,7 @@ class CL0
         [Fact]
         public void DynamicMemberAccess_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7915,7 +7938,7 @@ class C
         dynamic y3 = x3.M1;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (19,22): warning CS8202: Possible dereference of a null reference.
@@ -7927,7 +7950,7 @@ class C
         [Fact]
         public void DynamicObjectCreationExpression_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7956,7 +7979,7 @@ class CL0
     {
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (16,18): warning CS8207: Expression is probably never null.
@@ -7968,7 +7991,7 @@ class CL0
         [Fact]
         public void NameOf_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -7986,7 +8009,7 @@ class C
         x2 = z2 ?? x2;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (16,14): warning CS8207: Expression is probably never null.
@@ -7998,7 +8021,7 @@ class C
         [Fact]
         public void StringInterpolation_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8015,7 +8038,7 @@ class C
         x2 = $""{y2}"" ?? x2;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,14): warning CS8207: Expression is probably never null.
@@ -8027,7 +8050,7 @@ class C
         [Fact]
         public void DelegateCreation_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8044,7 +8067,7 @@ class C
         x2 = new System.Action(Main) ?? x2;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,14): warning CS8207: Expression is probably never null.
@@ -8056,7 +8079,7 @@ class C
         [Fact]
         public void Base_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Base
 {
     public virtual void Test() {}
@@ -8073,7 +8096,7 @@ class C : Base
         base.Test();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -8082,7 +8105,7 @@ class C : Base
         [Fact]
         public void TypeOf_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8099,7 +8122,7 @@ class C
         x2 = typeof(C) ?? x2;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,14): warning CS8207: Expression is probably never null.
@@ -8111,7 +8134,7 @@ class C
         [Fact]
         public void Default_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8123,7 +8146,7 @@ class C
         x1 = default(C);
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics( 
     // (10,14): warning CS8201: Possible null reference assignment.
@@ -8135,7 +8158,7 @@ class C
         [Fact]
         public void BinaryOperator_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8152,7 +8175,7 @@ class C
         string z2 = x2 + y2 ?? """";
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,21): warning CS8207: Expression is probably never null.
@@ -8164,7 +8187,7 @@ class C
         [Fact]
         public void BinaryOperator_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8181,7 +8204,7 @@ class C
         dynamic z2 = x2 + y2 ?? """";
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -8190,7 +8213,7 @@ class C
         [Fact]
         public void BinaryOperator_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8250,7 +8273,7 @@ class CL2
         return y;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,24): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator +(string? x, CL0 y)'.
@@ -8277,7 +8300,7 @@ class CL2
         [Fact]
         public void BinaryOperator_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8314,7 +8337,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator false(CL0 x)'.
@@ -8335,7 +8358,7 @@ class CL0
         [Fact]
         public void BinaryOperator_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8365,7 +8388,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator false(CL0 x)'.
@@ -8380,7 +8403,7 @@ class CL0
         [Fact]
         public void BinaryOperator_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8410,7 +8433,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -8419,7 +8442,7 @@ class CL0
         [Fact]
         public void BinaryOperator_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8449,7 +8472,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
@@ -8461,7 +8484,7 @@ class CL0
         [Fact]
         public void BinaryOperator_08()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8491,7 +8514,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -8500,7 +8523,7 @@ class CL0
         [Fact]
         public void BinaryOperator_09()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8535,7 +8558,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
@@ -8550,7 +8573,7 @@ class CL0
         [Fact]
         public void BinaryOperator_10()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8590,7 +8613,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
@@ -8605,7 +8628,7 @@ class CL0
         [Fact]
         public void BinaryOperator_11()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8652,7 +8675,7 @@ class C
         System.Action u8 = x8 - y8;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (15,28): warning CS8207: Expression is probably never null.
@@ -8676,7 +8699,7 @@ class C
         [Fact]
         public void BinaryOperator_12()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8716,7 +8739,7 @@ class CL0
         return null;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,25): warning CS8204: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator &(CL0? x, CL0 y)'.
@@ -8728,7 +8751,7 @@ class CL0
         [Fact]
         public void MethodGroupConversion_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8750,7 +8773,7 @@ class CL0
 {
     public void M1() {}
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,28): warning CS8202: Possible dereference of a null reference.
@@ -8762,7 +8785,7 @@ class CL0
         [Fact]
         public void UnaryOperator_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8820,7 +8843,7 @@ class CL2
         return new CL2();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator !(CL0 x)'.
@@ -8835,7 +8858,7 @@ class CL2
         [Fact]
         public void Conversion_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -8944,7 +8967,7 @@ class CL1 {}
 class CL2 {}
 class CL3 {}
 class CL4 : CL3 {}
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,18): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0.implicit operator CL1(CL0 x)'.
@@ -8992,7 +9015,7 @@ class CL4 : CL3 {}
         [Fact]
         public void IncreamentOperator_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9047,7 +9070,7 @@ class CL1
         return new CL1();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,21): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
@@ -9098,7 +9121,7 @@ class CL1
         [Fact]
         public void IncreamentOperator_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9154,7 +9177,7 @@ class CL1
         return new CL1();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,21): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
@@ -9190,7 +9213,7 @@ class CL1
         [Fact]
         public void IncreamentOperator_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9267,7 +9290,7 @@ class X4
         set { }
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,21): warning CS8204: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
@@ -9303,7 +9326,7 @@ class X4
         [Fact]
         public void IncreamentOperator_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -9337,7 +9360,7 @@ class C
         dynamic u5 = --x5;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (16,22): warning CS8201: Possible null reference assignment.
@@ -9352,7 +9375,7 @@ class C
         [Fact]
         public void IncreamentOperator_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -9385,7 +9408,7 @@ class C : A
 class B : A
 {
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'C? A.operator ++(A x)'.
@@ -9403,7 +9426,7 @@ class B : A
         [Fact]
         public void IncreamentOperator_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -9435,7 +9458,7 @@ class C : A
 class B : A
 {
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,16): warning CS8201: Possible null reference assignment.
@@ -9450,7 +9473,7 @@ class B : A
         [Fact]
         public void IncreamentOperator_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -9486,7 +9509,7 @@ class Convertible
         return new Convertible();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,29): warning CS8204: Possible null reference argument for parameter 'c' in 'Convertible.implicit operator int(Convertible c)'.
@@ -9501,7 +9524,7 @@ class Convertible
         [Fact]
         public void CompoundAssignment_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -9531,7 +9554,7 @@ class CL1
         return new CL0();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
@@ -9549,7 +9572,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -9579,7 +9602,7 @@ class CL1
         return new CL0();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,25): warning CS8204: Possible null reference argument for parameter 'y' in 'CL1 CL0.operator +(CL0 x, CL0 y)'.
@@ -9597,7 +9620,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -9647,7 +9670,7 @@ class CL1
         return new CL0();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1 CL0.operator +(CL0 x, CL0? y)'.
@@ -9683,7 +9706,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -9737,7 +9760,7 @@ class CL1
         return new CL0();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,18): warning CS8201: Possible null reference assignment.
@@ -9776,7 +9799,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -9805,7 +9828,7 @@ class Test
         dynamic u4 = x4 += y4;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -9814,7 +9837,7 @@ class Test
         [Fact]
         public void CompoundAssignment_06()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -9854,7 +9877,7 @@ class CL1
         return new CL0();
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
@@ -9875,7 +9898,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_07()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -9930,7 +9953,7 @@ class CL3
         set { }
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,19): warning CS8204: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
@@ -9951,7 +9974,7 @@ class CL3
         [Fact]
         public void Events_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10003,7 +10026,7 @@ class Test
         E2 += x7;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,9): warning CS8202: Possible dereference of a null reference.
@@ -10027,7 +10050,7 @@ class Test
         [Fact]
         public void Events_02()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10060,7 +10083,7 @@ struct TS1
         y3 = z3.E1 ?? x3;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (16,28): warning CS8207: Expression is probably never null.
@@ -10081,7 +10104,7 @@ struct TS1
         [Fact]
         public void Events_03()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10101,7 +10124,7 @@ struct TS2
     }
 }
 
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (16,28): warning CS8201: Possible null reference assignment.
@@ -10113,7 +10136,7 @@ struct TS2
         [Fact]
         public void Events_04()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10141,7 +10164,7 @@ class CL0
     }
 }
 
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,28): error CS0029: Cannot implicitly convert type 'void' to 'System.Action'
@@ -10162,7 +10185,7 @@ class CL0
         [Fact]
         public void Events_05()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10176,7 +10199,7 @@ class Test
         System.Action v1 = x1.E1;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (12,28): warning CS8202: Possible dereference of a null reference.
@@ -10188,7 +10211,7 @@ class Test
         [Fact]
         public void AsOperator_01()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class Test
 {
     static void Main()
@@ -10232,7 +10255,7 @@ class Test
 }
 
 class CL1 {}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
     // (10,21): warning CS8207: Expression is probably never null.
@@ -10288,7 +10311,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(new[] { source, attributesDefinitions }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics(
     // (10,20): warning CS8207: Expression is probably never null.
     //         object x = await new D() ?? new object();
     Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "await new D()").WithLocation(10, 20)
@@ -10324,7 +10347,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(new[] { source, attributesDefinitions }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true")).VerifyDiagnostics(
     // (10,20): warning CS8201: Possible null reference assignment.
     //         object x = await new D();
     Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "await new D()").WithLocation(10, 20)
@@ -10377,7 +10400,7 @@ class UsePia
     }
 }";
 
-            var compilation = CreateCompilation(consumer,
+            var compilation = CreateCompilation(new[] { attributesDefinitions, consumer },
                                                 new MetadataReference[] { MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
                                                 options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
@@ -10407,8 +10430,16 @@ abstract class B
 }
 
 delegate string? D1();
+
+interface I1<T>{}
+interface I2<T>{}
+
+class C<T> {}
+
+class F : C<F?>, I1<C<B?>>, I2<C<B>?>
+{}
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             var b = compilation.GetTypeByMetadataName("B");
             Assert.Equal("System.String? B.F1", b.GetMember("F1").ToTestDisplayString());
@@ -10421,12 +10452,259 @@ delegate string? D1();
             Assert.Equal("System.String? B.this[System.Action? x] { get; set; }", b.GetMember("this[]").ToTestDisplayString());
             Assert.Equal("B.implicit operator B?(int)", b.GetMember("op_Implicit").ToDisplayString());
             Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1").ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature)));
+
+            var f = compilation.GetTypeByMetadataName("F");
+            Assert.Equal("C<F?>", f.BaseType.ToTestDisplayString());
+            Assert.Equal("I1<C<B?>>", f.Interfaces[0].ToTestDisplayString());
+            Assert.Equal("I2<C<B>?>", f.Interfaces[1].ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DifferentParseOptions_01()
+        {
+            var source = @"";
+            Assert.Throws<System.ArgumentException>(() => CreateCompilationWithMscorlib(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular.WithFeature("staticNullChecking", "true")),
+                                                                                                CSharpSyntaxTree.ParseText(source, TestOptions.Regular)}, 
+                                                                                        options: TestOptions.ReleaseDll));
+
+            Assert.Throws<System.ArgumentException>(() => CreateCompilationWithMscorlib(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular),
+                                                                                                CSharpSyntaxTree.ParseText(source, TestOptions.Regular.WithFeature("staticNullChecking", "true"))},
+                                                                                        options: TestOptions.ReleaseDll));
+
+            CreateCompilationWithMscorlib(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular.WithFeature("staticNullChecking", "true")),
+                                                  CSharpSyntaxTree.ParseText(source, TestOptions.Regular.WithFeature("staticNullChecking", "true"))},
+                                          options: TestOptions.ReleaseDll);
+
+            CreateCompilationWithMscorlib(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular),
+                                                  CSharpSyntaxTree.ParseText(source, TestOptions.Regular)},
+                                          options: TestOptions.ReleaseDll);
+        }
+
+        [Fact]
+        public void MissingNullableAttribute_01()
+        {
+            var source = @"
+abstract class B
+{
+    string? F1; 
+    event System.Action? E1;
+    string? P1 {get; set;}
+    string?[][,] P2 {get; set;}
+    System.Action<string?> M1(string? x) {throw new System.NotImplementedException();}
+    string[]?[,] M2(string[][,]? x) {throw new System.NotImplementedException();}
+    void M3(string?* x) {}
+    public abstract string? this[System.Action? x] {get; set;} 
+
+    public static implicit operator B?(int x) {throw new System.NotImplementedException();}
+    event System.Action? E2
+    {
+        add { }
+        remove { }
+    }
+}
+
+delegate string? D1();
+
+interface I1<T>{}
+interface I2<T>{}
+
+class C<T> {}
+
+class F : C<F?>, I1<C<B?>>, I2<C<B>?>
+{}
+";
+            var compilation = CreateCompilationWithMscorlib( source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+    // error CS8218: Compiler required type 'System.Runtime.CompilerServices.NullableAttribute' cannot be found. Are you missing a reference?
+    Diagnostic(ErrorCode.ERR_NullableAttributeMissing).WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 1),
+    // (10,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+    //     void M3(string?* x) {}
+    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "string?*").WithLocation(10, 13),
+    // (10,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+    //     void M3(string?* x) {}
+    Diagnostic(ErrorCode.ERR_ManagedAddr, "string?*").WithArguments("string").WithLocation(10, 13)
+                );
+        }
+
+        [Fact]
+        public void MissingNullableAttribute_02()
+        {
+            var source = @"
+public abstract class B
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+            compilation.VerifyDiagnostics(
+    // error CS8218: Compiler required type 'System.Runtime.CompilerServices.NullableAttribute' cannot be found. Are you missing a reference?
+    Diagnostic(ErrorCode.ERR_NullableAttributeMissing).WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void NullableAttribute_01()
+        {
+            var source = @"
+public abstract class B
+{
+    public string? F1; 
+    public event System.Action? E1;
+    public string? P1 {get; set;}
+    public string?[][,] P2 {get; set;}
+    public System.Action<string?> M1(string? x) {throw new System.NotImplementedException();}
+    public string[]?[,] M2(string[][,]? x) {throw new System.NotImplementedException();}
+    public abstract string? this[System.Action? x] {get; set;} 
+
+    public static implicit operator B?(int x) {throw new System.NotImplementedException();}
+    public event System.Action? E2
+    {
+        add { }
+        remove { }
+    }
+}
+
+public delegate string? D1();
+
+public interface I1<T>{}
+public interface I2<T>{}
+
+public class C<T> {}
+
+public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
+{}
+";
+            var compilation = CreateCompilationWithMscorlib(new [] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics(
+                );
+
+            CompileAndVerify(compilation,
+                             symbolValidator: m =>
+                                {
+                                    var b = ((PEModuleSymbol)m).GlobalNamespace.GetTypeMember("B");
+                                    Assert.Equal("System.String? B.F1", b.GetMember("F1").ToTestDisplayString());
+                                    Assert.Equal("event System.Action? B.E1", b.GetMember("E1").ToTestDisplayString());
+                                    Assert.Equal("System.String? B.P1 { get; set; }", b.GetMember("P1").ToTestDisplayString());
+                                    Assert.Equal("System.String?[][,] B.P2 { get; set; }", b.GetMember("P2").ToTestDisplayString());
+                                    Assert.Equal("System.Action<System.String?> B.M1(System.String? x)", b.GetMember("M1").ToTestDisplayString());
+                                    Assert.Equal("System.String[]?[,] B.M2(System.String[][,]? x)", b.GetMember("M2").ToTestDisplayString());
+                                    Assert.Equal("System.String? B.this[System.Action? x] { get; set; }", b.GetMember("this[]").ToTestDisplayString());
+                                    Assert.Equal("B.implicit operator B?(int)", b.GetMember("op_Implicit").ToDisplayString());
+                                    Assert.Equal("event System.Action? B.E2", b.GetMember("E2").ToTestDisplayString());
+                                    Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1").ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature)));
+
+                                    var f = ((PEModuleSymbol)m).GlobalNamespace.GetTypeMember("F");
+                                    Assert.Equal("C<F?>", f.BaseType.ToTestDisplayString());
+
+                                    // TODO: Should we round-trip nullable modifiers for implemented interfaces too. 
+                                    Assert.Equal("I1<C<B>>", f.Interfaces[0].ToTestDisplayString());
+                                    Assert.Equal("I2<C<B>>", f.Interfaces[1].ToTestDisplayString());
+                                });
+        }
+
+        [Fact]
+        public void NullableAttribute_02()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+public class CL0 
+{
+    public object F1;
+
+    public object? P1 { get; set;}
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), options: TestOptions.DebugDll);
+
+            string source = @"
+class C 
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 x1, object? y1)
+    {
+        x1.F1 = y1;
+    }
+
+    void Test2(CL0 x2, object y2)
+    {
+        y2 = x2.P1;
+    }
+}
+";
+
+            var expected = new[]
+            {
+    // (10,17): warning CS8201: Possible null reference assignment.
+    //         x1.F1 = y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1").WithLocation(10, 17),
+    // (15,14): warning CS8201: Possible null reference assignment.
+    //         y2 = x2.P1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2.P1").WithLocation(15, 14)
+            };
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source }, 
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), 
+                                                                references: new[] { c0.EmitToImageReference() });
+
+            c.VerifyDiagnostics(expected);
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                references: new[] { c0.ToMetadataReference() });
+
+            c.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void NullableAttribute_03()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+public class CL0 
+{
+    public object F1;
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), options: TestOptions.DebugDll);
+
+            string source = @"
+class C 
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 x1, object? y1)
+    {
+        x1.F1 = y1;
+    }
+}
+";
+
+            var expected = new[]
+            {
+    // (10,17): warning CS8201: Possible null reference assignment.
+    //         x1.F1 = y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1").WithLocation(10, 17)
+            };
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                references: new[] { c0.EmitToImageReference() });
+
+            c.VerifyDiagnostics(expected);
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                references: new[] { c0.ToMetadataReference() });
+
+            c.VerifyDiagnostics(expected);
         }
 
         [Fact(Skip = "TODO")]
         public void Test2()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 using nullableString = System.String?;
 
 class C
@@ -10436,7 +10714,7 @@ class C
         nullableString? x = null;
     }
 }
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );
@@ -10445,7 +10723,7 @@ class C
         [Fact(Skip = "Yes")]
         public void DebugHelper()
         {
-            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+            CSharpCompilation c = CreateCompilationWithMscorlib(new [] { attributesDefinitions, @"
 class C
 {
     static void Main()
@@ -10480,7 +10758,7 @@ class C
 //    public CL1 F3;
 //    public CL1? F4;
 //}
-", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
 
             c.VerifyDiagnostics(
                 );

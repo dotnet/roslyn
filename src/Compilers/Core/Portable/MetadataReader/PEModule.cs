@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis
         private int[] _lazyNoPiaLocalTypeCheckBitMap;
 
         /// <summary>
+        /// Using <see cref="ThreeState"/> as a type for atomicity.
+        /// </summary>
+        private ThreeState _lazyUtilizesNullableReferenceTypes;
+
+        /// <summary>
         /// For each TypeDef that has 1 in m_lazyNoPiaLocalTypeCheckBitMap,
         /// this map stores corresponding TypeIdentifier AttributeInfo. 
         /// </summary>
@@ -90,6 +95,7 @@ namespace Microsoft.CodeAnalysis
             _lazyNamespaceNameCollection = new Lazy<IdentifierCollection>(ComputeNamespaceNameCollection);
             _hashesOpt = (peReader != null) ? new PEHashProvider(peReader) : null;
             _lazyContainsNoPiaLocalTypes = includeEmbeddedInteropTypes ? ThreeState.False : ThreeState.Unknown;
+            _lazyUtilizesNullableReferenceTypes = ThreeState.Unknown;
         }
 
         private sealed class PEHashProvider : CryptographicHashProvider
@@ -960,7 +966,7 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, description).Handle;
         }
 
-        private static readonly ImmutableArray<bool> s_simpleDynamicTransforms = ImmutableArray.Create(true);
+        private static readonly ImmutableArray<bool> s_simpleDynamicOrNullableTransforms = ImmutableArray.Create(true);
 
         internal bool HasDynamicAttribute(EntityHandle token, out ImmutableArray<bool> dynamicTransforms)
         {
@@ -975,7 +981,7 @@ namespace Microsoft.CodeAnalysis
 
             if (info.SignatureIndex == 0)
             {
-                dynamicTransforms = s_simpleDynamicTransforms;
+                dynamicTransforms = s_simpleDynamicOrNullableTransforms;
                 return true;
             }
 
@@ -2270,6 +2276,50 @@ namespace Microsoft.CodeAnalysis
             }
 
             return _lazyContainsNoPiaLocalTypes == ThreeState.True;
+        }
+
+        internal bool UtilizesNullableReferenceTypes()
+        {
+            if (_lazyUtilizesNullableReferenceTypes == ThreeState.Unknown)
+            {
+                try
+                {
+                    AttributeInfo info = FindTargetAttribute(EntityHandle.ModuleDefinition, AttributeDescription.NullableAttribute);
+                    Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
+
+                    if (info.HasValue && info.SignatureIndex == 0)
+                    {
+                        _lazyUtilizesNullableReferenceTypes = ThreeState.True;
+                        return true;
+                    }
+                }
+                catch (BadImageFormatException)
+                { }
+
+                _lazyUtilizesNullableReferenceTypes = ThreeState.False;
+            }
+
+            return _lazyUtilizesNullableReferenceTypes == ThreeState.True;
+        }
+
+        internal bool HasNullableAttribute(EntityHandle token, out ImmutableArray<bool> nullableTransforms)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullableAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
+
+            if (!info.HasValue)
+            {
+                nullableTransforms = default(ImmutableArray<bool>);
+                return false;
+            }
+
+            if (info.SignatureIndex == 0)
+            {
+                nullableTransforms = s_simpleDynamicOrNullableTransforms;
+                return true;
+            }
+
+            return TryExtractBoolArrayValueFromAttribute(info.Handle, out nullableTransforms);
         }
 
         #endregion

@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_CallSiteBinder,
         System_Runtime_CompilerServices_CallSite,
         System_Runtime_CompilerServices_CallSite_T,
+        System_Runtime_CompilerServices_NullableAttribute,
 
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken,
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T,
@@ -404,6 +405,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.CallSiteBinder",
             "System.Runtime.CompilerServices.CallSite",
             "System.Runtime.CompilerServices.CallSite`1",
+            "System.Runtime.CompilerServices.NullableAttribute",
 
             "System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken",
             "System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1",

@@ -6533,6 +6533,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Compiler required type &apos;{0}&apos; cannot be found. Are you missing a reference?.
+        /// </summary>
+        internal static string ERR_NullableAttributeMissing {
+            get {
+                return ResourceManager.GetString("ERR_NullableAttributeMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use of null is not valid in this context.
         /// </summary>
         internal static string ERR_NullNotValid {

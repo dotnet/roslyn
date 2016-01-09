@@ -562,6 +562,7 @@
     <Compile Include="Symbols\Metadata\PE\DynamicTypeDecoder.cs" />
     <Compile Include="Symbols\Metadata\PE\MemberRefMetadataDecoder.cs" />
     <Compile Include="Symbols\Metadata\PE\MetadataDecoder.cs" />
+    <Compile Include="Symbols\Metadata\PE\NullableTypeDecoder.cs" />
     <Compile Include="Symbols\Metadata\PE\PEAssemblySymbol.cs" />
     <Compile Include="Symbols\Metadata\PE\PEEventSymbol.cs" />
     <Compile Include="Symbols\Metadata\PE\PEFieldSymbol.cs" />

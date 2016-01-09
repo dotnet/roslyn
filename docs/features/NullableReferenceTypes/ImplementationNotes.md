@@ -86,3 +86,32 @@ Array type syntax is extended as follows to allow nullable modifiers:
 
 Warnings are reported when there is a signature mismatch with respect to nullability of reference types during overriding, 
 interface implementing, or partial method implementing. 
+
+
+**NullableAttribute**
+NullableAttribute is applied to a module if it utilizes Nullable Reference Types feature.
+NullableAttribute is applied to other targets in the module to point to specific nullable reference types in type references. 
+The attribute is applied in the same fashion as DynamicAttribute, with the following exceptions:
+- For types of events, it is applied to event declarations (not just to parameters of accessors).
+- Types used as custom modifiers, do not have dedicated transform flags.
+
+Here is the definition of the NullableAttribute required for the successful compilation:
+```
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Event | // The type of the event is nullable, or has a nullable reference type as one of its constituents
+                    AttributeTargets.Field | // The type of the field is a nullable reference type, or has a nullable reference type as one of its constituents
+                    AttributeTargets.GenericParameter | // The generic parameter is a nullable reference type
+                    AttributeTargets.Module | // Nullable reference types in this module are annotated by means of NullableAttribute applied to other targets in it
+                    AttributeTargets.Parameter | // The type of the parameter is a nullable reference type, or has a nullable reference type as one of its constituents
+                    AttributeTargets.ReturnValue, // The return type is a nullable reference type, or has a nullable reference type as one of its constituents
+                   AllowMultiple = false)]
+    public class NullableAttribute : Attribute
+    {
+        public NullableAttribute() { }
+        public NullableAttribute(bool[] transformFlags)
+        {
+        }
+    }
+}
+```

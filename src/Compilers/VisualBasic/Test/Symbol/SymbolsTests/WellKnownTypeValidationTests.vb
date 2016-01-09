@@ -498,7 +498,9 @@ End Namespace
                     Case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators
                         ' Only present when embedding VB Core.
                         Continue For
-                    Case WellKnownType.System_FormattableString, WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                    Case WellKnownType.System_FormattableString,
+                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                         WellKnownType.System_Runtime_CompilerServices_NullableAttribute
                         ' Not available on all platforms.
                         Continue For
                 End Select
@@ -526,7 +528,9 @@ End Namespace
                          WellKnownType.Microsoft_VisualBasic_Interaction
                         ' Not embedded, so not available.
                         Continue For
-                    Case WellKnownType.System_FormattableString, WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                    Case WellKnownType.System_FormattableString,
+                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                         WellKnownType.System_Runtime_CompilerServices_NullableAttribute
                         ' Not available on all platforms.
                         Continue For
                 End Select
@@ -560,7 +564,9 @@ End Namespace
                     Case WellKnownMember.Count
                         ' Not a real value.
                         Continue For
-                    Case WellKnownMember.System_Array__Empty
+                    Case WellKnownMember.System_Array__Empty,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                 End Select
@@ -637,7 +643,9 @@ End Namespace
                          WellKnownMember.Microsoft_VisualBasic_Interaction__CallByName
                         ' The type is not embedded, so the member is not available.
                         Continue For
-                    Case WellKnownMember.System_Array__Empty
+                    Case WellKnownMember.System_Array__Empty,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                 End Select
