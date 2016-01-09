@@ -1198,25 +1198,67 @@ namespace Microsoft.CodeAnalysis
 
             return new Cci.ModulePropertiesForSerialization(
                 persistentIdentifier: moduleVersionId,
+                corFlags: GetCorHeaderFlags(machine, HasStrongName, prefers32Bit: platform == Platform.AnyCpu32BitPreferred),
                 fileAlignment: fileAlignment,
                 sectionAlignment: Cci.ModulePropertiesForSerialization.DefaultSectionAlignment,
                 targetRuntimeVersion: targetRuntimeVersion,
                 machine: machine,
-                prefer32Bit: platform == Platform.AnyCpu32BitPreferred,
                 baseAddress: baseAddress,
                 sizeOfHeapReserve: sizeOfHeapReserve,
                 sizeOfHeapCommit: sizeOfHeapCommit,
                 sizeOfStackReserve: sizeOfStackReserve,
                 sizeOfStackCommit: sizeOfStackCommit,
-                enableHighEntropyVA: emitOptions.HighEntropyVirtualAddressSpace,
-                strongNameSigned: HasStrongName,
+                dllCharacteristics: GetDllCharacteristics(emitOptions.HighEntropyVirtualAddressSpace, compilationOptions.OutputKind == OutputKind.WindowsRuntimeApplication),
                 imageCharacteristics: GetCharacteristics(outputKind, requires32Bit),
-                configureToExecuteInAppContainer: compilationOptions.OutputKind == OutputKind.WindowsRuntimeApplication,
                 subsystem: GetSubsystem(outputKind),
                 majorSubsystemVersion: (ushort)subsystemVersion.Major,
                 minorSubsystemVersion: (ushort)subsystemVersion.Minor,
                 linkerMajorVersion: this.LinkerMajorVersion,
                 linkerMinorVersion: 0);
+        }
+
+        private static CorFlags GetCorHeaderFlags(Machine machine, bool strongNameSigned, bool prefers32Bit)
+        {
+            CorFlags result = CorFlags.ILOnly;
+
+            if (machine == Machine.I386)
+            {
+                result |= CorFlags.Requires32Bit;
+            }
+
+            if (strongNameSigned)
+            {
+                result |= CorFlags.StrongNameSigned;
+            }
+
+            if (prefers32Bit)
+            {
+                result |= CorFlags.Requires32Bit | CorFlags.Prefers32Bit;
+            }
+
+            return result;
+        }
+
+        internal static DllCharacteristics GetDllCharacteristics(bool enableHighEntropyVA, bool configureToExecuteInAppContainer)
+        {
+            var result =
+                DllCharacteristics.DynamicBase |
+                DllCharacteristics.NxCompatible |
+                DllCharacteristics.NoSeh |
+                DllCharacteristics.TerminalServerAware;
+
+            if (enableHighEntropyVA)
+            {
+                // IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA
+                result |= (DllCharacteristics)0x0020;
+            }
+
+            if (configureToExecuteInAppContainer)
+            {
+                result |= DllCharacteristics.AppContainer;
+            }
+
+            return result;
         }
 
         private static Characteristics GetCharacteristics(OutputKind outputKind, bool requires32Bit)

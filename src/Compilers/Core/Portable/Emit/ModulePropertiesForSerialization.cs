@@ -32,13 +32,7 @@ namespace Microsoft.Cci
         /// Specifies the target CPU. <see cref="Machine.Unknown"/> means AnyCPU.
         /// </summary>
         public readonly Machine Machine;
-
-        /// <summary>
-        /// True if the module contains only IL and is processor independent. Should there be a choice between launching as a 64-bit or 32-bit
-        /// process, this setting will cause the host to launch it as a 32-bit process. 
-        /// </summary>
-        public readonly bool Prefers32Bit;
-
+        
         /// <summary>
         /// A globally unique persistent identifier for this module.
         /// </summary>
@@ -68,7 +62,6 @@ namespace Microsoft.Cci
         public readonly ulong SizeOfStackReserve;
 
         public readonly ulong SizeOfStackCommit;
-        public readonly bool StrongNameSigned;
         public readonly ushort MajorSubsystemVersion;
         public readonly ushort MinorSubsystemVersion;
 
@@ -90,6 +83,8 @@ namespace Microsoft.Cci
         public Characteristics ImageCharacteristics { get; }
 
         public Subsystem Subsystem { get; }
+
+        public CorFlags CorFlags { get; }
 
         public const ulong DefaultExeBaseAddress32Bit = 0x00400000;
         public const ulong DefaultExeBaseAddress64Bit = 0x0000000140000000;
@@ -116,19 +111,17 @@ namespace Microsoft.Cci
 
         internal ModulePropertiesForSerialization(
             Guid persistentIdentifier,
+            CorFlags corFlags,
             int fileAlignment,
             int sectionAlignment,
             string targetRuntimeVersion,
             Machine machine,
-            bool prefer32Bit,
             ulong baseAddress,
             ulong sizeOfHeapReserve,
             ulong sizeOfHeapCommit,
             ulong sizeOfStackReserve,
             ulong sizeOfStackCommit,
-            bool enableHighEntropyVA,
-            bool strongNameSigned,
-            bool configureToExecuteInAppContainer,
+            DllCharacteristics dllCharacteristics,
             Characteristics imageCharacteristics,
             Subsystem subsystem,
             ushort majorSubsystemVersion,
@@ -141,63 +134,19 @@ namespace Microsoft.Cci
             this.SectionAlignment = sectionAlignment;
             this.TargetRuntimeVersion = targetRuntimeVersion;
             this.Machine = machine;
-            this.Prefers32Bit = prefer32Bit;
             this.BaseAddress = baseAddress;
             this.SizeOfHeapReserve = sizeOfHeapReserve;
             this.SizeOfHeapCommit = sizeOfHeapCommit;
             this.SizeOfStackReserve = sizeOfStackReserve;
             this.SizeOfStackCommit = sizeOfStackCommit;
-            this.StrongNameSigned = strongNameSigned;
             this.LinkerMajorVersion = linkerMajorVersion;
             this.LinkerMinorVersion = linkerMinorVersion;
             this.MajorSubsystemVersion = majorSubsystemVersion;
             this.MinorSubsystemVersion = minorSubsystemVersion;
             this.ImageCharacteristics = imageCharacteristics;
             this.Subsystem = subsystem;
-            this.DllCharacteristics = GetDllCharacteristics(enableHighEntropyVA, configureToExecuteInAppContainer);
-        }
-
-        private static DllCharacteristics GetDllCharacteristics(bool enableHighEntropyVA, bool configureToExecuteInAppContainer) 
-        {
-            var result =
-                DllCharacteristics.DynamicBase |
-                DllCharacteristics.NxCompatible |
-                DllCharacteristics.NoSeh |
-                DllCharacteristics.TerminalServerAware;
-
-            if (enableHighEntropyVA)
-            {
-                result |= DllCharacteristics.HighEntropyVirtualAddressSpace;
-            }
-
-            if (configureToExecuteInAppContainer)
-            {
-                result |= DllCharacteristics.AppContainer;
-            }
-
-            return result;
-        }
-
-        internal CorFlags GetCorHeaderFlags()
-        {
-            CorFlags result = CorFlags.ILOnly;
-
-            if (Machine == Machine.I386)
-            {
-                result |= CorFlags.Requires32Bit;
-            }
-
-            if (StrongNameSigned)
-            {
-                result |= CorFlags.StrongNameSigned;
-            }
-
-            if (Prefers32Bit)
-            {
-                result |= CorFlags.Requires32Bit | CorFlags.Prefers32Bit;
-            }
-
-            return result;
+            this.DllCharacteristics = dllCharacteristics;
+            this.CorFlags = corFlags;
         }
     }
 }
