@@ -49,7 +49,6 @@
   <ItemGroup>
     <Compile Include="CodeActionProviderTestFixture.cs" />
     <Compile Include="CodeRefactoringProviderTestFixture.cs" />
-    <Compile Include="CompletionProviderTestFixture.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="EnumerableExtensions.ComparisonComparer.cs" />
     <Compile Include="EnumerableExtensions.cs" />
