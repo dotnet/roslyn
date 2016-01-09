@@ -420,6 +420,24 @@ public class C {}
             Assert.Equal(CorFlags.ILOnly | CorFlags.StrongNameSigned, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
         }
 
+        private void VerifySignedBitSetAfterEmit(Compilation comp)
+        {
+            var outStrm = new MemoryStream();
+            var emitResult = comp.Emit(outStrm);
+            Assert.True(emitResult.Success);
+
+            outStrm.Position = 0;
+
+            // Verify that the sign bit is set
+            using (var reader = new PEReader(outStrm))
+            {
+                Assert.True(reader.HasMetadata);
+
+                var flags = reader.PEHeaders.CorHeader.Flags;
+                Assert.True(flags.HasFlag(CorFlags.StrongNameSigned));
+            }
+        }
+
         [Fact]
         public void SnkFile_PublicSign()
         {
@@ -437,20 +455,7 @@ public class C {}
             Assert.False(comp.IsRealSigned);
             Assert.NotNull(comp.Options.CryptoKeyFile);
 
-            var outStrm = new MemoryStream();
-            var emitResult = comp.Emit(outStrm);
-            Assert.True(emitResult.Success);
-
-            outStrm.Position = 0;
-
-            // Verify that the sign bit is set
-            using (var reader = new PEReader(outStrm))
-            {
-                Assert.True(reader.HasMetadata);
-
-                var flags = reader.PEHeaders.CorHeader.Flags;
-                Assert.True(flags.HasFlag(CorFlags.StrongNameSigned));
-            }
+            VerifySignedBitSetAfterEmit(comp);
         }
 
         [Fact]
@@ -470,20 +475,31 @@ public class C {}
             Assert.False(comp.IsRealSigned);
             Assert.NotNull(comp.Options.CryptoKeyFile);
 
-            var outStrm = new MemoryStream();
-            var emitResult = comp.Emit(outStrm);
-            Assert.True(emitResult.Success);
+            VerifySignedBitSetAfterEmit(comp);
+        }
 
-            outStrm.Position = 0;
+        [Fact]
+        public void PublicSign_DelaySignAttribute()
+        {
+            var pubKeyFile = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey);
 
-            // Verify that the sign bit is set
-            using (var reader = new PEReader(outStrm))
-            {
-                Assert.True(reader.HasMetadata);
+            var comp = CreateCompilationWithMscorlib(@"
+[assembly: System.Reflection.AssemblyDelaySign(true)]
+public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithCryptoKeyFile(pubKeyFile.Path)
+                    .WithPublicSign(true));
 
-                var flags = reader.PEHeaders.CorHeader.Flags;
-                Assert.True(flags.HasFlag(CorFlags.StrongNameSigned));
-            }
+            comp.VerifyDiagnostics(
+    // warning CS1616: Option 'PublicSign' overrides attribute 'System.Reflection.AssemblyDelaySignAttribute' given in a source file or added module
+    Diagnostic(ErrorCode.WRN_CmdOptionConflictsSource).WithArguments("PublicSign", "System.Reflection.AssemblyDelaySignAttribute").WithLocation(1, 1));
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.Null(comp.Options.DelaySign);
+            Assert.False(comp.IsRealSigned);
+            Assert.NotNull(comp.Options.CryptoKeyFile);
+
+            VerifySignedBitSetAfterEmit(comp);
         }
 
         [Fact]
@@ -517,20 +533,40 @@ public class C {}
             Assert.False(comp.IsRealSigned);
             Assert.NotNull(comp.Options.CryptoKeyContainer);
 
-            var outStrm = new MemoryStream();
-            var emitResult = comp.Emit(outStrm);
-            Assert.True(emitResult.Success);
+            VerifySignedBitSetAfterEmit(comp);
+        }
 
-            outStrm.Position = 0;
+        [Fact]
+        public void PublicSignAndDelaySign()
+        {
+            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
 
-            // Verify that the sign bit is set
-            using (var reader = new PEReader(outStrm))
-            {
-                Assert.True(reader.HasMetadata);
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithPublicSign(true)
+                    .WithDelaySign(true)
+                    .WithCryptoKeyFile(snk.Path));
 
-                var flags = reader.PEHeaders.CorHeader.Flags;
-                Assert.True(flags.HasFlag(CorFlags.StrongNameSigned));
-            }
+            comp.VerifyDiagnostics(
+    // error CS7102: Compilation options 'PublicSign' and 'DelaySign' can't both be specified at the same time.
+    Diagnostic(ErrorCode.ERR_MutuallyExclusiveOptions).WithArguments("PublicSign", "DelaySign").WithLocation(1, 1));
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.True(comp.Options.DelaySign);
+        }
+
+        [Fact]
+        public void PublicSignNoKey()
+        {
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithPublicSign(true));
+
+            comp.VerifyDiagnostics(
+    // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1) );
+            Assert.True(comp.Options.PublicSign);
+            Assert.True(comp.Assembly.PublicKey.IsDefaultOrEmpty);
         }
 
         [Fact]

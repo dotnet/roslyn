@@ -4295,6 +4295,9 @@
   <data name="ERR_FriendRefSigningMismatch" xml:space="preserve">
     <value>Friend access was granted by '{0}', but the strong name signing state of the output assembly does not match that of the granting assembly.</value>
   </data>
+  <data name="ERR_PublicSignNoKey" xml:space="preserve">
+    <value>Public sign was specified and requires a public key, but no public key was specified</value>
+  </data>
   <data name="WRN_DelaySignButNoKey" xml:space="preserve">
     <value>Delay signing was specified and requires a public key, but no public key was specified.</value>
   </data>

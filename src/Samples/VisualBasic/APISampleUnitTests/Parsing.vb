@@ -4,11 +4,11 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Xunit
 
-<TestClass()>
 Public Class Parsing
 
-    <TestMethod()>
+    <Fact>
     Sub TextParseTreeRoundtrip()
         Dim code =
 <code>
@@ -19,10 +19,10 @@ End Class ' exact text round trip, including comments and whitespace
 </code>.GetCode()
 
         Dim tree = SyntaxFactory.ParseSyntaxTree(code)
-        Assert.AreEqual(code, tree.GetText().ToString())
+        Assert.Equal(code, tree.GetText().ToString())
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Sub DetermineValidIdentifierName()
         ValidIdentifier("[Class]", True)
         ValidIdentifier("Class", False)
@@ -30,37 +30,37 @@ End Class ' exact text round trip, including comments and whitespace
 
     Sub ValidIdentifier(identifier As String, expectedValid As Boolean)
         Dim token = SyntaxFactory.ParseToken(identifier)
-        Assert.AreEqual(expectedValid, token.Kind() = SyntaxKind.IdentifierToken AndAlso token.Span.Length = identifier.Length)
+        Assert.Equal(expectedValid, token.Kind() = SyntaxKind.IdentifierToken AndAlso token.Span.Length = identifier.Length)
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Sub SyntaxFactsMethods()
-        Assert.AreEqual("Protected Friend", SyntaxFacts.GetText(Accessibility.ProtectedOrFriend))
-        Assert.AreEqual("Me", SyntaxFacts.GetText(SyntaxKind.MeKeyword))
-        Assert.AreEqual(SyntaxKind.CharacterLiteralExpression, SyntaxFacts.GetLiteralExpression(SyntaxKind.CharacterLiteralToken))
-        Assert.AreEqual(False, SyntaxFacts.IsPunctuation(SyntaxKind.StringLiteralToken))
+        Assert.Equal("Protected Friend", SyntaxFacts.GetText(Accessibility.ProtectedOrFriend))
+        Assert.Equal("Me", SyntaxFacts.GetText(SyntaxKind.MeKeyword))
+        Assert.Equal(SyntaxKind.CharacterLiteralExpression, SyntaxFacts.GetLiteralExpression(SyntaxKind.CharacterLiteralToken))
+        Assert.Equal(False, SyntaxFacts.IsPunctuation(SyntaxKind.StringLiteralToken))
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Sub ParseTokens()
         Dim tokens = SyntaxFactory.ParseTokens("Class C ' trivia")
         Dim fullTexts = tokens.Select(Function(token) token.ToFullString())
-        Assert.IsTrue(fullTexts.SequenceEqual({"Class ", "C ' trivia", ""}))
+        Assert.True(fullTexts.SequenceEqual({"Class ", "C ' trivia", ""}))
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Sub ParseExpression()
         Dim expression = SyntaxFactory.ParseExpression("1 + 2")
         If expression.Kind() = SyntaxKind.AddExpression Then
             Dim binaryExpression = CType(expression, BinaryExpressionSyntax)
             Dim operatorToken = binaryExpression.OperatorToken
-            Assert.AreEqual("+", operatorToken.ToString())
+            Assert.Equal("+", operatorToken.ToString())
             Dim left = binaryExpression.Left
-            Assert.AreEqual(SyntaxKind.NumericLiteralExpression, left.Kind)
+            Assert.Equal(SyntaxKind.NumericLiteralExpression, left.Kind)
         End If
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Sub IncrementalParse()
         Dim oldCode =
 <code>
@@ -79,10 +79,10 @@ End Class
         Dim oldTree = SyntaxFactory.ParseSyntaxTree(oldText)
         Dim newTree = oldTree.WithChangedText(newText)
 
-        Assert.AreEqual(newText.ToString(), newTree.ToString())
+        Assert.Equal(newText.ToString(), newTree.ToString())
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Sub PreprocessorDirectives()
         Dim code =
 <code>
@@ -98,20 +98,20 @@ End Class
         Dim tree = SyntaxFactory.ParseSyntaxTree(code)
 
         Dim eof = tree.GetRoot().FindToken(tree.GetText().Length, False)
-        Assert.AreEqual(True, eof.HasLeadingTrivia)
-        Assert.AreEqual(False, eof.HasTrailingTrivia)
-        Assert.AreEqual(True, eof.ContainsDirectives)
+        Assert.Equal(True, eof.HasLeadingTrivia)
+        Assert.Equal(False, eof.HasTrailingTrivia)
+        Assert.Equal(True, eof.ContainsDirectives)
 
         Dim trivia = eof.LeadingTrivia
-        Assert.AreEqual(3, trivia.Count)
-        Assert.AreEqual("#Else" & vbCrLf, trivia.ElementAt(0).ToFullString())
-        Assert.AreEqual(SyntaxKind.DisabledTextTrivia, trivia.ElementAt(1).Kind)
-        Assert.AreEqual("#End If", trivia.ElementAt(2).ToString())
+        Assert.Equal(3, trivia.Count)
+        Assert.Equal("#Else" & vbCrLf, trivia.ElementAt(0).ToFullString())
+        Assert.Equal(SyntaxKind.DisabledTextTrivia, trivia.ElementAt(1).Kind)
+        Assert.Equal("#End If", trivia.ElementAt(2).ToString())
 
         Dim directive = tree.GetRoot().GetLastDirective()
-        Assert.AreEqual("#End If", directive.ToString())
+        Assert.Equal("#End If", directive.ToString())
 
         directive = directive.GetPreviousDirective()
-        Assert.AreEqual("#Else" & vbCrLf, directive.ToFullString())
+        Assert.Equal("#Else" & vbCrLf, directive.ToFullString())
     End Sub
 End Class
