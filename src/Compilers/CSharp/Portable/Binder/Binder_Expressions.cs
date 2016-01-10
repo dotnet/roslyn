@@ -2119,7 +2119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Default inferred reference types to a nullable state.
-            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, TypeSymbolWithAnnotations.Create(bestType, makeNullableIfReferenceType: true), rank);
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, 
+                                                              TypeSymbolWithAnnotations.Create(bestType, makeNullableIfReferenceType: node.IsFeatureStaticNullCheckingEnabled()), 
+                                                              rank);
             return BindArrayCreationWithInitializer(diagnostics, node, initializer, arrayType,
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
         }

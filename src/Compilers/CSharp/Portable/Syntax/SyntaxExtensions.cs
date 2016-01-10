@@ -298,5 +298,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default(ArrowExpressionClauseSyntax),
                 semicolonToken);
         }
+
+        internal static bool IsFeatureStaticNullCheckingEnabled(this CSharpSyntaxNode node)
+        {
+            return ((CSharpParseOptions)node.SyntaxTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true;
+        }
     }
 }
