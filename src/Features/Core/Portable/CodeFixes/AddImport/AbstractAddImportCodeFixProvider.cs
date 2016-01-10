@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             var description = reference.GetDescription(semanticModel, node);// this.GetDescription(reference.SearchResult.Symbol, semanticModel, node);
                             if (description != null)
                             {
-                                var action = new MyCodeAction(description, c =>
-                                    reference.UpdateSolutionAsync(document, node, placeSystemNamespaceFirst, c));
+                                var action = new MyCodeAction2(description, 
+                                    c => reference.GetOperationsAsync(document, node, placeSystemNamespaceFirst, c));
                                 context.RegisterCodeFix(action, diagnostic);
                             }
                         }
@@ -309,6 +310,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private static bool NotNull(SymbolReference reference)
         {
             return reference.SymbolResult.Symbol != null;
+        }
+
+        private class MyCodeAction2 : CodeAction
+        {
+            private readonly string _title;
+            private readonly Func<CancellationToken, Task<ImmutableArray<CodeActionOperation>>> _getOperations;
+
+            public override string Title => _title;
+            public override string EquivalenceKey => _title;
+
+            public MyCodeAction2(string title, Func<CancellationToken, Task<ImmutableArray<CodeActionOperation>>> getOperations)
+            {
+                _title = title;
+                _getOperations = getOperations;
+            }
+
+            internal override Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(CancellationToken cancellationToken)
+            {
+                return _getOperations(cancellationToken);
+            }
         }
 
         private class MyCodeAction : CodeAction.SolutionChangeAction

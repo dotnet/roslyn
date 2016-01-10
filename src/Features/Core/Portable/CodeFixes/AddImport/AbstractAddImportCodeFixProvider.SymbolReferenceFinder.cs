@@ -196,17 +196,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private Task FindNugetReferencesAsync(List<Reference> allReferences, TSimpleNameSyntax nameNode, string name, int arity)
             {
-                var nugetService = _document.Project.Solution.Workspace.Services.GetService<INugetSearchService>();
-                if (nugetService == null)
+                var workspaceServices = _document.Project.Solution.Workspace.Services;
+                var searchService = workspaceServices.GetService<INugetSearchService>();
+                var installerService = workspaceServices.GetService<INugetPackageInstallerService>();
+                if (searchService == null || installerService == null)
                 {
                     return SpecializedTasks.EmptyTask;
 
                 }
-                return Task.Run(() => FindNugetReferences(nugetService, allReferences, nameNode, name, arity), _cancellationToken);
+                return Task.Run(() => FindNugetReferences(searchService, installerService, allReferences, nameNode, name, arity), _cancellationToken);
             }
 
             private void FindNugetReferences(
-                INugetSearchService nugetService, List<Reference> allReferences, TSimpleNameSyntax nameNode, string name, int arity)
+                INugetSearchService nugetService,
+                INugetPackageInstallerService installerService,
+                List<Reference> allReferences,
+                TSimpleNameSyntax nameNode,
+                string name,
+                int arity)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
                 var results = nugetService.Search(name, arity, _cancellationToken);
@@ -214,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 int weight = 0;
                 foreach (var result in results)
                 {
-                    allReferences.Add(new NugetReference(_owner, 
+                    allReferences.Add(new NugetReference(_owner, installerService,
                         new SearchResult(name, nameNode, result.NameParts, weight), result.PackageName));
                     weight++;
                 }

@@ -2,10 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Nuget;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -61,7 +64,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public abstract string GetDescription(SemanticModel semanticModel, SyntaxNode node);
 
-            public abstract Task<Solution> UpdateSolutionAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
+            public abstract Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
         }
 
         private abstract class SymbolReference : Reference
@@ -79,7 +83,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return provider.GetDescription(SymbolResult.Symbol, semanticModel, node);
             }
 
-            public override async Task<Solution> UpdateSolutionAsync(
+            public override async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            {
+                var newSolution = await UpdateSolutionAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                var operation = new ApplyChangesOperation(newSolution);
+                return ImmutableArray.Create<CodeActionOperation>(operation);
+            }
+
+            private async Task<Solution> UpdateSolutionAsync(
                 Document document, SyntaxNode contextNode, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 ReplaceNameNode(ref contextNode, ref document, cancellationToken);
@@ -168,11 +180,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private class NugetReference : Reference
         {
+            private readonly INugetPackageInstallerService _installerService;
             private readonly string _packageName;
 
-            public NugetReference(AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider, SearchResult searchResult, string packageName)
+            public NugetReference(
+                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                INugetPackageInstallerService installerService,
+                SearchResult searchResult,
+                string packageName)
                 : base(provider, searchResult)
             {
+                _installerService = installerService;
                 _packageName = packageName;
             }
 
@@ -181,11 +199,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return $"using { string.Join(".", this.SearchResult.NameParts) } (from {_packageName})";
             }
 
-            public override async Task<Solution> UpdateSolutionAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            public override async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var newDocument = await provider.AddImportAsync(node, SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                var newSolution = newDocument.Project.Solution;
 
-                return newDocument.Project.Solution;
+                var operation1 = new ApplyChangesOperation(newSolution);
+                // var operation2 = new InstallNugetPackageOperation(_installerService, document.Project, _packageName);
+
+                var operations = ImmutableArray.Create<CodeActionOperation>(operation1);//, operation2);
+                return operations;
             }
         }
     }
