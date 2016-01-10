@@ -39,23 +39,6 @@ namespace Microsoft.Cci
             var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, isDeterministic, getPortablePdbStreamOpt != null, cancellationToken);
 
             var properties = context.Module.Properties;
-            var nativeResourcesOpt = context.Module.Win32Resources;
-            var nativeResourceSectionOpt = context.Module.Win32ResourceSection;
-
-            // In the PE File Header this is a "Time/Date Stamp" whose description is "Time and date
-            // the file was created in seconds since January 1st 1970 00:00:00 or 0"
-            // However, when we want to make it deterministic we fill it in (later) with bits from the hash of the full PE file.
-            int timestamp = isDeterministic ? 0 : (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-
-            // TODO: we can precalculate the exact size of IL stream
-            var ilBuilder = new BlobBuilder(32 * 1024);
-            var metadataBuilder = new BlobBuilder(16 * 1024);
-            var mappedFieldDataBuilder = new BlobBuilder();
-            var managedResourceBuilder = new BlobBuilder(1024);
-            var textSectionBlob = new BlobBuilder();
-            var resourceSectionBlobOpt = (!IteratorHelper.EnumerableIsEmpty(nativeResourcesOpt) || nativeResourceSectionOpt != null) ? new BlobBuilder() : null;
-            var relocationSectionBlobOpt = (properties.Machine == Machine.I386 || properties.Machine == 0) ? new BlobBuilder() : null;
-            var debugMetadataBuilderOpt = (getPortablePdbStreamOpt != null) ? new BlobBuilder(16 * 1024) : null;
 
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
@@ -64,14 +47,11 @@ namespace Microsoft.Cci
             // based on the contents of the generated stream.
             Debug.Assert(properties.PersistentIdentifier == default(Guid));
 
-            var peBuilder = new PEBuilder(
-                sectionCount: 1 + (resourceSectionBlobOpt != null ? 1 : 0) + (relocationSectionBlobOpt != null ? 1 : 0),
-                sectionAlignment: properties.SectionAlignment,
-                fileAlignment: properties.FileAlignment,
-                is32Bit: properties.Machine != Machine.Amd64 && properties.Machine != Machine.IA64);
-
-            // We emit the .text section as the first section in the PE image.
-            var textSectionLocation = peBuilder.NextSectionLocation;
+            var ilBuilder = new BlobBuilder(32 * 1024);
+            var metadataBuilder = new BlobBuilder(16 * 1024);
+            var mappedFieldDataBuilder = new BlobBuilder();
+            var managedResourceBuilder = new BlobBuilder(1024);
+            var debugMetadataBuilderOpt = (getPortablePdbStreamOpt != null) ? new BlobBuilder(16 * 1024) : null;
 
             mdWriter.BuildMetadataAndIL(
                 nativePdbWriterOpt,
@@ -79,12 +59,7 @@ namespace Microsoft.Cci
                 mappedFieldDataBuilder,
                 managedResourceBuilder);
 
-            ManagedTextSection textSection;
-            int moduleVersionIdOffsetInMetadataStream;
-
             int entryPointToken;
-            MetadataSizes metadataSizes;
-
             int debugEntryPointToken;
             mdWriter.GetEntryPointTokens(out entryPointToken, out debugEntryPointToken);
 
@@ -97,34 +72,6 @@ namespace Microsoft.Cci
                 nativePdbWriterOpt?.SetEntryPoint((uint)debugEntryPointToken);
             }
 
-            mdWriter.SerializeManagedTextSection(
-                metadataBuilder,
-                ilBuilder,
-                mappedFieldDataBuilder,
-                managedResourceBuilder,
-                properties.ImageCharacteristics,
-                properties.Machine,
-                textSectionLocation.RelativeVirtualAddress,
-                pdbPathOpt,
-                out moduleVersionIdOffsetInMetadataStream,
-                out textSection,
-                out metadataSizes);
-
-            int pdbIdOffsetInPortablePdbStream;
-            if (mdWriter.EmitStandaloneDebugMetadata)
-            {
-                mdWriter.SerializeStandaloneDebugMetadata(
-                    debugMetadataBuilderOpt,
-                    metadataSizes,
-                    debugEntryPointToken,
-                    out pdbIdOffsetInPortablePdbStream);
-            }
-            else
-            {
-                pdbIdOffsetInPortablePdbStream = 0;
-            }
-
-            ContentId nativePdbContentId;
             if (nativePdbWriterOpt != null)
             {
                 var assembly = mdWriter.Module.AsAssembly;
@@ -142,44 +89,6 @@ namespace Microsoft.Cci
                     nativePdbWriterOpt.AssertAllDefinitionsHaveTokens(mdWriter.Module.GetSymbolToLocationMap());
 #endif
                 }
-
-                nativePdbContentId = nativePdbWriterOpt.GetContentId();
-
-                // the writer shall not be used after this point for writing:
-                nativePdbWriterOpt = null;
-            }
-            else
-            {
-                nativePdbContentId = default(ContentId);
-            }
-
-            // write to Portable PDB stream:
-            ContentId portablePdbContentId;
-            Stream portablePdbStream = getPortablePdbStreamOpt?.Invoke();
-            if (portablePdbStream != null)
-            {
-                debugMetadataBuilderOpt.WriteContentTo(portablePdbStream);
-
-                if (isDeterministic)
-                {
-                    portablePdbContentId = ContentId.FromHash(CryptographicHashProvider.ComputeSha1(portablePdbStream));
-                }
-                else
-                {
-                    portablePdbContentId = new ContentId(Guid.NewGuid().ToByteArray(), BitConverter.GetBytes(timestamp));
-                }
-
-                // fill in the PDB id:
-                long previousPosition = portablePdbStream.Position;
-                CheckZeroDataInStream(portablePdbStream, pdbIdOffsetInPortablePdbStream, ContentId.Size);
-                portablePdbStream.Position = pdbIdOffsetInPortablePdbStream;
-                portablePdbStream.Write(portablePdbContentId.Guid, 0, portablePdbContentId.Guid.Length);
-                portablePdbStream.Write(portablePdbContentId.Stamp, 0, portablePdbContentId.Stamp.Length);
-                portablePdbStream.Position = previousPosition;
-            }
-            else
-            {
-                portablePdbContentId = default(ContentId);
             }
 
             Stream peStream = getPeStream();
@@ -188,64 +97,153 @@ namespace Microsoft.Cci
                 return false;
             }
 
-            BlobBuilder debugTableBuilderOpt;
-            if (pdbPathOpt != null || isDeterministic)
-            {
-                debugTableBuilderOpt = new BlobBuilder();
-                textSection.WriteDebugTable(debugTableBuilderOpt, textSectionLocation, nativePdbContentId, portablePdbContentId);
-            }
-            else
-            {
-                debugTableBuilderOpt = null;
-            }
+            var peBuilder = new PEBuilder(
+                machine: properties.Machine,
+                sectionAlignment: properties.SectionAlignment,
+                fileAlignment: properties.FileAlignment,
+                imageBase: properties.BaseAddress,
+                majorLinkerVersion: properties.LinkerMajorVersion,
+                minorLinkerVersion: properties.LinkerMinorVersion,
+                majorOperatingSystemVersion: 4,
+                minorOperatingSystemVersion: 0,
+                majorImageVersion: 0,
+                minorImageVersion: 0,
+                majorSubsystemVersion: properties.MajorSubsystemVersion,
+                minorSubsystemVersion: properties.MinorSubsystemVersion,
+                subsystem: properties.Subsystem,
+                dllCharacteristics: properties.DllCharacteristics,
+                imageCharacteristics: properties.ImageCharacteristics,
+                sizeOfStackReserve: properties.SizeOfStackReserve,
+                sizeOfStackCommit: properties.SizeOfStackCommit,
+                sizeOfHeapReserve: properties.SizeOfHeapReserve,
+                sizeOfHeapCommit: properties.SizeOfHeapCommit,
+                isDeterministic: isDeterministic);
 
-            int entryPointAddress = textSection.GetEntryPointAddress(textSectionLocation.RelativeVirtualAddress);
+            var peDirectoriesBuilder = new PEDirectoriesBuilder();
 
             long peHeaderTimestampPosition;
-            long metadataPosition;
-
-            textSection.Serialize(
-                textSectionBlob,
-                textSectionLocation.RelativeVirtualAddress,
-                entryPointToken,
-                properties.CorFlags,
-                properties.BaseAddress,
-                metadataBuilder,
-                ilBuilder,
-                mappedFieldDataBuilder,
-                managedResourceBuilder,
-                debugTableBuilderOpt,
-                out metadataPosition);
-
-            peBuilder.Machine = properties.Machine;
-            peBuilder.TimeDateStamp = timestamp;
-            peBuilder.ImageCharacteristics = properties.ImageCharacteristics;
-            peBuilder.MajorLinkerVersion = properties.LinkerMajorVersion;
-            peBuilder.MinorLinkerVersion = properties.LinkerMinorVersion;
-            peBuilder.AddressOfEntryPoint = entryPointAddress;
-            peBuilder.ImageBase = properties.BaseAddress;
-            peBuilder.MajorSubsystemVersion = properties.MajorSubsystemVersion;
-            peBuilder.MinorSubsystemVersion = properties.MinorSubsystemVersion;
-            peBuilder.Subsystem = properties.Subsystem;
-            peBuilder.DllCharacteristics = properties.DllCharacteristics;
-            peBuilder.SizeOfStackReserve = properties.SizeOfStackReserve;
-            peBuilder.SizeOfStackCommit = properties.SizeOfStackCommit;
-            peBuilder.SizeOfHeapReserve = properties.SizeOfHeapReserve;
-            peBuilder.SizeOfHeapCommit = properties.SizeOfHeapCommit;
+            long metadataPosition = 0;
+            int entryPointAddress = 0;
+            var textSectionLocation = default(PESectionLocation);
+            int moduleVersionIdOffsetInMetadataStream = 0;
 
             // .text
-            peBuilder.AddSection(
-                ".text",
-                SectionCharacteristics.MemRead | SectionCharacteristics.MemExecute | SectionCharacteristics.ContainsCode,
-                textSectionBlob);
+            peBuilder.AddSection(".text", SectionCharacteristics.MemRead | SectionCharacteristics.MemExecute | SectionCharacteristics.ContainsCode, location =>
+            {
+                textSectionLocation = location;
 
-            peBuilder.DebugTable = textSection.GetDebugDirectoryEntry(textSectionLocation.RelativeVirtualAddress);
-            peBuilder.ImportAddressTable = textSection.GetImportAddressTableDirectoryEntry(textSectionLocation.RelativeVirtualAddress);
-            peBuilder.ImportTable = textSection.GetImportTableDirectoryEntry(textSectionLocation.RelativeVirtualAddress);
-            peBuilder.CorHeaderTable = textSection.GetCorHeaderDirectoryEntry(textSectionLocation.RelativeVirtualAddress);
+                var sectionBuilder = new BlobBuilder();
+                ManagedTextSection textSection;
+                MetadataSizes metadataSizes;
+
+                mdWriter.SerializeManagedTextSection(
+                    metadataBuilder,
+                    ilBuilder,
+                    mappedFieldDataBuilder,
+                    managedResourceBuilder,
+                    properties.ImageCharacteristics,
+                    properties.Machine,
+                    location.RelativeVirtualAddress,
+                    pdbPathOpt,
+                    out moduleVersionIdOffsetInMetadataStream,
+                    out textSection,
+                    out metadataSizes);
+
+                int pdbIdOffsetInPortablePdbStream;
+                if (mdWriter.EmitStandaloneDebugMetadata)
+                {
+                    mdWriter.SerializeStandaloneDebugMetadata(
+                        debugMetadataBuilderOpt,
+                        metadataSizes,
+                        debugEntryPointToken,
+                        out pdbIdOffsetInPortablePdbStream);
+                }
+                else
+                {
+                    pdbIdOffsetInPortablePdbStream = 0;
+                }
+
+                ContentId nativePdbContentId;
+                if (nativePdbWriterOpt != null)
+                {
+                    nativePdbContentId = nativePdbWriterOpt.GetContentId();
+
+                    // the writer shall not be used after this point for writing:
+                    nativePdbWriterOpt = null;
+                }
+                else
+                {
+                    nativePdbContentId = default(ContentId);
+                }
+
+                // write to Portable PDB stream:
+                ContentId portablePdbContentId;
+                Stream portablePdbStream = getPortablePdbStreamOpt?.Invoke();
+                if (portablePdbStream != null)
+                {
+                    debugMetadataBuilderOpt.WriteContentTo(portablePdbStream);
+
+                    if (isDeterministic)
+                    {
+                        portablePdbContentId = ContentId.FromHash(CryptographicHashProvider.ComputeSha1(portablePdbStream));
+                    }
+                    else
+                    {
+                        portablePdbContentId = new ContentId(Guid.NewGuid().ToByteArray(), BitConverter.GetBytes(peBuilder.TimeDateStamp));
+                    }
+
+                    // fill in the PDB id:
+                    long previousPosition = portablePdbStream.Position;
+                    CheckZeroDataInStream(portablePdbStream, pdbIdOffsetInPortablePdbStream, ContentId.Size);
+                    portablePdbStream.Position = pdbIdOffsetInPortablePdbStream;
+                    portablePdbStream.Write(portablePdbContentId.Guid, 0, portablePdbContentId.Guid.Length);
+                    portablePdbStream.Write(portablePdbContentId.Stamp, 0, portablePdbContentId.Stamp.Length);
+                    portablePdbStream.Position = previousPosition;
+                }
+                else
+                {
+                    portablePdbContentId = default(ContentId);
+                }
+
+                BlobBuilder debugTableBuilderOpt;
+                if (pdbPathOpt != null || isDeterministic)
+                {
+                    debugTableBuilderOpt = new BlobBuilder();
+                    textSection.WriteDebugTable(debugTableBuilderOpt, location, nativePdbContentId, portablePdbContentId);
+                }
+                else
+                {
+                    debugTableBuilderOpt = null;
+                }
+
+                entryPointAddress = textSection.GetEntryPointAddress(location.RelativeVirtualAddress);
+
+                textSection.Serialize(
+                    sectionBuilder,
+                    location.RelativeVirtualAddress,
+                    entryPointToken,
+                    properties.CorFlags,
+                    properties.BaseAddress,
+                    metadataBuilder,
+                    ilBuilder,
+                    mappedFieldDataBuilder,
+                    managedResourceBuilder,
+                    debugTableBuilderOpt,
+                    out metadataPosition);
+
+                peDirectoriesBuilder.AddressOfEntryPoint = entryPointAddress;
+                peDirectoriesBuilder.DebugTable = textSection.GetDebugDirectoryEntry(location.RelativeVirtualAddress);
+                peDirectoriesBuilder.ImportAddressTable = textSection.GetImportAddressTableDirectoryEntry(location.RelativeVirtualAddress);
+                peDirectoriesBuilder.ImportTable = textSection.GetImportTableDirectoryEntry(location.RelativeVirtualAddress);
+                peDirectoriesBuilder.CorHeaderTable = textSection.GetCorHeaderDirectoryEntry(location.RelativeVirtualAddress);
+
+                return sectionBuilder;
+            });
 
             // .rsrc
-            if (resourceSectionBlobOpt != null)
+            var nativeResourcesOpt = context.Module.Win32Resources;
+            var nativeResourceSectionOpt = context.Module.Win32ResourceSection;
+            if (!IteratorHelper.EnumerableIsEmpty(nativeResourcesOpt) || nativeResourceSectionOpt != null)
             {
                 // Win32 resources are supplied to the compiler in one of two forms, .RES (the output of the resource compiler),
                 // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
@@ -254,42 +252,41 @@ namespace Microsoft.Cci
                 // form. Rather than reading them and parsing them into a set of objects similar to those produced by 
                 // processing a .RES file, we process them like the native linker would, copy the relevant sections from 
                 // the .OBJ into our output and apply some fixups.
-                var location = peBuilder.NextSectionLocation;
 
-                if (nativeResourceSectionOpt != null)
+                peBuilder.AddSection(".rsrc", SectionCharacteristics.MemRead | SectionCharacteristics.ContainsInitializedData, location =>
                 {
-                    NativeResourceWriter.SerializeWin32Resources(resourceSectionBlobOpt, nativeResourceSectionOpt, location.RelativeVirtualAddress);
-                }
-                else 
-                {
-                    NativeResourceWriter.SerializeWin32Resources(resourceSectionBlobOpt, nativeResourcesOpt, location.RelativeVirtualAddress);
-                }
+                    var sectionBuilder = new BlobBuilder();
 
-                peBuilder.AddSection(
-                    ".rsrc",
-                    SectionCharacteristics.MemRead | SectionCharacteristics.ContainsInitializedData,
-                    resourceSectionBlobOpt);
+                    if (nativeResourceSectionOpt != null)
+                    {
+                        NativeResourceWriter.SerializeWin32Resources(sectionBuilder, nativeResourceSectionOpt, location.RelativeVirtualAddress);
+                    }
+                    else
+                    {
+                        NativeResourceWriter.SerializeWin32Resources(sectionBuilder, nativeResourcesOpt, location.RelativeVirtualAddress);
+                    }
 
-                peBuilder.ResourceTable = new DirectoryEntry(location.RelativeVirtualAddress, resourceSectionBlobOpt.Count);
+                    peDirectoriesBuilder.ResourceTable = new DirectoryEntry(location.RelativeVirtualAddress, sectionBuilder.Count);
+
+                    return sectionBuilder;
+                });
             }
 
             // .reloc
-            if (relocationSectionBlobOpt != null)
+            if (properties.Machine == Machine.I386 || properties.Machine == 0)
             {
-                var location = peBuilder.NextSectionLocation;
+                peBuilder.AddSection(".reloc", SectionCharacteristics.MemRead | SectionCharacteristics.MemDiscardable | SectionCharacteristics.ContainsInitializedData, location =>
+                {
+                    var sectionBuilder = new BlobBuilder();
+                    WriteRelocSection(sectionBuilder, properties.Machine, entryPointAddress);
 
-                WriteRelocSection(relocationSectionBlobOpt, properties.Machine, entryPointAddress);
-
-                peBuilder.AddSection(
-                    ".reloc",
-                    SectionCharacteristics.MemRead | SectionCharacteristics.MemDiscardable | SectionCharacteristics.ContainsInitializedData,
-                    relocationSectionBlobOpt);
-
-                peBuilder.BaseRelocationTable = new DirectoryEntry(location.RelativeVirtualAddress, relocationSectionBlobOpt.Count);
+                    peDirectoriesBuilder.BaseRelocationTable = new DirectoryEntry(location.RelativeVirtualAddress, sectionBuilder.Count);
+                    return sectionBuilder;
+                });
             }
 
             var peBlob = new BlobBuilder();
-            peBuilder.Serialize(peBlob, out peHeaderTimestampPosition);
+            peBuilder.Serialize(peBlob, peDirectoriesBuilder, out peHeaderTimestampPosition);
 
             peBlob.WriteContentTo(peStream);
 

@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
             var debugInfo = new EditAndContinueMethodDebugInformation(1, slots, closures, lambdas);
-            var records = new ArrayBuilder<PooledBlobBuilder>();
+            var records = new ArrayBuilder<Cci.PooledBlobBuilder>();
 
             Cci.CustomDebugInfoWriter.SerializeCustomDebugInformation(debugInfo, records);
             var cdi = Cci.CustomDebugInfoWriter.SerializeCustomDebugMetadata(records);
