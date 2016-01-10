@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         var allSymbolReferences = await FindResultsAsync(document, semanticModel, diagnostic, node, cancellationToken).ConfigureAwait(false);
 
                         // Nothing found at all. No need to proceed.
-                        if (allSymbolReferences.Count == 0)
+                        if (allSymbolReferences == null || allSymbolReferences.Count == 0)
                         {
                             return;
                         }
@@ -98,33 +98,33 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private async Task<IReadOnlyList<Reference>> FindResultsAsync(
             Document document, SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var allSymbolReferences = new List<Reference>();
-
             var finder = new SymbolReferenceFinder(this, document, semanticModel, diagnostic, node, cancellationToken);
 
             // Look for exact matches first:
-            await FindResultsAsync(document.Project, allSymbolReferences, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (allSymbolReferences.Count == 0)
+            var exactReferences = await FindResultsAsync(document.Project, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (exactReferences?.Count > 0)
             {
-                // No exact matches found.  Fall back to fuzzy searching.
-                await FindResultsAsync(document.Project, allSymbolReferences, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return exactReferences;
             }
 
-            return allSymbolReferences;
-            //if (allSymbolReferences.Count > 0)
-            //{
-            //    return allSymbolReferences;
-            //}
+            // No exact matches found.  Fall back to fuzzy searching.
+            var fuzzyReferences = await FindResultsAsync(document.Project, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (fuzzyReferences?.Count > 0)
+            {
+                return fuzzyReferences;
+            }
 
-            //return await FindNugetReferencesAsync().ConfigureAwait(false);
+            return await finder.FindNugetReferencesAsync().ConfigureAwait(false);
         }
 
-        private async Task FindResultsAsync(
-            Project project, List<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+        private async Task<List<Reference>> FindResultsAsync(
+            Project project, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
+            var allSymbolReferences = new List<Reference>();
             await FindResultsInCurrentProject(project, allSymbolReferences, finder, exact).ConfigureAwait(false);
             await FindResultsInUnreferencedProjects(project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
             await FindResultsInUnreferencedMetadataReferences(project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+            return allSymbolReferences;
         }
 
         private async Task FindResultsInCurrentProject(

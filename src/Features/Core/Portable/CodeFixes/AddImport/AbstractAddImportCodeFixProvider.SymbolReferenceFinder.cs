@@ -157,6 +157,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return GetMatchingTypes(searchScope, name, arity, inAttributeContext, symbols, hasIncompleteParentMember);
             }
 
+            internal Task<IReadOnlyList<Reference>> FindNugetReferencesAsync()
+            {
+                //TSimpleNameSyntax nameNode;
+                //if (!_owner.CanAddImportForType(_diagnostic, _node, out nameNode))
+                //{
+                //    return null;
+                //}
+
+                //return null;
+                return Task.FromResult<IReadOnlyList<Reference>>(null);
+            }
+
             private async Task<IEnumerable<SymbolResult<ITypeSymbol>>> GetTypeSymbols(
                 SearchScope searchScope,
                 string name,
