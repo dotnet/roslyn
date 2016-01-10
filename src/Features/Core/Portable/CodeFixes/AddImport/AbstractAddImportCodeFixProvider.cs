@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            var description = this.GetDescription(reference.SearchResult.Symbol, semanticModel, node);
+                            var description = reference.GetDescription(semanticModel, node);// this.GetDescription(reference.SearchResult.Symbol, semanticModel, node);
                             if (description != null)
                             {
                                 var action = new MyCodeAction(description, c =>
-                                    this.AddImportAndReferenceAsync(node, reference, document, placeSystemNamespaceFirst, c));
+                                    reference.UpdateSolutionAsync(document, node, placeSystemNamespaceFirst, c));
                                 context.RegisterCodeFix(action, diagnostic);
                             }
                         }
@@ -95,10 +95,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private async Task<List<SymbolReference>> FindResultsAsync(
+        private async Task<IReadOnlyList<Reference>> FindResultsAsync(
             Document document, SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var allSymbolReferences = new List<SymbolReference>();
+            var allSymbolReferences = new List<Reference>();
 
             var finder = new SymbolReferenceFinder(this, document, semanticModel, diagnostic, node, cancellationToken);
 
@@ -111,9 +111,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             return allSymbolReferences;
+            //if (allSymbolReferences.Count > 0)
+            //{
+            //    return allSymbolReferences;
+            //}
+
+            //return await FindNugetReferencesAsync().ConfigureAwait(false);
         }
 
-        private async Task FindResultsAsync(Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+        private async Task FindResultsAsync(
+            Project project, List<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             await FindResultsInCurrentProject(project, allSymbolReferences, finder, exact).ConfigureAwait(false);
             await FindResultsInUnreferencedProjects(project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
@@ -121,53 +128,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
         private async Task FindResultsInCurrentProject(
-            Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact)
+            Project project, List<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact)
         {
             AddRange(allSymbolReferences, await finder.FindInProjectAsync(project, includeDirectReferences: true, exact: exact).ConfigureAwait(false));
         }
 
-        private async Task<Solution> AddImportAndReferenceAsync(
-            SyntaxNode contextNode, SymbolReference reference, Document document,
-            bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
-        {
-            ReplaceNameNode(reference, ref contextNode, ref document, cancellationToken);
-
-            // Defer to the language to add the actual import/using.
-            var newDocument = await this.AddImportAsync(contextNode,
-                reference.SearchResult.Symbol, document,
-                placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-
-            return reference.UpdateSolution(newDocument);
-        }
-
-        private static void ReplaceNameNode(
-            SymbolReference reference, ref SyntaxNode contextNode, ref Document document, CancellationToken cancellationToken)
-        {
-            var desiredName = reference.SearchResult.DesiredName;
-            if (!string.IsNullOrEmpty(reference.SearchResult.DesiredName))
-            {
-                var nameNode = reference.SearchResult.NameNode;
-
-                if (nameNode != null)
-                {
-                    var identifier = nameNode.GetFirstToken();
-                    if (identifier.ValueText != desiredName)
-                    {
-                        var generator = SyntaxGenerator.GetGenerator(document);
-                        var newIdentifier = generator.IdentifierName(desiredName).GetFirstToken().WithTriviaFrom(identifier);
-                        var annotation = new SyntaxAnnotation();
-
-                        var root = contextNode.SyntaxTree.GetRoot(cancellationToken);
-                        root = root.ReplaceToken(identifier, newIdentifier.WithAdditionalAnnotations(annotation));
-                        document = document.WithSyntaxRoot(root);
-                        contextNode = root.GetAnnotatedTokens(annotation).First().Parent;
-                    }
-                }
-            }
-        }
-
         private async Task FindResultsInUnreferencedProjects(
-            Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+            Project project, List<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             // If we didn't find enough hits searching just in the project, then check 
             // in any unreferenced projects.
@@ -192,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
         private async Task FindResultsInUnreferencedMetadataReferences(
-            Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+            Project project, List<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             if (allSymbolReferences.Count > 0)
             {
@@ -228,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private async Task FindResultsInMetadataReferences(
             Project otherProject,
-            List<SymbolReference> allSymbolReferences,
+            List<Reference> allSymbolReferences,
             SymbolReferenceFinder finder,
             HashSet<PortableExecutableReference> seenReferences,
             bool exact,
@@ -296,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return viableProjects;
         }
 
-        private void AddRange(List<SymbolReference> allSymbolReferences, List<SymbolReference> proposedReferences)
+        private void AddRange(List<Reference> allSymbolReferences, IReadOnlyList<Reference> proposedReferences)
         {
             if (proposedReferences != null)
             {
@@ -336,13 +303,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private static bool NotGlobalNamespace(SymbolReference reference)
         {
-            var symbol = reference.SearchResult.Symbol;
+            var symbol = reference.SymbolResult.Symbol;
             return symbol.IsNamespace ? !((INamespaceSymbol)symbol).IsGlobalNamespace : true;
         }
 
         private static bool NotNull(SymbolReference reference)
         {
-            return reference.SearchResult.Symbol != null;
+            return reference.SymbolResult.Symbol != null;
         }
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
@@ -387,14 +354,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             internal Task<List<SymbolReference>> FindInProjectAsync(Project project, bool includeDirectReferences, bool exact)
             {
-                var searchScope = new ProjectSearchScope(project, includeDirectReferences, exact, _cancellationToken);
+                var searchScope = new ProjectSearchScope(_owner, project, includeDirectReferences, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 
             internal Task<List<SymbolReference>> FindInMetadataAsync(
                 Solution solution, IAssemblySymbol assembly, PortableExecutableReference metadataReference, bool exact)
             {
-                var searchScope = new MetadataSearchScope(solution, assembly, metadataReference, exact, _cancellationToken);
+                var searchScope = new MetadataSearchScope(_owner, solution, assembly, metadataReference, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 

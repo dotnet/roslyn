@@ -16,10 +16,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private abstract class SearchScope
         {
             public readonly bool Exact;
+
+            protected readonly AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider;
             protected readonly CancellationToken cancellationToken;
 
-            protected SearchScope(bool exact, CancellationToken cancellationToken)
+            protected SearchScope(AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider, bool exact, CancellationToken cancellationToken)
             {
+                this.provider = provider;
                 this.Exact = exact;
                 this.cancellationToken = cancellationToken;
             }
@@ -66,8 +69,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private readonly bool _includeDirectReferences;
             private readonly Project _project;
 
-            public ProjectSearchScope(Project project, bool includeDirectReferences, bool ignoreCase, CancellationToken cancellationToken)
-                : base(ignoreCase, cancellationToken)
+            public ProjectSearchScope(
+                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                Project project,
+                bool includeDirectReferences,
+                bool exact,
+                CancellationToken cancellationToken)
+                : base(provider, exact, cancellationToken)
             {
                 _project = project;
                 _includeDirectReferences = includeDirectReferences;
@@ -82,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public override SymbolReference CreateReference<T>(SymbolResult<T> searchResult)
             {
                 return new ProjectSymbolReference(
-                    searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol), _project.Id);
+                    provider, searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol), _project.Id);
             }
         }
 
@@ -93,12 +101,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private readonly Solution _solution;
 
             public MetadataSearchScope(
+                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 Solution solution,
                 IAssemblySymbol assembly,
                 PortableExecutableReference metadataReference,
                 bool exact,
                 CancellationToken cancellationToken)
-                : base(exact, cancellationToken)
+                : base(provider, exact, cancellationToken)
             {
                 _solution = solution;
                 _assembly = assembly;
@@ -108,6 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public override SymbolReference CreateReference<T>(SymbolResult<T> searchResult)
             {
                 return new MetadataSymbolReference(
+                    provider,
                     searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol),
                     _metadataReference);
             }

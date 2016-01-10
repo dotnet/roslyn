@@ -3,11 +3,40 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
+        private struct SearchResult
+        {
+            public readonly IReadOnlyList<string> NameParts;
+
+            // How good a match this was.  0 means it was a perfect match.  Larger numbers are less 
+            // and less good.
+            public readonly double Weight;
+
+            // The desired name to change the user text to if this was a fuzzy (spell-checking) match.
+            public readonly string DesiredName;
+
+            // The node to convert to the desired name
+            public readonly TSimpleNameSyntax NameNode;
+
+            public SearchResult(SymbolResult<INamespaceOrTypeSymbol> result)
+                : this(result.DesiredName, result.NameNode, INamespaceOrTypeSymbolExtensions.GetNameParts(result.Symbol), result.Weight)
+            {
+            }
+
+            private SearchResult(string desiredName, TSimpleNameSyntax nameNode, IReadOnlyList<string> nameParts, double weight)
+            {
+                DesiredName = desiredName;
+                Weight = weight;
+                NameNode = nameNode;
+                NameParts = nameParts;
+            }
+        }
+
         private struct SymbolResult<T> where T : ISymbol
         {
             // The symbol that matched the string being searched for.
