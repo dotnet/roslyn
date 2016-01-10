@@ -39,10 +39,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var newSolution = newDocument.Project.Solution;
 
                 var operation1 = new ApplyChangesOperation(newSolution);
-                // var operation2 = new InstallNugetPackageOperation(_installerService, document.Project, _packageName);
+                var operation2 = new InstallNugetPackageOperation(_installerService, document.Project, _packageName);
 
-                var operations = ImmutableArray.Create<CodeActionOperation>(operation1);//, operation2);
+                var operations = ImmutableArray.Create<CodeActionOperation>(operation1, operation2);
                 return operations;
+            }
+
+            private class InstallNugetPackageOperation : CodeActionOperation
+            {
+                private readonly Project _project;
+                private readonly INugetPackageInstallerService _installerService;
+                private readonly string _packageName;
+
+                public InstallNugetPackageOperation(INugetPackageInstallerService installerService, Project project, string packageName)
+                {
+                    _installerService = installerService;
+                    _project = project;
+                    _packageName = packageName;
+                }
+
+                public override string Title => $"Install Nuget package '{_packageName}'";
+
+                public override void Apply(Workspace workspace, CancellationToken cancellationToken)
+                {
+                    var currentProject = workspace.CurrentSolution.GetProject(_project.Id);
+                    _installerService.InstallPackage(currentProject, _packageName);
+                }
             }
         }
     }
