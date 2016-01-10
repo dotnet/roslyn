@@ -67,6 +67,7 @@
     <Compile Include="System\Reflection\PortableExecutable\DirectoryEntry.cs" />
     <Compile Include="System\Reflection\PortableExecutable\ManagedTextSection.cs" />
     <Compile Include="System\Reflection\PortableExecutable\PEBuilder.cs" />
+    <Compile Include="System\Reflection\PortableExecutable\PEDirectoriesBuilder.cs" />
     <Compile Include="System\Reflection\PortableExecutable\PESectionLocation.cs" />
     <Compile Include="System\Reflection\Internal\Utilities\BlobUtilities.cs" />
   </ItemGroup>
