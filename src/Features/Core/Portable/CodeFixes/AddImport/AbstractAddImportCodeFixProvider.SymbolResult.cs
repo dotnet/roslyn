@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
             }
 
-            private SearchResult(string desiredName, TSimpleNameSyntax nameNode, IReadOnlyList<string> nameParts, double weight)
+            public SearchResult(string desiredName, TSimpleNameSyntax nameNode, IReadOnlyList<string> nameParts, double weight)
             {
                 DesiredName = desiredName;
                 Weight = weight;

@@ -137,6 +137,138 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Diagnostics\IStatistics.cs">
+      <Link>Elfie\IStatistics.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Diagnostics\Logger.cs">
+      <Link>Elfie\Logger.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Diagnostics\Memory.cs">
+      <Link>Elfie\Memory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Diagnostics\ProgressWriter.cs">
+      <Link>Elfie\ProgressWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Diagnostics\StatisticsRollup.cs">
+      <Link>Elfie\StatisticsRollup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Diagnostics\TraceWatch.cs">
+      <Link>Elfie\TraceWatch.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Extensions\BinaryReaderWriterExtensions.cs">
+      <Link>Elfie\BinaryReaderWriterExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Extensions\BinarySerializableExtensions.cs">
+      <Link>Elfie\BinarySerializableExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Extensions\IntExtensions.cs">
+      <Link>Elfie\IntExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Extensions\IStatisticsExtensions.cs">
+      <Link>Elfie\IStatisticsExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Extensions\LongExtensions.cs">
+      <Link>Elfie\LongExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Extensions\TimeSpanExtensions.cs">
+      <Link>Elfie\TimeSpanExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\AddReferenceDatabase.cs">
+      <Link>Elfie\AddReferenceDatabase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\DatabaseAddResult.cs">
+      <Link>Elfie\DatabaseAddResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\IMemberDatabase.cs">
+      <Link>Elfie\IMemberDatabase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Index\ImmutableMemberIndex.cs">
+      <Link>Elfie\ImmutableMemberIndex.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Index\MemberIndex.cs">
+      <Link>Elfie\MemberIndex.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Index\MutableMemberIndex.cs">
+      <Link>Elfie\MutableMemberIndex.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\MemberQuery.cs">
+      <Link>Elfie\MemberQuery.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\MergedMembersDatabase.cs">
+      <Link>Elfie\MergedMembersDatabase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\PackageDatabase.cs">
+      <Link>Elfie\PackageDatabase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Strings\ImmutableStringStore.cs">
+      <Link>Elfie\ImmutableStringStore.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Strings\IStringStore.cs">
+      <Link>Elfie\IStringStore.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Strings\IWriteableString.cs">
+      <Link>Elfie\IWriteableString.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Strings\MutableStringStore.cs">
+      <Link>Elfie\MutableStringStore.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Strings\String8.cs">
+      <Link>Elfie\String8.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Strings\String8Set.cs">
+      <Link>Elfie\String8Set.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Strings\StringStore.cs">
+      <Link>Elfie\StringStore.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Structures\MutableSymbol.cs">
+      <Link>Elfie\MutableSymbol.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Structures\PackageIdentity.cs">
+      <Link>Elfie\PackageIdentity.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Structures\PartialArray.cs">
+      <Link>Elfie\PartialArray.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Structures\Range.cs">
+      <Link>Elfie\Range.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Structures\Symbol.cs">
+      <Link>Elfie\Symbol.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Structures\SymbolDetails.cs">
+      <Link>Elfie\SymbolDetails.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Structures\SymbolLocation.cs">
+      <Link>Elfie\SymbolLocation.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Structures\SymbolModifier.cs">
+      <Link>Elfie\SymbolModifier.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Structures\SymbolType.cs">
+      <Link>Elfie\SymbolType.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Tree\ItemTree.cs">
+      <Link>Elfie\ItemTree.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Tree\Path8.cs">
+      <Link>Elfie\Path8.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Model\Tree\TreeNode.cs">
+      <Link>Elfie\TreeNode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Serialization\FileIO.cs">
+      <Link>Elfie\FileIO.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Serialization\IBinarySerializable.cs">
+      <Link>Elfie\IBinarySerializable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Serialization\Read.cs">
+      <Link>Elfie\Read.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\elfie-private\Elfie\Serialization\Write.cs">
+      <Link>Elfie\Write.cs</Link>
+    </Compile>
     <Compile Include="CommandArgs.cs" />
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\AbstractIntelliSenseCommandHandler.cs" />
@@ -665,6 +797,7 @@
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
+    <Compile Include="Nuget\NugetSearchServiceFactory.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.ViewSpanChangedEventSource.cs" />
     <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />

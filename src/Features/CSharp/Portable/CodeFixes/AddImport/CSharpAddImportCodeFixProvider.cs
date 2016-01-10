@@ -485,6 +485,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             }
         }
 
+        protected override async Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+        {
+            var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
+
+            var simpleUsingDirective = SyntaxFactory.UsingDirective(
+                CreateNameSyntax(nameSpaceParts, nameSpaceParts.Count - 1));
+
+            var newRoot = root.AddUsingDirective(
+                simpleUsingDirective, contextNode, placeSystemNamespaceFirst,
+                Formatter.Annotation);
+
+            return document.WithSyntaxRoot(newRoot);
+        }
+
+        private NameSyntax CreateNameSyntax(IReadOnlyList<string> nameSpaceParts, int index)
+        {
+            var namePiece = SyntaxFactory.IdentifierName(nameSpaceParts[index]);
+            return index == 0
+                ? (NameSyntax)namePiece
+                : SyntaxFactory.QualifiedName(CreateNameSyntax(nameSpaceParts, index - 1), namePiece);
+        }
+
         private static ExternAliasDirectiveSyntax GetExternAliasUsingDirective(CompilationUnitSyntax root, INamespaceOrTypeSymbol namespaceSymbol, SemanticModel semanticModel)
         {
             string externAliasString;

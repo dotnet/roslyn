@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Nuget;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -14,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private class SymbolReferenceFinder
         {
+            private const string AttributeSuffix = "Attribute";
+
             private readonly CancellationToken _cancellationToken;
             private readonly Diagnostic _diagnostic;
             private readonly Document _document;
@@ -157,16 +160,64 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return GetMatchingTypes(searchScope, name, arity, inAttributeContext, symbols, hasIncompleteParentMember);
             }
 
-            internal Task<IReadOnlyList<Reference>> FindNugetReferencesAsync()
+            internal async Task<IReadOnlyList<Reference>> FindNugetReferencesAsync()
             {
-                //TSimpleNameSyntax nameNode;
-                //if (!_owner.CanAddImportForType(_diagnostic, _node, out nameNode))
-                //{
-                //    return null;
-                //}
+                TSimpleNameSyntax nameNode;
+                if (!_owner.CanAddImportForType(_diagnostic, _node, out nameNode))
+                {
+                    return null;
+                }
 
-                //return null;
-                return Task.FromResult<IReadOnlyList<Reference>>(null);
+                string name;
+                int arity;
+                bool inAttributeContext, hasIncompleteParentMember;
+                CalculateContext(nameNode, _syntaxFacts, out name, out arity, out inAttributeContext, out hasIncompleteParentMember);
+
+                if (ExpressionBinds(nameNode, checkForExtensionMethods: false))
+                {
+                    return null;
+                }
+
+                return await FindNugetReferencesAsync(nameNode, name, arity, inAttributeContext).ConfigureAwait(false);
+            }
+
+            private async Task<IReadOnlyList<Reference>> FindNugetReferencesAsync(
+                TSimpleNameSyntax nameNode,  string name, int arity, bool inAttributeContext)
+            {
+                var allReferences = new List<Reference>();
+                await FindNugetReferencesAsync(allReferences, nameNode, name, arity).ConfigureAwait(false);
+                if (arity == 0 && inAttributeContext)
+                {
+                    await FindNugetReferencesAsync(allReferences, nameNode, name + AttributeSuffix, arity).ConfigureAwait(false);
+                }
+
+                return allReferences;
+            }
+
+            private Task FindNugetReferencesAsync(List<Reference> allReferences, TSimpleNameSyntax nameNode, string name, int arity)
+            {
+                var nugetService = _document.Project.Solution.Workspace.Services.GetService<INugetSearchService>();
+                if (nugetService == null)
+                {
+                    return SpecializedTasks.EmptyTask;
+
+                }
+                return Task.Run(() => FindNugetReferences(nugetService, allReferences, nameNode, name, arity), _cancellationToken);
+            }
+
+            private void FindNugetReferences(
+                INugetSearchService nugetService, List<Reference> allReferences, TSimpleNameSyntax nameNode, string name, int arity)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
+                var results = nugetService.Search(name, arity, _cancellationToken);
+
+                int weight = 0;
+                foreach (var result in results)
+                {
+                    allReferences.Add(new NugetReference(_owner, 
+                        new SearchResult(name, nameNode, result.NameParts, weight), result.PackageName));
+                    weight++;
+                }
             }
 
             private async Task<IEnumerable<SymbolResult<ITypeSymbol>>> GetTypeSymbols(
@@ -190,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // also lookup type symbols with the "Attribute" suffix.
                 if (inAttributeContext)
                 {
-                    var attributeSymbols = await searchScope.FindDeclarationsAsync(name + "Attribute", nameNode, SymbolFilter.Type).ConfigureAwait(false);
+                    var attributeSymbols = await searchScope.FindDeclarationsAsync(name + AttributeSuffix, nameNode, SymbolFilter.Type).ConfigureAwait(false);
 
                     symbols = symbols.Concat(
                         attributeSymbols.Select(r => r.WithDesiredName(r.DesiredName.GetWithoutAttributeSuffix(isCaseSensitive: false))));

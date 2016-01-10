@@ -168,19 +168,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private class NugetReference : Reference
         {
-            public NugetReference(AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider, SearchResult searchResult) 
+            private readonly string _packageName;
+
+            public NugetReference(AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider, SearchResult searchResult, string packageName)
                 : base(provider, searchResult)
             {
+                _packageName = packageName;
             }
 
             public override string GetDescription(SemanticModel semanticModel, SyntaxNode node)
             {
-                throw new NotImplementedException();
+                return $"using { string.Join(".", this.SearchResult.NameParts) } (from {_packageName})";
             }
 
-            public override Task<Solution> UpdateSolutionAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            public override async Task<Solution> UpdateSolutionAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
-                throw new NotImplementedException();
+                var newDocument = await provider.AddImportAsync(node, SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+
+                return newDocument.Project.Solution;
             }
         }
     }
