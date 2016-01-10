@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using NuGet.VisualStudio;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.ProjectSystem;
 using VSLangProj;
@@ -211,6 +212,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (!TryGetProjectData(projectId, out hostProject, out hierarchy, out project))
             {
                 throw new ArgumentException(string.Format(ServicesVSResources.CouldNotFindProject, projectId));
+            }
+        }
+
+        internal override bool TryInstallPackage(ProjectId projectId, string packageName)
+        {
+            var dte = (DTE)this.ServiceProvider.GetService(typeof(SDTE));
+
+            try
+            {
+                IVisualStudioHostProject hostProject;
+                IVsHierarchy hierarchy;
+                EnvDTE.Project project;
+                GetProjectData(projectId, out hostProject, out hierarchy, out project);
+
+                var componentModel = (IComponentModel)this.ServiceProvider.GetService(typeof(SComponentModel));
+                var installerServices = componentModel.GetService<IVsPackageInstallerServices>();
+
+                if (!installerServices.IsPackageInstalled(project, packageName))
+                {
+                    dte.StatusBar.Text = $"Installing Nuget package '{packageName}'";
+                    var installer = componentModel.GetService<IVsPackageInstaller>();
+                    installer.InstallPackage(source: null, project: project, packageId: packageName, version: (Version)null, ignoreDependencies: false);
+                    dte.StatusBar.Text = $"Installing package '{packageName}' completed";
+                }
+
+                return true;
+            }
+            catch
+            {
+                dte.StatusBar.Text = "Failed to intall Nuget package.";
+                return false;
             }
         }
 

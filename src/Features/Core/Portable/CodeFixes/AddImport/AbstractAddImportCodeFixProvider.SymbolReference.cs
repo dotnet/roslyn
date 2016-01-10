@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return provider.GetDescription(SymbolResult.Symbol, semanticModel, node);
             }
 
-            public override async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
+            public override async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var newSolution = await UpdateSolutionAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);

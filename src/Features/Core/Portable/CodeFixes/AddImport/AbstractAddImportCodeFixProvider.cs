@@ -315,18 +315,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private class MyCodeAction2 : CodeAction
         {
             private readonly string _title;
-            private readonly Func<CancellationToken, Task<ImmutableArray<CodeActionOperation>>> _getOperations;
+            private readonly Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> _getOperations;
 
             public override string Title => _title;
             public override string EquivalenceKey => _title;
 
-            public MyCodeAction2(string title, Func<CancellationToken, Task<ImmutableArray<CodeActionOperation>>> getOperations)
+            public MyCodeAction2(string title, Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> getOperations)
             {
                 _title = title;
                 _getOperations = getOperations;
             }
 
-            internal override Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(CancellationToken cancellationToken)
+            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
                 return _getOperations(cancellationToken);
             }

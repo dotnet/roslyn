@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Nuget
 {
     interface INugetPackageInstallerService : IWorkspaceService
     {
-        void InstallPackage(Project currentProject, string _packageName);
+        bool TryInstallPackage(Workspace workspace, ProjectId currentProject, string packageName);
     }
 }

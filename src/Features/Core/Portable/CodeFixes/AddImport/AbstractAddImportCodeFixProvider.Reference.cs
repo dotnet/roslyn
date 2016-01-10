@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public abstract string GetDescription(SemanticModel semanticModel, SyntaxNode node);
 
-            public abstract Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
+            public abstract Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
         }
     }

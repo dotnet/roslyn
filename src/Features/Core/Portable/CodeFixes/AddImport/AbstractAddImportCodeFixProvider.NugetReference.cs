@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return $"using { string.Join(".", this.SearchResult.NameParts) } (from {_packageName})";
             }
 
-            public override async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            public override async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var newDocument = await provider.AddImportAsync(node, SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
                 var newSolution = newDocument.Project.Solution;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {
                     var currentProject = workspace.CurrentSolution.GetProject(_project.Id);
-                    _installerService.InstallPackage(currentProject, _packageName);
+                    _installerService.TryInstallPackage(workspace, currentProject.Id, _packageName);
                 }
             }
         }

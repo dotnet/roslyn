@@ -123,6 +123,7 @@
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
     <Compile Include="IRoslynTelemetrySetup.cs" />
+    <Compile Include="Nuget\NugetPackageInstallerServiceFactory.cs" />
     <Compile Include="RoslynPackage.cs" />
     <Compile Include="ServicesVSResources.Designer.cs">
       <AutoGen>True</AutoGen>
