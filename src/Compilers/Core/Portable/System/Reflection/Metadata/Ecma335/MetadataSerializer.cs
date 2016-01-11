@@ -10,7 +10,7 @@ namespace System.Reflection.Metadata.Ecma335
     {
         private const string DebugMetadataVersionString = "PDB v1.0";
 
-        private int _pdbIdOffset;
+        private Blob _pdbIdBlob;
         private readonly int _entryPointToken;
 
         public StandaloneDebugMetadataSerializer(
@@ -23,38 +23,42 @@ namespace System.Reflection.Metadata.Ecma335
             _entryPointToken = entryPointToken;
         }
 
-        public int PdbIdOffset => _pdbIdOffset;
-
-        protected override void SerializeStandalonePdbStream(BlobBuilder writer)
+        /// <summary>
+        /// Serialized #Pdb stream.
+        /// </summary>
+        protected override void SerializeStandalonePdbStream(BlobBuilder builder)
         {
-            int startPosition = writer.Position;
+            int startPosition = builder.Position;
 
-            // zero out and save position, will be filled in later
-            _pdbIdOffset = startPosition;
-            writer.WriteBytes(0, MetadataSizes.PdbIdSize);
+            // the id will be filled in later
+            _pdbIdBlob = builder.ReserveBytes(MetadataSizes.PdbIdSize);
+            
+            builder.WriteUInt32((uint)_entryPointToken);
 
-            writer.WriteUInt32((uint)_entryPointToken);
+            builder.WriteUInt64(MetadataSizes.ExternalTablesMask);
+            MetadataWriterUtilities.SerializeRowCounts(builder, MetadataSizes.ExternalRowCounts);
 
-            writer.WriteUInt64(MetadataSizes.ExternalTablesMask);
-            MetadataWriterUtilities.SerializeRowCounts(writer, MetadataSizes.ExternalRowCounts);
-
-            int endPosition = writer.Position;
+            int endPosition = builder.Position;
             Debug.Assert(MetadataSizes.CalculateStandalonePdbStreamSize() == endPosition - startPosition);
         }
 
-        public void SerializeMetadata(BlobBuilder metadataWriter)
+        public void SerializeMetadata(BlobBuilder builder, Func<BlobBuilder, Microsoft.Cci.ContentId> idProvider, out Microsoft.Cci.ContentId contentId)
         {
-            int guidHeapStartOffset;
-            SerializeMetadataImpl(metadataWriter, methodBodyStreamRva: 0, mappedFieldDataStreamRva: 0, guidHeapStartOffset: out guidHeapStartOffset);
+            SerializeMetadataImpl(builder, methodBodyStreamRva: 0, mappedFieldDataStreamRva: 0);
+
+            contentId = idProvider(builder);
+
+            // fill in the id:
+            var idWriter = new BlobWriter(_pdbIdBlob);
+            idWriter.WriteBytes(contentId.Guid);
+            idWriter.WriteBytes(contentId.Stamp);
+            Debug.Assert(idWriter.RemainingBytes == 0);
         }
     }
 
     internal sealed class TypeSystemMetadataSerializer : MetadataSerializer
     {
         private static readonly ImmutableArray<int> EmptyRowCounts = ImmutableArray.CreateRange(Enumerable.Repeat(0, MetadataTokens.TableCount));
-
-        public int ModuleVersionIdOffset => _moduleVersionIdOffset;
-        private int _moduleVersionIdOffset;
 
         public TypeSystemMetadataSerializer(
             MetadataBuilder tables, 
@@ -72,9 +76,7 @@ namespace System.Reflection.Metadata.Ecma335
 
         public void SerializeMetadata(BlobBuilder metadataWriter, int methodBodyStreamRva, int mappedFieldDataStreamRva)
         {
-            int guidHeapStartOffset;
-            SerializeMetadataImpl(metadataWriter, methodBodyStreamRva, mappedFieldDataStreamRva, out guidHeapStartOffset);
-            _moduleVersionIdOffset = _tables.GetModuleVersionGuidOffsetInMetadataStream(guidHeapStartOffset);
+            SerializeMetadataImpl(metadataWriter, methodBodyStreamRva, mappedFieldDataStreamRva);
         }
     }
 
@@ -107,7 +109,7 @@ namespace System.Reflection.Metadata.Ecma335
 
         public MetadataSizes MetadataSizes => _sizes;
 
-        protected void SerializeMetadataImpl(BlobBuilder metadataWriter, int methodBodyStreamRva, int mappedFieldDataStreamRva, out int guidHeapStartOffset)
+        protected void SerializeMetadataImpl(BlobBuilder metadataWriter, int methodBodyStreamRva, int mappedFieldDataStreamRva)
         {
             // header:
             SerializeMetadataHeader(metadataWriter);
@@ -119,7 +121,7 @@ namespace System.Reflection.Metadata.Ecma335
             _tables.SerializeMetadataTables(metadataWriter, _sizes, methodBodyStreamRva, mappedFieldDataStreamRva);
 
             // #Strings, #US, #Guid and #Blob streams:
-            _tables.WriteHeapsTo(metadataWriter, out guidHeapStartOffset);
+            _tables.WriteHeapsTo(metadataWriter);
         }
 
         private void SerializeMetadataHeader(BlobBuilder writer)
