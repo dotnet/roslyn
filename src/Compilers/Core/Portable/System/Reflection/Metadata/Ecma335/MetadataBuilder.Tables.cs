@@ -827,17 +827,6 @@ namespace System.Reflection.Metadata.Ecma335
             return ImmutableArray.CreateRange(rowCounts);
         }
 
-        public int GetModuleVersionGuidOffsetInMetadataStream(int guidHeapOffsetInMetadataStream)
-        {
-            // index of module version ID in the guidWriter stream
-            int moduleVersionIdIndex = ResolveGuidIndex(_moduleTable[0].ModuleVersionId);
-
-            // offset into the guidWriter stream of the module version ID
-            int moduleVersionOffsetInGuidTable = (moduleVersionIdIndex - 1) << 4;
-
-            return guidHeapOffsetInMetadataStream + moduleVersionOffsetInGuidTable;
-        }
-
         #region Serialization
 
         internal void SerializeMetadataTables(

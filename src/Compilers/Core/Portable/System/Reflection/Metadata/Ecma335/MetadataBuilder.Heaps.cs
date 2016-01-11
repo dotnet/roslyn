@@ -227,10 +227,20 @@ namespace System.Reflection.Metadata.Ecma335
                 return result;
             }
 
-            return AllocateGuid(guid);
+            result = GetNextGuidIndex();
+            _guids.Add(guid, result);
+            _guidWriter.WriteBytes(guid.ToByteArray());
+            return result;
         }
 
-        public GuidIdx AllocateGuid(Guid guid)
+        public GuidIdx ReserveGuid(out Blob reservedBlob)
+        {
+            var index = GetNextGuidIndex();
+            reservedBlob = _guidWriter.ReserveBytes(16);
+            return index;
+        }
+
+        private GuidIdx GetNextGuidIndex()
         {
             Debug.Assert(!_streamsAreComplete);
 
@@ -244,12 +254,7 @@ namespace System.Reflection.Metadata.Ecma335
             // Metadata Spec: 
             // The Guid heap is an array of GUIDs, each 16 bytes wide. 
             // Its first element is numbered 1, its second 2, and so on.
-            GuidIdx result = new GuidIdx((_guidWriter.Count >> 4) + 1);
-
-            _guids.Add(guid, result);
-            _guidWriter.WriteBytes(guid.ToByteArray());
-
-            return result;
+            return new GuidIdx((_guidWriter.Count >> 4) + 1);
         }
 
         public StringIdx GetStringIndex(string str)
@@ -449,13 +454,10 @@ namespace System.Reflection.Metadata.Ecma335
             }
         }
 
-        public void WriteHeapsTo(BlobBuilder writer, out int guidHeapStartOffset)
+        public void WriteHeapsTo(BlobBuilder writer)
         {
             WriteAligned(_stringWriter, writer);
             WriteAligned(_userStringWriter, writer);
-
-            guidHeapStartOffset = writer.Position;
-
             WriteAligned(_guidWriter, writer);
             WriteAlignedBlobHeap(writer);
         }

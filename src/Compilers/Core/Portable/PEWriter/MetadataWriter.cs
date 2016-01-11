@@ -1830,8 +1830,9 @@ namespace Microsoft.Cci
             // Therefore we do not have to fill in a new module version ID in the generated metadata
             // stream.
             Debug.Assert(this.module.Properties.PersistentIdentifier != default(Guid));
+            Blob mvidFixup;
 
-            BuildMetadataAndIL(pdbWriterOpt, ilBuilder, mappedFieldDataBuilder, managedResourceDataBuilder);
+            BuildMetadataAndIL(pdbWriterOpt, ilBuilder, mappedFieldDataBuilder, managedResourceDataBuilder, out mvidFixup);
 
             Debug.Assert(mappedFieldDataBuilder.Count == 0);
             Debug.Assert(managedResourceDataBuilder.Count == 0);
@@ -1848,7 +1849,8 @@ namespace Microsoft.Cci
             PdbWriter nativePdbWriterOpt,
             BlobBuilder ilBuilder,
             BlobBuilder mappedFieldDataBuilder,
-            BlobBuilder managedResourceDataBuilder)
+            BlobBuilder managedResourceDataBuilder,
+            out Blob mvidFixup)
         {
             // Extract information from object model into tables, indices and streams
             CreateIndices();
@@ -1867,7 +1869,7 @@ namespace Microsoft.Cci
 
             ReportReferencesToAddedSymbols();
 
-            PopulateTables(methodBodyOffsets, mappedFieldDataBuilder, managedResourceDataBuilder);
+            PopulateTables(methodBodyOffsets, mappedFieldDataBuilder, managedResourceDataBuilder, out mvidFixup);
         }
 
         public void SerializeManagedTextSection(
@@ -1879,7 +1881,6 @@ namespace Microsoft.Cci
             Machine machine,
             int textSectionRva,
             string pdbPathOpt,
-            out int moduleVersionIdOffsetInMetadataStream,
             out ManagedTextSection textSection,
             out MetadataSizes metadataSizes)
         {
@@ -1905,20 +1906,19 @@ namespace Microsoft.Cci
             mappedFieldDataStreamRva = textSectionRva + textSection.CalculateOffsetToMappedFieldDataStream();
 
             serializer.SerializeMetadata(metadataBuilder, methodBodyStreamRva, mappedFieldDataStreamRva);
-            moduleVersionIdOffsetInMetadataStream = serializer.ModuleVersionIdOffset;
         }
 
         public void SerializeStandaloneDebugMetadata(
             BlobBuilder debugMetadataBuilderOpt,
             MetadataSizes metadataSizes,
             int debugEntryPointToken,
-            out int pdbIdOffsetInPortablePdbStream)
+            Func<BlobBuilder, ContentId> idProvider,
+            out ContentId contentId)
         {
             Debug.Assert(_debugMetadataOpt != null);
 
             var debugSerializer = new StandaloneDebugMetadataSerializer(_debugMetadataOpt, metadataSizes.RowCounts, debugEntryPointToken, IsMinimalDelta);
-            debugSerializer.SerializeMetadata(debugMetadataBuilderOpt);
-            pdbIdOffsetInPortablePdbStream = debugSerializer.PdbIdOffset;
+            debugSerializer.SerializeMetadata(debugMetadataBuilderOpt, idProvider, out contentId);
         }
 
         internal void GetEntryPointTokens(out int entryPointToken, out int debugEntryPointToken)
@@ -1985,7 +1985,7 @@ namespace Microsoft.Cci
             }).ToImmutableArray();
         }
 
-        private void PopulateTables(int[] methodBodyOffsets, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter)
+        private void PopulateTables(int[] methodBodyOffsets, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter, out Blob mvidFixup)
         {
             var sortedGenericParameters = GetSortedGenericParameters();
 
@@ -2012,7 +2012,7 @@ namespace Microsoft.Cci
             this.PopulateMethodSemanticsTableRows();
             this.PopulateMethodSpecTableRows();
             this.PopulateModuleRefTableRows();
-            this.PopulateModuleTableRow();
+            this.PopulateModuleTableRow(out mvidFixup);
             this.PopulateNestedClassTableRows();
             this.PopulateParamTableRows();
             this.PopulatePropertyMapTableRows();
@@ -2738,24 +2738,35 @@ namespace Microsoft.Cci
                 metadata.AddModuleReference(GetStringIndexForPathAndCheckLength(moduleName));
             }
         }
-        
-        private void PopulateModuleTableRow()
+
+        private void PopulateModuleTableRow(out Blob mvidFixup)
         {
             CheckPathLength(this.module.ModuleName);
 
-            // MVID is specified upfront when emitting EnC delta:
+            GuidIdx mvidIdx;
             Guid mvid = this.module.Properties.PersistentIdentifier;
-
-            if (mvid == default(Guid) && !_deterministic)
+            if (mvid != default(Guid))
             {
-                // If we are being nondeterministic, generate random
-                mvid = Guid.NewGuid();
+                // MVID is specified upfront when emitting EnC delta:
+                mvidIdx = metadata.GetGuidIndex(mvid);
+                mvidFixup = default(Blob);
+            }
+            else if (_deterministic)
+            {
+                // The guid will be filled in later based on hash of the file content:
+                mvidIdx = metadata.ReserveGuid(out mvidFixup);
+            }
+            else
+            {
+                // If we are being nondeterministic generate random:
+                mvidIdx = metadata.GetGuidIndex(Guid.NewGuid());
+                mvidFixup = default(Blob);
             }
 
             metadata.AddModule(
                 generation: this.Generation,
                 moduleName: metadata.GetStringIndex(this.module.ModuleName),
-                mvid: metadata.AllocateGuid(mvid),
+                mvid: mvidIdx,
                 encId: metadata.GetGuidIndex(EncId),
                 encBaseId: metadata.GetGuidIndex(EncBaseId));
         }

@@ -276,7 +276,6 @@ namespace System.Reflection.PortableExecutable
         /// <param name="mappedFieldDataBuilder"><see cref="BlobBuilder"/> containing mapped field data. Must be populated with data. Linked into the <paramref name="builder"/> and can't be expanded afterwards.</param>
         /// <param name="resourceBuilder"><see cref="BlobBuilder"/> containing managed resource data. Must be populated with data. Linked into the <paramref name="builder"/> and can't be expanded afterwards.</param>
         /// <param name="debugTableBuilderOpt"><see cref="BlobBuilder"/> containing debug table data. Must be populated with data. Linked into the <paramref name="builder"/> and can't be expanded afterwards.</param>
-        /// <param name="metadataPosition">Position of the metadata in the section.</param>
         public void Serialize(
             BlobBuilder builder,
             int relativeVirtualAddess,
@@ -287,8 +286,7 @@ namespace System.Reflection.PortableExecutable
             BlobBuilder ilBuilder,
             BlobBuilder mappedFieldDataBuilder,
             BlobBuilder resourceBuilder,
-            BlobBuilder debugTableBuilderOpt,
-            out long metadataPosition)
+            BlobBuilder debugTableBuilderOpt)
         {
             Debug.Assert(builder.Count == 0);
             Debug.Assert(metadataBuilder.Count == MetadataSize);
@@ -314,7 +312,6 @@ namespace System.Reflection.PortableExecutable
             builder.LinkSuffix(ilBuilder);
 
             // metadata:
-            metadataPosition = builder.Count;
             builder.LinkSuffix(metadataBuilder);
 
             // managed resources:

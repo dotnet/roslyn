@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -53,11 +54,13 @@ namespace Microsoft.Cci
             var managedResourceBuilder = new BlobBuilder(1024);
             var debugMetadataBuilderOpt = (getPortablePdbStreamOpt != null) ? new BlobBuilder(16 * 1024) : null;
 
+            Blob mvidFixup;
             mdWriter.BuildMetadataAndIL(
                 nativePdbWriterOpt,
                 ilBuilder,
                 mappedFieldDataBuilder,
-                managedResourceBuilder);
+                managedResourceBuilder,
+                out mvidFixup);
 
             int entryPointToken;
             int debugEntryPointToken;
@@ -97,6 +100,11 @@ namespace Microsoft.Cci
                 return false;
             }
 
+            ContentId nativePdbContentId = nativePdbWriterOpt?.GetContentId() ?? default(ContentId);
+
+            // the writer shall not be used after this point for writing:
+            nativePdbWriterOpt = null;
+
             var peBuilder = new PEBuilder(
                 machine: properties.Machine,
                 sectionAlignment: properties.SectionAlignment,
@@ -117,15 +125,12 @@ namespace Microsoft.Cci
                 sizeOfStackCommit: properties.SizeOfStackCommit,
                 sizeOfHeapReserve: properties.SizeOfHeapReserve,
                 sizeOfHeapCommit: properties.SizeOfHeapCommit,
-                isDeterministic: isDeterministic);
+                deterministicIdProvider: isDeterministic ? new Func<BlobBuilder, ContentId>(content => ContentId.FromHash(CryptographicHashProvider.ComputeSha1(content))) : null);
 
             var peDirectoriesBuilder = new PEDirectoriesBuilder();
-
-            long peHeaderTimestampPosition;
-            long metadataPosition = 0;
+            
             int entryPointAddress = 0;
             var textSectionLocation = default(PESectionLocation);
-            int moduleVersionIdOffsetInMetadataStream = 0;
 
             // .text
             peBuilder.AddSection(".text", SectionCharacteristics.MemRead | SectionCharacteristics.MemExecute | SectionCharacteristics.ContainsCode, location =>
@@ -145,64 +150,29 @@ namespace Microsoft.Cci
                     properties.Machine,
                     location.RelativeVirtualAddress,
                     pdbPathOpt,
-                    out moduleVersionIdOffsetInMetadataStream,
                     out textSection,
                     out metadataSizes);
 
-                int pdbIdOffsetInPortablePdbStream;
+                ContentId portablePdbContentId;
                 if (mdWriter.EmitStandaloneDebugMetadata)
                 {
                     mdWriter.SerializeStandaloneDebugMetadata(
                         debugMetadataBuilderOpt,
                         metadataSizes,
                         debugEntryPointToken,
-                        out pdbIdOffsetInPortablePdbStream);
-                }
-                else
-                {
-                    pdbIdOffsetInPortablePdbStream = 0;
-                }
-
-                ContentId nativePdbContentId;
-                if (nativePdbWriterOpt != null)
-                {
-                    nativePdbContentId = nativePdbWriterOpt.GetContentId();
-
-                    // the writer shall not be used after this point for writing:
-                    nativePdbWriterOpt = null;
-                }
-                else
-                {
-                    nativePdbContentId = default(ContentId);
-                }
-
-                // write to Portable PDB stream:
-                ContentId portablePdbContentId;
-                Stream portablePdbStream = getPortablePdbStreamOpt?.Invoke();
-                if (portablePdbStream != null)
-                {
-                    debugMetadataBuilderOpt.WriteContentTo(portablePdbStream);
-
-                    if (isDeterministic)
-                    {
-                        portablePdbContentId = ContentId.FromHash(CryptographicHashProvider.ComputeSha1(portablePdbStream));
-                    }
-                    else
-                    {
-                        portablePdbContentId = new ContentId(Guid.NewGuid().ToByteArray(), BitConverter.GetBytes(peBuilder.TimeDateStamp));
-                    }
-
-                    // fill in the PDB id:
-                    long previousPosition = portablePdbStream.Position;
-                    CheckZeroDataInStream(portablePdbStream, pdbIdOffsetInPortablePdbStream, ContentId.Size);
-                    portablePdbStream.Position = pdbIdOffsetInPortablePdbStream;
-                    portablePdbStream.Write(portablePdbContentId.Guid, 0, portablePdbContentId.Guid.Length);
-                    portablePdbStream.Write(portablePdbContentId.Stamp, 0, portablePdbContentId.Stamp.Length);
-                    portablePdbStream.Position = previousPosition;
+                        peBuilder.IdProvider,
+                        out portablePdbContentId);
                 }
                 else
                 {
                     portablePdbContentId = default(ContentId);
+                }
+
+                // write to Portable PDB stream:
+                Stream portablePdbStream = getPortablePdbStreamOpt?.Invoke();
+                if (portablePdbStream != null)
+                {
+                    debugMetadataBuilderOpt.WriteContentTo(portablePdbStream);
                 }
 
                 BlobBuilder debugTableBuilderOpt;
@@ -228,8 +198,7 @@ namespace Microsoft.Cci
                     ilBuilder,
                     mappedFieldDataBuilder,
                     managedResourceBuilder,
-                    debugTableBuilderOpt,
-                    out metadataPosition);
+                    debugTableBuilderOpt);
 
                 peDirectoriesBuilder.AddressOfEntryPoint = entryPointAddress;
                 peDirectoriesBuilder.DebugTable = textSection.GetDebugDirectoryEntry(location.RelativeVirtualAddress);
@@ -286,63 +255,27 @@ namespace Microsoft.Cci
             }
 
             var peBlob = new BlobBuilder();
-            peBuilder.Serialize(peBlob, peDirectoriesBuilder, out peHeaderTimestampPosition);
+            ContentId peContentId;
+            peBuilder.Serialize(peBlob, peDirectoriesBuilder, out peContentId);
 
-            peBlob.WriteContentTo(peStream);
-
-            if (isDeterministic)
+            // Patch MVID
+            if (!mvidFixup.IsDefault)
             {
-                var mvidPosition = textSectionLocation.PointerToRawData + metadataPosition + moduleVersionIdOffsetInMetadataStream;
-                WriteDeterministicGuidAndTimestamps(peStream, mvidPosition, peHeaderTimestampPosition);
+                var mvidWriter = new BlobWriter(mvidFixup);
+                mvidWriter.WriteBytes(peContentId.Guid);
+                Debug.Assert(mvidWriter.RemainingBytes == 0);
+            }
+
+            try
+            {
+                peBlob.WriteContentTo(peStream);
+            }
+            catch (Exception e)
+            {
+                throw new PeWritingException(e);
             }
 
             return true;
-        }
-
-
-        /// <summary>
-        /// Compute a deterministic Guid and timestamp based on the contents of the stream, and replace
-        /// the 16 zero bytes at the given position and one or two 4-byte values with that computed Guid and timestamp.
-        /// </summary>
-        /// <param name="peStream">PE stream.</param>
-        /// <param name="mvidPosition">Position in the stream of 16 zero bytes to be replaced by a Guid</param>
-        /// <param name="peHeaderTimestampPosition">Position in the stream of four zero bytes to be replaced by a timestamp</param>
-        private static void WriteDeterministicGuidAndTimestamps(
-            Stream peStream,
-            long mvidPosition,
-            long peHeaderTimestampPosition)
-        {
-            Debug.Assert(mvidPosition != 0);
-            Debug.Assert(peHeaderTimestampPosition != 0);
-
-            var previousPosition = peStream.Position;
-
-            // Compute and write deterministic guid data over the relevant portion of the stream
-            peStream.Position = 0;
-            var contentId = ContentId.FromHash(CryptographicHashProvider.ComputeSha1(peStream));
-
-            // The existing Guid should be zero.
-            CheckZeroDataInStream(peStream, mvidPosition, contentId.Guid.Length);
-            peStream.Position = mvidPosition;
-            peStream.Write(contentId.Guid, 0, contentId.Guid.Length);
-
-            // The existing timestamp should be zero.
-            CheckZeroDataInStream(peStream, peHeaderTimestampPosition, contentId.Stamp.Length);
-            peStream.Position = peHeaderTimestampPosition;
-            peStream.Write(contentId.Stamp, 0, contentId.Stamp.Length);
-
-            peStream.Position = previousPosition;
-        }
-
-        [Conditional("DEBUG")]
-        private static void CheckZeroDataInStream(Stream stream, long position, int bytes)
-        {
-            stream.Position = position;
-            for (int i = 0; i < bytes; i++)
-            {
-                int value = stream.ReadByte();
-                Debug.Assert(value == 0);
-            }
         }
                 
         private static void WriteRelocSection(BlobBuilder builder, Machine machine, int entryPointAddress)

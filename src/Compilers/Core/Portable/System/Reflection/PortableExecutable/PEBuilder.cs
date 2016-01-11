@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace System.Reflection.PortableExecutable
@@ -10,7 +11,6 @@ namespace System.Reflection.PortableExecutable
     {
         // COFF:
         public Machine Machine { get; }
-        public int TimeDateStamp { get; }
         public Characteristics ImageCharacteristics { get; set; }
         public bool IsDeterministic { get; }
         
@@ -38,6 +38,8 @@ namespace System.Reflection.PortableExecutable
         public ulong SizeOfStackCommit { get; }
         public ulong SizeOfHeapReserve { get; }
         public ulong SizeOfHeapCommit { get; }
+
+        public Func<BlobBuilder, Microsoft.Cci.ContentId> IdProvider { get; }
 
         private readonly List<Section> _sections;
 
@@ -98,7 +100,7 @@ namespace System.Reflection.PortableExecutable
             ulong sizeOfStackCommit,
             ulong sizeOfHeapReserve,
             ulong sizeOfHeapCommit,
-            bool isDeterministic)
+            Func<BlobBuilder, Microsoft.Cci.ContentId> deterministicIdProvider = null)
         {
             Machine = machine;
             SectionAlignment = sectionAlignment;
@@ -119,14 +121,19 @@ namespace System.Reflection.PortableExecutable
             SizeOfStackCommit = sizeOfStackCommit;
             SizeOfHeapReserve = sizeOfHeapReserve;
             SizeOfHeapCommit = sizeOfHeapCommit;
-            IsDeterministic = isDeterministic;
-            
+            IsDeterministic = deterministicIdProvider != null;
+            IdProvider = deterministicIdProvider ?? GetCurrentTimeBasedIdProvider();
+
+            _sections = new List<Section>();
+        }
+
+        private static Func<BlobBuilder, Microsoft.Cci.ContentId> GetCurrentTimeBasedIdProvider()
+        {
             // In the PE File Header this is a "Time/Date Stamp" whose description is "Time and date
             // the file was created in seconds since January 1st 1970 00:00:00 or 0"
             // However, when we want to make it deterministic we fill it in (later) with bits from the hash of the full PE file.
-            TimeDateStamp = isDeterministic ? 0 : (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-
-            _sections = new List<Section>();
+            int timestamp = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            return content => new Microsoft.Cci.ContentId(Guid.NewGuid().ToByteArray(), BitConverter.GetBytes(timestamp));
         }
 
         private bool Is32Bit => Machine != Machine.Amd64 && Machine != Machine.IA64;
@@ -136,12 +143,13 @@ namespace System.Reflection.PortableExecutable
             _sections.Add(new Section(name, characteristics, builder));
         }
 
-        public void Serialize(BlobBuilder builder, PEDirectoriesBuilder headers, out long timestampPosition)
+        public void Serialize(BlobBuilder builder, PEDirectoriesBuilder headers, out Microsoft.Cci.ContentId contentId)
         {
             var serializedSections = SerializeSections();
+            Blob stampFixup;
 
             WritePESignature(builder);
-            WriteCoffHeader(builder, serializedSections, out timestampPosition);
+            WriteCoffHeader(builder, serializedSections, out stampFixup);
             WritePEHeader(builder, headers, serializedSections);
             WriteSectionHeaders(builder, serializedSections);
             builder.Align(FileAlignment);
@@ -151,6 +159,13 @@ namespace System.Reflection.PortableExecutable
                 builder.LinkSuffix(section.Builder);
                 builder.Align(FileAlignment);
             }
+
+            contentId = IdProvider(builder);
+
+            // patch timestamp in COFF header:
+            var stampWriter = new BlobWriter(stampFixup);
+            stampWriter.WriteBytes(contentId.Stamp);
+            Debug.Assert(stampWriter.RemainingBytes == 0);
         }
 
         private ImmutableArray<SerializedSection> SerializeSections()
@@ -223,7 +238,7 @@ namespace System.Reflection.PortableExecutable
             0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
         };
 
-        private void WriteCoffHeader(BlobBuilder builder, ImmutableArray<SerializedSection> sections, out long timestampPosition)
+        private void WriteCoffHeader(BlobBuilder builder, ImmutableArray<SerializedSection> sections, out Blob stampFixup)
         {
             // Machine
             builder.WriteUInt16((ushort)(Machine == 0 ? Machine.I386 : Machine));
@@ -232,8 +247,7 @@ namespace System.Reflection.PortableExecutable
             builder.WriteUInt16((ushort)sections.Length);
 
             // TimeDateStamp:
-            timestampPosition = builder.Position;
-            builder.WriteUInt32((uint)TimeDateStamp);
+            stampFixup = builder.ReserveBytes(sizeof(uint));
 
             // PointerToSymbolTable (TODO: not supported):
             // The file pointer to the COFF symbol table, or zero if no COFF symbol table is present. 
