@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = GetSpecialTypeMethod(syntax, member);
                 Debug.Assert((object)method != null);
 
-                var array = _factory.Array(elementType, loweredArgs);
+                var array = _factory.ArrayOrEmpty(elementType, loweredArgs);
 
                 return (BoundExpression)BoundCall.Synthesized(syntax, null, method, array);
             }
