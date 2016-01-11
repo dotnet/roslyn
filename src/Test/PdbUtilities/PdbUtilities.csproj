@@ -73,6 +73,9 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
       <Link>InternalUtilities\StreamExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\MetadataReader\PortableCustomDebugInfoKinds.cs">
+      <Link>Shared\PortableCustomDebugInfoKinds.cs</Link>
+    </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
       <Link>Shared\CustomDebugInfoConstants.cs</Link>
     </Compile>
