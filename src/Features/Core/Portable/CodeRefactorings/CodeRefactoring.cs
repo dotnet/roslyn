@@ -24,13 +24,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// List of possible actions that can be used to transform the code.
         /// </summary>
-        public IEnumerable<CodeAction> Actions
-        {
-            get
-            {
-                return _actions;
-            }
-        }
+        public IReadOnlyList<CodeAction> Actions => _actions;
+
+        IEnumerable<CodeAction> ICodeRefactoring.Actions => Actions;
 
         public CodeRefactoring(CodeRefactoringProvider provider, IEnumerable<CodeAction> actions)
         {
