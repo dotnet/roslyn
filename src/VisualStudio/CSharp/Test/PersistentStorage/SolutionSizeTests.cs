@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize;
 using Xunit;
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     public class SolutionSizeTests
     {
         [Fact]
-        public void Test_SolutionSize()
+        public async Task Test_SolutionSize()
         {
             var expected = 12345;
             var solution = CreateSolution(expected);
@@ -19,15 +20,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var analyzer = new SolutionSizeTracker.IncrementalAnalyzer();
 
             // initialize
-            analyzer.NewSolutionSnapshotAsync(solution, CancellationToken.None).Wait();
-            AddSolution(analyzer, solution);
+            await analyzer.NewSolutionSnapshotAsync(solution, CancellationToken.None);
+            await AddSolutionAsync(analyzer, solution);
 
             var size = analyzer.GetSolutionSize(solution.Id);
             Assert.Equal(expected, size);
         }
 
         [Fact]
-        public void Test_SolutionSize_Update()
+        public async Task Test_SolutionSize_Update()
         {
             var expected = 12345;
             var solution = CreateSolution(expected);
@@ -35,24 +36,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var analyzer = new SolutionSizeTracker.IncrementalAnalyzer();
 
             // initialize
-            analyzer.NewSolutionSnapshotAsync(solution, CancellationToken.None).Wait();
-            AddSolution(analyzer, solution);
+            await analyzer.NewSolutionSnapshotAsync(solution, CancellationToken.None);
+            await AddSolutionAsync(analyzer, solution);
 
             // update document
             var document = solution.Projects.First().Documents.First();
-            var length = document.GetSyntaxTreeAsync().Result.Length;
+            var length = (await document.GetSyntaxTreeAsync()).Length;
 
             var text = SourceText.From(new string('2', 1000));
             var newDocument = document.WithText(text);
 
-            analyzer.AnalyzeSyntaxAsync(newDocument, CancellationToken.None).Wait();
+            await analyzer.AnalyzeSyntaxAsync(newDocument, CancellationToken.None);
 
             var size = analyzer.GetSolutionSize(solution.Id);
             Assert.Equal(expected - length + text.Length, size);
         }
 
         [Fact]
-        public void Test_RemoveDocument()
+        public async Task Test_RemoveDocument()
         {
             var expected = 12345;
             var solution = CreateSolution(expected);
@@ -60,8 +61,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var analyzer = new SolutionSizeTracker.IncrementalAnalyzer();
 
             // initialize
-            analyzer.NewSolutionSnapshotAsync(solution, CancellationToken.None).Wait();
-            AddSolution(analyzer, solution);
+            await analyzer.NewSolutionSnapshotAsync(solution, CancellationToken.None);
+            await AddSolutionAsync(analyzer, solution);
 
             // remove document
             var document = solution.Projects.First().Documents.First();
@@ -69,15 +70,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var size = analyzer.GetSolutionSize(solution.Id);
 
-            var length = document.GetSyntaxTreeAsync().Result.Length;
+            var length = (await document.GetSyntaxTreeAsync()).Length;
             Assert.Equal(expected - length, size);
         }
 
-        private static void AddSolution(SolutionSizeTracker.IncrementalAnalyzer analyzer, Solution solution)
+        private static async Task AddSolutionAsync(SolutionSizeTracker.IncrementalAnalyzer analyzer, Solution solution)
         {
             foreach (var document in solution.Projects.SelectMany(p => p.Documents))
             {
-                analyzer.AnalyzeSyntaxAsync(document, CancellationToken.None).Wait();
+                await analyzer.AnalyzeSyntaxAsync(document, CancellationToken.None);
             }
         }
 

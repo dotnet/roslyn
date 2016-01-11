@@ -536,30 +536,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             };
 
             CheckAttributes(assemblies[0], assemblyArgs);
-
-            DumpAttributes(assemblies[0].Modules[0]);
-        }
-
-        private void DumpAttributes(Symbol s)
-        {
-            int i = 0;
-            foreach (var sa in s.GetAttributes())
-            {
-                int j = 0;
-                foreach (var pa in sa.CommonConstructorArguments)
-                {
-                    Console.WriteLine("{0} {1} {2}", pa.ToString());
-                    j += 1;
-                }
-
-                j = 0;
-                foreach (var na in sa.CommonNamedArguments)
-                {
-                    Console.WriteLine("{0} {1} {2} = {3}", na.Key, na.Value.ToString());
-                    j += 1;
-                }
-                i += 1;
-            }
         }
 
         private void CheckAttributes(Symbol s, AttributeArgs[] expected)

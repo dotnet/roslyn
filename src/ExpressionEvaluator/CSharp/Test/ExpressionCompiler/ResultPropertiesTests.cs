@@ -118,7 +118,7 @@ class C
                 assemblyName: GetUniqueName(),
                 references: ImmutableArray.Create(MscorlibRef),
                 exeBytes: exeBytes.ToArray(),
-                symReader: new SymReader(pdbBytes.ToArray()));
+                symReader: SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(runtime, methodName: "C.Test");
 
             Assert.Equal(DkmEvaluationResultAccessType.Private, GetResultProperties(context, "Private").AccessType);
@@ -221,7 +221,7 @@ abstract class Derived : Base
             Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "Override").ModifierFlags);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6651")]
+        [Fact]
         public void ModifierFlags_Constant()
         {
             var source = @"

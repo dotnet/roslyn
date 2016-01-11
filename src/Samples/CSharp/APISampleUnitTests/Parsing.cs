@@ -6,22 +6,21 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace APISampleUnitTestsCS
 {
-    [TestClass]
     public class Parsing
     {
-        [TestMethod]
+        [Fact]
         public void TextParseTreeRoundtrip()
         {
             string text = "class C { void M() { } } // exact text round trip, including comments and whitespace";
             SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
-            Assert.AreEqual(text, tree.ToString());
+            Assert.Equal(text, tree.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void DetermineValidIdentifierName()
         {
             ValidIdentifier("@class", true);
@@ -31,30 +30,30 @@ namespace APISampleUnitTestsCS
         private void ValidIdentifier(string identifier, bool expectedValid)
         {
             SyntaxToken token = SyntaxFactory.ParseToken(identifier);
-            Assert.AreEqual(expectedValid,
+            Assert.Equal(expectedValid,
                 token.Kind() == SyntaxKind.IdentifierToken && token.Span.Length == identifier.Length);
         }
 
-        [TestMethod]
+        [Fact]
         public void SyntaxFactsMethods()
         {
-            Assert.AreEqual("protected internal", SyntaxFacts.GetText(Accessibility.ProtectedOrInternal));
-            Assert.AreEqual("??", SyntaxFacts.GetText(SyntaxKind.QuestionQuestionToken));
-            Assert.AreEqual("this", SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+            Assert.Equal("protected internal", SyntaxFacts.GetText(Accessibility.ProtectedOrInternal));
+            Assert.Equal("??", SyntaxFacts.GetText(SyntaxKind.QuestionQuestionToken));
+            Assert.Equal("this", SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
 
-            Assert.AreEqual(SyntaxKind.CharacterLiteralExpression, SyntaxFacts.GetLiteralExpression(SyntaxKind.CharacterLiteralToken));
-            Assert.AreEqual(SyntaxKind.CoalesceExpression, SyntaxFacts.GetBinaryExpression(SyntaxKind.QuestionQuestionToken));
-            Assert.AreEqual(SyntaxKind.None, SyntaxFacts.GetBinaryExpression(SyntaxKind.UndefDirectiveTrivia));
-            Assert.AreEqual(false, SyntaxFacts.IsPunctuation(SyntaxKind.StringLiteralToken));
+            Assert.Equal(SyntaxKind.CharacterLiteralExpression, SyntaxFacts.GetLiteralExpression(SyntaxKind.CharacterLiteralToken));
+            Assert.Equal(SyntaxKind.CoalesceExpression, SyntaxFacts.GetBinaryExpression(SyntaxKind.QuestionQuestionToken));
+            Assert.Equal(SyntaxKind.None, SyntaxFacts.GetBinaryExpression(SyntaxKind.UndefDirectiveTrivia));
+            Assert.Equal(false, SyntaxFacts.IsPunctuation(SyntaxKind.StringLiteralToken));
         }
 
-        [TestMethod]
+        [Fact]
         public void ParseTokens()
         {
             IEnumerable<SyntaxToken> tokens = SyntaxFactory.ParseTokens("class C { // trivia");
             IEnumerable<string> fullTexts = tokens.Select(token => token.ToFullString());
 
-            Assert.IsTrue(fullTexts.SequenceEqual(new[]
+            Assert.True(fullTexts.SequenceEqual(new[]
             {
                 "class ",
                 "C ",
@@ -63,7 +62,7 @@ namespace APISampleUnitTestsCS
             }));
         }
 
-        [TestMethod]
+        [Fact]
         public void ParseExpression()
         {
             ExpressionSyntax expression = SyntaxFactory.ParseExpression("1 + 2");
@@ -71,14 +70,14 @@ namespace APISampleUnitTestsCS
             {
                 BinaryExpressionSyntax binaryExpression = (BinaryExpressionSyntax)expression;
                 SyntaxToken operatorToken = binaryExpression.OperatorToken;
-                Assert.AreEqual("+", operatorToken.ToString());
+                Assert.Equal("+", operatorToken.ToString());
 
                 ExpressionSyntax left = binaryExpression.Left;
-                Assert.AreEqual(SyntaxKind.NumericLiteralExpression, left.Kind());
+                Assert.Equal(SyntaxKind.NumericLiteralExpression, left.Kind());
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void IncrementalParse()
         {
             var oldText = SourceText.From("class C { }");
@@ -88,10 +87,10 @@ namespace APISampleUnitTestsCS
 
             var newTree = tree.WithChangedText(newText);
 
-            Assert.AreEqual(newText.ToString(), newTree.ToString());
+            Assert.Equal(newText.ToString(), newTree.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void PreprocessorDirectives()
         {
             SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(@"#if true
@@ -100,24 +99,24 @@ class A { }
 class B { }
 #endif");
             SyntaxToken eof = tree.GetRoot().FindToken(tree.GetText().Length, false);
-            Assert.AreEqual(true, eof.HasLeadingTrivia);
-            Assert.AreEqual(false, eof.HasTrailingTrivia);
-            Assert.AreEqual(true, eof.ContainsDirectives);
+            Assert.Equal(true, eof.HasLeadingTrivia);
+            Assert.Equal(false, eof.HasTrailingTrivia);
+            Assert.Equal(true, eof.ContainsDirectives);
 
             SyntaxTriviaList trivia = eof.LeadingTrivia;
-            Assert.AreEqual(3, trivia.Count);
-            Assert.AreEqual("#else", trivia.ElementAt(0).ToString());
-            Assert.AreEqual(SyntaxKind.DisabledTextTrivia, trivia.ElementAt(1).Kind());
-            Assert.AreEqual("#endif", trivia.ElementAt(2).ToString());
+            Assert.Equal(3, trivia.Count);
+            Assert.Equal("#else", trivia.ElementAt(0).ToString());
+            Assert.Equal(SyntaxKind.DisabledTextTrivia, trivia.ElementAt(1).Kind());
+            Assert.Equal("#endif", trivia.ElementAt(2).ToString());
 
             DirectiveTriviaSyntax directive = tree.GetRoot().GetLastDirective();
-            Assert.AreEqual("endif", directive.DirectiveNameToken.Value);
+            Assert.Equal("endif", directive.DirectiveNameToken.Value);
 
             directive = directive.GetPreviousDirective();
-            Assert.AreEqual("else", directive.DirectiveNameToken.Value);
+            Assert.Equal("else", directive.DirectiveNameToken.Value);
 
             // List<DirectiveSyntax> relatedDirectives = directive.GetRelatedDirectives();
-            // Assert.AreEqual(3, relatedDirectives.Count);
+            // Assert.Equal(3, relatedDirectives.Count);
         }
     }
 }

@@ -8,17 +8,14 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace APISampleUnitTestsCS
 {
-    [TestClass]
     public class Compilations
     {
-        [TestMethod]
+        [Fact]
         public void EndToEndCompileAndRun()
         {
             var expression = "6 * 7";
@@ -48,10 +45,10 @@ namespace APISampleUnitTestsCS
             MethodInfo evaluate = calculator.GetMethod("Evaluate");
             string answer = evaluate.Invoke(null, null).ToString();
 
-            Assert.AreEqual("42", answer);
+            Assert.Equal("42", answer);
         }
 
-        [TestMethod]
+        [Fact]
         public void GetErrorsAndWarnings()
         {
             string text = @"class Program
@@ -68,22 +65,22 @@ namespace APISampleUnitTestsCS
                 .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
 
             IEnumerable<Diagnostic> errorsAndWarnings = compilation.GetDiagnostics();
-            Assert.AreEqual(1, errorsAndWarnings.Count());
+            Assert.Equal(1, errorsAndWarnings.Count());
 
             Diagnostic error = errorsAndWarnings.First();
-            Assert.AreEqual(
+            Assert.Equal(
                 "'Program.Main(string[])': not all code paths return a value",
                 error.GetMessage(CultureInfo.InvariantCulture));
 
             Location errorLocation = error.Location;
-            Assert.AreEqual(4, error.Location.SourceSpan.Length);
+            Assert.Equal(4, error.Location.SourceSpan.Length);
 
             SourceText programText = errorLocation.SourceTree.GetText();
-            Assert.AreEqual("Main", programText.ToString(errorLocation.SourceSpan));
+            Assert.Equal("Main", programText.ToString(errorLocation.SourceSpan));
 
             FileLinePositionSpan span = error.Location.GetLineSpan();
-            Assert.AreEqual(15, span.StartLinePosition.Character);
-            Assert.AreEqual(2, span.StartLinePosition.Line);
+            Assert.Equal(15, span.StartLinePosition.Character);
+            Assert.Equal(2, span.StartLinePosition.Line);
         }
     }
 }

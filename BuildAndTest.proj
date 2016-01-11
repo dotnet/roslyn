@@ -70,12 +70,11 @@
 
       <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
       <TestAssemblies Condition="'$(Test64)' != 'true'" 
-                      Include="$(OutputDirectory)\**\$(IncludePattern)"
-                      Exclude="$(OutputDirectory)\**\MakeConst*" />
+                      Include="$(OutputDirectory)\**\$(IncludePattern)" />
 
       <TestAssemblies Condition="'$(Test64)' == 'true'" 
                       Include="$(OutputDirectory)\**\$(IncludePattern)" 
-                      Exclude="$(OutputDirectory)\**\Roslyn.Interactive*;$(OutputDirectory)\**\MakeConst*" />
+                      Exclude="$(OutputDirectory)\**\Roslyn.Interactive*" />
     </ItemGroup>
 
     <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />

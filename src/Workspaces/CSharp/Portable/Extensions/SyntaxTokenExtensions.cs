@@ -82,20 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return token.GetNextTokenOrEndOfFile();
         }
 
-        public static SyntaxToken GetNextTokenOrEndOfFile(
-            this SyntaxToken token,
-            bool includeZeroWidth = false,
-            bool includeSkipped = false,
-            bool includeDirectives = false,
-            bool includeDocumentationComments = false)
-        {
-            var nextToken = token.GetNextToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
-
-            return nextToken.Kind() == SyntaxKind.None
-                ? token.GetAncestor<CompilationUnitSyntax>().EndOfFileToken
-                : nextToken;
-        }
-
         public static SyntaxToken With(this SyntaxToken token, SyntaxTriviaList leading, SyntaxTriviaList trailing)
         {
             return token.WithLeadingTrivia(leading).WithTrailingTrivia(trailing);

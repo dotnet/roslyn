@@ -899,7 +899,90 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         public SyntaxTrivia FindTrivia(int position, bool findInsideTrivia = false)
         {
-            return FindTriviaCore(position, findInsideTrivia);
+            return FindTrivia(position, findInsideTrivia ? SyntaxTrivia.Any : null);
+        }
+
+        /// <summary>
+        /// Finds a descendant trivia of this node at the specified position, where the position is
+        /// within the span of the node.
+        /// </summary>
+        /// <param name="position">The character position of the trivia relative to the beginning of
+        /// the file.</param>
+        /// <param name="stepInto">Specifies a function that determines per trivia node, whether to
+        /// descend into structured trivia of that node.</param>
+        /// <returns></returns>
+        public SyntaxTrivia FindTrivia(int position, Func<SyntaxTrivia, bool> stepInto)
+        {
+            if (this.FullSpan.Contains(position))
+            {
+                return FindTriviaByOffset(this, position - this.Position, stepInto);
+            }
+
+            return default(SyntaxTrivia);
+        }
+
+        internal static SyntaxTrivia FindTriviaByOffset(SyntaxNode node, int textOffset, Func<SyntaxTrivia, bool> stepInto = null)
+        {
+            if (textOffset >= 0)
+            {
+                foreach (var element in node.ChildNodesAndTokens())
+                {
+                    var fullWidth = element.FullWidth;
+                    if (textOffset < fullWidth)
+                    {
+                        if (element.IsNode)
+                        {
+                            return FindTriviaByOffset(element.AsNode(), textOffset, stepInto);
+                        }
+                        else if (element.IsToken)
+                        {
+                            var token = element.AsToken();
+                            var leading = token.LeadingWidth;
+                            if (textOffset < token.LeadingWidth)
+                            {
+                                foreach (var trivia in token.LeadingTrivia)
+                                {
+                                    if (textOffset < trivia.FullWidth)
+                                    {
+                                        if (trivia.HasStructure && stepInto != null && stepInto(trivia))
+                                        {
+                                            return FindTriviaByOffset(trivia.GetStructure(), textOffset, stepInto);
+                                        }
+
+                                        return trivia;
+                                    }
+
+                                    textOffset -= trivia.FullWidth;
+                                }
+                            }
+                            else if (textOffset >= leading + token.Width)
+                            {
+                                textOffset -= leading + token.Width;
+                                foreach (var trivia in token.TrailingTrivia)
+                                {
+                                    if (textOffset < trivia.FullWidth)
+                                    {
+                                        if (trivia.HasStructure && stepInto != null && stepInto(trivia))
+                                        {
+                                            return FindTriviaByOffset(trivia.GetStructure(), textOffset, stepInto);
+                                        }
+
+                                        return trivia;
+                                    }
+
+                                    textOffset -= trivia.FullWidth;
+                                }
+                            }
+
+                            return default(SyntaxTrivia);
+                        }
+                    }
+
+                    textOffset -= fullWidth;
+                }
+            }
+
+            return default(SyntaxTrivia);
         }
 
         /// <summary>
@@ -1139,7 +1222,73 @@ namespace Microsoft.CodeAnalysis
         /// True to return tokens that are part of trivia.
         /// If false finds the token whose full span (including trivia) includes the position.
         /// </param>
-        protected abstract SyntaxToken FindTokenCore(int position, bool findInsideTrivia);
+        protected virtual SyntaxToken FindTokenCore(int position, bool findInsideTrivia)
+        {
+            if (findInsideTrivia)
+            {
+                return this.FindToken(position, SyntaxTrivia.Any);
+            }
+
+            SyntaxToken EoF;
+            if (this.TryGetEofAt(position, out EoF))
+            {
+                return EoF;
+            }
+
+            if (!this.FullSpan.Contains(position))
+            {
+                throw new ArgumentOutOfRangeException(nameof(position));
+            }
+
+            return this.FindTokenInternal(position);
+        }
+
+        private bool TryGetEofAt(int position, out SyntaxToken Eof)
+        {
+            if (position == this.EndPosition)
+            {
+                var compilationUnit = this as ICompilationUnitSyntax;
+                if (compilationUnit != null)
+                {
+                    Eof = compilationUnit.EndOfFileToken;
+                    Debug.Assert(Eof.EndPosition == position);
+                    return true;
+                }
+            }
+
+            Eof = default(SyntaxToken);
+            return false;
+        }
+
+        internal SyntaxToken FindTokenInternal(int position)
+        {
+            // While maintaining invariant   curNode.Position <= position < curNode.FullSpan.End
+            // go down the tree until a token is found
+            SyntaxNodeOrToken curNode = this;
+
+            while (true)
+            {
+                Debug.Assert(curNode.RawKind != 0);
+                Debug.Assert(curNode.FullSpan.Contains(position));
+
+                var node = curNode.AsNode();
+
+                if (node != null)
+                {
+                    //find a child that includes the position
+                    curNode = node.ChildThatContainsPosition(position);
+                }
+                else
+                {
+                    return curNode.AsToken();
+                }
+            }
+        }
+
+        private SyntaxToken FindToken(int position, Func<SyntaxTrivia, bool> findInsideTrivia)
+        {
+            return FindTokenCore(position, findInsideTrivia);
+        }
 
         /// <summary>
         /// Finds a descendant token of this node whose span includes the supplied position. 
@@ -1149,14 +1298,65 @@ namespace Microsoft.CodeAnalysis
         /// Applied on every structured trivia. Return false if the tokens included in the trivia should be skipped. 
         /// Pass null to skip all structured trivia.
         /// </param>
-        protected abstract SyntaxToken FindTokenCore(int position, Func<SyntaxTrivia, bool> stepInto);
+        protected virtual SyntaxToken FindTokenCore(int position, Func<SyntaxTrivia, bool> stepInto)
+        {
+            var token = this.FindToken(position, findInsideTrivia: false);
+            if (stepInto != null)
+            {
+                var trivia = GetTriviaFromSyntaxToken(position, token);
+
+                if (trivia.HasStructure && stepInto(trivia))
+                {
+                    token = trivia.GetStructure().FindTokenInternal(position);
+                }
+            }
+
+            return token;
+        }
+
+        internal static SyntaxTrivia GetTriviaFromSyntaxToken(int position, SyntaxToken token)
+        {
+            var span = token.Span;
+            var trivia = new SyntaxTrivia();
+            if (position < span.Start && token.HasLeadingTrivia)
+            {
+                trivia = GetTriviaThatContainsPosition(token.LeadingTrivia, position);
+            }
+            else if (position >= span.End && token.HasTrailingTrivia)
+            {
+                trivia = GetTriviaThatContainsPosition(token.TrailingTrivia, position);
+            }
+
+            return trivia;
+        }
+
+        internal static SyntaxTrivia GetTriviaThatContainsPosition(SyntaxTriviaList list, int position)
+        {
+            foreach (var trivia in list)
+            {
+                if (trivia.FullSpan.Contains(position))
+                {
+                    return trivia;
+                }
+
+                if (trivia.Position > position)
+                {
+                    break;
+                }
+            }
+
+            return default(SyntaxTrivia);
+        }
 
         /// <summary>
         /// Finds a descendant trivia of this node whose span includes the supplied position.
         /// </summary>
         /// <param name="position">The character position of the trivia relative to the beginning of the file.</param>
         /// <param name="findInsideTrivia">Whether to search inside structured trivia.</param>
-        protected abstract SyntaxTrivia FindTriviaCore(int position, bool findInsideTrivia);
+        protected virtual SyntaxTrivia FindTriviaCore(int position, bool findInsideTrivia)
+        {
+            return FindTrivia(position, findInsideTrivia);
+        }
 
         /// <summary>
         /// Creates a new tree of nodes with the specified nodes, tokens or trivia replaced.

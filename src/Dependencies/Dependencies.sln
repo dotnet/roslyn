@@ -1,10 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22528.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FakeSign", "..\Tools\Source\FakeSign\FakeSign.csproj", "{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}"
-EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.DiaSymReader", "Microsoft.DiaSymReader\Microsoft.DiaSymReader.shproj", "{F9127F0F-95C8-4576-8081-96E004C1652F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.NetFX20", "Microsoft.DiaSymReader\NetFX20\Microsoft.DiaSymReader.NetFX20.csproj", "{FA2C8969-BD1F-457A-A6E3-CA772135FF73}"
@@ -24,14 +22,6 @@ Global
 		Release|Mixed Platforms = Release|Mixed Platforms
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}.Release|Any CPU.Build.0 = Release|Any CPU
-		{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{97CC7ABF-7E07-4F3A-947B-8C2D8F916450}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{FA2C8969-BD1F-457A-A6E3-CA772135FF73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FA2C8969-BD1F-457A-A6E3-CA772135FF73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA2C8969-BD1F-457A-A6E3-CA772135FF73}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU

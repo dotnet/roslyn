@@ -571,6 +571,90 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, tname.ToString());
         }
 
+        [WorkItem(7177, "https://github.com/dotnet/roslyn/issues/7177")]
+        [Fact]
+        public void TestConstantInGenericNameBad()
+        {
+            var text = "foo<0>";
+            var tname = ParseName(text);
+
+            Assert.NotNull(tname);
+            Assert.Equal(text, tname.ToString());
+            Assert.Equal(SyntaxKind.GenericName, tname.Kind());
+
+            var gname = (GenericNameSyntax)tname;
+            Assert.Equal("foo", gname.Identifier.ToString());
+            Assert.Equal(false, gname.IsUnboundGenericName);
+            Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
+            Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
+
+            var arg = gname.TypeArgumentList.Arguments[0];
+            Assert.Equal(SyntaxKind.IdentifierName, arg.Kind());
+            Assert.Equal(true, arg.ContainsDiagnostics);
+            Assert.Equal(1, arg.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_TypeExpected, arg.Errors()[0].Code);
+
+            Assert.Equal(text, tname.ToString());
+        }
+
+        [WorkItem(7177, "https://github.com/dotnet/roslyn/issues/7177")]
+        [Fact]
+        public void TestConstantInGenericNamePartiallyBad()
+        {
+            var text = "foo<0,bool>";
+            var tname = ParseName(text);
+
+            Assert.NotNull(tname);
+            Assert.Equal(text, tname.ToString());
+            Assert.Equal(SyntaxKind.GenericName, tname.Kind());
+
+            var gname = (GenericNameSyntax)tname;
+            Assert.Equal("foo", gname.Identifier.ToString());
+            Assert.Equal(false, gname.IsUnboundGenericName);
+            Assert.Equal(2, gname.TypeArgumentList.Arguments.Count);
+            Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
+            Assert.NotNull(gname.TypeArgumentList.Arguments[1]);
+
+            var arg = gname.TypeArgumentList.Arguments[0];
+            Assert.Equal(SyntaxKind.IdentifierName, arg.Kind());
+            Assert.Equal(true, arg.ContainsDiagnostics);
+            Assert.Equal(1, arg.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_TypeExpected, arg.Errors()[0].Code);
+
+            var arg2 = gname.TypeArgumentList.Arguments[1];
+            Assert.Equal(SyntaxKind.PredefinedType, arg2.Kind());
+            Assert.Equal(false, arg2.ContainsDiagnostics);
+            Assert.Equal(0, arg2.Errors().Length);
+
+            Assert.Equal(text, tname.ToString());
+        }
+
+        [WorkItem(7177, "https://github.com/dotnet/roslyn/issues/7177")]
+        [Fact]
+        public void TestKeywordInGenericNameBad()
+        {
+            var text = "foo<static>";
+            var tname = ParseName(text);
+
+            Assert.NotNull(tname);
+            Assert.Equal(text, tname.ToString());
+            Assert.Equal(SyntaxKind.GenericName, tname.Kind());
+
+            var gname = (GenericNameSyntax)tname;
+            Assert.Equal("foo", gname.Identifier.ToString());
+            Assert.Equal(false, gname.IsUnboundGenericName);
+            Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
+            Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
+
+            var arg = gname.TypeArgumentList.Arguments[0];
+            Assert.Equal(SyntaxKind.IdentifierName, arg.Kind());
+            Assert.Equal(true, arg.ContainsDiagnostics);
+            Assert.Equal(1, arg.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_TypeExpected, arg.Errors()[0].Code);
+
+            Assert.Equal(text, tname.ToString());
+        }
+
         [Fact]
         public void TestAttributeAndVarianceInNameBad()
         {
