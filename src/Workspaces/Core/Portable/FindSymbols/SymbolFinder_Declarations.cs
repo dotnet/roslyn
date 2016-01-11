@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     else
                     {
                         await AddDeclarationsAsync(
-                            project.Solution, assembly, GetMetadataReferenceFilePath(compilation.GetMetadataReference(assembly)),
+                            project.Solution, assembly, compilation.GetMetadataReference(assembly) as PortableExecutableReference,
                             query, criteria, list, cancellationToken).ConfigureAwait(false);
                     }
                 }
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
-            Solution solution, IAssemblySymbol assembly, string filePath, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
+            Solution solution, IAssemblySymbol assembly, PortableExecutableReference reference, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
             {
@@ -280,18 +280,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var result = new List<ISymbol>();
-            await AddDeclarationsAsync(solution, assembly, filePath, query, filter, result, cancellationToken).ConfigureAwait(false);
+            await AddDeclarationsAsync(solution, assembly, reference, query, filter, result, cancellationToken).ConfigureAwait(false);
             return result;
         }
 
         private static async Task AddDeclarationsAsync(
-            Solution solution, IAssemblySymbol assembly, string filePath, SearchQuery query, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
+            Solution solution, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, SearchQuery query, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
             {
-                var info = await SymbolTreeInfo.GetInfoForAssemblyAsync(solution, assembly, filePath, cancellationToken).ConfigureAwait(false);
-
-                list.AddRange(FilterByCriteria(Find(query, info, assembly, cancellationToken), filter));
+                if (referenceOpt != null)
+                {
+                    var info = await SymbolTreeInfo.TryGetInfoForAssemblyAsync(solution, assembly, referenceOpt, cancellationToken).ConfigureAwait(false);
+                    if (info != null)
+                    {
+                        list.AddRange(FilterByCriteria(Find(query, info, assembly, cancellationToken), filter));
+                    }
+                }
             }
         }
 

@@ -40,7 +40,10 @@ namespace Microsoft.CodeAnalysis
 
         private ThreeState _lazyDeclaresTheObjectClass;
 
-        // We need to store reference for to keep the metadata alive while symbols have reference to PEAssembly.
+        /// <summary>
+        /// We need to store reference to the assembly metadata to keep the metadata alive while 
+        /// symbols have reference to PEAssembly.
+        /// </summary>
         private readonly AssemblyMetadata _owner;
 
         //Maps from simple name to list of public keys. If an IVT attribute specifies no public
@@ -174,5 +177,7 @@ namespace Microsoft.CodeAnalysis
                 return _lazyDeclaresTheObjectClass == ThreeState.True;
             }
         }
+
+        public AssemblyMetadata GetNonDisposableMetadata() => _owner.Copy();
     }
 }

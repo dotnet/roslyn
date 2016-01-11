@@ -38,5 +38,12 @@ namespace Microsoft.CodeAnalysis
         /// from ReferencedAssemblySymbols correspond to each other.
         /// </summary>
         ImmutableArray<IAssemblySymbol> ReferencedAssemblySymbols { get; }
+
+        /// <summary>
+        /// If this symbol represents a metadata module returns the underlying <see cref="ModuleMetadata"/>.
+        /// 
+        /// Otherwise, this returns <code>null</code>.
+        /// </summary>
+        ModuleMetadata GetMetadata();
     }
 }

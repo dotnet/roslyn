@@ -79,6 +79,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
+        ''' 
+        ''' Otherwise, this returns <code>nothing</code>.
+        ''' </summary>
+        Public MustOverride Function GetMetadata() As AssemblyMetadata Implements IAssemblySymbol.GetMetadata
+
+        ''' <summary>
         ''' Get the name of this assembly.
         ''' </summary>
         Public MustOverride ReadOnly Property Identity As AssemblyIdentity Implements IAssemblySymbol.Identity
