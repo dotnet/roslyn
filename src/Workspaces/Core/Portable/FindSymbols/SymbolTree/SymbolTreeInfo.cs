@@ -181,31 +181,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         #region Construction
 
         // Cache the symbol tree infos for assembly symbols that share the same underlying metadata.
-        private static readonly ConditionalWeakTable<MetadataId, SymbolTreeInfo> s_assemblyInfos = new ConditionalWeakTable<MetadataId, SymbolTreeInfo>();
+        // Generating symbol trees for metadata can be expensive (in large metadata cases).  And it's
+        // common for us to have many threads to want to search the same metadata simultaneously.
+        // As such, we want to only allow one thread to produce the tree for some piece of metadata
+        // at a time.  
+        //
+        // AsyncLazy would normally be an ok choice here.  However, in the case where all clients
+        // cancel their request, we don't want ot keep the AsyncLazy around.  It may capture a lot
+        // of immutable state (like a Solution) that we don't want kept around indefinitely.  So we
+        // only cache results (the symbol tree infos) if they successfully compute to completion.
+        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim> s_metadataIdToGate = new ConditionalWeakTable<MetadataId, SemaphoreSlim>();
+        private static readonly ConditionalWeakTable<MetadataId, SymbolTreeInfo> s_metadataIdToInfo = new ConditionalWeakTable<MetadataId, SymbolTreeInfo>();
 
-        private static readonly SemaphoreSlim s_assemblyInfosGate = new SemaphoreSlim(1);
+        private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback = 
+            _ => new SemaphoreSlim(1);
 
         /// <summary>
         /// this gives you SymbolTreeInfo for a metadata
         /// </summary>
         public static async Task<SymbolTreeInfo> TryGetInfoForAssemblyAsync(Solution solution, IAssemblySymbol assembly, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
-            using (await s_assemblyInfosGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            var metadata = assembly.GetMetadata();
+            if (metadata == null)
             {
-                var metadata = assembly.GetMetadata();
-                if (metadata == null)
-                {
-                    return null;
-                }
+                return null;
+            }
+
+            // Find the lock associated with this piece of metadata.  This way only one thread is
+            // computing a symbol tree info for a particular piece of metadata at a time.
+            var gate = s_metadataIdToGate.GetValue(metadata.Id, s_metadataIdToGateCallback);
+            using (await gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
                 SymbolTreeInfo info;
-                if (s_assemblyInfos.TryGetValue(metadata.Id, out info))
+                if (s_metadataIdToInfo.TryGetValue(metadata.Id, out info))
                 {
                     return info;
                 }
 
                 info = await LoadOrCreateAsync(solution, assembly, reference.FilePath, cancellationToken).ConfigureAwait(false);
-                return s_assemblyInfos.GetValue(metadata.Id, _ => info);
+                return s_metadataIdToInfo.GetValue(metadata.Id, _ => info);
             }
         }
 
