@@ -23,7 +23,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Test.Resources.Proprietary\1.2.0-beta-20151016-11\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
+      <HintPath>$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Test.Resources.Proprietary\1.2.0-beta1-20160105-04\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
