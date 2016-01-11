@@ -104,9 +104,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Shared\DesktopBuildClient.cs">
-      <Link>DesktopBuildClient.cs</Link>
-    </Compile>
     <Compile Include="AnalyzerConsistencyCheckerTests.cs" />
     <Compile Include="BuildProtocolTest.cs" />
     <Compile Include="ClientConnectionTests.cs" />
@@ -114,6 +111,7 @@
     <Compile Include="CompilerServerTests.cs" />
     <Compile Include="DesktopBuildClientTests.cs" />
     <Compile Include="EndToEndDeterminismTest.cs" />
+    <Compile Include="VBCSCompilerServerTests.cs" />
     <Compile Include="MockEngine.cs" />
     <Compile Include="RunKeepAliveTests.cs" />
     <Compile Include="ServerUtil.cs" />

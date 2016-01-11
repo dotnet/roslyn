@@ -175,6 +175,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Debug.Assert(_timeoutTask == null);
             _listenCancellationTokenSource = new CancellationTokenSource();
             _listenTask = _clientConnectionHost.CreateListenTask(_listenCancellationTokenSource.Token);
+            _diagnosticListener.ConnectionListening();
         }
 
         private void CloseListenTask()

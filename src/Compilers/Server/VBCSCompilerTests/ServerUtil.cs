@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -29,19 +30,28 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     {
         internal CancellationTokenSource CancellationTokenSource { get; }
         internal Task<ServerStats> ServerTask { get; }
+        internal Task ListenTask { get; }
         internal string PipeName { get; }
 
-        internal ServerData(CancellationTokenSource cancellationTokenSource, Task<ServerStats> serverTask, string pipeName)
+        internal ServerData(CancellationTokenSource cancellationTokenSource, string pipeName, Task<ServerStats> serverTask, Task listenTask)
         {
             CancellationTokenSource = cancellationTokenSource;
-            ServerTask = serverTask;
             PipeName = pipeName;
+            ServerTask = serverTask;
+            ListenTask = listenTask;
         }
 
         internal async Task<ServerStats> Complete()
         {
             CancellationTokenSource.Cancel();
             return await ServerTask;
+        }
+
+        internal async Task Verify(int connections, int completed)
+        {
+            var stats = await Complete().ConfigureAwait(false);
+            Assert.Equal(connections, stats.Connections);
+            Assert.Equal(completed, stats.CompletedConnections);
         }
 
         public void Dispose()
@@ -76,11 +86,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             pipeName = pipeName ?? Guid.NewGuid().ToString();
             compilerServerHost = compilerServerHost ?? new DesktopCompilerServerHost(DefaultClientDirectory, DefaultSdkDirectory);
 
-            var taskSource = new TaskCompletionSource<ServerStats>();
+            var serverStatsSource = new TaskCompletionSource<ServerStats>();
+            var serverListenSource = new TaskCompletionSource<bool>();
             var cts = new CancellationTokenSource();
             var thread = new Thread(_ =>
             {
                 var listener = new TestableDiagnosticListener();
+                listener.Listening += (sender, e) => { serverListenSource.TrySetResult(true); };
                 try
                 {
                     var clientConnectionHost = new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
@@ -95,13 +107,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 finally
                 {
                     var serverStats = new ServerStats(connections: listener.ConnectionCount, completedConnections: listener.CompletedCount);
-                    taskSource.SetResult(serverStats);
+                    serverStatsSource.SetResult(serverStats);
                 }
             });
 
             thread.Start();
 
-            return new ServerData(cts, taskSource.Task, pipeName);
+            return new ServerData(cts, pipeName, serverStatsSource.Task, serverListenSource.Task);
         }
 
         /// <summary>
@@ -141,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 mre.WaitOne();
             }
 
-            return new ServerData(cts, taskSource.Task, pipeName);
+            return new ServerData(cts, pipeName, taskSource.Task, Task.FromException(new Exception()));
         }
 
         internal static async Task<BuildResponse> Send(string pipeName, BuildRequest request)
@@ -149,12 +161,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             using (var client = new NamedPipeClientStream(pipeName))
             {
                 await client.ConnectAsync();
-
-                var memoryStream = new MemoryStream();
-                await request.WriteAsync(memoryStream);
-                memoryStream.Position = 0;
-                await memoryStream.CopyToAsync(client);
-
+                await request.WriteAsync(client);
                 return await BuildResponse.ReadAsync(client);
             }
         }

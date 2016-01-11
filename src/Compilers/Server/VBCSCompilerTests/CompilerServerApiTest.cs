@@ -97,13 +97,6 @@ class Hello
                 builder.ToImmutable());
         }
 
-        private static async Task Verify(ServerData serverData, int connections, int completed)
-        {
-            var serverStats = await serverData.Complete().ConfigureAwait(true);
-            Assert.Equal(connections, serverStats.Connections);
-            Assert.Equal(completed, serverStats.CompletedConnections);
-        }
-
         /// <summary>
         /// Run a C# compilation against the given source text using the provided named pipe name.
         /// </summary>
@@ -369,7 +362,7 @@ class Hello
             {
                 var serverProcessId = await ServerUtil.SendShutdown(serverData.PipeName);
                 Assert.Equal(Process.GetCurrentProcess().Id, serverProcessId);
-                await Verify(serverData, connections: 1, completed: 1);
+                await serverData.Verify(connections: 1, completed: 1);
             }
         }
 
@@ -406,7 +399,7 @@ class Hello
                 Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
                 Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
 
-                await Verify(serverData, connections: 2, completed: 2);
+                await serverData.Verify(connections: 2, completed: 2);
             }
         }
 
@@ -448,7 +441,7 @@ class Hello
                 Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
                 Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
 
-                await Verify(serverData, connections: 11, completed: 11);
+                await serverData.Verify(connections: 11, completed: 11);
             }
         }
     }
