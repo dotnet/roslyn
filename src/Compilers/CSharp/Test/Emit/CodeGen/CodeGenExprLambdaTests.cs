@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -10,6 +11,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenExprLambdaTests : CSharpTestBase
     {
+        //TODO: 4.6 should be the default for most testcases
+        //      for now I do not want to do such a large change at once
+        //      when 4.6 is the default, this override and ExpressionAssemblyRef below will not be needed.
+        protected override Compilation GetCompilationForEmit(
+            IEnumerable<string> source,
+            IEnumerable<MetadataReference> additionalRefs,
+            CompilationOptions options,
+            ParseOptions parseOptions)
+        {
+            return CreateCompilationWithMscorlib46(
+                Parse(source, options: (CSharpParseOptions)parseOptions),
+                references: additionalRefs,
+                options: (CSharpCompilationOptions)options,
+                assemblyName: GetUniqueName());
+        }
+
+        /// <summary>
+        /// Reference to an assembly that defines Expression Trees.
+        /// </summary>
+        protected new static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
+
+
         #region A string containing expression-tree dumping utilities
         private const string ExpressionTestLibrary = @"
 using System;
@@ -424,7 +447,7 @@ class Program : TestBase
 }";
             CompileAndVerify(
                 sources: new string[] { program, ExpressionTestLibrary },
-                additionalRefs: new[] { SystemCoreRef },
+                additionalRefs: new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k")
                 .VerifyDiagnostics();
         }
@@ -457,7 +480,7 @@ class Program : TestBase
 }";
             CompileAndVerify(
                 sources: new string[] { program, ExpressionTestLibrary },
-                additionalRefs: new[] { SystemCoreRef },
+                additionalRefs: new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k")
                 .VerifyDiagnostics();
         }
@@ -2261,6 +2284,7 @@ using System.Linq.Expressions;
 public class Test
 {
     public static int ModAdd2(params int[] b) { return 0; }
+    public static int NoParams() { return 0; }
 
     static void Main()
     {
@@ -2268,24 +2292,77 @@ public class Test
         Console.WriteLine(testExpr);
     }
 }";
+            // no Array.Empty in the expression tree !!!
+            // we should not lose the expressiveness of an empty array creation
             string expectedOutput = @"() => ModAdd2(new [] {})";
 
+            // the IL, however can and should use Array.Empty when calling into ET APIs.
             CompileAndVerify(
                 text,
-                new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
+                new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput).
+                    VerifyIL("Test.Main",
+                    @"
+{
+  // Code size       66 (0x42)
+  .maxstack  7
+  IL_0000:  ldnull
+  IL_0001:  ldtoken    ""int Test.ModAdd2(params int[])""
+  IL_0006:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_000b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0010:  ldc.i4.1
+  IL_0011:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0016:  dup
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldtoken    ""int""
+  IL_001d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0022:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
+  IL_0027:  call       ""System.Linq.Expressions.NewArrayExpression System.Linq.Expressions.Expression.NewArrayInit(System.Type, params System.Linq.Expressions.Expression[])""
+  IL_002c:  stelem.ref
+  IL_002d:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_0032:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+  IL_0037:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003c:  call       ""void System.Console.WriteLine(object)""
+  IL_0041:  ret
+}
+                    ");
 
-            // Also verify with the assemblies on which the tests are running, as there's a higher
-            // likelihood that they have Array.Empty, and we want to verify that Array.Empty is not used
-            // in expression lambdas.  This can be changed to use the mscorlib 4.6 metadata once it's
-            // available in the Roslyn tests.
-            CompileAndVerify(CreateCompilation(
-                text,
-                references: new[] {
-                    MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly),
-                    MetadataReference.CreateFromAssemblyInternal(typeof(System.Linq.Enumerable).Assembly)
-                },
-                options: TestOptions.ReleaseExe),
-                expectedOutput: TrimExpectedOutput(expectedOutput));
+            var comp45 = CreateCompilationWithMscorlib45(
+                new[] { text, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                TestOptions.ReleaseExe);
+
+            // no use Array.Empty here since it is not available
+            CompileAndVerify(
+                comp45, 
+                expectedOutput: expectedOutput).
+                    VerifyIL("Test.Main",
+                    @"
+{
+  // Code size       68 (0x44)
+  .maxstack  7
+  IL_0000:  ldnull
+  IL_0001:  ldtoken    ""int Test.ModAdd2(params int[])""
+  IL_0006:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_000b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0010:  ldc.i4.1
+  IL_0011:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0016:  dup
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldtoken    ""int""
+  IL_001d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0022:  ldc.i4.0
+  IL_0023:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0028:  call       ""System.Linq.Expressions.NewArrayExpression System.Linq.Expressions.Expression.NewArrayInit(System.Type, params System.Linq.Expressions.Expression[])""
+  IL_002d:  stelem.ref
+  IL_002e:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_0033:  ldc.i4.0
+  IL_0034:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0039:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003e:  call       ""void System.Console.WriteLine(object)""
+  IL_0043:  ret
+}
+                    ");
+
         }
 
         [WorkItem(544270, "DevDiv")]
@@ -3271,10 +3348,24 @@ class Program
     }
 }";
             string expectedOutput = @"Convert(Call(null.[System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1), Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo)) Type:System.Delegate) Type:Del)";
-            CompileAndVerify(
+
+            var comp = CreateCompilationWithMscorlib(
+                new[] { source, ExpressionTestLibrary }, 
+                new[] { SystemCoreRef },
+                TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            //NOTE: different shape of delegate creation in 45+ is bydesign and matches behavior of the with old compiler.
+            string expectedOutput45 = @"Convert(Call(Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo).[System.Delegate CreateDelegate(System.Type, System.Object)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1)) Type:System.Delegate) Type:Del)";
+
+            var comp45 = CreateCompilationWithMscorlib45(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
-                expectedOutput: expectedOutput);
+                TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp45, expectedOutput: expectedOutput45);
+
         }
 
         [WorkItem(544430, "DevDiv")]
