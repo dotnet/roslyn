@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' If this symbol represents a metadata module returns the underlying <see cref="ModuleMetadata"/>.
         ''' 
-        ''' Otherwise, this returns <code>null</code>.
+        ''' Otherwise, this returns <code>nothing</code>.
         ''' </summary>
         Public MustOverride Function GetMetadata() As ModuleMetadata Implements IModuleSymbol.GetMetadata
 

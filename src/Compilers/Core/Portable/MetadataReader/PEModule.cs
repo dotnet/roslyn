@@ -24,7 +24,10 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class PEModule : IDisposable
     {
-        // We need to store reference for to keep the metadata alive while symbols have reference to PEModule.
+        /// <summary>
+        /// We need to store reference to the module metadata to keep the metadata alive while 
+        /// symbols have reference to PEModule.
+        /// </summary>
         private readonly ModuleMetadata _owner;
 
         // Either we have PEReader or we have pointer and size of the metadata blob:
