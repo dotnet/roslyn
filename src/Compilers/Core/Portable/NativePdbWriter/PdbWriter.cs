@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -92,25 +93,9 @@ namespace Microsoft.Cci
         {
             Debug.Assert(_logData != null);
 
-            int remaining = _logData.Count;
-            foreach (var blob in _logData.GetBlobs())
-            {
-                var segment = blob.GetBytes();
-                remaining -= segment.Count;
-                if (remaining == 0)
-                {
-                    _hashAlgorithm.TransformFinalBlock(segment.Array, segment.Offset, segment.Count);
-                }
-                else
-                {
-                    _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
-                }
-            }
-
-            Debug.Assert(remaining == 0);
-
+            var hash = _hashAlgorithm.ComputeHash(_logData);
             _logData.Clear();
-            return _hashAlgorithm.Hash;
+            return hash;
         }
 
         internal void Close()
