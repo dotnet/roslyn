@@ -4,22 +4,19 @@ namespace System.Reflection
 {
     internal struct Blob
     {
-        private readonly byte[] _buffer;
-        private readonly int _start;
-        private readonly int _length;
+        internal readonly byte[] Buffer;
+        internal readonly int Start;
+        public int Length { get; }
 
         internal Blob(byte[] buffer, int start, int length)
         {
-            _buffer = buffer;
-            _start = start;
-            _length = length;
+            Buffer = buffer;
+            Start = start;
+            Length = length;
         }
 
-        public int Length => _length;
+        public bool IsDefault => Buffer == null;
 
-        public ArraySegment<byte> GetUnderlyingBuffer()
-        {
-            return new ArraySegment<byte>(_buffer, _start, _length);
-        }
+        public ArraySegment<byte> GetBytes() => new ArraySegment<byte>(Buffer, Start, Length);
     }
 }

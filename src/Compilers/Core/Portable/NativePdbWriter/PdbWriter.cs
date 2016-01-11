@@ -80,7 +80,7 @@ namespace Microsoft.Cci
             {
                 foreach (var blob in _logData.GetBlobs())
                 {
-                    var segment = blob.GetUnderlyingBuffer();
+                    var segment = blob.GetBytes();
                     _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
                 }
 
@@ -95,7 +95,7 @@ namespace Microsoft.Cci
             int remaining = _logData.Count;
             foreach (var blob in _logData.GetBlobs())
             {
-                var segment = blob.GetUnderlyingBuffer();
+                var segment = blob.GetBytes();
                 remaining -= segment.Count;
                 if (remaining == 0)
                 {

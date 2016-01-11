@@ -32,7 +32,10 @@ namespace System.Reflection
         {
         }
 
-        internal bool IsDefault => _buffer == null;
+        public BlobWriter(Blob blob)
+            : this(blob.Buffer, blob.Start, blob.Length)
+        {
+        }
 
         public BlobWriter(byte[] buffer, int start, int count)
         {
@@ -47,6 +50,8 @@ namespace System.Reflection
             _position = start;
             _end = start + count;
         }
+
+        internal bool IsDefault => _buffer == null;
 
         /// <summary>
         /// Compares the current content of this writer with another one.
@@ -75,6 +80,7 @@ namespace System.Reflection
 
         public int Length => _end - _start;
         public int RemainingBytes => _end - _position;
+        public Blob Blob => new Blob(_buffer, _start, Length);
 
         public byte[] ToArray()
         {

@@ -351,7 +351,7 @@ namespace Microsoft.Cci
 
         public static void SerializeWin32Resources(BlobBuilder builder, ResourceSection resourceSections, int resourcesRva)
         {
-            var sectionWriter = builder.ReserveBytes(resourceSections.SectionBytes.Length);
+            var sectionWriter = new BlobWriter(builder.ReserveBytes(resourceSections.SectionBytes.Length));
             sectionWriter.WriteBytes(resourceSections.SectionBytes);
 
             var readStream = new MemoryStream(resourceSections.SectionBytes);
