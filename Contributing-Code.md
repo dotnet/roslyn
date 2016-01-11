@@ -55,13 +55,16 @@ if (argument == null)
     - Avoid using foreach over collections that do not have a struct enumerator.
     - Consider using an object pool. There are many usages of object pools in the compiler to see an example.
 
-##Code Formatter
+###Code Formatter
 
 The Roslyn team regularly uses the [.NET code formatter tool](https://github.com/dotnet/codeformatter) to ensure the code base maintains a consistent style over time.  The specific options we pass to this tool are the following:
 
 - `/nounicode`: In general we follow this rule of not having unicode characters embedded in string literals. However there are a few cases where this is needed to verify compiler behavior hence this option is disabled for now. 
 - `/copyright`: The default copyright is MIT.  Roslyn is released under Apache2 hence we need to override this option. 
 
-##Visual Basic Conventions
+###Visual Basic Conventions
 
 For all of the C# guidelines which have analogs in Visual Basic, the team applies the spirit of the guideline to Visual Basic. Guidelines surrounding spacing, indentation, parameter names, and the use of named parameters are all generally applicable to Visual Basic. ‘Dim’ statements should also follow the guidelines for the use of ‘var’ in C#. Specific to Visual Basic, field names should begin with ‘m_’ or ‘_’. And the team prefers that all field declarations be placed at the beginning of a type definition. The Visual Studio members dropdown does not show fields in VB. Having them at the beginning of the type aids in navigation.
+
+###Tips 'n' Tricks
+Our team finds using [this enhanced source view](http://source.roslyn.io/) of Roslyn helpful when developing.
