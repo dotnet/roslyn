@@ -6,7 +6,7 @@ Install the [Scripting API NuGet Package](https://www.nuget.org/packages/Microso
 Install-Package Microsoft.CodeAnalysis.Scripting
 ```
 
-Using your text editor of choice, create a csx file. To run your script, use the command-line tool csi.exe. If you have Visual Studio installed you can access csi.exe via the Developer Command Prompt. If you do not have Visual Studio installed on your machine, you can access csi.exe with the [msbuild tools](https://www.microsoft.com/en-us/download/details.aspx?id=48159) or [dotnet CLI tool](https://dotnet.github.io/getting-started).
+Using your text editor of choice, create a csx file. To run your script, use the command-line tool csi.exe. If you have Visual Studio installed you can access csi.exe via the Developer Command Prompt. If you do not have Visual Studio installed on your machine, you can access csi.exe with the [dotnet CLI tool](https://dotnet.github.io/getting-started).
 
 To run a script file simply type the command:
 ```
