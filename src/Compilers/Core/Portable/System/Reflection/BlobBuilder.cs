@@ -553,7 +553,7 @@ namespace System.Reflection
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="byteCount"/> is negative.</exception>
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
-        public BlobWriter ReserveBytes(int byteCount)
+        public Blob ReserveBytes(int byteCount)
         {
             if (byteCount < 0)
             {
@@ -561,7 +561,7 @@ namespace System.Reflection
             }
 
             int start = ReserveBytesImpl(byteCount);
-            return new BlobWriter(_buffer, start, byteCount);
+            return new Blob(_buffer, start, byteCount);
         }
 
         private int ReserveBytesImpl(int byteCount)

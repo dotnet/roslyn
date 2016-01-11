@@ -455,7 +455,7 @@ namespace System.Reflection.Metadata.Ecma335
         {
             int alignment = BitArithmeticUtilities.Align(_blobHeapSize, 4) - _blobHeapSize;
 
-            var writer = builder.ReserveBytes(_blobHeapSize + alignment);
+            var writer = new BlobWriter(builder.ReserveBytes(_blobHeapSize + alignment));
 
             // Perf consideration: With large heap the following loop may cause a lot of cache misses 
             // since the order of entries in _blobs dictionary depends on the hash of the array values, 

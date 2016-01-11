@@ -137,7 +137,7 @@ namespace Microsoft.Cci
             cmw.WriteByte(0);
 
             // alignment size and length (will be patched)
-            var alignmentSizeAndLengthWriter = cmw.ReserveBytes(sizeof(byte) + sizeof(uint));
+            var alignmentSizeAndLengthWriter = new BlobWriter(cmw.ReserveBytes(sizeof(byte) + sizeof(uint)));
 
             data(cmw);
 

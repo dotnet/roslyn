@@ -3179,7 +3179,7 @@ namespace Microsoft.Cci
             ImmutableArray<byte> methodBodyIL = methodBody.IL;
 
             // write the raw body first and then patch tokens:
-            var writer = builder.ReserveBytes(methodBodyIL.Length);
+            var writer = new BlobWriter(builder.ReserveBytes(methodBodyIL.Length));
             writer.WriteBytes(methodBodyIL);
 
             int offset = 0;
