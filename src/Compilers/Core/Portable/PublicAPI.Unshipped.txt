@@ -88,6 +88,8 @@ Microsoft.CodeAnalysis.IAssemblySymbol.GetMetadata() -> Microsoft.CodeAnalysis.A
 Microsoft.CodeAnalysis.ICompilationUnitSyntax
 Microsoft.CodeAnalysis.ICompilationUnitSyntax.EndOfFileToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.IModuleSymbol.GetMetadata() -> Microsoft.CodeAnalysis.ModuleMetadata
+Microsoft.CodeAnalysis.ISkippedTokensTriviaSyntax
+Microsoft.CodeAnalysis.ISkippedTokensTriviaSyntax.Tokens.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 Microsoft.CodeAnalysis.Metadata.Id.get -> Microsoft.CodeAnalysis.MetadataId
 Microsoft.CodeAnalysis.MetadataId
 Microsoft.CodeAnalysis.MetadataReference.MetadataReference(Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
