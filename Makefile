@@ -41,6 +41,7 @@ bootstrap: toolset
 	mkdir -p $(BOOTSTRAP_PATH) ; \
 	cp Binaries/$(BUILD_CONFIGURATION)/csccore/* $(BOOTSTRAP_PATH) ; \
 	cp Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) ; \
+	./build/scripts/crossgen.sh $(BOOTSTRAP_PATH) ; \
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
 test:
