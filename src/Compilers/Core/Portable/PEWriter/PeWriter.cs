@@ -52,7 +52,6 @@ namespace Microsoft.Cci
             var metadataBuilder = new BlobBuilder(16 * 1024);
             var mappedFieldDataBuilder = new BlobBuilder();
             var managedResourceBuilder = new BlobBuilder(1024);
-            var debugMetadataBuilderOpt = (getPortablePdbStreamOpt != null) ? new BlobBuilder(16 * 1024) : null;
 
             Blob mvidFixup;
             mdWriter.BuildMetadataAndIL(
@@ -105,6 +104,8 @@ namespace Microsoft.Cci
             // the writer shall not be used after this point for writing:
             nativePdbWriterOpt = null;
 
+            var metadataSerializer = mdWriter.GetTypeSystemMetadataSerializer();
+
             var peBuilder = new PEBuilder(
                 machine: properties.Machine,
                 sectionAlignment: properties.SectionAlignment,
@@ -127,53 +128,51 @@ namespace Microsoft.Cci
                 sizeOfHeapCommit: properties.SizeOfHeapCommit,
                 deterministicIdProvider: isDeterministic ? new Func<BlobBuilder, ContentId>(content => ContentId.FromHash(CryptographicHashProvider.ComputeSha1(content))) : null);
 
+            ContentId portablePdbContentId;
+            if (mdWriter.EmitStandaloneDebugMetadata)
+            {
+                Debug.Assert(getPortablePdbStreamOpt != null);
+
+                var debugMetadataBuilder = new BlobBuilder();
+                var debugMetadataSerializer = mdWriter.GetStandaloneDebugMetadataSerializer(metadataSerializer.MetadataSizes, debugEntryPointToken);
+                debugMetadataSerializer.SerializeMetadata(debugMetadataBuilder, peBuilder.IdProvider, out portablePdbContentId);
+
+                // write to Portable PDB stream:
+                Stream portablePdbStream = getPortablePdbStreamOpt();
+                if (portablePdbStream != null)
+                {
+                    debugMetadataBuilder.WriteContentTo(portablePdbStream);
+                }
+            }
+            else
+            {
+                portablePdbContentId = default(ContentId);
+            }
+
             var peDirectoriesBuilder = new PEDirectoriesBuilder();
-            
             int entryPointAddress = 0;
-            var textSectionLocation = default(PESectionLocation);
 
             // .text
             peBuilder.AddSection(".text", SectionCharacteristics.MemRead | SectionCharacteristics.MemExecute | SectionCharacteristics.ContainsCode, location =>
             {
-                textSectionLocation = location;
-
                 var sectionBuilder = new BlobBuilder();
-                ManagedTextSection textSection;
-                MetadataSizes metadataSizes;
 
-                mdWriter.SerializeManagedTextSection(
-                    metadataBuilder,
-                    ilBuilder,
-                    mappedFieldDataBuilder,
-                    managedResourceBuilder,
-                    properties.ImageCharacteristics,
-                    properties.Machine,
-                    location.RelativeVirtualAddress,
-                    pdbPathOpt,
-                    out textSection,
-                    out metadataSizes);
+                var metadataSizes = metadataSerializer.MetadataSizes;
 
-                ContentId portablePdbContentId;
-                if (mdWriter.EmitStandaloneDebugMetadata)
-                {
-                    mdWriter.SerializeStandaloneDebugMetadata(
-                        debugMetadataBuilderOpt,
-                        metadataSizes,
-                        debugEntryPointToken,
-                        peBuilder.IdProvider,
-                        out portablePdbContentId);
-                }
-                else
-                {
-                    portablePdbContentId = default(ContentId);
-                }
+                var textSection = new ManagedTextSection(
+                    metadataSizes.MetadataSize,
+                    ilStreamSize: ilBuilder.Count,
+                    mappedFieldDataSize: mappedFieldDataBuilder.Count,
+                    resourceDataSize: managedResourceBuilder.Count,
+                    strongNameSignatureSize: CalculateStrongNameSignatureSize(context.Module),
+                    imageCharacteristics: properties.ImageCharacteristics,
+                    machine: properties.Machine,
+                    pdbPathOpt: pdbPathOpt,
+                    isDeterministic: isDeterministic);
 
-                // write to Portable PDB stream:
-                Stream portablePdbStream = getPortablePdbStreamOpt?.Invoke();
-                if (portablePdbStream != null)
-                {
-                    debugMetadataBuilderOpt.WriteContentTo(portablePdbStream);
-                }
+                int methodBodyStreamRva = location.RelativeVirtualAddress + textSection.OffsetToILStream;
+                int mappedFieldDataStreamRva = location.RelativeVirtualAddress + textSection.CalculateOffsetToMappedFieldDataStream();
+                metadataSerializer.SerializeMetadata(metadataBuilder, methodBodyStreamRva, mappedFieldDataStreamRva);
 
                 BlobBuilder debugTableBuilderOpt;
                 if (pdbPathOpt != null || isDeterministic)
@@ -277,7 +276,7 @@ namespace Microsoft.Cci
 
             return true;
         }
-                
+
         private static void WriteRelocSection(BlobBuilder builder, Machine machine, int entryPointAddress)
         {
             Debug.Assert(builder.Count == 0);
@@ -294,6 +293,30 @@ namespace Microsoft.Cci
             }
 
             builder.WriteUInt16(0); // next chunk's RVA
+        }
+
+        private static int CalculateStrongNameSignatureSize(IModule module)
+        {
+            IAssembly assembly = module.AsAssembly;
+            if (assembly == null)
+            {
+                return 0;
+            }
+
+            // EDMAURER the count of characters divided by two because the each pair of characters will turn in to one byte.
+            int keySize = (assembly.SignatureKey == null) ? 0 : assembly.SignatureKey.Length / 2;
+
+            if (keySize == 0)
+            {
+                keySize = assembly.PublicKey.Length;
+            }
+
+            if (keySize == 0)
+            {
+                return 0;
+            }
+
+            return (keySize < 128 + 32) ? 128 : keySize - 32;
         }
     }
 }

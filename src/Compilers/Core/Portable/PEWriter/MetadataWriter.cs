@@ -1872,53 +1872,14 @@ namespace Microsoft.Cci
             PopulateTables(methodBodyOffsets, mappedFieldDataBuilder, managedResourceDataBuilder, out mvidFixup);
         }
 
-        public void SerializeManagedTextSection(
-            BlobBuilder metadataBuilder,
-            BlobBuilder ilBuilder,
-            BlobBuilder mappedFieldDataBuilder,
-            BlobBuilder managedResourceDataBuilder,
-            Characteristics imageCharacteristics,
-            Machine machine,
-            int textSectionRva,
-            string pdbPathOpt,
-            out ManagedTextSection textSection,
-            out MetadataSizes metadataSizes)
+        public TypeSystemMetadataSerializer GetTypeSystemMetadataSerializer()
         {
-            var serializer = new TypeSystemMetadataSerializer(metadata, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
-
-            metadataSizes = serializer.MetadataSizes;
-
-            int methodBodyStreamRva;
-            int mappedFieldDataStreamRva;
-
-            textSection = new ManagedTextSection(
-                metadataSizes.MetadataSize,
-                ilStreamSize: ilBuilder.Count,
-                mappedFieldDataSize: mappedFieldDataBuilder.Count,
-                resourceDataSize: managedResourceDataBuilder.Count,
-                strongNameSignatureSize: CalculateStrongNameSignatureSize(module),
-                imageCharacteristics: imageCharacteristics,
-                machine: machine,
-                pdbPathOpt: pdbPathOpt,
-                isDeterministic: _deterministic);
-
-            methodBodyStreamRva = textSectionRva + textSection.OffsetToILStream;
-            mappedFieldDataStreamRva = textSectionRva + textSection.CalculateOffsetToMappedFieldDataStream();
-
-            serializer.SerializeMetadata(metadataBuilder, methodBodyStreamRva, mappedFieldDataStreamRva);
+            return new TypeSystemMetadataSerializer(metadata, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
         }
 
-        public void SerializeStandaloneDebugMetadata(
-            BlobBuilder debugMetadataBuilderOpt,
-            MetadataSizes metadataSizes,
-            int debugEntryPointToken,
-            Func<BlobBuilder, ContentId> idProvider,
-            out ContentId contentId)
+        public StandaloneDebugMetadataSerializer GetStandaloneDebugMetadataSerializer(MetadataSizes metadataSizes, int debugEntryPointToken)
         {
-            Debug.Assert(_debugMetadataOpt != null);
-
-            var debugSerializer = new StandaloneDebugMetadataSerializer(_debugMetadataOpt, metadataSizes.RowCounts, debugEntryPointToken, IsMinimalDelta);
-            debugSerializer.SerializeMetadata(debugMetadataBuilderOpt, idProvider, out contentId);
+            return new StandaloneDebugMetadataSerializer(_debugMetadataOpt, metadataSizes.RowCounts, debugEntryPointToken, IsMinimalDelta);
         }
 
         internal void GetEntryPointTokens(out int entryPointToken, out int debugEntryPointToken)
@@ -1944,30 +1905,6 @@ namespace Microsoft.Cci
             {
                 entryPointToken = debugEntryPointToken = 0;
             }
-        }
-
-        private static int CalculateStrongNameSignatureSize(IModule module)
-        {
-            IAssembly assembly = module.AsAssembly;
-            if (assembly == null)
-            {
-                return 0;
-            }
-
-            // EDMAURER the count of characters divided by two because the each pair of characters will turn in to one byte.
-            int keySize = (assembly.SignatureKey == null) ? 0 : assembly.SignatureKey.Length / 2;
-
-            if (keySize == 0)
-            {
-                keySize = assembly.PublicKey.Length;
-            }
-
-            if (keySize == 0)
-            {
-                return 0;
-            }
-
-            return (keySize < 128 + 32) ? 128 : keySize - 32;
         }
 
         private ImmutableArray<IGenericParameter> GetSortedGenericParameters()
