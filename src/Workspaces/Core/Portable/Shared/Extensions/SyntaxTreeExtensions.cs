@@ -203,5 +203,36 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return trivia;
         }
+
+        /// <summary>
+        /// If the position is inside of token, return that token; otherwise, return the token to the right.
+        /// </summary>
+        public static SyntaxToken FindTokenOnRightOfPosition(
+            this SyntaxTree syntaxTree,
+            int position,
+            CancellationToken cancellationToken,
+            bool includeSkipped = true,
+            bool includeDirectives = false,
+            bool includeDocumentationComments = false)
+        {
+            return syntaxTree.GetRoot(cancellationToken).FindTokenOnRightOfPosition(
+                position, includeSkipped, includeDirectives, includeDocumentationComments);
+        }
+
+        /// <summary>
+        /// If the position is inside of token, return that token; otherwise, return the token to the left.
+        /// </summary>
+        public static SyntaxToken FindTokenOnLeftOfPosition(
+            this SyntaxTree syntaxTree,
+            int position,
+            CancellationToken cancellationToken,
+            bool includeSkipped = true,
+            bool includeDirectives = false,
+            bool includeDocumentationComments = false)
+        {
+            return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
+                position, includeSkipped, includeDirectives, includeDocumentationComments);
+        }
+
     }
 }
