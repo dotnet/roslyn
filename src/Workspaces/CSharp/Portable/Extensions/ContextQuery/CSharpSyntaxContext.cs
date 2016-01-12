@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isNonAttributeExpressionContext,
                 isConstantExpressionContext,
                 syntaxTree.IsAttributeNameContext(position, cancellationToken),
-                syntaxTree.IsEnumTypeMemberAccessContext(semanticModel, position, cancellationToken),
+                syntaxTree.CouldBeEnumTypeMemberAccessContext(semanticModel, position, cancellationToken),
                 syntaxTree.IsNameOfContext(position, semanticModel, cancellationToken),
                 leftToken.GetAncestor<QueryExpressionSyntax>() != null,
                 IsLeftSideOfUsingAliasDirective(leftToken, cancellationToken),

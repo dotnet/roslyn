@@ -2376,7 +2376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.Parent.IsParentKind(SyntaxKind.EnumDeclaration);
         }
 
-        public static bool IsEnumTypeMemberAccessContext(this SyntaxTree syntaxTree, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        public static bool CouldBeEnumTypeMemberAccessContext(this SyntaxTree syntaxTree, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree
                 .FindTokenOnLeftOfPosition(position, cancellationToken)
@@ -2389,21 +2389,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             var memberAccess = (MemberAccessExpressionSyntax)token.Parent;
+
+            // To avoid Color color cases where we suggest instance
+            // members when dotting off a field with the same 
+            // name as an enum, always do speculative binding
+            // and bind as as type.
+            var speculativeSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(memberAccess.SpanStart, memberAccess.Expression, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            var typeSymbol = speculativeSymbolInfo.Symbol as INamedTypeSymbol;
+            if (typeSymbol?.SpecialType == SpecialType.System_Enum)
+            {
+                return true;
+            }
+
+            // Finally, check if it's an alias to an enum
             var leftHandBinding = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken);
             var symbol = leftHandBinding.GetBestOrAllSymbols().FirstOrDefault();
 
-            if (symbol == null)
+            if (symbol != null && symbol.Kind == SymbolKind.Alias)
             {
-                return false;
-            }
-
-            switch (symbol.Kind)
-            {
-                case SymbolKind.NamedType:
-                    return ((INamedTypeSymbol)symbol).TypeKind == TypeKind.Enum;
-                case SymbolKind.Alias:
-                    var target = ((IAliasSymbol)symbol).Target;
-                    return target.IsType && ((ITypeSymbol)target).TypeKind == TypeKind.Enum;
+                var target = ((IAliasSymbol)symbol).Target;
+                return target.IsType && ((ITypeSymbol)target).TypeKind == TypeKind.Enum;
             }
 
             return false;

@@ -8465,5 +8465,33 @@ class Class2
             await VerifyNoItemsExistAsync("#!$$", sourceCodeKind: SourceCodeKind.Script);
             await VerifyNoItemsExistAsync("#! S$$", sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: true);
         }
+
+        [WorkItem(5373, "https://github.com/dotnet/roslyn/issues/5373")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumCompletionColorColor()
+        {
+            var markup = @"
+namespace S
+{
+    class C
+    {
+        Fail Fail;
+        Pass Passes;
+
+        void M()
+        {
+            C c = new C();
+            c.Passes = Pass.A; // Completion offers ""Pass"" and then ""A"", as expected.
+            c.Fail = Fail.$; // Completion should only offer enum Fail.A
+        }
+    }
+
+    enum Fail { A };
+    enum Pass { A };
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "CompareTo");
+            await VerifyItemExistsAsync(markup, "A");
+        }
     }
 }
