@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         },
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
-                    var filteredFixes = FilterOnUIThread(fixes, workspace);
+                    var filteredFixes = FilterOnUIThread(fixes, workspace, cancellationToken);
 
                     return OrganizeFixes(workspace, filteredFixes, hasSuppressionFixes: includeSuppressionFixes);
                 }
@@ -263,18 +263,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
 
-            private List<CodeFixCollection> FilterOnUIThread(List<CodeFixCollection> collections, Workspace workspace)
+            private List<CodeFixCollection> FilterOnUIThread(
+                List<CodeFixCollection> collections, Workspace workspace, CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
-
-                return collections.Select(c => FilterOnUIThread(c, workspace)).WhereNotNull().ToList();
+                return collections.Select(c => FilterOnUIThread(c, workspace, cancellationToken)).WhereNotNull().ToList();
             }
 
-            private CodeFixCollection FilterOnUIThread(CodeFixCollection collection, Workspace workspace)
+            private CodeFixCollection FilterOnUIThread(CodeFixCollection collection, Workspace workspace, CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
 
-                var applicableFixes = collection.Fixes.Where(f => f.Action.IsApplicable(workspace)).ToList();
+                var applicableFixes = collection.Fixes.Where(f => f.Action.IsApplicable(workspace, cancellationToken)).ToList();
                 return applicableFixes.Count == 0
                     ? null
                     : applicableFixes.Count == collection.Fixes.Length
@@ -282,14 +282,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes, collection.FixAllContext);
             }
 
-            private List<CodeRefactoring> FilterOnUIThread(List<CodeRefactoring> refactorings, Workspace workspace)
+            private List<CodeRefactoring> FilterOnUIThread(
+                List<CodeRefactoring> refactorings, Workspace workspace, CancellationToken cancellationToken)
             {
-                return refactorings.Select(r => FilterOnUIThread(r, workspace)).WhereNotNull().ToList();
+                this.AssertIsForeground();
+                return refactorings.Select(r => FilterOnUIThread(r, workspace, cancellationToken)).WhereNotNull().ToList();
             }
 
-            private CodeRefactoring FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace)
+            private CodeRefactoring FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace, CancellationToken cancellationToken)
             {
-                var actions = refactoring.Actions.Where(a => a.IsApplicable(workspace)).ToList();
+                this.AssertIsForeground();
+
+                var actions = refactoring.Actions.Where(a => a.IsApplicable(workspace, cancellationToken)).ToList();
                 return actions.Count == 0
                     ? null
                     : actions.Count == refactoring.Actions.Count
@@ -459,8 +463,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         },
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
-                    var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
-
+                    var filteredRefactorings = FilterOnUIThread(refactorings, workspace, cancellationToken);
                     return filteredRefactorings.Select(r => OrganizeRefactorings(workspace, r));
                 }
 

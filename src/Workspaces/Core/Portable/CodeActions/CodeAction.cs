@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// need to do any final checking that must be performed on the UI thread (for example
         /// accessing and querying the Visual Studio DTE).
         /// </summary>
-        protected internal virtual bool IsApplicable(Workspace workspace)
+        internal virtual bool IsApplicable(Workspace workspace, CancellationToken cancellationToken)
         {
             return true;
         }
