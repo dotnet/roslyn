@@ -143,6 +143,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End Get
         End Property
+
+        Public Overrides Function GetMetadata() As AssemblyMetadata
+            Return Nothing
+        End Function
     End Class
 
     ''' <summary>
@@ -192,5 +196,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Function
     End Class
-
 End Namespace

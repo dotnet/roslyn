@@ -242,18 +242,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.IdentifierToken:
                     // Have a different representation.
-                    throw new ArgumentException(CSharpResources.UseVerbatimIdentifier, "kind");
+                    throw new ArgumentException(CSharpResources.UseVerbatimIdentifier, nameof(kind));
                 case SyntaxKind.CharacterLiteralToken:
                     // Value should not have type string.
-                    throw new ArgumentException(CSharpResources.UseLiteralForTokens, "kind");
+                    throw new ArgumentException(CSharpResources.UseLiteralForTokens, nameof(kind));
                 case SyntaxKind.NumericLiteralToken:
                     // Value should not have type string.
-                    throw new ArgumentException(CSharpResources.UseLiteralForNumeric, "kind");
+                    throw new ArgumentException(CSharpResources.UseLiteralForNumeric, nameof(kind));
             }
 
             if (!SyntaxFacts.IsAnyToken(kind))
             {
-                throw new ArgumentException(string.Format(CSharpResources.ThisMethodCanOnlyBeUsedToCreateTokens, kind), "kind");
+                throw new ArgumentException(string.Format(CSharpResources.ThisMethodCanOnlyBeUsedToCreateTokens, kind), nameof(kind));
             }
 
             return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Token((InternalSyntax.CSharpSyntaxNode)leading.Node, kind, text, valueText, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
