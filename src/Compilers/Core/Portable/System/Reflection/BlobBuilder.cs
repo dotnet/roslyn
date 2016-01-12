@@ -312,7 +312,7 @@ namespace System.Reflection
         public ImmutableArray<byte> ToImmutableArray(int start, int byteCount)
         {
             var array = ToArray(start, byteCount);
-            return ImmutableArrayInterop.DangerousToImmutableArray(ref array);
+            return ImmutableByteArrayInterop.DangerousCreateFromUnderlyingArray(ref array);
         }
 
         /// <exception cref="ArgumentNullException"><paramref name="destination"/> is null.</exception>
@@ -717,7 +717,7 @@ namespace System.Reflection
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
         public void WriteBytes(ImmutableArray<byte> buffer, int start, int byteCount)
         {
-            WriteBytes(ImmutableArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
+            WriteBytes(ImmutableByteArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
         }
 
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
