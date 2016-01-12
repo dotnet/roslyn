@@ -51,7 +51,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="InternalUtilities\HashAlgorithmExtensions.cs" />
     <Compile Include="System\Reflection\Blob.cs" />
     <Compile Include="System\Reflection\BlobWriter.cs" />
     <Compile Include="System\Reflection\BlobWriterImpl.cs" />
@@ -65,6 +64,7 @@
     <Compile Include="System\Reflection\Metadata\Ecma335\MetadataBuilder.Heaps.cs" />
     <Compile Include="System\Reflection\Metadata\Internal\HeapSizeFlag.cs" />
     <Compile Include="System\Reflection\Metadata\Internal\MetadataWriterUtilities.cs" />
+    <Compile Include="System\Reflection\PortableExecutable\ContentId.cs" />
     <Compile Include="System\Reflection\PortableExecutable\DirectoryEntry.cs" />
     <Compile Include="System\Reflection\PortableExecutable\ManagedTextSection.cs" />
     <Compile Include="System\Reflection\PortableExecutable\PEBuilder.cs" />
@@ -99,6 +99,7 @@
     <Compile Include="DiagnosticAnalyzer\SuppressMessageInfo.cs" />
     <Compile Include="Diagnostic\SuppressionInfo.cs" />
     <Compile Include="InternalUtilities\JsonWriter.cs" />
+    <Compile Include="InternalUtilities\HashAlgorithmExtensions.cs" />
     <Compile Include="InternalUtilities\SetWithInsertionOrder.cs" />
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
@@ -462,7 +463,6 @@
     <Compile Include="FileSystem\PathUtilities.cs" />
     <Compile Include="FileSystem\FileUtilities.cs" />
     <Compile Include="FileSystem\RelativePathResolver.cs" />
-    <Compile Include="PEWriter\ContentId.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
     <Compile Include="PEWriter\MetadataWriter.PortablePdb.cs" />
     <Compile Include="PEWriter\NoPiaReferenceIndexer.cs" />

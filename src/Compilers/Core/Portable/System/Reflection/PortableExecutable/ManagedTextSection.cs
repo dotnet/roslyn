@@ -6,7 +6,6 @@ using Roslyn.Utilities;
 namespace System.Reflection.PortableExecutable
 {
     using CciDirectoryEntry = Microsoft.Cci.DirectoryEntry;
-    using ContentId = Microsoft.Cci.ContentId;
 
     /// <summary>
     /// Managed .text PE section.

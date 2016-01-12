@@ -39,7 +39,7 @@ namespace System.Reflection.PortableExecutable
         public ulong SizeOfHeapReserve { get; }
         public ulong SizeOfHeapCommit { get; }
 
-        public Func<BlobBuilder, Microsoft.Cci.ContentId> IdProvider { get; }
+        public Func<BlobBuilder, ContentId> IdProvider { get; }
 
         private readonly List<Section> _sections;
 
@@ -100,7 +100,7 @@ namespace System.Reflection.PortableExecutable
             ulong sizeOfStackCommit,
             ulong sizeOfHeapReserve,
             ulong sizeOfHeapCommit,
-            Func<BlobBuilder, Microsoft.Cci.ContentId> deterministicIdProvider = null)
+            Func<BlobBuilder, ContentId> deterministicIdProvider = null)
         {
             Machine = machine;
             SectionAlignment = sectionAlignment;
@@ -127,13 +127,13 @@ namespace System.Reflection.PortableExecutable
             _sections = new List<Section>();
         }
 
-        private static Func<BlobBuilder, Microsoft.Cci.ContentId> GetCurrentTimeBasedIdProvider()
+        private static Func<BlobBuilder, ContentId> GetCurrentTimeBasedIdProvider()
         {
             // In the PE File Header this is a "Time/Date Stamp" whose description is "Time and date
             // the file was created in seconds since January 1st 1970 00:00:00 or 0"
             // However, when we want to make it deterministic we fill it in (later) with bits from the hash of the full PE file.
             int timestamp = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            return content => new Microsoft.Cci.ContentId(Guid.NewGuid().ToByteArray(), BitConverter.GetBytes(timestamp));
+            return content => new ContentId(Guid.NewGuid(), timestamp);
         }
 
         private bool Is32Bit => Machine != Machine.Amd64 && Machine != Machine.IA64;
@@ -143,7 +143,7 @@ namespace System.Reflection.PortableExecutable
             _sections.Add(new Section(name, characteristics, builder));
         }
 
-        public void Serialize(BlobBuilder builder, PEDirectoriesBuilder headers, out Microsoft.Cci.ContentId contentId)
+        public void Serialize(BlobBuilder builder, PEDirectoriesBuilder headers, out ContentId contentId)
         {
             var serializedSections = SerializeSections();
             Blob stampFixup;

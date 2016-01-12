@@ -3,14 +3,20 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.Cci
+namespace System.Reflection.PortableExecutable
 {
     internal struct ContentId
     {
         public const int Size = 20;
 
+        // TODO: public surface
         public readonly byte[] Guid;
         public readonly byte[] Stamp;
+
+        public ContentId(Guid guid, int stamp)
+            : this(guid.ToByteArray(), BitConverter.GetBytes(stamp))
+        {
+        }
 
         public ContentId(byte[] guid, byte[] stamp)
         {
