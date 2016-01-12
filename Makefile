@@ -15,7 +15,7 @@ ifeq ($(OS_NAME),Linux)
 else ifeq ($(OS_NAME),Darwin)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=osx.10.10
 	MONO_TOOLSET_NAME = mono.mac.5
-	ROSLYN_TOOLSET_NAME = roslyn.mac.2
+	ROSLYN_TOOLSET_NAME = roslyn.mac.3
 endif
 
 ifneq ($(BUILD_LOG_PATH),)
