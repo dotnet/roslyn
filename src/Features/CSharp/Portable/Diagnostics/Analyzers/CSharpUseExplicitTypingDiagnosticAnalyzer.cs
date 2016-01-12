@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using System.Diagnostics;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
 {
@@ -77,8 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
                 return;
             }
 
-            // TODO: Check options and bail.
             var optionSet = GetOptionSet(context.Options);
+            if (!IsExplicitTypingPreferred(variableDeclaration, context.SemanticModel, optionSet, context.CancellationToken))
+            {
+                return;
+            }
+
             Debug.Assert(variableDeclaration.Variables.Count == 1, "More than 1 variable declared, var is not legal here.");
             var diagnostic = AnalyzeVariableDeclaration(variableDeclaration, context.SemanticModel, context.CancellationToken);
 
@@ -91,9 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
         private void HandleForEachStatement(SyntaxNodeAnalysisContext context)
         {
             var forEachStatement = (ForEachStatementSyntax)context.Node;
-            var diagnostic = AnalyzeVariableDeclaration(forEachStatement, context.SemanticModel, context.CancellationToken);
 
-            // TODO: Check options and bail.
+            var optionSet = GetOptionSet(context.Options);
+            if (!IsExplicitTypingPreferred(forEachStatement, context.SemanticModel, optionSet, context.CancellationToken))
+            {
+                return;
+            }
+
+            var diagnostic = AnalyzeVariableDeclaration(forEachStatement, context.SemanticModel, context.CancellationToken);
             if (diagnostic != null)
             {
                 context.ReportDiagnostic(diagnostic);
@@ -189,6 +197,93 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
             }
 
             return null;
+        }
+
+        private bool IsExplicitTypingPreferred(SyntaxNode declarationStatement, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        {
+            var typingPreference = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypingForLocals);
+            var useVarWhereApparent = optionSet.GetOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent);
+            var usePrimitiveTypes = optionSet.GetOption(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes);
+
+            return (typingPreference == TypeInferencePreferenceOptions.ExplicitTyping) ||
+                    useVarWhereApparent && !IsTypeApparentFromRHS(declarationStatement, semanticModel, cancellationToken) ||
+                    usePrimitiveTypes;
+        }
+
+        private bool IsTypeApparentFromRHS(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // use var in foreach statement to make it concise.
+            if (declarationStatement.IsKind(SyntaxKind.ForEachStatement))
+            {
+                return true;
+            }
+
+            // variable declaration cases.
+            var variableDeclaration = (VariableDeclarationSyntax)declarationStatement;
+            var initializer = variableDeclaration.Variables.Single().Initializer;
+            var initializerExpression = initializer.Value;
+
+            // default(T)
+            if (initializerExpression.IsKind(SyntaxKind.DefaultExpression))
+            {
+                return true;
+            }
+
+            // constructors of form = new TypeSomething();
+            // object creation expression that contains a typename and not an anonymous object creation expression.
+            if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression) &&
+                !initializerExpression.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
+            {
+                return true;
+            }
+
+            // invocation expression
+            // a. int.Parse, TextSpan.From static methods? 
+            // return type or 1 ref/out type matches some part of identifier name within a dotted name.
+            // also consider Generic method invocation with type parameters *and* not inferred
+            if (initializerExpression.IsKind(SyntaxKind.InvocationExpression))
+            {
+                var invocation = (InvocationExpressionSyntax)initializerExpression;
+
+                // literals.
+                if (invocation.IsAnyLiteralExpression())
+                {
+                    return true;
+                }
+
+                // if memberaccessexpression, get method symbol and check IsStatic.
+                var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
+                if (!symbol.IsKind(SymbolKind.Method))
+                {
+                    return false;
+                }
+
+                var methodSymbol = (IMethodSymbol)symbol;
+                if (!methodSymbol.IsStatic || methodSymbol.ReturnsVoid)
+                {
+                    // if its a ref/out method, then the return type may not be obvious from the name.
+                    return false;
+                }
+
+                var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
+
+                IList<string> nameParts;
+                if (invocation.Expression.TryGetNameParts(out nameParts))
+                {
+                    var typeNameIndex = nameParts.IndexOf(methodSymbol.Name) - 1;
+                    if (typeNameIndex >= 0)
+                    {
+                        // returned type is spelled out in the invocation.
+                        return declaredTypeSymbol.Name == nameParts[typeNameIndex];
+                    }
+                }
+            }
+
+            // c. Factory Methods? - probably not.
+
+            // TODO: Cast expressions.
+
+            return false;
         }
     }
 }

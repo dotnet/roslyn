@@ -13,6 +13,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     {
         internal const string FeatureName = "CSharpCodeStyle";
 
+        // TODO (BalajiK): repurpose this instead of adding a new one below?
         public static readonly Option<bool> UseVarWhenDeclaringLocals = new Option<bool>(FeatureName, "UseVarWhenDeclaringLocals", defaultValue: true);
+
+        public static readonly Option<TypeInferencePreferenceOptions> UseImplicitTypingForLocals = new Option<TypeInferencePreferenceOptions>(FeatureName, "UseImplicitTypingForLocals", defaultValue: TypeInferencePreferenceOptions.ExplicitTyping);
+        public static readonly Option<bool> UseVarWhenTypeIsApparent = new Option<bool>(FeatureName, "UseImplicitTypingWhereApparent", defaultValue: true);
+        public static readonly Option<bool> DoNotUseVarForIntrinsicTypes = new Option<bool>(FeatureName, "NoImplicitTypingForIntrinsics", defaultValue: true);
+    }
+
+    public enum TypeInferencePreferenceOptions
+    {
+        /// use var
+        ImplicitTyping = 0,
+
+        /// use explicit type name and do not use var.
+        ExplicitTyping = 1
     }
 }

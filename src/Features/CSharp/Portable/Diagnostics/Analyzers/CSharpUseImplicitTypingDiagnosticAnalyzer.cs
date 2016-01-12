@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
 {
@@ -78,20 +79,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
                 return;
             }
 
-            // TODO: Check options and bail.
             var optionSet = GetOptionSet(context.Options);
-            Debug.Assert(variableDeclaration.Variables.Count == 1, "More than 1 variable declared, cannot use var");
-            var diagnostic = AnalyzeVariableDeclaration(variableDeclaration, context.SemanticModel, context.CancellationToken);
-
-            if (diagnostic != null)
+            if (IsVarPreferred(variableDeclaration, context.SemanticModel, optionSet, context.CancellationToken))
             {
-                context.ReportDiagnostic(diagnostic);
+                Debug.Assert(variableDeclaration.Variables.Count == 1, "More than 1 variable declared, cannot use var");
+                var diagnostic = AnalyzeVariableDeclaration(variableDeclaration, context.SemanticModel, optionSet, context.CancellationToken);
+
+                if (diagnostic != null)
+                {
+                    context.ReportDiagnostic(diagnostic);
+                }
             }
         }
 
-        // TODO: move this helper to a common place.
-        private bool IsTypeApparentFromRHS(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        // TODO: move this helper to a common place. Currently its duplicated at CSharpUseExplicitTypingDiagnosticAnalyzer.
+        private bool IsTypeApparentFromRHS(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            // use var in foreach statement to make it concise.
+            if (declarationStatement.IsKind(SyntaxKind.ForEachStatement))
+            {
+                return true;
+            }
+
+            // variable declaration cases.
+            var variableDeclaration = (VariableDeclarationSyntax)declarationStatement;
             var initializer = variableDeclaration.Variables.Single().Initializer;
             var initializerExpression = initializer.Value;
 
@@ -103,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
 
             // constructors of form = new TypeSomething();
             // object creation expression that contains a typename and not an anonymous object creation expression.
-            if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression) && 
+            if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression) &&
                 !initializerExpression.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
                 return true;
@@ -158,26 +169,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
             return false;
         }
 
-        private bool IntrinsicTypeInDeclaration()
-        {
-            // Add support to not use var in place of intrinsic types
-            throw new NotImplementedException();
-        }
-
         private void HandleForEachStatement(SyntaxNodeAnalysisContext context)
         {
             var forEachStatement = (ForEachStatementSyntax)context.Node;
-            var diagnostic = AnalyzeVariableDeclaration(forEachStatement, context.SemanticModel, context.CancellationToken);
+            var optionSet = GetOptionSet(context.Options);
 
-            // TODO: Check options and bail.
-            if (diagnostic != null)
+            if (IsVarPreferred(forEachStatement, context.SemanticModel, optionSet, context.CancellationToken))
             {
-                context.ReportDiagnostic(diagnostic);
+                var diagnostic = AnalyzeVariableDeclaration(forEachStatement, context.SemanticModel, optionSet, context.CancellationToken);
+
+                if (diagnostic != null)
+                {
+                    context.ReportDiagnostic(diagnostic);
+                }
             }
         }
 
         private Diagnostic AnalyzeVariableDeclaration(SyntaxNode declarationStatement,
             SemanticModel semanticModel,
+            OptionSet optionSet,
             CancellationToken cancellationToken)
         {
             TextSpan diagnosticSpan;
@@ -186,7 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
             if (declarationStatement.IsKind(SyntaxKind.VariableDeclaration))
             {
                 declaredType = ((VariableDeclarationSyntax)declarationStatement).Type;
-                var isTypeApparent = IsTypeApparentFromRHS((VariableDeclarationSyntax)declarationStatement, semanticModel, cancellationToken);
             }
             else if (declarationStatement.IsKind(SyntaxKind.ForEachStatement))
             {
@@ -198,17 +207,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
                 return null;
             }
 
-            var isReplaceable = IsReplaceableByVar(declaredType, semanticModel, cancellationToken, out diagnosticSpan);
+            var isReplaceable = IsReplaceableByVar(declaredType, semanticModel, optionSet, cancellationToken, out diagnosticSpan);
 
-            return isReplaceable 
+            return isReplaceable
                 ? CreateDiagnostic(declarationStatement, diagnosticSpan)
                 : null;
         }
 
-        private static Diagnostic CreateDiagnostic(SyntaxNode declarationStatement, TextSpan diagnosticSpan) 
+        // TODO: refactor this to return an enum TypingPreference and share it with ExplicitTypingDiagnosticAnalyzer.
+        // CSharpUseExplicitTypingDiagnosticAnalyzer.IsExplicitTypingPreferred has duplicate code.
+        private bool IsVarPreferred(SyntaxNode declarationStatement, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        {
+            var typingPreference = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypingForLocals);
+            var useVarWhereApparent = optionSet.GetOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent);
+
+            return (typingPreference == TypeInferencePreferenceOptions.ImplicitTyping) ||
+                   (useVarWhereApparent && IsTypeApparentFromRHS(declarationStatement, semanticModel, cancellationToken));
+        }
+
+        private static Diagnostic CreateDiagnostic(SyntaxNode declarationStatement, TextSpan diagnosticSpan)
             => Diagnostic.Create(s_descriptorUseImplicitTyping, declarationStatement.SyntaxTree.GetLocation(diagnosticSpan));
 
-        private bool IsReplaceableByVar(TypeSyntax typeName, SemanticModel semanticModel, CancellationToken cancellationToken, out TextSpan issueSpan)
+        private bool IsReplaceableByVar(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
         {
             issueSpan = default(TextSpan);
 
@@ -244,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
                 }
 
                 var variable = variableDeclaration.Variables.Single();
-                if (CheckAssignment(variable.Identifier, typeName, variable.Initializer, semanticModel, cancellationToken))
+                if (CheckAssignment(variable.Identifier, typeName, variable.Initializer, semanticModel, optionSet, cancellationToken))
                 {
                     issueSpan = candidateIssueSpan;
                 }
@@ -257,10 +277,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping
             return issueSpan != default(TextSpan);
         }
 
-        private bool CheckAssignment(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private bool CheckAssignment(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
             // var cannot be assigned null
             if (initializer.Value.IsKind(SyntaxKind.NullLiteralExpression))
+            {
+                return false;
+            }
+
+            // primitive types in initializer and option says do not use var.
+            if (initializer.Value.IsAnyLiteralExpression() && optionSet.GetOption(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes))
             {
                 return false;
             }

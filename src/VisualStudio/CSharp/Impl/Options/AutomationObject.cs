@@ -457,6 +457,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, value); }
         }
 
+        public int Style_UseImplicitTypingForLocals
+        {
+            get
+            {
+                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseImplicitTypingForLocals);
+                return (int)option;
+            }
+            set
+            {
+                var optionSet = _optionService.GetOptions();
+                optionSet = optionSet.WithChangedOption(CSharpCodeStyleOptions.UseImplicitTypingForLocals, value);
+                _optionService.SetOptions(optionSet);
+            }
+        }
+
+        public int Style_UseVarWhenTypeIsApparent
+        {
+            get { return GetBooleanOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent); }
+            set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, value); }
+        }
+
+        public int Style_UseVarForIntrinsicTypes
+        {
+            get { return GetBooleanOption(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes); }
+            set { SetBooleanOption(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, value); }
+        }
+
         public int WarnOnBuildErrors
         {
             get { return GetBooleanOption(OrganizerOptions.WarnOnBuildErrors); }
