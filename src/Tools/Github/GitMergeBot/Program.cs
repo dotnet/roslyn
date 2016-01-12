@@ -158,6 +158,7 @@ This is an automatically generated pull request from {_options.SourceBranch} int
 
 ``` bash
 git remote add {remoteName} ""https://github.com/{_options.SourceUser}/{_options.RepoName}.git""
+# git remote add {remoteName} ""git@github.com:{_options.SourceUser}/{_options.RepoName}.git""
 git fetch {remoteName}
 git checkout {newBranchName}
 git merge upstream/{_options.DestinationBranch}
