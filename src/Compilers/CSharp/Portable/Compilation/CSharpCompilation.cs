@@ -2908,10 +2908,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!(symbol is TypeSymbol));
 
-            // We don't support nullable annotations in metadata yet.
-            // So, we'll ignore them for symbols defined in other modules/assemblies.
-            // This is probably not always accurate when generic instantiations are involved, but is a good starting point.
-            return (object)symbol.ContainingModule == this.SourceModule && symbol.IsDefinition;
+            var symbolContainingModule = symbol.ContainingModule;
+
+            // TODO: This is probably not always accurate when generic instantiations are involved, but is a good starting point.
+            if ((object)symbolContainingModule != null && symbolContainingModule.UtilizesNullableReferenceTypes && symbol.IsDefinition)
+            {
+                var symbolContainingAssembly = symbolContainingModule.ContainingAssembly;
+
+                return (object)symbolContainingAssembly != null && !((SourceModuleSymbol)SourceModule).IsNullableOptOutForAssembly(symbolContainingAssembly);
+            }
+
+            return false;
         }
 
         private class SymbolSearcher

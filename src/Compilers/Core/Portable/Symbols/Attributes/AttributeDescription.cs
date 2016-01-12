@@ -390,6 +390,7 @@ namespace Microsoft.CodeAnalysis
         };
 
         private static readonly byte[][] s_signaturesOfNullableAttribute = { s_signature_HasThis_Void, s_signature_HasThis_Void_SzArray_Boolean };
+        private static readonly byte[][] s_signaturesOfNullableOptOutForAssemblyAttribute = { s_signature_HasThis_Void_String };
 
         // early decoded attributes:
         internal static readonly AttributeDescription OptionalAttribute = new AttributeDescription("System.Runtime.InteropServices", "OptionalAttribute", s_signaturesOfOptionalAttribute);
@@ -497,5 +498,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription AssemblyAlgorithmIdAttribute = new AttributeDescription("System.Reflection", "AssemblyAlgorithmIdAttribute", s_signaturesOfAssemblyAlgorithmIdAttribute);
         internal static readonly AttributeDescription DeprecatedAttribute = new AttributeDescription("Windows.Foundation.Metadata", "DeprecatedAttribute", s_signaturesOfDeprecatedAttribute);
         internal static readonly AttributeDescription NullableAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NullableAttribute", s_signaturesOfNullableAttribute);
+        internal static readonly AttributeDescription NullableOptOutForAssemblyAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NullableOptOutForAssemblyAttribute", s_signaturesOfNullableOptOutForAssemblyAttribute);
     }
 }

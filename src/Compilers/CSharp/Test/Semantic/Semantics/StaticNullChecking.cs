@@ -31,6 +31,17 @@ namespace System.Runtime.CompilerServices
         {
         }
     }
+
+    /// <summary>
+    /// Opt out of nullability warnings that could originate from definitions in the given assembly. 
+    /// The attribute is not preserved in metadata and ignored if present in metadata.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Module, AllowMultiple = true)]
+    class NullableOptOutForAssemblyAttribute : Attribute
+    {
+        /// <param name=""assemblyName"">An assembly name - a simple name plus its PublicKey, if any.""/></param>
+        public NullableOptOutForAssemblyAttribute(string assemblyName) { }
+    }
 }
 "; 
 
@@ -10699,6 +10710,147 @@ class C
                                                                 references: new[] { c0.ToMetadataReference() });
 
             c.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void OptOutFromAssembly_01()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+public class CL0 
+{
+    public object F1;
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_01_Lib");
+
+            string source = @"
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""OptOutFromAssembly_01_Lib"")]
+
+class C 
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 x1, object? y1)
+    {
+        x1.F1 = y1;
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                references: new[] { c0.EmitToImageReference() });
+
+            CompileAndVerify(c, symbolValidator: m =>
+                                                 {
+                                                     Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", (((PEModuleSymbol)m).GetAttributes().Single().ToString()));
+                                                 });
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                references: new[] { c0.ToMetadataReference() });
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OptOutFromAssembly_02()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+public class CL0 
+{
+    public object F1;
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_02_Lib1");
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+public class CL1 
+{
+    public object F2;
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_02_Lib2");
+
+            string source = @"
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""OptOutFromAssembly_02_Lib1"")]
+
+class C 
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 x1, object? y1)
+    {
+        x1.F1 = y1;
+    }
+
+    void Test2(CL1 x2, object? y2)
+    {
+        x2.F2 = y2;
+    }
+}
+";
+
+            var expected = new[]
+            {
+    // (17,17): warning CS8201: Possible null reference assignment.
+    //         x2.F2 = y2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2").WithLocation(17, 17)
+            };
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                references: new[] { c0.EmitToImageReference(), c1.EmitToImageReference() });
+
+            c.VerifyDiagnostics(expected);
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                references: new[] { c0.ToMetadataReference(), c1.ToMetadataReference() });
+
+            c.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void OptOutFromAssembly_03()
+        {
+            string source = @"
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(null)]
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""invalid, assembly, name"")]
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""name1, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""name2, PublicKeyToken=aaabbbcccdddeee"")]
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""name3, Version=1"")]
+
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""name1, PublicKey=01240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""name1, PublicKey=02240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""name1"")]
+
+class C 
+{
+    static void Main()
+    {
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (2,9): warning CS1700: Assembly reference 'null' is invalid and cannot be resolved
+    // [module:System.Runtime.CompilerServices.NullableOptOutForAssembly(null)]
+    Diagnostic(ErrorCode.WRN_InvalidAssemblyName, "System.Runtime.CompilerServices.NullableOptOutForAssembly(null)").WithArguments("null").WithLocation(2, 9),
+    // (3,9): warning CS1700: Assembly reference 'invalid, assembly, name' is invalid and cannot be resolved
+    // [module:System.Runtime.CompilerServices.NullableOptOutForAssembly("invalid, assembly, name")]
+    Diagnostic(ErrorCode.WRN_InvalidAssemblyName, @"System.Runtime.CompilerServices.NullableOptOutForAssembly(""invalid, assembly, name"")").WithArguments("invalid, assembly, name").WithLocation(3, 9),
+    // (5,9): warning CS1700: Assembly reference 'name2, PublicKeyToken=aaabbbcccdddeee' is invalid and cannot be resolved
+    // [module:System.Runtime.CompilerServices.NullableOptOutForAssembly("name2, PublicKeyToken=aaabbbcccdddeee")]
+    Diagnostic(ErrorCode.WRN_InvalidAssemblyName, @"System.Runtime.CompilerServices.NullableOptOutForAssembly(""name2, PublicKeyToken=aaabbbcccdddeee"")").WithArguments("name2, PublicKeyToken=aaabbbcccdddeee").WithLocation(5, 9),
+    // (6,9): warning CS1700: Assembly reference 'name3, Version=1' is invalid and cannot be resolved
+    // [module:System.Runtime.CompilerServices.NullableOptOutForAssembly("name3, Version=1")]
+    Diagnostic(ErrorCode.WRN_InvalidAssemblyName, @"System.Runtime.CompilerServices.NullableOptOutForAssembly(""name3, Version=1"")").WithArguments("name3, Version=1").WithLocation(6, 9)
+                );
         }
 
         [Fact(Skip = "TODO")]
