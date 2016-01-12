@@ -75,7 +75,6 @@
     <Compile Include="SymMethod.cs" />
     <Compile Include="SymReader.cs" />
     <Compile Include="SymVariable.cs" />
-    <Compile Include="Utilities\PEUtilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
