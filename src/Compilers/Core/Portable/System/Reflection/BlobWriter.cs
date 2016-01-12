@@ -106,7 +106,7 @@ namespace System.Reflection
         public ImmutableArray<byte> ToImmutableArray(int start, int byteCount)
         {
             var array = ToArray(start, byteCount);
-            return ImmutableArrayInterop.DangerousToImmutableArray(ref array);
+            return ImmutableByteArrayInterop.DangerousCreateFromUnderlyingArray(ref array);
         }
 
         private int Advance(int value)
@@ -206,7 +206,7 @@ namespace System.Reflection
         /// <exception cref="ArgumentOutOfRangeException">Range specified by <paramref name="start"/> and <paramref name="byteCount"/> falls outside of the bounds of the <paramref name="buffer"/>.</exception>
         public void WriteBytes(ImmutableArray<byte> buffer, int start, int byteCount)
         {
-            WriteBytes(ImmutableArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
+            WriteBytes(ImmutableByteArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
         }
 
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
