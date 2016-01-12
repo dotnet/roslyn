@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // type arguments:
                 typeArguments.IsDefaultOrEmpty ?
                     _factory.Null(_factory.WellKnownArrayType(WellKnownType.System_Type)) :
-                    _factory.Array(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArguments)),
+                    _factory.ArrayOrEmpty(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArguments)),
 
                 // context:
                 _factory.TypeofDynamicOperationContextType(),
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 infos[j++] = GetArgumentInfo(argumentInfoFactory, loweredRight, NoName, RefKind.None, isStaticType: false);
             }
 
-            return _factory.Array(argumentInfoFactory.ContainingType, infos);
+            return _factory.ArrayOrEmpty(argumentInfoFactory.ContainingType, infos);
         }
 
         internal LoweredDynamicOperation MakeDynamicOperation(

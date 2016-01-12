@@ -3,7 +3,7 @@
   "version": 1,
   "targets": {
     ".NETFramework,Version=v4.5.2": {
-      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {
         "compile": {
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         },
@@ -182,7 +182,7 @@
       "xunit.runner.console/2.1.0": {}
     },
     ".NETFramework,Version=v4.5.2/win7": {
-      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {
         "compile": {
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         },
@@ -362,15 +362,15 @@
     }
   },
   "libraries": {
-    "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
-      "sha512": "zsE8FvVez0iaoyWutVewackGkJsJXjavomMMdme5NZTXS2/5aG6gdLuaFvGeslq/XMsh4CqIgdvMOOFr5TmpFQ==",
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {
+      "sha512": "QIkINpihvcij/pZhZdLmSTt4wMgjSwvRjXavvcR86lIRXi7pk4+mNgjFF5FXiR8B4WEmttdb5diyVZq7ZP4unw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll",
         "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
-        "package/services/metadata/core-properties/f64bfc9a6f91426492917a4c8a1b955e.psmdcp"
+        "package/services/metadata/core-properties/275c92add53e4a7fa1029dcdf1d6499a.psmdcp"
       ]
     },
     "Microsoft.Composition/1.0.27": {
