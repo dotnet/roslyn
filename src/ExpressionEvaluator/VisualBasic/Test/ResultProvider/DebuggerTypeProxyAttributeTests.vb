@@ -70,7 +70,7 @@ End Class"
                     EvalResult("Raw View", Nothing, "", "New PB(Of A(Of String))(o.b).PG, raw", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data))
                 moreChildren = GetChildren(moreChildren(1))
                 Verify(moreChildren,
-                    EvalResult("F", """A""", "String", "New PB(Of A(Of String))(o.b).PG.F", DkmEvaluationResultFlags.RawString Or DkmEvaluationResultFlags.ReadOnly))
+                    EvalResult("F", """A""", "String", "(New PB(Of A(Of String))(o.b).PG).F", DkmEvaluationResultFlags.RawString Or DkmEvaluationResultFlags.ReadOnly))
             End Using
         End Sub
 

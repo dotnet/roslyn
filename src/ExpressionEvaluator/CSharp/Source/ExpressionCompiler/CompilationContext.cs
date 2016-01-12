@@ -1475,11 +1475,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             string desiredMethodName;
             if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceType.Name, GeneratedNameKind.StateMachineType, out desiredMethodName) ||
-                GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LambdaMethod, out desiredMethodName))
+                GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LambdaMethod, out desiredMethodName) ||
+                GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LocalFunction, out desiredMethodName))
             {
                 // We could be in the MoveNext method of an async lambda.
                 string tempMethodName;
-                if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LambdaMethod, out tempMethodName))
+                if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LambdaMethod, out tempMethodName) ||
+                    GeneratedNames.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LocalFunction, out tempMethodName))
                 {
                     desiredMethodName = tempMethodName;
                     var containing = candidateSubstitutedSourceType.ContainingType;

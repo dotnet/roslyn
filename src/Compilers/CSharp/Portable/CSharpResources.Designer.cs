@@ -2357,6 +2357,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot infer the type of &apos;{0}&apos; as it does not return a value..
+        /// </summary>
+        internal static string ERR_CantInferVoid {
+            get {
+                return ResourceManager.GetString("ERR_CantInferVoid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot create temporary file -- {0}.
         /// </summary>
         internal static string ERR_CantMakeTempFile {
@@ -3437,6 +3446,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot invoke the local function &apos;{0}&apos; with dynamic parameters..
+        /// </summary>
+        internal static string ERR_DynamicLocalFunctionParameter {
+            get {
+                return ResourceManager.GetString("ERR_DynamicLocalFunctionParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to One or more types required to compile a dynamic expression cannot be found. Are you missing a reference?.
         /// </summary>
         internal static string ERR_DynamicRequiredTypesMissing {
@@ -3910,6 +3928,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExpressionTreeContainsIndexedProperty {
             get {
                 return ResourceManager.GetString("ERR_ExpressionTreeContainsIndexedProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a reference to a local function.
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsLocalFunction {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsLocalFunction", resourceCulture);
             }
         }
         
@@ -7613,6 +7640,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot infer the return type of &apos;{0}&apos; due to differing return types..
+        /// </summary>
+        internal static string ERR_ReturnTypesDontMatch {
+            get {
+                return ResourceManager.GetString("ERR_ReturnTypesDontMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{1}&apos; exists in both &apos;{0}&apos; and &apos;{2}&apos;.
         /// </summary>
         internal static string ERR_SameFullNameAggAgg {
@@ -8910,6 +8946,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to binary literals.
+        /// </summary>
+        internal static string IDS_FeatureBinaryLiteral {
+            get {
+                return ResourceManager.GetString("IDS_FeatureBinaryLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to collection initializer.
         /// </summary>
         internal static string IDS_FeatureCollectionInitializer {
@@ -8942,6 +8987,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureDictionaryInitializer {
             get {
                 return ResourceManager.GetString("IDS_FeatureDictionaryInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to digit separators.
+        /// </summary>
+        internal static string IDS_FeatureDigitSeparator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureDigitSeparator", resourceCulture);
             }
         }
         
@@ -9077,6 +9131,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureLambda {
             get {
                 return ResourceManager.GetString("IDS_FeatureLambda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to local functions.
+        /// </summary>
+        internal static string IDS_FeatureLocalFunctions {
+            get {
+                return ResourceManager.GetString("IDS_FeatureLocalFunctions", resourceCulture);
             }
         }
         

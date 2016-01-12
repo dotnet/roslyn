@@ -350,4 +350,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override OperationKind StatementKind => OperationKind.ExpressionStatement;
     }
+
+    partial class BoundLocalFunctionStatement
+    {
+        protected override OperationKind StatementKind => OperationKind.LocalFunctionStatement;
+    }
 }

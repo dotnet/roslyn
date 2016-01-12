@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
         {
-            if (node == _syntax)
-            {
-                return this.Locals;
-            }
+            return this.Locals;
+        }
 
-            throw ExceptionUtilities.Unreachable;
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
+        {
+            return ImmutableArray<LocalFunctionSymbol>.Empty;
         }
     }
 }

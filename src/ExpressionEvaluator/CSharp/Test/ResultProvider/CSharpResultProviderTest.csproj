@@ -77,6 +77,7 @@
     </Compile>
     <Compile Include="AccessibilityTests.cs" />
     <Compile Include="ArrayExpansionTests.cs" />
+    <Compile Include="CustomResultProviderTests.cs" />
     <Compile Include="DebuggerBrowsableAttributeTests.cs" />
     <Compile Include="DebuggerDisplayAttributeTests.cs" />
     <Compile Include="DebuggerTypeProxyAttributeTests.cs" />

@@ -87,6 +87,7 @@ Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb = 2 -> Microsoft.
 Microsoft.CodeAnalysis.ICompilationUnitSyntax
 Microsoft.CodeAnalysis.ICompilationUnitSyntax.EndOfFileToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.MetadataReference.MetadataReference(Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
+Microsoft.CodeAnalysis.MethodKind.LocalFunction = 17 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.ParseOptions.WithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
 Microsoft.CodeAnalysis.ScriptCompilationInfo
 Microsoft.CodeAnalysis.ScriptCompilationInfo.GlobalsType.get -> System.Type

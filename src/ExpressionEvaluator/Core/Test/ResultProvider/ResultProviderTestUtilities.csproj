@@ -121,6 +121,7 @@
     <Compile Include="Debugger\Engine\DkmFailedEvaluationResult.cs" />
     <Compile Include="Debugger\Engine\DkmInspectionContext.cs" />
     <Compile Include="Debugger\Engine\DkmDataItem.cs" />
+    <Compile Include="Debugger\Engine\DkmInspectionSession.cs" />
     <Compile Include="Debugger\Engine\DkmIntermediateEvaluationResult.cs" />
     <Compile Include="Debugger\Engine\DkmLanguage.cs" />
     <Compile Include="Debugger\Engine\DkmLanguageId.cs" />

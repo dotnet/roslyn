@@ -131,8 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override BoundNode VisitBlock(BoundBlock node)
         {
             var newLocals = RewriteLocals(node.Locals);
+            var newLocalFunctions = node.LocalFunctions;
             var newStatements = VisitList(node.Statements);
-            return node.Update(newLocals, newStatements);
+            return node.Update(newLocals, newLocalFunctions, newStatements);
         }
 
         public override BoundNode VisitSequence(BoundSequence node)
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var newInnerLocals = RewriteLocals(node.InnerLocals);
             BoundExpression boundExpression = (BoundExpression)this.Visit(node.BoundExpression);
             ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-            return node.Update(boundExpression, node.ConstantTargetOpt, newInnerLocals, switchSections, node.BreakLabel, node.StringEquality);
+            return node.Update(boundExpression, node.ConstantTargetOpt, newInnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)
