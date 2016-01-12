@@ -444,5 +444,59 @@ class Hello
                 await serverData.Verify(connections: 11, completed: 11);
             }
         }
+
+        [Fact]
+        public async Task CancelWillCancelCompilation()
+        {
+            var host = new TestableCompilerServerHost();
+
+            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            using (var mre = new ManualResetEvent(initialState: false))
+            {
+                const int requestCount = 5;
+                var count = 0;
+
+                host.RunCompilation = (request, cancellationToken) =>
+                {
+                    if (Interlocked.Increment(ref count) == requestCount)
+                    {
+                        mre.Set();
+                    }
+
+                    cancellationToken.WaitHandle.WaitOne();
+                    return new RejectedBuildResponse();
+                };
+
+                var list = new List<Task<BuildResponse>>();
+                for (var i = 0; i < requestCount; i++)
+                {
+                    var task = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
+                    list.Add(task);
+                }
+
+                // Wait until all of the connections are being processed by the server then cancel. 
+                mre.WaitOne();
+                serverData.CancellationTokenSource.Cancel();
+
+                var stats = await serverData.Complete();
+                Assert.Equal(requestCount, stats.Connections);
+                Assert.Equal(requestCount, count);
+
+                foreach (var task in list)
+                {
+                    var threw = false;
+                    try
+                    {
+                        await task;
+                    }
+                    catch
+                    {
+                        threw = true;
+                    }
+
+                    Assert.True(threw);
+                }
+            }
+        }
     }
 }

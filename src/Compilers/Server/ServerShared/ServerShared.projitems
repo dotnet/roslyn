@@ -11,7 +11,6 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)BuildProtocolUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CompilerRequestHandler.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CompilerServerUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CSharpCompilerServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IClientConnection.cs" />

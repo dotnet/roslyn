@@ -97,13 +97,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             CommonCompiler compiler;
             if (!TryCreateCompiler(request, out compiler))
             {
-                // TODO: is this the right option?  Right now it will cause the fall back in the command line 
-                // to fail because it's a valid response.  Probably should add a "server failed" response
-                // for command line to deal with.
-
                 // We can't do anything with a request we don't know about. 
                 Log($"Got request with id '{request.Language}'");
-                return new CompletedBuildResponse(returnCode:  -1, utf8output: false, output:  "", errorOutput: "");
+                return new RejectedBuildResponse();
             }
 
             bool utf8output = compiler.Arguments.Utf8Output;

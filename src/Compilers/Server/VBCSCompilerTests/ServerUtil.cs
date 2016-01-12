@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         internal static ServerData CreateServer(
             string pipeName = null,
             TimeSpan? timeout = null,
-            ICompilerServerHost compilerServerHost = null)
+            ICompilerServerHost compilerServerHost = null,
+            IClientConnectionHost clientConnectionHost = null)
         {
             pipeName = pipeName ?? Guid.NewGuid().ToString();
             compilerServerHost = compilerServerHost ?? new DesktopCompilerServerHost(DefaultClientDirectory, DefaultSdkDirectory);
@@ -95,7 +96,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 listener.Listening += (sender, e) => { serverListenSource.TrySetResult(true); };
                 try
                 {
-                    var clientConnectionHost = new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
+                    clientConnectionHost = clientConnectionHost ?? new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
+
                     var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
                     VBCSCompiler.Run(
                         mutexName,

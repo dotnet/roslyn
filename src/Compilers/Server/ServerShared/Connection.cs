@@ -215,21 +215,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             Func<BuildResponse> func = () =>
             {
-                try
-                {
-                    // Do the compilation
-                    Log("Begin compilation");
+                // Do the compilation
+                Log("Begin compilation");
 
-                    var request = BuildProtocolUtil.GetRunRequest(buildRequest);
-                    var response = _compilerServerHost.RunCompilation(request, cancellationToken);
+                var request = BuildProtocolUtil.GetRunRequest(buildRequest);
+                var response = _compilerServerHost.RunCompilation(request, cancellationToken);
 
-                    Log("End compilation");
-                    return response;
-                }
-                catch (Exception e) when (FatalError.Report(e))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
+                Log("End compilation");
+                return response;
             };
 
             var task = new Task<BuildResponse>(func, cancellationToken, TaskCreationOptions.LongRunning);

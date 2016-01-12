@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             string pipeName;
             bool shutdown;
-            if (!CompilerServerUtils.ParseCommandLine(args, out pipeName, out shutdown))
+            if (!ParseCommandLine(args, out pipeName, out shutdown))
             {
                 return CommonCompiler.Failed;
             }
@@ -205,6 +205,31 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var dispatcher = new ServerDispatcher(connectionHost, listener);
             dispatcher.ListenAndDispatchConnections(keepAliveTimeout, cancellationToken);
             return CommonCompiler.Succeeded;
+        }
+
+        internal static bool ParseCommandLine(string[] args, out string pipeName, out bool shutdown)
+        {
+            pipeName = null;
+            shutdown = false;
+
+            foreach (var arg in args)
+            {
+                const string pipeArgPrefix = "-pipename:";
+                if (arg.StartsWith(pipeArgPrefix, StringComparison.Ordinal))
+                {
+                    pipeName = arg.Substring(pipeArgPrefix.Length);
+                }
+                else if (arg == "-shutdown")
+                {
+                    shutdown = true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

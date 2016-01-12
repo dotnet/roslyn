@@ -137,5 +137,55 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
         }
+
+        public class ParseCommandLineTests : VBCSCompilerServerTests
+        {
+            private string _pipeName;
+            private bool _shutdown;
+
+            private bool Parse(params string[] args)
+            {
+                return VBCSCompiler.ParseCommandLine(args, out _pipeName, out _shutdown);
+            }
+
+            [Fact]
+            public void Nothing()
+            {
+                Assert.True(Parse());
+                Assert.Null(_pipeName);
+                Assert.False(_shutdown);
+            }
+
+            [Fact]
+            public void PipeOnly()
+            {
+                Assert.True(Parse("-pipename:test"));
+                Assert.Equal("test", _pipeName);
+                Assert.False(_shutdown);
+            }
+
+            [Fact]
+            public void Shutdown()
+            {
+                Assert.True(Parse("-shutdown"));
+                Assert.Null(_pipeName);
+                Assert.True(_shutdown);
+            }
+
+            [Fact]
+            public void PipeAndShutdown()
+            {
+                Assert.True(Parse("-pipename:test", "-shutdown"));
+                Assert.Equal("test", _pipeName);
+                Assert.True(_shutdown);
+            }
+
+            [Fact]
+            public void BadArg()
+            {
+                Assert.False(Parse("-invalid"));
+                Assert.False(Parse("name"));
+            }
+        }
     }
 }
