@@ -48,7 +48,6 @@ namespace Microsoft.Cci
             Debug.Assert(properties.PersistentIdentifier == default(Guid));
 
             var ilBuilder = new BlobBuilder(32 * 1024);
-            var metadataBuilder = new BlobBuilder(16 * 1024);
             var mappedFieldDataBuilder = new BlobBuilder();
             var managedResourceBuilder = new BlobBuilder(1024);
 
@@ -149,108 +148,20 @@ namespace Microsoft.Cci
             }
 
             var peDirectoriesBuilder = new PEDirectoriesBuilder();
-            int entryPointAddress = 0;
 
-            // .text
-            peBuilder.AddSection(".text", SectionCharacteristics.MemRead | SectionCharacteristics.MemExecute | SectionCharacteristics.ContainsCode, location =>
-            {
-                var sectionBuilder = new BlobBuilder();
-
-                var metadataSizes = metadataSerializer.MetadataSizes;
-
-                var textSection = new ManagedTextSection(
-                    metadataSizes.MetadataSize,
-                    ilStreamSize: ilBuilder.Count,
-                    mappedFieldDataSize: mappedFieldDataBuilder.Count,
-                    resourceDataSize: managedResourceBuilder.Count,
-                    strongNameSignatureSize: CalculateStrongNameSignatureSize(context.Module),
-                    imageCharacteristics: properties.ImageCharacteristics,
-                    machine: properties.Machine,
-                    pdbPathOpt: pdbPathOpt,
-                    isDeterministic: isDeterministic);
-
-                int methodBodyStreamRva = location.RelativeVirtualAddress + textSection.OffsetToILStream;
-                int mappedFieldDataStreamRva = location.RelativeVirtualAddress + textSection.CalculateOffsetToMappedFieldDataStream();
-                metadataSerializer.SerializeMetadata(metadataBuilder, methodBodyStreamRva, mappedFieldDataStreamRva);
-
-                BlobBuilder debugTableBuilderOpt;
-                if (pdbPathOpt != null || isDeterministic)
-                {
-                    debugTableBuilderOpt = new BlobBuilder();
-                    textSection.WriteDebugTable(debugTableBuilderOpt, location, nativePdbContentId, portablePdbContentId);
-                }
-                else
-                {
-                    debugTableBuilderOpt = null;
-                }
-
-                entryPointAddress = textSection.GetEntryPointAddress(location.RelativeVirtualAddress);
-
-                textSection.Serialize(
-                    sectionBuilder,
-                    location.RelativeVirtualAddress,
-                    entryPointToken,
-                    properties.CorFlags,
-                    properties.BaseAddress,
-                    metadataBuilder,
-                    ilBuilder,
-                    mappedFieldDataBuilder,
-                    managedResourceBuilder,
-                    debugTableBuilderOpt);
-
-                peDirectoriesBuilder.AddressOfEntryPoint = entryPointAddress;
-                peDirectoriesBuilder.DebugTable = textSection.GetDebugDirectoryEntry(location.RelativeVirtualAddress);
-                peDirectoriesBuilder.ImportAddressTable = textSection.GetImportAddressTableDirectoryEntry(location.RelativeVirtualAddress);
-                peDirectoriesBuilder.ImportTable = textSection.GetImportTableDirectoryEntry(location.RelativeVirtualAddress);
-                peDirectoriesBuilder.CorHeaderTable = textSection.GetCorHeaderDirectoryEntry(location.RelativeVirtualAddress);
-
-                return sectionBuilder;
-            });
-
-            // .rsrc
-            var nativeResourcesOpt = context.Module.Win32Resources;
-            var nativeResourceSectionOpt = context.Module.Win32ResourceSection;
-            if (!IteratorHelper.EnumerableIsEmpty(nativeResourcesOpt) || nativeResourceSectionOpt != null)
-            {
-                // Win32 resources are supplied to the compiler in one of two forms, .RES (the output of the resource compiler),
-                // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
-                // a set of objects implementing IWin32Resources. These are then ordered and the final image form is constructed
-                // and written to the resource section. Resources in .OBJ form are already very close to their final output
-                // form. Rather than reading them and parsing them into a set of objects similar to those produced by 
-                // processing a .RES file, we process them like the native linker would, copy the relevant sections from 
-                // the .OBJ into our output and apply some fixups.
-
-                peBuilder.AddSection(".rsrc", SectionCharacteristics.MemRead | SectionCharacteristics.ContainsInitializedData, location =>
-                {
-                    var sectionBuilder = new BlobBuilder();
-
-                    if (nativeResourceSectionOpt != null)
-                    {
-                        NativeResourceWriter.SerializeWin32Resources(sectionBuilder, nativeResourceSectionOpt, location.RelativeVirtualAddress);
-                    }
-                    else
-                    {
-                        NativeResourceWriter.SerializeWin32Resources(sectionBuilder, nativeResourcesOpt, location.RelativeVirtualAddress);
-                    }
-
-                    peDirectoriesBuilder.ResourceTable = new DirectoryEntry(location.RelativeVirtualAddress, sectionBuilder.Count);
-
-                    return sectionBuilder;
-                });
-            }
-
-            // .reloc
-            if (properties.Machine == Machine.I386 || properties.Machine == 0)
-            {
-                peBuilder.AddSection(".reloc", SectionCharacteristics.MemRead | SectionCharacteristics.MemDiscardable | SectionCharacteristics.ContainsInitializedData, location =>
-                {
-                    var sectionBuilder = new BlobBuilder();
-                    WriteRelocSection(sectionBuilder, properties.Machine, entryPointAddress);
-
-                    peDirectoriesBuilder.BaseRelocationTable = new DirectoryEntry(location.RelativeVirtualAddress, sectionBuilder.Count);
-                    return sectionBuilder;
-                });
-            }
+            peBuilder.AddManagedSections(
+                peDirectoriesBuilder,
+                metadataSerializer,
+                ilBuilder,
+                mappedFieldDataBuilder,
+                managedResourceBuilder,
+                CreateNativeResourceSectionSerializer(context.Module),
+                CalculateStrongNameSignatureSize(context.Module),
+                entryPointToken,
+                pdbPathOpt,
+                nativePdbContentId,
+                portablePdbContentId,
+                properties.CorFlags);
 
             var peBlob = new BlobBuilder();
             ContentId peContentId;
@@ -269,22 +180,34 @@ namespace Microsoft.Cci
             return true;
         }
 
-        private static void WriteRelocSection(BlobBuilder builder, Machine machine, int entryPointAddress)
+        private static Action<BlobBuilder, PESectionLocation> CreateNativeResourceSectionSerializer(IModule module)
         {
-            Debug.Assert(builder.Count == 0);
+            // Win32 resources are supplied to the compiler in one of two forms, .RES (the output of the resource compiler),
+            // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
+            // a set of objects implementing IWin32Resources. These are then ordered and the final image form is constructed
+            // and written to the resource section. Resources in .OBJ form are already very close to their final output
+            // form. Rather than reading them and parsing them into a set of objects similar to those produced by 
+            // processing a .RES file, we process them like the native linker would, copy the relevant sections from 
+            // the .OBJ into our output and apply some fixups.
 
-            builder.WriteUInt32((((uint)entryPointAddress + 2) / 0x1000) * 0x1000);
-            builder.WriteUInt32((machine == Machine.IA64) ? 14u : 12u);
-            uint offsetWithinPage = ((uint)entryPointAddress + 2) % 0x1000;
-            uint relocType = (machine == Machine.Amd64 || machine == Machine.IA64) ? 10u : 3u;
-            ushort s = (ushort)((relocType << 12) | offsetWithinPage);
-            builder.WriteUInt16(s);
-            if (machine == Machine.IA64)
+            var nativeResourcesOpt = module.Win32Resources;
+            var nativeResourceSectionOpt = module.Win32ResourceSection;
+            if (!IteratorHelper.EnumerableIsEmpty(nativeResourcesOpt) || nativeResourceSectionOpt != null)
             {
-                builder.WriteUInt32(relocType << 12);
+                return (sectionBuilder, location) =>
+                {
+                    if (nativeResourceSectionOpt != null)
+                    {
+                        NativeResourceWriter.SerializeWin32Resources(sectionBuilder, nativeResourceSectionOpt, location.RelativeVirtualAddress);
+                    }
+                    else
+                    {
+                        NativeResourceWriter.SerializeWin32Resources(sectionBuilder, nativeResourcesOpt, location.RelativeVirtualAddress);
+                    }
+                };
             }
 
-            builder.WriteUInt16(0); // next chunk's RVA
+            return null;
         }
 
         private static int CalculateStrongNameSignatureSize(IModule module)
