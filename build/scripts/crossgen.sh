@@ -4,6 +4,8 @@
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 #
 
+# USAGE: crossgen.sh directory-containing-roslyn
+
 set -e
 
 BIN_DIR="$( cd $1 && pwd )"
@@ -36,6 +38,7 @@ chmod +x crossgen
 
 ./crossgen -nologo -platform_assemblies_paths $BIN_DIR System.Reflection.Metadata.dll
 
+# The bootstrap build is currently not copying a dependency. See dotnet/roslyn #7907
 ./crossgen -nologo -MissingDependenciesOK -platform_assemblies_paths $BIN_DIR Microsoft.CodeAnalysis.dll
 
 ./crossgen -nologo -platform_assemblies_paths $BIN_DIR Microsoft.CodeAnalysis.CSharp.dll
