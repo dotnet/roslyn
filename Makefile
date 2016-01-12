@@ -11,11 +11,11 @@ MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Deb
 ifeq ($(OS_NAME),Linux)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=ubuntu.14.04
 	MONO_TOOLSET_NAME = mono.linux.4
-	ROSLYN_TOOLSET_NAME = roslyn.linux.2
+	ROSLYN_TOOLSET_NAME = roslyn.linux.3
 else ifeq ($(OS_NAME),Darwin)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=osx.10.10
 	MONO_TOOLSET_NAME = mono.mac.5
-	ROSLYN_TOOLSET_NAME = roslyn.mac.2
+	ROSLYN_TOOLSET_NAME = roslyn.mac.3
 endif
 
 ifneq ($(BUILD_LOG_PATH),)
@@ -41,6 +41,7 @@ bootstrap: toolset
 	mkdir -p $(BOOTSTRAP_PATH) ; \
 	cp Binaries/$(BUILD_CONFIGURATION)/csccore/* $(BOOTSTRAP_PATH) ; \
 	cp Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) ; \
+	build/scripts/crossgen.sh $(BOOTSTRAP_PATH) ; \
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
 test:
