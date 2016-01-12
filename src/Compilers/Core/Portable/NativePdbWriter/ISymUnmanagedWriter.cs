@@ -73,9 +73,11 @@ namespace Microsoft.Cci
     {
         public static unsafe void DefineConstant2(this ISymUnmanagedWriter2 writer, string name, object value, uint sigToken)
         {
-            VariantStructure variant = new VariantStructure();
-            Marshal.GetNativeVariantForObject(value, new IntPtr(&variant));
-            writer.DefineConstant2(name, variant, sigToken);
+            // Xamarin Bug https://bugzilla.xamarin.com/show_bug.cgi?id=37632
+            throw new NotSupportedException("GetNativeVariantForObject is not available.");
+            //VariantStructure variant = new VariantStructure();
+            //Marshal.GetNativeVariantForObject(value, new IntPtr(&variant));
+            //writer.DefineConstant2(name, variant, sigToken);
         }
     }
 

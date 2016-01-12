@@ -226,7 +226,7 @@ namespace Microsoft.Cci
         internal const uint DefaultLocalAttributesValue = 0u;
         internal const uint Age = 1;
 
-        private static Type s_lazyCorSymWriterSxSType;
+        //private static Type s_lazyCorSymWriterSxSType;
 
         private readonly string _fileName;
         private readonly Func<object> _symWriterFactory;
@@ -757,13 +757,15 @@ namespace Microsoft.Cci
 
         private static Type GetCorSymWriterSxSType()
         {
-            if (s_lazyCorSymWriterSxSType == null)
+            throw new NotSupportedException("Marshal.GetTypeFromCLSID is not available.");
+
+            /*if (s_lazyCorSymWriterSxSType == null)
             {
-                // If an exception is thrown we propagate it - we want to report it every time. 
+                // If an exception is thrown we propagate it - we want to report it every time.                 
                 s_lazyCorSymWriterSxSType = Marshal.GetTypeFromCLSID(new Guid(SymWriterClsid));
             }
 
-            return s_lazyCorSymWriterSxSType;
+            return s_lazyCorSymWriterSxSType;*/
         }
 
         private static object CreateSymWriterWorker()
@@ -805,7 +807,9 @@ namespace Microsoft.Cci
         {
             try
             {
-                var symWriter = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : CreateSymWriterWorker());
+                throw new NotSupportedException("Native PDB is not supported");
+
+                /*var symWriter = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : CreateSymWriterWorker());
 
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
@@ -826,7 +830,7 @@ namespace Microsoft.Cci
                 }
 
                 _metadataWriter = metadataWriter;
-                _symWriter = symWriter;
+                _symWriter = symWriter;*/
             }
             catch (Exception ex)
             {
