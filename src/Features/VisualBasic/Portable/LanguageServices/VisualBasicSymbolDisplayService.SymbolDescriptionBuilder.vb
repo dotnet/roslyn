@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
 
             Protected Overrides Sub AddAwaitableUsageText(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer)
                 AddToGroup(SymbolDescriptionGroups.AwaitableUsageText,
-                    method.ToAwaitableParts(VBFeaturesResources.Await, "r", semanticModel, position))
+                    method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "r", semanticModel, position))
             End Sub
 
             Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat

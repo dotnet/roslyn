@@ -1437,7 +1437,7 @@ End Class
 
             Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.foo() As Task</File>.ConvertTestSourceTag()
 
-            Dim doc = StringFromLines("", WorkspacesResources.Usage, $"  {VBFeaturesResources.Await} foo()")
+            Dim doc = StringFromLines("", WorkspacesResources.Usage, $"  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} foo()")
 
             Await TestFromXmlAsync(markup,
                  MainDescription(description), Usage(doc))

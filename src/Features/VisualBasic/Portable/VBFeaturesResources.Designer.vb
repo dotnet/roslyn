@@ -237,15 +237,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Await.
-        '''</summary>
-        Friend ReadOnly Property Await() As String
-            Get
-                Return ResourceManager.GetString("Await", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Awaitable.
         '''</summary>
         Friend ReadOnly Property Awaitable() As String

@@ -2838,7 +2838,7 @@ End Class</Code>.Value
 $"<{VBFeaturesResources.Awaitable}> Function C.Foo() As Task
 Doc Comment!
 {WorkspacesResources.Usage}
-  {VBFeaturesResources.Await} Foo()"
+  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Foo()"
 
             Await VerifyItemWithMscorlib45Async(code, "Foo", description, LanguageNames.VisualBasic)
         End Function

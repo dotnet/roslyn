@@ -116,15 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to await.
-        /// </summary>
-        internal static string Await {
-            get {
-                return ResourceManager.GetString("Await", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to awaitable.
         /// </summary>
         internal static string Awaitable {

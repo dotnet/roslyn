@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             protected override void AddAwaitableUsageText(IMethodSymbol method, SemanticModel semanticModel, int position)
             {
                 AddToGroup(SymbolDescriptionGroups.AwaitableUsageText,
-                    method.ToAwaitableParts(CSharpFeaturesResources.Await, "x", semanticModel, position));
+                    method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position));
             }
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormat
