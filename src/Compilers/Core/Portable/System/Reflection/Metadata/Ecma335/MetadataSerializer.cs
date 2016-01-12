@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 
 namespace System.Reflection.Metadata.Ecma335
 {
@@ -42,7 +43,7 @@ namespace System.Reflection.Metadata.Ecma335
             Debug.Assert(MetadataSizes.CalculateStandalonePdbStreamSize() == endPosition - startPosition);
         }
 
-        public void SerializeMetadata(BlobBuilder builder, Func<BlobBuilder, Microsoft.Cci.ContentId> idProvider, out Microsoft.Cci.ContentId contentId)
+        public void SerializeMetadata(BlobBuilder builder, Func<BlobBuilder, ContentId> idProvider, out ContentId contentId)
         {
             SerializeMetadataImpl(builder, methodBodyStreamRva: 0, mappedFieldDataStreamRva: 0);
 
