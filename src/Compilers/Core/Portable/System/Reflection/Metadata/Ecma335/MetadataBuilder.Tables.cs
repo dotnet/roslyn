@@ -230,7 +230,7 @@ namespace System.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddAssemblyReference(
+        public int AddAssemblyReference(
             StringIdx name,
             Version version,
             StringIdx culture,
@@ -247,9 +247,11 @@ namespace System.Reflection.Metadata.Ecma335
                 Flags = (uint)flags,
                 HashValue = hashValue
             });
+
+            return _assemblyRefTable.Count;
         }
 
-        public void AddTypeDefinition(
+        public int AddTypeDefinition(
             TypeAttributes attributes, 
             StringIdx @namespace,
             StringIdx name,
@@ -269,6 +271,8 @@ namespace System.Reflection.Metadata.Ecma335
                 FieldList = (uint)fieldList,
                 MethodList = (uint)methodList
             });
+
+            return _typeDefTable.Count;
         }
 
         public void AddTypeLayout(
@@ -533,7 +537,7 @@ namespace System.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddMethodDefinition(
+        public int AddMethodDefinition(
             MethodAttributes attributes, 
             MethodImplAttributes implAttributes,
             StringIdx name,
@@ -550,6 +554,8 @@ namespace System.Reflection.Metadata.Ecma335
                 BodyOffset = bodyOffset,
                 ParamList = (uint)paramList
             });
+
+            return _methodDefTable.Count;
         }
 
         public void AddMethodImport(
@@ -580,7 +586,7 @@ namespace System.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddMemberReference(
+        public int AddMemberReference(
             uint type,
             StringIdx name,
             BlobIdx signature)
@@ -591,6 +597,8 @@ namespace System.Reflection.Metadata.Ecma335
                 Name = name,
                 Signature = signature
             });
+
+            return _memberRefTable.Count;
         }
 
         public void AddManifestResource(
