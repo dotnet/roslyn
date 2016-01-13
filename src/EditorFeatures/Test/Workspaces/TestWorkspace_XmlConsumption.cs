@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var workspace = new TestWorkspace(exportProvider, workspaceKind);
 
-            var projectMap = new Dictionary<string, TestHostProject>();
+            var projectNameToTestHostProject = new Dictionary<string, TestHostProject>();
             var documentElementToFilePath = new Dictionary<XElement, string>();
-            var projectElementToAssemblyName = new Dictionary<XElement, string>();
+            var projectElementToProjectName = new Dictionary<XElement, string>();
             var filePathToTextBufferMap = new Dictionary<string, ITextBuffer>();
             int projectIdentifier = 0;
             int documentIdentifier = 0;
@@ -105,18 +105,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     projectElement,
                     exportProvider,
                     workspace,
-                    projectElementToAssemblyName,
                     documentElementToFilePath,
                     filePathToTextBufferMap,
                     ref projectIdentifier,
                     ref documentIdentifier);
-                Assert.False(projectMap.ContainsKey(project.AssemblyName));
-                projectMap.Add(project.AssemblyName, project);
+                Assert.False(projectNameToTestHostProject.ContainsKey(project.Name), $"The workspace XML already contains a project with name {project.Name}");
+                projectNameToTestHostProject.Add(project.Name, project);
+                projectElementToProjectName.Add(projectElement, project.Name);
                 workspace.Projects.Add(project);
             }
 
             var documentFilePaths = new HashSet<string>();
-            foreach (var project in projectMap.Values)
+            foreach (var project in projectNameToTestHostProject.Values)
             {
                 foreach (var document in project.Documents)
                 {
@@ -128,21 +128,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             foreach (var submission in submissions)
             {
-                projectMap.Add(submission.AssemblyName, submission);
+                projectNameToTestHostProject.Add(submission.Name, submission);
             }
 
-            var solution = new TestHostSolution(projectMap.Values.ToArray());
+            var solution = new TestHostSolution(projectNameToTestHostProject.Values.ToArray());
             workspace.AddTestSolution(solution);
 
             foreach (var projectElement in workspaceElement.Elements(ProjectElementName))
             {
                 foreach (var projectReference in projectElement.Elements(ProjectReferenceElementName))
                 {
-                    var fromName = projectElementToAssemblyName[projectElement];
+                    var fromName = projectElementToProjectName[projectElement];
                     var toName = projectReference.Value;
 
-                    var fromProject = projectMap[fromName];
-                    var toProject = projectMap[toName];
+                    var fromProject = projectNameToTestHostProject[fromName];
+                    var toProject = projectNameToTestHostProject[toName];
 
                     var aliases = projectReference.Attributes(AliasAttributeName).Select(a => a.Value).ToImmutableArray();
 
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
-            foreach (var project in projectMap.Values)
+            foreach (var project in projectNameToTestHostProject.Values)
             {
                 foreach (var document in project.Documents)
                 {
@@ -259,7 +259,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             XElement projectElement,
             ExportProvider exportProvider,
             TestWorkspace workspace,
-            Dictionary<XElement, string> projectElementToAssemblyName,
             Dictionary<XElement, string> documentElementToFilePath,
             Dictionary<string, ITextBuffer> filePathToTextBufferMap,
             ref int projectId,
@@ -268,7 +267,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var language = GetLanguage(workspace, projectElement);
 
             var assemblyName = GetAssemblyName(workspace, projectElement, ref projectId);
-            projectElementToAssemblyName.Add(projectElement, assemblyName);
 
             string filePath;
 
