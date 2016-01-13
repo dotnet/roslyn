@@ -96,11 +96,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CSharpSpecializedEnumerableCreationAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CSharpUseSpecializedCollectionsEmptyEnumerable.cs" />
-    <Compile Include="CSharpUseSpecializedCollectionsEmptyEnumerable.Fixer.cs" />
-    <Compile Include="CSharpUseSpecializedCollectionsSingletonEnumerable.cs" />
-    <Compile Include="CSharpUseSpecializedCollectionsSingletonEnumerable.Fixer.cs" />
     <Compile Include="CSharpDoNotUseGenericCodeActionCreateToCreateCodeAction.cs" />
     <Compile Include="CSharpOverrideObjectEqualsObjectWhenImplementingIequatable.cs" />
     <Compile Include="CSharpOverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.cs" />

@@ -105,14 +105,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>RoslynDiagnosticsAnalyzersResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="UseSpecializedCollectionsEmptyEnumerable.cs" />
-    <Compile Include="UseSpecializedCollectionsEmptyEnumerable.Fixer.cs" />
-    <Compile Include="UseSpecializedCollectionsSingletonEnumerable.cs" />
-    <Compile Include="UseSpecializedCollectionsSingletonEnumerable.Fixer.cs" />
     <Compile Include="DoNotUseGenericCodeActionCreateToCreateCodeAction.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatable.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.cs" />
     <Compile Include="DoNotInvokeDiagnosticDescriptor.cs" />
+    <Compile Include="SpecializedEnumerableCreationAnalyzer.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbols.cs" />
     <Compile Include="DiagnosticCategory.cs" />
   </ItemGroup>

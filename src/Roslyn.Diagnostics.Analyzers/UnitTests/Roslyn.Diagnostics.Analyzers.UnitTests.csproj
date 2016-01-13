@@ -147,14 +147,11 @@
   <ItemGroup>
     <Compile Include="DeclarePublicAPIAnalyzerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UseSpecializedCollectionsEmptyEnumerableTests.cs" />
-    <Compile Include="UseSpecializedCollectionsEmptyEnumerableTests.Fixer.cs" />
-    <Compile Include="UseSpecializedCollectionsSingletonEnumerableTests.cs" />
-    <Compile Include="UseSpecializedCollectionsSingletonEnumerableTests.Fixer.cs" />
     <Compile Include="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTests.cs" />
     <Compile Include="DoNotUseGenericCodeActionCreateToCreateCodeActionTests.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.Fixer.cs" />
+    <Compile Include="SpecializedEnumerableCreationAnalyzerTests.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTests.cs" />
   </ItemGroup>
   <ItemGroup>
