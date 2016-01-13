@@ -64,63 +64,27 @@ namespace Roslyn.Diagnostics.Analyzers {
         /// <summary>
         ///   Looks up a localized string similar to All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes..
         /// </summary>
-        internal static string AddPublicTypesAndMembersToTheDeclaredAPIDescription {
+        internal static string DeclarePublicApiDescription {
             get {
-                return ResourceManager.GetString("AddPublicTypesAndMembersToTheDeclaredAPIDescription", resourceCulture);
+                return ResourceManager.GetString("DeclarePublicApiDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol &apos;{0}&apos; is not part of the declared API..
+        /// </summary>
+        internal static string DeclarePublicApiMessage {
+            get {
+                return ResourceManager.GetString("DeclarePublicApiMessage", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Add public types and members to the declared API.
         /// </summary>
-        internal static string AddPublicTypesAndMembersToTheDeclaredAPIMessage {
+        internal static string DeclarePublicApiTitle {
             get {
-                return ResourceManager.GetString("AddPublicTypesAndMembersToTheDeclaredAPIMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add public types and members to the declared API.
-        /// </summary>
-        internal static string AddPublicTypesAndMembersToTheDeclaredAPITitle {
-            get {
-                return ResourceManager.GetString("AddPublicTypesAndMembersToTheDeclaredAPITitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ApiDesign.
-        /// </summary>
-        internal static string CategoryApiDesign {
-            get {
-                return ResourceManager.GetString("CategoryApiDesign", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Performance.
-        /// </summary>
-        internal static string CategoryPerformance {
-            get {
-                return ResourceManager.GetString("CategoryPerformance", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reliability.
-        /// </summary>
-        internal static string CategoryReliability {
-            get {
-                return ResourceManager.GetString("CategoryReliability", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Usage.
-        /// </summary>
-        internal static string CategoryUsage {
-            get {
-                return ResourceManager.GetString("CategoryUsage", resourceCulture);
+                return ResourceManager.GetString("DeclarePublicApiTitle", resourceCulture);
             }
         }
         
@@ -179,6 +143,42 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The symbol &apos;{0}&apos; appears more than once in the public API files..
+        /// </summary>
+        internal static string DuplicateSymbolsInPublicApiFilesMessage {
+            get {
+                return ResourceManager.GetString("DuplicateSymbolsInPublicApiFilesMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not duplicate symbols in public API files.
+        /// </summary>
+        internal static string DuplicateSymbolsInPublicApiFilesTitle {
+            get {
+                return ResourceManager.GetString("DuplicateSymbolsInPublicApiFilesTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Constructor makes its noninheritable base class inheritable, thereby exposing its protected members..
+        /// </summary>
+        internal static string ExposedNoninstantiableTypeMessage {
+            get {
+                return ResourceManager.GetString("ExposedNoninstantiableTypeMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Constructor make noninheritable base class inheritable.
+        /// </summary>
+        internal static string ExposedNoninstantiableTypeTitle {
+            get {
+                return ResourceManager.GetString("ExposedNoninstantiableTypeTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to #N/A.
         /// </summary>
         internal static string InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription {
@@ -233,29 +233,47 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The contents of the public API files are invalid: {0}.
+        /// </summary>
+        internal static string PublicApiFilesInvalidMessage {
+            get {
+                return ResourceManager.GetString("PublicApiFilesInvalidMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The contents of the public API files are invalid.
+        /// </summary>
+        internal static string PublicApiFilesInvalidTitle {
+            get {
+                return ResourceManager.GetString("PublicApiFilesInvalidTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes..
         /// </summary>
-        internal static string RemoveDeletedTypesAndMembersFromTheDeclaredAPIDescription {
+        internal static string RemoveDeletedApiDescription {
             get {
-                return ResourceManager.GetString("RemoveDeletedTypesAndMembersFromTheDeclaredAPIDescription", resourceCulture);
+                return ResourceManager.GetString("RemoveDeletedApiDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol &apos;{0}&apos; is part of the declared API, but is either not public or could not be found.
+        /// </summary>
+        internal static string RemoveDeletedApiMessage {
+            get {
+                return ResourceManager.GetString("RemoveDeletedApiMessage", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Remove deleted types and members from the declared API.
         /// </summary>
-        internal static string RemoveDeletedTypesAndMembersFromTheDeclaredAPIMessage {
+        internal static string RemoveDeletedApiTitle {
             get {
-                return ResourceManager.GetString("RemoveDeletedTypesAndMembersFromTheDeclaredAPIMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove deleted types and members from the declared API.
-        /// </summary>
-        internal static string RemoveDeletedTypesAndMembersFromTheDeclaredAPITitle {
-            get {
-                return ResourceManager.GetString("RemoveDeletedTypesAndMembersFromTheDeclaredAPITitle", resourceCulture);
+                return ResourceManager.GetString("RemoveDeletedApiTitle", resourceCulture);
             }
         }
         
@@ -283,33 +301,6 @@ namespace Roslyn.Diagnostics.Analyzers {
         internal static string SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle {
             get {
                 return ResourceManager.GetString("SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to #N/A.
-        /// </summary>
-        internal static string TheContentsOfThePublicAPIFilesAreInvalidDescription {
-            get {
-                return ResourceManager.GetString("TheContentsOfThePublicAPIFilesAreInvalidDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The contents of the public API files are invalid.
-        /// </summary>
-        internal static string TheContentsOfThePublicAPIFilesAreInvalidMessage {
-            get {
-                return ResourceManager.GetString("TheContentsOfThePublicAPIFilesAreInvalidMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The contents of the public API files are invalid.
-        /// </summary>
-        internal static string TheContentsOfThePublicAPIFilesAreInvalidTitle {
-            get {
-                return ResourceManager.GetString("TheContentsOfThePublicAPIFilesAreInvalidTitle", resourceCulture);
             }
         }
         
