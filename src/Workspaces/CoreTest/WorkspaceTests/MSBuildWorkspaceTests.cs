@@ -180,9 +180,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.NotNull(mdp2Sys3);
 
                 // all references to System.dll share the same metadata bytes
-                Assert.Same(mdp1Sys1, mdp1Sys2);
-                Assert.Same(mdp1Sys1, mdp2Sys1);
-                Assert.Same(mdp1Sys1, mdp2Sys3);
+                Assert.Same(mdp1Sys1.Id, mdp1Sys2.Id);
+                Assert.Same(mdp1Sys1.Id, mdp2Sys1.Id);
+                Assert.Same(mdp1Sys1.Id, mdp2Sys3.Id);
             }
         }
 

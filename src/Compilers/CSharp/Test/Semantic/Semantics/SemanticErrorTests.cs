@@ -9672,10 +9672,12 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (4,16): error CS0316: The parameter name 'value' conflicts with an automatically-generated parameter name
-                Diagnostic(ErrorCode.ERR_DuplicateGeneratedName, "this").WithArguments("value"),
-                // (10,16): error CS0316: The parameter name 'value' conflicts with an automatically-generated parameter name
-                Diagnostic(ErrorCode.ERR_DuplicateGeneratedName, "this").WithArguments("value"));
+                // (10,26): error CS0316: The parameter name 'value' conflicts with an automatically-generated parameter name
+                //     public int this[char @value] // CS0316
+                Diagnostic(ErrorCode.ERR_DuplicateGeneratedName, "@value").WithArguments("value").WithLocation(10, 26),
+                // (4,25): error CS0316: The parameter name 'value' conflicts with an automatically-generated parameter name
+                //     public int this[int value] // CS0316
+                Diagnostic(ErrorCode.ERR_DuplicateGeneratedName, "value").WithArguments("value").WithLocation(4, 25));
         }
 
         [Fact]

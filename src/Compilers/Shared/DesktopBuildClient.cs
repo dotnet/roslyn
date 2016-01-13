@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
                     {
                         pipe = TryConnectToServer(pipeName,
-                                                   timeout,
-                                                   cancellationToken);
+                                                  timeout,
+                                                  cancellationToken);
                     }
 
                     if (pipe != null)
@@ -157,12 +157,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
             }
 
-            return null;
+            return Task.FromResult<BuildResponse>(null);
         }
 
         /// <summary>
-        /// Try to compile using the server. Returns null if a response from the
-        /// server cannot be retrieved.
+        /// Try to compile using the server. Returns a null-containing Task if a response
+        /// from the server cannot be retrieved.
         /// </summary>
         private static async Task<BuildResponse> TryCompile(NamedPipeClientStream pipeStream,
                                                             BuildRequest request,

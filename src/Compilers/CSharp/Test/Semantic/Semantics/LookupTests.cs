@@ -1523,6 +1523,20 @@ class C
             Assert.Equal("E.F(object)", reducedFrom.ToDisplayString());
         }
 
+        [WorkItem(7493, "https://github.com/dotnet/roslyn/issues/7493")]
+        [Fact]
+        public void GenericNameLookup()
+        {
+            var source = @"using A = List<int>;";
+            var compilation = CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (1,11): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
+                // using A = List<int>;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(1, 11),
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using A = List<int>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A = List<int>;").WithLocation(1, 1));
+        }
+
         #endregion tests
 
         #region regressions

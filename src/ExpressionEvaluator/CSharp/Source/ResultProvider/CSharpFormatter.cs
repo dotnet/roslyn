@@ -42,6 +42,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return SyntaxFacts.IsWhitespace(c);
         }
 
+        internal override ObjectDisplayOptions GetValueStringOptions(bool useQuotes)
+        {
+            var options = ObjectDisplayOptions.EscapeNonPrintableStringCharacters;
+            if (useQuotes)
+            {
+                options |= ObjectDisplayOptions.UseQuotes;
+            }
+
+            return options;
+        }
+
         internal override string TrimAndGetFormatSpecifiers(string expression, out ReadOnlyCollection<string> formatSpecifiers)
         {
             expression = RemoveComments(expression);

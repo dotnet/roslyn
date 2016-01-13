@@ -472,7 +472,7 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(System.Threading.T
         }
 
         [Fact]
-        public void BetterDelegateType()
+        public void BetterDelegateType_01()
         {
             string source1 = @"
 using System;
@@ -518,6 +518,61 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(System.Func<int>, 
 //     M2(null,0);
 Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("P.M2(System.Func<int>, uint)", "P.M2(System.Action, int)")
                 );
+        }
+
+        [Fact, WorkItem(6560, "https://github.com/dotnet/roslyn/issues/6560")]
+        public void BetterDelegateType_02()
+        {
+            string source1 = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Run1(() => MethodReturnsVoid());
+        Run1(MethodReturnsVoid);
+        Run2(() => MethodReturnsVoid());
+        Run2(MethodReturnsVoid);
+    }
+
+    public static object Run1(Action action)
+    {
+        Console.WriteLine(""Run1(Action action)"");
+        action();
+        return null;
+    }
+
+    public static object Run1(Func<object> action, bool optional = false)
+    {
+        Console.WriteLine(""Run1(Func<object> action, bool optional = false)"");
+        return action();
+    }
+
+    public static object Run2(Func<object> action, bool optional = false)
+    {
+        Console.WriteLine(""Run2(Func<object> action, bool optional = false)"");
+        return action();
+    }
+
+    public static object Run2(Action action)
+    {
+        Console.WriteLine(""Run2(Action action)"");
+        action();
+        return null;
+    }
+
+    private static void MethodReturnsVoid()
+    {
+    }
+}
+";
+
+            CompileAndVerify(source1, expectedOutput:
+@"Run1(Action action)
+Run1(Action action)
+Run2(Action action)
+Run2(Action action)");
         }
 
         [Fact]

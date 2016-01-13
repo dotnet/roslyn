@@ -377,13 +377,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             double d = BitConverter.Int64BitsToDouble((long)bits);
             if (double.IsInfinity(d) || double.IsNaN(d)) return;
-            string s = $"{d:G17}";
+            string s = InvariantToString(d);
             CheckOneDouble(s, bits);
+        }
+
+        static string InvariantToString(object o)
+        {
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:G17}", o);
         }
 
         static void TestRoundTripDouble(double d)
         {
-            string s = $"{d:G17}";
+            string s = InvariantToString(d);
             CheckOneDouble(s, d);
         }
 
@@ -401,13 +406,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 #if DEBUG
                 throw new AssertFailureException($@"
 Error for double input ""{s}""
-   expected {expected:G17}
-   actual {actual:G17}");
+   expected {InvariantToString(expected)}
+   actual {InvariantToString(actual)}");
 #else
                 throw new Exception($@"
 Error for double input ""{s}""
-   expected {expected:G17}
-   actual {actual:G17}");
+   expected {InvariantToString(expected)}
+   actual {InvariantToString(actual)}");
 #endif
             }
         }
@@ -559,13 +564,13 @@ Error for double input ""{s}""
         {
             float d = Int32BitsToFloat(bits);
             if (float.IsInfinity(d) || float.IsNaN(d)) return;
-            string s = $"{d:G17}";
+            string s = InvariantToString(d);
             CheckOneFloat(s, bits);
         }
 
         static void TestRoundTripFloat(float d)
         {
-            string s = $"{d:G17}";
+            string s = InvariantToString(d);
             if (s != "NaN" && s != "Infinity") CheckOneFloat(s, d);
         }
 
@@ -582,12 +587,12 @@ Error for double input ""{s}""
             {
 #if DEBUG
                 throw new AssertFailureException($@"Error for float input ""{s}""
-   expected {expected:G17}
-   actual {actual:G17}");
+   expected {InvariantToString(expected)}
+   actual {InvariantToString(actual)}");
 #else
                 throw new Exception($@"Error for float input ""{s}""
-   expected {expected:G17}
-   actual {actual:G17}");
+   expected {InvariantToString(expected)}
+   actual {InvariantToString(actual)}");
 #endif
             }
         }

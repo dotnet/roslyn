@@ -1163,5 +1163,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Select
             Next
         End Sub
+
+        Public Overrides Function GetMetadata() As ModuleMetadata
+            Return Nothing
+        End Function
     End Class
 End Namespace

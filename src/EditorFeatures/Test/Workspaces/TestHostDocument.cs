@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _loader = new TestDocumentLoader(this);
         }
 
-        public TestHostDocument(string text = "", string displayName = "", SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, DocumentId id = null)
+        public TestHostDocument(string text = "", string displayName = "", SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, DocumentId id = null, string filePath = null)
         {
             _exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
             _id = id;
@@ -148,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _name = displayName;
             _sourceCodeKind = sourceCodeKind;
             _loader = new TestDocumentLoader(this);
+            _filePath = filePath;
         }
 
         internal void SetProject(TestHostProject project)
