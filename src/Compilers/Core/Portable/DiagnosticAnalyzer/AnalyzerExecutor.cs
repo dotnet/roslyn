@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Diagnostic, DiagnosticAnalyzer, bool> _addCategorizedLocalDiagnosticOpt;
         private readonly Action<Diagnostic, DiagnosticAnalyzer> _addCategorizedNonLocalDiagnosticOpt;
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
+        private readonly Func<Exception, bool> _analyzerExcetpionFilter;
         private readonly AnalyzerManager _analyzerManager;
         private readonly Func<DiagnosticAnalyzer, bool> _isCompilerAnalyzer;
         private readonly Func<DiagnosticAnalyzer, object> _getAnalyzerGateOpt;
@@ -53,6 +54,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="onAnalyzerException">
         /// Optional delegate which is invoked when an analyzer throws an exception.
         /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
+        /// </param>
+        /// <param name="analyzerExceptionFilter">
+        /// Optional delegate which is invoked when an analyzer throws an exception as an exception filter.
+        /// Delegate can do custom tasks such as crash hosting process to create a dump.
         /// </param>
         /// <param name="isCompilerAnalyzer">Delegate to determine if the given analyzer is compiler analyzer. 
         /// We need to special case the compiler analyzer at few places for performance reasons.</param>
@@ -73,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addNonCategorizedDiagnosticOpt,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            Func<Exception, bool> analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
@@ -89,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var analyzerExecutionTimeMapOpt = logExecutionTime ? new ConcurrentDictionary<DiagnosticAnalyzer, TimeSpan>() : null;
 
-            return new AnalyzerExecutor(compilation, analyzerOptions, addNonCategorizedDiagnosticOpt, onAnalyzerException,
+            return new AnalyzerExecutor(compilation, analyzerOptions, addNonCategorizedDiagnosticOpt, onAnalyzerException, analyzerExceptionFilter,
                 isCompilerAnalyzer, analyzerManager, shouldSkipAnalysisOnGeneratedCode, shouldSuppressGeneratedCodeDiagnostic,
                 getAnalyzerGate, analyzerExecutionTimeMapOpt, addCategorizedLocalDiagnosticOpt, addCategorizedNonLocalDiagnosticOpt, cancellationToken);
         }
@@ -119,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 shouldSuppressGeneratedCodeDiagnostic: (diagnostic, analyzer, compilation, ct) => false,
                 getAnalyzerGateOpt: null,
                 onAnalyzerException: onAnalyzerException,
+                analyzerExceptionFilter: null,
                 analyzerManager: analyzerManager,
                 analyzerExecutionTimeMapOpt: null,
                 addCategorizedLocalDiagnosticOpt: null,
@@ -131,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addNonCategorizedDiagnosticOpt,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            Func<Exception, bool> analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
@@ -145,6 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _analyzerOptions = analyzerOptions;
             _addNonCategorizedDiagnosticOpt = addNonCategorizedDiagnosticOpt;
             _onAnalyzerException = onAnalyzerException;
+            _analyzerExcetpionFilter = analyzerExceptionFilter;
             _isCompilerAnalyzer = isCompilerAnalyzer;
             _analyzerManager = analyzerManager;
             _shouldSkipAnalysisOnGeneratedCode = shouldSkipAnalysisOnGeneratedCode;
@@ -163,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return this;
             }
 
-            return new AnalyzerExecutor(_compilation, _analyzerOptions, _addNonCategorizedDiagnosticOpt, _onAnalyzerException,
+            return new AnalyzerExecutor(_compilation, _analyzerOptions, _addNonCategorizedDiagnosticOpt, _onAnalyzerException, _analyzerExcetpionFilter,
                 _isCompilerAnalyzer, _analyzerManager, _shouldSkipAnalysisOnGeneratedCode, _shouldSuppressGeneratedCodeDiagnostic,
                 _getAnalyzerGateOpt, _analyzerExecutionTimeMapOpt, _addCategorizedLocalDiagnosticOpt, _addCategorizedNonLocalDiagnosticOpt, cancellationToken);
         }
@@ -1045,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _analyzerExecutionTimeMapOpt.AddOrUpdate(analyzer, timer.Elapsed, (a, accumulatedTime) => accumulatedTime + timer.Elapsed);
                 }
             }
-            catch (Exception e) when (!IsCanceled(e, _cancellationToken))
+            catch (Exception e) when (ExceptionFilter(e))
             {
                 // Diagnostic for analyzer exception.
                 var diagnostic = CreateAnalyzerExceptionDiagnostic(analyzer, e);
@@ -1060,9 +1069,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
+        internal bool ExceptionFilter(Exception ex)
         {
-            return (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
+            if ((ex as OperationCanceledException)?.CancellationToken == _cancellationToken)
+            {
+                return false;
+            }
+
+            if (_analyzerExcetpionFilter != null)
+            {
+                return _analyzerExcetpionFilter(ex);
+            }
+
+            return true;
         }
 
         internal static Diagnostic CreateAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e)

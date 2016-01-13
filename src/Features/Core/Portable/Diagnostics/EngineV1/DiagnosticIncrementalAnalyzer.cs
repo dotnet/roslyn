@@ -124,9 +124,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             Contract.ThrowIfFalse(project.SupportsCompilation);
             Contract.ThrowIfNull(compilation);
 
+            Func<Exception, bool> analyzerExceptionFilter = ex =>
+            {
+                if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
+                {
+                    // if option is on, crash the host to get crash dump.
+                    FatalError.ReportUnlessCanceled(ex);
+                }
+
+                return true;
+            };
+
             var analysisOptions = new CompilationWithAnalyzersOptions(
                 new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Workspace),
                 GetOnAnalyzerException(project.Id),
+                analyzerExceptionFilter,
                 concurrentAnalysis,
                 logAnalyzerExecutionTime: true,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics);
