@@ -811,6 +811,9 @@ Class C
         Dim f3 = New Foo With {.Prop1 = Nothing}
         Dim f4 = New Foo With {.Field = 10, .Prop1 = Nothing}
         Dim f5 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+
+        Dim e1 = New Foo() With {.Prop1 = 10}
+        Dim e2 = New Foo With {10}
     End Sub
 End Class
 ]]>
@@ -818,14 +821,15 @@ End Class
                          </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
-            comp.VerifyDiagnostics()
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedQualifiedNameInInit, "").WithLocation(20, 32))
             comp.VerifyAnalyzerDiagnostics({New MemberInitializerTestAnalyzer}, Nothing, Nothing, False,
                                             Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, ".Field = 10").WithLocation(14, 34),
                                             Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, ".Prop1 = Nothing").WithLocation(15, 32),
                                             Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, ".Field = 10").WithLocation(16, 32),
                                             Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, ".Prop1 = Nothing").WithLocation(16, 45),
                                             Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, ".Prop2 = New Bar() With {.Field = True}").WithLocation(17, 32),
-                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, ".Field = True").WithLocation(17, 57))
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, ".Field = True").WithLocation(17, 57),
+                                            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, ".Prop1 = 10").WithLocation(19, 34))
         End Sub
 
         <Fact>

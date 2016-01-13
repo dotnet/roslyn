@@ -322,17 +322,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundLocalDeclaration : IVariableDeclarationStatement
     {
-        private static readonly ConditionalWeakTable<BoundLocalDeclaration, IVariable> s_variablesMappings =
-            new ConditionalWeakTable<BoundLocalDeclaration, IVariable>();
+        private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
+            new ConditionalWeakTable<BoundLocalDeclaration, object>();
 
         ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
         {
             get
             {
-                var builder = ArrayBuilder<IVariable>.GetInstance(1);
-                var variable = s_variablesMappings.GetValue(this, decl => new VariableDeclaration(decl.LocalSymbol, decl.InitializerOpt, decl.Syntax));
-                builder.Add(variable);
-                return builder.ToImmutableAndFree();
+                return (ImmutableArray<IVariable>) s_variablesMappings.GetValue(this, 
+                    declaration => ImmutableArray.Create<IVariable>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
 
@@ -341,26 +339,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundMultipleLocalDeclarations : IVariableDeclarationStatement
     {
-        private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, IVariable[]> s_variablesMappings =
-            new ConditionalWeakTable<BoundMultipleLocalDeclarations, IVariable[]>();
+        private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_variablesMappings =
+            new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
 
         ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
         {
             get
             {
-                var variables = s_variablesMappings.GetValue(this,
-                    multiDecls =>
+                return (ImmutableArray<IVariable>) s_variablesMappings.GetValue(this,
+                    multipleDeclarations =>
                     {
-                        var arrBuilder = ArrayBuilder<IVariable>.GetInstance(multiDecls.LocalDeclarations.Length);
-                        foreach (var decl in multiDecls.LocalDeclarations)
+                        var builder = ArrayBuilder<IVariable>.GetInstance(multipleDeclarations.LocalDeclarations.Length);
+                        foreach (var declaration in multipleDeclarations.LocalDeclarations)
                         {
-                            arrBuilder.Add((IVariable)new VariableDeclaration(decl.LocalSymbol, decl.InitializerOpt, decl.Syntax));
+                            builder.Add((IVariable)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax));
                         }
-                        return arrBuilder.ToArrayAndFree();
+                        return builder.ToImmutableAndFree();
                     });
-                var immBuilder = ArrayBuilder<IVariable>.GetInstance(variables.Length);
-                immBuilder.AddRange(variables);
-                return immBuilder.ToImmutableAndFree();
             }
         }
 

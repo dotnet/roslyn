@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             public ArrayInitializer(ImmutableArray<IExpression> elementValues, SyntaxNode syntax, ITypeSymbol arrayType)
             {
-                ArrayBuilder<IExpression> builder = ArrayBuilder<IExpression>.GetInstance();
+                ArrayBuilder<IExpression> builder = ArrayBuilder<IExpression>.GetInstance(elementValues.Length);
                 foreach (IExpression element in elementValues)
                 {
                     builder.Add(element);

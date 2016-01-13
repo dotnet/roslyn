@@ -90,15 +90,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Shared CaseElseMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundCaseStatement, ICaseClause)
+        Private Shared CaseElseMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundCaseStatement, Object)
 
         Private ReadOnly Property IClauses As ImmutableArray(Of ICaseClause) Implements ICase.Clauses
             Get
                 ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses, 
                 ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
                 If Me.CaseStatement.CaseClauses.IsEmpty AndAlso Me.CaseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
-                    Dim caseElse = CaseElseMappings.GetValue(Me.CaseStatement, Function(stmt) New CaseElse(stmt))
-                    Return ImmutableArray.Create(caseElse)
+                    Dim caseElse = CaseElseMappings.GetValue(Me.CaseStatement, Function(caseStatement) ImmutableArray.Create(Of ICaseClause)(New CaseElse(caseStatement)))
+                    Return DirectCast(caseElse, ImmutableArray(Of ICaseClause))
                 End If
 
                 Return Me.CaseStatement.CaseClauses.As(Of ICaseClause)()
@@ -376,11 +376,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundForToStatement
         Implements IForLoopStatement
 
-        Private Shared LoopBottomMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
+        Private Shared ReadOnly s_loopBottomMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
 
         Private ReadOnly Property IAtLoopBottom As ImmutableArray(Of IStatement) Implements IForLoopStatement.AtLoopBottom
             Get
-                Dim result = LoopBottomMappings.GetValue(
+                Dim result = s_loopBottomMappings.GetValue(
                     Me,
                     Function(BoundFor)
                         Dim statements As ArrayBuilder(Of IStatement) = ArrayBuilder(Of IStatement).GetInstance()
@@ -412,11 +412,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Shared LoopTopMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
+        Private Shared ReadOnly s_loopTopMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
 
         Private ReadOnly Property IBefore As ImmutableArray(Of IStatement) Implements IForLoopStatement.Before
             Get
-                Dim result = LoopTopMappings.GetValue(
+                Dim result = s_loopTopMappings.GetValue(
                     Me,
                     Function(BoundFor)
                         Dim statements As ArrayBuilder(Of IStatement) = ArrayBuilder(Of IStatement).GetInstance()
@@ -450,11 +450,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Shared LoopConditionMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, IExpression)
+        Private Shared ReadOnly s_loopConditionMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, IExpression)
 
         Private ReadOnly Property ICondition As IExpression Implements IForWhileUntilLoopStatement.Condition
             Get
-                Return LoopConditionMappings.GetValue(
+                Return s_loopConditionMappings.GetValue(
                     Me,
                     Function(BoundFor)
                         Dim limitValue As IExpression = If(BoundFor.LimitValue.IsConstant, DirectCast(BoundFor.LimitValue, IExpression), New Temporary(SyntheticLocalKind.ForLoopLimitValue, BoundFor, BoundFor.LimitValue))
@@ -774,29 +774,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundDimStatement
         Implements IVariableDeclarationStatement
 
-        Private Shared VariablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundDimStatement, IVariable())
+        Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundDimStatement, Object)
 
         Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
             Get
-                Dim variables = VariablesMappings.GetValue(Me, Function(dimStmt)
-                                                                   Dim arrBuilder = ArrayBuilder(Of IVariable).GetInstance()
-                                                                   For Each base In dimStmt.LocalDeclarations
-                                                                       If base.Kind = BoundKind.LocalDeclaration Then
-                                                                           Dim decl = DirectCast(base, BoundLocalDeclaration)
-                                                                           arrBuilder.Add(New VariableDeclaration(decl.LocalSymbol, decl.InitializerOpt, decl.Syntax))
-                                                                       ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
-                                                                           Dim asNewDecls = DirectCast(base, BoundAsNewLocalDeclarations)
-                                                                           For Each asNewDecl In asNewDecls.LocalDeclarations
-                                                                               arrBuilder.Add(New VariableDeclaration(asNewDecl.LocalSymbol, asNewDecls.Initializer, asNewDecl.Syntax))
-                                                                           Next
-                                                                       End If
-                                                                   Next
-                                                                   Return arrBuilder.ToArrayAndFree()
-                                                               End Function
+                Dim variables = s_variablesMappings.GetValue(Me, Function(dimStatement)
+                                                                     Dim builder = ArrayBuilder(Of IVariable).GetInstance()
+                                                                     For Each base In dimStatement.LocalDeclarations
+                                                                         If base.Kind = BoundKind.LocalDeclaration Then
+                                                                             Dim declaration = DirectCast(base, BoundLocalDeclaration)
+                                                                             builder.Add(New VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax))
+                                                                         ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
+                                                                             Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
+                                                                             For Each asNewDeclaration In asNewDeclarations.LocalDeclarations
+                                                                                 builder.Add(New VariableDeclaration(asNewDeclaration.LocalSymbol, asNewDeclarations.Initializer, asNewDeclaration.Syntax))
+                                                                             Next
+                                                                         End If
+                                                                     Next
+                                                                     Return builder.ToImmutableAndFree()
+                                                                 End Function
                                                                )
-                Dim immBuilder = ArrayBuilder(Of IVariable).GetInstance(variables.Length)
-                immBuilder.AddRange(variables)
-                Return immBuilder.ToImmutableAndFree()
+                Return DirectCast(variables, ImmutableArray(Of IVariable))
             End Get
         End Property
 
@@ -959,11 +957,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Shared VariablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundUsingStatement, Variables)
+        Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundUsingStatement, Variables)
 
         Private ReadOnly Property IVariables As IVariableDeclarationStatement Implements IUsingWithDeclarationStatement.Variables
             Get
-                Return VariablesMappings.GetValue(
+                Return s_variablesMappings.GetValue(
                     Me,
                     Function(BoundUsing)
                         Return New Variables(BoundUsing.ResourceList.As(Of IVariable))
@@ -1033,7 +1031,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundAddRemoveHandlerStatement
         Implements IExpressionStatement
 
-        Protected Shared ExpressionsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundAddRemoveHandlerStatement, IEventAssignmentExpression)
+        Protected Shared ReadOnly s_expressionsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundAddRemoveHandlerStatement, IEventAssignmentExpression)
 
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.ExpressionStatement
@@ -1122,9 +1120,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides ReadOnly Property IExpression As IExpression
             Get
-                Return ExpressionsMappings.GetValue(Me, Function(statement)
-                                                            Return New EventAssignmentExpression(statement, True)
-                                                        End Function)
+                Return s_expressionsMappings.GetValue(Me, Function(statement)
+                                                              Return New EventAssignmentExpression(statement, True)
+                                                          End Function)
             End Get
         End Property
     End Class
@@ -1133,9 +1131,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides ReadOnly Property IExpression As IExpression
             Get
-                Return ExpressionsMappings.GetValue(Me, Function(statement)
-                                                            Return New EventAssignmentExpression(statement, False)
-                                                        End Function)
+                Return s_expressionsMappings.GetValue(Me, Function(statement)
+                                                              Return New EventAssignmentExpression(statement, False)
+                                                          End Function)
             End Get
         End Property
     End Class

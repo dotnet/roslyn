@@ -83,11 +83,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (but not their children), since they are not statements in this case.
             public override BoundNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
             {
-                foreach (var decl in node.LocalDeclarations)
+                foreach (var declaration in node.LocalDeclarations)
                 {
-                    this.Visit(decl.DeclaredType);
-                    this.Visit(decl.InitializerOpt);
-                    this.VisitList(decl.ArgumentsOpt);
+                    this.Visit(declaration.DeclaredType);
+                    this.Visit(declaration.InitializerOpt);
+                    this.VisitList(declaration.ArgumentsOpt);
                 }
                 return null;
             }
@@ -96,8 +96,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The corresponding operations are covered by `IMemberInitializer`.
             public override BoundNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
             {
-                foreach (BoundAssignmentOperator assignment in node.Initializers)
+                foreach (var expression in node.Initializers)
                 {
+                    if (expression.HasErrors)
+                    {
+                        continue;
+                    }
+                    var assignment = (BoundAssignmentOperator) expression;
                     this.Visit(assignment.Left);
                     this.Visit(assignment.Right);
                 }
@@ -184,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments.ToImmutableAndFree();
         }
 
-        private static System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument> ArgumentMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument>();
+        private static readonly ConditionalWeakTable<BoundExpression, IArgument> s_argumentMappings = new ConditionalWeakTable<BoundExpression, IArgument>();
 
         private static IArgument DeriveArgument(int parameterIndex, int argumentIndex, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters)
         {
@@ -204,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return ArgumentMappings.GetValue(
+            return s_argumentMappings.GetValue(
                 boundArguments[argumentIndex],
                 (argument) =>
                 {
@@ -216,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (refMode != RefKind.None)
                         {
-                            return (IArgument)new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
+                            return new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
                         }
 
                         if (argumentIndex >= parameters.Length - 1 &&
@@ -227,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                              argument.Type.TypeKind != TypeKind.Array ||
                              !argument.Type.Equals(parameters[parameters.Length - 1].Type, true)))
                         {
-                            return (IArgument)new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex));
+                            return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex));
                         }
                         else
                         {
@@ -284,16 +289,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return -1;
         }
 
-        class SimpleArgument : IArgument
+        abstract class ArgumentBase : IArgument
         {
-            public SimpleArgument(IParameterSymbol parameter, IExpression value)
+            public ArgumentBase(IParameterSymbol parameter, IExpression value)
             {
                 this.Value = value;
                 this.Parameter = parameter;
             }
-
-            public ArgumentKind ArgumentKind => ArgumentKind.Positional;
-
+            
             public IParameterSymbol Parameter { get; }
 
             public IExpression Value { get; }
@@ -307,32 +310,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             OperationKind IOperation.Kind => OperationKind.Argument;
 
             SyntaxNode IOperation.Syntax => this.Value.Syntax;
+
+            public abstract ArgumentKind ArgumentKind { get; }
         }
 
-        class Argument : IArgument
+        class SimpleArgument : ArgumentBase
+        {
+            public SimpleArgument(IParameterSymbol parameter, IExpression value)
+                : base(parameter, value)
+            { }
+
+            public override ArgumentKind ArgumentKind => ArgumentKind.Positional;
+        }
+
+        class Argument : ArgumentBase
         {
             public Argument(ArgumentKind kind, IParameterSymbol parameter, IExpression value)
+                : base(parameter, value)
             {
-                this.Value = value;
                 this.ArgumentKind = kind;
-                this.Parameter = parameter;
             }
 
-            public ArgumentKind ArgumentKind { get; }
-
-            public IParameterSymbol Parameter { get; }
-            
-            public IExpression Value { get; }
-
-            IExpression IArgument.InConversion => null;
-
-            IExpression IArgument.OutConversion => null;
-
-            bool IOperation.IsInvalid => this.Parameter == null || this.Value.IsInvalid;
-
-            OperationKind IOperation.Kind => OperationKind.Argument;
-
-            SyntaxNode IOperation.Syntax => this.Value.Syntax;
+            public override ArgumentKind ArgumentKind { get; }
         }
     }
 
@@ -431,8 +430,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundObjectCreationExpression : IObjectCreationExpression
     {
-        private static readonly ConditionalWeakTable<BoundObjectCreationExpression, IMemberInitializer[]> s_memberInitializersMappings =
-            new ConditionalWeakTable<BoundObjectCreationExpression, IMemberInitializer[]>();
+        private static readonly ConditionalWeakTable<BoundObjectCreationExpression, object> s_memberInitializersMappings =
+            new ConditionalWeakTable<BoundObjectCreationExpression, object>();
 
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
@@ -447,17 +446,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var initializers = s_memberInitializersMappings.GetValue(this,
-                    objCreationExp =>
+                return (ImmutableArray<IMemberInitializer>)s_memberInitializersMappings.GetValue(this,
+                    objectCreationExpression =>
                     {
                         BoundExpression initializer = this.InitializerExpressionOpt;
                         if (initializer != null)
                         {
-                            var objInitializerExp = initializer as BoundObjectInitializerExpression;
-                            if (objInitializerExp != null)
+                            var objectInitializerExpression = initializer as BoundObjectInitializerExpression;
+                            if (objectInitializerExpression != null)
                             {
-                                var builder = ArrayBuilder<IMemberInitializer>.GetInstance(objInitializerExp.Initializers.Length);
-                                foreach (var memberAssignment in objInitializerExp.Initializers)
+                                var builder = ArrayBuilder<IMemberInitializer>.GetInstance(objectInitializerExpression.Initializers.Length);
+                                foreach (var memberAssignment in objectInitializerExpression.Initializers)
                                 {
                                     var assignment = memberAssignment as BoundAssignmentOperator;
                                     var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
@@ -477,14 +476,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             break;
                                     }
                                 }
-                                return builder.ToArrayAndFree();
+                                return builder.ToImmutableAndFree();
                             }
                         }
-                        return new IMemberInitializer[] { };
-                    });
-                var immBuilder = ArrayBuilder<IMemberInitializer>.GetInstance(initializers.Length);
-                immBuilder.AddRange(initializers);
-                return immBuilder.ToImmutableAndFree();                
+                        return ImmutableArray<IMemberInitializer>.Empty;
+                    });             
             }
         }
 
@@ -767,9 +763,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IReferenceExpression IAssignmentExpression.Target => this.Operand as IReferenceExpression;
 
-        private static readonly ConditionalWeakTable<BoundIncrementOperator, IExpression> IncrementValueMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundIncrementOperator, IExpression>();
+        private static readonly ConditionalWeakTable<BoundIncrementOperator, IExpression> s_incrementValueMappings = new ConditionalWeakTable<BoundIncrementOperator, IExpression>();
 
-        IExpression IAssignmentExpression.Value => IncrementValueMappings.GetValue(this, (increment) => new BoundLiteral(this.Syntax, Semantics.Expression.SynthesizeNumeric(increment.Type, 1), increment.Type));
+        IExpression IAssignmentExpression.Value => s_incrementValueMappings.GetValue(this, (increment) => new BoundLiteral(this.Syntax, Semantics.Expression.SynthesizeNumeric(increment.Type, 1), increment.Type));
 
         bool IHasOperatorExpression.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
 

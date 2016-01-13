@@ -812,24 +812,40 @@ class Foo
 class C
 {
     public void M1()
-    {
+    {   
         var x1 = new Foo();
         var x2 = new Foo() { Field = 2};
         var x3 = new Foo() { Property1 = """"};
         var x4 = new Foo() { Property1 = """", Field = 2};
         var x5 = new Foo() { Property2 = new Bar { Field = true } };
+
+        var e1 = new Foo() { Property2 = 1 };
+        var e2 = new Foo() { "" };      
     }
 }
 ";
             CreateCompilationWithMscorlib45(source)
-            .VerifyDiagnostics()
+            .VerifyDiagnostics(
+                // (25,30): error CS1010: Newline in constant
+                //         var e2 = new Foo() { " };      
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(25, 30),
+                // (26,6): error CS1002: ; expected
+                //     }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(26, 6),
+                // (27,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(27, 2),
+                // (24,42): error CS0029: Cannot implicitly convert type 'int' to 'Bar'
+                //         var e1 = new Foo() { Property2 = 1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "Bar").WithLocation(24, 42))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberInitializerTestAnalyzer() }, null, null, false,
-            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, "Field = 2").WithLocation(19, 30),
-            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, @"Property1 = """"").WithLocation(20, 30),
-            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, @"Property1 = """"").WithLocation(21, 30),
-            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, "Field = 2").WithLocation(21, 46),
-            Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, "Property2 = new Bar { Field = true }").WithLocation(22, 30),
-            Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, "Field = true").WithLocation(22, 52));
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, "Field = 2").WithLocation(19, 30),
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, @"Property1 = """"").WithLocation(20, 30),
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, @"Property1 = """"").WithLocation(21, 30),
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, "Field = 2").WithLocation(21, 46),
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, "Property2 = new Bar { Field = true }").WithLocation(22, 30),
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitiliazerDescriptor.Id, "Field = true").WithLocation(22, 52),
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, "Property2 = 1").WithLocation(24, 30));
         }
 
         [Fact]
