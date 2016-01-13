@@ -20,7 +20,7 @@
     <CopyReferencesByDefault>false</CopyReferencesByDefault>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <!-- Override Roslyn which embeds by default -->
-    <VBRuntime>Default</VBRuntime> 
+    <VBRuntime>Default</VBRuntime>
   </PropertyGroup>
   <ItemGroup>
     <Import Include="VSErrorHandler=Microsoft.VisualStudio.ErrorHandler" />
@@ -85,10 +85,10 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" />
-    <Compile Include="$(VSCommonIncPath)\ManagedCodeMarkers.vb">
+    <Compile Include="..\..\..\Common\ManagedCodeMarkers.vb">
       <Link>ManagedCodeMarkers.vb</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" />
     <Compile Include="ApplicationDesigner\ApplicationDesignerEditorFactory.vb" />
     <Compile Include="ApplicationDesigner\ApplicationDesignerLoader.vb" />
     <Compile Include="ApplicationDesigner\ApplicationDesignerPanel.vb">
