@@ -112,7 +112,6 @@
     <Compile Include="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnostics.cs" />
     <Compile Include="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnostics.Fixer.cs" />
     <Compile Include="DoNotUseGenericCodeActionCreateToCreateCodeAction.cs" />
-    <Compile Include="DoNotUseGenericCodeActionCreateToCreateCodeAction.Fixer.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatable.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.cs" />
     <Compile Include="DoNotInvokeDiagnosticDescriptor.cs" />

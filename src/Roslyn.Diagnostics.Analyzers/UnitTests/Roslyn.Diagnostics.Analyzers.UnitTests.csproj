@@ -154,7 +154,6 @@
     <Compile Include="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTests.cs" />
     <Compile Include="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTests.Fixer.cs" />
     <Compile Include="DoNotUseGenericCodeActionCreateToCreateCodeActionTests.cs" />
-    <Compile Include="DoNotUseGenericCodeActionCreateToCreateCodeActionTests.Fixer.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.Fixer.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTests.cs" />

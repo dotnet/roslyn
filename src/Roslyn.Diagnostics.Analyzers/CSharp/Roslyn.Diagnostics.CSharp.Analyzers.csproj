@@ -104,7 +104,6 @@
     <Compile Include="CSharpInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnostics.cs" />
     <Compile Include="CSharpInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnostics.Fixer.cs" />
     <Compile Include="CSharpDoNotUseGenericCodeActionCreateToCreateCodeAction.cs" />
-    <Compile Include="CSharpDoNotUseGenericCodeActionCreateToCreateCodeAction.Fixer.cs" />
     <Compile Include="CSharpOverrideObjectEqualsObjectWhenImplementingIequatable.cs" />
     <Compile Include="CSharpOverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.cs" />
     <Compile Include="CSharpDoNotInvokeDiagnosticDescriptor.cs" />
