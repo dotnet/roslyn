@@ -106,7 +106,6 @@
     <Compile Include="CSharpOverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.cs" />
     <Compile Include="CSharpDoNotInvokeDiagnosticDescriptor.cs" />
     <Compile Include="CSharpSymbolDeclaredEventMustBeGeneratedForSourceSymbols.cs" />
-    <Compile Include="CSharpSymbolDeclaredEventMustBeGeneratedForSourceSymbols.Fixer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />

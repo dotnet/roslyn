@@ -156,7 +156,6 @@
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.Fixer.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTests.cs" />
-    <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTests.Fixer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />

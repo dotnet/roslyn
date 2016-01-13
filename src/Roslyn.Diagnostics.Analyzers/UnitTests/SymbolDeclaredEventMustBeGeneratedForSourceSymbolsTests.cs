@@ -12,12 +12,12 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new BasicSymbolDeclaredEventMustBeGeneratedForSourceSymbolsAnalyzer();
+            return new BasicSymbolDeclaredEventAnalyzer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CSharpSymbolDeclaredEventMustBeGeneratedForSourceSymbolsAnalyzer();
+            return new CSharpSymbolDeclaredEventAnalyzer();
         }
     }
 }

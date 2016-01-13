@@ -109,7 +109,6 @@
     <Compile Include="BasicOverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.vb" />
     <Compile Include="BasicDoNotInvokeDiagnosticDescriptor.vb" />
     <Compile Include="BasicSymbolDeclaredEventMustBeGeneratedForSourceSymbols.vb" />
-    <Compile Include="BasicSymbolDeclaredEventMustBeGeneratedForSourceSymbols.Fixer.vb" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\vb\Microsoft.CodeAnalysis.Analyzers.dll" />
