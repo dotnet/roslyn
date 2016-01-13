@@ -1094,11 +1094,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            public T this[int index]
+            public T this[int rowId]
             {
                 get
                 {
-                    int rowId = index + 1;
                     return _map[rowId];
                 }
             }
