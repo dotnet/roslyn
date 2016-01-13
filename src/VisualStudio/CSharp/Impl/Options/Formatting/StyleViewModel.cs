@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
@@ -155,13 +156,18 @@ class C{
             // TODO (BalajiK): Localize all strings from here.
             Items.Add(new HeaderItemViewModel() { Header = "Type Inference preference for local declarations everywhere:" });
 
-            Items.Add(new RadioButtonViewModel<TypeInferencePreferenceOptions>("use implicit typing", s_ImplicitTypingPreview, "usevar", TypeInferencePreferenceOptions.ImplicitTyping, CSharpCodeStyleOptions.UseImplicitTypingForLocals, this, optionSet));
-            Items.Add(new RadioButtonViewModel<TypeInferencePreferenceOptions>("use explicit typing", s_ExplicitTypingPreview, "usevar", TypeInferencePreferenceOptions.ExplicitTyping, CSharpCodeStyleOptions.UseImplicitTypingForLocals, this, optionSet));
+            var implicitTypingOption = new RadioButtonViewModel<TypeInferencePreferenceOptions>("use implicit typing", s_ImplicitTypingPreview, "usevar", TypeInferencePreferenceOptions.ImplicitTyping, CSharpCodeStyleOptions.UseImplicitTypingForLocals, this, optionSet);
+            Items.Add(implicitTypingOption);
+            var explicitTypingOption = new RadioButtonViewModel<TypeInferencePreferenceOptions>("use explicit typing", s_ExplicitTypingPreview, "usevar", TypeInferencePreferenceOptions.ExplicitTyping, CSharpCodeStyleOptions.UseImplicitTypingForLocals, this, optionSet);
+            Items.Add(explicitTypingOption);
 
             Items.Add(new HeaderItemViewModel() { Header = "Type Inference preference for local declarations in special cases:" });
 
-            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, "use var where typing is apparent", s_ImplicitTypingWhereApparentPreview, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, "use intrinsic types", s_ExplicitTypingForIntrinsicTypesPreview, this, optionSet));
+            var useVarWhereApparentChildControl = new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, "use var where typing is apparent", s_ImplicitTypingWhereApparentPreview, this, optionSet, _ => implicitTypingOption.IsChecked);
+            var useIntrinsicTypesChildControl = new CheckBoxOptionViewModel(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, "use intrinsic types", s_ExplicitTypingForIntrinsicTypesPreview, this, optionSet, _ => implicitTypingOption.IsChecked);
+
+            Items.Add(useVarWhereApparentChildControl);
+            Items.Add(useIntrinsicTypesChildControl);
         }
     }
 }

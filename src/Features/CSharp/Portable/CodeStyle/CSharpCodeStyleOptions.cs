@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly Option<bool> UseVarWhenDeclaringLocals = new Option<bool>(FeatureName, "UseVarWhenDeclaringLocals", defaultValue: true);
 
         public static readonly Option<TypeInferencePreferenceOptions> UseImplicitTypingForLocals = new Option<TypeInferencePreferenceOptions>(FeatureName, "UseImplicitTypingForLocals", defaultValue: TypeInferencePreferenceOptions.ExplicitTyping);
-        public static readonly Option<bool> UseVarWhenTypeIsApparent = new Option<bool>(FeatureName, "UseImplicitTypingWhereApparent", defaultValue: true);
-        public static readonly Option<bool> DoNotUseVarForIntrinsicTypes = new Option<bool>(FeatureName, "NoImplicitTypingForIntrinsics", defaultValue: true);
+        public static readonly Option<bool> UseVarWhenTypeIsApparent = new Option<bool>(FeatureName, "UseImplicitTypingWhereApparent", defaultValue: false);
+        public static readonly Option<bool> DoNotUseVarForIntrinsicTypes = new Option<bool>(FeatureName, "NoImplicitTypingForIntrinsics", defaultValue: false);
     }
 
     public enum TypeInferencePreferenceOptions

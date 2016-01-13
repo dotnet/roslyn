@@ -27,6 +27,7 @@
                     <StackPanel Orientation="Horizontal">
                         <CheckBox x:Uid="OptionCheckBox" 
                                         IsChecked="{Binding IsChecked, Mode=TwoWay}" 
+                                        Command="{Binding EnableCommand}"
                                         Width="Auto"
                                         Focusable="False"
                                         Margin="20, 0, 0, 0">
@@ -42,7 +43,7 @@
                 <DataTemplate DataType="{x:Type options:AbstractRadioButtonViewModel}">
                     <StackPanel Orientation="Horizontal">
                         <RadioButton x:Uid="OptionRadioButton" 
-                                        IsChecked="{Binding IsChecked, Mode=TwoWay}" 
+                                        IsChecked="{Binding IsChecked, Mode=TwoWay}"
                                         Width="Auto"
                                         Focusable="False"
                                         GroupName="{Binding GroupName, Mode=OneWay}"

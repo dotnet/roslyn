@@ -322,6 +322,7 @@
     <Compile Include="Options\InternalOptionSerializer.cs" />
     <Compile Include="Options\PerLanguageOptionBinding.cs" />
     <Compile Include="Options\RadioButtonViewModel.cs" />
+    <Compile Include="Options\RelayCommand.cs" />
     <Compile Include="RoslynVisualStudioWorkspace.cs" />
   </ItemGroup>
   <ItemGroup>
