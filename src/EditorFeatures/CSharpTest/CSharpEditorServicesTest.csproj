@@ -374,6 +374,7 @@
     <Compile Include="TodoComment\TodoCommentTests.cs" />
     <Compile Include="Utilities\CodeSnippets.cs" />
     <Compile Include="Utilities\CSharpServiceTestExtensions.cs" />
+    <Compile Include="Utilities\OptionExtensions.cs" />
     <Compile Include="Utilities\Options.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.Delegate.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.cs" />

@@ -6,7 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.UseImplicitTyping;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -17,10 +18,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
 {
     public class UseImplicitTypingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
+        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace) => 
+            new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 new CSharpUseImplicitTypingDiagnosticAnalyzer(), new UseImplicitTypingCodeFixProvider());
+
+        // specify all options explicitly to override defaults.
+        private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
+            Options(CSharpCodeStyleOptions.UseImplicitTypingForLocals, TypeInferencePreferenceOptions.ImplicitTyping)
+            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, false)
+            .With(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, false);
+
+        private IDictionary<OptionKey, object> ImplicitTypingWhereApparent() =>
+            Options(CSharpCodeStyleOptions.UseImplicitTypingForLocals, TypeInferencePreferenceOptions.ExplicitTyping)
+            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, true)
+            .With(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, false);
+
+        private IDictionary<OptionKey, object> ImplicitTypingButKeepIntrinsics() =>
+            Options(CSharpCodeStyleOptions.UseImplicitTypingForLocals, TypeInferencePreferenceOptions.ImplicitTyping)
+            .With(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, true)
+            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, false);
+
+        private IDictionary<OptionKey, object> Options(OptionKey option, object value)
+        {
+            var options = new Dictionary<OptionKey, object>();
+            options.Add(option, value);
+            return options;
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -31,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
 class Program
 {
     [|int|] _myfield = 5;
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -42,7 +64,7 @@ class Program
 class Program
 {
     public event [|D|] _myevent;
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -56,7 +78,7 @@ class Program
     {
         const [|int|] x = 5;
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -70,7 +92,7 @@ class Program
     {
         [|Program|] x = null;
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -84,7 +106,7 @@ class Program
     {
         [|dynamic|] x = 1;
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -100,7 +122,7 @@ class Program
             return value != ""0"";
         };
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -114,7 +136,7 @@ class Program
     {
         [|Func<int, int>|] x = y => y * y;
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -128,7 +150,7 @@ class Program
     {
         [|Func<string, string>|] copyStr = string.Copy;
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -142,7 +164,7 @@ class Program
     {
         [|int|] x = 5, y = x;
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -156,7 +178,7 @@ class Program
     {
         [|Program|] x;
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -170,7 +192,7 @@ class Program
     {
         [|IFormattable|] s = $""Hello, {name}""
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -184,7 +206,7 @@ class Program
     {
         [|FormattableString|] s = $""Hello, {name}""
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -206,7 +228,7 @@ class Program
             throw;
         }
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -225,7 +247,7 @@ class Program
     {
 
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -239,7 +261,7 @@ class Program
     {
          [|var|] p = new Program();
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -252,7 +274,7 @@ class Program
     void Method()
     {
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         // TODO: should we or should we not? also, check boxing cases.
@@ -266,7 +288,7 @@ class Program
     void Method()
     {
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -280,7 +302,7 @@ class C
     {
         C c = new [|C|]();
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -294,7 +316,7 @@ class C
     {
         [|int|] i = (i = 20);
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -308,7 +330,7 @@ class C
     {
         [|int[]|] n1 = {2, 4, 6, 8};
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -330,7 +352,7 @@ class C
     {
         var s = ""hello"";
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -352,7 +374,7 @@ class C
     {
         var s = 5;
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -374,7 +396,7 @@ class C
     {
         var c = new List<int>();
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -396,7 +418,7 @@ class C
     {
         var c = new C();
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -418,7 +440,7 @@ class C<T>
     {
         var c = new C<int>();
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -440,7 +462,7 @@ class C
     {
         var n1 = new int[4] {2, 4, 6, 8};
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -462,7 +484,7 @@ class C
     {
         var n1 = new[] {2, 4, 6, 8};
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -492,7 +514,7 @@ class C
             new[]{5,6,7,8}
         };
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -522,7 +544,7 @@ class C
     {
         public string City { get; set; }
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -544,7 +566,7 @@ class C
     {
         var digits = new List<int> { 1, 2, 3 };
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -580,7 +602,7 @@ class C
     {
         public string City { get; set; }
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -608,7 +630,7 @@ class C
 
         }
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -638,7 +660,7 @@ class C
 
         }
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -684,7 +706,7 @@ class C
             public string City { get; set; }
         }
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
@@ -726,7 +748,7 @@ class C
             throw new NotImplementedException();
         }
     }
-}");
+}", options: ImplicitTypingEverywhere());
         }
 
         // TODO: Tests for ConditionalAccessExpression.
