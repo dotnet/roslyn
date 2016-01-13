@@ -286,25 +286,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static string FormatString(string str, bool useQuotes)
-        {
-            if (!useQuotes)
-            {
-                return str;
-            }
-
-            var pooledBuilder = PooledStringBuilder.GetInstance();
-            var builder = pooledBuilder.Builder;
-            const char quote = '"';
-            builder.Append(quote);
-            foreach (var c in str)
-            {
-                FormatStringChar(builder, c, quote);
-            }
-            builder.Append(quote);
-            return pooledBuilder.ToStringAndFree();
-        }
-
         /// <summary>
         /// Returns a C# character literal with the given value.
         /// </summary>
