@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public static string FormatPrimitive(object obj, bool quoteStrings, bool useHexadecimalNumbers)
         {
-            var options = ObjectDisplayOptions.None;
+            var options = ObjectDisplayOptions.EscapeNonPrintableStringCharacters;
             if (quoteStrings)
             {
                 options |= ObjectDisplayOptions.UseQuotes;
@@ -168,7 +168,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public static string FormatLiteral(string value, bool quote)
         {
-            return ObjectDisplay.FormatLiteral(value, quote ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None);
+            var options = ObjectDisplayOptions.EscapeNonPrintableStringCharacters | 
+                (quote ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None);
+            return ObjectDisplay.FormatLiteral(value, options);
         }
 
         /// <summary>

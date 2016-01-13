@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Text;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -30,9 +29,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         string IDkmClrFormatter.GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers)
         {
-            var options = ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoQuotes) == 0) ?
-                ObjectDisplayOptions.UseQuotes :
-                ObjectDisplayOptions.None;
+            ObjectDisplayOptions options = GetValueStringOptions((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoQuotes) == 0);
             return GetValueString(value, inspectionContext, options, GetValueFlags.IncludeObjectId);
         }
 
@@ -66,6 +63,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract bool IsPredefinedType(Type type);
 
         internal abstract bool IsWhitespace(char c);
+
+        internal abstract ObjectDisplayOptions GetValueStringOptions(bool useQuotes);
 
         // Note: We could be less conservative (e.g. "new C()").
         internal bool NeedsParentheses(string expr)
