@@ -101,8 +101,6 @@
     <Compile Include="CSharpUseSpecializedCollectionsEmptyEnumerable.Fixer.cs" />
     <Compile Include="CSharpUseSpecializedCollectionsSingletonEnumerable.cs" />
     <Compile Include="CSharpUseSpecializedCollectionsSingletonEnumerable.Fixer.cs" />
-    <Compile Include="CSharpInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnostics.cs" />
-    <Compile Include="CSharpInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnostics.Fixer.cs" />
     <Compile Include="CSharpDoNotUseGenericCodeActionCreateToCreateCodeAction.cs" />
     <Compile Include="CSharpOverrideObjectEqualsObjectWhenImplementingIequatable.cs" />
     <Compile Include="CSharpOverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.cs" />

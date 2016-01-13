@@ -109,8 +109,6 @@
     <Compile Include="UseSpecializedCollectionsEmptyEnumerable.Fixer.cs" />
     <Compile Include="UseSpecializedCollectionsSingletonEnumerable.cs" />
     <Compile Include="UseSpecializedCollectionsSingletonEnumerable.Fixer.cs" />
-    <Compile Include="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnostics.cs" />
-    <Compile Include="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnostics.Fixer.cs" />
     <Compile Include="DoNotUseGenericCodeActionCreateToCreateCodeAction.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatable.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.cs" />

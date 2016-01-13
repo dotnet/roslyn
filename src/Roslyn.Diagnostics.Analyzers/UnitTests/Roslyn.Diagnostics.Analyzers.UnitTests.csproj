@@ -152,7 +152,6 @@
     <Compile Include="UseSpecializedCollectionsSingletonEnumerableTests.cs" />
     <Compile Include="UseSpecializedCollectionsSingletonEnumerableTests.Fixer.cs" />
     <Compile Include="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTests.cs" />
-    <Compile Include="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTests.Fixer.cs" />
     <Compile Include="DoNotUseGenericCodeActionCreateToCreateCodeActionTests.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.cs" />
     <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.Fixer.cs" />
