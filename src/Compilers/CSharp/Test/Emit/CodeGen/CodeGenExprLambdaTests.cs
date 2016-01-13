@@ -5861,6 +5861,65 @@ value(ConsoleApplication6.Program)";
                 expectedOutput: expectedOutput);
         }
 
+        [WorkItem(6416, "https://github.com/dotnet/roslyn/issues/6416")]
+        [Fact]
+        public void CapturedThis002()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication6
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = new Program();
+            v.test();
+        }
+
+        public int P1
+        {
+            get
+            {
+                return 42;
+            }
+        }
+
+        public void test()
+        {
+            var local = 0;
+
+         Func<Expression<Func<Expression<Func<int>>>>> ff = () =>
+         {
+             Func<Expression<Func<int>>> f =
+                    () =>
+                    {
+                        System.Console.WriteLine(P1 + local);
+                        return () => P1;
+                    };
+
+                return () => f();
+            };
+
+            System.Console.WriteLine((ff().Compile()().Body as MemberExpression).Expression);
+        }
+    }
+}
+";
+
+            const string expectedOutput = @"42
+value(ConsoleApplication6.Program)";
+
+            CompileAndVerify(
+                new[] {
+                    source,
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
         #endregion Regression Tests
 
         #region helpers
