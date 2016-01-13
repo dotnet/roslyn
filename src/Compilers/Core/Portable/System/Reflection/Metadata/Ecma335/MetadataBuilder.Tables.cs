@@ -1,14 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Roslyn.Utilities;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 
+#if SRM
+using System.Reflection.Internal;
+#else
+using Roslyn.Utilities;
+#endif
+
+#if SRM
 namespace System.Reflection.Metadata.Ecma335
+#else
+namespace Roslyn.Reflection.Metadata.Ecma335
+#endif
 {
-    internal sealed partial class MetadataBuilder
+    partial class MetadataBuilder
     {
         private const byte MetadataFormatMajorVersion = 2;
         private const byte MetadataFormatMinorVersion = 0;

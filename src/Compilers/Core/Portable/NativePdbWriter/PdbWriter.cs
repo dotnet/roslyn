@@ -16,10 +16,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
+using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
 
 namespace Microsoft.Cci
 {
-    using OP = PdbLogger.PdbWriterOperation;
+    using Roslyn.Reflection;
+    using Roslyn.Reflection.PortableExecutable;
 
     /// <summary>
     /// Exception to enable callers to catch all of the exceptions originating

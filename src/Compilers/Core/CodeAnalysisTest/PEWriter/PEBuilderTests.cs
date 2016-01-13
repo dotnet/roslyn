@@ -6,9 +6,12 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Reflection.Metadata.Ecma335.Blobs;
+using Roslyn.Reflection.Metadata.Ecma335.Blobs;
 using System.Reflection.PortableExecutable;
 using Xunit;
+using Roslyn.Reflection;
+using Roslyn.Reflection.Metadata.Ecma335;
+using Roslyn.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -104,12 +107,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 hashValue: default(BlobIdx));
 
             int systemObjectTypeRefRowId = metadata.AddTypeReference(
-                mscorlibAssemblyRefRowId.ToCodedIndex(ResolutionScopeTag.AssemblyRef),
+                mscorlibAssemblyRefRowId.ToCodedIndex(CodedIndex.ResolutionScope.AssemblyRef),
                 metadata.GetStringIndex("System"),
                 metadata.GetStringIndex("Object"));
 
             int systemConsoleTypeRefRowId = metadata.AddTypeReference(
-                mscorlibAssemblyRefRowId.ToCodedIndex(ResolutionScopeTag.AssemblyRef),
+                mscorlibAssemblyRefRowId.ToCodedIndex(CodedIndex.ResolutionScope.AssemblyRef),
                 metadata.GetStringIndex("System"),
                 metadata.GetStringIndex("Console"));
 
@@ -121,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 EndParameters();
 
             int consoleWriteLineMemberRefRowId = metadata.AddMemberReference(
-                systemConsoleTypeRefRowId.ToCodedIndex(MemberRefParentTag.TypeRef),
+                systemConsoleTypeRefRowId.ToCodedIndex(CodedIndex.MemberRefParent.TypeRef),
                 metadata.GetStringIndex("WriteLine"),
                 metadata.GetBlobIndex(consoleWriteLineSignature.Builder));
 
@@ -132,7 +135,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var parameterlessCtorBlobIndex = metadata.GetBlobIndex(parameterlessCtorSignature.Builder);
 
             int objectCtorMemberRefRowId = metadata.AddMemberReference(
-                systemObjectTypeRefRowId.ToCodedIndex(MemberRefParentTag.TypeRef),
+                systemObjectTypeRefRowId.ToCodedIndex(CodedIndex.MemberRefParent.TypeRef),
                 metadata.GetStringIndex(".ctor"),
                 parameterlessCtorBlobIndex);
 
@@ -201,7 +204,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit,
                 metadata.GetStringIndex("ConsoleApplication"),
                 metadata.GetStringIndex("Program"),
-                systemObjectTypeRefRowId.ToCodedIndex(TypeDefOrRefTag.TypeRef),
+                systemObjectTypeRefRowId.ToCodedIndex(CodedIndex.TypeDefOrRef.TypeRef),
                 fieldList: 1,
                 methodList: mainMethodDefRowId);
         }

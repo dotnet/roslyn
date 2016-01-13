@@ -1,13 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.PortableExecutable;
+using System.Reflection.Metadata.Ecma335;
 
+#if SRM
+using System.Reflection.PortableExecutable;
+#else
+using Roslyn.Reflection.PortableExecutable;
+#endif
+
+#if SRM
 namespace System.Reflection.Metadata.Ecma335
+#else
+namespace Roslyn.Reflection.Metadata.Ecma335
+#endif
 {
-    internal sealed class StandaloneDebugMetadataSerializer : MetadataSerializer
+#if SRM
+    public
+#endif
+    sealed class StandaloneDebugMetadataSerializer : MetadataSerializer
     {
         private const string DebugMetadataVersionString = "PDB v1.0";
 
@@ -57,7 +71,10 @@ namespace System.Reflection.Metadata.Ecma335
         }
     }
 
-    internal sealed class TypeSystemMetadataSerializer : MetadataSerializer
+#if SRM
+    public
+#endif
+    sealed class TypeSystemMetadataSerializer : MetadataSerializer
     {
         private static readonly ImmutableArray<int> EmptyRowCounts = ImmutableArray.CreateRange(Enumerable.Repeat(0, MetadataTokens.TableCount));
 
@@ -81,7 +98,10 @@ namespace System.Reflection.Metadata.Ecma335
         }
     }
 
-    internal abstract class MetadataSerializer
+#if SRM
+    public
+#endif
+    abstract class MetadataSerializer
     {
         protected readonly MetadataBuilder _tables;
         private readonly MetadataSizes _sizes;

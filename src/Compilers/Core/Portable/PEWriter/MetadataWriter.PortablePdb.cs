@@ -9,12 +9,15 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.Metadata.Ecma335.Blobs;
-
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection.Metadata.Ecma335.Blobs;
+    using Roslyn.Reflection.Metadata.Ecma335;
+    using Roslyn.Reflection;
+
     internal partial class MetadataWriter
     {
 

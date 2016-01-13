@@ -10,6 +10,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Reflection;
 using Roslyn.Test.Utilities;
 using Xunit;
 

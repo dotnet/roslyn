@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using System.Globalization;
 using System.Reflection;
+using Roslyn.Reflection;
 
 namespace Microsoft.Cci
 {

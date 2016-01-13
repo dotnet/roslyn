@@ -9,6 +9,8 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Roslyn.Reflection;
+using Roslyn.Reflection.PortableExecutable;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 using Microsoft.CodeAnalysis.CodeGen;
 

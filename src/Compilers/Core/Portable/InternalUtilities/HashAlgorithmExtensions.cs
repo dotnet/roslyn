@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using System.Reflection;
+using Roslyn.Reflection;
 
 namespace Roslyn.Utilities
 {

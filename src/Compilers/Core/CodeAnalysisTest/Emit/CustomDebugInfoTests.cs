@@ -11,6 +11,7 @@ using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using PDB::Microsoft.CodeAnalysis;
+using Roslyn.Reflection;
 using Roslyn.Test.Utilities;
 using Xunit;
 

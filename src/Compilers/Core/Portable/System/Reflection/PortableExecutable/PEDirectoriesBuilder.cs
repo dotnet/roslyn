@@ -1,27 +1,36 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using CciDirectoryEntry = Microsoft.Cci.DirectoryEntry;
+#if !SRM
+using DirectoryEntry = Microsoft.Cci.DirectoryEntry;
+#endif
 
+#if SRM
 namespace System.Reflection.PortableExecutable
+#else
+namespace Roslyn.Reflection.PortableExecutable
+#endif
 {
-    internal sealed class PEDirectoriesBuilder
+#if SRM
+    public
+#endif
+    sealed class PEDirectoriesBuilder
     {
         public int AddressOfEntryPoint { get; set; }
 
-        public CciDirectoryEntry ExportTable { get; set; }
-        public CciDirectoryEntry ImportTable { get; set; }
-        public CciDirectoryEntry ResourceTable { get; set; }
-        public CciDirectoryEntry ExceptionTable { get; set; }
-        public CciDirectoryEntry CertificateTable { get; set; }
-        public CciDirectoryEntry BaseRelocationTable { get; set; }
-        public CciDirectoryEntry DebugTable { get; set; }
-        public CciDirectoryEntry CopyrightTable { get; set; }
-        public CciDirectoryEntry GlobalPointerTable { get; set; }
-        public CciDirectoryEntry ThreadLocalStorageTable { get; set; }
-        public CciDirectoryEntry LoadConfigTable { get; set; }
-        public CciDirectoryEntry BoundImportTable { get; set; }
-        public CciDirectoryEntry ImportAddressTable { get; set; }
-        public CciDirectoryEntry DelayImportTable { get; set; }
-        public CciDirectoryEntry CorHeaderTable { get; set; }
+        public DirectoryEntry ExportTable { get; set; }
+        public DirectoryEntry ImportTable { get; set; }
+        public DirectoryEntry ResourceTable { get; set; }
+        public DirectoryEntry ExceptionTable { get; set; }
+        public DirectoryEntry CertificateTable { get; set; }
+        public DirectoryEntry BaseRelocationTable { get; set; }
+        public DirectoryEntry DebugTable { get; set; }
+        public DirectoryEntry CopyrightTable { get; set; }
+        public DirectoryEntry GlobalPointerTable { get; set; }
+        public DirectoryEntry ThreadLocalStorageTable { get; set; }
+        public DirectoryEntry LoadConfigTable { get; set; }
+        public DirectoryEntry BoundImportTable { get; set; }
+        public DirectoryEntry ImportAddressTable { get; set; }
+        public DirectoryEntry DelayImportTable { get; set; }
+        public DirectoryEntry CorHeaderTable { get; set; }
     }
 }

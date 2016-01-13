@@ -1,12 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
+
+#if SRM
+using System.Reflection.Internal;
+using BitArithmeticUtilities = System.Reflection.Internal.BitArithmetic;
+#else
+using System.Reflection.PortableExecutable;
 using Roslyn.Utilities;
+using DirectoryEntry = Microsoft.Cci.DirectoryEntry;
+#endif
 
+#if SRM
 namespace System.Reflection.PortableExecutable
+#else
+namespace Roslyn.Reflection.PortableExecutable
+#endif
 {
-    using CciDirectoryEntry = Microsoft.Cci.DirectoryEntry;
-
     /// <summary>
     /// Managed .text PE section.
     /// </summary>
@@ -24,7 +35,10 @@ namespace System.Reflection.PortableExecutable
     /// - Runtime Startup Stub
     /// - Mapped Field Data
     /// </remarks>
-    internal sealed class ManagedTextSection
+#if SRM
+    public
+#endif
+    sealed class ManagedTextSection
     {
         public Characteristics ImageCharacteristics { get; }
         public Machine Machine { get; }
@@ -218,12 +232,12 @@ namespace System.Reflection.PortableExecutable
             return ImageDebugDirectoryBaseSize + ComputeSizeOfDebugDirectoryData();
         }
 
-        public CciDirectoryEntry GetDebugDirectoryEntry(int rva)
+        public DirectoryEntry GetDebugDirectoryEntry(int rva)
         {
             // Only the size of the fixed part of the debug table goes here.
             return (EmitPdb || IsDeterministic) ?
-                new CciDirectoryEntry(rva + ComputeOffsetToDebugTable(), ImageDebugDirectoryBaseSize) :
-                default(CciDirectoryEntry);
+                new DirectoryEntry(rva + ComputeOffsetToDebugTable(), ImageDebugDirectoryBaseSize) :
+                default(DirectoryEntry);
         }
 
         public int ComputeSizeOfTextSection()
@@ -240,24 +254,24 @@ namespace System.Reflection.PortableExecutable
                 0;
         }
 
-        public CciDirectoryEntry GetImportAddressTableDirectoryEntry(int rva)
+        public DirectoryEntry GetImportAddressTableDirectoryEntry(int rva)
         {
             return RequiresStartupStub ?
-                new CciDirectoryEntry(rva, SizeOfImportAddressTable) :
-                default(CciDirectoryEntry);
+                new DirectoryEntry(rva, SizeOfImportAddressTable) :
+                default(DirectoryEntry);
         }
 
-        public CciDirectoryEntry GetImportTableDirectoryEntry(int rva)
+        public DirectoryEntry GetImportTableDirectoryEntry(int rva)
         {
             // TODO: constants
             return RequiresStartupStub ?
-                new CciDirectoryEntry(rva + ComputeOffsetToImportTable(), (Is32Bit ? 66 : 70) + 13) :
-                default(CciDirectoryEntry);
+                new DirectoryEntry(rva + ComputeOffsetToImportTable(), (Is32Bit ? 66 : 70) + 13) :
+                default(DirectoryEntry);
         }
 
-        public CciDirectoryEntry GetCorHeaderDirectoryEntry(int rva)
+        public DirectoryEntry GetCorHeaderDirectoryEntry(int rva)
         {
-            return new CciDirectoryEntry(rva + SizeOfImportAddressTable, CorHeaderSize);
+            return new DirectoryEntry(rva + SizeOfImportAddressTable, CorHeaderSize);
         }
 
         #region Serialization
@@ -552,7 +566,7 @@ namespace System.Reflection.PortableExecutable
                 builder.WriteBytes(nativePdbContentId.Guid ?? portablePdbContentId.Guid);
 
                 // age
-                builder.WriteUInt32(Microsoft.Cci.PdbWriter.Age);
+                builder.WriteUInt32(1); // TODO: allow specify for native PDBs
 
                 // UTF-8 encoded zero-terminated path to PDB
                 int pathStart = builder.Count;
