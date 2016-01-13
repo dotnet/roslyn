@@ -84,6 +84,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             ProjectId projectIdOpt)
         {
+            if (hostDiagnosticUpdateSource?.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException) == true)
+            {
+                // if option is on, crash the host to get crash dump.
+                FatalError.ReportUnlessCanceled(ex);
+            }
+
             if (diagnostic != null)
             {
                 hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, hostDiagnosticUpdateSource?.Workspace, projectIdOpt);
