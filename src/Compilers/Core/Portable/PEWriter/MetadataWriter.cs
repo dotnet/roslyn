@@ -163,7 +163,7 @@ namespace Microsoft.Cci
         protected abstract int GetTypeDefIndex(ITypeDefinition def);
 
         /// <summary>
-        /// The type definition at the 0-based index into the full set. Deltas
+        /// The type definition at the 1-based index into the full set. Deltas
         /// are only required to support indexing into current generation.
         /// </summary>
         protected abstract ITypeDefinition GetTypeDef(int index);
@@ -212,7 +212,7 @@ namespace Microsoft.Cci
         protected abstract int GetMethodDefIndex(IMethodDefinition def);
 
         /// <summary>
-        /// The method definition at the 0-based index into the full set. Deltas
+        /// The method definition at the 1-based index into the full set. Deltas
         /// are only required to support indexing into current generation.
         /// </summary>
         protected abstract IMethodDefinition GetMethodDef(int index);
@@ -1708,24 +1708,21 @@ namespace Microsoft.Cci
             // only handling indexes into the full metadata (in EnC)
             // for def tables. Other tables contain deltas only.
             Debug.Assert(TypeOnly(token) == TokenTypeIds.TypeDef);
-            int index = (int)RowOnly(token) - 1;
-            return this.GetTypeDef(index);
+            return this.GetTypeDef(RowOnly(token));
         }
 
         internal IMethodDefinition GetMethodDefinition(uint token)
         {
             // Must be a def table. (See comment in GetTypeDefinition.)
             Debug.Assert(TypeOnly(token) == TokenTypeIds.MethodDef);
-            int index = (int)RowOnly(token) - 1;
-            return this.GetMethodDef(index);
+            return this.GetMethodDef(RowOnly(token));
         }
 
         internal INestedTypeReference GetNestedTypeReference(uint token)
         {
             // Must be a def table. (See comment in GetTypeDefinition.)
             Debug.Assert(TypeOnly(token) == TokenTypeIds.TypeDef);
-            int index = (int)RowOnly(token) - 1;
-            var t = this.GetTypeDef(index);
+            var t = this.GetTypeDef(RowOnly(token));
             return t.AsNestedTypeReference;
         }
 
@@ -3922,9 +3919,9 @@ namespace Microsoft.Cci
             return locals.SelectAsArray(variable => variable.SlotInfo);
         }
 
-        protected static uint RowOnly(uint token)
+        protected static int RowOnly(uint token)
         {
-            return token & 0xFFFFFF;
+            return (int)(token & 0xFFFFFF);
         }
 
         protected static uint TypeOnly(uint token)

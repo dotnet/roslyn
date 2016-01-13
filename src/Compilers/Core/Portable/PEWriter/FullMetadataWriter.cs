@@ -418,6 +418,7 @@ namespace Microsoft.Cci
 
         private struct DefinitionIndex<T> where T : IReference
         {
+            // IReference to RowId
             private readonly Dictionary<T, int> _index;
             private readonly List<T> _rows;
 
@@ -427,9 +428,9 @@ namespace Microsoft.Cci
                 _rows = new List<T>(capacity);
             }
 
-            public bool TryGetValue(T item, out int index)
+            public bool TryGetValue(T item, out int rowId)
             {
-                return _index.TryGetValue(item, out index);
+                return _index.TryGetValue(item, out rowId);
             }
 
             public int this[T item]
@@ -437,9 +438,9 @@ namespace Microsoft.Cci
                 get { return _index[item]; }
             }
 
-            public T this[int index]
+            public T this[int rowId]
             {
-                get { return _rows[index]; }
+                get { return _rows[rowId - 1]; }
             }
 
             public IReadOnlyList<T> Rows
