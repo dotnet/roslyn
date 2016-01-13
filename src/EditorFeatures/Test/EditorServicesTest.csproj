@@ -321,6 +321,7 @@
     <Compile Include="TestExportProvider.cs" />
     <Compile Include="TestExtensionErrorHandler.cs" />
     <Compile Include="TestOptionsServiceFactory.cs" />
+    <Compile Include="TextEditorFactoryExtensions.cs" />
     <Compile Include="TextEditor\TextBufferAssociatedViewServiceTests.cs" />
     <Compile Include="TextEditor\TryGetDocumentTests.cs" />
     <Compile Include="Threading\AsynchronousWorkerTests.cs" />

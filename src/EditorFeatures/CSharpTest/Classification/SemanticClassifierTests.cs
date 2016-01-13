@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
@@ -1410,26 +1411,27 @@ class C
                 var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
 
                 WpfTestCase.RequireWpfFact("Creates an IWpfTextView explicitly with an unrelated buffer");
-                var textView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(extraBuffer);
-
-                var waiter = new Waiter();
-                var provider = new SemanticClassificationViewTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                    workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
-                    workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                    SpecializedCollections.SingletonEnumerable(
-                        new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                        () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
-
-                using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(textView, extraBuffer))
+                using (var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer))
                 {
-                    using (var edit = extraBuffer.CreateEdit())
-                    {
-                        edit.Insert(0, "class A { }");
-                        edit.Apply();
-                    }
+                    var waiter = new Waiter();
+                    var provider = new SemanticClassificationViewTaggerProvider(
+                        workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
+                        workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
+                        workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                        SpecializedCollections.SingletonEnumerable(
+                            new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
+                            () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
 
-                    await waiter.CreateWaitTask();
+                    using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer))
+                    {
+                        using (var edit = extraBuffer.CreateEdit())
+                        {
+                            edit.Insert(0, "class A { }");
+                            edit.Apply();
+                        }
+
+                        await waiter.CreateWaitTask();
+                    }
                 }
             }
         }
