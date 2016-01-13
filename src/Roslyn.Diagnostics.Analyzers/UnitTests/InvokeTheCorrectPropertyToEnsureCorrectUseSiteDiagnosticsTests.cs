@@ -17,7 +17,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CSharpInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsAnalyzer();
+            return null;
         }
     }
 }

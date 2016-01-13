@@ -12,12 +12,12 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new BasicDoNotUseGenericCodeActionCreateToCreateCodeActionAnalyzer();
+            return new BasicCodeActionCreateAnalyzer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CSharpDoNotUseGenericCodeActionCreateToCreateCodeActionAnalyzer();
+            return new CSharpCodeActionCreateAnalyzer();
         }
     }
 }

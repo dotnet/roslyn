@@ -25,6 +25,10 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Analyzer.Utilities\Analyzer.Utilities.csproj">
+      <Project>{f8502e24-5eb1-4cdc-8887-1a0cc8008d96}</Project>
+      <Name>Analyzer.Utilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.csproj">
       <Project>{B475C173-A39D-4A75-93FF-69C3D2742CAD}</Project>
       <Name>Roslyn.Diagnostics.Analyzers</Name>
@@ -95,19 +99,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BasicUseSpecializedCollectionsEmptyEnumerable.vb" />
-    <Compile Include="BasicUseSpecializedCollectionsEmptyEnumerable.Fixer.vb" />
-    <Compile Include="BasicUseSpecializedCollectionsSingletonEnumerable.vb" />
-    <Compile Include="BasicUseSpecializedCollectionsSingletonEnumerable.Fixer.vb" />
     <Compile Include="BasicInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnostics.vb" />
-    <Compile Include="BasicInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnostics.Fixer.vb" />
     <Compile Include="BasicDoNotUseGenericCodeActionCreateToCreateCodeAction.vb" />
-    <Compile Include="BasicDoNotUseGenericCodeActionCreateToCreateCodeAction.Fixer.vb" />
     <Compile Include="BasicOverrideObjectEqualsObjectWhenImplementingIequatable.vb" />
     <Compile Include="BasicOverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.vb" />
     <Compile Include="BasicDoNotInvokeDiagnosticDescriptor.vb" />
+    <Compile Include="BasicSpecializedEnumerableCreationAnalyzer.vb" />
     <Compile Include="BasicSymbolDeclaredEventMustBeGeneratedForSourceSymbols.vb" />
-    <Compile Include="BasicSymbolDeclaredEventMustBeGeneratedForSourceSymbols.Fixer.vb" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\vb\Microsoft.CodeAnalysis.Analyzers.dll" />
