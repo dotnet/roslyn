@@ -2,11 +2,20 @@
 
 #pragma warning disable RS0008 // Implement IEquatable<T> when overriding Object.Equals
 
+using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using Microsoft.Cci;
+using System.Reflection.Metadata;
 
+#if !SRM
+using PrimitiveTypeCode = Microsoft.Cci.PrimitiveTypeCode;
+#endif
+
+#if SRM
 namespace System.Reflection.Metadata.Ecma335.Blobs
+#else
+namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
+#endif
 {
     // TODO: arg validation
     // TODO: can we hide useless inherited methods?
@@ -22,12 +31,18 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
     //[EditorBrowsable(EditorBrowsableState.Never)]
     //public override string ToString() => base.ToString();
 
-    internal interface IBlobEncoder
+#if SRM
+    public
+#endif
+    interface IBlobEncoder
     {
         BlobBuilder Builder { get; }
     }
 
-    internal struct BlobEncoder : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct BlobEncoder : IBlobEncoder
     {
         public BlobBuilder Builder { get; }
 
@@ -129,7 +144,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct MethodSignatureEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct MethodSignatureEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -152,7 +170,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct LocalVariablesEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct LocalVariablesEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -195,7 +216,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct LocalVariableEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct LocalVariableEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -213,7 +237,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct LocalVariableTypeEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct LocalVariableTypeEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -246,7 +273,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct ParameterTypeEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct ParameterTypeEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -291,7 +321,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct PermissionSetEncoder<T>
+#if SRM
+    public
+#endif
+    struct PermissionSetEncoder<T>
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -329,7 +362,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct GenericTypeArgumentsEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct GenericTypeArgumentsEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -365,7 +401,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct FixedArgumentsEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct FixedArgumentsEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -387,7 +426,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct LiteralEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct LiteralEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -421,7 +463,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct ScalarEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct ScalarEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -466,7 +511,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct LiteralsEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct LiteralsEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -500,7 +548,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct VectorEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct VectorEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -518,8 +569,11 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
             return new LiteralsEncoder<T>(_continuation, count);
         }
     }
-   
-    internal struct NameEncoder<T> : IBlobEncoder
+
+#if SRM
+    public
+#endif
+    struct NameEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -537,7 +591,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct NamedArgumentsEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct NamedArgumentsEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -589,7 +646,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct NamedArgumentTypeEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct NamedArgumentTypeEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -617,7 +677,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct CustomAttributeArrayTypeEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct CustomAttributeArrayTypeEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -643,7 +706,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct CustomAttributeElementTypeEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct CustomAttributeElementTypeEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -677,6 +743,7 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         public T IntPtr() => WriteTypeCode(SignatureTypeCode.IntPtr);
         public T UIntPtr() => WriteTypeCode(SignatureTypeCode.UIntPtr);
 
+#if !SRM
         public T PrimitiveType(PrimitiveTypeCode type)
         {
             switch (type)
@@ -701,7 +768,7 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
                     throw new InvalidOperationException();
             }
         }
-
+#endif
         public T SystemType()
         {
             Builder.WriteByte(0x50); // TYPE
@@ -716,14 +783,20 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal enum FunctionPointerAttributes
+#if SRM
+    public
+#endif
+    enum FunctionPointerAttributes
     {
         None = SignatureAttributes.None,
         HasThis = SignatureAttributes.Instance,
         HasExplicitThis = SignatureAttributes.Instance | SignatureAttributes.ExplicitThis
     }
 
-    internal struct SignatureTypeEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct SignatureTypeEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -762,6 +835,7 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         public T IntPtr() => WriteTypeCode(SignatureTypeCode.IntPtr);
         public T UIntPtr() => WriteTypeCode(SignatureTypeCode.UIntPtr);
 
+#if !SRM
         public T PrimitiveType(PrimitiveTypeCode type)
         {
             switch (type)
@@ -786,7 +860,7 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
                     throw new InvalidOperationException();
             }
         }
-
+#endif
         public T Object() => WriteTypeCode(SignatureTypeCode.Object);
 
         public CustomModifiersEncoder<SignatureTypeEncoder<ArrayShapeEncoder<T>>> Array()
@@ -865,7 +939,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct CustomModifiersEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct CustomModifiersEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -894,7 +971,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         public T EndModifiers() => _continuation;
     }
 
-    internal struct ArrayShapeEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct ArrayShapeEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -935,7 +1015,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct ReturnTypeEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct ReturnTypeEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -969,7 +1052,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct ParameterEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct ParameterEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;
@@ -986,7 +1072,10 @@ namespace System.Reflection.Metadata.Ecma335.Blobs
         }
     }
 
-    internal struct ParametersEncoder<T> : IBlobEncoder
+#if SRM
+    public
+#endif
+    struct ParametersEncoder<T> : IBlobEncoder
         where T : IBlobEncoder
     {
         public BlobBuilder Builder => _continuation.Builder;

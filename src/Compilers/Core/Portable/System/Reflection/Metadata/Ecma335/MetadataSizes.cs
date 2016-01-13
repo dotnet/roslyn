@@ -3,11 +3,24 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata.Ecma335;
-using Roslyn.Utilities;
 
+#if SRM
+using System.Reflection.Internal;
+using BitArithmeticUtilities = System.Reflection.Internal.BitArithmetic;
+#else
+using Roslyn.Utilities;
+#endif
+
+#if SRM
 namespace System.Reflection.Metadata.Ecma335
+#else
+namespace Roslyn.Reflection.Metadata.Ecma335
+#endif
 {
-    internal sealed class MetadataSizes
+#if SRM
+    public
+#endif
+    sealed class MetadataSizes
     {
         private const int StreamAlignment = 4;
 

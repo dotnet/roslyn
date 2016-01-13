@@ -2,91 +2,103 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
+#if SRM
+using System.Reflection.Internal;
+#else
+using System;
+using System.Reflection;
+using System.Reflection.Metadata;
+#endif
+
+#if SRM
 namespace System.Reflection.Metadata.Ecma335
+#else
+namespace Roslyn.Reflection.Metadata.Ecma335
+#endif
 {
     internal static class MetadataWriterUtilities
     {
-        public static SignatureTypeCode GetConstantTypeCode(object val)
+        public static SignatureTypeCode GetConstantTypeCode(object value)
         {
-            if (val == null)
+            if (value == null)
             {
                 // The encoding of Type for the nullref value for FieldInit is ELEMENT_TYPE_CLASS with a Value of a zero.
-                return Microsoft.Cci.Constants.SignatureTypeCode_Class;
+                return (SignatureTypeCode)0x12; // TODO
             }
 
-            Debug.Assert(!val.GetType().GetTypeInfo().IsEnum);
+            Debug.Assert(!value.GetType().GetTypeInfo().IsEnum);
 
             // Perf: Note that JIT optimizes each expression val.GetType() == typeof(T) to a single register comparison.
             // Also the checks are sorted by commonality of the checked types.
 
-            if (val.GetType() == typeof(int))
+            if (value.GetType() == typeof(int))
             {
                 return SignatureTypeCode.Int32;
             }
 
-            if (val.GetType() == typeof(string))
+            if (value.GetType() == typeof(string))
             {
                 return SignatureTypeCode.String;
             }
 
-            if (val.GetType() == typeof(bool))
+            if (value.GetType() == typeof(bool))
             {
                 return SignatureTypeCode.Boolean;
             }
 
-            if (val.GetType() == typeof(char))
+            if (value.GetType() == typeof(char))
             {
                 return SignatureTypeCode.Char;
             }
 
-            if (val.GetType() == typeof(byte))
+            if (value.GetType() == typeof(byte))
             {
                 return SignatureTypeCode.Byte;
             }
 
-            if (val.GetType() == typeof(long))
+            if (value.GetType() == typeof(long))
             {
                 return SignatureTypeCode.Int64;
             }
 
-            if (val.GetType() == typeof(double))
+            if (value.GetType() == typeof(double))
             {
                 return SignatureTypeCode.Double;
             }
 
-            if (val.GetType() == typeof(short))
+            if (value.GetType() == typeof(short))
             {
                 return SignatureTypeCode.Int16;
             }
 
-            if (val.GetType() == typeof(ushort))
+            if (value.GetType() == typeof(ushort))
             {
                 return SignatureTypeCode.UInt16;
             }
 
-            if (val.GetType() == typeof(uint))
+            if (value.GetType() == typeof(uint))
             {
                 return SignatureTypeCode.UInt32;
             }
 
-            if (val.GetType() == typeof(sbyte))
+            if (value.GetType() == typeof(sbyte))
             {
                 return SignatureTypeCode.SByte;
             }
 
-            if (val.GetType() == typeof(ulong))
+            if (value.GetType() == typeof(ulong))
             {
                 return SignatureTypeCode.UInt64;
             }
 
-            if (val.GetType() == typeof(float))
+            if (value.GetType() == typeof(float))
             {
                 return SignatureTypeCode.Single;
             }
 
-            throw ExceptionUtilities.UnexpectedValue(val);
+            // TODO: localize
+            throw new ArgumentException("Invalid constant type", nameof(value));
         }
 
         internal static void SerializeRowCounts(BlobBuilder writer, ImmutableArray<int> rowCounts)

@@ -20,6 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.Cci
 {
     using System.Reflection.PortableExecutable;
+    using Roslyn.Reflection.PortableExecutable;
     using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
 
     /// <summary>

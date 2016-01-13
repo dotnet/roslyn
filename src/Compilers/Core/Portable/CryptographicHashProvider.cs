@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Reflection;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis

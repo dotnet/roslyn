@@ -1,13 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Reflection.Metadata.Ecma335;
 
-using CciDirectoryEntry = Microsoft.Cci.DirectoryEntry;
+#if !SRM
+using System.Reflection.PortableExecutable;
+using Roslyn.Reflection.Metadata.Ecma335;
+using DirectoryEntry = Microsoft.Cci.DirectoryEntry;
+#endif
 
+#if SRM
 namespace System.Reflection.PortableExecutable
+#else
+namespace Roslyn.Reflection.PortableExecutable
+#endif
 {
-    internal static class ManagedPEBuilder
+#if SRM
+    public
+#endif
+    static class ManagedPEBuilder
     {
         public static void AddManagedSections(
             this PEBuilder peBuilder,
@@ -90,7 +102,7 @@ namespace System.Reflection.PortableExecutable
                 {
                     var sectionBuilder = new BlobBuilder();
                     nativeResourceSectionSerializer(sectionBuilder, location);
-                    peDirectoriesBuilder.ResourceTable = new CciDirectoryEntry(location.RelativeVirtualAddress, sectionBuilder.Count);
+                    peDirectoriesBuilder.ResourceTable = new DirectoryEntry(location.RelativeVirtualAddress, sectionBuilder.Count);
                     return sectionBuilder;
                 });
             }
@@ -103,7 +115,7 @@ namespace System.Reflection.PortableExecutable
                     var sectionBuilder = new BlobBuilder();
                     WriteRelocSection(sectionBuilder, peBuilder.Machine, entryPointAddress);
 
-                    peDirectoriesBuilder.BaseRelocationTable = new CciDirectoryEntry(location.RelativeVirtualAddress, sectionBuilder.Count);
+                    peDirectoriesBuilder.BaseRelocationTable = new DirectoryEntry(location.RelativeVirtualAddress, sectionBuilder.Count);
                     return sectionBuilder;
                 });
             }

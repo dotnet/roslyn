@@ -3,8 +3,13 @@
 using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
+#if SRM
 namespace System.Reflection
+#else
+namespace Roslyn.Reflection
+#endif
 {
     partial class BlobBuilder
     {

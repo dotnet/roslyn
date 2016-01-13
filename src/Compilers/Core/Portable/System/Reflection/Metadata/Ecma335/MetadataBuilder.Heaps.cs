@@ -4,15 +4,30 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+
+#if SRM
+using System.Reflection.Internal;
+using BitArithmeticUtilities = System.Reflection.Internal.BitArithmetic;
+#else
+using System;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
+#endif
 
+#if SRM
 namespace System.Reflection.Metadata.Ecma335
+#else
+namespace Roslyn.Reflection.Metadata.Ecma335
+#endif
 {
     /// <summary>
     /// Represents a value on #GUID heap that has not been serialized yet.
     /// </summary>
-    internal struct GuidIdx : IEquatable<GuidIdx>, IComparable<GuidIdx>
+#if SRM
+    public
+#endif
+    struct GuidIdx : IEquatable<GuidIdx>, IComparable<GuidIdx>
     {
         public readonly int Index;
 
@@ -32,7 +47,10 @@ namespace System.Reflection.Metadata.Ecma335
     /// <summary>
     /// Represents a value on #String heap that has not been serialized yet.
     /// </summary>
-    internal struct StringIdx : IEquatable<StringIdx>
+#if SRM
+    public
+#endif
+    struct StringIdx : IEquatable<StringIdx>
     {
         // index in _stringIndexToHeapPositionMap
         public readonly int MapIndex;
@@ -71,7 +89,10 @@ namespace System.Reflection.Metadata.Ecma335
     /// <summary>
     /// Represents a value on #Blob heap that has not been serialized yet.
     /// </summary>
-    internal struct BlobIdx : IEquatable<BlobIdx>
+#if SRM
+    public
+#endif
+    struct BlobIdx : IEquatable<BlobIdx>
     {
         // The position of the blob on heap relative to the start of the heap.
         // In EnC deltas this value is not the same as the value stored in blob token.
@@ -108,7 +129,10 @@ namespace System.Reflection.Metadata.Ecma335
         }
     }
 
-    internal sealed partial class MetadataBuilder
+#if SRM
+    public
+#endif
+    sealed partial class MetadataBuilder
     {
         // #US heap
         private readonly Dictionary<string, int> _userStrings = new Dictionary<string, int>();
