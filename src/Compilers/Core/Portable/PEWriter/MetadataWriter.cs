@@ -443,9 +443,9 @@ namespace Microsoft.Cci
 
         private readonly Dictionary<ICustomAttribute, BlobIdx> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobIdx>();
         private readonly Dictionary<ITypeReference, BlobIdx> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobIdx>();
-        private readonly Dictionary<ITypeReference, int> _exportedTypeIndex;
+        private readonly Dictionary<ITypeReference, int> _exportedTypeIndex; // value is a RowId
         private readonly List<ITypeReference> _exportedTypeList;
-        private readonly Dictionary<string, int> _fileRefIndex = new Dictionary<string, int>(32);  //more than enough in most cases
+        private readonly Dictionary<string, int> _fileRefIndex = new Dictionary<string, int>(32);  // more than enough in most cases, value is a RowId
         private readonly List<IFileReference> _fileRefList = new List<IFileReference>(32);
         private readonly Dictionary<IFieldReference, BlobIdx> _fieldSignatureIndex = new Dictionary<IFieldReference, BlobIdx>();
 
@@ -787,20 +787,6 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private int GetExportedTypeIndex(ITypeReference typeReference)
-        {
-            int result;
-            if (_exportedTypeIndex.TryGetValue(typeReference, out result))
-            {
-                return result;
-            }
-
-            Debug.Assert(!_tableIndicesAreComplete);
-            _exportedTypeList.Add(typeReference);
-            _exportedTypeIndex.Add(typeReference, _exportedTypeList.Count);
-            return result;
-        }
-
         public static FieldAttributes GetFieldAttributes(IFieldDefinition fieldDef)
         {
             var result = (FieldAttributes)fieldDef.Visibility;
@@ -899,23 +885,13 @@ namespace Microsoft.Cci
 
             Debug.Assert(!_tableIndicesAreComplete);
             _fileRefList.Add(fileReference);
-            _fileRefIndex.Add(key, _fileRefList.Count);
+            _fileRefIndex.Add(key, result = _fileRefList.Count);
             return result;
         }
 
         private int GetFileRefIndex(IModuleReference mref)
         {
-            string key = mref.Name;
-            int result;
-            if (_fileRefIndex.TryGetValue(key, out result))
-            {
-                return result;
-            }
-
-            Debug.Assert(false);
-
-            // TODO: error
-            return result;
+            return _fileRefIndex[mref.Name];
         }
 
         private static GenericParameterAttributes GetGenericParameterAttributes(IGenericParameter genPar)
@@ -2262,7 +2238,7 @@ namespace Microsoft.Cci
 
                         ITypeReference containingType = nestedRef.GetContainingType(Context);
 
-                        int exportedTypeIndex = GetExportedTypeIndex(containingType);
+                        int exportedTypeIndex = _exportedTypeIndex[containingType];
                         implementation = exportedTypeIndex.ToCodedIndex(CodedIndex.Implementation.ExportedType);
 
                         var parentFlags = (TypeFlags)metadata.GetExportedTypeFlags(exportedTypeIndex - 1);
@@ -2278,7 +2254,7 @@ namespace Microsoft.Cci
                             topLevelType = tmp.GetContainingType(Context);
                         }
 
-                        var topLevelFlags = (TypeFlags)metadata.GetExportedTypeFlags(GetExportedTypeIndex(topLevelType) - 1);
+                        var topLevelFlags = (TypeFlags)metadata.GetExportedTypeFlags(_exportedTypeIndex[topLevelType] - 1);
                         if ((topLevelFlags & TypeFlags.ForwarderImplementation) != 0)
                         {
                             flags = TypeFlags.PrivateAccess;
