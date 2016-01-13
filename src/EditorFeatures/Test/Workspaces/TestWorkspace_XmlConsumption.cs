@@ -223,6 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                             compilationOptions: null,
                             parseOptions: null,
                             assemblyName: submissionName,
+                            projectName: submissionName,
                             references: null,
                             documents: documents,
                             isSubmission: true));
@@ -241,6 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     languageServices,
                     compilationOptions,
                     parseOptions,
+                    submissionName,
                     submissionName,
                     references,
                     documents,
@@ -270,6 +272,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             string filePath;
 
+            string projectName = projectElement.Attribute(ProjectNameAttribute)?.Value ?? assemblyName;
+
             if (projectElement.Attribute(FilePathAttributeName) != null)
             {
                 filePath = projectElement.Attribute(FilePathAttributeName).Value;
@@ -281,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
             else
             {
-                filePath = assemblyName +
+                filePath = projectName +
                     (language == LanguageNames.CSharp ? ".csproj" :
                      language == LanguageNames.VisualBasic ? ".vbproj" : ("." + language));
             }
@@ -313,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 documentElementToFilePath.Add(documentElement, document.FilePath);
             }
 
-            return new TestHostProject(languageServices, compilationOptions, parseOptions, assemblyName, references, documents, filePath: filePath, analyzerReferences: analyzers);
+            return new TestHostProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, filePath: filePath, analyzerReferences: analyzers);
         }
 
         private static ParseOptions GetParseOptions(XElement projectElement, string language, HostLanguageServices languageServices)
@@ -521,47 +525,58 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 // This is a linked file. Use the filePath and markup from the referenced document.
 
-                var originalProjectName = documentElement.Attribute(LinkAssemblyNameAttributeName);
-                var originalDocumentPath = documentElement.Attribute(LinkFilePathAttributeName);
+                var originalAssemblyName = documentElement.Attribute(LinkAssemblyNameAttributeName)?.Value;
+                var originalProjectName = documentElement.Attribute(LinkProjectNameAttributeName)?.Value;
 
-                if (originalProjectName == null || originalDocumentPath == null)
+                if (originalAssemblyName == null && originalProjectName == null)
                 {
-                    throw new ArgumentException("Linked file specified without LinkAssemblyName or LinkFilePath.");
+                    throw new ArgumentException($"Linked files must specify either a {LinkAssemblyNameAttributeName} or {LinkProjectNameAttributeName}");
                 }
 
-                var originalProjectNameStr = originalProjectName.Value;
-                var originalDocumentPathStr = originalDocumentPath.Value;
-
-                var originalProject = workspaceElement.Elements(ProjectElementName).First(p =>
+                var originalProject = workspaceElement.Elements(ProjectElementName).FirstOrDefault(p =>
                 {
-                    var assemblyName = p.Attribute(AssemblyNameAttributeName);
-                    return assemblyName != null && assemblyName.Value == originalProjectNameStr;
+                    if (originalAssemblyName != null)
+                    {
+                        return p.Attribute(AssemblyNameAttributeName)?.Value == originalAssemblyName;
+                    }
+                    else
+                    {
+                        return p.Attribute(ProjectNameAttribute)?.Value == originalProjectName;
+                    }
                 });
 
                 if (originalProject == null)
                 {
-                    throw new ArgumentException("Linked file's LinkAssemblyName '{0}' project not found.", originalProjectNameStr);
+                    if (originalProjectName != null)
+                    {
+                        throw new ArgumentException($"Linked file's {LinkProjectNameAttributeName} '{originalProjectName}' project not found.");
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Linked file's {LinkAssemblyNameAttributeName} '{originalAssemblyName}' project not found.");
+                    }
                 }
 
-                var originalDocument = originalProject.Elements(DocumentElementName).First(d =>
+                var originalDocumentPath = documentElement.Attribute(LinkFilePathAttributeName)?.Value;
+
+                if (originalDocumentPath == null)
                 {
-                    var documentPath = d.Attribute(FilePathAttributeName);
-                    return documentPath != null && documentPath.Value == originalDocumentPathStr;
+                    throw new ArgumentException($"Linked files must specify a {LinkFilePathAttributeName}");
+                }
+
+                documentElement = originalProject.Elements(DocumentElementName).FirstOrDefault(d =>
+                {
+                    return d.Attribute(FilePathAttributeName)?.Value == originalDocumentPath;
                 });
 
-                if (originalDocument == null)
+                if (documentElement == null)
                 {
-                    throw new ArgumentException("Linked file's LinkFilePath '{0}' file not found.", originalDocumentPathStr);
+                    throw new ArgumentException($"Linked file's LinkFilePath '{originalDocumentPath}' file not found.");
                 }
+            }
 
-                markupCode = originalDocument.NormalizedValue();
-                filePath = GetFilePath(workspace, originalDocument, ref documentId);
-            }
-            else
-            {
-                markupCode = documentElement.NormalizedValue();
-                filePath = GetFilePath(workspace, documentElement, ref documentId);
-            }
+            markupCode = documentElement.NormalizedValue();
+            filePath = GetFilePath(workspace, documentElement, ref documentId);
 
             var folders = GetFolders(documentElement);
             var optionsElement = documentElement.Element(ParseOptionsElementName);
