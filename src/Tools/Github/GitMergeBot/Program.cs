@@ -74,7 +74,6 @@ namespace GitMergeBot
         {
             _client = new GitHubClient(new ProductHeaderValue(_options.SourceUser));
             _client.Credentials = new Credentials(_options.AuthToken);
-            var remoteIntoBranch = await GetShaFromBranch(_options.DestinationUser, _options.RepoName, _options.SourceBranch);
             var newBranchPrefix = $"merge-{_options.SourceBranch}-into-{_options.DestinationBranch}";
             if (!_options.Force && await DoesOpenPrAlreadyExist(newBranchPrefix))
             {
@@ -82,7 +81,8 @@ namespace GitMergeBot
                 return;
             }
 
-            var newBranchName = await MakePrBranch(_options.SourceUser, _options.RepoName, remoteIntoBranch, newBranchPrefix);
+            var remoteDestinationBranchSha = await GetShaFromBranch(_options.DestinationUser, _options.RepoName, _options.DestinationBranch);
+            var newBranchName = await MakePrBranch(_options.SourceUser, _options.RepoName, remoteDestinationBranchSha, newBranchPrefix);
             await SubmitPullRequest(newBranchName);
             return;
         }
@@ -158,13 +158,14 @@ This is an automatically generated pull request from {_options.SourceBranch} int
 
 ``` bash
 git remote add {remoteName} ""https://github.com/{_options.SourceUser}/{_options.RepoName}.git""
+# git remote add {remoteName} ""git@github.com:{_options.SourceUser}/{_options.RepoName}.git""
 git fetch {remoteName}
-git checkout {newBranchName}
-git reset --hard upstream/{_options.DestinationBranch}
+git checkout {newBranchName} # Switch to the pr-branch
+git pull upstream/{_options.DestinationBranch} --ff-only # Get the most recent commits
 git merge upstream/{_options.SourceBranch}
 # Fix merge conflicts
 git commit
-git push {remoteName} {newBranchName} --force
+git push {remoteName} {newBranchName}
 ```
 
 Once the merge can be made and all the tests pass, you are free to merge the pull request.
