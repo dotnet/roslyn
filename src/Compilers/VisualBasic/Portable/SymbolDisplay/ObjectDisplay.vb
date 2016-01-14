@@ -142,8 +142,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         Friend Function FormatLiteral(c As Char, options As ObjectDisplayOptions) As String
             ValidateOptions(options)
 
-            If Not options.IncludesOption(ObjectDisplayOptions.UseQuotes) Then
-                Return c.ToString()
+            If IsPrintable(c) OrElse Not options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableStringCharacters) Then
+                Return If(options.IncludesOption(ObjectDisplayOptions.UseQuotes),
+                    """" & EscapeQuote(c) & """c",
+                    c.ToString())
             End If
 
             Dim wellKnown = GetWellKnownCharacterName(c)
@@ -151,12 +153,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 Return wellKnown
             End If
 
-            If Not IsPrintable(c) Then
-                Dim codepoint = AscW(c)
-                Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
-            End If
-
-            Return """"c & EscapeQuote(c) & """"c & "c"
+            Dim codepoint = AscW(c)
+            Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
         End Function
 
         Private Function EscapeQuote(c As Char) As String
