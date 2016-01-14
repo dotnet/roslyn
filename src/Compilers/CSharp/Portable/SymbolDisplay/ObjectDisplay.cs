@@ -228,8 +228,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public static string FormatLiteral(string value, ObjectDisplayOptions options)
         {
-            ValidateOptions(options);
-
             if (value == null)
             {
                 throw new ArgumentNullException(nameof(value));
@@ -319,8 +317,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static string FormatLiteral(sbyte value, ObjectDisplayOptions options)
         {
-            ValidateOptions(options);
-
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
                 // Special Case: for sbyte and short, specifically, negatives are shown
@@ -335,8 +331,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static string FormatLiteral(byte value, ObjectDisplayOptions options)
         {
-            ValidateOptions(options);
-
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
                 return "0x" + value.ToString("x2");
@@ -349,8 +343,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static string FormatLiteral(short value, ObjectDisplayOptions options)
         {
-            ValidateOptions(options);
-
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
                 // Special Case: for sbyte and short, specifically, negatives are shown
@@ -365,8 +357,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static string FormatLiteral(ushort value, ObjectDisplayOptions options)
         {
-            ValidateOptions(options);
-
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
                 return "0x" + value.ToString("x4");
@@ -379,8 +369,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static string FormatLiteral(int value, ObjectDisplayOptions options)
         {
-            ValidateOptions(options);
-
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
                 return "0x" + value.ToString("x8");
@@ -393,8 +381,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static string FormatLiteral(uint value, ObjectDisplayOptions options)
         {
-            ValidateOptions(options);
-
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var sb = pooledBuilder.Builder;
 
@@ -418,8 +404,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static string FormatLiteral(long value, ObjectDisplayOptions options)
         {
-            ValidateOptions(options);
-
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var sb = pooledBuilder.Builder;
 
@@ -443,8 +427,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static string FormatLiteral(ulong value, ObjectDisplayOptions options)
         {
-            ValidateOptions(options);
-
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var sb = pooledBuilder.Builder;
 
@@ -468,8 +450,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static string FormatLiteral(double value, ObjectDisplayOptions options)
         {
-            ValidateOptions(options);
-
             var result = value.ToString("R", CultureInfo.InvariantCulture);
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "D" : result;
@@ -477,8 +457,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static string FormatLiteral(float value, ObjectDisplayOptions options)
         {
-            ValidateOptions(options);
-
             var result = value.ToString("R", CultureInfo.InvariantCulture);
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "F" : result;
@@ -486,18 +464,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static string FormatLiteral(decimal value, ObjectDisplayOptions options)
         {
-            ValidateOptions(options);
-
             var result = value.ToString(CultureInfo.InvariantCulture);
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "M" : result;
-        }
-
-        [Conditional("DEBUG")]
-        private static void ValidateOptions(ObjectDisplayOptions options)
-        {
-            // These options are mutually exclusive in C# unless we're formatting a char...should not be passed otherwise...
-            Debug.Assert(!(options.IncludesOption(ObjectDisplayOptions.UseQuotes) && options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers)));
         }
     }
 }
