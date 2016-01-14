@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var managedResourceDataBuilder = new BlobBuilder();
 
             var metadata = new MetadataBuilder();
-            int mainMethodDefRowId;
-            EmitMetadataAndIL(metadata, ilBuilder, out mainMethodDefRowId);
+            MethodDefinitionHandle mainMethodDef;
+            EmitMetadataAndIL(metadata, ilBuilder, out mainMethodDef);
 
             var peDirectoriesBuilder = new PEDirectoriesBuilder();
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 managedResourceDataBuilder,
                 nativeResourceSectionSerializer: null,
                 strongNameSignatureSize: 0,
-                entryPointToken: 0x06000000 | mainMethodDefRowId,
+                entryPointToken: MetadataTokens.GetToken(mainMethodDef),
                 pdbPathOpt: null,
                 nativePdbContentId: default(ContentId),
                 portablePdbContentId: default(ContentId),
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             peBlob.WriteContentTo(peStream);
         }
 
-        private static void EmitMetadataAndIL(MetadataBuilder metadata, BlobBuilder ilBuilder, out int mainMethodDefRowId)
+        private static void EmitMetadataAndIL(MetadataBuilder metadata, BlobBuilder ilBuilder, out MethodDefinitionHandle mainMethodDef)
         {
             metadata.AddModule(0, metadata.GetStringIndex("ConsoleApplication.exe"), metadata.GetGuidIndex(Guid.NewGuid()), default(GuidIdx), default(GuidIdx));
 
@@ -95,24 +95,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 version: new Version(0, 0, 0, 0),
                 culture: default(StringIdx),
                 publicKey: default(BlobIdx),
-                flags: 0,
+                flags: default(AssemblyFlags),
                 hashAlgorithm: AssemblyHashAlgorithm.Sha1);
 
-            int mscorlibAssemblyRefRowId = metadata.AddAssemblyReference(
+            var mscorlibAssemblyRef = metadata.AddAssemblyReference(
                 name: metadata.GetStringIndex("mscorlib"),
                 version: new Version(4, 0, 0, 0),
                 culture: default(StringIdx),
                 publicKeyOrToken: metadata.GetBlobIndex(ImmutableArray.Create<byte>(0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89)),
-                flags: 0,
+                flags: default(AssemblyFlags),
                 hashValue: default(BlobIdx));
 
-            int systemObjectTypeRefRowId = metadata.AddTypeReference(
-                mscorlibAssemblyRefRowId.ToCodedIndex(CodedIndex.ResolutionScope.AssemblyRef),
+            var systemObjectTypeRef = metadata.AddTypeReference(
+                mscorlibAssemblyRef,
                 metadata.GetStringIndex("System"),
                 metadata.GetStringIndex("Object"));
 
-            int systemConsoleTypeRefRowId = metadata.AddTypeReference(
-                mscorlibAssemblyRefRowId.ToCodedIndex(CodedIndex.ResolutionScope.AssemblyRef),
+            var systemConsoleTypeRefHandle = metadata.AddTypeReference(
+                mscorlibAssemblyRef,
                 metadata.GetStringIndex("System"),
                 metadata.GetStringIndex("Console"));
 
@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     AddParameter().ModifiedType().EndModifiers().Type(isByRef: false).String().
                 EndParameters();
 
-            int consoleWriteLineMemberRefRowId = metadata.AddMemberReference(
-                systemConsoleTypeRefRowId.ToCodedIndex(CodedIndex.MemberRefParent.TypeRef),
+            var consoleWriteLineMemberRef = metadata.AddMemberReference(
+                systemConsoleTypeRefHandle,
                 metadata.GetStringIndex("WriteLine"),
                 metadata.GetBlobIndex(consoleWriteLineSignature.Builder));
 
@@ -134,8 +134,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var parameterlessCtorBlobIndex = metadata.GetBlobIndex(parameterlessCtorSignature.Builder);
 
-            int objectCtorMemberRefRowId = metadata.AddMemberReference(
-                systemObjectTypeRefRowId.ToCodedIndex(CodedIndex.MemberRefParent.TypeRef),
+            var objectCtorMemberRef = metadata.AddMemberReference(
+                systemObjectTypeRef,
                 metadata.GetStringIndex(".ctor"),
                 parameterlessCtorBlobIndex);
 
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // call void [mscorlib]System.Console::WriteLine(string)
             ilBuilder.WriteByte(0x28);
-            ilBuilder.WriteInt32(0x0A000000 | consoleWriteLineMemberRefRowId);
+            ilBuilder.WriteInt32(MetadataTokens.GetToken(consoleWriteLineMemberRef));
 
             // ret
             ilBuilder.WriteByte(0x2A);
@@ -171,42 +171,42 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // call instance void [mscorlib]System.Object::.ctor()
             ilBuilder.WriteByte(0x28);
-            ilBuilder.WriteInt32(0x0A000000 | objectCtorMemberRefRowId);
+            ilBuilder.WriteInt32(MetadataTokens.GetToken(objectCtorMemberRef));
 
             // ret
             ilBuilder.WriteByte(0x2A);
 
-            mainMethodDefRowId = metadata.AddMethodDefinition(
+            mainMethodDef = metadata.AddMethodDefinition(
                 MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
                 MethodImplAttributes.IL | MethodImplAttributes.Managed,
                 metadata.GetStringIndex("Main"),
                 metadata.GetBlobIndex(mainSignature.Builder),
                 mainBodyOffset,
-                paramList: 0);
+                paramList: default(ParameterHandle));
 
-            int ctorDefRowId = metadata.AddMethodDefinition(
+            var ctorDef = metadata.AddMethodDefinition(
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
                 MethodImplAttributes.IL | MethodImplAttributes.Managed,
                 metadata.GetStringIndex(".ctor"),
                 parameterlessCtorBlobIndex,
                 ctorBodyOffset,
-                paramList: 0);
+                paramList: default(ParameterHandle));
 
             metadata.AddTypeDefinition(
-                0,
+                default(TypeAttributes),
                 default(StringIdx),
                 metadata.GetStringIndex("<Module>"),
-                baseTypeCodedIndex: 0,
-                fieldList: 1,
-                methodList: 1);
+                baseType: default(EntityHandle),
+                fieldList: MetadataTokens.FieldDefinitionHandle(1),
+                methodList: MetadataTokens.MethodDefinitionHandle(1));
 
             metadata.AddTypeDefinition(
                 TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit,
                 metadata.GetStringIndex("ConsoleApplication"),
                 metadata.GetStringIndex("Program"),
-                systemObjectTypeRefRowId.ToCodedIndex(CodedIndex.TypeDefOrRef.TypeRef),
-                fieldList: 1,
-                methodList: mainMethodDefRowId);
+                systemObjectTypeRef,
+                fieldList: MetadataTokens.FieldDefinitionHandle(1),
+                methodList: mainMethodDef);
         }
     }
 }

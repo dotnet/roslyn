@@ -53,7 +53,7 @@ namespace Microsoft.Cci
 
         public int GetHashCode(ITypeMemberReference memberRef)
         {
-            int hash = Hash.Combine(memberRef.Name, (int)_metadataWriter.GetMemberRefParentCodedIndex(memberRef) << 4);
+            int hash = Hash.Combine(memberRef.Name, _metadataWriter.GetMemberRefParentCodedIndex(memberRef).GetHashCode());
 
             var fieldRef = memberRef as IFieldReference;
             if (fieldRef != null)
