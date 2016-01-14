@@ -101,8 +101,6 @@
   <ItemGroup>
     <Compile Include="BasicInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnostics.vb" />
     <Compile Include="BasicDoNotUseGenericCodeActionCreateToCreateCodeAction.vb" />
-    <Compile Include="BasicOverrideObjectEqualsObjectWhenImplementingIequatable.vb" />
-    <Compile Include="BasicOverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.vb" />
     <Compile Include="BasicDoNotInvokeDiagnosticDescriptor.vb" />
     <Compile Include="BasicSpecializedEnumerableCreationAnalyzer.vb" />
     <Compile Include="BasicSymbolDeclaredEventMustBeGeneratedForSourceSymbols.vb" />

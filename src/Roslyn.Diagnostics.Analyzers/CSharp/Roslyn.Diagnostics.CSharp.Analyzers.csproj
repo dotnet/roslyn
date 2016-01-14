@@ -99,8 +99,6 @@
     <Compile Include="CSharpSpecializedEnumerableCreationAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CSharpDoNotUseGenericCodeActionCreateToCreateCodeAction.cs" />
-    <Compile Include="CSharpOverrideObjectEqualsObjectWhenImplementingIequatable.cs" />
-    <Compile Include="CSharpOverrideObjectEqualsObjectWhenImplementingIequatable.Fixer.cs" />
     <Compile Include="CSharpDoNotInvokeDiagnosticDescriptor.cs" />
     <Compile Include="CSharpSymbolDeclaredEventMustBeGeneratedForSourceSymbols.cs" />
   </ItemGroup>
