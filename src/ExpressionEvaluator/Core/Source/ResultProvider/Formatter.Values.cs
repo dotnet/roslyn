@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     return IncludeObjectId(
                         value,
-                        FormatPrimitive(value, options & ~ObjectDisplayOptions.UseQuotes, inspectionContext),
+                        FormatPrimitive(value, options & ~(ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters), inspectionContext),
                         flags);
                 }
             }
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 if (!value.IsNull)
                 {
-                    return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.UseQuotes, GetValueFlags.None);
+                    return this.GetValueString(value, inspectionContext, QuotedStringOptions, GetValueFlags.None);
                 }
             }
             else if (type.IsCharacter())
@@ -410,6 +410,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract string FormatPrimitiveObject(object value, ObjectDisplayOptions options);
 
         internal abstract string FormatString(string str, ObjectDisplayOptions options);
+
+        internal abstract ObjectDisplayOptions QuotedStringOptions { get; }
 
         #endregion
     }

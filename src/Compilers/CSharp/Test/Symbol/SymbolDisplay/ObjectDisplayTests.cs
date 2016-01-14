@@ -261,21 +261,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("12.5M", FormatPrimitiveIncludingTypeSuffix(decimalValue, useHexadecimalNumbers: true));
         }
 
+        [Fact]
+        public void StringEscaping()
+        {
+            const string value = "a\tb";
+
+            Assert.Equal("a\tb", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.None));
+            Assert.Equal("\"a\tb\"", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.UseQuotes));
+            Assert.Equal("a\\tb", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.EscapeNonPrintableStringCharacters));
+            Assert.Equal("\"a\\tb\"", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters));
+        }
+
         private string FormatPrimitive(object obj, bool quoteStrings = false)
         {
-            return ObjectDisplay.FormatPrimitive(obj, quoteStrings ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None);
+            var options = quoteStrings ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None;
+            return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.EscapeNonPrintableStringCharacters);
         }
 
         private string FormatPrimitiveUsingHexadecimalNumbers(object obj, bool quoteStrings = false)
         {
             var options = quoteStrings ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None;
-            return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.UseHexadecimalNumbers);
+            return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.UseHexadecimalNumbers | ObjectDisplayOptions.EscapeNonPrintableStringCharacters);
         }
 
         private string FormatPrimitiveIncludingTypeSuffix(object obj, bool useHexadecimalNumbers = false)
         {
             var options = useHexadecimalNumbers ? ObjectDisplayOptions.UseHexadecimalNumbers : ObjectDisplayOptions.None;
-            return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.IncludeTypeSuffix);
+            return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.IncludeTypeSuffix | ObjectDisplayOptions.EscapeNonPrintableStringCharacters);
         }
     }
 }

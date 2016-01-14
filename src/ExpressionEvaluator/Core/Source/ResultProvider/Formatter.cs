@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         string IDkmClrFormatter.GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers)
         {
-            var options = ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoQuotes) == 0) ?
-                ObjectDisplayOptions.UseQuotes :
-                ObjectDisplayOptions.None;
+            ObjectDisplayOptions options = GetValueStringOptions((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoQuotes) == 0);
             return GetValueString(value, inspectionContext, options, GetValueFlags.IncludeObjectId);
         }
 
@@ -171,6 +169,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract bool IsPredefinedType(Type type);
 
         internal abstract bool IsWhitespace(char c);
+
+        internal abstract ObjectDisplayOptions GetValueStringOptions(bool useQuotes);
 
         // Note: We could be less conservative (e.g. "new C()").
         private bool NeedsParentheses(string expr)

@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (PublicSign && DelaySign.HasValue)
+            if (PublicSign && DelaySign == true)
             {
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_MutuallyExclusiveOptions, nameof(PublicSign), nameof(DelaySign)));
             }
