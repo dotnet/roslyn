@@ -149,8 +149,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTests.cs" />
     <Compile Include="DoNotUseGenericCodeActionCreateToCreateCodeActionTests.cs" />
-    <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.cs" />
-    <Compile Include="OverrideObjectEqualsObjectWhenImplementingIequatableTests.Fixer.cs" />
     <Compile Include="SpecializedEnumerableCreationAnalyzerTests.cs" />
     <Compile Include="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTests.cs" />
   </ItemGroup>
