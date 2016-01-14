@@ -163,8 +163,8 @@ class C{
 
             Items.Add(new HeaderItemViewModel() { Header = "Type Inference preference for local declarations in special cases:" });
 
-            var useVarWhereApparentChildControl = new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, "use var where typing is apparent", s_ImplicitTypingWhereApparentPreview, this, optionSet, _ => implicitTypingOption.IsChecked);
-            var useIntrinsicTypesChildControl = new CheckBoxOptionViewModel(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, "use intrinsic types", s_ExplicitTypingForIntrinsicTypesPreview, this, optionSet, _ => implicitTypingOption.IsChecked);
+            var useVarWhereApparentChildControl = new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, "use var where typing is apparent", s_ImplicitTypingWhereApparentPreview, this, optionSet);
+            var useIntrinsicTypesChildControl = new CheckBoxOptionViewModel(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, "use intrinsic types", s_ExplicitTypingForIntrinsicTypesPreview, this, optionSet);
 
             Items.Add(useVarWhereApparentChildControl);
             Items.Add(useIntrinsicTypesChildControl);

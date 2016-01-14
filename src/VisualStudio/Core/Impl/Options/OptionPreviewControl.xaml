@@ -27,7 +27,6 @@
                     <StackPanel Orientation="Horizontal">
                         <CheckBox x:Uid="OptionCheckBox" 
                                         IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-                                        Command="{Binding EnableCommand}"
                                         Width="Auto"
                                         Focusable="False"
                                         Margin="20, 0, 0, 0">
