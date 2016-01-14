@@ -39,6 +39,6 @@ namespace Microsoft.CodeAnalysis
         /// In C#, replace non-printable (e.g. control) characters with dedicated (e.g. \t) or unicode (\u0001) escape sequences.
         /// In Visual Basic, replace non-printable characters with calls to ChrW and vb* constants.
         /// </summary>
-        EscapeNonPrintableStringCharacters = 1 << 4,
+        EscapeNonPrintableCharacters = 1 << 4,
     }
 }

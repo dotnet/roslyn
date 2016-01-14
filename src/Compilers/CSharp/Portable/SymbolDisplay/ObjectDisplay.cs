@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = pooledBuilder.Builder;
 
             var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
-            var escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableStringCharacters);
+            var escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters);
 
             if (useQuotes)
             {
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
-            var escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableStringCharacters);
+            var escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters);
 
 
             if (useQuotes)

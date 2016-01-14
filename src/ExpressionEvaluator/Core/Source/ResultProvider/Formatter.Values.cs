@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     return IncludeObjectId(
                         value,
-                        FormatPrimitive(value, options & ~(ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters), inspectionContext),
+                        FormatPrimitive(value, options & ~(ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters), inspectionContext),
                         flags);
                 }
             }

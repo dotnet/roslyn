@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function GetValueStringOptions(useQuotes As Boolean) As ObjectDisplayOptions
             Return If(useQuotes,
-                ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableStringCharacters,
+                ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters,
                 ObjectDisplayOptions.None)
         End Function
 

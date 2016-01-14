@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override ObjectDisplayOptions GetValueStringOptions(bool useQuotes)
         {
-            var options = ObjectDisplayOptions.EscapeNonPrintableStringCharacters;
+            var options = ObjectDisplayOptions.EscapeNonPrintableCharacters;
             if (useQuotes)
             {
                 options |= ObjectDisplayOptions.UseQuotes;

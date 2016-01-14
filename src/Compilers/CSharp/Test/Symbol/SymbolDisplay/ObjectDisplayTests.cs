@@ -107,21 +107,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Characters()
         {
-            Assert.Equal("120 'x'", ObjectDisplay.FormatLiteral('x', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters | ObjectDisplayOptions.IncludeCodePoints));
+            Assert.Equal("120 'x'", ObjectDisplay.FormatLiteral('x', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.IncludeCodePoints));
             Assert.Equal("120 x", ObjectDisplay.FormatLiteral('x', ObjectDisplayOptions.IncludeCodePoints));
-            Assert.Equal("0x0078 'x'", ObjectDisplay.FormatLiteral('x', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
+            Assert.Equal("0x0078 'x'", ObjectDisplay.FormatLiteral('x', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
             Assert.Equal("0x0078 x", ObjectDisplay.FormatLiteral('x', ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
 
-            Assert.Equal("39 '\\''", ObjectDisplay.FormatLiteral('\'', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters | ObjectDisplayOptions.IncludeCodePoints));
+            Assert.Equal("39 '\\''", ObjectDisplay.FormatLiteral('\'', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.IncludeCodePoints));
             Assert.Equal("39 '", ObjectDisplay.FormatLiteral('\'', ObjectDisplayOptions.IncludeCodePoints));
-            Assert.Equal("0x001e '\\u001e'", ObjectDisplay.FormatLiteral('\u001e', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
+            Assert.Equal("0x001e '\\u001e'", ObjectDisplay.FormatLiteral('\u001e', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
             Assert.Equal("0x001e \u001e", ObjectDisplay.FormatLiteral('\u001e', ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
 
-            Assert.Equal("0x0008 '\\b'", ObjectDisplay.FormatLiteral('\b', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
-            Assert.Equal("0x0009 '\\t'", ObjectDisplay.FormatLiteral('\t', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
-            Assert.Equal("0x000a '\\n'", ObjectDisplay.FormatLiteral('\n', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
-            Assert.Equal("0x000b '\\v'", ObjectDisplay.FormatLiteral('\v', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
-            Assert.Equal("0x000d '\\r'", ObjectDisplay.FormatLiteral('\r', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
+            Assert.Equal("0x0008 '\\b'", ObjectDisplay.FormatLiteral('\b', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
+            Assert.Equal("0x0009 '\\t'", ObjectDisplay.FormatLiteral('\t', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
+            Assert.Equal("0x000a '\\n'", ObjectDisplay.FormatLiteral('\n', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
+            Assert.Equal("0x000b '\\v'", ObjectDisplay.FormatLiteral('\v', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
+            Assert.Equal("0x000d '\\r'", ObjectDisplay.FormatLiteral('\r', ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
             Assert.Equal("0x000d \r", ObjectDisplay.FormatLiteral('\r', ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseHexadecimalNumbers));
         }
 
@@ -167,13 +167,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return new[]
             {
                 ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.None),
-                ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.EscapeNonPrintableStringCharacters),
+                ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.EscapeNonPrintableCharacters),
                 ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.UseQuotes),
-                ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.EscapeNonPrintableStringCharacters | ObjectDisplayOptions.UseQuotes),
+                ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.UseQuotes),
                 ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.None),
-                ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.EscapeNonPrintableStringCharacters),
+                ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.EscapeNonPrintableCharacters),
                 ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.UseQuotes),
-                ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.EscapeNonPrintableStringCharacters | ObjectDisplayOptions.UseQuotes),
+                ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.IncludeCodePoints | ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.UseQuotes),
             };
         }
 
@@ -192,11 +192,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(@"ab\cd\e", ObjectDisplay.FormatLiteral(@"ab\cd\e", ObjectDisplayOptions.None));
             Assert.Equal(@"\\\\", ObjectDisplay.FormatLiteral(@"\\\\", ObjectDisplayOptions.None));
 
-            Assert.Equal(@"""""", ObjectDisplay.FormatLiteral("", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters));
-            Assert.Equal(@"""\""\""""", ObjectDisplay.FormatLiteral(@"""""", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters));
-            Assert.Equal(@"""'""", ObjectDisplay.FormatLiteral(@"'", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters));
-            Assert.Equal(@"""ab""", ObjectDisplay.FormatLiteral(@"ab", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters));
-            Assert.Equal(@"""\\""", ObjectDisplay.FormatLiteral(@"\", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters));
+            Assert.Equal(@"""""", ObjectDisplay.FormatLiteral("", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
+            Assert.Equal(@"""\""\""""", ObjectDisplay.FormatLiteral(@"""""", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
+            Assert.Equal(@"""'""", ObjectDisplay.FormatLiteral(@"'", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
+            Assert.Equal(@"""ab""", ObjectDisplay.FormatLiteral(@"ab", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
+            Assert.Equal(@"""\\""", ObjectDisplay.FormatLiteral(@"\", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
 
             Assert.Equal("\"x\"", ObjectDisplay.FormatLiteral("x", ObjectDisplayOptions.UseQuotes));
             Assert.Equal("x", ObjectDisplay.FormatLiteral("x", ObjectDisplayOptions.None));
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "êëìíîïðñòóôõö÷øùúûüýþ\"";
             Assert.Equal(
                 expected,
-                ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters));
+                ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
 
             expected =
                 "\0\u0001\u0002\u0003\u0004\u0005\u0006\a\u0008\u0009\u000a\u000b\f\u000d\u000e\u000f\u0010" +
@@ -259,9 +259,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return new[]
             {
                 ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.None),
-                ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.EscapeNonPrintableStringCharacters),
+                ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.EscapeNonPrintableCharacters),
                 ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes),
-                ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.EscapeNonPrintableStringCharacters | ObjectDisplayOptions.UseQuotes),
+                ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.UseQuotes),
             };
         }
 
@@ -341,26 +341,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal("a\tb", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.None));
             Assert.Equal("\"a\tb\"", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.UseQuotes));
-            Assert.Equal("a\\tb", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.EscapeNonPrintableStringCharacters));
-            Assert.Equal("\"a\\tb\"", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters));
+            Assert.Equal("a\\tb", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.EscapeNonPrintableCharacters));
+            Assert.Equal("\"a\\tb\"", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
         }
 
         private string FormatPrimitive(object obj, bool quoteStrings = false)
         {
             var options = quoteStrings ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None;
-            return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.EscapeNonPrintableStringCharacters);
+            return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.EscapeNonPrintableCharacters);
         }
 
         private string FormatPrimitiveUsingHexadecimalNumbers(object obj, bool quoteStrings = false)
         {
             var options = quoteStrings ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None;
-            return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.UseHexadecimalNumbers | ObjectDisplayOptions.EscapeNonPrintableStringCharacters);
+            return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.UseHexadecimalNumbers | ObjectDisplayOptions.EscapeNonPrintableCharacters);
         }
 
         private string FormatPrimitiveIncludingTypeSuffix(object obj, bool useHexadecimalNumbers = false)
         {
             var options = useHexadecimalNumbers ? ObjectDisplayOptions.UseHexadecimalNumbers : ObjectDisplayOptions.None;
-            return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.IncludeTypeSuffix | ObjectDisplayOptions.EscapeNonPrintableStringCharacters);
+            return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.IncludeTypeSuffix | ObjectDisplayOptions.EscapeNonPrintableCharacters);
         }
     }
 }
