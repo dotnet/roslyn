@@ -580,5 +580,68 @@ Public Class [|;;|]Derived
 
 End Class")
         End Function
+
+        <WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function PreferOutConstructorToInnerInThePresenceOfError() As Task
+            Await TestMissingAsync(
+NewLines("Class X \n Sub New(s As String) \n New X(New [|String|]) \n End Sub \n End Class"))
+        End Function
+
+        <WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function PreferOutConstructorToInnerInThePresenceOfError_2() As Task
+            Await TestAsync(
+NewLines("MustInherit Class Y \n Class X \n Inherits Y \n Sub M() \n Dim a = New X([|New String|]) \n End Sub \n End Class \n End Class"),
+NewLines("MustInherit Class Y \n Class X \n Inherits Y \n Private v As String \n Public Sub New(v As String) \n Me.v = v \n End Sub \n Sub M() \n Dim a = New X(New String) \n End Sub \n End Class \n End Class"))
+        End Function
+
+        <WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function PreferOutConstructorToInnerInThePresenceOfError_3() As Task
+            Await TestAsync(
+NewLines("Class X \n Sub New(s As String) \n Dim a = New X(New [|X|]()) \n End Sub \n End Class"),
+NewLines("Class X \n Public Sub New() \n End Sub \n Sub New(s As String) \n Dim a = New X(New X()) \n End Sub \n End Class"))
+        End Function
+
+        <WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function PreferOutConstructorToInnerInThePresenceOfError_4() As Task
+            Await TestAsync(
+NewLines("Class X \n Public Sub New() \n End Sub \n Sub New(s As String) \n Dim a = New X([|New X()|]) \n End Sub \n End Class"),
+NewLines("Class X \n Private x As X \n Public Sub New() \n End Sub \n Public Sub New(x As X) \n Me.x = x \n End Sub \n Sub New(s As String) \n Dim a = New X(New X()) \n End Sub \n End Class"))
+        End Function
+
+        <WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function PreferOutConstructorToInnerInThePresenceOfError_5() As Task
+            Await TestAsync(
+NewLines("Class X \n Sub New(s As String) \n Dim a = New X(New Y([|1|])) \n End Sub \n End Class \n Friend Class Y \n End Class"),
+NewLines("Class X \n Sub New(s As String) \n Dim a = New X(New Y(1)) \n End Sub \n End Class \n Friend Class Y \n Private v As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class"))
+        End Function
+
+        <WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function PreferOutConstructorToInnerInThePresenceOfError_6() As Task
+            Await TestAsync(
+NewLines("Class X \n Sub New(s As String) \n Dim a = New X([|New Y(1)|]) \n End Sub \n End Class \n Friend Class Y \n Private v As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class"),
+NewLines("Class X \n Private y As Y \n Public Sub New(y As Y) \n Me.y = y \n End Sub \n Sub New(s As String) \n Dim a = New X(New Y(1)) \n End Sub \n End Class \n Friend Class Y \n Private v As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class"))
+        End Function
+
+        <WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function PreferOutConstructorToInnerInThePresenceOfError_7() As Task
+            Await TestAsync(
+NewLines("Class X \n Private x As X \n Public Sub New() \n End Sub \n Public Sub New(x As X) \n Me.x = x \n End Sub \n Sub New(s As String) \n Dim a = New X(New [|X|](m:=1)) \n End Sub \n End Class"),
+NewLines("Class X \n Private m As Integer \n Private x As X \n Public Sub New() \n End Sub \n Public Sub New(m As Integer) \n Me.m = m \n End Sub \n Public Sub New(x As X) \n Me.x = x \n End Sub \n Sub New(s As String) \n Dim a = New X(New X(m:=1)) \n End Sub \n End Class"))
+        End Function
+
+        <WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function PreferOutConstructorToInnerInThePresenceOfError_8() As Task
+            Await TestAsync(
+NewLines("Class X \n Private m As Integer \n Public Sub New() \n End Sub \n Public Sub New(m As Integer) \n Me.m = m \n End Sub \n Sub New(s As String) \n Dim a = New [|X|](z:=New X(m:=1)) \n End Sub \n End Class"),
+NewLines("Class X \n Private m As Integer \n Private z As X \n Public Sub New() \n End Sub \n Public Sub New(z As X) \n Me.z = z \n End Sub \n Public Sub New(m As Integer) \n Me.m = m \n End Sub \n Sub New(s As String) \n Dim a = New X(z:=New X(m:=1)) \n End Sub \n End Class"))
+        End Function
     End Class
 End Namespace

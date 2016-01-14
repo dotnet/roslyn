@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -38,12 +39,59 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateConstructor
 
         protected override bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
         {
-            if (node is SimpleNameSyntax ||
-                node is ObjectCreationExpressionSyntax ||
-                node is ConstructorInitializerSyntax ||
+            if (node is SimpleNameSyntax || 
+                node is ConstructorInitializerSyntax || 
                 node is AttributeSyntax)
             {
                 return true;
+            }
+            else if (node is ObjectCreationExpressionSyntax)
+            {
+                if (diagnostic.Id == CS1739)
+                {
+                    // Overload resolution failure" places the diagnostic on the constructor 
+                    // instead of its arguments so we do not need any special handling.
+                    return true;
+                }
+                else if (diagnostic.Id == CS1503)
+                {
+                    // CS1503 "Cannot convert from 'T1' to 'T2'" sets the span for the diagnostic around the argument itself
+                    // We need to only return true if one of the arguments in our constructor exactly matches the span of the
+                    // diagnostic
+                    // example:
+                    //       new X(new Y()) : Error cannot convert from 'Y' to 'T'
+                    var arguments = (node as ObjectCreationExpressionSyntax).ArgumentList.Arguments;
+                    if (arguments.Count > 0)
+                    {
+                        return arguments.Any(x => x.Span == diagnostic.Location.SourceSpan);
+                    }
+                    else
+                    {
+                        // There are no arguments, but we do not want to return true if the diagnostic
+                        // has the same span because we want to run this check again on an ancestor node.
+                        return node.Span != diagnostic.Location.SourceSpan;
+                    }
+                }
+                else
+                {
+                    // Verify that we are not returning an outer constructor node, we should only offer to generate a constructor
+                    // for the inner most constructor that does not exist.
+                    // example:
+                    //      new X(new Y())
+                    //  If X already exists and accepts Y, but Y "does not contain a constructor that takes n arguments" we should only 
+                    //  offer to generate Y, since Y is the only constructor with an error.
+                    var arguments = (node as ObjectCreationExpressionSyntax).ArgumentList.Arguments;
+                    if (arguments.Count > 0)
+                    {
+                        return !arguments.Any(
+                            x => x.Expression is ObjectCreationExpressionSyntax && x.Span.Contains(diagnostic.Location.SourceSpan));
+                    }
+                    else
+                    {
+                        // No arguments to examine so we assume that current node is the best choice for generating a constructor.
+                return true;
+            }
+                }
             }
 
             return diagnostic.Id == CS7036 && node is ClassDeclarationSyntax;

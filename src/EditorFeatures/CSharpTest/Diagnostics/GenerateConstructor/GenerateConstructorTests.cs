@@ -762,9 +762,69 @@ class Derived : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateWithIncorrectConstructorArguments_Crash()
         {
+            await TestMissingAsync(
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; abstract class Y { class X : Y { void M ( ) { new X ( new [|string|] ( ) ) ; } } } ");
+        }
+
+        [WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task PreferOutConstructorToInnerInThePresenceOfError()
+        {
             await TestAsync(
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; abstract class Y { class X : Y { void M ( ) { new X ( new [|string|] ( ) ) ; } } } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; abstract class Y { class X : Y { private string v ; public X ( string v ) { this . v = v ; } void M ( ) { new X ( new string ( ) ) ; } } } ");
+@"class X { private int v ; public X ( ) { } public X ( int v ) { this . v = v ; } X ( string x ) { new X ( [|new X ( 1 )|] ) ; } } ",
+@"class X { private int v ; private X x ; public X ( ) { } public X ( X x ) { this . x = x ; } public X ( int v ) { this . v = v ; } X ( string x ) { new X ( new X ( 1 ) ) ; } } ");
+        }
+
+        [WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task PreferOutConstructorToInnerInThePresenceOfError_2()
+        {
+            await TestAsync(
+@"class X { private int v ; public X ( ) { } X ( string x ) { new X ( new X ( [|i|] : 1 ) ) ; } } ",
+@"class X { private int i ; private int v ; public X ( ) { } public X ( int i ) { this . i = i ; } X ( string x ) { new X ( new X ( i : 1 ) ) ; } } ");
+        }
+
+        [WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task PreferOutConstructorToInnerInThePresenceOfError_3()
+        {
+            await TestAsync(
+@"class X { private int v ; public X ( ) { } X ( string x ) { new X ( new X ( [|1|] ) ) ; } } ",
+@"class X { private int v ; public X ( ) { } public X ( int v ) { this . v = v ; } X ( string x ) { new X ( new X ( 1 ) ) ; } } ");
+        }
+
+        [WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task PreferOutConstructorToInnerInThePresenceOfError_4()
+        {
+            await TestAsync(
+@"class X { X ( string x ) { new X ( new [|X|] ( ) ) ; } } ",
+@"class X { public X ( ) { } X ( string x ) { new X ( new X ( ) ) ; } } ");
+        }
+
+        [WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task PreferOutConstructorToInnerInThePresenceOfError_5()
+        {
+            await TestAsync(
+@"class X { X ( string x ) { new X ( X : new [|X|] ( ) ) ; } } ",
+@"class X { public X ( ) { } X ( string x ) { new X ( X : new X ( ) ) ; } } ");
+        }
+
+        [WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task PreferOutConstructorToInnerInThePresenceOfError_6()
+        {
+            await TestMissingAsync(
+@"class X { X ( string x ) { new X ( new str [||] ing ( ) ) ; } } ");
+        }
+
+        [WorkItem(4600, "https://github.com/dotnet/roslyn/issues/4600")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task PreferOutConstructorToInnerInThePresenceOfError_7()
+        {
+            await TestMissingAsync(
+@"abstract class Y { class X : Y { async Task M ( ) { new X ( new [|string|] ( ) ) ; } } } ");
         }
     }
 }
