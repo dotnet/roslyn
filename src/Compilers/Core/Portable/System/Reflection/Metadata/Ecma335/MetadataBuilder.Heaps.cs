@@ -76,13 +76,13 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             _guidWriter.WriteBytes(0, guidHeapStartOffset);
         }
 
-        internal BlobHandle GetBlobIndex(BlobBuilder builder)
+        public BlobHandle GetBlob(BlobBuilder builder)
         {
             // TODO: avoid making a copy if the blob exists in the index
-            return GetBlobIndex(builder.ToImmutableArray());
+            return GetBlob(builder.ToImmutableArray());
         }
 
-        internal BlobHandle GetBlobIndex(ImmutableArray<byte> blob)
+        public BlobHandle GetBlob(ImmutableArray<byte> blob)
         {
             BlobHandle index;
             if (!_blobs.TryGetValue(blob, out index))
@@ -98,22 +98,22 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return index;
         }
 
-        public BlobHandle GetConstantBlobIndex(object value)
+        public BlobHandle GetConstantBlob(object value)
         {
             string str = value as string;
             if (str != null)
             {
-                return this.GetBlobIndex(str);
+                return GetBlob(str);
             }
 
             var writer = Microsoft.Cci.PooledBlobBuilder.GetInstance();
             writer.WriteConstant(value);
-            var result = this.GetBlobIndex(writer);
+            var result = GetBlob(writer);
             writer.Free();
             return result;
         }
 
-        public BlobHandle GetBlobIndex(string str)
+        public BlobHandle GetBlob(string str)
         {
             byte[] byteArray = new byte[str.Length * 2];
             int i = 0;
@@ -123,15 +123,15 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 byteArray[i++] = (byte)(ch >> 8);
             }
 
-            return this.GetBlobIndex(ImmutableArray.Create(byteArray));
+            return GetBlob(ImmutableArray.Create(byteArray));
         }
 
-        public BlobHandle GetBlobIndexUtf8(string str)
+        public BlobHandle GetBlobUtf8(string str)
         {
-            return GetBlobIndex(ImmutableArray.Create(Encoding.UTF8.GetBytes(str)));
+            return GetBlob(ImmutableArray.Create(Encoding.UTF8.GetBytes(str)));
         }
 
-        public GuidHandle GetGuidIndex(Guid guid)
+        public GuidHandle GetGuid(Guid guid)
         {
             if (guid == Guid.Empty)
             {
@@ -144,7 +144,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 return result;
             }
 
-            result = GetNextGuidIndex();
+            result = GetNextGuid();
             _guids.Add(guid, result);
             _guidWriter.WriteBytes(guid.ToByteArray());
             return result;
@@ -152,12 +152,12 @@ namespace Roslyn.Reflection.Metadata.Ecma335
 
         public GuidHandle ReserveGuid(out Blob reservedBlob)
         {
-            var index = GetNextGuidIndex();
+            var handle = GetNextGuid();
             reservedBlob = _guidWriter.ReserveBytes(16);
-            return index;
+            return handle;
         }
 
-        private GuidHandle GetNextGuidIndex()
+        private GuidHandle GetNextGuid()
         {
             Debug.Assert(!_streamsAreComplete);
 
@@ -174,7 +174,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return MetadataTokens.GuidHandle((_guidWriter.Count >> 4) + 1);
         }
 
-        public StringHandle GetStringIndex(string str)
+        public StringHandle GetString(string str)
         {
             StringHandle index;
             if (str.Length == 0)
@@ -191,18 +191,18 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return index;
         }
 
-        public int ResolveStringIndex(StringHandle handle)
+        public int GetHeapOffset(StringHandle handle)
         {
             return _stringIndexToResolvedOffsetMap[MetadataTokens.GetHeapOffset(handle)];
         }
 
-        public int ResolveBlobIndex(BlobHandle handle)
+        public int GetHeapOffset(BlobHandle handle)
         {
             int offset = MetadataTokens.GetHeapOffset(handle);
             return (offset == 0) ? 0 : _blobHeapStartOffset + offset;
         }
         
-        public int ResolveGuidIndex(GuidHandle handle)
+        public int GetHeapOffset(GuidHandle handle)
         {
             return MetadataTokens.GetHeapOffset(handle);
         }
