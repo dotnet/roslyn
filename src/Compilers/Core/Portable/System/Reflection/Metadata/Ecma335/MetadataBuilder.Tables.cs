@@ -243,7 +243,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             });
         }
 
-        public int AddAssemblyReference(
+        public AssemblyReferenceHandle AddAssemblyReference(
             StringIdx name,
             Version version,
             StringIdx culture,
@@ -261,16 +261,16 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 HashValue = hashValue
             });
 
-            return _assemblyRefTable.Count;
+            return MetadataTokens.AssemblyReferenceHandle(_assemblyRefTable.Count);
         }
 
-        public int AddTypeDefinition(
+        public TypeDefinitionHandle AddTypeDefinition(
             TypeAttributes attributes, 
             StringIdx @namespace,
             StringIdx name,
-            uint baseTypeCodedIndex,
-            int fieldList,
-            int methodList)
+            EntityHandle baseType,
+            FieldDefinitionHandle fieldList,
+            MethodDefinitionHandle methodList)
         {
             Debug.Assert(@namespace != null);
             Debug.Assert(name != null);
@@ -280,68 +280,65 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 Flags = (uint)attributes,
                 Name = name,
                 Namespace = @namespace,
-                Extends = baseTypeCodedIndex,
-                FieldList = (uint)fieldList,
-                MethodList = (uint)methodList
+                Extends = baseType.IsNil ? 0 : (uint)CodedIndex.ToTypeDefOrRef(baseType),
+                FieldList = (uint)MetadataTokens.GetRowNumber(fieldList),
+                MethodList = (uint)MetadataTokens.GetRowNumber(methodList)
             });
 
-            return _typeDefTable.Count;
+            return MetadataTokens.TypeDefinitionHandle(_typeDefTable.Count);
         }
 
         public void AddTypeLayout(
-            int typeDefinitionRowId,
+            TypeDefinitionHandle type,
             ushort packingSize,
             uint size)
         {
             _classLayoutTable.Add(new ClassLayoutRow
             {
-                Parent = (uint)typeDefinitionRowId,
+                Parent = (uint)MetadataTokens.GetRowNumber(type),
                 PackingSize = packingSize,
                 ClassSize = size
             });
         }
 
         public void AddInterfaceImplementation(
-            int typeDefinitionRowId,
-            uint interfaceCodedIndex)
+            TypeDefinitionHandle type,
+            EntityHandle implementedInterface)
         {
             _interfaceImplTable.Add(new InterfaceImplRow
             {
-                Class = (uint)typeDefinitionRowId,
-                Interface = interfaceCodedIndex
+                Class = (uint)MetadataTokens.GetRowNumber(type),
+                Interface = (uint)CodedIndex.ToTypeDefOrRef(implementedInterface)
             });
         }
 
         public void AddNestedType(
-            int typeDefinitionRowId,
-            int enclosingTypeDefinitionRowId)
+            TypeDefinitionHandle type,
+            TypeDefinitionHandle enclosingType)
         {
             _nestedClassTable.Add(new NestedClassRow
             {
-                NestedClass = (uint)typeDefinitionRowId,
-                EnclosingClass = (uint)enclosingTypeDefinitionRowId
+                NestedClass = (uint)MetadataTokens.GetRowNumber(type),
+                EnclosingClass = (uint)MetadataTokens.GetRowNumber(enclosingType)
             });
         }
 
-        public int AddTypeReference(uint resolutionScope, StringIdx @namespace, StringIdx name)
+        public TypeReferenceHandle AddTypeReference(
+            EntityHandle resolutionScope, 
+            StringIdx @namespace, 
+            StringIdx name)
         {
             Debug.Assert(@namespace != null);
             Debug.Assert(name != null);
 
             _typeRefTable.Add(new TypeRefRow
             {
-                ResolutionScope = resolutionScope,
+                ResolutionScope = (uint)CodedIndex.ToResolutionScope(resolutionScope),
                 Name = name,
                 Namespace = @namespace
             });
 
-            // row id
-            return _typeRefTable.Count;
-        }
-
-        public void SetTypeSpecificationTableCapacity(int capacity)
-        {
-            _typeSpecTable.Capacity = capacity;
+            return MetadataTokens.TypeReferenceHandle(_typeRefTable.Count);
         }
 
         public void AddTypeSpecification(BlobIdx signature)
@@ -350,11 +347,6 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             {
                 Signature = signature
             });
-        }
-
-        public void SetStandaloneSigTableCapacity(int capacity)
-        {
-            _standAloneSigTable.Capacity = capacity;
         }
 
         public void AddStandaloneSignature(BlobIdx signature)
@@ -375,81 +367,87 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddPropertyMap(int typeDefinitionRowId, int propertyList)
+        public void AddPropertyMap(TypeDefinitionHandle declaringType, PropertyDefinitionHandle propertyList)
         {
             _propertyMapTable.Add(new PropertyMapRow
             {
-                Parent = (uint)typeDefinitionRowId,
-                PropertyList = (uint)propertyList
+                Parent = (uint)MetadataTokens.GetRowNumber(declaringType),
+                PropertyList = (uint)MetadataTokens.GetRowNumber(propertyList)
             });
         }
 
-        public void AddEvent(EventAttributes attributes, StringIdx name, uint type)
+        public void AddEvent(EventAttributes attributes, StringIdx name, EntityHandle type)
         {
             _eventTable.Add(new EventRow
             {
                 EventFlags = (ushort)attributes,
                 Name = name,
-                EventType = type
+                EventType = (uint)CodedIndex.ToTypeDefOrRef(type)
             });
         }
 
-        public void AddEventMap(int typeDefinitionRowId, int eventList)
+        public void AddEventMap(TypeDefinitionHandle declaringType, EventDefinitionHandle eventList)
         {
             _eventMapTable.Add(new EventMapRow
             {
-                Parent = (uint)typeDefinitionRowId,
-                EventList = (uint)eventList
+                Parent = (uint)MetadataTokens.GetRowNumber(declaringType),
+                EventList = (uint)MetadataTokens.GetRowNumber(eventList)
             });
         }
 
-        public void AddConstant(uint parent, object value)
+        public void AddConstant(EntityHandle parent, object value)
         {
+            uint parentCodedIndex = (uint)CodedIndex.ToHasConstant(parent);
+
             // the table is required to be sorted by Parent:
-            _constantTableNeedsSorting |= parent < _constantTableLastParent;
-            _constantTableLastParent = parent;
+            _constantTableNeedsSorting |= parentCodedIndex < _constantTableLastParent;
+            _constantTableLastParent = parentCodedIndex;
 
             _constantTable.Add(new ConstantRow
             {
                 Type = (byte)MetadataWriterUtilities.GetConstantTypeCode(value),
-                Parent = parent,
+                Parent = parentCodedIndex,
                 Value = GetConstantBlobIndex(value)
             });
         }
 
-        public void AddMethodSemantics(uint association, ushort semantics, int methodDefinitionRowId)
+        public void AddMethodSemantics(EntityHandle association, ushort semantics, MethodDefinitionHandle methodDefinition)
         {
+            uint associationCodedIndex = (uint)CodedIndex.ToHasSemantics(association);
+
             // the table is required to be sorted by Association:
-            _methodSemanticsTableNeedsSorting |= association < _methodSemanticsTableLastAssociation;
-            _methodSemanticsTableLastAssociation = association;
+            _methodSemanticsTableNeedsSorting |= associationCodedIndex < _methodSemanticsTableLastAssociation;
+            _methodSemanticsTableLastAssociation = associationCodedIndex;
 
             _methodSemanticsTable.Add(new MethodSemanticsRow
             {
-                Association = association,
-                Method = (uint)methodDefinitionRowId,
+                Association = associationCodedIndex,
+                Method = (uint)MetadataTokens.GetRowNumber(methodDefinition),
                 Semantic = semantics
             });
         }
 
-        public void AddCustomAttribute(uint parent, uint constructor, BlobIdx value)
+        public void AddCustomAttribute(EntityHandle parent, EntityHandle constructor, BlobIdx value)
         {
+            uint parentCodedIndex = (uint)CodedIndex.ToHasCustomAttribute(parent);
+
             // the table is required to be sorted by Parent:
-            _customAttributeTableNeedsSorting |= parent < _customAttributeTableLastParent;
-            _customAttributeTableLastParent = parent;
+            _customAttributeTableNeedsSorting |= parentCodedIndex < _customAttributeTableLastParent;
+            _customAttributeTableLastParent = parentCodedIndex;
 
             _customAttributeTable.Add(new CustomAttributeRow
             {
-                Parent = parent,
-                Type = constructor,
+                Parent = parentCodedIndex,
+                Type = (uint)CodedIndex.ToCustomAttributeType(constructor),
                 Value = value
             });
         }
 
-        public void AddMethodSpecification(uint method, BlobIdx instantiation)
+        public void AddMethodSpecification(EntityHandle method, BlobIdx instantiation)
         {
             _methodSpecTable.Add(new MethodSpecRow
             {
-                Method = method,
+                Method = (uint)CodedIndex.ToMethodDefOrRef(method),
                 Instantiation = instantiation
             });
         }
@@ -472,8 +470,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             });
         }
 
-        public int AddGenericParameter(
-            uint parent,
+        public GenericParameterHandle AddGenericParameter(
+            EntityHandle parent,
             GenericParameterAttributes attributes,
             StringIdx name,
             int index)
@@ -483,21 +481,20 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 Flags = (ushort)attributes,
                 Name = name,
                 Number = (ushort)index,
-                Owner = parent
+                Owner = (uint)CodedIndex.ToTypeOrMethodDef(parent)
             });
 
-            // row id
-            return _genericParamTable.Count;
+            return MetadataTokens.GenericParameterHandle(_genericParamTable.Count);
         }
 
         public void AddGenericParameterConstraint(
-            int genericParameterRowId,
-            uint constraint)
+            GenericParameterHandle genericParameter,
+            EntityHandle constraint)
         {
             _genericParamConstraintTable.Add(new GenericParamConstraintRow
             {
-                Owner = (uint)genericParameterRowId,
-                Constraint = constraint,
+                Owner = (uint)MetadataTokens.GetRowNumber(genericParameter),
+                Constraint = (uint)CodedIndex.ToTypeDefOrRef(constraint),
             });
         }
 
@@ -515,48 +512,51 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         }
 
         public void AddFieldLayout(
-            int fieldDefinitionRowId,
+            FieldDefinitionHandle field,
             int offset)
         {
             _fieldLayoutTable.Add(new FieldLayoutRow
             {
-                Field = (uint)fieldDefinitionRowId,
+                Field = (uint)MetadataTokens.GetRowNumber(field),
                 Offset = (uint)offset
             });
         }
+
         public void AddMarshallingDescriptor(
-            uint parent,
+            EntityHandle parent,
             BlobIdx descriptor)
         {
+            uint codedIndex = (uint)CodedIndex.ToHasFieldMarshal(parent);
+
             // the table is required to be sorted by Parent:
-            _fieldMarshalTableNeedsSorting |= parent < _fieldMarshalTableLastParent;
-            _fieldMarshalTableLastParent = parent;
+            _fieldMarshalTableNeedsSorting |= codedIndex < _fieldMarshalTableLastParent;
+            _fieldMarshalTableLastParent = codedIndex;
 
             _fieldMarshalTable.Add(new FieldMarshalRow
             {
-                Parent = parent,
+                Parent = codedIndex,
                 NativeType = descriptor
             });
         }
 
         public void AddFieldRelativeVirtualAddress(
-            int fieldDefinitionRowId,
+            FieldDefinitionHandle field,
             int relativeVirtualAddress)
         {
             _fieldRvaTable.Add(new FieldRvaRow
             {
-                Field = (uint)fieldDefinitionRowId,
+                Field = (uint)MetadataTokens.GetRowNumber(field),
                 Offset = (uint)relativeVirtualAddress
             });
         }
 
-        public int AddMethodDefinition(
+        public MethodDefinitionHandle AddMethodDefinition(
             MethodAttributes attributes, 
             MethodImplAttributes implAttributes,
             StringIdx name,
             BlobIdx signature,
             int bodyOffset,
-            int paramList)
+            ParameterHandle paramList)
         {
             _methodDefTable.Add(new MethodRow
             {
@@ -565,66 +565,66 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 Name = name,
                 Signature = signature,
                 BodyOffset = bodyOffset,
-                ParamList = (uint)paramList
+                ParamList = (uint)MetadataTokens.GetRowNumber(paramList)
             });
 
-            return _methodDefTable.Count;
+            return MetadataTokens.MethodDefinitionHandle(_methodDefTable.Count);
         }
 
         public void AddMethodImport(
-            uint member,
+            EntityHandle member,
             MethodImportAttributes attributes, 
             StringIdx name, 
-            int moduleReferenceRowId)
+            ModuleReferenceHandle module)
         {
             _implMapTable.Add(new ImplMapRow
             {
-                MemberForwarded = member,
+                MemberForwarded = (uint)CodedIndex.ToMemberForwarded(member),
                 ImportName = name,
-                ImportScope = (uint)moduleReferenceRowId,
+                ImportScope = (uint)MetadataTokens.GetRowNumber(module),
                 MappingFlags = (ushort)attributes,
             });
         }
 
         public void AddMethodImplementation(
-            int typeDefinitionRowId,
-            uint methodBody,
-            uint methodDeclaration)
+            TypeDefinitionHandle type,
+            EntityHandle methodBody,
+            EntityHandle methodDeclaration)
         {
             _methodImplTable.Add(new MethodImplRow
             {
-                Class = (uint)typeDefinitionRowId,
-                MethodBody = methodBody,
-                MethodDecl = methodDeclaration
+                Class = (uint)MetadataTokens.GetRowNumber(type),
+                MethodBody = (uint)CodedIndex.ToMethodDefOrRef(methodBody),
+                MethodDecl = (uint)CodedIndex.ToMethodDefOrRef(methodDeclaration)
             });
         }
-
-        public int AddMemberReference(
-            uint type,
+        
+        public MemberReferenceHandle AddMemberReference(
+            EntityHandle parent,
             StringIdx name,
             BlobIdx signature)
         {
             _memberRefTable.Add(new MemberRefRow
             {
-                Class = type,
+                Class = (uint)CodedIndex.ToMemberRefParent(parent),
                 Name = name,
                 Signature = signature
             });
 
-            return _memberRefTable.Count;
+            return MetadataTokens.MemberReferenceHandle(_memberRefTable.Count);
         }
 
         public void AddManifestResource(
             ManifestResourceAttributes attributes,
             StringIdx name,
-            uint implementation,
+            EntityHandle implementation,
             long offset)
         {
             _manifestResourceTable.Add(new ManifestResourceRow
             {
                 Flags = (uint)attributes,
                 Name = name,
-                Implementation = implementation,
+                Implementation = implementation.IsNil ? 0 : (uint)CodedIndex.ToImplementation(implementation),
                 Offset = (uint)offset
             });
         }
@@ -646,13 +646,13 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             TypeAttributes attributes,
             StringIdx @namespace,
             StringIdx name,
-            uint implementation,
+            EntityHandle implementation,
             int typeDefinitionId)
         {
             _exportedTypeTable.Add(new ExportedTypeRow
             {
                 Flags = (uint)attributes,
-                Implementation = implementation,
+                Implementation = (uint)CodedIndex.ToImplementation(implementation),
                 TypeNamespace = @namespace,
                 TypeName = name,
                 TypeDefId = (uint)typeDefinitionId
@@ -666,40 +666,42 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         }
 
         public void AddDeclarativeSecurityAttribute(
-            uint parent,
+            EntityHandle parent,
             DeclarativeSecurityAction action,
             BlobIdx permissionSet)
         {
+            uint parentCodedIndex = (uint)CodedIndex.ToHasDeclSecurity(parent);
+
             // the table is required to be sorted by Parent:
-            _declSecurityTableNeedsSorting |= parent < _declSecurityTableLastParent;
-            _declSecurityTableLastParent = parent;
+            _declSecurityTableNeedsSorting |= parentCodedIndex < _declSecurityTableLastParent;
+            _declSecurityTableLastParent = parentCodedIndex;
 
             _declSecurityTable.Add(new DeclSecurityRow
             {
-                Parent = parent,
+                Parent = parentCodedIndex,
                 Action = (ushort)action,
                 PermissionSet = permissionSet
             });
         }
 
-        public void AddEncLogEntry(int token, EditAndContinueOperation code)
+        public void AddEncLogEntry(EntityHandle entity, EditAndContinueOperation code)
         {
             _encLogTable.Add(new EncLogRow
             {
-                Token = (uint)token,
+                Token = (uint)MetadataTokens.GetToken(entity),
                 FuncCode = (byte)code
             });
         }
 
-        public void AddEncMapEntry(int token)
+        public void AddEncMapEntry(EntityHandle entity)
         {
             _encMapTable.Add(new EncMapRow
             {
-                Token = (uint)token
+                Token = (uint)MetadataTokens.GetToken(entity)
             });
         }
 
-        public int AddDocument(BlobIdx name, GuidIdx hashAlgorithm, BlobIdx hash, GuidIdx language)
+        public DocumentHandle AddDocument(BlobIdx name, GuidIdx hashAlgorithm, BlobIdx hash, GuidIdx language)
         {
             _documentTable.Add(new DocumentRow
             {
@@ -709,32 +711,34 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 Language = language
             });
 
-            return _documentTable.Count;
+            return MetadataTokens.DocumentHandle(_documentTable.Count);
         }
 
-        public void AddMethodDebugInformation(int documentRowId, BlobIdx sequencePoints)
+        public void AddMethodDebugInformation(DocumentHandle document, BlobIdx sequencePoints)
         {
             _methodDebugInformationTable.Add(new MethodDebugInformationRow
             {
-                Document = (uint)documentRowId,
+                Document = (uint)MetadataTokens.GetRowNumber(document),
                 SequencePoints = sequencePoints
             });
         }
 
-        public void AddLocalScope(int methodRowId, int importScopeRowId, int variableList, int constantList, int startOffset, int length)
+        public LocalScopeHandle AddLocalScope(MethodDefinitionHandle method, ImportScopeHandle importScope, LocalVariableHandle variableList, LocalConstantHandle constantList, int startOffset, int length)
         {
             _localScopeTable.Add(new LocalScopeRow
             {
-                Method = (uint)methodRowId,
-                ImportScope = (uint)importScopeRowId,
-                VariableList = (uint)variableList,
-                ConstantList = (uint)constantList,
+                Method = (uint)MetadataTokens.GetRowNumber(method),
+                ImportScope = (uint)MetadataTokens.GetRowNumber(importScope),
+                VariableList = (uint)MetadataTokens.GetRowNumber(variableList),
+                ConstantList = (uint)MetadataTokens.GetRowNumber(constantList),
                 StartOffset = (uint)startOffset,
                 Length = (uint)length
             });
+
+            return MetadataTokens.LocalScopeHandle(_localScopeTable.Count);
         }
 
-        public int AddLocalVariable(LocalVariableAttributes attributes, int index, StringIdx name)
+        public LocalVariableHandle AddLocalVariable(LocalVariableAttributes attributes, int index, StringIdx name)
         {
             _localVariableTable.Add(new LocalVariableRow
             {
@@ -743,10 +747,10 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 Name = name
             });
 
-            return _localVariableTable.Count;
+            return MetadataTokens.LocalVariableHandle(_localVariableTable.Count);
         }
         
-        public int AddLocalConstant(StringIdx name, BlobIdx signature)
+        public LocalConstantHandle AddLocalConstant(StringIdx name, BlobIdx signature)
         {
             _localConstantTable.Add(new LocalConstantRow
             {
@@ -754,34 +758,34 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 Signature = signature
             });
 
-            return _localConstantTable.Count;
+            return MetadataTokens.LocalConstantHandle(_localConstantTable.Count);
         }
 
-        public int AddImportScope(int parentScopeRowId, BlobIdx imports)
+        public ImportScopeHandle AddImportScope(ImportScopeHandle parentScope, BlobIdx imports)
         {
             _importScopeTable.Add(new ImportScopeRow
             {
-                Parent = (uint)parentScopeRowId,
+                Parent = (uint)MetadataTokens.GetRowNumber(parentScope),
                 Imports = imports
             });
 
-            return _importScopeTable.Count;
+            return MetadataTokens.ImportScopeHandle(_importScopeTable.Count);
         }
 
-        public void AddStateMachineMethod(int moveNextMethodRowId, int kickoffMethodRowId)
+        public void AddStateMachineMethod(MethodDefinitionHandle moveNextMethod, MethodDefinitionHandle kickoffMethod)
         {
             _stateMachineMethodTable.Add(new StateMachineMethodRow
             {
-                MoveNextMethod  = (uint)moveNextMethodRowId,
-                KickoffMethod = (uint)kickoffMethodRowId
+                MoveNextMethod  = (uint)MetadataTokens.GetRowNumber(moveNextMethod),
+                KickoffMethod = (uint)MetadataTokens.GetRowNumber(kickoffMethod)
             });
         }
 
-        public void AddCustomDebugInformation(uint parent, GuidIdx kind, BlobIdx value)
+        public void AddCustomDebugInformation(EntityHandle parent, GuidIdx kind, BlobIdx value)
         {
             _customDebugInformationTable.Add(new CustomDebugInformationRow
             {
-                Parent = parent,
+                Parent = (uint)CodedIndex.ToHasCustomDebugInformation(parent),
                 Kind = kind,
                 Value = value
             });

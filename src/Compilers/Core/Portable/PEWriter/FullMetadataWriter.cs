@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -114,19 +115,22 @@ namespace Microsoft.Cci
             get { return Guid.Empty; }
         }
 
-        protected override bool TryGetTypeDefIndex(ITypeDefinition def, out int index)
+        protected override bool TryGetTypeDefIndex(ITypeDefinition def, out TypeDefinitionHandle handle)
         {
-            return _typeDefs.TryGetValue(def, out index);
+            int index;
+            bool result = _typeDefs.TryGetValue(def, out index);
+            handle = MetadataTokens.TypeDefinitionHandle(index);
+            return result;
         }
 
-        protected override int GetTypeDefIndex(ITypeDefinition def)
+        protected override TypeDefinitionHandle GetTypeDefIndex(ITypeDefinition def)
         {
-            return _typeDefs[def];
+            return MetadataTokens.TypeDefinitionHandle(_typeDefs[def]);
         }
 
-        protected override ITypeDefinition GetTypeDef(int index)
+        protected override ITypeDefinition GetTypeDef(TypeDefinitionHandle handle)
         {
-            return _typeDefs[index];
+            return _typeDefs[MetadataTokens.GetRowNumber(handle)];
         }
 
         protected override IReadOnlyList<ITypeDefinition> GetTypeDefs()
@@ -134,9 +138,9 @@ namespace Microsoft.Cci
             return _typeDefs.Rows;
         }
 
-        protected override int GetEventDefIndex(IEventDefinition def)
+        protected override EventDefinitionHandle GetEventDefIndex(IEventDefinition def)
         {
-            return _eventDefs[def];
+            return MetadataTokens.EventDefinitionHandle(_eventDefs[def]);
         }
 
         protected override IReadOnlyList<IEventDefinition> GetEventDefs()
@@ -144,9 +148,9 @@ namespace Microsoft.Cci
             return _eventDefs.Rows;
         }
 
-        protected override int GetFieldDefIndex(IFieldDefinition def)
+        protected override FieldDefinitionHandle GetFieldDefIndex(IFieldDefinition def)
         {
-            return _fieldDefs[def];
+            return MetadataTokens.FieldDefinitionHandle(_fieldDefs[def]);
         }
 
         protected override IReadOnlyList<IFieldDefinition> GetFieldDefs()
@@ -154,19 +158,22 @@ namespace Microsoft.Cci
             return _fieldDefs.Rows;
         }
 
-        protected override bool TryGetMethodDefIndex(IMethodDefinition def, out int index)
+        protected override bool TryGetMethodDefIndex(IMethodDefinition def, out MethodDefinitionHandle handle)
         {
-            return _methodDefs.TryGetValue(def, out index);
+            int index;
+            bool result = _methodDefs.TryGetValue(def, out index);
+            handle = MetadataTokens.MethodDefinitionHandle(index);
+            return result;
         }
 
-        protected override int GetMethodDefIndex(IMethodDefinition def)
+        protected override MethodDefinitionHandle GetMethodDefIndex(IMethodDefinition def)
         {
-            return _methodDefs[def];
+            return MetadataTokens.MethodDefinitionHandle(_methodDefs[def]);
         }
 
-        protected override IMethodDefinition GetMethodDef(int index)
+        protected override IMethodDefinition GetMethodDef(MethodDefinitionHandle handle)
         {
-            return _methodDefs[index];
+            return _methodDefs[MetadataTokens.GetRowNumber(handle)];
         }
 
         protected override IReadOnlyList<IMethodDefinition> GetMethodDefs()
@@ -174,9 +181,9 @@ namespace Microsoft.Cci
             return _methodDefs.Rows;
         }
 
-        protected override int GetPropertyDefIndex(IPropertyDefinition def)
+        protected override PropertyDefinitionHandle GetPropertyDefIndex(IPropertyDefinition def)
         {
-            return _propertyDefs[def];
+            return MetadataTokens.PropertyDefinitionHandle(_propertyDefs[def]);
         }
 
         protected override IReadOnlyList<IPropertyDefinition> GetPropertyDefs()
@@ -184,9 +191,9 @@ namespace Microsoft.Cci
             return _propertyDefs.Rows;
         }
 
-        protected override int GetParameterDefIndex(IParameterDefinition def)
+        protected override ParameterHandle GetParameterDefIndex(IParameterDefinition def)
         {
-            return _parameterDefs[def];
+            return MetadataTokens.ParameterHandle(_parameterDefs[def]);
         }
 
         protected override IReadOnlyList<IParameterDefinition> GetParameterDefs()
@@ -199,24 +206,24 @@ namespace Microsoft.Cci
             return _genericParameters.Rows;
         }
 
-        protected override int GetFieldDefIndex(INamedTypeDefinition typeDef)
+        protected override FieldDefinitionHandle GetFieldDefIndex(INamedTypeDefinition typeDef)
         {
-            return _fieldDefIndex[typeDef];
+            return MetadataTokens.FieldDefinitionHandle(_fieldDefIndex[typeDef]);
         }
 
-        protected override int GetMethodDefIndex(INamedTypeDefinition typeDef)
+        protected override MethodDefinitionHandle GetMethodDefIndex(INamedTypeDefinition typeDef)
         {
-            return _methodDefIndex[typeDef];
+            return MetadataTokens.MethodDefinitionHandle(_methodDefIndex[typeDef]);
         }
 
-        protected override int GetParameterDefIndex(IMethodDefinition methodDef)
+        protected override ParameterHandle GetParameterDefIndex(IMethodDefinition methodDef)
         {
-            return _parameterListIndex[methodDef];
+            return MetadataTokens.ParameterHandle(_parameterListIndex[methodDef]);
         }
 
-        protected override int GetOrAddAssemblyRefIndex(IAssemblyReference reference)
+        protected override AssemblyReferenceHandle GetOrAddAssemblyRefIndex(IAssemblyReference reference)
         {
-            return _assemblyRefIndex.GetOrAdd(reference);
+            return MetadataTokens.AssemblyReferenceHandle(_assemblyRefIndex.GetOrAdd(reference));
         }
 
         protected override IReadOnlyList<IAssemblyReference> GetAssemblyRefs()
@@ -224,9 +231,9 @@ namespace Microsoft.Cci
             return _assemblyRefIndex.Rows;
         }
 
-        protected override int GetOrAddModuleRefIndex(string reference)
+        protected override ModuleReferenceHandle GetOrAddModuleRefIndex(string reference)
         {
-            return _moduleRefIndex.GetOrAdd(reference);
+            return MetadataTokens.ModuleReferenceHandle(_moduleRefIndex.GetOrAdd(reference));
         }
 
         protected override IReadOnlyList<string> GetModuleRefs()
@@ -234,9 +241,9 @@ namespace Microsoft.Cci
             return _moduleRefIndex.Rows;
         }
 
-        protected override int GetOrAddMemberRefIndex(ITypeMemberReference reference)
+        protected override MemberReferenceHandle GetOrAddMemberRefIndex(ITypeMemberReference reference)
         {
-            return _memberRefIndex.GetOrAdd(reference);
+            return MetadataTokens.MemberReferenceHandle(_memberRefIndex.GetOrAdd(reference));
         }
 
         protected override IReadOnlyList<ITypeMemberReference> GetMemberRefs()
@@ -244,9 +251,9 @@ namespace Microsoft.Cci
             return _memberRefIndex.Rows;
         }
 
-        protected override int GetOrAddMethodSpecIndex(IGenericMethodInstanceReference reference)
+        protected override MethodSpecificationHandle GetOrAddMethodSpecIndex(IGenericMethodInstanceReference reference)
         {
-            return _methodSpecIndex.GetOrAdd(reference);
+            return MetadataTokens.MethodSpecificationHandle(_methodSpecIndex.GetOrAdd(reference));
         }
 
         protected override IReadOnlyList<IGenericMethodInstanceReference> GetMethodSpecs()
@@ -254,14 +261,17 @@ namespace Microsoft.Cci
             return _methodSpecIndex.Rows;
         }
 
-        protected override bool TryGetTypeRefIndex(ITypeReference reference, out int index)
+        protected override bool TryGetTypeRefIndex(ITypeReference reference, out TypeReferenceHandle handle)
         {
-            return _typeRefIndex.TryGetValue(reference, out index);
+            int index;
+            bool result = _typeRefIndex.TryGetValue(reference, out index);
+            handle = MetadataTokens.TypeReferenceHandle(index);
+            return result;
         }
 
-        protected override int GetOrAddTypeRefIndex(ITypeReference reference)
+        protected override TypeReferenceHandle GetOrAddTypeRefIndex(ITypeReference reference)
         {
-            return _typeRefIndex.GetOrAdd(reference);
+            return MetadataTokens.TypeReferenceHandle(_typeRefIndex.GetOrAdd(reference));
         }
 
         protected override IReadOnlyList<ITypeReference> GetTypeRefs()
@@ -269,9 +279,9 @@ namespace Microsoft.Cci
             return _typeRefIndex.Rows;
         }
 
-        protected override int GetOrAddTypeSpecIndex(ITypeReference reference)
+        protected override TypeSpecificationHandle GetOrAddTypeSpecIndex(ITypeReference reference)
         {
-            return _typeSpecIndex.GetOrAdd(reference);
+            return MetadataTokens.TypeSpecificationHandle(_typeSpecIndex.GetOrAdd(reference));
         }
 
         protected override IReadOnlyList<ITypeReference> GetTypeSpecs()
@@ -279,9 +289,9 @@ namespace Microsoft.Cci
             return _typeSpecIndex.Rows;
         }
 
-        protected override int GetOrAddStandAloneSignatureIndex(BlobIdx blobIndex)
+        protected override StandaloneSignatureHandle GetOrAddStandAloneSignatureIndex(BlobIdx blobIndex)
         {
-            return _standAloneSignatureIndex.GetOrAdd(blobIndex);
+            return MetadataTokens.StandaloneSignatureHandle(_standAloneSignatureIndex.GetOrAdd(blobIndex));
         }
 
         protected override IReadOnlyList<BlobIdx> GetStandAloneSignatures()
@@ -328,7 +338,7 @@ namespace Microsoft.Cci
                 lastParent = eventDef.ContainingTypeDefinition;
 
                 metadata.AddEventMap(
-                    typeDefinitionRowId: GetTypeDefIndex(lastParent),
+                    declaringType: GetTypeDefIndex(lastParent),
                     eventList: GetEventDefIndex(eventDef));
             }
         }
@@ -346,7 +356,7 @@ namespace Microsoft.Cci
                 lastParent = propertyDef.ContainingTypeDefinition;
 
                 metadata.AddPropertyMap(
-                    typeDefinitionRowId: GetTypeDefIndex(lastParent),
+                    declaringType: GetTypeDefIndex(lastParent),
                     propertyList: GetPropertyDefIndex(propertyDef));
             }
         }

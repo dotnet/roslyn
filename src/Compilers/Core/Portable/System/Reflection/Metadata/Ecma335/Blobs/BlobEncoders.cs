@@ -872,10 +872,10 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
                     new ArrayShapeEncoder<T>(_continuation)));
         }
 
-        public T TypeDefOrRefOrSpec(bool isValueType, uint typeRefDefSpecCodedIndex)
+        public T TypeDefOrRefOrSpec(bool isValueType, EntityHandle typeRefDefSpec)
         {
             ClassOrValue(isValueType);
-            Builder.WriteCompressedInteger(typeRefDefSpecCodedIndex);
+            Builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(typeRefDefSpec));
             return _continuation;
         }
 
@@ -903,11 +903,11 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
             return new MethodSignatureEncoder<T>(_continuation, isVarArg: convention == SignatureCallingConvention.VarArgs);
         }
 
-        public GenericTypeArgumentsEncoder<T> GenericInstantiation(bool isValueType, uint typeRefDefSpecCodedIndex, int genericArgumentCount)
+        public GenericTypeArgumentsEncoder<T> GenericInstantiation(bool isValueType, EntityHandle typeRefDefSpec, int genericArgumentCount)
         {
             Builder.WriteByte((byte)SignatureTypeCode.GenericTypeInstance);
             ClassOrValue(isValueType);
-            Builder.WriteCompressedInteger(typeRefDefSpecCodedIndex);
+            Builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(typeRefDefSpec));
             Builder.WriteCompressedInteger((uint)genericArgumentCount);
             return new GenericTypeArgumentsEncoder<T>(_continuation, genericArgumentCount);
         }
@@ -953,7 +953,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
             _continuation = continuation;
         }
 
-        public CustomModifiersEncoder<T> AddModifier(bool isOptional, uint typeDefRefSpecCodedIndex)
+        public CustomModifiersEncoder<T> AddModifier(bool isOptional, EntityHandle typeDefRefSpec)
         {
             if (isOptional)
             {
@@ -964,7 +964,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
                 Builder.WriteByte((byte)SignatureTypeCode.RequiredModifier);
             }
 
-            Builder.WriteCompressedInteger(typeDefRefSpecCodedIndex);
+            Builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(typeDefRefSpec));
             return this;
         }
 
