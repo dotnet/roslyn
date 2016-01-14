@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // No argument has been supplied for the parameter at `parameterIndex`:
-                // 1. `argumentIndex == -1' when when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
+                // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
                 // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
                 if (argumentIndex == -1 || argumentIndex >= boundArguments.Length)
                 {
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // An argument that is an array of the appropriate type is not a params argument.
                             (boundArguments.Length > argumentIndex + 1 ||
                              argument.Type.TypeKind != TypeKind.Array ||
-                             !argument.Type.Equals(parameters[parameters.Length - 1].Type, true)))
+                             !argument.Type.Equals(parameters[parameters.Length - 1].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds:true)))
                         {
                             return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex));
                         }
@@ -449,36 +449,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (ImmutableArray<IMemberInitializer>)s_memberInitializersMappings.GetValue(this,
                     objectCreationExpression =>
                     {
-                        BoundExpression initializer = this.InitializerExpressionOpt;
-                        if (initializer != null)
+                        var objectInitializerExpression = this.InitializerExpressionOpt as BoundObjectInitializerExpression;
+                        if (objectInitializerExpression != null)
                         {
-                            var objectInitializerExpression = initializer as BoundObjectInitializerExpression;
-                            if (objectInitializerExpression != null)
+                            var builder = ArrayBuilder<IMemberInitializer>.GetInstance(objectInitializerExpression.Initializers.Length);
+                            foreach (var memberAssignment in objectInitializerExpression.Initializers)
                             {
-                                var builder = ArrayBuilder<IMemberInitializer>.GetInstance(objectInitializerExpression.Initializers.Length);
-                                foreach (var memberAssignment in objectInitializerExpression.Initializers)
+                                var assignment = memberAssignment as BoundAssignmentOperator;
+                                var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
+
+                                if (leftSymbol == null)
                                 {
-                                    var assignment = memberAssignment as BoundAssignmentOperator;
-                                    var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
-
-                                    if (leftSymbol == null)
-                                    {
-                                        continue;
-                                    }
-
-                                    switch (leftSymbol.Kind)
-                                    {
-                                        case SymbolKind.Field:
-                                            builder.Add(new FieldInitializer(assignment.Syntax, (IFieldSymbol)leftSymbol, assignment.Right));
-                                            break;
-                                        case SymbolKind.Property:
-                                            builder.Add(new PropertyInitializer(assignment.Syntax, ((IPropertySymbol)leftSymbol).SetMethod, assignment.Right));
-                                            break;
-                                    }
+                                    continue;
                                 }
-                                return builder.ToImmutableAndFree();
+
+                                switch (leftSymbol.Kind)
+                                {
+                                    case SymbolKind.Field:
+                                        builder.Add(new FieldInitializer(assignment.Syntax, (IFieldSymbol)leftSymbol, assignment.Right));
+                                        break;
+                                    case SymbolKind.Property:
+                                        builder.Add(new PropertyInitializer(assignment.Syntax, ((IPropertySymbol)leftSymbol).SetMethod, assignment.Right));
+                                        break;
+                                }
                             }
-                        }
+                            return builder.ToImmutableAndFree();
+                        }                        
                         return ImmutableArray<IMemberInitializer>.Empty;
                     });             
             }
@@ -691,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ImmutableArray<IExpression> IArrayCreationExpression.DimensionSizes => this.Bounds.As<IExpression>();
 
-        IArrayInitializer IArrayCreationExpression.Initializer => (IArrayInitializer)(this.InitializerOpt);
+        IArrayInitializer IArrayCreationExpression.Initializer => this.InitializerOpt;
 
         protected override OperationKind ExpressionKind => OperationKind.ArrayCreationExpression;
     }

@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         /// <summary>Diagnostic category "Reliability".</summary>
         private const string ReliabilityCategory = "Reliability";
 
-        public static readonly DiagnosticDescriptor BigParamarrayArgumentsDescriptor = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor BigParamArrayArgumentsDescriptor = new DiagnosticDescriptor(
             "BigParamarrayRule",
             "Big Paramarray",
             "Paramarray has more than 10 elements",
@@ -458,9 +458,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             get
             {
-                return ImmutableArray.Create(BigParamarrayArgumentsDescriptor,
-              OutOfNumericalOrderArgumentsDescriptor,
-              UseDefaultArgumentDescriptor);
+                return ImmutableArray.Create(BigParamArrayArgumentsDescriptor,
+                                             OutOfNumericalOrderArgumentsDescriptor,
+                                             UseDefaultArgumentDescriptor);
             }
         }
 
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                  {
                                      if (initializer.ElementValues.Length > 10)
                                      {
-                                         Report(operationContext, invocation.Syntax, BigParamarrayArgumentsDescriptor);
+                                         Report(operationContext, invocation.Syntax, BigParamArrayArgumentsDescriptor);
                                      }
 
                                      foreach (IExpression element in initializer.ElementValues)
@@ -609,10 +609,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         /// <summary>Diagnostic category "Reliability".</summary>
         private const string ReliabilityCategory = "Reliability";
 
-        public static readonly DiagnosticDescriptor DoNotUseFieldInitiliazerDescriptor = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotUseFieldInitializerDescriptor = new DiagnosticDescriptor(
             "DoNotUseFieldInitializer",
             "Do Not Use Field Initializer",
-            "a filed initializer is used for object creation",
+            "a field initializer is used for object creation",
             ReliabilityCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(DoNotUseFieldInitiliazerDescriptor, DoNotUsePropertyInitializerDescriptor); }
+            get { return ImmutableArray.Create(DoNotUseFieldInitializerDescriptor, DoNotUsePropertyInitializerDescriptor); }
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      switch (initializer.MemberInitializerKind)
                      {
                          case MemberInitializerKind.Field:
-                             Report(operationContext, initializer.Syntax, DoNotUseFieldInitiliazerDescriptor);
+                             Report(operationContext, initializer.Syntax, DoNotUseFieldInitializerDescriptor);
                              break;
                          case MemberInitializerKind.Property:
                              Report(operationContext, initializer.Syntax, DoNotUsePropertyInitializerDescriptor);
@@ -752,10 +752,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor LocalVarInitialzedDeclarationDescriptor = new DiagnosticDescriptor(
-            "LocalVarInitialzedDeclaration",
-            "Local var initialzed at declaration",
-            "A local variable is imitialized at declaration.",
+        public static readonly DiagnosticDescriptor LocalVarInitializedDeclarationDescriptor = new DiagnosticDescriptor(
+            "LocalVarInitializedDeclaration",
+            "Local var initialized at declaration",
+            "A local variable is initialized at declaration.",
             Maintainability,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(TooManyLocalVarDeclarationsDescriptor, LocalVarInitialzedDeclarationDescriptor); }
+            get { return ImmutableArray.Create(TooManyLocalVarDeclarationsDescriptor, LocalVarInitializedDeclarationDescriptor); }
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      {
                          if (decl.InitialValue != null && !decl.InitialValue.IsInvalid)
                          {
-                             Report(operationContext, decl.Syntax, LocalVarInitialzedDeclarationDescriptor);
+                             Report(operationContext, decl.Syntax, LocalVarInitializedDeclarationDescriptor);
                          }
                      }
                  },

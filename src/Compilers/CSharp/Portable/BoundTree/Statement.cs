@@ -346,16 +346,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (ImmutableArray<IVariable>) s_variablesMappings.GetValue(this,
+                return (ImmutableArray<IVariable>)s_variablesMappings.GetValue(this,
                     multipleDeclarations =>
-                    {
-                        var builder = ArrayBuilder<IVariable>.GetInstance(multipleDeclarations.LocalDeclarations.Length);
-                        foreach (var declaration in multipleDeclarations.LocalDeclarations)
-                        {
-                            builder.Add((IVariable)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax));
-                        }
-                        return builder.ToImmutableAndFree();
-                    });
+                        multipleDeclarations.LocalDeclarations.SelectAsArray(declaration => 
+                            (IVariable)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
             }
         }
 
