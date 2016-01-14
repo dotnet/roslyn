@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
         // Find the index of the line mapped entry with the largest unmapped line number <= lineNumber.
         protected int FindEntryIndex(int lineNumber)
         {
-            int r = Array.BinarySearch(this.Entries, new LineMappingEntry(lineNumber));
+            int r = Array.BinarySearch(this.Entries, new LineMappingEntry(lineNumber), new LineMappingEntryComparer ());
             return r >= 0 ? r : ((~r) - 1);
         }
 

@@ -86,5 +86,14 @@ namespace Microsoft.CodeAnalysis
                 return this.UnmappedLine.CompareTo(other.UnmappedLine);
             }
         }
+
+
+        protected class LineMappingEntryComparer : System.Collections.IComparer
+        {
+            public int Compare(object x, object y)
+            {
+                return ((LineMappingEntry)x).CompareTo((LineMappingEntry)y);
+            }
+        }
     }
 }

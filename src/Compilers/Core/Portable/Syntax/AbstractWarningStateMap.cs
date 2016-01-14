@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         private WarningStateMapEntry GetEntryAtOrBeforePosition(int position)
         {
             Debug.Assert(_warningStateMapEntries != null && _warningStateMapEntries.Length > 0);
-            int r = Array.BinarySearch(_warningStateMapEntries, new WarningStateMapEntry(position));
+            int r = Array.BinarySearch(_warningStateMapEntries, new WarningStateMapEntry(position), new WarningStateMapEntryComparer ());
             return _warningStateMapEntries[r >= 0 ? r : ((~r) - 1)];
         }
 
@@ -85,6 +85,14 @@ namespace Microsoft.CodeAnalysis.Syntax
             public int CompareTo(WarningStateMapEntry other)
             {
                 return this.Position - other.Position;
+            }
+        }
+
+        protected class WarningStateMapEntryComparer : System.Collections.IComparer
+        {
+            public int Compare(object x, object y)
+            {
+                return ((WarningStateMapEntry)x).CompareTo((WarningStateMapEntry)y);
             }
         }
     }

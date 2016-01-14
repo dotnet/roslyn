@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Shell.Interop
     internal interface IVsSqm
     {
         void GetSessionStartTime(
-            [Out] out System.Runtime.InteropServices.ComTypes.FILETIME time
+            [Out] out Microsoft.CodeAnalysis.Interop.FILETIME time
             );
         void GetFlags(
             [Out, MarshalAs(UnmanagedType.U4)] out System.UInt32 flags
@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.Shell.Interop
          );
         void GetSessionStartTime(
             [In, MarshalAs(UnmanagedType.U4)] System.UInt32 sessionHandle,
-            [Out] out System.Runtime.InteropServices.ComTypes.FILETIME time
+            [Out] out Microsoft.CodeAnalysis.Interop.FILETIME time
             );
         Guid GetGlobalSessionGuid();
         [return: MarshalAs(UnmanagedType.U4)]
