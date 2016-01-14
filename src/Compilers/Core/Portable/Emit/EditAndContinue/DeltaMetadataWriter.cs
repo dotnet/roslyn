@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> _methodSpecIndex;
         private readonly HeapOrReferenceIndex<ITypeReference> _typeRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> _typeSpecIndex;
-        private readonly HeapOrReferenceIndex<BlobIdx> _standAloneSignatureIndex;
+        private readonly HeapOrReferenceIndex<BlobHandle> _standAloneSignatureIndex;
         private readonly Dictionary<IMethodDefinition, AddedOrChangedMethodInfo> _addedOrChangedMethods;
 
         public DeltaMetadataWriter(
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this), lastRowId: sizes[(int)TableIndex.MethodSpec]);
             _typeRefIndex = new HeapOrReferenceIndex<ITypeReference>(this, lastRowId: sizes[(int)TableIndex.TypeRef]);
             _typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this), lastRowId: sizes[(int)TableIndex.TypeSpec]);
-            _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobIdx>(this, lastRowId: sizes[(int)TableIndex.StandAloneSig]);
+            _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobHandle>(this, lastRowId: sizes[(int)TableIndex.StandAloneSig]);
 
             _addedOrChangedMethods = new Dictionary<IMethodDefinition, AddedOrChangedMethodInfo>();
         }
@@ -414,12 +414,12 @@ namespace Microsoft.CodeAnalysis.Emit
             return _typeSpecIndex.Rows;
         }
 
-        protected override StandaloneSignatureHandle GetOrAddStandAloneSignatureIndex(BlobIdx blobIndex)
+        protected override StandaloneSignatureHandle GetOrAddStandAloneSignatureIndex(BlobHandle blobIndex)
         {
             return MetadataTokens.StandaloneSignatureHandle(_standAloneSignatureIndex.GetOrAdd(blobIndex));
         }
 
-        protected override IReadOnlyList<BlobIdx> GetStandAloneSignatures()
+        protected override IReadOnlyList<BlobHandle> GetStandAloneSignatures()
         {
             return _standAloneSignatureIndex.Rows;
         }
@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 
                 encoder.EndVariables();
                 
-                BlobIdx blobIndex = metadata.GetBlobIndex(writer);
+                BlobHandle blobIndex = metadata.GetBlobIndex(writer);
                 
                 localSignatureHandle = GetOrAddStandAloneSignatureIndex(blobIndex);
                 writer.Free();

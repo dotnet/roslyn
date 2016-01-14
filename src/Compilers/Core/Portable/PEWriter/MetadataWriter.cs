@@ -91,7 +91,7 @@ namespace Microsoft.Cci
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.
-            _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobIdx, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions); //ignores field signatures
+            _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions); //ignores field signatures
 
             _numTypeDefsEstimate = module.HintNumberOfMethodDefinitions / 6;
             _exportedTypeIndex = new Dictionary<ITypeReference, int>(_numTypeDefsEstimate);
@@ -376,13 +376,13 @@ namespace Microsoft.Cci
         /// The index is into the full metadata. However, deltas
         /// are not required to return rows from previous generations.
         /// </summary>
-        protected abstract StandaloneSignatureHandle GetOrAddStandAloneSignatureIndex(BlobIdx blobIndex);
+        protected abstract StandaloneSignatureHandle GetOrAddStandAloneSignatureIndex(BlobHandle blobIndex);
 
         /// <summary>
         /// The signature indices to be emitted, in row order. These
         /// are just the signature indices from the current generation.
         /// </summary>
-        protected abstract IReadOnlyList<BlobIdx> GetStandAloneSignatures();
+        protected abstract IReadOnlyList<BlobHandle> GetStandAloneSignatures();
 
         protected abstract IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module);
 
@@ -440,20 +440,20 @@ namespace Microsoft.Cci
 
         internal bool EmitStandaloneDebugMetadata => _debugMetadataOpt != null && metadata != _debugMetadataOpt;
 
-        private readonly Dictionary<ICustomAttribute, BlobIdx> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobIdx>();
-        private readonly Dictionary<ITypeReference, BlobIdx> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobIdx>();
+        private readonly Dictionary<ICustomAttribute, BlobHandle> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobHandle>();
+        private readonly Dictionary<ITypeReference, BlobHandle> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobHandle>();
         private readonly Dictionary<ITypeReference, int> _exportedTypeIndex; // value is a RowId
         private readonly List<ITypeReference> _exportedTypeList;
         private readonly Dictionary<string, int> _fileRefIndex = new Dictionary<string, int>(32);  // more than enough in most cases, value is a RowId
         private readonly List<IFileReference> _fileRefList = new List<IFileReference>(32);
-        private readonly Dictionary<IFieldReference, BlobIdx> _fieldSignatureIndex = new Dictionary<IFieldReference, BlobIdx>();
+        private readonly Dictionary<IFieldReference, BlobHandle> _fieldSignatureIndex = new Dictionary<IFieldReference, BlobHandle>();
 
         // We need to keep track of both the index of the signature and the actual blob to support VB static local naming scheme.
-        private readonly Dictionary<ISignature, KeyValuePair<BlobIdx, ImmutableArray<byte>>> _signatureIndex;
+        private readonly Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>> _signatureIndex;
 
-        private readonly Dictionary<IMarshallingInformation, BlobIdx> _marshallingDescriptorIndex = new Dictionary<IMarshallingInformation, BlobIdx>();
+        private readonly Dictionary<IMarshallingInformation, BlobHandle> _marshallingDescriptorIndex = new Dictionary<IMarshallingInformation, BlobHandle>();
         protected readonly List<MethodImplementation> methodImplList = new List<MethodImplementation>();
-        private readonly Dictionary<IGenericMethodInstanceReference, BlobIdx> _methodInstanceSignatureIndex = new Dictionary<IGenericMethodInstanceReference, BlobIdx>();
+        private readonly Dictionary<IGenericMethodInstanceReference, BlobHandle> _methodInstanceSignatureIndex = new Dictionary<IGenericMethodInstanceReference, BlobHandle>();
 
         // Well known dummy cor library types whose refs are used for attaching assembly attributes off within net modules
         // There is no guarantee the types actually exist in a cor library
@@ -717,9 +717,9 @@ namespace Microsoft.Cci
             return this.GetOrAddModuleRefIndex(moduleName);
         }
 
-        private BlobIdx GetCustomAttributeSignatureIndex(ICustomAttribute customAttribute)
+        private BlobHandle GetCustomAttributeSignatureIndex(ICustomAttribute customAttribute)
         {
-            BlobIdx result;
+            BlobHandle result;
             if (_customAttributeSignatureIndex.TryGetValue(customAttribute, out result))
             {
                 return result;
@@ -814,9 +814,9 @@ namespace Microsoft.Cci
             return result;
         }
 
-        internal BlobIdx GetFieldSignatureIndex(IFieldReference fieldReference)
+        internal BlobHandle GetFieldSignatureIndex(IFieldReference fieldReference)
         {
-            BlobIdx result;
+            BlobHandle result;
             ISpecializedFieldReference specializedFieldReference = fieldReference.AsSpecializedFieldReference;
             if (specializedFieldReference != null)
             {
@@ -1061,9 +1061,9 @@ namespace Microsoft.Cci
             return result;
         }
 
-        internal BlobIdx GetMethodInstanceSignatureIndex(IGenericMethodInstanceReference methodInstanceReference)
+        internal BlobHandle GetMethodInstanceSignatureIndex(IGenericMethodInstanceReference methodInstanceReference)
         {
-            BlobIdx result;
+            BlobHandle result;
             if (_methodInstanceSignatureIndex.TryGetValue(methodInstanceReference, out result))
             {
                 return result;
@@ -1086,9 +1086,9 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private BlobIdx GetMarshallingDescriptorIndex(IMarshallingInformation marshallingInformation)
+        private BlobHandle GetMarshallingDescriptorIndex(IMarshallingInformation marshallingInformation)
         {
-            BlobIdx result;
+            BlobHandle result;
             if (_marshallingDescriptorIndex.TryGetValue(marshallingInformation, out result))
             {
                 return result;
@@ -1102,12 +1102,12 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private BlobIdx GetMarshallingDescriptorIndex(ImmutableArray<byte> descriptor)
+        private BlobHandle GetMarshallingDescriptorIndex(ImmutableArray<byte> descriptor)
         {
             return metadata.GetBlobIndex(descriptor);
         }
 
-        private BlobIdx GetMemberRefSignatureIndex(ITypeMemberReference memberRef)
+        private BlobHandle GetMemberRefSignatureIndex(ITypeMemberReference memberRef)
         {
             IFieldReference fieldReference = memberRef as IFieldReference;
             if (fieldReference != null)
@@ -1122,10 +1122,10 @@ namespace Microsoft.Cci
             }
 
             // TODO: error
-            return default(BlobIdx);
+            return default(BlobHandle);
         }
 
-        internal BlobIdx GetMethodSignatureIndex(IMethodReference methodReference)
+        internal BlobHandle GetMethodSignatureIndex(IMethodReference methodReference)
         {
             ImmutableArray<byte> signatureBlob;
             return GetMethodSignatureIndexAndBlob(methodReference, out signatureBlob);
@@ -1138,16 +1138,16 @@ namespace Microsoft.Cci
             return signatureBlob.ToArray();
         }
 
-        private BlobIdx GetMethodSignatureIndexAndBlob(IMethodReference methodReference, out ImmutableArray<byte> signatureBlob)
+        private BlobHandle GetMethodSignatureIndexAndBlob(IMethodReference methodReference, out ImmutableArray<byte> signatureBlob)
         {
-            BlobIdx result;
+            BlobHandle result;
             ISpecializedMethodReference specializedMethodReference = methodReference.AsSpecializedMethodReference;
             if (specializedMethodReference != null)
             {
                 methodReference = specializedMethodReference.UnspecializedVersion;
             }
 
-            KeyValuePair<BlobIdx, ImmutableArray<byte>> existing;
+            KeyValuePair<BlobHandle, ImmutableArray<byte>> existing;
             if (_signatureIndex.TryGetValue(methodReference, out existing))
             {
                 signatureBlob = existing.Value;
@@ -1173,11 +1173,11 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private BlobIdx GetGenericMethodInstanceIndex(IGenericMethodInstanceReference genericMethodInstanceReference)
+        private BlobHandle GetGenericMethodInstanceIndex(IGenericMethodInstanceReference genericMethodInstanceReference)
         {
             var writer = PooledBlobBuilder.GetInstance();
             this.SerializeGenericMethodInstanceSignature(writer, genericMethodInstanceReference);
-            BlobIdx result = metadata.GetBlobIndex(writer);
+            BlobHandle result = metadata.GetBlobIndex(writer);
             writer.Free();
             return result;
         }
@@ -1244,10 +1244,10 @@ namespace Microsoft.Cci
             return constant.CompileTimeValue.Type.TypeCode(Context);
         }
 
-        private BlobIdx GetPermissionSetIndex(ImmutableArray<ICustomAttribute> permissionSet)
+        private BlobHandle GetPermissionSetIndex(ImmutableArray<ICustomAttribute> permissionSet)
         {
             var writer = PooledBlobBuilder.GetInstance();
-            BlobIdx result;
+            BlobHandle result;
             try
             {
                 writer.WriteByte((byte)'.');
@@ -1284,9 +1284,9 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private BlobIdx GetPropertySignatureIndex(IPropertyDefinition propertyDef)
+        private BlobHandle GetPropertySignatureIndex(IPropertyDefinition propertyDef)
         {
-            KeyValuePair<BlobIdx, ImmutableArray<byte>> existing;
+            KeyValuePair<BlobHandle, ImmutableArray<byte>> existing;
             if (_signatureIndex.TryGetValue(propertyDef, out existing))
             {
                 return existing.Key;
@@ -1328,13 +1328,13 @@ namespace Microsoft.Cci
             return GetModuleRefIndex(mref.Name);
         }
 
-        private StringIdx GetStringIndexForPathAndCheckLength(string path, INamedEntity errorEntity = null)
+        private StringHandle GetStringIndexForPathAndCheckLength(string path, INamedEntity errorEntity = null)
         {
             CheckPathLength(path, errorEntity);
             return metadata.GetStringIndex(path);
         }
 
-        private StringIdx GetStringIndexForNameAndCheckLength(string name, INamedEntity errorEntity = null)
+        private StringHandle GetStringIndexForNameAndCheckLength(string name, INamedEntity errorEntity = null)
         {
             CheckNameLength(name, errorEntity);
             return metadata.GetStringIndex(name);
@@ -1349,12 +1349,12 @@ namespace Microsoft.Cci
         /// <param name="namespaceType">We're trying to add the containing namespace of this type to the string heap.</param>
         /// <param name="mangledTypeName">Namespace names are never used on their own - this is the type that is adding the namespace name.
         /// Used only for length checking.</param>
-        private StringIdx GetStringIndexForNamespaceAndCheckLength(INamespaceTypeReference namespaceType, string mangledTypeName)
+        private StringHandle GetStringIndexForNamespaceAndCheckLength(INamespaceTypeReference namespaceType, string mangledTypeName)
         {
             string namespaceName = namespaceType.NamespaceName;
             if (namespaceName.Length == 0) // Optimization: CheckNamespaceLength is relatively expensive.
             {
-                return default(StringIdx);
+                return default(StringHandle);
             }
 
             CheckNamespaceLength(namespaceName, mangledTypeName, namespaceType);
@@ -1659,9 +1659,9 @@ namespace Microsoft.Cci
             return GetTypeDef(MetadataTokens.TypeDefinitionHandle((int)token)).AsNestedTypeReference;
         }
 
-        internal BlobIdx GetTypeSpecSignatureIndex(ITypeReference typeReference)
+        internal BlobHandle GetTypeSpecSignatureIndex(ITypeReference typeReference)
         {
-            BlobIdx result;
+            BlobHandle result;
             if (_typeSpecSignatureIndex.TryGetValue(typeReference, out result))
             {
                 return result;
@@ -1919,7 +1919,7 @@ namespace Microsoft.Cci
                     culture: metadata.GetStringIndex(assemblyRef.Culture),
                     publicKeyOrToken: metadata.GetBlobIndex(assemblyRef.PublicKeyToken),
                     flags: (AssemblyFlags)((int)assemblyRef.ContentType << 9) | (assemblyRef.IsRetargetable ? AssemblyFlags.Retargetable : 0),
-                    hashValue: default(BlobIdx));
+                    hashValue: default(BlobHandle));
             }
         }
 
@@ -2206,8 +2206,8 @@ namespace Microsoft.Cci
 
                     TypeFlags flags;
                     int typeDefinitionId = MetadataTokens.GetToken(exportedType.TypeDef);
-                    StringIdx typeName;
-                    StringIdx typeNamespace;
+                    StringHandle typeName;
+                    StringHandle typeNamespace;
                     EntityHandle implementation;
 
                     if ((namespaceTypeRef = exportedType.AsNamespaceTypeReference) != null)
@@ -2229,7 +2229,7 @@ namespace Microsoft.Cci
                     {
                         flags = TypeFlags.NestedPublicAccess;
                         typeName = this.GetStringIndexForNameAndCheckLength(GetMangledName(nestedRef), nestedRef);
-                        typeNamespace = default(StringIdx);
+                        typeNamespace = default(StringHandle);
 
                         ITypeReference containingType = nestedRef.GetContainingType(Context);
 
@@ -2297,7 +2297,7 @@ namespace Microsoft.Cci
 
                 var marshallingInformation = fieldDef.MarshallingInformation;
 
-                BlobIdx descriptor = (marshallingInformation != null)
+                BlobHandle descriptor = (marshallingInformation != null)
                     ? GetMarshallingDescriptorIndex(marshallingInformation)
                     : GetMarshallingDescriptorIndex(fieldDef.MarshallingDescriptor);
 
@@ -2315,7 +2315,7 @@ namespace Microsoft.Cci
 
                 var marshallingInformation = parDef.MarshallingInformation;
 
-               BlobIdx descriptor = (marshallingInformation != null)
+               BlobHandle descriptor = (marshallingInformation != null)
                     ? GetMarshallingDescriptorIndex(marshallingInformation)
                     : GetMarshallingDescriptorIndex(parDef.MarshallingDescriptor);
 
@@ -2458,7 +2458,7 @@ namespace Microsoft.Cci
                 var data = methodDef.PlatformInvokeData;
                 string entryPointName = data.EntryPointName;
 
-                StringIdx importName = (entryPointName != null)
+                StringHandle importName = (entryPointName != null)
                     ? GetStringIndexForNameAndCheckLength(entryPointName, methodDef)
                     : metadata.GetStringIndex(methodDef.Name); // Length checked while populating the method def table.
 
@@ -2651,7 +2651,7 @@ namespace Microsoft.Cci
         {
             CheckPathLength(this.module.ModuleName);
 
-            GuidIdx mvidIdx;
+            GuidHandle mvidIdx;
             Guid mvid = this.module.Properties.PersistentIdentifier;
             if (mvid != default(Guid))
             {
@@ -2720,7 +2720,7 @@ namespace Microsoft.Cci
 
                 metadata.AddTypeDefinition(
                     attributes: GetTypeAttributes(typeDef),
-                    @namespace: (namespaceType != null) ? GetStringIndexForNamespaceAndCheckLength(namespaceType, mangledTypeName) : default(StringIdx),
+                    @namespace: (namespaceType != null) ? GetStringIndexForNamespaceAndCheckLength(namespaceType, mangledTypeName) : default(StringHandle),
                     name: GetStringIndexForNameAndCheckLength(mangledTypeName, typeDef),
                     baseType: (baseType != null) ? GetTypeDefOrRefCodedIndex(baseType, true) : default(EntityHandle),
                     fieldList: GetFieldDefIndex(typeDef),
@@ -2768,8 +2768,8 @@ namespace Microsoft.Cci
             foreach (ITypeReference typeRef in typeRefs)
             {
                 EntityHandle resolutionScope;
-                StringIdx name;
-                StringIdx @namespace;
+                StringHandle name;
+                StringHandle @namespace;
 
                 INestedTypeReference nestedTypeRef = typeRef.AsNestedTypeReference;
                 if (nestedTypeRef != null)
@@ -2788,7 +2788,7 @@ namespace Microsoft.Cci
 
                     resolutionScope = GetTypeRefIndex(scopeTypeRef);
                     name = this.GetStringIndexForNameAndCheckLength(GetMangledName(nestedTypeRef), nestedTypeRef);
-                    @namespace = default(StringIdx);
+                    @namespace = default(StringHandle);
                 }
                 else
                 {
@@ -2826,7 +2826,7 @@ namespace Microsoft.Cci
         {
             var signatures = GetStandAloneSignatures();
 
-            foreach (BlobIdx signature in signatures)
+            foreach (BlobHandle signature in signatures)
             {
                 metadata.AddStandaloneSignature(signature);
             }
@@ -2970,7 +2970,7 @@ namespace Microsoft.Cci
 
             encoder.EndVariables();
 
-            BlobIdx blobIndex = metadata.GetBlobIndex(builder);
+            BlobHandle blobIndex = metadata.GetBlobIndex(builder);
 
             var handle = GetOrAddStandAloneSignatureIndex(blobIndex);
             builder.Free();
@@ -2998,7 +2998,7 @@ namespace Microsoft.Cci
             var typeBuilder = SerializeCustomModifiers(encoder, localConstant.CustomModifiers);
             SerializeTypeReference(typeBuilder, localConstant.Type);
 
-            BlobIdx blobIndex = metadata.GetBlobIndex(builder);
+            BlobHandle blobIndex = metadata.GetBlobIndex(builder);
             var signatureHandle = GetOrAddStandAloneSignatureIndex(blobIndex);
             builder.Free();
 

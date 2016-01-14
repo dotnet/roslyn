@@ -33,7 +33,7 @@ namespace Microsoft.Cci
         private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> _methodSpecIndex;
         private readonly HeapOrReferenceIndex<ITypeReference> _typeRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> _typeSpecIndex;
-        private readonly HeapOrReferenceIndex<BlobIdx> _standAloneSignatureIndex;
+        private readonly HeapOrReferenceIndex<BlobHandle> _standAloneSignatureIndex;
 
         public static MetadataWriter Create(
             EmitContext context,
@@ -97,7 +97,7 @@ namespace Microsoft.Cci
             _methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this));
             _typeRefIndex = new HeapOrReferenceIndex<ITypeReference>(this);
             _typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this));
-            _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobIdx>(this);
+            _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobHandle>(this);
         }
 
         protected override ushort Generation
@@ -289,12 +289,12 @@ namespace Microsoft.Cci
             return _typeSpecIndex.Rows;
         }
 
-        protected override StandaloneSignatureHandle GetOrAddStandAloneSignatureIndex(BlobIdx blobIndex)
+        protected override StandaloneSignatureHandle GetOrAddStandAloneSignatureIndex(BlobHandle blobIndex)
         {
             return MetadataTokens.StandaloneSignatureHandle(_standAloneSignatureIndex.GetOrAdd(blobIndex));
         }
 
-        protected override IReadOnlyList<BlobIdx> GetStandAloneSignatures()
+        protected override IReadOnlyList<BlobHandle> GetStandAloneSignatures()
         {
             return _standAloneSignatureIndex.Rows;
         }

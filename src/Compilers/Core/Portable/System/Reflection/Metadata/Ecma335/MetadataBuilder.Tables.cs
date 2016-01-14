@@ -27,52 +27,52 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         private const byte MetadataFormatMinorVersion = 0;
         
         // type system table rows:
-        private struct AssemblyRefTableRow { public Version Version; public BlobIdx PublicKeyToken; public StringIdx Name; public StringIdx Culture; public uint Flags; public BlobIdx HashValue; }
-        private struct ModuleRow { public ushort Generation; public StringIdx Name; public GuidIdx ModuleVersionId; public GuidIdx EncId; public GuidIdx EncBaseId; }
-        private struct AssemblyRow { public uint HashAlgorithm; public Version Version; public ushort Flags; public BlobIdx AssemblyKey; public StringIdx AssemblyName; public StringIdx AssemblyCulture; }
+        private struct AssemblyRefTableRow { public Version Version; public BlobHandle PublicKeyToken; public StringHandle Name; public StringHandle Culture; public uint Flags; public BlobHandle HashValue; }
+        private struct ModuleRow { public ushort Generation; public StringHandle Name; public GuidHandle ModuleVersionId; public GuidHandle EncId; public GuidHandle EncBaseId; }
+        private struct AssemblyRow { public uint HashAlgorithm; public Version Version; public ushort Flags; public BlobHandle AssemblyKey; public StringHandle AssemblyName; public StringHandle AssemblyCulture; }
         private struct ClassLayoutRow { public ushort PackingSize; public uint ClassSize; public uint Parent; }
-        private struct ConstantRow { public byte Type; public uint Parent; public BlobIdx Value; }
-        private struct CustomAttributeRow { public uint Parent; public uint Type; public BlobIdx Value; }
-        private struct DeclSecurityRow { public ushort Action; public uint Parent; public BlobIdx PermissionSet; }
+        private struct ConstantRow { public byte Type; public uint Parent; public BlobHandle Value; }
+        private struct CustomAttributeRow { public uint Parent; public uint Type; public BlobHandle Value; }
+        private struct DeclSecurityRow { public ushort Action; public uint Parent; public BlobHandle PermissionSet; }
         private struct EncLogRow { public uint Token; public byte FuncCode; }
         private struct EncMapRow { public uint Token; }
-        private struct EventRow { public ushort EventFlags; public StringIdx Name; public uint EventType; }
+        private struct EventRow { public ushort EventFlags; public StringHandle Name; public uint EventType; }
         private struct EventMapRow { public uint Parent; public uint EventList; }
-        private struct ExportedTypeRow { public uint Flags; public uint TypeDefId; public StringIdx TypeName; public StringIdx TypeNamespace; public uint Implementation; }
+        private struct ExportedTypeRow { public uint Flags; public uint TypeDefId; public StringHandle TypeName; public StringHandle TypeNamespace; public uint Implementation; }
         private struct FieldLayoutRow { public uint Offset; public uint Field; }
-        private struct FieldMarshalRow { public uint Parent; public BlobIdx NativeType; }
+        private struct FieldMarshalRow { public uint Parent; public BlobHandle NativeType; }
         private struct FieldRvaRow { public uint Offset; public uint Field; }
-        private struct FieldDefRow { public ushort Flags; public StringIdx Name; public BlobIdx Signature; }
-        private struct FileTableRow { public uint Flags; public StringIdx FileName; public BlobIdx HashValue; }
+        private struct FieldDefRow { public ushort Flags; public StringHandle Name; public BlobHandle Signature; }
+        private struct FileTableRow { public uint Flags; public StringHandle FileName; public BlobHandle HashValue; }
         private struct GenericParamConstraintRow { public uint Owner; public uint Constraint; }
-        private struct GenericParamRow { public ushort Number; public ushort Flags; public uint Owner; public StringIdx Name; }
-        private struct ImplMapRow { public ushort MappingFlags; public uint MemberForwarded; public StringIdx ImportName; public uint ImportScope; }
+        private struct GenericParamRow { public ushort Number; public ushort Flags; public uint Owner; public StringHandle Name; }
+        private struct ImplMapRow { public ushort MappingFlags; public uint MemberForwarded; public StringHandle ImportName; public uint ImportScope; }
         private struct InterfaceImplRow { public uint Class; public uint Interface; }
-        private struct ManifestResourceRow { public uint Offset; public uint Flags; public StringIdx Name; public uint Implementation; }
-        private struct MemberRefRow { public uint Class; public StringIdx Name; public BlobIdx Signature; }
+        private struct ManifestResourceRow { public uint Offset; public uint Flags; public StringHandle Name; public uint Implementation; }
+        private struct MemberRefRow { public uint Class; public StringHandle Name; public BlobHandle Signature; }
         private struct MethodImplRow { public uint Class; public uint MethodBody; public uint MethodDecl; }
         private struct MethodSemanticsRow { public ushort Semantic; public uint Method; public uint Association; }
-        private struct MethodSpecRow { public uint Method; public BlobIdx Instantiation; }
-        private struct MethodRow { public int BodyOffset; public ushort ImplFlags; public ushort Flags; public StringIdx Name; public BlobIdx Signature; public uint ParamList; }
-        private struct ModuleRefRow { public StringIdx Name; }
+        private struct MethodSpecRow { public uint Method; public BlobHandle Instantiation; }
+        private struct MethodRow { public int BodyOffset; public ushort ImplFlags; public ushort Flags; public StringHandle Name; public BlobHandle Signature; public uint ParamList; }
+        private struct ModuleRefRow { public StringHandle Name; }
         private struct NestedClassRow { public uint NestedClass; public uint EnclosingClass; }
-        private struct ParamRow { public ushort Flags; public ushort Sequence; public StringIdx Name; }
+        private struct ParamRow { public ushort Flags; public ushort Sequence; public StringHandle Name; }
         private struct PropertyMapRow { public uint Parent; public uint PropertyList; }
-        private struct PropertyRow { public ushort PropFlags; public StringIdx Name; public BlobIdx Type; }
-        private struct TypeDefRow { public uint Flags; public StringIdx Name; public StringIdx Namespace; public uint Extends; public uint FieldList; public uint MethodList; }
-        private struct TypeRefRow { public uint ResolutionScope; public StringIdx Name; public StringIdx Namespace; }
-        private struct TypeSpecRow { public BlobIdx Signature; }
-        private struct StandaloneSigRow { public BlobIdx Signature; }
+        private struct PropertyRow { public ushort PropFlags; public StringHandle Name; public BlobHandle Type; }
+        private struct TypeDefRow { public uint Flags; public StringHandle Name; public StringHandle Namespace; public uint Extends; public uint FieldList; public uint MethodList; }
+        private struct TypeRefRow { public uint ResolutionScope; public StringHandle Name; public StringHandle Namespace; }
+        private struct TypeSpecRow { public BlobHandle Signature; }
+        private struct StandaloneSigRow { public BlobHandle Signature; }
        
         // debug table rows:
-        private struct DocumentRow { public BlobIdx Name; public GuidIdx HashAlgorithm; public BlobIdx Hash; public GuidIdx Language; }
-        private struct MethodDebugInformationRow { public uint Document; public BlobIdx SequencePoints; }
+        private struct DocumentRow { public BlobHandle Name; public GuidHandle HashAlgorithm; public BlobHandle Hash; public GuidHandle Language; }
+        private struct MethodDebugInformationRow { public uint Document; public BlobHandle SequencePoints; }
         private struct LocalScopeRow { public uint Method; public uint ImportScope; public uint VariableList; public uint ConstantList; public uint StartOffset; public uint Length; }
-        private struct LocalVariableRow { public ushort Attributes; public ushort Index; public StringIdx Name; } 
-        private struct LocalConstantRow { public StringIdx Name; public BlobIdx Signature; }
-        private struct ImportScopeRow { public uint Parent; public BlobIdx Imports; }
+        private struct LocalVariableRow { public ushort Attributes; public ushort Index; public StringHandle Name; } 
+        private struct LocalConstantRow { public StringHandle Name; public BlobHandle Signature; }
+        private struct ImportScopeRow { public uint Parent; public BlobHandle Imports; }
         private struct StateMachineMethodRow { public uint MoveNextMethod; public uint KickoffMethod; }
-        private struct CustomDebugInformationRow { public uint Parent; public GuidIdx Kind; public BlobIdx Value; }
+        private struct CustomDebugInformationRow { public uint Parent; public GuidHandle Kind; public BlobHandle Value; }
 
         // type system tables:
         private readonly List<ModuleRow> _moduleTable = new List<ModuleRow>(1);
@@ -209,10 +209,10 @@ namespace Roslyn.Reflection.Metadata.Ecma335
 
         public void AddModule(
             int generation,
-            StringIdx moduleName,
-            GuidIdx mvid,
-            GuidIdx encId,
-            GuidIdx encBaseId)
+            StringHandle moduleName,
+            GuidHandle mvid,
+            GuidHandle encId,
+            GuidHandle encBaseId)
         {
             _moduleTable.Add(new ModuleRow
             {
@@ -225,10 +225,10 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         }
 
         public void AddAssembly(
-            StringIdx name, 
+            StringHandle name, 
             Version version,
-            StringIdx culture,
-            BlobIdx publicKey,
+            StringHandle culture,
+            BlobHandle publicKey,
             AssemblyFlags flags,
             AssemblyHashAlgorithm hashAlgorithm)
         {
@@ -244,12 +244,12 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         }
 
         public AssemblyReferenceHandle AddAssemblyReference(
-            StringIdx name,
+            StringHandle name,
             Version version,
-            StringIdx culture,
-            BlobIdx publicKeyOrToken,
+            StringHandle culture,
+            BlobHandle publicKeyOrToken,
             AssemblyFlags flags,
-            BlobIdx hashValue)
+            BlobHandle hashValue)
         {
             _assemblyRefTable.Add(new AssemblyRefTableRow
             {
@@ -266,8 +266,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
 
         public TypeDefinitionHandle AddTypeDefinition(
             TypeAttributes attributes, 
-            StringIdx @namespace,
-            StringIdx name,
+            StringHandle @namespace,
+            StringHandle name,
             EntityHandle baseType,
             FieldDefinitionHandle fieldList,
             MethodDefinitionHandle methodList)
@@ -325,8 +325,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
 
         public TypeReferenceHandle AddTypeReference(
             EntityHandle resolutionScope, 
-            StringIdx @namespace, 
-            StringIdx name)
+            StringHandle @namespace, 
+            StringHandle name)
         {
             Debug.Assert(@namespace != null);
             Debug.Assert(name != null);
@@ -341,7 +341,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return MetadataTokens.TypeReferenceHandle(_typeRefTable.Count);
         }
 
-        public void AddTypeSpecification(BlobIdx signature)
+        public void AddTypeSpecification(BlobHandle signature)
         {
             _typeSpecTable.Add(new TypeSpecRow
             {
@@ -349,7 +349,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddStandaloneSignature(BlobIdx signature)
+        public void AddStandaloneSignature(BlobHandle signature)
         {
             _standAloneSigTable.Add(new StandaloneSigRow
             {
@@ -357,7 +357,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddProperty(PropertyAttributes attributes, StringIdx name, BlobIdx signature)
+        public void AddProperty(PropertyAttributes attributes, StringHandle name, BlobHandle signature)
         {
             _propertyTable.Add(new PropertyRow
             {
@@ -376,7 +376,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddEvent(EventAttributes attributes, StringIdx name, EntityHandle type)
+        public void AddEvent(EventAttributes attributes, StringHandle name, EntityHandle type)
         {
             _eventTable.Add(new EventRow
             {
@@ -427,7 +427,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddCustomAttribute(EntityHandle parent, EntityHandle constructor, BlobIdx value)
+        public void AddCustomAttribute(EntityHandle parent, EntityHandle constructor, BlobHandle value)
         {
             uint parentCodedIndex = (uint)CodedIndex.ToHasCustomAttribute(parent);
 
@@ -443,7 +443,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddMethodSpecification(EntityHandle method, BlobIdx instantiation)
+        public void AddMethodSpecification(EntityHandle method, BlobHandle instantiation)
         {
             _methodSpecTable.Add(new MethodSpecRow
             {
@@ -452,7 +452,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddModuleReference(StringIdx moduleName)
+        public void AddModuleReference(StringHandle moduleName)
         {
             _moduleRefTable.Add(new ModuleRefRow
             {
@@ -460,7 +460,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddParameter(ParameterAttributes attributes, StringIdx name, int sequenceNumber)
+        public void AddParameter(ParameterAttributes attributes, StringHandle name, int sequenceNumber)
         {
             _paramTable.Add(new ParamRow
             {
@@ -473,7 +473,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         public GenericParameterHandle AddGenericParameter(
             EntityHandle parent,
             GenericParameterAttributes attributes,
-            StringIdx name,
+            StringHandle name,
             int index)
         {
             _genericParamTable.Add(new GenericParamRow
@@ -500,8 +500,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
 
         public void AddFieldDefinition(
             FieldAttributes attributes,
-            StringIdx name,
-            BlobIdx signature)
+            StringHandle name,
+            BlobHandle signature)
         {
             _fieldTable.Add(new FieldDefRow
             {
@@ -524,7 +524,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
 
         public void AddMarshallingDescriptor(
             EntityHandle parent,
-            BlobIdx descriptor)
+            BlobHandle descriptor)
         {
             uint codedIndex = (uint)CodedIndex.ToHasFieldMarshal(parent);
 
@@ -553,8 +553,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         public MethodDefinitionHandle AddMethodDefinition(
             MethodAttributes attributes, 
             MethodImplAttributes implAttributes,
-            StringIdx name,
-            BlobIdx signature,
+            StringHandle name,
+            BlobHandle signature,
             int bodyOffset,
             ParameterHandle paramList)
         {
@@ -574,7 +574,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         public void AddMethodImport(
             EntityHandle member,
             MethodImportAttributes attributes, 
-            StringIdx name, 
+            StringHandle name, 
             ModuleReferenceHandle module)
         {
             _implMapTable.Add(new ImplMapRow
@@ -601,8 +601,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         
         public MemberReferenceHandle AddMemberReference(
             EntityHandle parent,
-            StringIdx name,
-            BlobIdx signature)
+            StringHandle name,
+            BlobHandle signature)
         {
             _memberRefTable.Add(new MemberRefRow
             {
@@ -616,7 +616,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
 
         public void AddManifestResource(
             ManifestResourceAttributes attributes,
-            StringIdx name,
+            StringHandle name,
             EntityHandle implementation,
             long offset)
         {
@@ -630,8 +630,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         }
 
         public void AddAssemblyFile(
-            StringIdx name,
-            BlobIdx hashValue,
+            StringHandle name,
+            BlobHandle hashValue,
             bool containsMetadata)
         {
             _fileTable.Add(new FileTableRow
@@ -644,8 +644,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
 
         public void AddExportedType(
             TypeAttributes attributes,
-            StringIdx @namespace,
-            StringIdx name,
+            StringHandle @namespace,
+            StringHandle name,
             EntityHandle implementation,
             int typeDefinitionId)
         {
@@ -668,7 +668,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         public void AddDeclarativeSecurityAttribute(
             EntityHandle parent,
             DeclarativeSecurityAction action,
-            BlobIdx permissionSet)
+            BlobHandle permissionSet)
         {
             uint parentCodedIndex = (uint)CodedIndex.ToHasDeclSecurity(parent);
 
@@ -701,7 +701,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             });
         }
 
-        public DocumentHandle AddDocument(BlobIdx name, GuidIdx hashAlgorithm, BlobIdx hash, GuidIdx language)
+        public DocumentHandle AddDocument(BlobHandle name, GuidHandle hashAlgorithm, BlobHandle hash, GuidHandle language)
         {
             _documentTable.Add(new DocumentRow
             {
@@ -714,7 +714,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return MetadataTokens.DocumentHandle(_documentTable.Count);
         }
 
-        public void AddMethodDebugInformation(DocumentHandle document, BlobIdx sequencePoints)
+        public void AddMethodDebugInformation(DocumentHandle document, BlobHandle sequencePoints)
         {
             _methodDebugInformationTable.Add(new MethodDebugInformationRow
             {
@@ -738,7 +738,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return MetadataTokens.LocalScopeHandle(_localScopeTable.Count);
         }
 
-        public LocalVariableHandle AddLocalVariable(LocalVariableAttributes attributes, int index, StringIdx name)
+        public LocalVariableHandle AddLocalVariable(LocalVariableAttributes attributes, int index, StringHandle name)
         {
             _localVariableTable.Add(new LocalVariableRow
             {
@@ -750,7 +750,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return MetadataTokens.LocalVariableHandle(_localVariableTable.Count);
         }
         
-        public LocalConstantHandle AddLocalConstant(StringIdx name, BlobIdx signature)
+        public LocalConstantHandle AddLocalConstant(StringHandle name, BlobHandle signature)
         {
             _localConstantTable.Add(new LocalConstantRow
             {
@@ -761,7 +761,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return MetadataTokens.LocalConstantHandle(_localConstantTable.Count);
         }
 
-        public ImportScopeHandle AddImportScope(ImportScopeHandle parentScope, BlobIdx imports)
+        public ImportScopeHandle AddImportScope(ImportScopeHandle parentScope, BlobHandle imports)
         {
             _importScopeTable.Add(new ImportScopeRow
             {
@@ -781,7 +781,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             });
         }
 
-        public void AddCustomDebugInformation(EntityHandle parent, GuidIdx kind, BlobIdx value)
+        public void AddCustomDebugInformation(EntityHandle parent, GuidHandle kind, BlobHandle value)
         {
             _customDebugInformationTable.Add(new CustomDebugInformationRow
             {
@@ -1673,7 +1673,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (CustomDebugInformationRow row in _customDebugInformationTable.OrderBy((x, y) =>
             {
                 int result = (int)x.Parent - (int)y.Parent;
-                return (result != 0) ? result : x.Kind.CompareTo(y.Kind);
+                return (result != 0) ? result : MetadataTokens.GetHeapOffset(x.Kind) - MetadataTokens.GetHeapOffset(y.Kind);
             }))
             {
                 writer.WriteReference(row.Parent, metadataSizes.HasCustomDebugInformationSize);

@@ -24,7 +24,7 @@ namespace Microsoft.Cci
         {
             if (bodyOpt == null)
             {
-                _debugMetadataOpt.AddMethodDebugInformation(default(DocumentHandle), new BlobIdx(0));
+                _debugMetadataOpt.AddMethodDebugInformation(default(DocumentHandle), default(BlobHandle));
                 return;
             }
 
@@ -33,7 +33,7 @@ namespace Microsoft.Cci
 
             if (!emitDebugInfo)
             {
-                _debugMetadataOpt.AddMethodDebugInformation(default(DocumentHandle), new BlobIdx(0));
+                _debugMetadataOpt.AddMethodDebugInformation(default(DocumentHandle), default(BlobHandle));
                 return;
             }
 
@@ -44,7 +44,7 @@ namespace Microsoft.Cci
 
             // documents & sequence points:
             DocumentHandle singleDocumentHandle;
-            BlobIdx sequencePointsBlob = SerializeSequencePoints(localSignatureHandleOpt, bodyOpt.GetSequencePoints(), _documentIndex, out singleDocumentHandle);
+            BlobHandle sequencePointsBlob = SerializeSequencePoints(localSignatureHandleOpt, bodyOpt.GetSequencePoints(), _documentIndex, out singleDocumentHandle);
             _debugMetadataOpt.AddMethodDebugInformation(document: singleDocumentHandle, sequencePoints: sequencePointsBlob);
 
             // Unlike native PDB we don't emit an empty root scope.
@@ -124,7 +124,7 @@ namespace Microsoft.Cci
         private static LocalConstantHandle NextHandle(LocalConstantHandle handle) => 
             MetadataTokens.LocalConstantHandle(MetadataTokens.GetRowNumber(handle) + 1);
 
-        private BlobIdx SerializeLocalConstantSignature(ILocalDefinition localConstant)
+        private BlobHandle SerializeLocalConstantSignature(ILocalDefinition localConstant)
         {
             var builder = new BlobBuilder();
 
@@ -330,7 +330,7 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private BlobIdx SerializeImportsBlob(IImportScope scope)
+        private BlobHandle SerializeImportsBlob(IImportScope scope)
         {
             var writer = new BlobBuilder();
 
@@ -473,7 +473,7 @@ namespace Microsoft.Cci
 
         #region Sequence Points
 
-        private BlobIdx SerializeSequencePoints(
+        private BlobHandle SerializeSequencePoints(
             StandaloneSignatureHandle localSignatureHandleOpt,
             ImmutableArray<SequencePoint> sequencePoints,
             Dictionary<DebugSourceDocument, DocumentHandle> documentIndex,
@@ -482,7 +482,7 @@ namespace Microsoft.Cci
             if (sequencePoints.Length == 0)
             {
                 singleDocumentHandle = default(DocumentHandle);
-                return default(BlobIdx);
+                return default(BlobHandle);
             }
 
             var writer = new BlobBuilder();
@@ -599,8 +599,8 @@ namespace Microsoft.Cci
 
                 documentHandle = _debugMetadataOpt.AddDocument(
                     name: SerializeDocumentName(document.Location),
-                    hashAlgorithm: checksumAndAlgorithm.Item1.IsDefault ? new GuidIdx(0) : _debugMetadataOpt.GetGuidIndex(checksumAndAlgorithm.Item2),
-                    hash: (checksumAndAlgorithm.Item1.IsDefault) ? new BlobIdx(0) : _debugMetadataOpt.GetBlobIndex(checksumAndAlgorithm.Item1),
+                    hashAlgorithm: checksumAndAlgorithm.Item1.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetGuidIndex(checksumAndAlgorithm.Item2),
+                    hash: (checksumAndAlgorithm.Item1.IsDefault) ? default(BlobHandle) : _debugMetadataOpt.GetBlobIndex(checksumAndAlgorithm.Item1),
                     language: _debugMetadataOpt.GetGuidIndex(document.Language));
 
                 index.Add(document, documentHandle);
@@ -612,7 +612,7 @@ namespace Microsoft.Cci
         private static readonly char[] Separator1 = { '/' };
         private static readonly char[] Separator2 = { '\\' };
 
-        private BlobIdx SerializeDocumentName(string name)
+        private BlobHandle SerializeDocumentName(string name)
         {
             Debug.Assert(name != null);
 
@@ -627,7 +627,7 @@ namespace Microsoft.Cci
             // TODO: avoid allocations
             foreach (var part in name.Split(separator))
             {
-                BlobIdx partIndex = _debugMetadataOpt.GetBlobIndex(ImmutableArray.Create(s_utf8Encoding.GetBytes(part)));
+                BlobHandle partIndex = _debugMetadataOpt.GetBlobIndex(ImmutableArray.Create(s_utf8Encoding.GetBytes(part)));
                 writer.WriteCompressedInteger((uint)_debugMetadataOpt.ResolveBlobIndex(partIndex));
             }
 
