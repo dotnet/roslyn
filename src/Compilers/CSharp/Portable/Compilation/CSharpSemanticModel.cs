@@ -1383,7 +1383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     throw new ArgumentException(
                         "Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)",
-                        "position");
+                        nameof(position));
                 }
                 container = baseType;
             }
@@ -4619,7 +4619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = container as NamespaceOrTypeSymbol;
             if ((object)result == null)
             {
-                throw new ArgumentException(CSharpResources.NotACSharpSymbol, "container");
+                throw new ArgumentException(CSharpResources.NotACSharpSymbol, nameof(container));
             }
             return result;
         }

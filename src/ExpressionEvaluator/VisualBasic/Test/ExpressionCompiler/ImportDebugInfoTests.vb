@@ -124,7 +124,8 @@ End Namespace
                     compilation.Emit(exebits, pdbbits)
 
                     exebits.Position = 0
-                    Using [module] As New PEModule(New PEReader(exebits, PEStreamOptions.LeaveOpen), metadataOpt:=Nothing, metadataSizeOpt:=0)
+                    Using metadata = modulemetadata.CreateFromStream(exebits, leaveOpen:=True)
+                        Dim [module] = metadata.module
                         Dim metadataReader = [module].MetadataReader
                         Dim methodHandle = metadataReader.MethodDefinitions.Single(Function(mh) metadataReader.GetString(metadataReader.GetMethodDefinition(mh).Name) = methodName)
                         Dim methodToken = metadataReader.GetToken(methodHandle)

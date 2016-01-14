@@ -97,10 +97,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return 0;
             }
 
-            using (var module = new PEModule(new PEReader(ImmutableArray.CreateRange(this.FullImage)), metadataOpt: IntPtr.Zero, metadataSizeOpt: 0))
+            using (var metadata = ModuleMetadata.CreateFromImage(this.FullImage))
             {
-                var reader = module.MetadataReader;
-                var methodIL = module.GetMethodBodyOrThrow(methodHandle);
+                var reader = metadata.MetadataReader;
+                var methodIL = metadata.Module.GetMethodBodyOrThrow(methodHandle);
                 var localSignatureHandle = methodIL.LocalSignature;
                 return reader.GetToken(localSignatureHandle);
             }
