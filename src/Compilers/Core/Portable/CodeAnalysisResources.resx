@@ -506,4 +506,8 @@
   <data name="SharedArgumentMissing" xml:space="preserve">
     <value>Value for argument '/shared:' must not be empty</value>
   </data>
+  <data name="ExceptionContext" xml:space="preserve">
+    <value>Exception occurred with following context:
+{0}</value>
+  </data>
 </root>

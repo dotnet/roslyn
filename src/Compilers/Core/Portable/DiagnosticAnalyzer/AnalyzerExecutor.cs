@@ -196,7 +196,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ExecuteInitializeMethod(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope sessionScope)
         {
             // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
-            ExecuteAndCatchIfThrows(analyzer, () => analyzer.Initialize(new AnalyzerAnalysisContext(analyzer, sessionScope)));
+            ExecuteAndCatchIfThrows(analyzer,
+                () => analyzer.Initialize(new AnalyzerAnalysisContext(analyzer, sessionScope)));
         }
 
         /// <summary>
@@ -209,8 +210,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var startAction in actions)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
+
                 ExecuteAndCatchIfThrows(startAction.Analyzer,
-                    () => startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope, _compilation, _analyzerOptions, _cancellationToken)));
+                    () => startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope, _compilation, _analyzerOptions, _cancellationToken)),
+                    new AnalysisContextInfo(_compilation));
             }
         }
 
@@ -258,8 +261,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (ShouldExecuteAction(analyzerStateOpt, endAction))
                 {
                     ExecuteAndCatchIfThrows(endAction.Analyzer,
-                        () => endAction.Action(new CompilationAnalysisContext(_compilation, _analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(endAction.Analyzer, d), _cancellationToken)));
+                        () => endAction.Action(new CompilationAnalysisContext(
+                            _compilation, _analyzerOptions, addDiagnostic,
+                            d => IsSupportedDiagnostic(endAction.Analyzer, d), _cancellationToken)),
+                        new AnalysisContextInfo(_compilation));
 
                     analyzerStateOpt?.ProcessedActions.Add(endAction);
                 }
@@ -332,8 +337,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         _cancellationToken.ThrowIfCancellationRequested();
 
                         ExecuteAndCatchIfThrows(symbolAction.Analyzer,
-                        () => action(new SymbolAnalysisContext(symbol, _compilation, _analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(symbolAction.Analyzer, d), _cancellationToken)));
+                            () => action(new SymbolAnalysisContext(symbol, _compilation, _analyzerOptions, addDiagnostic,
+                                d => IsSupportedDiagnostic(symbolAction.Analyzer, d), _cancellationToken)),
+                            new AnalysisContextInfo(_compilation, symbol));
 
                         analyzerStateOpt?.ProcessedActions.Add(symbolAction);
                     }
@@ -399,7 +405,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(semanticModelAction.Analyzer,
                         () => semanticModelAction.Action(new SemanticModelAnalysisContext(semanticModel, _analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(semanticModelAction.Analyzer, d), _cancellationToken)));
+                            d => IsSupportedDiagnostic(semanticModelAction.Analyzer, d), _cancellationToken)),
+                        new AnalysisContextInfo(semanticModel));
 
                     analyzerStateOpt?.ProcessedActions.Add(semanticModelAction);
                 }
@@ -462,7 +469,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer,
                         () => syntaxTreeAction.Action(new SyntaxTreeAnalysisContext(tree, _analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(syntaxTreeAction.Analyzer, d), _compilation, _cancellationToken)));
+                            d => IsSupportedDiagnostic(syntaxTreeAction.Analyzer, d), _compilation, _cancellationToken)),
+                        new AnalysisContextInfo(_compilation, tree));
 
                     analyzerStateOpt?.ProcessedActions.Add(syntaxTreeAction);
                 }
@@ -483,7 +491,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, semanticModel, _analyzerOptions, addDiagnostic,
                     d => IsSupportedDiagnostic(syntaxNodeAction.Analyzer, d), _cancellationToken);
-                ExecuteAndCatchIfThrows(syntaxNodeAction.Analyzer, () => syntaxNodeAction.Action(syntaxNodeContext));
+                ExecuteAndCatchIfThrows(syntaxNodeAction.Analyzer,
+                    () => syntaxNodeAction.Action(syntaxNodeContext),
+                    new AnalysisContextInfo(_compilation, node));
 
                 analyzerStateOpt?.ProcessedActions.Add(syntaxNodeAction);
             }
@@ -501,7 +511,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (ShouldExecuteAction(analyzerStateOpt, operationAction))
             {
                 var operationContext = new OperationAnalysisContext(operation, _analyzerOptions, addDiagnostic, d => IsSupportedDiagnostic(operationAction.Analyzer, d), semanticModel, _cancellationToken);
-                ExecuteAndCatchIfThrows(operationAction.Analyzer, () => operationAction.Action(operationContext));
+                ExecuteAndCatchIfThrows(operationAction.Analyzer,
+                    () => operationAction.Action(operationContext),
+                    new AnalysisContextInfo(_compilation, operation));
 
                 analyzerStateOpt?.ProcessedActions.Add(operationAction);
             }
@@ -658,7 +670,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 codeBlockStartAction.Action(blockStartContext);
                                 codeBlockEndActions.AddAll(codeBlockScope.CodeBlockEndActions);
                                 syntaxNodeActions.AddRange(codeBlockScope.SyntaxNodeActions);
-                            });
+                            },
+                            new AnalysisContextInfo(_compilation, declaredSymbol, declaredNode));
                         }
                         else
                         {
@@ -675,7 +688,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                     operationBlockStartAction.Action(operationStartContext);
                                     operationBlockEndActions.AddAll(operationBlockScope.OperationBlockEndActions);
                                     operationActions.AddRange(operationBlockScope.OperationActions);
-                                });
+                                },
+                                new AnalysisContextInfo(_compilation, declaredSymbol));
                             }
                         }
 
@@ -736,7 +750,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         ExecuteAndCatchIfThrows(
                             codeBlockAction.Analyzer,
-                            () => codeBlockAction.Action(new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken)));
+                            () => codeBlockAction.Action(new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken)),
+                            new AnalysisContextInfo(_compilation, declaredSymbol, declaredNode));
                     }
                     else
                     {
@@ -745,7 +760,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             ExecuteAndCatchIfThrows(
                                 operationBlockAction.Analyzer,
-                                () => operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, semanticModel, _cancellationToken)));
+                                () => operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, semanticModel, _cancellationToken)),
+                                new AnalysisContextInfo(_compilation, declaredSymbol));
                         }
                     }
 
@@ -1019,23 +1035,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal void ExecuteAndCatchIfThrows(DiagnosticAnalyzer analyzer, Action analyze)
+        internal void ExecuteAndCatchIfThrows(DiagnosticAnalyzer analyzer, Action analyze, AnalysisContextInfo? info = null)
         {
             object gate = _getAnalyzerGateOpt?.Invoke(analyzer);
             if (gate != null)
             {
                 lock (gate)
                 {
-                    ExecuteAndCatchIfThrows_NoLock(analyzer, analyze);
+                    ExecuteAndCatchIfThrows_NoLock(analyzer, analyze, info);
                 }
             }
             else
             {
-                ExecuteAndCatchIfThrows_NoLock(analyzer, analyze);
+                ExecuteAndCatchIfThrows_NoLock(analyzer, analyze, info);
             }
         }
 
-        private void ExecuteAndCatchIfThrows_NoLock(DiagnosticAnalyzer analyzer, Action analyze)
+        private void ExecuteAndCatchIfThrows_NoLock(DiagnosticAnalyzer analyzer, Action analyze, AnalysisContextInfo? info)
         {
             try
             {
@@ -1057,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             catch (Exception e) when (ExceptionFilter(e))
             {
                 // Diagnostic for analyzer exception.
-                var diagnostic = CreateAnalyzerExceptionDiagnostic(analyzer, e);
+                var diagnostic = CreateAnalyzerExceptionDiagnostic(analyzer, e, info);
                 try
                 {
                     _onAnalyzerException(e, analyzer, diagnostic);
@@ -1084,15 +1100,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
-        internal static Diagnostic CreateAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
+        internal static Diagnostic CreateAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e, AnalysisContextInfo? info = null)
         {
             var analyzerName = analyzer.ToString();
             var title = CodeAnalysisResources.CompilerAnalyzerFailure;
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
             var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message };
-            var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, e.CreateDiagnosticDescription());
+            var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, CreateDiagnosticDescription(info, e));
             var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, description, messageFormat);
             return Diagnostic.Create(descriptor, Location.None, messageArguments);
+        }
+
+        private static string CreateDiagnosticDescription(AnalysisContextInfo? info, Exception e)
+        {
+            if (info == null)
+            {
+                return e.CreateDiagnosticDescription();
+            }
+
+            return string.Join(Environment.NewLine,
+                string.Format(CodeAnalysisResources.ExceptionContext, info?.GetContext()), e.CreateDiagnosticDescription());
         }
 
         internal static Diagnostic CreateDriverExceptionDiagnostic(Exception e)
