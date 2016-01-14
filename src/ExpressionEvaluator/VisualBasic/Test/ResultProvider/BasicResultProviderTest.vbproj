@@ -87,7 +87,7 @@
     <Compile Include="VisualBasicResultProviderTestBase.vb" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\BasicResultProvider.projitems" Label="Shared" />

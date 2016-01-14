@@ -17,7 +17,7 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <None Include="App.config" />
+    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup Label="Project References">
