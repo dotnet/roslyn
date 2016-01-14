@@ -91,29 +91,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (_node != null)
             {
+                var text = _tree?.GetText();
+                var lineSpan = text?.Lines?.GetLinePositionSpan(_node.Span);
+
                 // can't use Kind since that is language specific. instead will output typename.
-                sb.AppendLine($"{nameof(SyntaxNode)}: \"{GetValueText(_node)}\" {_node.GetType().Name}@{_node.Span.ToString()}");
+                sb.AppendLine($"{nameof(SyntaxNode)}: {GetFlattenedNodeText(_node)} [{_node.GetType().Name}]@{_node.Span.ToString()} {(lineSpan.HasValue ? lineSpan.Value.ToString() : string.Empty)}");
             }
 
             return sb.ToString();
         }
 
-        private string GetValueText(SyntaxNode node)
+        private string GetFlattenedNodeText(SyntaxNode node)
         {
             const int cutoff = 30;
 
-            if (node.Span.Length < cutoff)
+            var lastEnd = node.Span.Start;
+            var sb = new StringBuilder();
+            foreach (var token in node.DescendantTokens(descendIntoTrivia: false))
             {
-                return RemoveNewLines(node.ToString());
+                if (token.Span.Start - lastEnd > 0)
+                {
+                    sb.Append(" ");
+                }
+
+                sb.Append(token.ToString());
+                lastEnd = token.Span.End;
+
+                if (sb.Length > cutoff)
+                {
+                    break;
+                }
             }
 
-            // get actual text without creating texts for all sub nodes.
-            return RemoveNewLines(node.GetText().ToString(new TextSpan(node.Span.Start - node.FullSpan.Start, cutoff))) + " ...";
-        }
-
-        private string RemoveNewLines(string text)
-        {
-            return text.Replace(Environment.NewLine, @"\r\n");
+            return sb.ToString() + (sb.Length > cutoff ? " ..." : string.Empty);
         }
     }
 }
