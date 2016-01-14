@@ -133,17 +133,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value ? "true" : "false";
         }
 
-        private static void FormatStringChar(StringBuilder builder, char c, char quote)
+        private static bool TryReplaceQuote(char c, char quote, out string replaceWith)
         {
-            string replaceWith;
-            if (TryReplaceChar(c, quote, out replaceWith))
+            Debug.Assert(quote == '"' || quote == '\'');
+
+            if (c == quote)
             {
-                builder.Append(replaceWith);
+                replaceWith = "\\" + c;
+                return true;
             }
-            else
-            {
-                builder.Append(c);
-            }
+
+            replaceWith = null;
+            return false;
         }
 
         /// <summary>
@@ -151,27 +152,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <paramref name="replaceWith"/> to the replacement text if the
         /// character is replaced with text other than the Unicode escape sequence.
         /// </summary>
-        private static bool TryReplaceChar(char c, char quote, out string replaceWith)
+        private static bool TryReplaceChar(char c, out string replaceWith)
         {
-            Debug.Assert(quote == '\0' || quote == '"' || quote == '\'');
-
             replaceWith = null;
             switch (c)
             {
                 case '\\':
                     replaceWith = "\\\\";
-                    break;
-                case '"':
-                    if (quote == c)
-                    {
-                        replaceWith = "\\\"";
-                    }
-                    break;
-                case '\'':
-                    if (quote == c)
-                    {
-                        replaceWith = "\\'";
-                    }
                     break;
                 case '\0':
                     replaceWith = "\\0";
@@ -216,12 +203,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool ReplaceAny(string s, char quote)
+        private static bool ReplaceAny(string s, char quote, bool escapeNonPrintable)
         {
             foreach (var c in s)
             {
                 string replaceWith;
-                if (TryReplaceChar(c, quote, out replaceWith))
+                if (TryReplaceQuote(c, quote, out replaceWith) ||
+                    (escapeNonPrintable && TryReplaceChar(c, out replaceWith)))
                 {
                     return true;
                 }
@@ -236,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="options">Options used to customize formatting of an object value.</param>
         /// <returns>A string literal with the given value.</returns>
         /// <remarks>
-        /// Escapes non-printable characters.
+        /// Optionally escapes non-printable characters.
         /// </remarks>
         public static string FormatLiteral(string value, ObjectDisplayOptions options)
         {
@@ -247,35 +235,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(value));
             }
 
-            var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
-            var escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableStringCharacters);
-            var quote = useQuotes ? '"' : '\0';
-            if (!useQuotes && !(escapeNonPrintable && ReplaceAny(value, quote)))
-            {
-                return value;
-            }
+            const char quote = '"';
 
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
+
+            var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
+            var escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableStringCharacters);
+
             if (useQuotes)
             {
                 builder.Append(quote);
             }
-            if (escapeNonPrintable)
+
+            foreach (var c in value)
             {
-                foreach (var c in value)
+                string replaceWith;
+                if ((useQuotes && TryReplaceQuote(c, quote, out replaceWith)) ||
+                    (escapeNonPrintable && TryReplaceChar(c, out replaceWith)))
                 {
-                    FormatStringChar(builder, c, quote);
+                    builder.Append(replaceWith);
+                }
+                else
+                {
+                    builder.Append(c);
                 }
             }
-            else
-            {
-                builder.Append(value);
-            }
+
             if (useQuotes)
             {
                 builder.Append(quote);
             }
+
             return pooledBuilder.ToStringAndFree();
         }
 
@@ -287,6 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A character literal with the given value.</returns>
         internal static string FormatLiteral(char c, ObjectDisplayOptions options)
         {
+            const char quote = '\'';
+
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
 
@@ -296,23 +289,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Append(" ");
             }
 
-            const char quote = '\'';
+            var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
+            var escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableStringCharacters);
 
-            string charString;
-            if (!options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableStringCharacters) || !TryReplaceChar(c, quote, out charString))
+
+            if (useQuotes)
             {
-                charString = c.ToString();
+                builder.Append(quote);
             }
 
-            if (options.IncludesOption(ObjectDisplayOptions.UseQuotes))
+            string replaceWith;
+            if ((useQuotes && TryReplaceQuote(c, quote, out replaceWith)) ||
+                (escapeNonPrintable && TryReplaceChar(c, out replaceWith)))
             {
-                builder.Append(quote);
-                builder.Append(charString);
-                builder.Append(quote);
+                builder.Append(replaceWith);
             }
             else
             {
-                builder.Append(charString);
+                builder.Append(c);
+            }
+
+            if (useQuotes)
+            {
+                builder.Append(quote);
             }
 
             return pooledBuilder.ToStringAndFree();

@@ -153,6 +153,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "\u007f", "\\u007f", "'\u007f'", "'\\u007f'",
                 "127 \u007f", "127 \\u007f", "127 '\u007f'", "127 '\\u007f'",
             });
+
+            // Quote
+            Assert.Equal(QuoteAndEscapingCombinations('\''), new[]
+            {
+                "'", "'", "'\\''", "'\\''",
+                "39 '", "39 '", "39 '\\''", "39 '\\''",
+            });
         }
 
         private static IEnumerable<string> QuoteAndEscapingCombinations(char ch)
@@ -244,6 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(QuoteAndEscapingCombinations("\t"), new[] { "\t", "\\t", "\"\t\"", "\"\\t\"" });
             Assert.Equal(QuoteAndEscapingCombinations("\u26F4"), new[] { "\u26F4", "\u26F4", "\"\u26F4\"", "\"\u26F4\"" });  // Miscellaneous symbol
             Assert.Equal(QuoteAndEscapingCombinations("\u007f"), new[] { "\u007f", "\\u007f", "\"\u007f\"", "\"\\u007f\"" }); // Control character
+            Assert.Equal(QuoteAndEscapingCombinations("\""), new[] { "\"", "\"", "\"\\\"\"", "\"\\\"\"" }); // Quote
         }
 
         private static IEnumerable<string> QuoteAndEscapingCombinations(string s)
