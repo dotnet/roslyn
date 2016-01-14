@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+using System.Reflection.Metadata;
 
 #if SRM
 using System.Reflection.Internal;
@@ -21,114 +22,6 @@ namespace System.Reflection.Metadata.Ecma335
 namespace Roslyn.Reflection.Metadata.Ecma335
 #endif
 {
-    /// <summary>
-    /// Represents a value on #GUID heap that has not been serialized yet.
-    /// </summary>
-#if SRM
-    public
-#endif
-    struct GuidIdx : IEquatable<GuidIdx>, IComparable<GuidIdx>
-    {
-        public readonly int Index;
-
-        internal GuidIdx(int index)
-        {
-            Index = index;
-        }
-
-        public bool Equals(GuidIdx other) => Index == other.Index;
-        public override bool Equals(object obj) => obj is GuidIdx && Equals((GuidIdx)obj);
-        public override int GetHashCode() => Index.GetHashCode();
-        public int CompareTo(GuidIdx other) => Index - other.Index;
-        public static bool operator ==(GuidIdx left, GuidIdx right) => left.Equals(right);
-        public static bool operator !=(GuidIdx left, GuidIdx right) => !left.Equals(right);
-    }
-
-    /// <summary>
-    /// Represents a value on #String heap that has not been serialized yet.
-    /// </summary>
-#if SRM
-    public
-#endif
-    struct StringIdx : IEquatable<StringIdx>
-    {
-        // index in _stringIndexToHeapPositionMap
-        public readonly int MapIndex;
-
-        internal StringIdx(int mapIndex)
-        {
-            MapIndex = mapIndex;
-        }
-
-        public bool Equals(StringIdx other)
-        {
-            return MapIndex == other.MapIndex;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is StringIdx && Equals((StringIdx)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return MapIndex.GetHashCode();
-        }
-
-        public static bool operator ==(StringIdx left, StringIdx right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(StringIdx left, StringIdx right)
-        {
-            return !left.Equals(right);
-        }
-    }
-
-    /// <summary>
-    /// Represents a value on #Blob heap that has not been serialized yet.
-    /// </summary>
-#if SRM
-    public
-#endif
-    struct BlobIdx : IEquatable<BlobIdx>
-    {
-        // The position of the blob on heap relative to the start of the heap.
-        // In EnC deltas this value is not the same as the value stored in blob token.
-        public readonly int HeapPosition;
-
-        internal BlobIdx(int heapPosition)
-        {
-            HeapPosition = heapPosition;
-        }
-
-        public bool Equals(BlobIdx other)
-        {
-            return HeapPosition == other.HeapPosition;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is BlobIdx && Equals((BlobIdx)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return HeapPosition.GetHashCode();
-        }
-
-        public static bool operator ==(BlobIdx left, BlobIdx right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(BlobIdx left, BlobIdx right)
-        {
-            return !left.Equals(right);
-        }
-    }
-
 #if SRM
     public
 #endif
@@ -140,18 +33,18 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         private readonly int _userStringHeapStartOffset;
 
         // #String heap
-        private Dictionary<string, StringIdx> _strings = new Dictionary<string, StringIdx>(128);
+        private Dictionary<string, StringHandle> _strings = new Dictionary<string, StringHandle>(128);
         private int[] _stringIndexToResolvedOffsetMap;
         private BlobBuilder _stringWriter;
         private readonly int _stringHeapStartOffset;
 
         // #Blob heap
-        private readonly Dictionary<ImmutableArray<byte>, BlobIdx> _blobs = new Dictionary<ImmutableArray<byte>, BlobIdx>(ByteSequenceComparer.Instance);
+        private readonly Dictionary<ImmutableArray<byte>, BlobHandle> _blobs = new Dictionary<ImmutableArray<byte>, BlobHandle>(ByteSequenceComparer.Instance);
         private readonly int _blobHeapStartOffset;
         private int _blobHeapSize;
 
         // #GUID heap
-        private readonly Dictionary<Guid, GuidIdx> _guids = new Dictionary<Guid, GuidIdx>();
+        private readonly Dictionary<Guid, GuidHandle> _guids = new Dictionary<Guid, GuidHandle>();
         private readonly BlobBuilder _guidWriter = new BlobBuilder(16); // full metadata has just a single guid
 
         private bool _streamsAreComplete;
@@ -169,7 +62,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             // beginning of the delta blob.
             _userStringWriter.WriteByte(0);
 
-            _blobs.Add(ImmutableArray<byte>.Empty, new BlobIdx(0));
+            _blobs.Add(ImmutableArray<byte>.Empty, default(BlobHandle));
             _blobHeapSize = 1;
 
             // When EnC delta is applied #US, #String and #Blob heaps are appended.
@@ -183,20 +76,20 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             _guidWriter.WriteBytes(0, guidHeapStartOffset);
         }
 
-        internal BlobIdx GetBlobIndex(BlobBuilder builder)
+        internal BlobHandle GetBlobIndex(BlobBuilder builder)
         {
             // TODO: avoid making a copy if the blob exists in the index
             return GetBlobIndex(builder.ToImmutableArray());
         }
 
-        internal BlobIdx GetBlobIndex(ImmutableArray<byte> blob)
+        internal BlobHandle GetBlobIndex(ImmutableArray<byte> blob)
         {
-            BlobIdx index;
+            BlobHandle index;
             if (!_blobs.TryGetValue(blob, out index))
             {
                 Debug.Assert(!_streamsAreComplete);
 
-                index = new BlobIdx(_blobHeapSize);
+                index = MetadataTokens.BlobHandle(_blobHeapSize);
                 _blobs.Add(blob, index);
 
                 _blobHeapSize += BlobWriterImpl.GetCompressedIntegerSize(blob.Length) + blob.Length;
@@ -205,7 +98,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return index;
         }
 
-        public BlobIdx GetConstantBlobIndex(object value)
+        public BlobHandle GetConstantBlobIndex(object value)
         {
             string str = value as string;
             if (str != null)
@@ -220,7 +113,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return result;
         }
 
-        public BlobIdx GetBlobIndex(string str)
+        public BlobHandle GetBlobIndex(string str)
         {
             byte[] byteArray = new byte[str.Length * 2];
             int i = 0;
@@ -233,19 +126,19 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return this.GetBlobIndex(ImmutableArray.Create(byteArray));
         }
 
-        public BlobIdx GetBlobIndexUtf8(string str)
+        public BlobHandle GetBlobIndexUtf8(string str)
         {
             return GetBlobIndex(ImmutableArray.Create(Encoding.UTF8.GetBytes(str)));
         }
 
-        public GuidIdx GetGuidIndex(Guid guid)
+        public GuidHandle GetGuidIndex(Guid guid)
         {
             if (guid == Guid.Empty)
             {
-                return new GuidIdx(0);
+                return default(GuidHandle);
             }
 
-            GuidIdx result;
+            GuidHandle result;
             if (_guids.TryGetValue(guid, out result))
             {
                 return result;
@@ -257,14 +150,14 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return result;
         }
 
-        public GuidIdx ReserveGuid(out Blob reservedBlob)
+        public GuidHandle ReserveGuid(out Blob reservedBlob)
         {
             var index = GetNextGuidIndex();
             reservedBlob = _guidWriter.ReserveBytes(16);
             return index;
         }
 
-        private GuidIdx GetNextGuidIndex()
+        private GuidHandle GetNextGuidIndex()
         {
             Debug.Assert(!_streamsAreComplete);
 
@@ -278,39 +171,40 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             // Metadata Spec: 
             // The Guid heap is an array of GUIDs, each 16 bytes wide. 
             // Its first element is numbered 1, its second 2, and so on.
-            return new GuidIdx((_guidWriter.Count >> 4) + 1);
+            return MetadataTokens.GuidHandle((_guidWriter.Count >> 4) + 1);
         }
 
-        public StringIdx GetStringIndex(string str)
+        public StringHandle GetStringIndex(string str)
         {
-            StringIdx index;
+            StringHandle index;
             if (str.Length == 0)
             {
-                index = new StringIdx(0);
+                index = default(StringHandle);
             }
             else if (!_strings.TryGetValue(str, out index))
             {
                 Debug.Assert(!_streamsAreComplete);
-                index = new StringIdx(_strings.Count + 1); // idx 0 is reserved for empty string
+                index = MetadataTokens.StringHandle(_strings.Count + 1); // idx 0 is reserved for empty string
                 _strings.Add(str, index);
             }
 
             return index;
         }
 
-        public int ResolveStringIndex(StringIdx index)
+        public int ResolveStringIndex(StringHandle handle)
         {
-            return _stringIndexToResolvedOffsetMap[index.MapIndex];
+            return _stringIndexToResolvedOffsetMap[MetadataTokens.GetHeapOffset(handle)];
         }
 
-        public int ResolveBlobIndex(BlobIdx index)
+        public int ResolveBlobIndex(BlobHandle handle)
         {
-            return (index.HeapPosition == 0) ? 0 : _blobHeapStartOffset + index.HeapPosition;
+            int offset = MetadataTokens.GetHeapOffset(handle);
+            return (offset == 0) ? 0 : _blobHeapStartOffset + offset;
         }
         
-        public int ResolveGuidIndex(GuidIdx index)
+        public int ResolveGuidIndex(GuidHandle handle)
         {
-            return index.Index;
+            return MetadataTokens.GetHeapOffset(handle);
         }
 
         public int GetUserStringToken(string str)
@@ -415,7 +309,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         private void SerializeStringHeap()
         {
             // Sort by suffix and remove stringIndex
-            var sorted = new List<KeyValuePair<string, StringIdx>>(_strings);
+            var sorted = new List<KeyValuePair<string, StringHandle>>(_strings);
             sorted.Sort(new SuffixSort());
             _strings = null;
 
@@ -429,7 +323,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
 
             // Find strings that can be folded
             string prev = string.Empty;
-            foreach (KeyValuePair<string, StringIdx> entry in sorted)
+            foreach (KeyValuePair<string, StringHandle> entry in sorted)
             {
                 int position = _stringHeapStartOffset + _stringWriter.Position;
 
@@ -437,11 +331,11 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 if (prev.EndsWith(entry.Key, StringComparison.Ordinal) && !BlobUtilities.IsLowSurrogateChar(entry.Key[0]))
                 {
                     // Map over the tail of prev string. Watch for null-terminator of prev string.
-                    _stringIndexToResolvedOffsetMap[entry.Value.MapIndex] = position - (BlobUtilities.GetUTF8ByteCount(entry.Key) + 1);
+                    _stringIndexToResolvedOffsetMap[MetadataTokens.GetHeapOffset(entry.Value)] = position - (BlobUtilities.GetUTF8ByteCount(entry.Key) + 1);
                 }
                 else
                 {
-                    _stringIndexToResolvedOffsetMap[entry.Value.MapIndex] = position;
+                    _stringIndexToResolvedOffsetMap[MetadataTokens.GetHeapOffset(entry.Value)] = position;
                     _stringWriter.WriteUTF8(entry.Key, allowUnpairedSurrogates: false);
                     _stringWriter.WriteByte(0);
                 }
@@ -454,9 +348,9 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         /// Sorts strings such that a string is followed immediately by all strings
         /// that are a suffix of it.  
         /// </summary>
-        private class SuffixSort : IComparer<KeyValuePair<string, StringIdx>>
+        private class SuffixSort : IComparer<KeyValuePair<string, StringHandle>>
         {
-            public int Compare(KeyValuePair<string, StringIdx> xPair, KeyValuePair<string, StringIdx> yPair)
+            public int Compare(KeyValuePair<string, StringHandle> xPair, KeyValuePair<string, StringHandle> yPair)
             {
                 string x = xPair.Key;
                 string y = yPair.Key;
@@ -498,7 +392,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             // the entries by heap position before running this loop.
             foreach (var entry in _blobs)
             {
-                int heapOffset = entry.Value.HeapPosition;
+                int heapOffset = MetadataTokens.GetHeapOffset(entry.Value);
                 var blob = entry.Key;
 
                 writer.Offset = heapOffset;

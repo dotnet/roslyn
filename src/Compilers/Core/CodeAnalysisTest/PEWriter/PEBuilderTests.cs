@@ -88,23 +88,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static void EmitMetadataAndIL(MetadataBuilder metadata, BlobBuilder ilBuilder, out MethodDefinitionHandle mainMethodDef)
         {
-            metadata.AddModule(0, metadata.GetStringIndex("ConsoleApplication.exe"), metadata.GetGuidIndex(Guid.NewGuid()), default(GuidIdx), default(GuidIdx));
+            metadata.AddModule(0, metadata.GetStringIndex("ConsoleApplication.exe"), metadata.GetGuidIndex(Guid.NewGuid()), default(GuidHandle), default(GuidHandle));
 
             metadata.AddAssembly(
                 metadata.GetStringIndex("ConsoleApplication"),
                 version: new Version(0, 0, 0, 0),
-                culture: default(StringIdx),
-                publicKey: default(BlobIdx),
+                culture: default(StringHandle),
+                publicKey: default(BlobHandle),
                 flags: default(AssemblyFlags),
                 hashAlgorithm: AssemblyHashAlgorithm.Sha1);
 
             var mscorlibAssemblyRef = metadata.AddAssemblyReference(
                 name: metadata.GetStringIndex("mscorlib"),
                 version: new Version(4, 0, 0, 0),
-                culture: default(StringIdx),
+                culture: default(StringHandle),
                 publicKeyOrToken: metadata.GetBlobIndex(ImmutableArray.Create<byte>(0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89)),
                 flags: default(AssemblyFlags),
-                hashValue: default(BlobIdx));
+                hashValue: default(BlobHandle));
 
             var systemObjectTypeRef = metadata.AddTypeReference(
                 mscorlibAssemblyRef,
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             metadata.AddTypeDefinition(
                 default(TypeAttributes),
-                default(StringIdx),
+                default(StringHandle),
                 metadata.GetStringIndex("<Module>"),
                 baseType: default(EntityHandle),
                 fieldList: MetadataTokens.FieldDefinitionHandle(1),
