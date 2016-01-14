@@ -3968,6 +3968,30 @@ End Module
             Await AssertFormatLf2CrLfAsync(text.Value, expected.Value)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Async Function TestShebangDirective() As Task
+            Dim text = <Code>#!/usr/bin</Code>
+            Dim expected = text
+            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value, parseOptions:=TestOptions.Script)
+
+            text = <Code>#! /usr/bin </Code>
+            expected = text
+            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value, parseOptions:=TestOptions.Script)
+
+            text = <Code>#! /usr/bin
+Dim x = 12</Code>
+            expected = text
+            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value, parseOptions:=TestOptions.Script)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Async Function TestLoadDirective() As Task
+            Dim text = <Code>#Load           "filename" 'comment</Code>
+            Dim expected = <Code>#Load "filename" 'comment</Code>
+
+            Await AssertFormatLf2CrLfAsync(text.Value, expected.Value, parseOptions:=TestOptions.Script)
+        End Function
+
         <WorkItem(796562)>
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>

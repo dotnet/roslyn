@@ -1701,6 +1701,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Load a vbx file..
+        '''</summary>
+        Friend ReadOnly Property LoadKeywordToolTip() As String
+            Get
+                Return ResourceManager.GetString("LoadKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Terminates a loop that is introduced with a Do statement..
         '''</summary>
         Friend ReadOnly Property LoopKeywordToolTip() As String
@@ -2618,6 +2627,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property SharedKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("SharedKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Under Unix a #! directive specifies program that runs the script. For example (#!/usr/bin/env vbi)..
+        '''</summary>
+        Friend ReadOnly Property ShebangKeywordToolTip() As String
+            Get
+                Return ResourceManager.GetString("ShebangKeywordToolTip", resourceCulture)
             End Get
         End Property
         

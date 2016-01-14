@@ -1204,4 +1204,10 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="ReferenceKeywordTooltip" xml:space="preserve">
     <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
   </data>
+  <data name="LoadKeywordToolTip" xml:space="preserve">
+    <value>Load a vbx file.</value>
+  </data>
+  <data name="ShebangKeywordToolTip" xml:space="preserve">
+    <value>Under Unix a #! directive specifies program that runs the script. For example (#!/usr/bin/env vbi).</value>
+  </data>
 </root>

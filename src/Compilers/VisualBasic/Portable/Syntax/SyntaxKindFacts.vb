@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Determine if the kind represents a contextual keyword
         ''' </summary>
         Public Shared Function IsContextualKeyword(kind As SyntaxKind) As Boolean
-            Return kind = SyntaxKind.ReferenceKeyword OrElse
+            Return kind = SyntaxKind.LoadKeyword OrElse kind = SyntaxKind.ReferenceKeyword OrElse
                 (SyntaxKind.AggregateKeyword <= kind AndAlso kind <= SyntaxKind.YieldKeyword)
         End Function
 
@@ -63,6 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SyntaxKind.ElseKeyword,
                     SyntaxKind.EndIfKeyword,
                     SyntaxKind.RegionKeyword,
+                    SyntaxKind.LoadKeyword,
                     SyntaxKind.EndKeyword,
                     SyntaxKind.ConstKeyword,
                     SyntaxKind.ReferenceKeyword,
@@ -353,6 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             SyntaxKind.ElseKeyword,
                                                             SyntaxKind.EndIfKeyword,
                                                             SyntaxKind.EndKeyword,
+                                                            SyntaxKind.LoadKeyword,
                                                             SyntaxKind.RegionKeyword,
                                                             SyntaxKind.ConstKeyword,
                                                             SyntaxKind.ReferenceKeyword,
@@ -525,6 +527,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SyntaxKind.RegionDirectiveTrivia,
                     SyntaxKind.EndRegionDirectiveTrivia,
                     SyntaxKind.ConstDirectiveTrivia,
+                    SyntaxKind.LoadDirectiveTrivia,
+                    SyntaxKind.ShebangDirectiveTrivia,
                     SyntaxKind.ExternalSourceDirectiveTrivia,
                     SyntaxKind.EndExternalSourceDirectiveTrivia,
                     SyntaxKind.ExternalChecksumDirectiveTrivia,
@@ -793,6 +797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    {"istrue", SyntaxKind.IsTrueKeyword},
                    {"join", SyntaxKind.JoinKeyword},
                    {"key", SyntaxKind.KeyKeyword},
+                   {"load", SyntaxKind.LoadKeyword},
                    {"mid", SyntaxKind.MidKeyword},
                    {"off", SyntaxKind.OffKeyword},
                    {"order", SyntaxKind.OrderKeyword},
@@ -831,6 +836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    {"endif", SyntaxKind.EndIfKeyword},
                    {"region", SyntaxKind.RegionKeyword},
                    {"end", SyntaxKind.EndKeyword},
+                   {"load", SyntaxKind.LoadKeyword},
                    {"const", SyntaxKind.ConstKeyword},
                    {"externalsource", SyntaxKind.ExternalSourceKeyword},
                    {"externalchecksum", SyntaxKind.ExternalChecksumKeyword},

@@ -117,16 +117,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                         SyntaxKind.ExternalSourceDirectiveTrivia,
                         SyntaxKind.EndExternalSourceDirectiveTrivia,
                         SyntaxKind.ExternalChecksumDirectiveTrivia,
+                        SyntaxKind.LoadDirectiveTrivia,
                         SyntaxKind.ReferenceDirectiveTrivia,
                         SyntaxKind.EnableWarningDirectiveTrivia,
                         SyntaxKind.DisableWarningDirectiveTrivia,
                         SyntaxKind.BadDirectiveTrivia
 
                         ClassifyDirectiveSyntax(DirectCast(trivia.GetStructure(), DirectiveTriviaSyntax))
+                    Case SyntaxKind.ShebangDirectiveTrivia
+                        ClassifyShebangDirective(trivia.GetStructure())
                     Case SyntaxKind.SkippedTokensTrivia
                         ClassifySkippedTokens(DirectCast(trivia.GetStructure(), SkippedTokensTriviaSyntax))
                 End Select
-            ElseIf trivia.Kind = SyntaxKind.CommentTrivia Then
+            ElseIf trivia.Kind = SyntaxKind.CommentTrivia OrElse trivia.Kind = SyntaxKind.PreprocessingMessageTrivia Then
                 AddClassification(trivia, ClassificationTypeNames.Comment)
             ElseIf trivia.Kind = SyntaxKind.DisabledTextTrivia Then
                 AddClassification(trivia, ClassificationTypeNames.ExcludedCode)
@@ -135,6 +138,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf trivia.Kind = SyntaxKind.LineContinuationTrivia Then
                 AddClassification(New TextSpan(trivia.SpanStart, 1), ClassificationTypeNames.Punctuation)
             End If
+        End Sub
+
+        Private Sub ClassifyShebangDirective(directiveSyntax As SyntaxNode)
+            If Not _textSpan.OverlapsWith(directiveSyntax.Span) Then
+                Return
+            End If
+
+            For Each child As SyntaxToken In directiveSyntax.DescendantTokens()
+                AddClassification(child, ClassificationTypeNames.Comment)
+            Next
+
+            For Each trailingTrivia In directiveSyntax.GetTrailingTrivia()
+                ClassifyTrivia(trailingTrivia)
+            Next
         End Sub
 
         Private Sub ClassifySkippedTokens(skippedTokens As SkippedTokensTriviaSyntax)
@@ -163,6 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                              SyntaxKind.ElseIfKeyword,
                              SyntaxKind.RegionKeyword,
                              SyntaxKind.ThenKeyword,
+                             SyntaxKind.LoadKeyword,
                              SyntaxKind.ConstKeyword,
                              SyntaxKind.ExternalSourceKeyword,
                              SyntaxKind.ExternalChecksumKeyword,

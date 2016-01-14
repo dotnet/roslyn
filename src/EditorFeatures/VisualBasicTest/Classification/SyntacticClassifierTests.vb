@@ -10,8 +10,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SyntacticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Friend Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Tasks.Task(Of IEnumerable(Of ClassifiedSpan))
-            Using Workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code)
+        Friend Overrides Async Function GetClassificationSpansAsync(
+                code As String,
+                textSpan As TextSpan,
+                Optional parseOptions As ParseOptions = Nothing) As Tasks.Task(Of IEnumerable(Of ClassifiedSpan))
+            Using Workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code, parseOptions)
                 Dim document = Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim tree = Await document.GetSyntaxTreeAsync()
 
@@ -2560,6 +2563,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestPreprocessorLoad() As Task
+            Await TestInNamespaceAsync("#Load ""file""",
+                            PPKeyword("#"),
+                            PPKeyword("Load"),
+                            [String]("""file"""))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorConst1() As Task
             Await TestInNamespaceAsync("#Const Foo = 1",
                             PPKeyword("#"),
@@ -3733,6 +3744,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Sub"),
                  Keyword("End"),
                  Keyword("Module"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestShebangDirective() As Task
+            Dim text = "#!/usr/bin/test"
+            Await TestAsync(text,
+                            TestOptions.Script,
+                            Comment("#"),
+                            Comment("!"),
+                            Comment("/usr/bin/test"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>

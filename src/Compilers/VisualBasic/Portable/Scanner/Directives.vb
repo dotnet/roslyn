@@ -31,6 +31,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim restorePoint = CreateRestorePoint()
             Me._isScanningDirective = True
 
+            ' Stores whether the directive is at the beginning of file to handle #! directive.
+            Dim isAtStartOfFile = Me.IsAtStartOfFile()
+
             ' since we do not have lookahead tokens, this just 
             ' resets current token to _lineBufferOffset 
             Me.GetNextTokenInState(ScannerState.VB)
@@ -50,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Else
                 Dim parser As New Parser(Me)
 
-                directiveTrivia = parser.ParseConditionalCompilationStatement()
+                directiveTrivia = parser.ParseConditionalCompilationStatement(isAtStartOfFile)
                 directiveTrivia = parser.ConsumeStatementTerminatorAfterDirective(directiveTrivia)
             End If
 
@@ -209,7 +212,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     SyntaxKind.BadDirectiveTrivia,
                     SyntaxKind.EnableWarningDirectiveTrivia, 'TODO: Add support for processing #Enable and #Disable
                     SyntaxKind.DisableWarningDirectiveTrivia,
-                    SyntaxKind.ReferenceDirectiveTrivia
+                    SyntaxKind.ReferenceDirectiveTrivia,
+                    SyntaxKind.LoadDirectiveTrivia,
+                    SyntaxKind.ShebangDirectiveTrivia
 
                     ' These directives require no processing
 

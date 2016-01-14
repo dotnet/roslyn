@@ -6,17 +6,17 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives
     ''' <summary>
-    ''' Recommends the "#R" preprocessor directive
+    ''' Recommends the "#!" preprocessor directive
     ''' </summary>
-    Friend Class ReferenceDirectiveKeywordRecommender
+    Friend Class ShebangDirectiveKeywordRecommender
         Inherits AbstractKeywordRecommender
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             Dim tree = context.SyntaxTree
-            If context.IsPreprocessorStartContext AndAlso
-                    tree.IsScript AndAlso
-                    tree.IsBeforeFirstToken(context.Position, cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#R", VBFeaturesResources.ReferenceKeywordTooltip))
+            Dim previousToken = tree.FindTokenOnLeftOfPosition(context.Position, cancellationToken, includeDirectives:=True)
+            Dim afterFirstHash = previousToken.IsKind(SyntaxKind.HashToken) AndAlso previousToken.SpanStart = 0 AndAlso Not previousToken.HasTrailingTrivia
+            If tree.IsScript AndAlso (context.Position = 0 OrElse afterFirstHash) Then
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#!", VBFeaturesResources.ShebangKeywordToolTip))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

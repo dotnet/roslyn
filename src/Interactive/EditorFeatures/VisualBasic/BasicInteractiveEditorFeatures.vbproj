@@ -86,6 +86,7 @@
   <ItemGroup>
     <Compile Include="Interactive\FileSystem\ReferenceDirectiveCompletionProvider.vb" />
     <Compile Include="Interactive\CompletionProviders\VisualBasicReplCommandCompletionProvider.vb" />
+    <Compile Include="Completion\FileSystem\VisualBasicLoadDirectiveCompletionProvider.vb" />
     <Compile Include="Interactive\VisualBasicInteractiveEvaluator.vb" />
     <Compile Include="Interactive\VisualBasicReplServiceProvider.vb" />
     <Compile Include="VBInteractiveEditorResources.Designer.vb">

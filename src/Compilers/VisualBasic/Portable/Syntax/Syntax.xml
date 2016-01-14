@@ -7795,6 +7795,10 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="ConstKeyword" />
         <native-equiv name="" />
       </node-kind>
+      <node-kind name="LoadKeyword" token-text="Load">
+        <lm-equiv name="LoadKeyword" />
+        <native-equiv name="" />
+      </node-kind>
       <node-kind name="ReferenceKeyword" token-text="R">
         <lm-equiv name="ReferenceKeyword" />
         <native-equiv name="" />
@@ -9308,6 +9312,9 @@ Unify Enum declarations with other block type declarations.
       <node-kind name="CommentTrivia">
         <description>Represents a comment.</description>
       </node-kind>
+      <node-kind name="PreprocessingMessageTrivia">
+        <description>Represents a message in a preprocessing directive.</description>
+      </node-kind>
       <node-kind name="LineContinuationTrivia" token-text="_&#13;&#10;">
         <description>Represents an explicit line continuation character at the end of a line, i.e., _</description>
       </node-kind>
@@ -9441,11 +9448,26 @@ Unify Enum declarations with other block type declarations.
       <child name="ErrorCodes" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@IdentifierNameSyntax"/>
     </node-structure>
 
+    <node-structure name="ShebangDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
+      <description>Represents a #! directive appearing at the beginning of scripts.</description>
+      <node-kind name="ShebangDirectiveTrivia"></node-kind>
+
+      <child name="ExclamationToken" kind="ExclamationToken"/>
+    </node-structure>
+    
     <node-structure name="ReferenceDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
       <description>Represents an #r directive appearing in scripts.</description>
       <node-kind name="ReferenceDirectiveTrivia"></node-kind>
 
       <child name="ReferenceKeyword" kind="ReferenceKeyword"/>
+      <child name="File" kind="StringLiteralToken"/>
+    </node-structure>
+
+    <node-structure name="LoadDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
+      <description>Represents a #load directive appearing in scripts.</description>
+      <node-kind name="LoadDirectiveTrivia"></node-kind>
+
+      <child name="LoadKeyword" kind="LoadKeyword"/>
       <child name="File" kind="StringLiteralToken"/>
     </node-structure>
 

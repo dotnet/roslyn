@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 
         internal override CompletionListProvider CreateCompletionProvider()
         {
-            return new LoadDirectiveCompletionProvider();
+            return new CSharpLoadDirectiveCompletionProvider();
         }
 
         protected override bool CompareItems(string actualItem, string expectedItem)

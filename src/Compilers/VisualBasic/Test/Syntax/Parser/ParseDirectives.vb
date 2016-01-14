@@ -21,17 +21,94 @@ Public Class ParseDirectives
         ]]>)
     End Sub
 
+    Public Sub ParseShebangDirective()
+        ParseAndVerify("#!", TestOptions.Script)
+        ParseAndVerify("#!/usr/bin/env vb", TestOptions.Script)
+        ParseAndVerify("#!/usr/bin/env vb 'comment", TestOptions.Script)
+        ParseAndVerify("#!/usr/bin/env vb """, TestOptions.Script)
+        ParseAndVerify("#!/usr/bin/env vb $""", TestOptions.Script)
+        ParseAndVerify(
+        <![CDATA[#!/bin/tac -f
+
+            Dim x = 12
+        ]]>, TestOptions.Script)
+        ParseAndVerify("# !/usr/bin/env vb", TestOptions.Script,
+                       <errors><error id="30248" start="1" end="1"/></errors>)
+        ParseAndVerify("#/usr/bin/env vb", TestOptions.Script,
+                       <errors><error id="30248" start="1" end="1"/></errors>)
+    End Sub
+
+    Public Sub ParseShebangInRegularCode()
+        ParseAndVerify("#!", TestOptions.Regular,
+                       <errors><error id="37254" message="#! directive is only allowed is script code." start="0" end="1"/></errors>)
+    End Sub
+
+    Public Sub ParseShebangDirectiveHasToBeAtTopOfTheFile()
+        ParseAndVerify(" #!/usr/bin/env vb", TestOptions.Script,
+                       <errors><error id="37255" message="#! directive should appear as the first directive in the script file without any whitespace." start="1" end="1"/></errors>)
+        ParseAndVerify("
+#!/use/bin/env vb", TestOptions.Script,
+                       <errors><error id="37255" message="#! directive should appear as the first directive in the script file without any whitespace." start="1" end="1"/></errors>)
+        ParseAndVerify(
+"Dim x = 12
+#!/use/bin/env vb", TestOptions.Script,
+                       <errors><error id="37255" message="#! directive should appear as the first directive in the script file without any whitespace." start="1" end="1"/></errors>)
+    End Sub
+
     <Fact>
     Public Sub ParseReferenceDirective()
         ParseAndVerify(<![CDATA[
-            #r "reference"
+            #r "assembly.dll"
         ]]>, TestOptions.Script)
 
         ParseAndVerify(<![CDATA[
-            #r "reference"
+            #r "assembly.dll" 'comment
+        ]]>, TestOptions.Script)
+
+        ParseAndVerify(<![CDATA[
+            #r "assembly.dll" Dim x = 1
+        ]]>, TestOptions.Script,
+        <errors>
+            <error id="30205" message="End of statement expected." start="26" end="29"/>
+        </errors>)
+
+        ParseAndVerify(<![CDATA[
+            #r "assembly.dll"
         ]]>,
         <errors>
             <error id="36964" message="#R is only allowed in scripts" start="14" end="15"/>
+        </errors>)
+    End Sub
+
+    <Fact>
+    Public Sub ParseLoadDirective()
+        ParseAndVerify(<![CDATA[
+            #load "script.vbx"
+        ]]>, TestOptions.Script)
+
+        ParseAndVerify(<![CDATA[
+            #load "script.vbx" 'comment
+        ]]>, TestOptions.Script)
+
+        ParseAndVerify(<![CDATA[
+            #load "script.vbx" Dim x = 1
+        ]]>, TestOptions.Script,
+        <errors>
+            <error id="30205" message="End of statement expected." start="26" end="29"/>
+        </errors>)
+
+        ParseAndVerify(<![CDATA[
+            #load "script.vbx": Dim x = 1
+        ]]>, TestOptions.Script,
+        <errors>
+            <error id="30205" message="End of statement expected." start="26" end="29"/>
+        </errors>)
+
+        ParseAndVerify(<![CDATA[
+            #load "script.vbx"
+        ]]>,
+        <errors>
+            <error id="36967" message="#Load is only allowed in scripts" start="14" end="18"/>
         </errors>)
     End Sub
 

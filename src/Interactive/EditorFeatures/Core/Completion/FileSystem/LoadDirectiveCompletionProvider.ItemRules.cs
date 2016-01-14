@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileS
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
+namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
     internal partial class LoadDirectiveCompletionProvider
     {

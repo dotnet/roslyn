@@ -107,7 +107,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />    
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <!-- The rest are for test purposes only. -->
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
@@ -127,6 +127,8 @@
     <Compile Include="CommandHandlers\InteractiveCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\InteractiveIntelliSenseCommandHandler.cs" />
     <Compile Include="Completion\CompletionProviders\ReplCommandCompletionProvider.cs" />
+    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.cs" />
+    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\GlobalAssemblyCacheCompletionHelper.cs" />
     <Compile Include="Completion\AbstractReferenceDirectiveCompletionProvider.cs" />
     <Compile Include="Completion\AbstractReferenceDirectiveCompletionProvider.ItemRules.cs" />

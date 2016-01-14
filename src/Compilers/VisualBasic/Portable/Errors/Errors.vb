@@ -1585,7 +1585,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_ReferenceDirectiveOnlyAllowedInScripts = 36964
         ERR_NamespaceNotAllowedInScript = 36965
         ERR_KeywordNotAllowedInScript = 36966
-
+        ERR_LoadDirectiveOnlyAllowedInScripts = 36967
         ERR_ReservedAssemblyName = 36968
 
         ERR_ConstructorCannotBeDeclaredPartial = 36969
@@ -1681,6 +1681,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_DebugEntryPointNotSourceMethodDefinition = 37252
         ERR_InvalidPathMap = 37253
         ERR_PublicSignNoKey = 37254
+
+        ERR_ShebangOnlyAllowedInScripts = 37254
+        ERR_ShebangOnlyAllowedAtStartOfFile = 37255
 
         ERR_LastPlusOne
 

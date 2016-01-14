@@ -171,7 +171,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.NameOfKeyword,
                      SyntaxKind.DollarSignDoubleQuoteToken,
                      SyntaxKind.InterpolatedStringTextToken,
-                     SyntaxKind.EndOfInterpolatedStringToken
+                     SyntaxKind.EndOfInterpolatedStringToken,
+                     SyntaxKind.LoadKeyword
 
                 Case Else
                     Throw New ArgumentOutOfRangeException(NameOf(kind))

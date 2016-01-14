@@ -94,6 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 SyntaxKind.LetKeyword, QueryClause Or CanFollowExpr,
                 SyntaxKind.LibKeyword, None,
                 SyntaxKind.LikeKeyword, PrecedenceRelational Or CanFollowExpr,
+                SyntaxKind.LoadKeyword, None,
                 SyntaxKind.LongKeyword, None,
                 SyntaxKind.LoopKeyword, None,
                 SyntaxKind.MeKeyword, None,

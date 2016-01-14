@@ -2,26 +2,21 @@
 
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
+namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
-    [ExportCompletionProvider("LoadDirectiveCompletionProvider", LanguageNames.CSharp)]
-    // Using TextViewRole here is a temporary work-around to prevent this component from being loaded in
-    // regular C# contexts.  We will need to remove this and implement a new "CSharp Script" Content type
-    // in order to fix #load completion in .csx files (https://github.com/dotnet/roslyn/issues/5325).
-    [TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)]
-    internal partial class LoadDirectiveCompletionProvider : CompletionListProvider
+    internal abstract partial class LoadDirectiveCompletionProvider : CompletionListProvider
     {
         private const string NetworkPath = "\\\\";
-        private static readonly Regex s_directiveRegex = new Regex(@"#load\s+(""[^""]*""?)", RegexOptions.Compiled);
+
+        protected abstract Match GetDirectiveMatch(string lineText);
+
+        protected abstract string[] AllowableExtensions { get; }
 
         public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
@@ -31,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
             var cancellationToken = context.CancellationToken;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var items = GetItems(text, context.Document, position, triggerInfo, cancellationToken);
+            var items = GetItems(text, context.Document, position, triggerInfo);
 
             context.AddItems(items);
         }
@@ -62,11 +57,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
             return text.Lines.GetLineFromPosition(position).Start + quotedPathGroup.Index;
         }
 
-        private ImmutableArray<CompletionItem> GetItems(SourceText text, Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        private ImmutableArray<CompletionItem> GetItems(SourceText text, Document document, int position, CompletionTriggerInfo triggerInfo)
         {
             var line = text.Lines.GetLineFromPosition(position);
             var lineText = text.ToString(TextSpan.FromBounds(line.Start, position));
-            var match = s_directiveRegex.Match(lineText);
+            var match = GetDirectiveMatch(lineText);
             if (!match.Success)
             {
                 return ImmutableArray<CompletionItem>.Empty;
@@ -103,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
                 Glyph.OpenFolder,
                 Glyph.CSharpFile,
                 searchPaths: searchPaths,
-                allowableExtensions: new[] { ".csx" },
+                allowableExtensions: AllowableExtensions,
                 itemRules: ItemRules.Instance);
 
             var pathThroughLastSlash = this.GetPathThroughLastSlash(text, position, quotedPathGroup);

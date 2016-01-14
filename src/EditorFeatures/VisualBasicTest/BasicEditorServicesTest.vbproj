@@ -434,6 +434,9 @@
     <Compile Include="Recommendations\PreprocessorDirectives\ConstDirectiveKeywordRecommenderTests.vb" />
     <Compile Include="Recommendations\PreprocessorDirectives\ElseDirectiveKeywordRecommenderTests.vb" />
     <Compile Include="Recommendations\PreprocessorDirectives\ElseIfDirectiveKeywordRecommenderTests.vb" />
+    <Compile Include="Recommendations\PreprocessorDirectives\LoadDirectiveKeywordRecommenderTests.vb" />
+    <Compile Include="Recommendations\PreprocessorDirectives\ReferenceDirectiveKeywordRecommenderTests.vb" />
+    <Compile Include="Recommendations\PreprocessorDirectives\ShebangDirectiveRecommenderTests.vb" />
     <Compile Include="Recommendations\PreprocessorDirectives\WarningDirectiveKeywordRecommenderTests.vb" />
     <Compile Include="Recommendations\PreprocessorDirectives\EndIfDirectiveKeywordRecommenderTests.vb" />
     <Compile Include="Recommendations\PreprocessorDirectives\EndRegionDirectiveKeywordRecommenderTests.vb" />
