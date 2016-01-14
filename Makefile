@@ -55,7 +55,7 @@ toolset: /tmp/$(ROSLYN_TOOLSET_NAME).tar.bz2  /tmp/$(MONO_TOOLSET_NAME).tar.bz2 
 clean_toolset:
 	rm /tmp/$(ROSLYN_TOOLSET_NAME).tar.bz2 ; \
 	rm /tmp/$(MONO_TOOLSET_NAME).tar.bz2 ; \
-	rm /tmp/$(NUGET_PACKAGE_NAME).tar.bz2
+	rm /tmp/$(NUGET_PACKAGE_NAME).zip
 
 /tmp/$(ROSLYN_TOOLSET_NAME).tar.bz2:
 	@pushd /tmp/ ; \
