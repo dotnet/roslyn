@@ -2861,7 +2861,246 @@ public class Program
                 Diagnostic(ErrorCode.WRN_XMLParseError, " "));
         }
 
+        [Fact]
+        [Trait("Feature", "Xml Documentation Comments")]
+        public void TestDocumentationComment()
+        {
+            var expected = 
+                "/// <summary>\r\n" +
+                "/// This class provides extension methods for the <see cref=\"TypeName\"/> class.\r\n" +
+                "/// </summary>\r\n" +
+                "/// <threadsafety static=\"true\" instance=\"false\"/>\r\n" +
+                "/// <preliminary/>";
+
+            DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlText("This class provides extension methods for the "),
+                    SyntaxFactory.XmlSeeElement(
+                        SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName("TypeName"))),
+                    SyntaxFactory.XmlText(" class."),
+                    SyntaxFactory.XmlNewLine("\r\n")),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlThreadSafetyElement(),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlPreliminaryElement());
+
+            var actual = documentationComment.ToFullString();
+
+            Assert.Equal<string>(expected, actual);
+        }
+
+        [Fact]
+        [Trait("Feature", "Xml Documentation Comments")]
+        public void TestXmlSummaryElement()
+        {
+            var expected = 
+                "/// <summary>\r\n" +
+                "/// This class provides extension methods.\r\n" +
+                "/// </summary>";
+
+            DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlText("This class provides extension methods."),
+                    SyntaxFactory.XmlNewLine("\r\n")));
+
+            var actual = documentationComment.ToFullString();
+
+            Assert.Equal<string>(expected, actual);
+        }
+
+        [Fact]
+        [Trait("Feature", "Xml Documentation Comments")]
+        public void TestXmlSeeElementAndXmlSeeAlsoElement()
+        {
+            var expected = 
+                "/// <summary>\r\n" + 
+                "/// This class provides extension methods for the <see cref=\"TypeName\"/> class and the <seealso cref=\"TypeName2\"/> class.\r\n" +
+                "/// </summary>";
+
+            DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlText("This class provides extension methods for the "),
+                    SyntaxFactory.XmlSeeElement(
+                        SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName("TypeName"))),
+                    SyntaxFactory.XmlText(" class and the "),
+                    SyntaxFactory.XmlSeeAlsoElement(
+                        SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName("TypeName2"))),
+                    SyntaxFactory.XmlText(" class."),
+                    SyntaxFactory.XmlNewLine("\r\n")));
+
+            var actual = documentationComment.ToFullString();
+
+            Assert.Equal<string>(expected, actual);
+        }
+
+        [Fact]
+        [Trait("Feature", "Xml Documentation Comments")]
+        public void TestXmlNewLineElement()
+        {
+            var expected = 
+                "/// <summary>\r\n" +
+                "/// This is a summary.\r\n" +
+                "/// </summary>\r\n" +
+                "/// \r\n" +
+                "/// \r\n" +
+                "/// <remarks>\r\n" +
+                "/// \r\n" +
+                "/// </remarks>";
+
+            DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlText("This is a summary."),
+                    SyntaxFactory.XmlNewLine("\r\n")),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlRemarksElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine("\r\n")));
+
+            var actual = documentationComment.ToFullString();
+
+            Assert.Equal<string>(expected, actual);
+        }
+
+        [Fact]
+        [Trait("Feature", "Xml Documentation Comments")]
+        public void TestXmlParamAndParamRefElement()
+        {
+            var expected = 
+                "/// <summary>\r\n" +
+                "/// <paramref name=\"b\"/>\r\n" +
+                "/// </summary>\r\n" +
+                "/// <param name=\"a\"></param>\r\n" +
+                "/// <param name=\"b\"></param>";
+
+            DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlParamRefElement("b"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlParamElement("a"),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlParamElement("b"));
+
+            var actual = documentationComment.ToFullString();
+
+            Assert.Equal<string>(expected, actual);
+        }
+
+        [Fact]
+        [Trait("Feature", "Xml Documentation Comments")]
+        public void TestXmlReturnsElement()
+        {
+            var expected = 
+                "/// <summary>\r\n" +
+                "/// \r\n" +
+                "/// </summary>\r\n" +
+                "/// <returns>\r\n" +
+                "/// Returns a value.\r\n" +
+                "/// </returns>";
+
+            DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlReturnsElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlText("Returns a value."),
+                    SyntaxFactory.XmlNewLine("\r\n")));
+
+            var actual = documentationComment.ToFullString();
+
+            Assert.Equal<string>(expected, actual);
+        }
+
+        [Fact]
+        [Trait("Feature", "Xml Documentation Comments")]
+        public void TestXmlRemarksElement()
+        {
+            var expected = 
+                "/// <summary>\r\n" +
+                "/// \r\n" +
+                "/// </summary>\r\n" +
+                "/// <remarks>\r\n" +
+                "/// Same as in class <see cref=\"TypeName\"/>.\r\n" +
+                "/// </remarks>";
+
+            DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlRemarksElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlText("Same as in class "),
+                    SyntaxFactory.XmlSeeElement(SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName("TypeName"))),
+                    SyntaxFactory.XmlText("."),
+                    SyntaxFactory.XmlNewLine("\r\n")));
+
+            var actual = documentationComment.ToFullString();
+
+            Assert.Equal<string>(expected, actual);
+        }
+
+        [Fact]
+        [Trait("Feature", "Xml Documentation Comments")]
+        public void TestXmlExceptionElement()
+        {
+            var expected = 
+                "/// <summary>\r\n" +
+                "/// \r\n" +
+                "/// </summary>\r\n" +
+                "/// <exception cref=\"InvalidOperationException\">This exception will be thrown if the object is in an invalid state when calling this method.</exception>";
+
+            DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"), 
+                    SyntaxFactory.XmlNewLine("\r\n")),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlExceptionElement(
+                    SyntaxFactory.TypeCref(
+                        SyntaxFactory.ParseTypeName("InvalidOperationException")),
+                        SyntaxFactory.XmlText("This exception will be thrown if the object is in an invalid state when calling this method.")));
+
+            var actual = documentationComment.ToFullString();
+
+            Assert.Equal<string>(expected, actual);
+        }
+
+        [Fact]
+        [Trait("Feature", "Xml Documentation Comments")]
+        public void TestXmlPermissionElement()
+        {
+            var expected = 
+                "/// <summary>\r\n" +
+                "/// \r\n" +
+                "/// </summary>\r\n" +
+                "/// <permission cref=\"MyPermission\">Needs MyPermission to execute.</permission>";
+
+            DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSummaryElement(
+                    SyntaxFactory.XmlNewLine("\r\n"),
+                    SyntaxFactory.XmlNewLine("\r\n")),
+                SyntaxFactory.XmlNewLine("\r\n"),
+                SyntaxFactory.XmlPermissionElement(
+                    SyntaxFactory.TypeCref(
+                        SyntaxFactory.ParseTypeName("MyPermission")),
+                    SyntaxFactory.XmlText("Needs MyPermission to execute.")));
+
+            var actual = documentationComment.ToFullString();
+
+            Assert.Equal<string>(expected, actual);
+        }
+
         #region Xml Test helpers
+
         /// <summary>
         /// Verifies that the errors on the given CSharpSyntaxNode match the expected error codes and types
         /// </summary>

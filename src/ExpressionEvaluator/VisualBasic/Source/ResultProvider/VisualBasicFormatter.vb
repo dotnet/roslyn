@@ -14,6 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Partial Friend NotInheritable Class VisualBasicFormatter
         Inherits Formatter
 
+        ''' <summary>
+        ''' Singleton instance of VisualBasicFormatter (created using default constructor).
+        ''' </summary>
+        Friend Shared ReadOnly Instance As VisualBasicFormatter = New VisualBasicFormatter()
+
         Public Sub New()
             MyBase.New(defaultFormat:="{{{0}}}", nullString:="Nothing")
         End Sub
@@ -32,6 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function IsWhitespace(c As Char) As Boolean
             Return SyntaxFacts.IsWhitespace(c)
+        End Function
+
+        Friend Overrides Function GetValueStringOptions(useQuotes As Boolean) As ObjectDisplayOptions
+            Return If(useQuotes,
+                ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableStringCharacters,
+                ObjectDisplayOptions.None)
         End Function
 
         Friend Overrides Function TrimAndGetFormatSpecifiers(expression As String, ByRef formatSpecifiers As ReadOnlyCollection(Of String)) As String

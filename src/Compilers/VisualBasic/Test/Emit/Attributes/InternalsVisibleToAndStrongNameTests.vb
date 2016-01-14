@@ -1767,6 +1767,28 @@ BC2046: Compilation options 'PublicSign' and 'DelaySign' can't both be specified
         Assert.True(comp.Options.DelaySign)
     End Sub
 
+    <Fact>
+    Public Sub PublicSignAndDelaySignFalse()
+        Dim snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey)
+        Dim options = TestOptions.ReleaseDll.WithCryptoKeyFile(snk.Path).WithPublicSign(True).WithDelaySign(False)
+
+        Dim comp = CreateCompilationWithMscorlib(
+            <compilation>
+                <file name="a.vb"><![CDATA[
+Public Class C
+End Class
+]]>
+                </file>
+            </compilation>,
+            options:=options
+        )
+
+        AssertTheseDiagnostics(comp)
+
+        Assert.True(comp.Options.PublicSign)
+        Assert.False(comp.Options.DelaySign)
+    End Sub
+
     <Fact, WorkItem(769840, "DevDiv")>
     Public Sub Bug769840()
         Dim ca = CreateCompilationWithMscorlib(

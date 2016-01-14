@@ -933,7 +933,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If PublicSign AndAlso DelaySign.HasValue Then
+            If PublicSign AndAlso DelaySign = True Then
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(PublicSign), NameOf(DelaySign)))
             End If
         End Sub
