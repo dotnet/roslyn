@@ -136,17 +136,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void FormatStringChar(StringBuilder builder, char c, char quote)
         {
             string replaceWith;
-            if (ReplaceChar(c, quote, out replaceWith))
+            if (TryReplaceChar(c, quote, out replaceWith))
             {
-                if (replaceWith != null)
-                {
-                    builder.Append(replaceWith);
-                }
-                else
-                {
-                    builder.Append("\\u");
-                    builder.Append(((int)c).ToString("x4"));
-                }
+                builder.Append(replaceWith);
             }
             else
             {
@@ -159,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <paramref name="replaceWith"/> to the replacement text if the
         /// character is replaced with text other than the Unicode escape sequence.
         /// </summary>
-        private static bool ReplaceChar(char c, char quote, out string replaceWith)
+        private static bool TryReplaceChar(char c, char quote, out string replaceWith)
         {
             Debug.Assert(quote == '\0' || quote == '"' || quote == '\'');
 
@@ -217,6 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnicodeCategory.Control:
                 case UnicodeCategory.OtherNotAssigned:
                 case UnicodeCategory.ParagraphSeparator:
+                    replaceWith = "\\u" + ((int)c).ToString("x4");
                     return true;
                 default:
                     return false;
@@ -228,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var c in s)
             {
                 string replaceWith;
-                if (ReplaceChar(c, quote, out replaceWith))
+                if (TryReplaceChar(c, quote, out replaceWith))
                 {
                     return true;
                 }
@@ -296,22 +289,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
+
             if (options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints))
             {
                 builder.Append(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) ? "0x" + ((int)c).ToString("x4") : ((int)c).ToString());
                 builder.Append(" ");
             }
+
+            const char quote = '\'';
+
+            string charString;
+            if (!options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableStringCharacters) || !TryReplaceChar(c, quote, out charString))
+            {
+                charString = c.ToString();
+            }
+
             if (options.IncludesOption(ObjectDisplayOptions.UseQuotes))
             {
-                const char quote = '\'';
                 builder.Append(quote);
-                FormatStringChar(builder, c, quote);
+                builder.Append(charString);
                 builder.Append(quote);
             }
             else
             {
-                builder.Append(c);
+                builder.Append(charString);
             }
+
             return pooledBuilder.ToStringAndFree();
         }
 
