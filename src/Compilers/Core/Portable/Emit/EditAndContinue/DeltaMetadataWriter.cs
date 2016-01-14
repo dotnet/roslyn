@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 
                 encoder.EndVariables();
                 
-                BlobHandle blobIndex = metadata.GetBlobIndex(writer);
+                BlobHandle blobIndex = metadata.GetBlob(writer);
                 
                 localSignatureHandle = GetOrAddStandAloneSignatureIndex(blobIndex);
                 writer.Free();

@@ -727,7 +727,7 @@ namespace Microsoft.Cci
 
             var writer = PooledBlobBuilder.GetInstance();
             this.SerializeCustomAttributeSignature(customAttribute, writer);
-            result = metadata.GetBlobIndex(writer);
+            result = metadata.GetBlob(writer);
             _customAttributeSignatureIndex.Add(customAttribute, result);
             writer.Free();
             return result;
@@ -830,7 +830,7 @@ namespace Microsoft.Cci
 
             var writer = PooledBlobBuilder.GetInstance();
             this.SerializeFieldSignature(fieldReference, writer);
-            result = metadata.GetBlobIndex(writer);
+            result = metadata.GetBlob(writer);
             _fieldSignatureIndex.Add(fieldReference, result);
             writer.Free();
             return result;
@@ -1080,7 +1080,7 @@ namespace Microsoft.Cci
 
             encoder.EndArguments();
 
-            result = metadata.GetBlobIndex(builder);
+            result = metadata.GetBlob(builder);
             _methodInstanceSignatureIndex.Add(methodInstanceReference, result);
             builder.Free();
             return result;
@@ -1096,7 +1096,7 @@ namespace Microsoft.Cci
 
             var writer = PooledBlobBuilder.GetInstance();
             this.SerializeMarshallingDescriptor(marshallingInformation, writer);
-            result = metadata.GetBlobIndex(writer);
+            result = metadata.GetBlob(writer);
             _marshallingDescriptorIndex.Add(marshallingInformation, result);
             writer.Free();
             return result;
@@ -1104,7 +1104,7 @@ namespace Microsoft.Cci
 
         private BlobHandle GetMarshallingDescriptorIndex(ImmutableArray<byte> descriptor)
         {
-            return metadata.GetBlobIndex(descriptor);
+            return metadata.GetBlob(descriptor);
         }
 
         private BlobHandle GetMemberRefSignatureIndex(ITypeMemberReference memberRef)
@@ -1167,7 +1167,7 @@ namespace Microsoft.Cci
 
 
             signatureBlob = builder.ToImmutableArray();
-            result = metadata.GetBlobIndex(signatureBlob);
+            result = metadata.GetBlob(signatureBlob);
             _signatureIndex.Add(methodReference, KeyValuePair.Create(result, signatureBlob));
             builder.Free();
             return result;
@@ -1177,7 +1177,7 @@ namespace Microsoft.Cci
         {
             var writer = PooledBlobBuilder.GetInstance();
             this.SerializeGenericMethodInstanceSignature(writer, genericMethodInstanceReference);
-            BlobHandle result = metadata.GetBlobIndex(writer);
+            BlobHandle result = metadata.GetBlob(writer);
             writer.Free();
             return result;
         }
@@ -1253,7 +1253,7 @@ namespace Microsoft.Cci
                 writer.WriteByte((byte)'.');
                 writer.WriteCompressedInteger((uint)permissionSet.Length);
                 this.SerializePermissionSet(permissionSet, writer);
-                result = metadata.GetBlobIndex(writer);
+                result = metadata.GetBlob(writer);
             }
             finally
             {
@@ -1300,7 +1300,7 @@ namespace Microsoft.Cci
             SerializeReturnValueAndParameters(encoder, propertyDef, ImmutableArray<IParameterTypeInformation>.Empty);
 
             var blob = builder.ToImmutableArray();
-            var result = metadata.GetBlobIndex(blob);
+            var result = metadata.GetBlob(blob);
 
             _signatureIndex.Add(propertyDef, KeyValuePair.Create(result, blob));
             builder.Free();
@@ -1331,13 +1331,13 @@ namespace Microsoft.Cci
         private StringHandle GetStringIndexForPathAndCheckLength(string path, INamedEntity errorEntity = null)
         {
             CheckPathLength(path, errorEntity);
-            return metadata.GetStringIndex(path);
+            return metadata.GetString(path);
         }
 
         private StringHandle GetStringIndexForNameAndCheckLength(string name, INamedEntity errorEntity = null)
         {
             CheckNameLength(name, errorEntity);
-            return metadata.GetStringIndex(name);
+            return metadata.GetString(name);
         }
 
         /// <summary>
@@ -1358,7 +1358,7 @@ namespace Microsoft.Cci
             }
 
             CheckNamespaceLength(namespaceName, mangledTypeName, namespaceType);
-            return metadata.GetStringIndex(namespaceName);
+            return metadata.GetString(namespaceName);
         }
 
         private void CheckNameLength(string name, INamedEntity errorEntity)
@@ -1669,7 +1669,7 @@ namespace Microsoft.Cci
 
             var builder = PooledBlobBuilder.GetInstance();
             this.SerializeTypeReference(new BlobEncoder(builder).TypeSpecificationSignature(), typeReference);
-            result = metadata.GetBlobIndex(builder);
+            result = metadata.GetBlob(builder);
 
             _typeSpecSignatureIndex.Add(typeReference, result);
             builder.Free();
@@ -1916,8 +1916,8 @@ namespace Microsoft.Cci
                 metadata.AddAssemblyReference(
                     name: GetStringIndexForPathAndCheckLength(assemblyRef.Name, assemblyRef),
                     version: assemblyRef.Version,
-                    culture: metadata.GetStringIndex(assemblyRef.Culture),
-                    publicKeyOrToken: metadata.GetBlobIndex(assemblyRef.PublicKeyToken),
+                    culture: metadata.GetString(assemblyRef.Culture),
+                    publicKeyOrToken: metadata.GetBlob(assemblyRef.PublicKeyToken),
                     flags: (AssemblyFlags)((int)assemblyRef.ContentType << 9) | (assemblyRef.IsRetargetable ? AssemblyFlags.Retargetable : 0),
                     hashValue: default(BlobHandle));
             }
@@ -1969,9 +1969,9 @@ namespace Microsoft.Cci
                 flags: assembly.Flags,
                 hashAlgorithm: assembly.HashAlgorithm,
                 version: assembly.Version,
-                publicKey: metadata.GetBlobIndex(assembly.PublicKey),
+                publicKey: metadata.GetBlob(assembly.PublicKey),
                 name: GetStringIndexForPathAndCheckLength(assembly.Name, assembly),
-                culture: metadata.GetStringIndex(assembly.Culture));
+                culture: metadata.GetString(assembly.Culture));
         }
         
         private void PopulateCustomAttributeTableRows(ImmutableArray<IGenericParameter> sortedGenericParameters)
@@ -2067,8 +2067,8 @@ namespace Microsoft.Cci
             {
                 _dummyAssemblyAttributeParent[iS, iM] = metadata.AddTypeReference(
                     resolutionScope: GetResolutionScopeCodedIndex(module.GetCorLibrary(Context)),
-                    @namespace: metadata.GetStringIndex(dummyAssemblyAttributeParentNamespace),
-                    name: metadata.GetStringIndex(dummyAssemblyAttributeParentName + dummyAssemblyAttributeParentQualifier[iS, iM]));
+                    @namespace: metadata.GetString(dummyAssemblyAttributeParentNamespace),
+                    name: metadata.GetString(dummyAssemblyAttributeParentName + dummyAssemblyAttributeParentQualifier[iS, iM]));
             }
 
             return _dummyAssemblyAttributeParent[iS, iM];
@@ -2419,7 +2419,7 @@ namespace Microsoft.Cci
             {
                 metadata.AddAssemblyFile(
                     name: GetStringIndexForPathAndCheckLength(fileReference.FileName),
-                    hashValue: metadata.GetBlobIndex(fileReference.GetHashValue(hashAlgorithm)),
+                    hashValue: metadata.GetBlob(fileReference.GetHashValue(hashAlgorithm)),
                     containsMetadata: fileReference.HasMetadata);
             }
         }
@@ -2460,7 +2460,7 @@ namespace Microsoft.Cci
 
                 StringHandle importName = (entryPointName != null)
                     ? GetStringIndexForNameAndCheckLength(entryPointName, methodDef)
-                    : metadata.GetStringIndex(methodDef.Name); // Length checked while populating the method def table.
+                    : metadata.GetString(methodDef.Name); // Length checked while populating the method def table.
 
                 metadata.AddMethodImport(
                     member: GetMethodDefIndex(methodDef),
@@ -2656,7 +2656,7 @@ namespace Microsoft.Cci
             if (mvid != default(Guid))
             {
                 // MVID is specified upfront when emitting EnC delta:
-                mvidIdx = metadata.GetGuidIndex(mvid);
+                mvidIdx = metadata.GetGuid(mvid);
                 mvidFixup = default(Blob);
             }
             else if (_deterministic)
@@ -2667,16 +2667,16 @@ namespace Microsoft.Cci
             else
             {
                 // If we are being nondeterministic generate random:
-                mvidIdx = metadata.GetGuidIndex(Guid.NewGuid());
+                mvidIdx = metadata.GetGuid(Guid.NewGuid());
                 mvidFixup = default(Blob);
             }
 
             metadata.AddModule(
                 generation: this.Generation,
-                moduleName: metadata.GetStringIndex(this.module.ModuleName),
+                moduleName: metadata.GetString(this.module.ModuleName),
                 mvid: mvidIdx,
-                encId: metadata.GetGuidIndex(EncId),
-                encBaseId: metadata.GetGuidIndex(EncBaseId));
+                encId: metadata.GetGuid(EncId),
+                encBaseId: metadata.GetGuid(EncBaseId));
         }
         
         private void PopulateParamTableRows()
@@ -2970,7 +2970,7 @@ namespace Microsoft.Cci
 
             encoder.EndVariables();
 
-            BlobHandle blobIndex = metadata.GetBlobIndex(builder);
+            BlobHandle blobIndex = metadata.GetBlob(builder);
 
             var handle = GetOrAddStandAloneSignatureIndex(blobIndex);
             builder.Free();
@@ -2998,7 +2998,7 @@ namespace Microsoft.Cci
             var typeBuilder = SerializeCustomModifiers(encoder, localConstant.CustomModifiers);
             SerializeTypeReference(typeBuilder, localConstant.Type);
 
-            BlobHandle blobIndex = metadata.GetBlobIndex(builder);
+            BlobHandle blobIndex = metadata.GetBlob(builder);
             var signatureHandle = GetOrAddStandAloneSignatureIndex(blobIndex);
             builder.Free();
 

@@ -407,7 +407,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             {
                 Type = (byte)MetadataWriterUtilities.GetConstantTypeCode(value),
                 Parent = parentCodedIndex,
-                Value = GetConstantBlobIndex(value)
+                Value = GetConstantBlob(value)
             });
         }
 
@@ -1134,10 +1134,10 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (var moduleRow in _moduleTable)
             {
                 writer.WriteUInt16(moduleRow.Generation);
-                writer.WriteReference((uint)ResolveStringIndex(moduleRow.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveGuidIndex(moduleRow.ModuleVersionId), metadataSizes.GuidIndexSize);
-                writer.WriteReference((uint)ResolveGuidIndex(moduleRow.EncId), metadataSizes.GuidIndexSize);
-                writer.WriteReference((uint)ResolveGuidIndex(moduleRow.EncBaseId), metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(moduleRow.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(moduleRow.ModuleVersionId), metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(moduleRow.EncId), metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(moduleRow.EncBaseId), metadataSizes.GuidIndexSize);
             }
         }
 
@@ -1163,8 +1163,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (TypeRefRow typeRef in _typeRefTable)
             {
                 writer.WriteReference(typeRef.ResolutionScope, metadataSizes.ResolutionScopeCodedIndexSize);
-                writer.WriteReference((uint)ResolveStringIndex(typeRef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveStringIndex(typeRef.Namespace), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(typeRef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(typeRef.Namespace), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1173,8 +1173,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (TypeDefRow typeDef in _typeDefTable)
             {
                 writer.WriteUInt32(typeDef.Flags);
-                writer.WriteReference((uint)ResolveStringIndex(typeDef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveStringIndex(typeDef.Namespace), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(typeDef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(typeDef.Namespace), metadataSizes.StringIndexSize);
                 writer.WriteReference(typeDef.Extends, metadataSizes.TypeDefOrRefCodedIndexSize);
                 writer.WriteReference(typeDef.FieldList, metadataSizes.FieldDefIndexSize);
                 writer.WriteReference(typeDef.MethodList, metadataSizes.MethodDefIndexSize);
@@ -1186,8 +1186,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (FieldDefRow fieldDef in _fieldTable)
             {
                 writer.WriteUInt16(fieldDef.Flags);
-                writer.WriteReference((uint)ResolveStringIndex(fieldDef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(fieldDef.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(fieldDef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(fieldDef.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1206,8 +1206,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
 
                 writer.WriteUInt16(method.ImplFlags);
                 writer.WriteUInt16(method.Flags);
-                writer.WriteReference((uint)ResolveStringIndex(method.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(method.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(method.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(method.Signature), metadataSizes.BlobIndexSize);
                 writer.WriteReference(method.ParamList, metadataSizes.ParameterIndexSize);
             }
         }
@@ -1218,7 +1218,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             {
                 writer.WriteUInt16(param.Flags);
                 writer.WriteUInt16(param.Sequence);
-                writer.WriteReference((uint)ResolveStringIndex(param.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(param.Name), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1238,8 +1238,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (MemberRefRow memberRef in _memberRefTable)
             {
                 writer.WriteReference(memberRef.Class, metadataSizes.MemberRefParentCodedIndexSize);
-                writer.WriteReference((uint)ResolveStringIndex(memberRef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(memberRef.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(memberRef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(memberRef.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1253,7 +1253,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 writer.WriteByte(constant.Type);
                 writer.WriteByte(0);
                 writer.WriteReference(constant.Parent, metadataSizes.HasConstantCodedIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(constant.Value), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(constant.Value), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1267,7 +1267,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             {
                 writer.WriteReference(customAttribute.Parent, metadataSizes.HasCustomAttributeCodedIndexSize);
                 writer.WriteReference(customAttribute.Type, metadataSizes.CustomAttributeTypeCodedIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(customAttribute.Value), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(customAttribute.Value), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1279,7 +1279,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (FieldMarshalRow fieldMarshal in ordered)
             {
                 writer.WriteReference(fieldMarshal.Parent, metadataSizes.HasFieldMarshalCodedIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(fieldMarshal.NativeType), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(fieldMarshal.NativeType), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1293,7 +1293,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             {
                 writer.WriteUInt16(declSecurity.Action);
                 writer.WriteReference(declSecurity.Parent, metadataSizes.DeclSecurityCodedIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(declSecurity.PermissionSet), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(declSecurity.PermissionSet), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1332,7 +1332,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         {
             foreach (StandaloneSigRow row in _standAloneSigTable)
             {
-                writer.WriteReference((uint)ResolveBlobIndex(row.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1350,7 +1350,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (EventRow eventRow in _eventTable)
             {
                 writer.WriteUInt16(eventRow.EventFlags);
-                writer.WriteReference((uint)ResolveStringIndex(eventRow.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(eventRow.Name), metadataSizes.StringIndexSize);
                 writer.WriteReference(eventRow.EventType, metadataSizes.TypeDefOrRefCodedIndexSize);
             }
         }
@@ -1369,8 +1369,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (PropertyRow property in _propertyTable)
             {
                 writer.WriteUInt16(property.PropFlags);
-                writer.WriteReference((uint)ResolveStringIndex(property.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(property.Type), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(property.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(property.Type), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1408,7 +1408,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         {
             foreach (ModuleRefRow moduleRef in _moduleRefTable)
             {
-                writer.WriteReference((uint)ResolveStringIndex(moduleRef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(moduleRef.Name), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1416,7 +1416,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         {
             foreach (TypeSpecRow typeSpec in _typeSpecTable)
             {
-                writer.WriteReference((uint)ResolveBlobIndex(typeSpec.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(typeSpec.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1432,7 +1432,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             {
                 writer.WriteUInt16(implMap.MappingFlags);
                 writer.WriteReference(implMap.MemberForwarded, metadataSizes.MemberForwardedCodedIndexSize);
-                writer.WriteReference((uint)ResolveStringIndex(implMap.ImportName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(implMap.ImportName), metadataSizes.StringIndexSize);
                 writer.WriteReference(implMap.ImportScope, metadataSizes.ModuleRefIndexSize);
             }
         }
@@ -1462,9 +1462,9 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 writer.WriteUInt16((ushort)row.Version.Build);
                 writer.WriteUInt16((ushort)row.Version.Revision);
                 writer.WriteUInt32(row.Flags);
-                writer.WriteReference((uint)ResolveBlobIndex(row.AssemblyKey), metadataSizes.BlobIndexSize);
-                writer.WriteReference((uint)ResolveStringIndex(row.AssemblyName), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveStringIndex(row.AssemblyCulture), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.AssemblyKey), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.AssemblyName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.AssemblyCulture), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1477,10 +1477,10 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 writer.WriteUInt16((ushort)row.Version.Build);
                 writer.WriteUInt16((ushort)row.Version.Revision);
                 writer.WriteUInt32(row.Flags);
-                writer.WriteReference((uint)ResolveBlobIndex(row.PublicKeyToken), metadataSizes.BlobIndexSize);
-                writer.WriteReference((uint)ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveStringIndex(row.Culture), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(row.HashValue), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.PublicKeyToken), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Culture), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.HashValue), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1489,8 +1489,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (FileTableRow fileReference in _fileTable)
             {
                 writer.WriteUInt32(fileReference.Flags);
-                writer.WriteReference((uint)ResolveStringIndex(fileReference.FileName), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(fileReference.HashValue), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(fileReference.FileName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(fileReference.HashValue), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1500,8 +1500,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             {
                 writer.WriteUInt32((uint)exportedType.Flags);
                 writer.WriteUInt32(exportedType.TypeDefId);
-                writer.WriteReference((uint)ResolveStringIndex(exportedType.TypeName), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveStringIndex(exportedType.TypeNamespace), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(exportedType.TypeName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(exportedType.TypeNamespace), metadataSizes.StringIndexSize);
                 writer.WriteReference(exportedType.Implementation, metadataSizes.ImplementationCodedIndexSize);
             }
         }
@@ -1512,7 +1512,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             {
                 writer.WriteUInt32(manifestResource.Offset);
                 writer.WriteUInt32(manifestResource.Flags);
-                writer.WriteReference((uint)ResolveStringIndex(manifestResource.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(manifestResource.Name), metadataSizes.StringIndexSize);
                 writer.WriteReference(manifestResource.Implementation, metadataSizes.ImplementationCodedIndexSize);
             }
         }
@@ -1547,7 +1547,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
                 writer.WriteUInt16(genericParam.Number);
                 writer.WriteUInt16(genericParam.Flags);
                 writer.WriteReference(genericParam.Owner, metadataSizes.TypeOrMethodDefCodedIndexSize);
-                writer.WriteReference((uint)ResolveStringIndex(genericParam.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(genericParam.Name), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1571,7 +1571,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (MethodSpecRow methodSpec in _methodSpecTable)
             {
                 writer.WriteReference(methodSpec.Method, metadataSizes.MethodDefOrRefCodedIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(methodSpec.Instantiation), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(methodSpec.Instantiation), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1579,10 +1579,10 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         {
             foreach (var row in _documentTable)
             {
-                writer.WriteReference((uint)ResolveBlobIndex(row.Name), metadataSizes.BlobIndexSize);
-                writer.WriteReference((uint)ResolveGuidIndex(row.HashAlgorithm), metadataSizes.GuidIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(row.Hash), metadataSizes.BlobIndexSize);
-                writer.WriteReference((uint)ResolveGuidIndex(row.Language), metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Name), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.HashAlgorithm), metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Hash), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Language), metadataSizes.GuidIndexSize);
             }
         }
 
@@ -1591,7 +1591,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (var row in _methodDebugInformationTable)
             {
                 writer.WriteReference(row.Document, metadataSizes.DocumentIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(row.SequencePoints), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.SequencePoints), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1629,7 +1629,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             {
                 writer.WriteUInt16(row.Attributes);
                 writer.WriteUInt16(row.Index);
-                writer.WriteReference((uint)ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Name), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1637,8 +1637,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
         {
             foreach (var row in _localConstantTable)
             {
-                writer.WriteReference((uint)ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(row.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1647,7 +1647,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             foreach (var row in _importScopeTable)
             {
                 writer.WriteReference(row.Parent, metadataSizes.ImportScopeIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(row.Imports), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Imports), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1677,8 +1677,8 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             }))
             {
                 writer.WriteReference(row.Parent, metadataSizes.HasCustomDebugInformationSize);
-                writer.WriteReference((uint)ResolveGuidIndex(row.Kind), metadataSizes.GuidIndexSize);
-                writer.WriteReference((uint)ResolveBlobIndex(row.Value), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Kind), metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Value), metadataSizes.BlobIndexSize);
             }
         }
 
