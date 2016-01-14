@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Snippets;
+using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -19,16 +20,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
     /// <summary>
     /// This service is created on the UI thread during package initialization, but it must not
-    /// block the initialization process. If the expansion manager is an <see cref="IExpansionManager"/>,
+    /// block the initialization process. If the expansion manager is an IExpansionManager,
     /// then we can use the asynchronous population mechanism it provides. Otherwise, getting
     /// snippet information from the <see cref="IVsExpansionManager"/> must be done synchronously
     /// through on the UI thread, which we do after package initialization at a lower priority.
     /// </summary>
     /// <remarks>
-    /// <see cref="IExpansionManager"/> was introduced in Visual Studio 2015 Update 1, but
+    /// IExpansionManager was introduced in Visual Studio 2015 Update 1, but
     /// will be enabled by default for the first time in Visual Studio 2015 Update 2. However,
     /// the platform still supports returning the <see cref="IVsExpansionManager"/> if a major
-    /// problem in the <see cref="IExpansionManager"/> is discovered, so we must continue 
+    /// problem in the IExpansionManager is discovered, so we must continue 
     /// supporting the fallback.
     /// </remarks>
     internal abstract class AbstractSnippetInfoService : ForegroundThreadAffinitizedObject, ISnippetInfoService, IVsExpansionEvents
@@ -116,11 +117,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             Debug.Assert(_expansionManager != null);
 
+            // Ideally we'd fork execution here based on whether the expansion manager is an
+            // IExpansionManager or not. Unfortunately, we cannot mention that type by name until
+            // the Roslyn build machines are upgraded to Visual Studio 2015 Update 1. We therefore
+            // need to try using IExpansionManager dynamically, from a background thread. If that
+            // fails, then we come back to the UI thread for using IVsExpansionManager instead.
+
             var token = _waiter.BeginAsyncOperation(GetType().Name + ".Start");
-            if (_expansionManager is IExpansionManager)
-            {
-                // Call the asynchronous snippet population API on a background thread
-                Task.Factory.StartNew(async () => await PopulateSnippetCacheAsync().ConfigureAwait(false),
+
+            Task.Factory.StartNew(async () => await PopulateSnippetCacheOnBackgroundWithForegroundFallback().ConfigureAwait(false),
                             CancellationToken.None,
                             TaskCreationOptions.None,
                             TaskScheduler.Default).CompletesAsyncOperation(token);
@@ -161,8 +166,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         /// <remarks>
         /// Changes to the <see cref="IVsExpansionManager.EnumerateExpansions"/> invocation
-        /// should also be made to the <see cref="IExpansionManager.EnumerateExpansionsAsync"/>
-        /// invocation in <see cref="PopulateSnippetCacheAsync"/>.
+        /// should also be made to the IExpansionManager.EnumerateExpansionsAsync
+        /// invocation in <see cref="PopulateSnippetCacheOnBackgroundWithForegroundFallback"/>.
         /// </remarks>
         private void PopulateSnippetCacheOnForeground()
         {
