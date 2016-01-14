@@ -94,22 +94,5 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
             Return GetFilePathAndProjectLabel(document)
         End Function
-
-        Private Shared Function Timeout(Of T)(_task As Task(Of T), milliseconds As Integer) As Task(Of T)
-            Dim source = New TaskCompletionSource(Of Task(Of T))()
-            Dim tasks = {_task, Task.Delay(milliseconds)}
-            Dim taskFunc As Action(Of Task) = Sub(completedTask)
-                                                  If completedTask Is _task Then
-                                                      source.SetResult(_task)
-                                                  Else
-                                                      source.SetCanceled()
-                                                  End If
-                                              End Sub
-
-            Task.Factory.ContinueWhenAny(
-                tasks, taskFunc, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default)
-
-            Return source.Task.Unwrap()
-        End Function
     End Class
 End Namespace
