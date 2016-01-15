@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol baseType = null;
             SourceLocation baseTypeLocation = null;
-            var interfaceLocations = new Dictionary<NamedTypeSymbol, SourceLocation>();
+            var interfaceLocations = PooledDictionary<NamedTypeSymbol, SourceLocation>.GetInstance();
 
             foreach (var decl in this.declaration.Declarations)
             {
@@ -261,35 +262,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var t in partInterfaces) // this could probably be done more efficiently with a side hash table if it proves necessary
                 {
-                    int n = baseInterfaces.Count;
-
-                    for (int i = 0; i < n; i++)
+                    if (!interfaceLocations.ContainsKey(t))
                     {
-                        if (t == baseInterfaces[i])
-                        {
-                            goto alreadyInInterfaceList;
-                        }
+                        baseInterfaces.Add(t);
+                        interfaceLocations.Add(t, decl.NameLocation);
                     }
-
-                    baseInterfaces.Add(t);
-                    interfaceLocations.Add(t, decl.NameLocation);
-
-                alreadyInInterfaceList:;
                 }
-            }
-
-            if ((object)baseType != null && baseType.IsStatic)
-            {
-                // '{1}': cannot derive from static class '{0}'
-                diagnostics.Add(ErrorCode.ERR_StaticBaseClass, baseTypeLocation, baseType, this);
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if ((object)baseType != null && !this.IsNoMoreVisibleThan(baseType, ref useSiteDiagnostics))
+            if ((object)baseType != null)
             {
-                // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
-                diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, baseType);
+                Debug.Assert(baseTypeLocation != null);
+                if (baseType.IsStatic)
+                {
+                    // '{1}': cannot derive from static class '{0}'
+                    diagnostics.Add(ErrorCode.ERR_StaticBaseClass, baseTypeLocation, baseType, this);
+                }
+
+                if (!this.IsNoMoreVisibleThan(baseType, ref useSiteDiagnostics))
+                {
+                    // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
+                    diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, baseType);
+                }
             }
 
             var baseInterfacesRO = baseInterfaces.ToImmutableAndFree();
@@ -304,6 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+
+            interfaceLocations.Free();
 
             diagnostics.Add(Locations[0], useSiteDiagnostics);
 
