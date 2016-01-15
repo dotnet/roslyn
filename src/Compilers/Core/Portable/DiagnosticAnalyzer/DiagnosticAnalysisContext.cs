@@ -802,6 +802,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
+        internal Compilation Compilation => _semanticModelOpt?.Compilation;
+
         public OperationBlockAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
             : this(operationBlocks, owningSymbol, options, reportDiagnostic, isSupportedDiagnostic, semanticModel: null, cancellationToken: cancellationToken)
         {
@@ -848,17 +850,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="SyntaxTree"/> that is the subject of the analysis.
         /// </summary>
-        public SyntaxTree Tree { get { return _tree; } }
+        public SyntaxTree Tree => _tree;
 
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options => _options;
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken => _cancellationToken;
+
+        internal Compilation Compilation => _compilationOpt;
 
         public SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
@@ -967,17 +971,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="IOperation"/> that is the subject of the analysis.
         /// </summary>
-        public IOperation Operation { get { return _operation; } }
-        
+        public IOperation Operation => _operation;
+
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
+        public AnalyzerOptions Options => _options;
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken => _cancellationToken;
+
+        internal Compilation Compilation => _semanticModelOpt?.Compilation;
 
         public OperationAnalysisContext(IOperation operation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
             : this(operation, options, reportDiagnostic, isSupportedDiagnostic, semanticModel: null, cancellationToken: cancellationToken)

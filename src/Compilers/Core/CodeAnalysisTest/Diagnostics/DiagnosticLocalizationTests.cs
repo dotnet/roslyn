@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Resources;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;

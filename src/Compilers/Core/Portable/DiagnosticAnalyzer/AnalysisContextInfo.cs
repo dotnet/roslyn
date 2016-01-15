@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Semantics;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    /// <summary>
+    /// this hold onto analyzer executor context which will be used later to put context information in analyzer exception if it occurs.
+    /// </summary>
     internal struct AnalysisContextInfo
     {
         private readonly Compilation _compilation;
