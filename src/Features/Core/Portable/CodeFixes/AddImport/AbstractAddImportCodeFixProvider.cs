@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                         // Caches so we don't produce the same data multiple times while searching 
                         // all over the solution.
-                        var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>>();
-                        var referenceToCompilation = new ConcurrentDictionary<PortableExecutableReference, Compilation>();
+                        var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>>(concurrencyLevel: 2, capacity: project.Solution.ProjectIds.Count);
+                        var referenceToCompilation = new ConcurrentDictionary<PortableExecutableReference, Compilation>(concurrencyLevel: 2, capacity: project.Solution.Projects.Sum(p => p.MetadataReferences.Count));
 
                         // Look for exact matches first:
                         await FindResults(projectToAssembly, referenceToCompilation, project, allSymbolReferences, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
