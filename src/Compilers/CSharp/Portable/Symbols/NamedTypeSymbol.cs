@@ -689,6 +689,87 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
+        internal override bool ContainsNullableReferenceTypes()
+        {
+            if (IsDefinition)
+            {
+                return false;
+            }
+
+            if (ContainingType?.ContainsNullableReferenceTypes() == true)
+            {
+                return true;
+            }
+
+            if ((object)ConstructedFrom != this)
+            {
+                foreach (TypeSymbolWithAnnotations arg in this.TypeArguments)
+                {
+                    if (arg.ContainsNullableReferenceTypes())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        {
+            ContainingType?.AddNullableTransforms(transforms);
+
+            foreach (TypeSymbolWithAnnotations arg in this.TypeArguments)
+            {
+                arg.AddNullableTransforms(transforms);
+            }
+        }
+
+        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbol result)
+        {
+            if (!IsGenericType)
+            {
+                result = this;
+                return true;
+            }
+
+            var allTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
+
+            bool haveChanges = false;
+            for (int i = 0; i < allTypeArguments.Count; i++)
+            {
+                TypeSymbolWithAnnotations oldTypeArgument = allTypeArguments[i];
+                TypeSymbolWithAnnotations newTypeArgument;
+                if (!oldTypeArgument.ApplyNullableTransforms(transforms, ref position, out newTypeArgument))
+                {
+                    allTypeArguments.Free();
+                    result = this;
+                    return false;
+                }
+                else if ((object)oldTypeArgument != newTypeArgument)
+                {
+                    allTypeArguments[i] = newTypeArgument;
+                    haveChanges = true;
+                }
+            }
+
+            if (!haveChanges)
+            {
+                allTypeArguments.Free();
+                result = this;
+            }
+            else
+            {
+                TypeMap substitution = new TypeMap(this.GetAllTypeParameters(),
+                                                   allTypeArguments.ToImmutableAndFree());
+
+                result = substitution.SubstituteNamedType(this.OriginalDefinition);
+            }
+
+            return true;
+        }
+
         /// <summary>
         /// Returns a constructed type given its type arguments.
         /// </summary>
@@ -874,6 +955,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             builder.AddRange(TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics));
+        }
+
+        internal void GetAllTypeArgumentsNoUseSiteDiagnostics(ArrayBuilder<TypeSymbolWithAnnotations> builder)
+        {
+            ContainingType?.GetAllTypeArgumentsNoUseSiteDiagnostics(builder);
+            builder.AddRange(TypeArgumentsNoUseSiteDiagnostics);
         }
 
         internal int AllTypeArgumentCount()

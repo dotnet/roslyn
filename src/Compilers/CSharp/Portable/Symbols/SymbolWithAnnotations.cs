@@ -433,6 +433,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract TypeSymbolWithAnnotations DoUpdate(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
+        public bool ContainsNullableReferenceTypes()
+        {
+            var typeSymbol = TypeSymbol;
+
+            if (IsNullable == true && !typeSymbol.IsNullableType() && typeSymbol.IsReferenceType)
+            {
+                return true;
+            }
+
+            return typeSymbol.ContainsNullableReferenceTypes();
+        }
+
+        public void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        {
+            var typeSymbol = TypeSymbol;
+            transforms.Add(IsNullable == true && !typeSymbol.IsNullableType() && typeSymbol.IsReferenceType);
+            typeSymbol.AddNullableTransforms(transforms);
+        }
+
+        public bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbolWithAnnotations result)
+        {
+            result = this;
+
+            if (position < transforms.Length)
+            {
+                bool isNullable = transforms[position++];
+
+                TypeSymbol oldTypeSymbol = TypeSymbol;
+                TypeSymbol newTypeSymbol;
+
+                if (!oldTypeSymbol.ApplyNullableTransforms(transforms, ref position, out newTypeSymbol))
+                {
+                    return false;
+                }
+
+                if ((object)oldTypeSymbol != newTypeSymbol)
+                {
+                    result = result.DoUpdate(newTypeSymbol, result.CustomModifiers);
+                }
+
+                if (isNullable)
+                {
+                    result = result.AsNullableReferenceType();
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
         private class WithoutCustomModifiers : TypeSymbolWithAnnotations
         {
             protected readonly TypeSymbol _typeSymbol;

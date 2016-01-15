@@ -73,6 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ArrayTypeSymbol CreateSZArray(
             TypeSymbolWithAnnotations elementType,
+            NamedTypeSymbol array)
+        {
+            return new SZArray(elementType, array, GetSZArrayInterfaces(elementType, array.ContainingAssembly));
+        }
+
+        internal static ArrayTypeSymbol CreateSZArray(
+            TypeSymbolWithAnnotations elementType,
             NamedTypeSymbol array,
             ImmutableArray<NamedTypeSymbol> constructedInterfaces)
         {
@@ -356,6 +363,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return Hash.Combine(current, hash);
+        }
+
+        internal override bool ContainsNullableReferenceTypes()
+        {
+            return ElementType.ContainsNullableReferenceTypes();
+        }
+
+        internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        {
+            ElementType.AddNullableTransforms(transforms);
+        }
+
+        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbol result)
+        {
+            TypeSymbolWithAnnotations oldElementType = ElementType;
+            TypeSymbolWithAnnotations newElementType;
+
+            if (!oldElementType.ApplyNullableTransforms(transforms, ref position, out newElementType))
+            {
+                result = this;
+                return false; 
+            }
+
+            if ((object)oldElementType == newElementType)
+            {
+                result = this;
+            }
+            else
+            {
+                result = IsSZArray ?
+                    ArrayTypeSymbol.CreateSZArray(newElementType, _baseType) :
+                    ArrayTypeSymbol.CreateMDArray(newElementType, Rank, Sizes, LowerBounds, _baseType);
+            }
+
+            return true;
         }
 
         public override Accessibility DeclaredAccessibility

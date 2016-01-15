@@ -462,6 +462,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.TypeSymbol, type.CustomModifiers.Length));
             }
+
+            if (type.ContainsNullableReferenceTypes())
+            {
+                var compilation = this.DeclaringCompilation;
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(type));
+            }
         }
 
         internal sealed override bool HasSpecialName

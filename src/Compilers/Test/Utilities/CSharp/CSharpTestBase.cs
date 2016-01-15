@@ -326,6 +326,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 assemblyName);
         }
 
+        public static CSharpCompilation CreateCompilationWithMscorlib45(
+            IEnumerable<string> sources,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string assemblyName = "")
+        {
+            return CreateCompilationWithMscorlib45(
+                Parse(sources, parseOptions),
+                references,
+                options,
+                assemblyName);
+        }
+
         public static CSharpCompilation CreateCompilationWithMscorlib(
             string text,
             IEnumerable<MetadataReference> references = null,

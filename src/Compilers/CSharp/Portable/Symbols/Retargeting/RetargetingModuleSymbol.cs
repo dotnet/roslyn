@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -267,6 +268,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get
             {
                 return _underlyingModule.HasAssemblyRuntimeCompatibilityAttribute;
+            }
+        }
+
+
+        internal override bool UtilizesNullableReferenceTypes
+        {
+            get
+            {
+                return _underlyingModule.UtilizesNullableReferenceTypes;
             }
         }
 

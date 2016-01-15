@@ -89,7 +89,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if ((object)_eventType == null)
             {
                 var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
-                _eventType = TypeSymbolWithAnnotations.Create(metadataDecoder.GetTypeOfToken(eventType));
+                var type = TypeSymbolWithAnnotations.Create(metadataDecoder.GetTypeOfToken(eventType));
+
+                if (moduleSymbol.UtilizesNullableReferenceTypes)
+                {
+                    type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol);
+                }
+
+                _eventType = type;
             }
 
             // IsWindowsRuntimeEvent checks the signatures, so we just have to check the accessors.

@@ -557,6 +557,7 @@ namespace System
                         continue;
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
+                    case WellKnownType.System_Runtime_CompilerServices_NullableAttribute:
                         // Not yet in the platform.
                         continue;
                 }
@@ -596,6 +597,8 @@ namespace System
                         // C# can't embed VB core.
                         continue;
                     case WellKnownMember.System_Array__Empty:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags:
                         // Not available yet, but will be in upcoming release.
                         continue;
                 }

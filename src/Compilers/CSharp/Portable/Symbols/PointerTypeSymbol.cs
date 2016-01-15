@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -226,6 +227,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)other == null || !other._pointedAtType.Equals(_pointedAtType, options))
             {
                 return false;
+            }
+
+            return true;
+        }
+
+        internal override bool ContainsNullableReferenceTypes()
+        {
+            return PointedAtType.ContainsNullableReferenceTypes();
+        }
+
+        internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        {
+            PointedAtType.AddNullableTransforms(transforms);
+        }
+
+        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbol result)
+        {
+            TypeSymbolWithAnnotations oldPointedAtType = PointedAtType;
+            TypeSymbolWithAnnotations newPointedAtType;
+
+            if (!oldPointedAtType.ApplyNullableTransforms(transforms, ref position, out newPointedAtType))
+            {
+                result = this;
+                return false;
+            }
+
+            if ((object)oldPointedAtType == newPointedAtType)
+            {
+                result = this;
+            }
+            else
+            {
+                result = new PointerTypeSymbol(newPointedAtType);
             }
 
             return true;

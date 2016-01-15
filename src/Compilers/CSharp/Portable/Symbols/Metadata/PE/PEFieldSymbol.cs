@@ -208,9 +208,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var moduleSymbol = _containingType.ContainingPEModule;
                 bool isVolatile;
                 ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
-                TypeSymbol type = (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out isVolatile, out customModifiers);
+                TypeSymbol typeSymbol = (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out isVolatile, out customModifiers);
                 ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(customModifiers);
-                type = DynamicTypeDecoder.TransformType(type, customModifiersArray.Length, _handle, moduleSymbol);
+                typeSymbol = DynamicTypeDecoder.TransformType(typeSymbol, customModifiersArray.Length, _handle, moduleSymbol);
+
+                TypeSymbolWithAnnotations type = TypeSymbolWithAnnotations.Create(typeSymbol, customModifiersArray);
+
+                if (moduleSymbol.UtilizesNullableReferenceTypes)
+                {
+                    type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol);
+                }
+
                 _lazyIsVolatile = isVolatile;
 
                 TypeSymbol fixedElementType;
@@ -218,11 +226,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (customModifiersArray.IsEmpty && IsFixedBuffer(out fixedSize, out fixedElementType))
                 {
                     _lazyFixedSize = fixedSize;
-                    _lazyFixedImplementationType = type as NamedTypeSymbol;
-                    type = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(fixedElementType));
+                    _lazyFixedImplementationType = type.TypeSymbol as NamedTypeSymbol;
+                    type = TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(fixedElementType)));
                 }
 
-                Interlocked.CompareExchange(ref _lazyType, TypeSymbolWithAnnotations.Create(type, customModifiersArray), null);
+                Interlocked.CompareExchange(ref _lazyType, type, null);
             }
         }
 

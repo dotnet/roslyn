@@ -682,5 +682,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 yield return assemblySymbol.LookupTopLevelMetadataType(ref name, digThroughForwardedTypes: true);
             }
         }
+
+        internal override bool UtilizesNullableReferenceTypes
+        {
+            get
+            {
+                return Module.UtilizesNullableReferenceTypes();
+            }
+        }
     }
 }

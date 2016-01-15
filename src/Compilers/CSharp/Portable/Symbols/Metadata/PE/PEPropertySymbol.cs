@@ -111,10 +111,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // CONSIDER: Can we make parameter type computation lazy?
             TypeSymbol originalPropertyType = propertyParams[0].Type;
-            TypeSymbol propertyType = DynamicTypeDecoder.TransformType(originalPropertyType, typeCustomModifiers.Length, handle, moduleSymbol);
+
+            originalPropertyType = DynamicTypeDecoder.TransformType(originalPropertyType, typeCustomModifiers.Length, handle, moduleSymbol);
 
             // Dynamify object type if necessary
-            _propertyType = TypeSymbolWithAnnotations.Create(propertyType.AsDynamicIfNoPia(_containingType), typeCustomModifiers);
+            originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
+
+            var propertyType = TypeSymbolWithAnnotations.Create(originalPropertyType, typeCustomModifiers);
+
+            if (moduleSymbol.UtilizesNullableReferenceTypes)
+            {
+                propertyType = NullableTypeDecoder.TransformType(propertyType, handle, moduleSymbol);
+            }
+
+            _propertyType = propertyType;
 
             // A property is bogus and must be accessed by calling its accessors directly if the
             // accessor signatures do not agree, both with each other and with the property,

@@ -4798,4 +4798,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match implemented member.</value>
   </data>
+  <data name="ERR_NullableAttributeMissing" xml:space="preserve">
+    <value>Compiler required type '{0}' cannot be found. Are you missing a reference?</value>
+  </data>
 </root>

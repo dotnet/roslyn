@@ -581,6 +581,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Given a type <paramref name="type"/>, which is either a nullable reference type OR 
+        /// is a constructed type with a nullable reference type present in it's type argument tree,
+        /// returns a synthesized NullableAttribute with encoded nullable transforms array.
+        /// </summary>
+        internal SynthesizedAttributeData SynthesizeNullableAttribute(TypeSymbolWithAnnotations type)
+        {
+            Debug.Assert((object)type != null);
+
+            var flagsBuilder = ArrayBuilder<bool>.GetInstance();
+
+            type.AddNullableTransforms(flagsBuilder);
+
+            Debug.Assert(flagsBuilder.Any());
+            Debug.Assert(flagsBuilder.Contains(true));
+
+            if (flagsBuilder.Count == 1 && flagsBuilder[0])
+            {
+                flagsBuilder.Free();
+                return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor);
+            }
+
+            NamedTypeSymbol booleanType = GetSpecialType(SpecialType.System_Boolean);
+            Debug.Assert((object)booleanType != null);
+            var constantsBuilder = ArrayBuilder<TypedConstant>.GetInstance(flagsBuilder.Count);
+
+            foreach (bool flag in flagsBuilder)
+            {
+                constantsBuilder.Add(new TypedConstant(booleanType, TypedConstantKind.Primitive, flag));
+            }
+
+            flagsBuilder.Free();
+
+            var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeSymbolWithAnnotations.Create(booleanType));
+            var arguments = ImmutableArray.Create<TypedConstant>(new TypedConstant(boolArray, constantsBuilder.ToImmutableAndFree()));
+            return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags, arguments);
+        }
+
         internal class SpecialMembersSignatureComparer : SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol>
         {
             // Fields

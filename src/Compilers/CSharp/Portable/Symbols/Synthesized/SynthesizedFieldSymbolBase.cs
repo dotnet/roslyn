@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Assume that someone checked earlier that the attribute ctor is available and has no use-site errors.
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, this.Type.CustomModifiers.Length));
             }
+
+            if (this.Type.ContainsNullableReferenceTypes())
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(this.Type));
+            }
         }
 
         internal abstract override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);

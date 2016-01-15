@@ -82,6 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType.TypeSymbol, returnType.CustomModifiers.Length));
             }
+
+            if (returnType.ContainsNullableReferenceTypes())
+            {
+                var compilation = this.DeclaringCompilation;
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(returnType));
+            }
         }
 
         internal sealed override bool GenerateDebugInfo

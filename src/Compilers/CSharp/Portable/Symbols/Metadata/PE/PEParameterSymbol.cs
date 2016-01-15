@@ -213,7 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // CONSIDER: Can we make parameter type computation lazy?
-                _type = type.Update(DynamicTypeDecoder.TransformType(type.TypeSymbol, type.CustomModifiers.Length, handle, moduleSymbol, refKind), type.CustomModifiers);
+                type = type.Update(DynamicTypeDecoder.TransformType(type.TypeSymbol, type.CustomModifiers.Length, handle, moduleSymbol, refKind), type.CustomModifiers);
+
+                if (moduleSymbol.UtilizesNullableReferenceTypes)
+                {
+                    type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol);
+                }
+
+                _type = type;
             }
 
             if (string.IsNullOrEmpty(_name))

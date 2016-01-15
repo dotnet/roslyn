@@ -640,6 +640,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType.TypeSymbol, this.ReturnType.CustomModifiers.Length));
                 }
             }
+
+            if (this.ReturnType.ContainsNullableReferenceTypes())
+            {
+                var compilation = this.DeclaringCompilation;
+
+                if (SourceAssemblySymbol.GetUseSiteDiagnosticForNullableAttribute(compilation)?.Severity != DiagnosticSeverity.Error)
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(this.ReturnType));
+                }
+            }
         }
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)

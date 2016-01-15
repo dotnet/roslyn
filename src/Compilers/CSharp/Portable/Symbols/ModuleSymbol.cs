@@ -301,6 +301,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasAssemblyRuntimeCompatibilityAttribute { get; }
 
+        internal abstract bool UtilizesNullableReferenceTypes { get; }
+
         /// <summary>
         /// Default char set for contained types, or null if not specified.
         /// </summary>
