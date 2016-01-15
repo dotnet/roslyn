@@ -433,6 +433,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Exception occurred with following context:
+        ///{0}.
+        /// </summary>
+        internal static string ExceptionContext {
+            get {
+                return ResourceManager.GetString("ExceptionContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected non-empty public key.
         /// </summary>
         internal static string ExpectedNonEmptyPublicKey {
