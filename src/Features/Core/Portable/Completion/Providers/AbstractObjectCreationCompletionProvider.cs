@@ -106,7 +106,5 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
             return ValueTuple.Create(displayString, displayString);
         }
-
-
     }
 }
