@@ -1,6 +1,6 @@
+Option Strict Off
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -27,12 +27,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         End Function
 
         Protected Async Function TestAsync(definition As XElement,
-                           Optional expected As String = Nothing,
-                           Optional codeActionIndex As Integer = 0,
-                           Optional verifyTokens As Boolean = True,
-                           Optional fileNameToExpected As Dictionary(Of String, String) = Nothing,
-                           Optional verifySolutions As Action(Of Solution, Solution) = Nothing) As Task
+                            Optional expected As String = Nothing,
+                            Optional codeActionIndex As Integer = 0,
+                            Optional verifyTokens As Boolean = True,
+                            Optional fileNameToExpected As Dictionary(Of String, String) = Nothing,
+                            Optional verifySolutions As Action(Of Solution, Solution) = Nothing,
+                            Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing) As Task
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
+                onAfterWorkspaceCreated?.Invoke(workspace)
+
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(codeActionIndex).Action
                 Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
