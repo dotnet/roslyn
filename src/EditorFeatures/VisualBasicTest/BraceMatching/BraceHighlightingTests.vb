@@ -80,7 +80,7 @@ End Module")
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(
 "Module Module1
     <SomeAttr(New With {.name = ""test""})>  
-    Sub() Foo()
+    Sub Foo()
     End Sub
 End Module")
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
