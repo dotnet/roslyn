@@ -457,19 +457,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, value); }
         }
 
-        public int Style_UseImplicitTypingForLocals
+        public int Style_UseVarWherePossible
         {
-            get
-            {
-                var option = _optionService.GetOption(CSharpCodeStyleOptions.UseImplicitTypingForLocals);
-                return (int)option;
-            }
-            set
-            {
-                var optionSet = _optionService.GetOptions();
-                optionSet = optionSet.WithChangedOption(CSharpCodeStyleOptions.UseImplicitTypingForLocals, value);
-                _optionService.SetOptions(optionSet);
-            }
+            get { return GetBooleanOption(CSharpCodeStyleOptions.UseVarWherePossible); }
+            set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWherePossible, value); }
         }
 
         public int Style_UseVarWhenTypeIsApparent
@@ -480,8 +471,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Style_UseVarForIntrinsicTypes
         {
-            get { return GetBooleanOption(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes); }
-            set { SetBooleanOption(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, value); }
+            get { return GetBooleanOption(CSharpCodeStyleOptions.UseVarForIntrinsicTypes); }
+            set { SetBooleanOption(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, value); }
         }
 
         public int WarnOnBuildErrors

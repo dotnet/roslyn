@@ -107,42 +107,68 @@ class Program
 //]
 }";
 
-        private static readonly string s_ImplicitTypingPreview = @"
+        private static readonly string s_varForIntrinsicsPreviewFalse = @"
+using System;
 class C{
     void foo()
     {
 //[
-        var x = 0;
+        int x = 5; // intrinsic types
 //]
     }
 }";
 
-        private static readonly string s_ExplicitTypingPreview = @"
+        private static readonly string s_varForIntrinsicsPreviewTrue = @"
+using System;
 class C{
     void foo()
     {
 //[
-        int x = 0;
+        var x = 5; // intrinsic types
 //]
     }
 }";
 
-        private static readonly string s_ImplicitTypingWhereApparentPreview = @"
+        private static readonly string s_varWhereApparentPreviewFalse = @"
+using System;
 class C{
     void foo()
     {
 //[
-        var x = new Program();
+        C cobj = new C(); // typing is apparent from assignment expression
 //]
     }
 }";
 
-        private static readonly string s_ExplicitTypingForIntrinsicTypesPreview = @"
+        private static readonly string s_varWhereApparentPreviewTrue = @"
+using System;
 class C{
     void foo()
     {
 //[
-        string s = ""Hello"";
+        var cobj = new C(); // typing is apparent from assignment expression
+//]
+    }
+}";
+
+        private static readonly string s_varWherePossiblePreviewFalse = @"
+using System;
+class C{
+    void foo()
+    {
+//[
+        Action f = this.foo(); // everywhere else.
+//]
+    }
+}";
+
+        private static readonly string s_varWherePossiblePreviewTrue = @"
+using System;
+class C{
+    void foo()
+    {
+//[
+        var f = this.foo(); // everywhere else.
 //]
     }
 }";
@@ -154,20 +180,11 @@ class C{
             Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, CSharpVSResources.UseVarWhenGeneratingLocals, s_varPreviewTrue, s_varPreviewFalse, this, optionSet));
 
             // TODO (BalajiK): Localize all strings from here.
-            Items.Add(new HeaderItemViewModel() { Header = "Type Inference preference for local declarations everywhere:" });
+            Items.Add(new HeaderItemViewModel() { Header = "Type Inference preferences:" });
 
-            var implicitTypingOption = new RadioButtonViewModel<TypeInferencePreferenceOptions>("use implicit typing", s_ImplicitTypingPreview, "usevar", TypeInferencePreferenceOptions.ImplicitTyping, CSharpCodeStyleOptions.UseImplicitTypingForLocals, this, optionSet);
-            Items.Add(implicitTypingOption);
-            var explicitTypingOption = new RadioButtonViewModel<TypeInferencePreferenceOptions>("use explicit typing", s_ExplicitTypingPreview, "usevar", TypeInferencePreferenceOptions.ExplicitTyping, CSharpCodeStyleOptions.UseImplicitTypingForLocals, this, optionSet);
-            Items.Add(explicitTypingOption);
-
-            Items.Add(new HeaderItemViewModel() { Header = "Type Inference preference for local declarations in special cases:" });
-
-            var useVarWhereApparentChildControl = new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, "use var where typing is apparent", s_ImplicitTypingWhereApparentPreview, this, optionSet);
-            var useIntrinsicTypesChildControl = new CheckBoxOptionViewModel(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, "use intrinsic types", s_ExplicitTypingForIntrinsicTypesPreview, this, optionSet);
-
-            Items.Add(useVarWhereApparentChildControl);
-            Items.Add(useIntrinsicTypesChildControl);
+            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, "use var for intrinsic types", s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, "use var where typing is apparent", s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWherePossible, "use var where possible", s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet));
         }
     }
 }

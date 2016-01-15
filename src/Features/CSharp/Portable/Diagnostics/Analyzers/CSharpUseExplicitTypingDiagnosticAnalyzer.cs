@@ -36,10 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         {
             var stylePreferences = GetCurrentTypingStylePreferences(optionSet);
 
-            //Test this one.
-            return stylePreferences.HasFlag(TypingStyles.Explicit)
-                // || stylePreferences.HasFlag(TypingStyles.Intrinsic)
-                && !(stylePreferences.HasFlag(TypingStyles.ImplicitWhereApparent) && IsTypeApparentFromRHS(declarationStatement, semanticModel, cancellationToken)); 
+            var isTypeApparent = IsTypeApparentFromRHS(declarationStatement, semanticModel, cancellationToken);
+            var isIntrinsicType = IsIntrinsicType(declarationStatement);
+
+            return stylePreferences.HasFlag(TypingStyles.NoVarForIntrinsic) && isIntrinsicType
+                || stylePreferences.HasFlag(TypingStyles.NoVarWhereApparent) && isTypeApparent
+                || stylePreferences.HasFlag(TypingStyles.NoVarWherePossible) && !(isIntrinsicType || isTypeApparent);
         }
 
         protected override bool AnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)

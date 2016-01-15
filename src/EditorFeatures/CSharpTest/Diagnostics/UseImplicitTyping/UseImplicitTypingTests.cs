@@ -24,18 +24,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypingForLocals, TypeInferencePreferenceOptions.ImplicitTyping)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, false)
-            .With(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, false);
+            Options(CSharpCodeStyleOptions.UseVarWherePossible, true)
+            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, true)
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, true);
 
         private IDictionary<OptionKey, object> ImplicitTypingWhereApparent() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypingForLocals, TypeInferencePreferenceOptions.ExplicitTyping)
+            Options(CSharpCodeStyleOptions.UseVarWherePossible, false)
             .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, true)
-            .With(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, false);
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, false);
 
         private IDictionary<OptionKey, object> ImplicitTypingButKeepIntrinsics() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypingForLocals, TypeInferencePreferenceOptions.ImplicitTyping)
-            .With(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, true)
+            Options(CSharpCodeStyleOptions.UseVarWherePossible, false)
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, true)
             .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, false);
 
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)

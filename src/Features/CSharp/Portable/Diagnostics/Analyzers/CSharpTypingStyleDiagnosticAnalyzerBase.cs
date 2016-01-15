@@ -20,10 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         protected enum TypingStyles
         {
             None = 0,
-            Implicit = 1 << 0,
-            Explicit = 1 << 1,
-            ImplicitWhereApparent = 1 << 2,
-            Intrinsic = 1 << 3
+            VarForIntrinsic = 1 << 0,
+            NoVarForIntrinsic = 1 << 1,
+            VarWhereApparent = 1 << 2,
+            NoVarWhereApparent = 1 << 3,
+            VarWherePossible = 1 << 4,
+            NoVarWherePossible = 1 << 5
         }
 
         private readonly DiagnosticDescriptor _typingStyleDescriptor;
@@ -54,21 +56,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         protected TypingStyles GetCurrentTypingStylePreferences(OptionSet optionSet)
         {
             var stylePreferences = TypingStyles.None;
-            var style = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypingForLocals);
 
-            stylePreferences |= style == TypeInferencePreferenceOptions.ImplicitTyping
-                                ? TypingStyles.Implicit
-                                : TypingStyles.Explicit;
+            stylePreferences |= optionSet.GetOption(CSharpCodeStyleOptions.UseVarForIntrinsicTypes)
+                             ? TypingStyles.VarForIntrinsic
+                             : TypingStyles.NoVarForIntrinsic;
 
-            if (optionSet.GetOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent))
-            {
-                stylePreferences |= TypingStyles.ImplicitWhereApparent;
-            }
+            stylePreferences |= optionSet.GetOption(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent)
+                             ? TypingStyles.VarWhereApparent
+                             : TypingStyles.NoVarWhereApparent;
 
-            if (optionSet.GetOption(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes))
-            {
-                stylePreferences |= TypingStyles.Intrinsic;
-            }
+            stylePreferences |= optionSet.GetOption(CSharpCodeStyleOptions.UseVarWherePossible)
+                             ? TypingStyles.VarWherePossible
+                             : TypingStyles.NoVarWherePossible;
 
             return stylePreferences;
         }
@@ -148,6 +147,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
             return false;
         }
+
+        protected bool IsIntrinsicType(SyntaxNode declarationStatement) =>
+            declarationStatement.IsKind(SyntaxKind.VariableDeclaration)
+            ? ((VariableDeclarationSyntax)declarationStatement).Variables.Single().Initializer.Value.IsAnyLiteralExpression()
+            : false;
 
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {

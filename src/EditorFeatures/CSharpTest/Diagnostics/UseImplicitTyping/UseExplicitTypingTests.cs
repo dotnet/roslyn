@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ExplicitTypingEverywhere() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypingForLocals, TypeInferencePreferenceOptions.ExplicitTyping)
+            Options(CSharpCodeStyleOptions.UseVarWherePossible, false)
             .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, false)
-            .With(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, false);
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, false);
 
         private IDictionary<OptionKey, object> ImplicitTypingWhereApparent() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypingForLocals, TypeInferencePreferenceOptions.ExplicitTyping)
+            Options(CSharpCodeStyleOptions.UseVarWherePossible, false)
             .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, true)
-            .With(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes, false);
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, false);
 
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {

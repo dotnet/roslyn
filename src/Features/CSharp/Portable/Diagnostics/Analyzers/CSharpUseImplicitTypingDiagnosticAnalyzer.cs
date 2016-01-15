@@ -38,9 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         {
             var stylePreferences = GetCurrentTypingStylePreferences(optionSet);
 
-            return stylePreferences.HasFlag(TypingStyles.Implicit)
-                || (stylePreferences.HasFlag(TypingStyles.ImplicitWhereApparent)
-                && IsTypeApparentFromRHS(declarationStatement, semanticModel, cancellationToken));
+            var isTypeApparent = IsTypeApparentFromRHS(declarationStatement, semanticModel, cancellationToken);
+            var isIntrinsicType = IsIntrinsicType(declarationStatement);
+
+            return stylePreferences.HasFlag(TypingStyles.VarForIntrinsic) && isIntrinsicType
+                || stylePreferences.HasFlag(TypingStyles.VarWhereApparent) && isTypeApparent
+                || stylePreferences.HasFlag(TypingStyles.VarWherePossible) && !(isIntrinsicType || isTypeApparent);
         }
 
         protected override bool AnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
@@ -96,13 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         {
             // var cannot be assigned null
             if (initializer.Value.IsKind(SyntaxKind.NullLiteralExpression))
-            {
-                return false;
-            }
-
-            // TODO Check to see if we could possibly bail earlier here instead of continuing to check option styles here.
-            // primitive types in initializer and option says do not use var.
-            if (initializer.Value.IsAnyLiteralExpression() && optionSet.GetOption(CSharpCodeStyleOptions.DoNotUseVarForIntrinsicTypes))
             {
                 return false;
             }
