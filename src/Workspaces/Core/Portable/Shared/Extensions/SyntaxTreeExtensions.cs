@@ -30,6 +30,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return GetTouchingTokenAsync(syntaxTree, position, syntaxFacts.IsWord, cancellationToken, findInsideTrivia);
         }
 
+        // Only around until we remove the call to it from TypeInferenceServiceVisualizer
+        public static SyntaxToken GetTouchingToken(
+            this SyntaxTree syntaxTree,
+            int position,
+            CancellationToken cancellationToken,
+            bool findInsideTrivia = false)
+        {
+            return GetTouchingTokenAsync(syntaxTree, position, cancellationToken, findInsideTrivia).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+        }
+
+
         public static Task<SyntaxToken> GetTouchingTokenAsync(
             this SyntaxTree syntaxTree,
             int position,
