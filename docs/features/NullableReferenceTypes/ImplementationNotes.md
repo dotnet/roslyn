@@ -115,3 +115,56 @@ namespace System.Runtime.CompilerServices
     }
 }
 ```
+
+
+**Opting in and opting out of nullability warnings**
+
+It is possible to suppress all nulability warnings originating from declarations in certain referenced 
+assembly by applying the following attribute:
+```
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>
+    /// Opt out of nullability warnings that could originate from definitions in the given assembly. 
+    /// The attribute is not preserved in metadata and ignored if present in metadata.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Module, AllowMultiple = true)]
+    class NullableOptOutForAssemblyAttribute : Attribute
+    {
+        /// <param name=""assemblyName"">An assembly name - a simple name plus its PublicKey, if any.""/></param>
+        public NullableOptOutForAssemblyAttribute(string assemblyName) { }
+    }
+}
+``` 
+
+It is possible to apply the following attribute to a declaration itself in order to opt in or opt out all consumers 
+from nullability warnings originating from the declaration. 
+The attribute can be applied to a module, type, method, event, field or property. The closest attribute application wins. 
+If nullable reference types feature is enabled, the warnings are opted into on the module level by default, i.e.
+explicit attribute application is not needed in this case.
+When a method definition is opted out of the warnings, nullablility warnings in its method body are also suppressed.
+
+```
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>
+    /// Opt-out or opt into nullability warnings that could originate from source code and definition(s) ...
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Module | // in this module. If nullable reference types feature is enabled, the warnings are opted into on the module level by default
+                    AttributeTargets.Class | // in this class
+                    AttributeTargets.Constructor | // of this constructor
+                    AttributeTargets.Delegate | // of this delegate
+                    AttributeTargets.Event | // of this event
+                    AttributeTargets.Field | // of this field
+                    AttributeTargets.Interface | // in this interface
+                    AttributeTargets.Method | // of this method
+                    AttributeTargets.Property | // of this property
+                    AttributeTargets.Struct, // in this structure
+                    AllowMultiple = false)]
+    class NullableOptOutAttribute : Attribute
+    {
+        public NullableOptOutAttribute(bool flag = true) { }
+    }
+}
+```
+

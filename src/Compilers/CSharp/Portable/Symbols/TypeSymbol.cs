@@ -1043,6 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (((CSharpParseOptions)implementingMember.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                 !implementingMember.IsImplicitlyDeclared && !implementingMember.IsAccessor() &&
+                !implementingMember.NullableOptOut &&
                 implementingMember.DeclaringCompilation?.RespectNullableAnnotations(interfaceMember) == true)
             {
                 Symbol implementedMember;

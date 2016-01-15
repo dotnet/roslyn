@@ -1196,6 +1196,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                Debug.Assert(IsDefinition);
+
+                var container = ContainingType;
+
+                if ((object)container != null)
+                {
+                    return container.NullableOptOut;
+                }
+
+                return ContainingModule?.NullableOptOut == true;
+            }
+        }
+
         /// <summary>
         /// Marshalling charset of string data fields within the type (string formatting flags in metadata).
         /// </summary>

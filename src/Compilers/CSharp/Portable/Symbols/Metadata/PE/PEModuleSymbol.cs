@@ -690,5 +690,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return Module.UtilizesNullableReferenceTypes();
             }
         }
+
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                bool optOut;
+                return _module.HasNullableOptOutAttribute(EntityHandle.ModuleDefinition, out optOut) ? optOut : base.NullableOptOut;
+            }
+        }
     }
 }

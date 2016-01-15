@@ -938,6 +938,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree);
 
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                Debug.Assert(IsDefinition);
+
+                switch (MethodKind)
+                {
+                    case MethodKind.PropertyGet:
+                    case MethodKind.PropertySet:
+                    case MethodKind.EventAdd:
+                    case MethodKind.EventRemove:
+                        var propertyOrEvent = AssociatedSymbol;
+                        if ((object)propertyOrEvent != null)
+                        {
+                            return propertyOrEvent.NullableOptOut;
+                        }
+                        break;
+                }
+
+                return ContainingType?.NullableOptOut == true;
+            }
+        }
+
         #region IMethodSymbol Members
 
         MethodKind IMethodSymbol.MethodKind

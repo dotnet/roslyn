@@ -322,7 +322,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
 
-                if ((node.SyntaxTree.Options as CSharpParseOptions)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true)
+                if ((node.SyntaxTree.Options as CSharpParseOptions)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
+                    !member.NullableOptOut)
                 {
                     walker._performStaticNullChecks = true;
                 }

@@ -85,6 +85,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasSpecialName { get; }
 
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                Debug.Assert(IsDefinition);
+                return ContainingType?.NullableOptOut == true;
+            }
+        }
+
         /// <summary>
         /// Gets the attributes on event's associated field, if any.
         /// Returns an empty <see cref="ImmutableArray&lt;AttributeData&gt;"/> if

@@ -824,6 +824,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Is module/type/method/field/property/event/parameter definition opted out of nullable warnings. Not valid to call on non-definitions.
+        /// </summary>
+        internal virtual bool NullableOptOut
+        {
+            get
+            {
+                Debug.Assert(false);
+                return false;
+            }
+        }
+
         internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()
         {
             var info = this.GetUseSiteDiagnostic();

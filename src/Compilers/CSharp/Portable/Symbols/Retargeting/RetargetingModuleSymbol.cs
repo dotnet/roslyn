@@ -292,5 +292,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get { return null; }
         }
+
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                return _underlyingModule.NullableOptOut;
+            }
+        }
     }
 }

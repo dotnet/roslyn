@@ -569,5 +569,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             return _underlyingType.GetGuidString(out guidString);
         }
+
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                return _underlyingType.NullableOptOut;
+            }
+        }
     }
 }

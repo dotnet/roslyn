@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis
         private delegate bool AttributeValueExtractor<T>(out T value, ref BlobReader sigReader);
         private static readonly AttributeValueExtractor<string> s_attributeStringValueExtractor = CrackStringInAttributeValue;
         private static readonly AttributeValueExtractor<StringAndInt> s_attributeStringAndIntValueExtractor = CrackStringAndIntInAttributeValue;
+        private static readonly AttributeValueExtractor<bool> s_attributeBooleanValueExtractor = CrackBooleanInAttributeValue;
         private static readonly AttributeValueExtractor<short> s_attributeShortValueExtractor = CrackShortInAttributeValue;
         private static readonly AttributeValueExtractor<int> s_attributeIntValueExtractor = CrackIntInAttributeValue;
         private static readonly AttributeValueExtractor<long> s_attributeLongValueExtractor = CrackLongInAttributeValue;
@@ -1474,6 +1475,18 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        internal static bool CrackBooleanInAttributeValue(out bool value, ref BlobReader sig)
+        {
+            if (sig.RemainingBytes >= 1)
+            {
+                value = sig.ReadBoolean();
+                return true;
+            }
+
+            value = false;
+            return false;
+        }
+
         internal static bool CrackByteInAttributeValue(out byte value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 1)
@@ -2320,6 +2333,20 @@ namespace Microsoft.CodeAnalysis
             }
 
             return TryExtractBoolArrayValueFromAttribute(info.Handle, out nullableTransforms);
+        }
+
+        internal bool HasNullableOptOutAttribute(EntityHandle token, out bool value)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullableOptOutAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0);
+
+            if (info.HasValue && TryExtractValueFromAttribute(info.Handle, out value, s_attributeBooleanValueExtractor))
+            {
+                return true;
+            }
+
+            value = false;
+            return false;
         }
 
         #endregion

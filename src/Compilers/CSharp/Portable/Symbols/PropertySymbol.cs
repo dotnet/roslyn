@@ -143,6 +143,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasSpecialName { get; }
 
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                Debug.Assert(IsDefinition);
+                return ContainingType?.NullableOptOut == true;
+            }
+        }
+
         /// <summary>
         /// The 'get' accessor of the property, or null if the property is write-only.
         /// </summary>

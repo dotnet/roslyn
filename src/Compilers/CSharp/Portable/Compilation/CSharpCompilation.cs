@@ -2915,7 +2915,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var symbolContainingAssembly = symbolContainingModule.ContainingAssembly;
 
-                return (object)symbolContainingAssembly != null && !((SourceModuleSymbol)SourceModule).IsNullableOptOutForAssembly(symbolContainingAssembly);
+                return (object)symbolContainingAssembly != null && !((SourceModuleSymbol)SourceModule).IsNullableOptOutForAssembly(symbolContainingAssembly) &&
+                       !symbol.NullableOptOut;
             }
 
             return false;

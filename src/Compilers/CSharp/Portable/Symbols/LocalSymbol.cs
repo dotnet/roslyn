@@ -151,6 +151,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         /// <summary>
         /// Returns value 'Local' of the <see cref="SymbolKind"/>
         /// </summary>

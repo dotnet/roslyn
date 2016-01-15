@@ -1930,6 +1930,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                bool optOut;
+
+                return this.ContainingPEModule.Module.HasNullableOptOutAttribute(_handle, out optOut) ? optOut : base.NullableOptOut;
+            }
+        }
+
         internal override bool IsComImport
         {
             get
