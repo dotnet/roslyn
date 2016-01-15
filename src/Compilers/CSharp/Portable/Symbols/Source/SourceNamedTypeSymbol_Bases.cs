@@ -226,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol baseType = null;
             SourceLocation baseTypeLocation = null;
+            var interfaceLocations = new Dictionary<NamedTypeSymbol, SourceLocation>();
 
             foreach (var decl in this.declaration.Declarations)
             {
@@ -270,6 +271,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     baseInterfaces.Add(t);
+                    interfaceLocations[t] = decl.NameLocation; // there could be duplicates, not sure how
+
                 alreadyInInterfaceList:;
                 }
             }
@@ -277,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)baseType != null && baseType.IsStatic)
             {
                 // '{1}': cannot derive from static class '{0}'
-                diagnostics.Add(ErrorCode.ERR_StaticBaseClass, baseTypeLocation ?? Locations[0], baseType, this);
+                diagnostics.Add(ErrorCode.ERR_StaticBaseClass, baseTypeLocation, baseType, this);
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -285,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)baseType != null && !this.IsNoMoreVisibleThan(baseType, ref useSiteDiagnostics))
             {
                 // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
-                diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation ?? Locations[0], this, baseType);
+                diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, baseType);
             }
 
             var baseInterfacesRO = baseInterfaces.ToImmutableAndFree();
@@ -296,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (!i.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
                     {
                         // Inconsistent accessibility: base interface '{1}' is less accessible than interface '{0}'
-                        diagnostics.Add(ErrorCode.ERR_BadVisBaseInterface, Locations[0], this, i);
+                        diagnostics.Add(ErrorCode.ERR_BadVisBaseInterface, interfaceLocations[i], this, i);
                     }
                 }
             }
