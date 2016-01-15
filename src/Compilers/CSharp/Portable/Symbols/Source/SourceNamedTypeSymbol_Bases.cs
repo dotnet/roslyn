@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                foreach (var t in partInterfaces) // this could probably be done more efficiently with a side hash table if it proves necessary
+                foreach (var t in partInterfaces)
                 {
                     if (!interfaceLocations.ContainsKey(t))
                     {
