@@ -338,6 +338,63 @@ internal class F : A
                 );
         }
 
+        [Fact, WorkItem(7878, "https://github.com/dotnet/roslyn/issues/7878")]
+        public void BadVisibilityPartial()
+        {
+            var text = @"
+internal class NV
+{
+}
+
+public partial class C1
+{
+}
+
+partial class C1 : NV
+{
+}
+
+public partial class C1
+{
+}
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (10,15): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // partial class C1 : NV
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
+        }
+
+        [Fact, WorkItem(7878, "https://github.com/dotnet/roslyn/issues/7878")]
+        public void StaticBasePartial()
+        {
+            var text = @"
+static class NV
+{
+}
+
+public partial class C1
+{
+}
+
+partial class C1 : NV
+{
+}
+
+public partial class C1
+{
+}
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (10,15): error CS0709: 'C1': cannot derive from static class 'NV'
+                // partial class C1 : NV
+                Diagnostic(ErrorCode.ERR_StaticBaseClass, "C1").WithArguments("NV", "C1").WithLocation(10, 15),
+                // (10,15): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // partial class C1 : NV
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
+        }
+
         [Fact]
         public void EricLiCase1()
         {

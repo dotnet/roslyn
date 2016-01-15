@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var baseInterfaces = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
             NamedTypeSymbol baseType = null;
+            SourceLocation baseTypeLocation = null;
 
             foreach (var decl in this.declaration.Declarations)
             {
@@ -238,18 +239,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if ((object)baseType == null)
                     {
                         baseType = partBase;
+                        baseTypeLocation = decl.NameLocation;
                     }
                     else if (baseType.TypeKind == TypeKind.Error && (object)partBase != null)
                     {
                         // if the old base was an error symbol, copy it to the interfaces list so it doesn't get lost
                         partInterfaces = partInterfaces.Add(baseType);
                         baseType = partBase;
+                        baseTypeLocation = decl.NameLocation;
                     }
                     else if ((object)partBase != null && partBase != baseType && partBase.TypeKind != TypeKind.Error)
                     {
                         // the parts do not agree
                         var info = diagnostics.Add(ErrorCode.ERR_PartialMultipleBases, Locations[0], this);
                         baseType = new ExtendedErrorTypeSymbol(baseType, LookupResultKind.Ambiguous, info);
+                        baseTypeLocation = decl.NameLocation;
                         reportedPartialConflict = true;
                     }
                 }
@@ -273,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)baseType != null && baseType.IsStatic)
             {
                 // '{1}': cannot derive from static class '{0}'
-                diagnostics.Add(ErrorCode.ERR_StaticBaseClass, Locations[0], baseType, this);
+                diagnostics.Add(ErrorCode.ERR_StaticBaseClass, baseTypeLocation ?? Locations[0], baseType, this);
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -281,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)baseType != null && !this.IsNoMoreVisibleThan(baseType, ref useSiteDiagnostics))
             {
                 // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
-                diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, Locations[0], this, baseType);
+                diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation ?? Locations[0], this, baseType);
             }
 
             var baseInterfacesRO = baseInterfaces.ToImmutableAndFree();
