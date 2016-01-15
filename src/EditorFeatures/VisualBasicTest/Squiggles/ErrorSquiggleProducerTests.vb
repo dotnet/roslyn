@@ -15,14 +15,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     Public Class ErrorSquiggleProducerTests
         Inherits AbstractSquiggleProducerTests
 
-        Private Async Function ProduceSquiggles(ParamArray lines As String()) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Join(Environment.NewLine, lines))
+        Private Async Function ProduceSquiggles(content As String) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(content)
                 Return (Await GetDiagnosticsAndErrorSpans(workspace)).Item2
             End Using
         End Function
 
-        Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), ParamArray lines As String()) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Join(Environment.NewLine, lines))
+        Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), content As String) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(content)
                 Return (Await GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
             End Using
         End Function
@@ -39,7 +39,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub ArgOutOfRangeExceptionBug_904382()
-            Dim spans = Await ProduceSquiggles("Class C1", "Sub Foo(", "End Class")
+            Dim spans = Await ProduceSquiggles(
+"Class C1
+Sub Foo(
+End Class")
 
             'If the following line does not throw an exception then the test passes.
             Dim count = spans.Count
@@ -47,21 +50,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub ErrorDoesNotCrashPastEOF()
-            Dim spans = Await ProduceSquiggles("Class C1",
-                                         "    Sub Foo()",
-                                         "        Dim x = <xml>",
-                                         "    End Sub",
-                                         "End Class")
+            Dim spans = Await ProduceSquiggles(
+"Class C1
+    Sub Foo()
+        Dim x = <xml>
+    End Sub
+End Class")
             Assert.Equal(5, spans.Count())
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub SemanticError()
             Dim spans = Await ProduceSquiggles(
-"Class C1",
-"    Sub Foo(b as Bar)",
-"    End Sub",
-"End Class")
+"Class C1
+    Sub Foo(b as Bar)
+    End Sub
+End Class")
             Assert.Equal(1, spans.Count())
 
             Dim firstSpan = spans.First()
