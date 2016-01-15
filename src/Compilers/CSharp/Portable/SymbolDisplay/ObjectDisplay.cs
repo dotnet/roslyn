@@ -203,20 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool ReplaceAny(string s, char quote, bool escapeNonPrintable)
-        {
-            foreach (var c in s)
-            {
-                string replaceWith;
-                if (TryReplaceQuote(c, quote, out replaceWith) ||
-                    (escapeNonPrintable && TryReplaceChar(c, out replaceWith)))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         /// <summary>
         /// Returns a C# string literal with the given value.
         /// </summary>
@@ -243,16 +229,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (useQuotes)
             {
+                if (!escapeNonPrintable)
+                {
+                    builder.Append('@');
+                }
                 builder.Append(quote);
             }
 
             foreach (var c in value)
             {
                 string replaceWith;
-                if ((useQuotes && TryReplaceQuote(c, quote, out replaceWith)) ||
-                    (escapeNonPrintable && TryReplaceChar(c, out replaceWith)))
+                if (escapeNonPrintable && TryReplaceChar(c, out replaceWith))
                 {
                     builder.Append(replaceWith);
+                }
+                else if (useQuotes && c == quote)
+                {
+                    if (escapeNonPrintable)
+                    {
+                        builder.Append('\\');
+                        builder.Append(quote);
+                    }
+                    else
+                    {
+                        builder.Append(quote);
+                        builder.Append(quote);
+                    }
                 }
                 else
                 {
@@ -290,17 +292,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
             var escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters);
 
-
             if (useQuotes)
             {
                 builder.Append(quote);
             }
 
             string replaceWith;
-            if ((useQuotes && TryReplaceQuote(c, quote, out replaceWith)) ||
-                (escapeNonPrintable && TryReplaceChar(c, out replaceWith)))
+            if (escapeNonPrintable && TryReplaceChar(c, out replaceWith))
             {
                 builder.Append(replaceWith);
+            }
+            else if (useQuotes && c == quote)
+            {
+                builder.Append('\\');
+                builder.Append(quote);
             }
             else
             {

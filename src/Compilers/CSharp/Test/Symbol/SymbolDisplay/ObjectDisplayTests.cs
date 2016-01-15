@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(@"""ab""", ObjectDisplay.FormatLiteral(@"ab", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
             Assert.Equal(@"""\\""", ObjectDisplay.FormatLiteral(@"\", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
 
-            Assert.Equal("\"x\"", ObjectDisplay.FormatLiteral("x", ObjectDisplayOptions.UseQuotes));
+            Assert.Equal("\"x\"", ObjectDisplay.FormatLiteral("x", ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
             Assert.Equal("x", ObjectDisplay.FormatLiteral("x", ObjectDisplayOptions.None));
 
             StringBuilder sb = new StringBuilder();
@@ -246,12 +246,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Strings_QuotesAndEscaping()
         {
-            Assert.Equal(QuoteAndEscapingCombinations(""), new[] { "", "", "\"\"", "\"\"" });
-            Assert.Equal(QuoteAndEscapingCombinations("a"), new[] { "a", "a", "\"a\"", "\"a\"" });
-            Assert.Equal(QuoteAndEscapingCombinations("\t"), new[] { "\t", "\\t", "\"\t\"", "\"\\t\"" });
-            Assert.Equal(QuoteAndEscapingCombinations("\u26F4"), new[] { "\u26F4", "\u26F4", "\"\u26F4\"", "\"\u26F4\"" });  // Miscellaneous symbol
-            Assert.Equal(QuoteAndEscapingCombinations("\u007f"), new[] { "\u007f", "\\u007f", "\"\u007f\"", "\"\\u007f\"" }); // Control character
-            Assert.Equal(QuoteAndEscapingCombinations("\""), new[] { "\"", "\"", "\"\\\"\"", "\"\\\"\"" }); // Quote
+            Assert.Equal(QuoteAndEscapingCombinations(""), new[] { "", "", "@\"\"", "\"\"" });
+            Assert.Equal(QuoteAndEscapingCombinations("a"), new[] { "a", "a", "@\"a\"", "\"a\"" });
+            Assert.Equal(QuoteAndEscapingCombinations("\t"), new[] { "\t", "\\t", "@\"\t\"", "\"\\t\"" });
+            Assert.Equal(QuoteAndEscapingCombinations("\u26F4"), new[] { "\u26F4", "\u26F4", "@\"\u26F4\"", "\"\u26F4\"" });  // Miscellaneous symbol
+            Assert.Equal(QuoteAndEscapingCombinations("\u007f"), new[] { "\u007f", "\\u007f", "@\"\u007f\"", "\"\\u007f\"" }); // Control character
+            Assert.Equal(QuoteAndEscapingCombinations("\""), new[] { "\"", "\"", "@\"\"\"\"", "\"\\\"\"" }); // Quote
         }
 
         private static IEnumerable<string> QuoteAndEscapingCombinations(string s)
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             const string value = "a\tb";
 
             Assert.Equal("a\tb", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.None));
-            Assert.Equal("\"a\tb\"", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.UseQuotes));
+            Assert.Equal("@\"a\tb\"", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.UseQuotes));
             Assert.Equal("a\\tb", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.EscapeNonPrintableCharacters));
             Assert.Equal("\"a\\tb\"", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
         }
