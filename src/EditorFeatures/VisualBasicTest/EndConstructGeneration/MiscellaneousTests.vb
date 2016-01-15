@@ -17,94 +17,95 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DoesNothingOnEmptyFile() As Tasks.Task
             Await VerifyStatementEndConstructNotAppliedAsync(
-                text:={""},
+                text:="",
                 caret:={0, -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DoesNothingOnFileWithNoStatement() As Tasks.Task
             Await VerifyStatementEndConstructNotAppliedAsync(
-                text:={"'Foo", ""},
+                text:="'Foo
+",
                 caret:={0, -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyLineContinuationMark() As Tasks.Task
             Await VerifyStatementEndConstructNotAppliedAsync(
-                text:={"Class C",
-                       "    function f(byval x as Integer,",
-                       "               byref y as string) as string",
-                       "        for i = 1 to 10 _",
-                       "        return y",
-                       "    End Function",
-                       "End Class"},
+                text:="Class C
+    function f(byval x as Integer,
+               byref y as string) as string
+        for i = 1 to 10 _
+        return y
+    End Function
+End Class",
                 caret:={3, -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyImplicitLineContinuation() As Tasks.Task
             Await VerifyStatementEndConstructNotAppliedAsync(
-                text:={"Class C",
-                       "    function f() as string",
-                       "        While 1 +",
-                       "        return y",
-                       "    End Function",
-                       "End Class"},
+                text:="Class C
+    function f() as string
+        While 1 +
+        return y
+    End Function
+End Class",
                 caret:={2, -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyNestedDo() As Task
             Await VerifyStatementEndConstructAppliedAsync(
-                before:={"Class C",
-                         "        function f() as string",
-                         "            for i = 1 to 10"},
+                before:="Class C
+        function f() as string
+            for i = 1 to 10",
                 beforeCaret:={2, -1},
-                 after:={"Class C",
-                         "        function f() as string",
-                         "            for i = 1 to 10",
-                         "",
-                         "            Next"},
+                 after:="Class C
+        function f() as string
+            for i = 1 to 10
+
+            Next",
                 afterCaret:={3, -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyMultilinesChar() As Task
             Await VerifyStatementEndConstructAppliedAsync(
-                before:={"Class C",
-                         "    sub s",
-                         "        do :do",
-                         "        Loop",
-                         "    End sub",
-                         "End Class"},
+                before:="Class C
+    sub s
+        do :do
+        Loop
+    End sub
+End Class",
                 beforeCaret:={2, -1},
-                 after:={"Class C",
-                         "    sub s",
-                         "        do :do",
-                         "",
-                         "            Loop",
-                         "        Loop",
-                         "    End sub",
-                         "End Class"},
+                 after:="Class C
+    sub s
+        do :do
+
+            Loop
+        Loop
+    End sub
+End Class",
                 afterCaret:={3, -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestVerifyInlineComments() As Task
             Await VerifyStatementEndConstructAppliedAsync(
-                before:={"Class C",
-                         "    sub s",
-                         "        If true then 'here",
-                         "    End sub",
-                         "End Class"},
+                before:="Class C
+    sub s
+        If true then 'here
+    End sub
+End Class",
                 beforeCaret:={2, -1},
-                 after:={"Class C",
-                         "    sub s",
-                         "        If true then 'here",
-                         "",
-                         "        End If",
-                         "    End sub",
-                         "End Class"},
+                 after:="Class C
+    sub s
+        If true then 'here
+
+        End If
+    End sub
+End Class",
                 afterCaret:={3, -1})
         End Function
 
@@ -112,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         Public Async Function VerifyNotAppliedWithJunkAtEndOfLine() As Tasks.Task
             ' Try this without a newline at the end of the file
             Await VerifyStatementEndConstructNotAppliedAsync(
-                text:={"Class C End Class"},
+                text:="Class C End Class",
                 caret:={0, "Class C".Length})
         End Function
 
@@ -120,8 +121,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         Public Async Function VerifyNotAppliedWithJunkAtEndOfLine2() As Tasks.Task
             ' Try this with a newline at the end of the file
             Await VerifyStatementEndConstructNotAppliedAsync(
-                text:={"Class C End Class",
-                       ""},
+                text:="Class C End Class
+",
                 caret:={0, "Class C".Length})
         End Function
 

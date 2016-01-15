@@ -14,45 +14,44 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyInsertWhiteSpace() As Threading.Tasks.Task
             Await VerifyStatementEndConstructAppliedAsync(
-                before:={"Class X",
-                         "  Sub y()",
-                         "End Class"},
+                before:="Class X
+  Sub y()
+End Class",
                 beforeCaret:={1, -1},
-                 after:={"Class X",
-                         "  Sub y()",
-                         "",
-                         "  End Sub",
-                         "End Class"},
+                 after:="Class X
+  Sub y()
+
+  End Sub
+End Class",
                 afterCaret:={2, -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyInsertTabSpace() As Threading.Tasks.Task
             Await VerifyStatementEndConstructAppliedAsync(
-                before:={"Class X",
-                         vbTab + vbTab + "Sub y()",
-                         "End Class"},
+                before:="Class X
+		Sub y()
+End Class",
                 beforeCaret:={1, -1},
-                 after:={"Class X",
-                         vbTab + vbTab + "Sub y()",
-                         "",
-                         vbTab + vbTab + "End Sub",
-                         "End Class"},
+                 after:="Class X
+		Sub y()
+		End Sub
+End Class",
                 afterCaret:={2, -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyInsertDoubleWideWhiteSpace() As Threading.Tasks.Task
             Await VerifyStatementEndConstructAppliedAsync(
-                before:={"Class X",
-                         " Sub y()",
-                         "End Class"},
+                before:="Class X
+ Sub y()
+End Class",
                 beforeCaret:={1, -1},
-                 after:={"Class X",
-                         " Sub y()",
-                         "",
-                         " End Sub",
-                         "End Class"},
+                 after:="Class X
+ Sub y()
+
+ End Sub
+End Class",
                 afterCaret:={2, -1})
 
         End Function
