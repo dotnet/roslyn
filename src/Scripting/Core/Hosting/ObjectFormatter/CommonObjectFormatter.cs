@@ -45,8 +45,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         protected virtual CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
             new CommonPrimitiveFormatterOptions(
                 useHexadecimalNumbers: printOptions.NumberRadix == NumberRadix.Hexadecimal,
-                includeCodePoints: printOptions.EscapeNonPrintableCharacters, // TODO (acasey): not quite the same
-                omitStringQuotes: false);
+                includeCodePoints: false,
+                quoteStringsAndCharacters: true,
+                escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters);
 
         protected virtual CommonTypeNameFormatterOptions GetTypeNameOptions(PrintOptions printOptions) =>
             new CommonTypeNameFormatterOptions(

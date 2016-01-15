@@ -7,12 +7,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
     public sealed class TestCSharpObjectFormatter : CSharpObjectFormatter
     {
-        private readonly bool _omitStringQuotes;
+        private readonly bool _quoteStringsAndCharacters;
         private readonly int _maximumLineLength;
 
-        public TestCSharpObjectFormatter(bool omitStringQuotes = false, int maximumLineLength = int.MaxValue)
+        public TestCSharpObjectFormatter(bool quoteStringsAndCharacters = true, int maximumLineLength = int.MaxValue)
         {
-            _omitStringQuotes = omitStringQuotes;
+            _quoteStringsAndCharacters = quoteStringsAndCharacters;
             _maximumLineLength = maximumLineLength;
         }
 
@@ -25,6 +25,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
                 maximumOutputLength: printOptions.MaximumOutputLength);
 
         protected override CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
-            new CommonPrimitiveFormatterOptions(printOptions.NumberRadix == NumberRadix.Hexadecimal, printOptions.EscapeNonPrintableCharacters, _omitStringQuotes);
+            new CommonPrimitiveFormatterOptions(
+                useHexadecimalNumbers: printOptions.NumberRadix == NumberRadix.Hexadecimal,
+                includeCodePoints: false,
+                escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters,
+                quoteStringsAndCharacters: _quoteStringsAndCharacters);
     }
 }

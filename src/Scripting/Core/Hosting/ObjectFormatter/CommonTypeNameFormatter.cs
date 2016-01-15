@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private void AppendArrayBound(StringBuilder sb, long bound, bool useHexadecimalNumbers)
         {
-            var options = new CommonPrimitiveFormatterOptions(useHexadecimalNumbers, includeCodePoints: false, omitStringQuotes: false);
+            var options = new CommonPrimitiveFormatterOptions(useHexadecimalNumbers, includeCodePoints: false, quoteStringsAndCharacters: true, escapeNonPrintableCharacters: true);
             var formatted = int.MinValue <= bound && bound <= int.MaxValue
                 ? PrimitiveFormatter.FormatPrimitive((int)bound, options)
                 : PrimitiveFormatter.FormatPrimitive(bound, options);

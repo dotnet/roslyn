@@ -6,13 +6,15 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         public bool UseHexadecimalNumbers { get; }
         public bool IncludeCharacterCodePoints { get; }
-        public bool OmitStringQuotes { get; }
+        public bool QuoteStringsAndCharacters { get; }
+        public bool EscapeNonPrintableCharacters { get; }
 
-        public CommonPrimitiveFormatterOptions(bool useHexadecimalNumbers, bool includeCodePoints, bool omitStringQuotes)
+        public CommonPrimitiveFormatterOptions(bool useHexadecimalNumbers, bool includeCodePoints, bool quoteStringsAndCharacters, bool escapeNonPrintableCharacters)
         {
             UseHexadecimalNumbers = useHexadecimalNumbers;
             IncludeCharacterCodePoints = includeCodePoints;
-            OmitStringQuotes = omitStringQuotes;
+            QuoteStringsAndCharacters = quoteStringsAndCharacters;
+            EscapeNonPrintableCharacters = escapeNonPrintableCharacters;
         }
     }
 }

@@ -60,13 +60,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return FormatLiteral((int)obj, options.UseHexadecimalNumbers);
 
                 case SpecialType.System_String:
-                    return FormatLiteral((string)obj, !options.OmitStringQuotes, options.UseHexadecimalNumbers);
+                    return FormatLiteral((string)obj, options.QuoteStringsAndCharacters, options.UseHexadecimalNumbers);
 
                 case SpecialType.System_Boolean:
                     return FormatLiteral((bool)obj);
 
                 case SpecialType.System_Char:
-                    return FormatLiteral((char)obj, !options.OmitStringQuotes, options.IncludeCharacterCodePoints, options.UseHexadecimalNumbers);
+                    return FormatLiteral((char)obj, options.QuoteStringsAndCharacters, options.IncludeCharacterCodePoints, options.UseHexadecimalNumbers);
 
                 case SpecialType.System_Int64:
                     return FormatLiteral((long)obj, options.UseHexadecimalNumbers);

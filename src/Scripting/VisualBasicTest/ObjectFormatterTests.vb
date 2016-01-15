@@ -23,8 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
             Dim s = "a" & ChrW(&HFFFE) & ChrW(&HFFFF) & vbCrLf & "b"
 
             Dim options = New PrintOptions With {.NumberRadix = NumberRadix.Hexadecimal}
-            Dim withQuotes = New TestVisualBasicObjectFormatter(omitStringQuotes:=False)
-            Dim withoutQuotes = New TestVisualBasicObjectFormatter(omitStringQuotes:=True)
+            Dim withQuotes = New TestVisualBasicObjectFormatter(quoteStringsAndCharacters:=True)
+            Dim withoutQuotes = New TestVisualBasicObjectFormatter(quoteStringsAndCharacters:=False)
 
             ' ObjectFormatter should substitute spaces for non-printable characters
             Assert.Equal("""a"" & ChrW(&HABCF) & ChrW(&HABCD) & vbCrLf & ""b""", withQuotes.FormatObject(s, options))

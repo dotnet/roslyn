@@ -790,7 +790,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                                     CommonPrimitiveFormatterOptions oldPrimitiveOptions = _primitiveOptions;
 
                                     _memberDisplayFormat = MemberDisplayFormat.Hidden;
-                                    _primitiveOptions = new CommonPrimitiveFormatterOptions(_primitiveOptions.UseHexadecimalNumbers, _primitiveOptions.IncludeCharacterCodePoints, omitStringQuotes: noQuotes);
+                                    _primitiveOptions = new CommonPrimitiveFormatterOptions(
+                                        _primitiveOptions.UseHexadecimalNumbers, 
+                                        _primitiveOptions.IncludeCharacterCodePoints, 
+                                        quoteStringsAndCharacters: !noQuotes, 
+                                        escapeNonPrintableCharacters: _primitiveOptions.EscapeNonPrintableCharacters);
 
                                     string _;
                                     FormatObjectRecursive(result, value, isRoot: false, debuggerDisplayName: out _);
