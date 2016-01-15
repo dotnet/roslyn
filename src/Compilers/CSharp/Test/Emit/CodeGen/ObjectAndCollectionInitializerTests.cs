@@ -793,7 +793,7 @@ public class Test
 }");
         }
 
-        [WorkItem(529272, "DevDiv")]
+        [WorkItem(2021, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=2021")]
         [Fact()]
         public void ObjectInitializerFieldlikeEvent()
         {

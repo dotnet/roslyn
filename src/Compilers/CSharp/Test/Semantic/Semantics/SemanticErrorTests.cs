@@ -9874,7 +9874,7 @@ class C
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_CantInferMethTypeArgs, Line = 11, Column = 11 } });
         }
 
-        [WorkItem(529560, "DevDiv")]
+        [WorkItem(2099, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=2099")]
         [Fact(Skip = "529560")]
         public void CS0411ERR_CantInferMethTypeArgs02()
         {

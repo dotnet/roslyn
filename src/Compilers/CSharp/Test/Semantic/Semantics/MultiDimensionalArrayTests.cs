@@ -278,7 +278,7 @@ Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
 } // end of class Test
 ";
 
-        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [WorkItem(126766, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ArraysOfRank1_GetElement()
         {
@@ -311,7 +311,7 @@ Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
 ");
         }
 
-        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [WorkItem(126766, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ArraysOfRank1_SetElement()
         {
@@ -354,7 +354,7 @@ Test2
 ");
         }
 
-        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [WorkItem(126766, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ArraysOfRank1_ElementAddress()
         {
@@ -402,7 +402,7 @@ Test2
 ");
         }
 
-        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [WorkItem(126766, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [Fact]
         public void ArraysOfRank1_Overriding01()
         {
@@ -422,7 +422,7 @@ Test2
                 );
         }
 
-        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [WorkItem(126766, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [Fact]
         public void ArraysOfRank1_Overriding02()
         {
@@ -442,7 +442,7 @@ Test2
                 );
         }
 
-        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [WorkItem(126766, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [Fact]
         public void ArraysOfRank1_Conversions()
         {
@@ -491,7 +491,7 @@ Test2
                 );
         }
 
-        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [WorkItem(126766, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [Fact]
         public void ArraysOfRank1_TypeArgumentInference01()
         {
@@ -554,7 +554,7 @@ Test2
                 );
         }
 
-        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [WorkItem(126766, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ArraysOfRank1_TypeArgumentInference02()
         {
@@ -587,7 +587,7 @@ System.Double
 ");
         }
 
-        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [WorkItem(126766, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ArraysOfRank1_ForEach()
         {
@@ -644,7 +644,7 @@ System.Double
 ");
         }
 
-        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [WorkItem(126766, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ArraysOfRank1_Length()
         {
@@ -676,7 +676,7 @@ System.Double
 ");
         }
 
-        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [WorkItem(126766, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ArraysOfRank1_LongLength()
         {
@@ -708,7 +708,7 @@ System.Double
 ");
         }
 
-        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [WorkItem(126766, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [Fact]
         public void ArraysOfRank1_ParamArray()
         {
