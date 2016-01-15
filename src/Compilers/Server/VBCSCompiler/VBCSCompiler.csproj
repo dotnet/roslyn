@@ -65,7 +65,7 @@
     <Compile Include="MemoryHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
+    <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
     <None Include="project.json" />

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     {
         // Portability:
         //   If a reference or definition identity is strong, not retargetable, and portable (i.e. one of a few names hard-coded in Fusion) 
-        //   and the portability for its PublicKeyToken is not disabled in App.config file then the identity is replaced by a different identity 
+        //   and the portability for its PublicKeyToken is not disabled in app.config file then the identity is replaced by a different identity 
         //   before the match is performed.
         //
         //   Portable identities:
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Loads <see cref="AssemblyPortabilityPolicy"/> information from XML with App.config schema.
+        /// Loads <see cref="AssemblyPortabilityPolicy"/> information from XML with app.config schema.
         /// </summary>
         /// <exception cref="System.Xml.XmlException">The stream doesn't contain a well formed XML.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="input"/> is null.</exception>

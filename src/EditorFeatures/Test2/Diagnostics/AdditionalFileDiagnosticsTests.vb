@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
         Private Function IsSerializationAllowed(options As AnalyzerOptions) As Boolean
             Dim serializationAllowed = False
             For Each item In options.AdditionalFiles
-                If item.Path.EndsWith("App.config", StringComparison.OrdinalIgnoreCase) Then
+                If item.Path.EndsWith("app.config", StringComparison.OrdinalIgnoreCase) Then
                     Dim text = item.GetText()
                     Boolean.TryParse(text.Lines(0).ToString(), serializationAllowed)
                 End If
