@@ -219,7 +219,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Dim inNameOfExpression = node.IsParentKind(SyntaxKind.NameOfExpression)
 
             Dim container = DirectCast(leftHandTypeInfo.Type, INamespaceOrTypeSymbol)
-            If leftHandTypeInfo.Type.IsErrorType AndAlso leftHandSymbolInfo.Symbol IsNot Nothing Then
+            If container Is Nothing AndAlso TypeOf (leftHandTypeInfo.ConvertedType) Is IArrayTypeSymbol Then
+                container = DirectCast(leftHandTypeInfo.ConvertedType, INamespaceOrTypeSymbol)
+            End If
+            If container.IsErrorType() AndAlso leftHandSymbolInfo.Symbol IsNot Nothing Then
                 ' TODO remove this when 531549 which causes leftHandTypeInfo to be an error type is fixed
                 container = leftHandSymbolInfo.Symbol.GetSymbolType()
             End If

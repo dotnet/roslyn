@@ -1683,5 +1683,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
+        Public Overrides Function GetMetadata() As AssemblyMetadata
+            Return Nothing
+        End Function
     End Class
 End Namespace

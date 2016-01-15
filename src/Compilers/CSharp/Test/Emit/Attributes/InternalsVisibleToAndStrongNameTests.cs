@@ -556,6 +556,23 @@ public class C {}",
         }
 
         [Fact]
+        public void PublicSignAndDelaySignFalse()
+        {
+            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
+
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithPublicSign(true)
+                    .WithDelaySign(false)
+                    .WithCryptoKeyFile(snk.Path));
+
+            comp.VerifyDiagnostics();
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.False(comp.Options.DelaySign);
+        }
+
+        [Fact]
         public void PublicSignNoKey()
         {
             var comp = CreateCompilationWithMscorlib("public class C {}",

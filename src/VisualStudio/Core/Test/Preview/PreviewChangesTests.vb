@@ -145,18 +145,20 @@ Class C
 
                 WpfTestCase.RequireWpfFact("Test explicitly creates an IWpfTextView")
                 Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
-                Dim textView = textEditorFactory.CreateTextView()
+                Using disposableView As DisposableTextView = textEditorFactory.CreateDisposableTextView()
+                    previewEngine.SetTextView(disposableView.TextView)
 
-                previewEngine.SetTextView(textView)
+                    Dim outChangeList As Object = Nothing
+                    previewEngine.GetRootChangesList(outChangeList)
+                    Dim topLevelList = DirectCast(outChangeList, ChangeList)
 
-                Dim outChangeList As Object = Nothing
-                previewEngine.GetRootChangesList(outChangeList)
-                Dim topLevelList = DirectCast(outChangeList, ChangeList)
+                    SetCheckedChildren(New List(Of String)(), topLevelList)
+                    previewEngine.ApplyChanges()
+                    Dim finalText = previewEngine.FinalSolution.GetDocument(documentId).GetTextAsync().Result.ToString()
+                    Assert.Equal(document.GetTextAsync().Result.ToString(), finalText)
+                End Using
 
-                SetCheckedChildren(New List(Of String)(), topLevelList)
-                previewEngine.ApplyChanges()
-                Dim finalText = previewEngine.FinalSolution.GetDocument(documentId).GetTextAsync().Result.ToString()
-                Assert.Equal(document.GetTextAsync().Result.ToString(), finalText)
+
             End Using
         End Function
 
@@ -209,35 +211,35 @@ Class C
 
                 WpfTestCase.RequireWpfFact("Test explicitly creates an IWpfTextView")
                 Dim textEditorFactory = componentModel.GetService(Of ITextEditorFactoryService)
-                Dim textView = textEditorFactory.CreateTextView()
+                Using disposableView As DisposableTextView = textEditorFactory.CreateDisposableTextView()
+                    previewEngine.SetTextView(disposableView.TextView)
 
-                previewEngine.SetTextView(textView)
+                    Dim outChangeList As Object = Nothing
+                    previewEngine.GetRootChangesList(outChangeList)
+                    Dim topLevelList = DirectCast(outChangeList, ChangeList)
 
-                Dim outChangeList As Object = Nothing
-                previewEngine.GetRootChangesList(outChangeList)
-                Dim topLevelList = DirectCast(outChangeList, ChangeList)
+                    Dim checkedItems = New List(Of String) From
+                    {
+                        "test1.cs",
+                        ServicesVSResources.PreviewChangesAddedPrefix + "test4.cs",
+                        ServicesVSResources.PreviewChangesDeletedPrefix + "test2.cs"
+                    }
 
-                Dim checkedItems = New List(Of String) From
-                {
-                    "test1.cs",
-                    ServicesVSResources.PreviewChangesAddedPrefix + "test4.cs",
-                    ServicesVSResources.PreviewChangesDeletedPrefix + "test2.cs"
-                }
+                    SetCheckedChildren(checkedItems, topLevelList)
+                    previewEngine.ApplyChanges()
+                    Dim finalSolution = previewEngine.FinalSolution
+                    Dim finalDocuments = finalSolution.Projects.First().Documents
+                    Assert.Equal(3, finalDocuments.Count)
 
-                SetCheckedChildren(checkedItems, topLevelList)
-                previewEngine.ApplyChanges()
-                Dim finalSolution = previewEngine.FinalSolution
-                Dim finalDocuments = finalSolution.Projects.First().Documents
-                Assert.Equal(3, finalDocuments.Count)
+                    Dim changedDocText = finalSolution.GetDocument(docId).GetTextAsync().Result.ToString()
+                    Assert.Equal(forkedDocument.GetTextAsync().Result.ToString(), changedDocText)
 
-                Dim changedDocText = finalSolution.GetDocument(docId).GetTextAsync().Result.ToString()
-                Assert.Equal(forkedDocument.GetTextAsync().Result.ToString(), changedDocText)
+                    Dim finalAddedDocText = finalSolution.GetDocument(addedDocumentId1).GetTextAsync().Result.ToString()
+                    Assert.Equal(addedDocumentText, finalAddedDocText)
 
-                Dim finalAddedDocText = finalSolution.GetDocument(addedDocumentId1).GetTextAsync().Result.ToString()
-                Assert.Equal(addedDocumentText, finalAddedDocText)
-
-                Dim finalNotRemovedDocText = finalSolution.GetDocument(removedDocumentId2).GetTextAsync().Result.ToString()
-                Assert.Equal("// This file will just escape deletion!", finalNotRemovedDocText)
+                    Dim finalNotRemovedDocText = finalSolution.GetDocument(removedDocumentId2).GetTextAsync().Result.ToString()
+                    Assert.Equal("// This file will just escape deletion!", finalNotRemovedDocText)
+                End Using
             End Using
         End Function
 

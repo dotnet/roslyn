@@ -202,7 +202,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DelegateCreationExpression:
                     return VisitDelegateCreationExpression((BoundDelegateCreationExpression)node);
                 case BoundKind.FieldAccess:
-                    return VisitFieldAccess((BoundFieldAccess)node);
+                    var fieldAccess = (BoundFieldAccess)node;
+                    if (fieldAccess.FieldSymbol.IsCapturedFrame)
+                    {
+                        return Constant(fieldAccess);
+                    }
+                    return VisitFieldAccess(fieldAccess);
                 case BoundKind.IsOperator:
                     return VisitIsOperator((BoundIsOperator)node);
                 case BoundKind.Lambda:

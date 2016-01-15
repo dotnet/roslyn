@@ -345,6 +345,15 @@ index:=1)
         index:=0)
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestSimplifyTypeInScriptCode() As Task
+            Await TestAsync(
+        NewLines("Imports System \n [|System.Console.WriteLine(0)|]"),
+        NewLines("Imports System \n Console.WriteLine(0)"),
+        parseOptions:=TestOptions.Script,
+        index:=0)
+        End Function
+
         <WorkItem(542093)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestNoSimplificationOfParenthesizedPredefinedTypes() As Task

@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -555,5 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return data != null && data.HasDefaultCharSetAttribute ? data.DefaultCharacterSet : (CharSet?)null;
             }
         }
+
+        public override ModuleMetadata GetMetadata() => null;
     }
 }

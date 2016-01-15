@@ -255,8 +255,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
+            var escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableStringCharacters);
             var quote = useQuotes ? '"' : '\0';
-            if (!useQuotes && !ReplaceAny(value, quote))
+            if (!useQuotes && !(escapeNonPrintable && ReplaceAny(value, quote)))
             {
                 return value;
             }
@@ -267,9 +268,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Append(quote);
             }
-            foreach (var c in value)
+            if (escapeNonPrintable)
             {
-                FormatStringChar(builder, c, quote);
+                foreach (var c in value)
+                {
+                    FormatStringChar(builder, c, quote);
+                }
+            }
+            else
+            {
+                builder.Append(value);
             }
             if (useQuotes)
             {

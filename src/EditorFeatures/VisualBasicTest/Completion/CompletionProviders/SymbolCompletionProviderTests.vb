@@ -7052,5 +7052,21 @@ End Module
 ]]></code>.Value
             Await VerifyItemExistsAsync(text, "Length")
         End Function
+
+        <WorkItem(3290, "https://github.com/dotnet/roslyn/issues/3290")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDotAfterArray() As Task
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Dim x = {1}.$$
+    End Sub
+End Module
+]]></code>.Value
+            Await VerifyItemExistsAsync(text, "Length")
+        End Function
+
+
     End Class
 End Namespace

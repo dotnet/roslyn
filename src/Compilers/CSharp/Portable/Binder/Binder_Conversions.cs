@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This method implements the checks in spec section 15.2.
         /// </summary>
-        private bool MethodGroupIsCompatibleWithDelegate(BoundExpression receiverOpt, bool isExtensionMethod, MethodSymbol method, NamedTypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
+        internal bool MethodGroupIsCompatibleWithDelegate(BoundExpression receiverOpt, bool isExtensionMethod, MethodSymbol method, NamedTypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
         {
             Debug.Assert(delegateType.TypeKind == TypeKind.Delegate);
             Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
@@ -613,22 +613,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             diagnostics.Add(errorLocation, useSiteDiagnostics);
-
-            if (method.IsConditional)
-            {
-                // CS1618: Cannot create delegate with '{0}' because it has a Conditional attribute
-                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, errorLocation, method);
-                return false;
-            }
-
-            var sourceMethod = method as SourceMemberMethodSymbol;
-            if ((object)sourceMethod != null && sourceMethod.IsPartialWithoutImplementation)
-            {
-                // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
-                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, errorLocation, method);
-                return false;
-            }
-
             return true;
         }
 
@@ -657,6 +641,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod) ||
                 !MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics))
             {
+                return true;
+            }
+
+            if (selectedMethod.IsConditional)
+            {
+                // CS1618: Cannot create delegate with '{0}' because it has a Conditional attribute
+                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, syntax.Location, selectedMethod);
+                return true;
+            }
+
+            var sourceMethod = selectedMethod as SourceMemberMethodSymbol;
+            if ((object)sourceMethod != null && sourceMethod.IsPartialWithoutImplementation)
+            {
+                // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
+                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, syntax.Location, selectedMethod);
                 return true;
             }
 

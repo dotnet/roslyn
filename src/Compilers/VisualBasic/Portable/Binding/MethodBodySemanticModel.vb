@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates an MethodBodySemanticModel that allows asking semantic questions about an attribute node.
         ''' </summary>
-        Friend Shared Function Create(binder As MethodBodyBinder, Optional ignoreAccessibility As Boolean = False) As MethodBodySemanticModel
+        Friend Shared Function Create(binder As SubOrFunctionBodyBinder, Optional ignoreAccessibility As Boolean = False) As MethodBodySemanticModel
             Return New MethodBodySemanticModel(binder.Root, binder, ignoreAccessibility:=ignoreAccessibility)
         End Function
 
@@ -79,30 +79,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             speculativeModel = CreateSpeculative(parentModel, statement, binder, position)
             Return True
-        End Function
-
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            speculativeModel = Nothing
-            Return False
-        End Function
-    End Class
-
-    ' TODO (tomat): merge with MethodBodySemanticModel? C# doesn't have a separate class for top-level. Should it?
-    Friend NotInheritable Class TopLevelCodeSemanticModel
-        Inherits MemberSemanticModel
-
-        Public Sub New(binder As TopLevelCodeBinder, Optional ignoreAccessibility As Boolean = False)
-            MyBase.New(binder.Root, binder, parentSemanticModelOpt:=Nothing, speculatedPosition:=0, ignoreAccessibility:=ignoreAccessibility)
-        End Sub
-
-        Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            speculativeModel = Nothing
-            Return False
-        End Function
-
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            speculativeModel = Nothing
-            Return False
         End Function
 
         Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean

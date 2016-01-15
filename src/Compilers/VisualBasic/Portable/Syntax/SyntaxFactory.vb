@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports VbObjectDisplay = Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay.ObjectDisplay
 Imports Parser = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Parser
@@ -370,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind StringLiteralToken from a string value. </summary>
         ''' <param name="value">The string value to be represented by the returned token.</param>
         Public Shared Function Literal(value As String) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes), value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableStringCharacters), value)
         End Function
 
         ''' <summary> Creates a token with kind StringLiteralToken from the text and corresponding string value. </summary>
@@ -393,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind CharacterLiteralToken from a character value. </summary>
         ''' <param name="value">The character value to be represented by the returned token.</param>
         Public Shared Function Literal(value As Char) As SyntaxToken
-            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes), value)
+            Return Literal(VbObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableStringCharacters), value)
         End Function
 
         ''' <summary> Creates a token with kind CharacterLiteralToken from the text and corresponding character value. </summary>
@@ -449,6 +450,484 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(statementKind)
             End Select
+        End Function
+
+        ''' <summary>
+        ''' Creates an xml documentation comment that abstracts xml syntax creation.
+        ''' </summary>
+        ''' <param name="content">
+        ''' A list of xml node syntax that will be the content within the xml documentation comment
+        ''' (e.g. a summary element, a returns element, exception element and so on).
+        ''' </param>
+        Public Shared Function DocumentationComment(ParamArray content As XmlNodeSyntax()) As DocumentationCommentTriviaSyntax
+            Return DocumentationCommentTrivia(List(content)).WithLeadingTrivia(DocumentationCommentExteriorTrivia("''' ")).WithTrailingTrivia(EndOfLine(""))
+        End Function
+
+        ''' <summary>
+        ''' Creates a summary element within an xml documentation comment.
+        ''' </summary>
+        ''' <param name="content">A list of xml node syntax that will be the content within the summary element.</param>
+        Public Shared Function XmlSummaryElement(ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
+            Return XmlSummaryElement(List(content))
+        End Function
+
+        ''' <summary>
+        ''' Creates a summary element within an xml documentation comment.
+        ''' </summary>
+        ''' <param name="content">A list of xml node syntax that will be the content within the summary element.</param>
+        Public Shared Function XmlSummaryElement(content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Return XmlMultiLineElement(DocumentationCommentXmlNames.SummaryElementName, content)
+        End Function
+
+        ''' <summary>
+        ''' Creates a see element within an xml documentation comment.
+        ''' </summary>
+        ''' <param name="cref">A cref syntax node that points to the referenced item (e.g. a class, struct).</param>
+        Public Shared Function XmlSeeElement(cref As CrefReferenceSyntax) As XmlEmptyElementSyntax
+            Return XmlEmptyElement(DocumentationCommentXmlNames.SeeElementName).AddAttributes(XmlCrefAttribute(cref))
+        End Function
+
+        ''' <summary>
+        ''' Creates a seealso element within an xml documentation comment.
+        ''' </summary>
+        ''' <param name="cref">A cref syntax node that points to the referenced item (e.g. a class, struct).</param>
+        Public Shared Function XmlSeeAlsoElement(cref As CrefReferenceSyntax) As XmlEmptyElementSyntax
+            Return XmlEmptyElement(DocumentationCommentXmlNames.SeeAlsoElementName).AddAttributes(XmlCrefAttribute(cref))
+        End Function
+
+        ''' <summary>
+        ''' Creates a seealso element within an xml documentation comment.
+        ''' </summary>
+        ''' <param name="linkAddress">The uri of the referenced item.</param>
+        ''' <param name="linkText"> A list of xml node syntax that will be used as the link text for the referenced item.</param>
+        Public Shared Function XmlSeeAlsoElement(linkAddress As Uri, linkText As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Dim linkAddressString = linkAddress.ToString().ToLowerInvariant()
+            Dim element = XmlElement(DocumentationCommentXmlNames.SeeAlsoElementName, linkText)
+
+            Return element.WithStartTag(element.StartTag.AddAttributes(
+                XmlAttribute(
+                    XmlName(Nothing, XmlTextLiteralToken(DocumentationCommentXmlNames.CrefAttributeName, DocumentationCommentXmlNames.CrefAttributeName)),
+                    XmlString(
+                        Token(SyntaxKind.DoubleQuoteToken),
+                        SyntaxTokenList.Create(
+                            XmlTextLiteralToken(linkAddressString, linkAddressString)),
+                        Token(SyntaxKind.DoubleQuoteToken)))))
+        End Function
+
+        ''' <summary>
+        ''' Creates a threadsafty element within an xml documentation comment.
+        ''' </summary>
+        Public Shared Function XmlThreadSafetyElement() As XmlEmptyElementSyntax
+            Return XmlThreadSafetyElement(True, False)
+        End Function
+
+        ''' <summary>
+        ''' Creates a threadsafty element within an xml documentation comment.
+        ''' </summary>
+        ''' <param name="static" static="sfd">Indicates whether static member of this class are safe for multi-threaded operations.</param>
+        ''' <param name="instance">Indicates whether members of instances of this type are safe for multi-threaded operations.</param>
+        ''' <threadsafety static="true" instance=""/>
+        Public Shared Function XmlThreadSafetyElement([static] As Boolean, instance As Boolean) As XmlEmptyElementSyntax
+            Dim staticValueString = [static].ToString().ToLowerInvariant()
+            Dim instanceValueString = instance.ToString().ToLowerInvariant()
+
+            Return XmlEmptyElement(XmlName(Nothing, XmlNameToken(DocumentationCommentXmlNames.ThreadSafetyElementName, SyntaxKind.XmlNameToken)).WithTrailingTrivia(ElasticSpace)).AddAttributes(
+                XmlAttribute(
+                    XmlName(Nothing, XmlNameToken(DocumentationCommentXmlNames.StaticAttributeName, SyntaxKind.XmlNameToken)),
+                    XmlString(
+                        Token(SyntaxKind.DoubleQuoteToken),
+                        SyntaxTokenList.Create(XmlTextLiteralToken(staticValueString, staticValueString)),
+                        Token(SyntaxKind.DoubleQuoteToken))).WithTrailingTrivia(ElasticSpace),
+                XmlAttribute(
+                    XmlName(Nothing, XmlNameToken(DocumentationCommentXmlNames.InstanceAttributeName, SyntaxKind.XmlNameToken)),
+                    XmlString(
+                        Token(SyntaxKind.DoubleQuoteToken),
+                        SyntaxTokenList.Create(XmlTextLiteralToken(instanceValueString, instanceValueString)),
+                        Token(SyntaxKind.DoubleQuoteToken))))
+        End Function
+
+        ''' <summary>
+        ''' Creates a syntax node for a name attribute in a xml element within a xml documentation comment.
+        ''' </summary>
+        ''' <param name="parameterName">The value of the name attribute.</param>
+        Public Shared Function XmlNameAttribute(parameterName As String) As XmlNameAttributeSyntax
+            Return XmlNameAttribute(XmlName(Nothing, XmlNameToken(DocumentationCommentXmlNames.NameAttributeName, SyntaxKind.XmlNameToken)), Token(SyntaxKind.DoubleQuoteToken), IdentifierName(parameterName), Token(SyntaxKind.DoubleQuoteToken)).WithLeadingTrivia(Whitespace(" "))
+        End Function
+
+        ''' <summary>
+        ''' Creates a syntax node for a priliminary element within a xml documentation comment.
+        ''' </summary>
+        Public Shared Function XmlPreliminaryElement() As XmlEmptyElementSyntax
+            Return XmlEmptyElement(DocumentationCommentXmlNames.PreliminaryElementName)
+        End Function
+
+        ''' <summary>
+        ''' Creates a syntax node for a cref attribute within a xml documentation comment.
+        ''' </summary>
+        ''' <param name="cref">The <see cref="CrefReferenceSyntax"/> used for the xml cref attribute syntax.</param>
+        Public Shared Function XmlCrefAttribute(cref As CrefReferenceSyntax) As XmlCrefAttributeSyntax
+            Return XmlCrefAttribute(cref, SyntaxKind.DoubleQuoteToken)
+        End Function
+
+        ''' <summary>
+        ''' Creates a syntax node for a cref attribute within a xml documentation comment.
+        ''' </summary>
+        ''' <param name="cref">The <see cref="CrefReferenceSyntax"/> used for the xml cref attribute syntax.</param>
+        ''' <param name="quoteKind">The kind of the quote for the referenced item in the cref attribute.</param>
+        Public Shared Function XmlCrefAttribute(cref As CrefReferenceSyntax, quoteKind As SyntaxKind) As XmlCrefAttributeSyntax
+            cref = cref.ReplaceTokens(cref.DescendantTokens(), AddressOf XmlReplaceBracketTokens)
+            Return XmlCrefAttribute(XmlName(Nothing, XmlNameToken(DocumentationCommentXmlNames.CrefAttributeName, SyntaxKind.XmlNameToken)), Token(quoteKind), cref, Token(quoteKind)).WithLeadingTrivia(Whitespace(" "))
+        End Function
+
+        ''' <summary>
+        ''' Creates a remarks element within an xml documentation comment.
+        ''' </summary>
+        ''' <param name="content">A list of xml node syntax that will be the content within the remarks element.</param>
+        Public Shared Function XmlRemarksElement(ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
+            Return XmlRemarksElement(List(content))
+        End Function
+
+        ''' <summary>
+        ''' Creates a remarks element within an xml documentation comment.
+        ''' </summary>
+        ''' <param name="content">A list of xml node syntax that will be the content within the remarks element.</param>
+        Public Shared Function XmlRemarksElement(content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Return XmlMultiLineElement(DocumentationCommentXmlNames.RemarksElementName, content)
+        End Function
+
+        ''' <summary>
+        ''' Creates a returns element within an xml documentation comment.
+        ''' </summary>
+        ''' <param name="content">A list of xml node syntax that will be the content within the returns element.</param>
+        Public Shared Function XmlReturnsElement(ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
+            Return XmlReturnsElement(List(content))
+        End Function
+
+        ''' <summary>
+        ''' Creates a returns element within an xml documentation comment.
+        ''' </summary>
+        ''' <param name="content">A list of xml node syntax that will be the content within the returns element.</param>
+        Public Shared Function XmlReturnsElement(content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Return XmlMultiLineElement(DocumentationCommentXmlNames.ReturnsElementName, content)
+        End Function
+
+        ''' <summary>
+        ''' Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        ''' </summary>
+        ''' <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
+        Public Shared Function XmlValueElement(ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
+            Return XmlValueElement(List(content))
+        End Function
+
+        ''' <summary>
+        ''' Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        ''' </summary>
+        ''' <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
+        Public Shared Function XmlValueElement(content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Return XmlMultiLineElement(DocumentationCommentXmlNames.ValueElementName, content)
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of an exception element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="cref">Syntax representation of the reference to the exception type.</param>
+        ''' <param name="content">A list of syntax nodes that represents the content of the exception element.</param>
+        Public Shared Function XmlExceptionElement(cref As CrefReferenceSyntax, ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
+            Return XmlExceptionElement(cref, List(content))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of an exception element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="cref">Syntax representation of the reference to the exception type.</param>
+        ''' <param name="content">A list of syntax nodes that represents the content of the exception element.</param>
+        Public Shared Function XmlExceptionElement(cref As CrefReferenceSyntax, content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Dim element As XmlElementSyntax = XmlElement(DocumentationCommentXmlNames.ExceptionElementName, content)
+            Return element.WithStartTag(element.StartTag.AddAttributes(XmlCrefAttribute(cref)))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a permission element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="cref">Syntax representation of the reference to the permission type.</param>
+        ''' <param name="content">A list of syntax nodes that represents the content of the permission element.</param>
+        Public Shared Function XmlPermissionElement(cref As CrefReferenceSyntax, ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
+            Return XmlPermissionElement(cref, List(content))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a permission element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="cref">Syntax representation of the reference to the permission type.</param>
+        ''' <param name="content">A list of syntax nodes that represents the content of the permission element.</param>
+        Public Shared Function XmlPermissionElement(cref As CrefReferenceSyntax, content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Dim element As XmlElementSyntax = XmlElement(DocumentationCommentXmlNames.PermissionElementName, content)
+            Return element.WithStartTag(element.StartTag.AddAttributes(XmlCrefAttribute(cref)))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of an example element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="content">A list of syntax nodes that represents the content of the example element.</param>
+        Public Shared Function XmlExampleElement(ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
+            Return XmlExampleElement(List(content))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of an example element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="content">A list of syntax nodes that represents the content of the example element.</param>
+        Public Shared Function XmlExampleElement(content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Dim element As XmlElementSyntax = XmlElement(DocumentationCommentXmlNames.ExampleElementName, content)
+            Return element.WithStartTag(element.StartTag)
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a para element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="content">A list of syntax nodes that represents the content of the para element.</param>
+        Public Shared Function XmlParaElement(ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
+            Return XmlParaElement(List(content))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a para element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="content">A list of syntax nodes that represents the content of the para element.</param>
+        Public Shared Function XmlParaElement(content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Return XmlElement(DocumentationCommentXmlNames.ParaElementName, content)
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a param element within xml documentation comments (e.g. for
+        ''' documentation of method parameters).
+        ''' </summary>
+        ''' <param name="parameterName">The name of the parameter.</param>
+        ''' <param name="content">A list of syntax nodes that represents the content of the param element (e.g. 
+        ''' the description and meaning of the parameter).</param>
+        Public Shared Function XmlParamElement(parameterName As String, ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
+            Return XmlParamElement(parameterName, List(content))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a param element within xml documentation comments (e.g. for
+        ''' documentation of method parameters).
+        ''' </summary>
+        ''' <param name="parameterName">The name of the parameter.</param>
+        ''' <param name="content">A list of syntax nodes that represents the content of the param element (e.g. 
+        ''' the description and meaning of the parameter).</param>
+        Public Shared Function XmlParamElement(parameterName As String, content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Dim element As XmlElementSyntax = XmlElement(DocumentationCommentXmlNames.ParameterElementName, content)
+            Return element.WithStartTag(element.StartTag.AddAttributes(XmlNameAttribute(parameterName)))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a paramref element within xml documentation comments (e.g. for
+        ''' referencing particular parameters of a method).
+        ''' </summary>
+        ''' <param name="parameterName">The name of the referenced parameter.</param>
+        Public Shared Function XmlParamRefElement(parameterName As String) As XmlEmptyElementSyntax
+            Return XmlEmptyElement(DocumentationCommentXmlNames.ParameterReferenceElementName).AddAttributes(XmlNameAttribute(parameterName))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a see element within xml documentation comments,
+        ''' that points to the 'null' language keyword.
+        ''' </summary>
+        Public Shared Function XmlNullKeywordElement() As XmlEmptyElementSyntax
+            Return XmlKeywordElement("null")
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a see element within xml documentation comments,
+        ''' that points to a language keyword.
+        ''' </summary>
+        ''' <param name="keyword">The language keyword to which the see element points to.</param>
+        Private Shared Function XmlKeywordElement(keyword As String) As XmlEmptyElementSyntax
+            Dim attribute As XmlAttributeSyntax =
+                XmlAttribute(
+                    XmlName(
+                        Nothing,
+                        XmlTextLiteralToken(DocumentationCommentXmlNames.KeywordElementName, DocumentationCommentXmlNames.KeywordElementName)),
+                    XmlString(
+                        Token(SyntaxKind.DoubleQuoteToken),
+                        SyntaxTokenList.Create(XmlTextLiteralToken(keyword, keyword)),
+                        Token(SyntaxKind.DoubleQuoteToken)))
+
+            Return XmlEmptyElement(DocumentationCommentXmlNames.SeeElementName).AddAttributes(attribute)
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a placeholder element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="content">A list of syntax nodes that represents the content of the placeholder element.</param>
+        Public Shared Function XmlPlaceholderElement(ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
+            Return XmlPlaceholderElement(List(content))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a placeholder element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="content">A list of syntax nodes that represents the content of the placeholder element.</param>
+        Public Shared Function XmlPlaceholderElement(content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Return XmlElement(DocumentationCommentXmlNames.PlaceholderElementName, content)
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a named empty xml element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="localName">The name of the empty xml element.</param>
+        Public Shared Function XmlEmptyElement(localName As String) As XmlEmptyElementSyntax
+            Return XmlEmptyElement(XmlName(Nothing, XmlNameToken(localName, SyntaxKind.XmlNameToken)))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a named xml element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="localName">The name of the empty xml element.</param>
+        ''' <param name="content">A list of syntax nodes that represents the content of the xml element.</param>
+        Public Shared Function XmlElement(localName As String, content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Return XmlElement(XmlName(Nothing, XmlNameToken(localName, SyntaxKind.XmlNameToken)), content)
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of a named xml element within xml documentation comments.
+        ''' </summary>
+        ''' <param name="name">The name of the empty xml element.</param>
+        ''' <param name="content">A list of syntax nodes that represents the content of the xml element.</param>
+        Public Shared Function XmlElement(name As XmlNameSyntax, content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Return XmlElement(XmlElementStartTag(name), content, XmlElementEndTag(name))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of an xml element that spans multiple text lines.
+        ''' </summary>
+        ''' <param name="localName">The name of the xml element.</param>
+        ''' <param name="content">A list of syntax nodes that represents the content of the xml multi line element.</param>
+        Public Shared Function XmlMultiLineElement(localName As String, content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Return XmlMultiLineElement(XmlName(Nothing, XmlNameToken(localName, SyntaxKind.XmlNameToken)), content)
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of an xml element that spans multiple text lines.
+        ''' </summary>
+        ''' <param name="name">The name of the xml element.</param>
+        ''' <param name="content">A list of syntax nodes that represents the content of the xml multi line element.</param>
+        Public Shared Function XmlMultiLineElement(name As XmlNameSyntax, content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
+            Return XmlElement(XmlElementStartTag(name), content, XmlElementEndTag(name))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of an xml text that contains a newline token with a documentation comment 
+        ''' exterior trivia at the end (continued documentation comment).
+        ''' </summary>
+        ''' <param name="text">The raw text within the new line.</param>
+        Public Shared Function XmlNewLine(text As String) As XmlTextSyntax
+            Return XmlText(XmlTextNewLine(text))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of an xml newline token with a documentation comment exterior trivia at 
+        ''' the end (continued documentation comment).
+        ''' </summary>
+        ''' <param name="text">The raw text within the new line.</param>
+        Public Shared Function XmlTextNewLine(text As String) As SyntaxToken
+            Return XmlTextNewLine(text, True)
+        End Function
+
+
+        ''' <summary>
+        ''' Creates a token with kind XmlTextLiteralNewLineToken.
+        ''' </summary>
+        ''' <param name="text">The raw text of the literal.</param>
+        ''' <param name="value">The xml text new line value.</param>
+        ''' <param name="leading">A list of trivia immediately preceding the token.</param>
+        ''' <param name="trailing">A list of trivia immediately following the token.</param>
+        Public Shared Function XmlTextNewLine(text As String, value As String, leading As SyntaxTriviaList, trailing As SyntaxTriviaList) As SyntaxToken
+            Return New SyntaxToken(
+                InternalSyntax.SyntaxFactory.DocumentationCommentLineBreakToken(
+                    text,
+                    value,
+                    DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode),
+                    DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)))
+        End Function
+
+        ''' <summary>
+        ''' Creates the syntax representation of an xml newline token for xml documentation comments.
+        ''' </summary>
+        ''' <param name="text">The raw text within the new line.</param>
+        ''' <param name="continueXmlDocumentationComment">
+        ''' If set to true, a documentation comment exterior token will be added to the trailing trivia
+        ''' of the new token.</param>
+        Public Shared Function XmlTextNewLine(text As String, continueXmlDocumentationComment As Boolean) As SyntaxToken
+            Dim token = New SyntaxToken(
+                InternalSyntax.SyntaxFactory.DocumentationCommentLineBreakToken(
+                    text,
+                    text,
+                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode),
+                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)))
+
+            If continueXmlDocumentationComment Then
+                token = token.WithTrailingTrivia(token.TrailingTrivia.Add(DocumentationCommentExteriorTrivia("''' ")))
+            End If
+
+            Return token
+        End Function
+
+        ''' <summary>
+        ''' Generates the syntax representation of a xml text node (e.g. for xml documentation comments).
+        ''' </summary>
+        ''' <param name="value">The string literal used as the text of the xml text node.</param>
+        Public Shared Function XmlText(value As String) As XmlTextSyntax
+            Return XmlText(XmlTextLiteral(value))
+        End Function
+
+        ''' <summary>
+        ''' Generates the syntax representation of a xml text node (e.g. for xml documentation comments).
+        ''' </summary>
+        ''' <param name="textTokens">A list of text tokens used as the text of the xml text node.</param>
+        Public Shared Function XmlText(ParamArray textTokens As SyntaxToken()) As XmlTextSyntax
+            Return XmlText(TokenList(textTokens))
+        End Function
+
+        ''' <summary>
+        ''' Generates the syntax representation of an xml text literal.
+        ''' </summary>
+        ''' <param name="value">The text used within the xml text literal.</param>
+        Public Shared Function XmlTextLiteral(value As String) As SyntaxToken
+            ' TODO: [RobinSedlaczek] It is no compiler hot path here I think. But the contribution guide
+            '       states to avoid LINQ (https://github.com/dotnet/roslyn/wiki/Contributing-Code). With
+            '       XText we have a reference to System.Xml.Linq. Isn't this rule valid here? 
+            Dim encoded As String = New XText(value).ToString()
+
+            Return XmlTextLiteral(encoded, value)
+        End Function
+
+        ''' <summary>
+        ''' Generates the syntax representation of an xml text literal.
+        ''' </summary>
+        ''' <param name="text">The raw text of the literal.</param>
+        ''' <param name="value">The text used within the xml text literal.</param>
+        Public Shared Function XmlTextLiteral(text As String, value As String) As SyntaxToken
+            Return New SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlTextLiteralToken(text, value, DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)))
+        End Function
+
+        ''' <summary>
+        ''' Helper method that replaces less-than and greater-than characters with brackets. 
+        ''' </summary>
+        ''' <param name="originalToken">The original token that is to be replaced.</param>
+        ''' <param name="rewrittenToken">The new rewritten token.</param>
+        ''' <returns>Returns the new rewritten token with replaced characters.</returns>
+        Private Shared Function XmlReplaceBracketTokens(originalToken As SyntaxToken, rewrittenToken As SyntaxToken) As SyntaxToken
+            If rewrittenToken.IsKind(SyntaxKind.LessThanToken) AndAlso String.Equals("<", rewrittenToken.Text, StringComparison.Ordinal) Then
+                Return Token(rewrittenToken.LeadingTrivia, SyntaxKind.LessThanToken, rewrittenToken.TrailingTrivia, rewrittenToken.ValueText)
+            End If
+
+            If rewrittenToken.IsKind(SyntaxKind.GreaterThanToken) AndAlso String.Equals(">", rewrittenToken.Text, StringComparison.Ordinal) Then
+                Return Token(rewrittenToken.LeadingTrivia, SyntaxKind.GreaterThanToken, rewrittenToken.TrailingTrivia, rewrittenToken.ValueText)
+            End If
+
+            Return rewrittenToken
         End Function
 
         ''' <summary>
