@@ -28,8 +28,8 @@ namespace CSharpAnalyzers
 
         #endregion
 
-        internal const string DontInheritInterfaceTypeName = "MyInterfaces.Interface";
-        internal const string AllowedInternalImplementationTypeName = "MyInterfaces.MyInterfaceImpl";
+        public const string DontInheritInterfaceTypeName = "MyInterfaces.Interface";
+        public const string AllowedInternalImplementationTypeName = "MyInterfaces.MyInterfaceImpl";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
