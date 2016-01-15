@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var coordinator = default(WorkCoordinator);
                 if (!_documentWorkCoordinatorMap.TryGetValue(workspace, out coordinator))
                 {
-                    throw new ArgumentException("workspace");
+                    // ignore re-analysis request when unknown workspace is given.
+                    return;
                 }
 
                 // no specific projects or documents provided
