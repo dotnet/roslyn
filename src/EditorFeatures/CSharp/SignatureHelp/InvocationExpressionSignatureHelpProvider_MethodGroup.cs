@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
         {
             var result = new List<SymbolDisplayPart>();
 
-            var awaitable = method.GetOriginalUnreducedDefinition().IsAwaitable(semanticModel, position);
+            var awaitable = method.GetOriginalUnreducedDefinition().IsAwaitableNonDynamic(semanticModel, position);
             var extension = method.GetOriginalUnreducedDefinition().IsExtensionMethod();
 
             if (awaitable && extension)

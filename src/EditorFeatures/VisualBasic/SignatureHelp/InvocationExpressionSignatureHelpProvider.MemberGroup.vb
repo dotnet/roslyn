@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
         End Function
 
         Private Function GetAwaitableDescription(member As ISymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
-            If member.IsAwaitable(semanticModel, position) Then
+            If member.IsAwaitableNonDynamic(semanticModel, position) Then
                 Return member.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "r", semanticModel, position)
             End If
 

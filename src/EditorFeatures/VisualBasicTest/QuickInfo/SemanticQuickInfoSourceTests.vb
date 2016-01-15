@@ -1443,6 +1443,23 @@ End Class
                  MainDescription(description), Usage(doc))
         End Function
 
+        <WorkItem(7100, "https://github.com/dotnet/roslyn/issues/7100")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestObjectWithOptionStrictOffIsntAwaitable() As Task
+            Dim markup = "
+Option Strict Off
+Class C
+    Function D() As Object
+        Return Nothing
+    End Function
+    Sub M()
+        D$$()
+    End Sub
+End Class
+"
+            Await TestAsync(markup, MainDescription("Function C.D() As Object"))
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestObsoleteItem() As Task
             Await TestAsync(<Text><![CDATA[
