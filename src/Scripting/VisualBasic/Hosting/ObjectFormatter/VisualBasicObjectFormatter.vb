@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         Friend Overrides Function FormatLiteral(value As String, quote As Boolean, Optional useHexadecimalNumbers As Boolean = False) As String
             Dim options = ObjectDisplayOptions.None
             If quote Then
-                options = options Or ObjectDisplayOptions.UseQuotes
+                options = options Or ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters
             End If
             If useHexadecimalNumbers Then
                 options = options Or ObjectDisplayOptions.UseHexadecimalNumbers
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         Friend Overrides Function FormatLiteral(c As Char, quote As Boolean, Optional includeCodePoints As Boolean = False, Optional useHexadecimalNumbers As Boolean = False) As String
             Dim options = ObjectDisplayOptions.None
             If quote Then
-                options = options Or ObjectDisplayOptions.UseQuotes
+                options = options Or ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters
             End If
             If includeCodePoints Then
                 options = options Or ObjectDisplayOptions.IncludeCodePoints

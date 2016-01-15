@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The character value to be represented by the returned token.</param>
         public static SyntaxToken Literal(char value)
         {
-            return Literal(ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes), value);
+            return Literal(ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters), value);
         }
 
         /// <summary>

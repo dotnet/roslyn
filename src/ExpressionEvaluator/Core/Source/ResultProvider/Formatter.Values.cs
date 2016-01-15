@@ -348,12 +348,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 if (!value.IsNull)
                 {
-                    return this.GetValueString(value, inspectionContext, QuotedStringOptions, GetValueFlags.None);
+                    return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters, GetValueFlags.None);
                 }
             }
             else if (type.IsCharacter())
             {
-                return this.GetValueStringForCharacter(value, inspectionContext, ObjectDisplayOptions.UseQuotes);
+                return this.GetValueStringForCharacter(value, inspectionContext, ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters);
             }
 
             return null;
@@ -409,8 +409,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract string FormatPrimitiveObject(object value, ObjectDisplayOptions options);
 
         internal abstract string FormatString(string str, ObjectDisplayOptions options);
-
-        internal abstract ObjectDisplayOptions QuotedStringOptions { get; }
 
         #endregion
     }

@@ -39,12 +39,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return SyntaxFacts.IsWhitespace(c)
         End Function
 
-        Friend Overrides Function GetValueStringOptions(useQuotes As Boolean) As ObjectDisplayOptions
-            Return If(useQuotes,
-                ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters,
-                ObjectDisplayOptions.None)
-        End Function
-
         Friend Overrides Function TrimAndGetFormatSpecifiers(expression As String, ByRef formatSpecifiers As ReadOnlyCollection(Of String)) As String
             expression = RemoveComments(expression)
             expression = RemoveFormatSpecifiers(expression, formatSpecifiers)

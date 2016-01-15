@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 
         internal override string FormatLiteral(char c, bool quote, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
         {
-            var options = ObjectDisplayOptions.None;
+            var options = ObjectDisplayOptions.EscapeNonPrintableCharacters;
             if (quote)
             {
                 options |= ObjectDisplayOptions.UseQuotes;

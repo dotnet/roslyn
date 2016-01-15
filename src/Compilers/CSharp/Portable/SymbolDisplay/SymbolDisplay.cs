@@ -184,7 +184,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public static string FormatLiteral(char c, bool quote)
         {
-            return ObjectDisplay.FormatLiteral(c, quote ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None);
+            var options = ObjectDisplayOptions.EscapeNonPrintableCharacters | 
+                (quote ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None);
+            return ObjectDisplay.FormatLiteral(c, options);
         }
     }
 }

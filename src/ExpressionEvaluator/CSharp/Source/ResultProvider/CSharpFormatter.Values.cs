@@ -217,7 +217,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             return ObjectDisplay.FormatLiteral(str, options);
         }
-
-        internal override ObjectDisplayOptions QuotedStringOptions => ObjectDisplayOptions.UseQuotes;
     }
 }
