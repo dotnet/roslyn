@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an argument in a method invocation.
     /// </summary>
-    public interface IArgument
+    public interface IArgument : IOperation
     {
         /// <summary>
         /// Kind of argument.
         /// </summary>
-        ArgumentKind Kind { get; }
+        ArgumentKind ArgumentKind { get; }
         /// <summary>
         /// Parameter the argument matches.
         /// </summary>
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of unary operation.
         /// </summary>
-        UnaryOperationKind UnaryKind { get; }
+        UnaryOperationKind UnaryOperationKind { get; }
         /// <summary>
         /// Single operand.
         /// </summary>
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of binary operation.
         /// </summary>
-        BinaryOperationKind BinaryKind { get; }
+        BinaryOperationKind BinaryOperationKind { get; }
         /// <summary>
         /// Left operand.
         /// </summary>
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of conversion.
         /// </summary>
-        ConversionKind Conversion { get; }
+        ConversionKind ConversionKind { get; }
         /// <summary>
         /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
         /// </summary>
@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of type operation.
         /// </summary>
-        TypeOperationKind TypeOperationClass { get; }
+        TypeOperationKind TypeOperationKind { get; }
         /// <summary>
         /// Type operand.
         /// </summary>
@@ -798,9 +798,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         ImmutableArray<IMemberInitializer> MemberInitializers { get; }
     }
 
-    public interface IMemberInitializer
+    /// <summary>
+    /// Represents an object member initializer.
+    /// </summary>
+    public interface IMemberInitializer : IOperation
     {
-        MemberInitializerKind MemberClass { get; }
+        MemberInitializerKind MemberInitializerKind { get; }
         IExpression Value { get; }
     }
 
@@ -851,49 +854,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Values of elements of the created array instance.
         /// </summary>
-        IArrayInitializer ElementValues { get; }
+        IArrayInitializer Initializer { get; }
     }
 
     /// <summary>
     /// Represents the initialization of an array instance.
     /// </summary>
-    public interface IArrayInitializer
+    public interface IArrayInitializer : IExpression
     {
         /// <summary>
-        /// Kind of array initialization.
+        /// Values to initialize array elements.
         /// </summary>
-        ArrayInitializerKind ArrayClass { get; }
-    }
-
-    /// <summary>
-    /// Kinds of array initializers.
-    /// </summary>
-    public enum ArrayInitializerKind
-    {
-        /// <summary>
-        /// Initializer specifies a single element value.
-        /// </summary>
-        Expression,
-        /// <summary>
-        /// Initializer specifies multiple elements of a dimension of the array. 
-        /// </summary>
-        Dimension
-    }
-
-    /// <summary>
-    /// Represents an initialization of a single element of an array instance.
-    /// </summary>
-    public interface IExpressionArrayInitializer : IArrayInitializer
-    {
-        IExpression ElementValue { get; }
-    }
-
-    /// <summary>
-    /// Represents an initialization of a single dimension of an array instance.
-    /// </summary>
-    public interface IDimensionArrayInitializer : IArrayInitializer
-    {
-        ImmutableArray<IArrayInitializer> ElementValues { get; }
+        ImmutableArray<IExpression> ElementValues { get; }
     }
 
     /// <summary>

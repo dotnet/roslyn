@@ -90,12 +90,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private Shared ReadOnly CaseElseMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundCaseStatement, Object)
+
         Private ReadOnly Property IClauses As ImmutableArray(Of ICaseClause) Implements ICase.Clauses
             Get
                 ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses, 
                 ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
                 If Me.CaseStatement.CaseClauses.IsEmpty AndAlso Me.CaseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
-                    Return ImmutableArray.Create(CaseElseClause)
+                    Dim caseElse = CaseElseMappings.GetValue(Me.CaseStatement, Function(caseStatement) ImmutableArray.Create(Of ICaseClause)(New CaseElse(caseStatement)))
+                    Return DirectCast(caseElse, ImmutableArray(Of ICaseClause))
                 End If
 
                 Return Me.CaseStatement.CaseClauses.As(Of ICaseClause)()
@@ -103,13 +106,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
+            Return OperationKind.SwitchSection
         End Function
 
-        Private Shared CaseElseClause As ICaseClause = New CaseElse
-
         Private Class CaseElse
-            Implements ICaseClause
+            Implements ISingleValueCaseClause
+
+            Private _boundCaseStatement As BoundCaseStatement
+
+            Public Sub New(boundCaseStatement As BoundCaseStatement)
+                _boundCaseStatement = boundCaseStatement
+            End Sub
+
+            Public ReadOnly Property Equality As BinaryOperationKind Implements ISingleValueCaseClause.Equality
+                Get
+                    Return BinaryOperationKind.None
+                End Get
+            End Property
+
+            Public ReadOnly Property Value As IExpression Implements ISingleValueCaseClause.Value
+                Get
+                    Return Nothing
+                End Get
+            End Property
+
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return _boundCaseStatement.HasErrors
+                End Get
+            End Property
+
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                Get
+                    Return OperationKind.SingleValueCaseClause
+                End Get
+            End Property
+
+            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                Get
+                    Return _boundCaseStatement.Syntax
+                End Get
+            End Property
+
             Private ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseKind
                 Get
                     Return CaseKind.Default
@@ -122,7 +160,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundCaseClause
         Implements ICaseClause
 
-        Protected MustOverride ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseKind
+
+        Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
+            Get
+                Return Me.HasErrors
+            End Get
+        End Property
+
+        Private ReadOnly Property ISyntax As SyntaxNode Implements IOperation.Syntax
+            Get
+                Return Me.Syntax
+            End Get
+        End Property
+
+        Protected MustOverride ReadOnly Property IKind As OperationKind Implements IOperation.Kind
+
+        Protected MustOverride ReadOnly Property ICaseKind As CaseKind Implements ICaseClause.CaseKind
     End Class
 
     Partial Class BoundSimpleCaseClause
@@ -170,7 +223,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property ICaseClass As CaseKind
+        Protected Overrides ReadOnly Property IKind As OperationKind
+            Get
+                Return OperationKind.SingleValueCaseClause
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property ICaseKind As CaseKind
             Get
                 Return CaseKind.SingleValue
             End Get
@@ -214,7 +273,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property ICaseClass As CaseKind
+        Protected Overrides ReadOnly Property IKind As OperationKind
+            Get
+                Return OperationKind.RangeCaseClause
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property ICaseKind As CaseKind
             Get
                 Return CaseKind.Range
             End Get
@@ -248,7 +313,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property ICaseClass As CaseKind
+        Protected Overrides ReadOnly Property IKind As OperationKind
+            Get
+                Return OperationKind.RelationalCaseClause
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property ICaseKind As CaseKind
             Get
                 Return CaseKind.Relational
             End Get
@@ -305,11 +376,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundForToStatement
         Implements IForLoopStatement
 
-        Private Shared LoopBottomMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
+        Private Shared ReadOnly s_loopBottomMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
 
         Private ReadOnly Property IAtLoopBottom As ImmutableArray(Of IStatement) Implements IForLoopStatement.AtLoopBottom
             Get
-                Dim result = LoopBottomMappings.GetValue(
+                Dim result = s_loopBottomMappings.GetValue(
                     Me,
                     Function(BoundFor)
                         Dim statements As ArrayBuilder(Of IStatement) = ArrayBuilder(Of IStatement).GetInstance()
@@ -341,11 +412,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Shared LoopTopMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
+        Private Shared ReadOnly s_loopTopMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
 
         Private ReadOnly Property IBefore As ImmutableArray(Of IStatement) Implements IForLoopStatement.Before
             Get
-                Dim result = LoopTopMappings.GetValue(
+                Dim result = s_loopTopMappings.GetValue(
                     Me,
                     Function(BoundFor)
                         Dim statements As ArrayBuilder(Of IStatement) = ArrayBuilder(Of IStatement).GetInstance()
@@ -379,11 +450,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Shared LoopConditionMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, IExpression)
+        Private Shared ReadOnly s_loopConditionMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, IExpression)
 
         Private ReadOnly Property ICondition As IExpression Implements IForWhileUntilLoopStatement.Condition
             Get
-                Return LoopConditionMappings.GetValue(
+                Return s_loopConditionMappings.GetValue(
                     Me,
                     Function(BoundFor)
                         Dim limitValue As IExpression = If(BoundFor.LimitValue.IsConstant, DirectCast(BoundFor.LimitValue, IExpression), New Temporary(SyntheticLocalKind.ForLoopLimitValue, BoundFor, BoundFor.LimitValue))
@@ -700,75 +771,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundLocalDeclarationBase
-        Implements IVariable
-
-        Protected MustOverride ReadOnly Property IInitialValue As IExpression Implements IVariable.InitialValue
-
-        Protected MustOverride ReadOnly Property IVariable As ILocalSymbol Implements IVariable.Variable
-    End Class
-
-    Partial Class BoundLocalDeclaration
-        Implements IVariableDeclarationStatement
-
-        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
-            Get
-                Return ImmutableArray.Create(Of IVariable)(Me)
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property IInitialValue As IExpression
-            Get
-                Return Me.InitializerOpt
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property IVariable As ILocalSymbol
-            Get
-                Return Me.LocalSymbol
-            End Get
-        End Property
-
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.VariableDeclarationStatement
-        End Function
-    End Class
-
-    Partial Class BoundAsNewLocalDeclarations
-        Implements IVariableDeclarationStatement
-
-        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
-            Get
-                Return Me.LocalDeclarations.As(Of IVariable)()
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property IInitialValue As IExpression
-            Get
-                Return Me.Initializer
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property IVariable As ILocalSymbol
-            Get
-                ' ZZZ Get clear about what's happening in the VB bound trees. BoundAsNewLocalDeclarations has multiple symbols and
-                ' inherits from BoundLocalDeclarationBase, which occurs multiply in BoundDimStatement.
-                Dim local As BoundLocalDeclaration = Me.LocalDeclarations.FirstOrDefault()
-                Return If(local IsNot Nothing, local.LocalSymbol, Nothing)
-            End Get
-        End Property
-
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.VariableDeclarationStatement
-        End Function
-    End Class
-
     Partial Class BoundDimStatement
         Implements IVariableDeclarationStatement
 
+        Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundDimStatement, Object)
+
         Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclarationStatement.Variables
             Get
-                Return Me.LocalDeclarations.As(Of IVariable)()
+                Dim variables = s_variablesMappings.GetValue(Me, Function(dimStatement)
+                                                                     Dim builder = ArrayBuilder(Of IVariable).GetInstance()
+                                                                     For Each base In dimStatement.LocalDeclarations
+                                                                         If base.Kind = BoundKind.LocalDeclaration Then
+                                                                             Dim declaration = DirectCast(base, BoundLocalDeclaration)
+                                                                             builder.Add(New VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax))
+                                                                         ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
+                                                                             Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
+                                                                             For Each asNewDeclaration In asNewDeclarations.LocalDeclarations
+                                                                                 builder.Add(New VariableDeclaration(asNewDeclaration.LocalSymbol, asNewDeclarations.Initializer, asNewDeclaration.Syntax))
+                                                                             Next
+                                                                         End If
+                                                                     Next
+                                                                     Return builder.ToImmutableAndFree()
+                                                                 End Function
+                                                               )
+                Return DirectCast(variables, ImmutableArray(Of IVariable))
             End Get
         End Property
 
@@ -931,11 +957,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Shared VariablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundUsingStatement, Variables)
+        Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundUsingStatement, Variables)
 
         Private ReadOnly Property IVariables As IVariableDeclarationStatement Implements IUsingWithDeclarationStatement.Variables
             Get
-                Return VariablesMappings.GetValue(
+                Return s_variablesMappings.GetValue(
                     Me,
                     Function(BoundUsing)
                         Return New Variables(BoundUsing.ResourceList.As(Of IVariable))
@@ -1003,69 +1029,111 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundAddRemoveHandlerStatement
-        Implements IEventAssignmentExpression
+        Implements IExpressionStatement
 
-        Protected MustOverride ReadOnly Property IAdds As Boolean Implements IEventAssignmentExpression.Adds
-
-        Private ReadOnly Property IConstantValue As [Optional](Of Object) Implements IExpression.ConstantValue
-            Get
-                Return New [Optional](Of Object)()
-            End Get
-        End Property
-
-        Private ReadOnly Property IEvent As IEventSymbol Implements IEventAssignmentExpression.Event
-            Get
-                Dim eventAccess As BoundEventAccess = TryCast(Me.EventAccess, BoundEventAccess)
-                If eventAccess IsNot Nothing Then
-                    Return eventAccess.EventSymbol
-                End If
-
-                Return Nothing
-            End Get
-        End Property
-
-        Private ReadOnly Property IEventInstance As IExpression Implements IEventAssignmentExpression.EventInstance
-            Get
-                Dim eventAccess As BoundEventAccess = TryCast(Me.EventAccess, BoundEventAccess)
-                If eventAccess IsNot Nothing Then
-                    Return eventAccess.ReceiverOpt
-                End If
-
-                Return Nothing
-            End Get
-        End Property
-
-        Private ReadOnly Property IResultType As ITypeSymbol Implements IExpression.ResultType
-            Get
-                Return Nothing
-            End Get
-        End Property
-
-        Private ReadOnly Property IHandlerValue As IExpression Implements IEventAssignmentExpression.HandlerValue
-            Get
-                Return Me.Handler
-            End Get
-        End Property
+        Protected Shared ReadOnly s_expressionsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundAddRemoveHandlerStatement, IEventAssignmentExpression)
 
         Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.EventAssignmentExpression
+            Return OperationKind.ExpressionStatement
         End Function
+
+        Protected MustOverride ReadOnly Property IExpression As IExpression Implements IExpressionStatement.Expression
+
+        Protected Class EventAssignmentExpression
+            Implements IEventAssignmentExpression
+
+            Private ReadOnly _statement As BoundAddRemoveHandlerStatement
+            Private ReadOnly _adds As Boolean
+
+            Public Sub New(statement As BoundAddRemoveHandlerStatement, adds As Boolean)
+                _statement = statement
+                _adds = adds
+            End Sub
+
+            Public ReadOnly Property Adds As Boolean Implements IEventAssignmentExpression.Adds
+                Get
+                    Return _adds
+                End Get
+            End Property
+
+            Public ReadOnly Property ConstantValue As [Optional](Of Object) Implements IExpression.ConstantValue
+                Get
+                    Return New [Optional](Of Object)()
+                End Get
+            End Property
+
+            Public ReadOnly Property [Event] As IEventSymbol Implements IEventAssignmentExpression.Event
+                Get
+                    Dim eventAccess As BoundEventAccess = TryCast(_statement.EventAccess, BoundEventAccess)
+                    If eventAccess IsNot Nothing Then
+                        Return eventAccess.EventSymbol
+                    End If
+
+                    Return Nothing
+                End Get
+            End Property
+
+            Public ReadOnly Property EventInstance As IExpression Implements IEventAssignmentExpression.EventInstance
+                Get
+                    Dim eventAccess As BoundEventAccess = TryCast(_statement.EventAccess, BoundEventAccess)
+                    If eventAccess IsNot Nothing Then
+                        Return eventAccess.ReceiverOpt
+                    End If
+
+                    Return Nothing
+                End Get
+            End Property
+
+            Public ReadOnly Property HandlerValue As IExpression Implements IEventAssignmentExpression.HandlerValue
+                Get
+                    Return _statement.Handler
+                End Get
+            End Property
+
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return _statement.HasErrors
+                End Get
+            End Property
+
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                Get
+                    Return OperationKind.EventAssignmentExpression
+                End Get
+            End Property
+
+            Public ReadOnly Property ResultType As ITypeSymbol Implements IExpression.ResultType
+                Get
+                    Return Nothing
+                End Get
+            End Property
+
+            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                Get
+                    Return _statement.Syntax
+                End Get
+            End Property
+        End Class
     End Class
 
     Partial Class BoundAddHandlerStatement
 
-        Protected Overrides ReadOnly Property IAdds As Boolean
+        Protected Overrides ReadOnly Property IExpression As IExpression
             Get
-                Return True
+                Return s_expressionsMappings.GetValue(Me, Function(statement)
+                                                              Return New EventAssignmentExpression(statement, True)
+                                                          End Function)
             End Get
         End Property
     End Class
 
     Partial Class BoundRemoveHandlerStatement
 
-        Protected Overrides ReadOnly Property IAdds As Boolean
+        Protected Overrides ReadOnly Property IExpression As IExpression
             Get
-                Return False
+                Return s_expressionsMappings.GetValue(Me, Function(statement)
+                                                              Return New EventAssignmentExpression(statement, False)
+                                                          End Function)
             End Get
         End Property
     End Class

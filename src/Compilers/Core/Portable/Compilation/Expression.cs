@@ -255,14 +255,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         public Binary(BinaryOperationKind binaryKind, IExpression left, IExpression right, ITypeSymbol resultType, SyntaxNode syntax)
         {
-            this.BinaryKind = binaryKind;
+            this.BinaryOperationKind = binaryKind;
             this.Left = left;
             this.Right = right;
             this.ResultType = resultType;
             this.Syntax = syntax;
         }
 
-        public BinaryOperationKind BinaryKind { get; }
+        public BinaryOperationKind BinaryOperationKind { get; }
 
         public IExpression Left { get; }
 
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             _arrayType = arrayType;
             this.DimensionSizes = ImmutableArray.Create<IExpression>(new IntegerLiteral(elementValues.Count(), null, syntax));
-            this.ElementValues = new DimensionInitializer(elementValues);
+            this.Initializer = new ArrayInitializer(elementValues, syntax, arrayType);
             this.Syntax = syntax;
         }
 
@@ -301,68 +301,38 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public ITypeSymbol ElementType => _arrayType.ElementType;
 
-        public IArrayInitializer ElementValues { get; }
+        public IArrayInitializer Initializer { get; }
 
         public SyntaxNode Syntax { get; }
 
         public OperationKind Kind => OperationKind.ArrayCreationExpression;
 
-        public bool IsInvalid => IsInvalidInitializer(ElementValues);
+        public bool IsInvalid => IsInvalidInitializer(Initializer);
        
-        static bool IsInvalidInitializer(IArrayInitializer initializer)
-        {
-            switch (initializer.ArrayClass)
-            {
-                case ArrayInitializerKind.Dimension:
-                    foreach (IArrayInitializer element in ((IDimensionArrayInitializer)initializer).ElementValues)
-                    {
-                        if (IsInvalidInitializer(element))
-                        {
-                            return true;
-                        }
-                    }
-
-                    break;
-
-                case ArrayInitializerKind.Expression:
-                    return ((IExpressionArrayInitializer)initializer).ElementValue.IsInvalid;
-            }
-
-            return false;
-        }
+        static bool IsInvalidInitializer(IArrayInitializer initializer) => initializer.IsInvalid;
 
         public Optional<object> ConstantValue => default(Optional<object>);
 
-        private class DimensionInitializer : IDimensionArrayInitializer
+        private class ArrayInitializer : IArrayInitializer
         {
-            private readonly ImmutableArray<IArrayInitializer> _elementValues;
-
-            public DimensionInitializer(ImmutableArray<IExpression> elementValues)
+            public ArrayInitializer(ImmutableArray<IExpression> elementValues, SyntaxNode syntax, ITypeSymbol arrayType)
             {
-                ArrayBuilder<IArrayInitializer> builder = ArrayBuilder<IArrayInitializer>.GetInstance();
-                foreach (IExpression element in elementValues)
-                {
-                    builder.Add(new ExpressionInitializer(element));
-                }
-
-                _elementValues = builder.ToImmutableAndFree();
+                ElementValues = elementValues;
+                Syntax = syntax;
+                ResultType = arrayType;
             }
 
-            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Dimension;
+            public ImmutableArray<IExpression> ElementValues { get; }
 
-            public ImmutableArray<IArrayInitializer> ElementValues => _elementValues;
-        }
+            public bool IsInvalid => ElementValues.Any(v => v.IsInvalid);
 
-        private class ExpressionInitializer : IExpressionArrayInitializer
-        {
-            public ExpressionInitializer(IExpression expression)
-            {
-                ElementValue = expression;
-            }
+            public OperationKind Kind => OperationKind.ArrayInitializer;
 
-            public ArrayInitializerKind ArrayClass => ArrayInitializerKind.Expression;
+            public ITypeSymbol ResultType { get; }
 
-            public IExpression ElementValue { get; }
+            public SyntaxNode Syntax { get; }
+
+            public Optional<object> ConstantValue => default(Optional<object>);
         }
     }
     
