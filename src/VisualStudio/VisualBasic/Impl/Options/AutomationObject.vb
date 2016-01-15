@@ -143,12 +143,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property Style_QualifyMemberAccessWithThisOrMe As Boolean
+        Public Property Style_QualifyFieldAccess As Boolean
             Get
-                Return GetBooleanOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe)
+                Return GetBooleanOption(SimplificationOptions.QualifyFieldAccess)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, value)
+                SetBooleanOption(SimplificationOptions.QualifyFieldAccess, value)
+            End Set
+        End Property
+
+        Public Property Style_QualifyPropertyAccess As Boolean
+            Get
+                Return GetBooleanOption(SimplificationOptions.QualifyPropertyAccess)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(SimplificationOptions.QualifyPropertyAccess, value)
+            End Set
+        End Property
+
+        Public Property Style_QualifyMethodAccess As Boolean
+            Get
+                Return GetBooleanOption(SimplificationOptions.QualifyMethodAccess)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(SimplificationOptions.QualifyMethodAccess, value)
+            End Set
+        End Property
+
+        Public Property Style_QualifyEventAccess As Boolean
+            Get
+                Return GetBooleanOption(SimplificationOptions.QualifyEventAccess)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(SimplificationOptions.QualifyEventAccess, value)
             End Set
         End Property
 

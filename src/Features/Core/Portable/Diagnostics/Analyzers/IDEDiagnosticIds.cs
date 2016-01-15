@@ -6,9 +6,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public const string SimplifyNamesDiagnosticId = "IDE0001";
         public const string SimplifyMemberAccessDiagnosticId = "IDE0002";
-        public const string SimplifyThisOrMeDiagnosticId = "IDE0003";
+        public const string RemoveQualificationDiagnosticId = "IDE0003";
         public const string RemoveUnnecessaryCastDiagnosticId = "IDE0004";
         public const string RemoveUnnecessaryImportsDiagnosticId = "IDE0005";
+        public const string AddQualificationDiagnosticId = "IDE0006";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

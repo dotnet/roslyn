@@ -699,8 +699,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) &&
-                memberAccess.Expression.Kind() == SyntaxKind.ThisExpression)
+            if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
+                !SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet))
             {
                 return false;
             }

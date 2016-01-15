@@ -459,4 +459,7 @@
   <data name="FixableDiagnosticIdsIncorrectlyInitialized" xml:space="preserve">
     <value>'{0}' returned an uninitialized ImmutableArray</value>
   </data>
+  <data name="MemberAccessShouldBeQualified" xml:space="preserve">
+    <value>Member access should be qualified.</value>
+  </data>
 </root>

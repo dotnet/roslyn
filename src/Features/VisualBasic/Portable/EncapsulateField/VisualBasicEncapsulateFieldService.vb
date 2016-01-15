@@ -32,7 +32,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             Dim identifier = fieldIdentifier.Identifier
             Dim annotation = New SyntaxAnnotation()
             Dim escapedName = originalFieldName.EscapeIdentifier()
-            root = root.ReplaceNode(fieldIdentifier, fieldIdentifier.WithIdentifier(SyntaxFactory.Identifier(escapedName)).WithAdditionalAnnotations(annotation, Formatter.Annotation))
+            Dim newIdentifier = SyntaxFactory.Identifier(
+                text:=escapedName,
+                isBracketed:=escapedName <> originalFieldName,
+                identifierText:=originalFieldName,
+                typeCharacter:=TypeCharacter.None)
+            root = root.ReplaceNode(fieldIdentifier, fieldIdentifier.WithIdentifier(newIdentifier).WithAdditionalAnnotations(annotation, Formatter.Annotation))
             fieldIdentifier = root.GetAnnotatedNodes(Of ModifiedIdentifierSyntax)(annotation).First()
             If (DirectCast(fieldIdentifier.Parent, VariableDeclaratorSyntax).Names.Count = 1) Then
                 Dim fieldDeclaration = DirectCast(fieldIdentifier.Parent.Parent, FieldDeclarationSyntax)

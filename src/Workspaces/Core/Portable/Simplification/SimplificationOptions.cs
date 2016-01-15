@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Simplification
@@ -45,9 +46,30 @@ namespace Microsoft.CodeAnalysis.Simplification
         public static Option<bool> AllowSimplificationToBaseType { get; } = new Option<bool>(NonPerLanguageFeatureName, "AllowSimplificationToBaseType", true);
 
         /// <summary>
-        /// This option says if we should simplify away the this. or Me. in member access expression
+        /// This option says if we should simplify away the <see langword="this"/> or <see langword="Me"/> in member access expressions.
         /// </summary>
+        [Obsolete]
         public static PerLanguageOption<bool> QualifyMemberAccessWithThisOrMe { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMemberAccessWithThisOrMe", defaultValue: false);
+
+        /// <summary>
+        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in field access expressions.
+        /// </summary>
+        public static PerLanguageOption<bool> QualifyFieldAccess { get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyFieldAccess", defaultValue: false);
+
+        /// <summary>
+        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in property access expressions.
+        /// </summary>
+        public static PerLanguageOption<bool> QualifyPropertyAccess{ get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyPropertyAccess", defaultValue: false);
+
+        /// <summary>
+        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in method access expressions.
+        /// </summary>
+        public static PerLanguageOption<bool> QualifyMethodAccess{ get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyMethodAccess", defaultValue: false);
+
+        /// <summary>
+        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in event access expressions.
+        /// </summary>
+        public static PerLanguageOption<bool> QualifyEventAccess{ get; } = new PerLanguageOption<bool>(PerLanguageFeatureName, "QualifyEventAccess", defaultValue: false);
 
         /// <summary>
         /// This option says if we should prefer keyword for Intrinsic Predefined Types in Declarations
