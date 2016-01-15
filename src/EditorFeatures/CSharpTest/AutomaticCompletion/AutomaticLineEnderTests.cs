@@ -841,9 +841,9 @@ $$
 }");
         }
 
-        protected override Task<TestWorkspace> CreateWorkspaceAsync(string[] code)
+        protected override Task<TestWorkspace> CreateWorkspaceAsync(string code)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code);
+            return CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code);
         }
 
         protected override Action CreateNextHandler(TestWorkspace workspace)

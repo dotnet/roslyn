@@ -2578,7 +2578,7 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new string[] { markup }, parseOptions: option))
+                using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, parseOptions: option))
                 {
                     var subjectDocument = workspace.Documents.Single();
 

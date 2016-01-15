@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                                   beforeCaret As Integer(),
                                   after As String(),
                                   afterCaret As Integer()) As Tasks.Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(before, exportProvider:=DisabledLineCommitExportProvider)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Join(Environment.NewLine, before), exportProvider:=DisabledLineCommitExportProvider)
                 DisableLineCommit(workspace)
 
                 Dim textView = workspace.Documents.First().GetTextView()
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         Private Async Function VerifyNotAppliedAsync(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
                                      text As String(),
                                      caret As Integer()) As Tasks.Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(text)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Join(Environment.NewLine, text))
                 Dim textView = workspace.Documents.First().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
 
@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             afterCaret As Integer()) As Tasks.Task
 
             ' create separate composition
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync({before}, exportProvider:=DisabledLineCommitExportProvider)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(before, exportProvider:=DisabledLineCommitExportProvider)
                 DisableLineCommit(workspace)
 
                 Dim view = workspace.Documents.First().GetTextView()

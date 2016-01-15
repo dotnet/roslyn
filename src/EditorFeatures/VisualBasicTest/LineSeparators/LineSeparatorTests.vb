@@ -279,7 +279,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
         End Function
 
         Private Async Function AssertTagsAsync(spans As IEnumerable(Of TextSpan), ParamArray lines As String()) As Tasks.Task
-            Dim tags = Await GetSpansForAsync(lines)
+            Dim tags = Await GetSpansForAsync(String.Join(Environment.NewLine, lines))
             Assert.Equal(spans.Count(), tags.Count())
 
             Dim i As Integer = 0
@@ -289,8 +289,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
             Next
         End Function
 
-        Private Async Function GetSpansForAsync(ParamArray lines As String()) As Tasks.Task(Of IEnumerable(Of TextSpan))
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(lines)
+        Private Async Function GetSpansForAsync(content As String) As Tasks.Task(Of IEnumerable(Of TextSpan))
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(content)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Dim spans = Await New VisualBasicLineSeparatorService().GetLineSeparatorsAsync(document,
                     (Await document.GetSyntaxRootAsync()).FullSpan)

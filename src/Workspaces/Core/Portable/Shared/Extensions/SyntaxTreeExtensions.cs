@@ -236,6 +236,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
                 position, includeSkipped, includeDirectives, includeDocumentationComments);
         }
-
     }
 }
