@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -10,238 +10,238 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class NullKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AtRoot_Interactive()
+        public async Task TestAtRoot_Interactive()
         {
-            VerifyKeyword(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterClass_Interactive()
+        public async Task TestAfterClass_Interactive()
         {
-            VerifyKeyword(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"class C { }
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterGlobalStatement_Interactive()
+        public async Task TestAfterGlobalStatement_Interactive()
         {
-            VerifyKeyword(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"System.Console.WriteLine();
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterGlobalVariableDeclaration_Interactive()
+        public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
-            VerifyKeyword(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"int i = 0;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInUsingAlias()
+        public async Task TestNotInUsingAlias()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"using Foo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InEmptyStatement()
+        public async Task TestInEmptyStatement()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InExpression()
+        public async Task TestInExpression()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"var q = $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPIf()
+        public async Task TestNotInPPIf()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPIf_Or()
+        public async Task TestNotInPPIf_Or()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if a || $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPIf_And()
+        public async Task TestNotInPPIf_And()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if a && $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPIf_Not()
+        public async Task TestNotInPPIf_Not()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if ! $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPIf_Paren()
+        public async Task TestNotInPPIf_Paren()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if ( $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPIf_Equals()
+        public async Task TestNotInPPIf_Equals()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if a == $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPIf_NotEquals()
+        public async Task TestNotInPPIf_NotEquals()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if a != $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPElIf()
+        public async Task TestNotInPPElIf()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if true
 #elif $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPelIf_Or()
+        public async Task TestNotInPPelIf_Or()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if true
 #elif a || $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPElIf_And()
+        public async Task TestNotInPPElIf_And()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if true
 #elif a && $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPElIf_Not()
+        public async Task TestNotInPPElIf_Not()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if true
 #elif ! $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPElIf_Paren()
+        public async Task TestNotInPPElIf_Paren()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if true
 #elif ( $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPElIf_Equals()
+        public async Task TestNotInPPElIf_Equals()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if true
 #elif a == $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInPPElIf_NotEquals()
+        public async Task TestNotInPPElIf_NotEquals()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#if true
 #elif a != $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterUnaryOperator()
+        public async Task TestNotAfterUnaryOperator()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class C {
    public static bool operator $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterImplicitOperator()
+        public async Task TestNotAfterImplicitOperator()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class C {
    public static implicit operator $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterExplicitOperator()
+        public async Task TestNotAfterExplicitOperator()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class C {
    public static implicit operator $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterCastInField()
+        public async Task TestAfterCastInField()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C {
    public static readonly ImmutableList<T> Empty = new ImmutableList<T>((Segment)$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InTernary()
+        public async Task TestInTernary()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"SyntaxKind kind = caseOrDefaultKeywordOpt == $$ ? SyntaxKind.GotoStatement :
                 caseOrDefaultKeyword.Kind == SyntaxKind.CaseKeyword ? SyntaxKind.GotoCaseStatement : SyntaxKind.GotoDefaultStatement;"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InForMiddle()
+        public async Task TestInForMiddle()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"for (int i = 0; $$"));
         }
 
         [WorkItem(538804)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInTypeOf()
+        public async Task TestNotInTypeOf()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"typeof($$"));
         }
 
         [WorkItem(538804)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInDefault()
+        public async Task TestNotInDefault()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"default($$"));
         }
 
         [WorkItem(538804)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInSizeOf()
+        public async Task TestNotInSizeOf()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"sizeof($$"));
         }
 
         [WorkItem(541670)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InReferenceSwitch()
+        public async Task TestInReferenceSwitch()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"switch (""foo"")
         {
             case $$
@@ -251,9 +251,9 @@ $$");
 #if false
         [WorkItem(8486)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInValueSwitch()
+        public async Task TestNotInValueSwitch()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"switch (0)
         {
             case $$
@@ -263,17 +263,17 @@ $$");
 
         [WorkItem(543766)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInDefaultParameterValue()
+        public async Task TestNotInDefaultParameterValue()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C { void Foo(string[] args = $$");
         }
 
         [WorkItem(544219)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInObjectInitializerMemberContext()
+        public async Task TestNotInObjectInitializerMemberContext()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 class C
 {
     public int x, y;
@@ -284,9 +284,9 @@ class C
 
         [WorkItem(546938)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInCrefContext()
+        public async Task TestNotInCrefContext()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 class Program
 {
     /// <see cref=""$$"">
@@ -299,9 +299,9 @@ class Program
 
         [WorkItem(546955)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InCrefContextNotAfterDot()
+        public async Task TestInCrefContextNotAfterDot()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 /// <see cref=""System.$$"" />
 class C { }
 ");

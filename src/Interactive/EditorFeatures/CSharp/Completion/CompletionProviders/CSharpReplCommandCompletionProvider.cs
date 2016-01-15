@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
             return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
         }
 
-        protected override bool ShouldDisplayCommandCompletions(SyntaxTree tree, int position, CancellationToken cancellationToken)
+        protected override async Task<bool> ShouldDisplayCommandCompletionsAsync(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {
-            return tree.IsBeforeFirstToken(position, cancellationToken) &&
+            return await tree.IsBeforeFirstTokenAsync(position, cancellationToken).ConfigureAwait(false) &&
                    tree.IsPreProcessorKeywordContext(position, cancellationToken);
         }
     }

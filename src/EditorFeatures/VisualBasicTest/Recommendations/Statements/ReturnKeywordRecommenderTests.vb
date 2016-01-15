@@ -1,42 +1,41 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ReturnKeywordRecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ReturnInMethodBody()
+        Public Async Function ReturnInMethodBodyTest() As Task
             ' We can always exit a Sub/Function, so it should be there
-            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Return")
-        End Sub
+            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Return")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ReturnInPropertyGet()
+        Public Async Function ReturnInPropertyGetTest() As Task
             ' We can always exit a Sub/Function, so it should be there
-            VerifyRecommendationsContain(<ClassDeclaration>
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
 ReadOnly Property Foo
 Get
 |
 End Get
 End Property
 </ClassDeclaration>, "Return")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ReturnInPropertySet()
+        Public Async Function ReturnInPropertySetTest() As Task
             ' We can always exit a Sub/Function, so it should be there
-            VerifyRecommendationsContain(<ClassDeclaration>
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
 WriteOnly Property Foo
 Set
 |
 End Set
 End Property
 </ClassDeclaration>, "Return")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ReturnInLoopInClassDeclarationLambda()
-            VerifyRecommendationsContain(<ClassDeclaration>
+        Public Async Function ReturnInLoopInClassDeclarationLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
 Private _member = Sub()
 Do
 |
@@ -44,26 +43,26 @@ Loop
 End Sub
                                          </ClassDeclaration>, "Return")
 
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ReturnInClassDeclarationLambda()
-            VerifyRecommendationsContain(<ClassDeclaration>
+        Public Async Function ReturnInClassDeclarationLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
 Private _member = Sub()
 |
 End Sub
                                          </ClassDeclaration>, "Return")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ReturnInClassDeclarationSingleLineLambda()
-            VerifyRecommendationsContain(<ClassDeclaration>
+        Public Async Function ReturnInClassDeclarationSingleLineLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
 Private _member = Sub() |
                                          </ClassDeclaration>, "Return")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ReturnNotInFinallyBlock()
+        Public Async Function ReturnNotInFinallyBlockTest() As Task
             Dim code =
 <MethodBody>
 Try
@@ -71,8 +70,7 @@ Finally
     |
 </MethodBody>
 
-            VerifyRecommendationsMissing(code, "Return")
-        End Sub
-
+            Await VerifyRecommendationsMissingAsync(code, "Return")
+        End Function
     End Class
 End Namespace

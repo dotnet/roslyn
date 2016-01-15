@@ -3,44 +3,44 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class RegionDirectiveKeywordRecommenderTests
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashRegionInFile()
-            VerifyRecommendationsContain(<File>|</File>, "#Region")
-        End Sub
+        Public Async Function HashRegionInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>|</File>, "#Region")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashRegionInLambda()
-            VerifyRecommendationsContain(<ClassDeclaration>Dim x = Function()
+        Public Async Function HashRegionInLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Dim x = Function()
 |
 End Function</ClassDeclaration>, "#Region")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInEnumBlockMemberDeclaration()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NotInEnumBlockMemberDeclarationTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
                                              Enum foo
                                                 |
                                             End enum
                                          </File>, "#Region")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterHashEnd()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NotAfterHashEndTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #Region "foo"
 
 #End |</File>, "#Region")
-        End Sub
+        End Function
 
         <WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterHashRegion()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NotAfterHashRegionTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
                                          Class C
 
                                              #Region |
 
                                          End Class
                                          </File>, "#Region")
-        End Sub
+        End Function
     End Class
 End Namespace

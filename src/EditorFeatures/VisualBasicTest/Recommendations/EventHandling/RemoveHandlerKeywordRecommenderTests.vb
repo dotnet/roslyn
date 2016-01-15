@@ -1,52 +1,54 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
     Public Class RemoveHandlerKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub RemoveHandlerHelpText()
-            VerifyRecommendationDescriptionTextIs(<MethodBody>|</MethodBody>, "RemoveHandler",
+        Public Async Function RemoveHandlerHelpTextTest() As Task
+            Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>|</MethodBody>, "RemoveHandler",
 $"{VBFeaturesResources.RemovehandlerStatement}
 {RemovesEventAssociation}
 RemoveHandler {Event1}, {Handler}")
-        End Sub
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub RemoveHandlerInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "RemoveHandler")
-        End Sub
+        Public Async Function RemoveHandlerInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "RemoveHandler")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub RemoveHandlerAfterStatement()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function RemoveHandlerAfterStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x 
 |</MethodBody>, "RemoveHandler")
-        End Sub
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub RemoveHandlerMissingInClassBlock()
-            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "RemoveHandler")
-        End Sub
+        Public Async Function RemoveHandlerMissingInClassBlockTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "RemoveHandler")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub RemoveHandlerInSingleLineLambda()
-            VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "RemoveHandler")
-        End Sub
+        Public Async Function RemoveHandlerInSingleLineLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Sub() |</MethodBody>, "RemoveHandler")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub RemoveHandlerInSingleLineFunctionLambda()
-            VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "RemoveHandler")
-        End Sub
+        Public Async Function RemoveHandlerInSingleLineFunctionLambdaTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Function() |</MethodBody>, "RemoveHandler")
+        End Function
 
         <Fact>
         <WorkItem(808406)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub RemoveHandlerInCustomEvent()
+        Public Async Function RemoveHandlerInCustomEventTest() As Task
             Dim code = <File>
 Public Class Z
     Public Custom Event E As Action
@@ -54,13 +56,13 @@ Public Class Z
     End Event
 End Class</File>
 
-            VerifyRecommendationsContain(code, "RemoveHandler")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "RemoveHandler")
+        End Function
 
         <Fact>
         <WorkItem(808406)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotRemoveHandlerInCustomEventWithRemoveHandler()
+        Public Async Function NotRemoveHandlerInCustomEventWithRemoveHandlerTest() As Task
             Dim code = <File>
 Public Class Z
     Public Custom Event E As Action
@@ -70,7 +72,7 @@ Public Class Z
     End Event
 End Class</File>
 
-            VerifyRecommendationsMissing(code, "RemoveHandler")
-        End Sub
+            Await VerifyRecommendationsMissingAsync(code, "RemoveHandler")
+        End Function
     End Class
 End Namespace
