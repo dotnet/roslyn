@@ -4390,6 +4390,78 @@ End Class
 
             Await TestAsync(input, expected)
         End Function
+
+        <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function UsePredefinedTypeKeywordIfTextIsTheSame() As Task
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+                    <![CDATA[
+Imports System
+
+Class C
+    Sub M(p As {|Simplify:[String]|})
+    End Sum
+End Class
+]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+                  <![CDATA[
+Imports System
+
+Class C
+    Sub M(p As String)
+    End Sum
+End Class
+]]></text>
+
+            Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+        End Function
+
+        <WorkItem(7955, "https://github.com/dotnet/roslyn/issues/7955")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function DontUsePredefinedTypeKeyword() As Task
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+                    <![CDATA[
+Imports System
+
+Class C
+    Sub M(p As {|Simplify:Int32|})
+    End Sum
+End Class
+]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+                  <![CDATA[
+Imports System
+
+Class C
+    Sub M(p As Int32)
+    End Sum
+End Class
+]]></text>
+
+            Await TestAsync(input, expected, DontPreferIntrinsicPredefinedTypeKeywordInDeclaration)
+        End Function
+#End Region
+
+#Region "Helpers"
+
+        Shared DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}}
+
 #End Region
 
     End Class
