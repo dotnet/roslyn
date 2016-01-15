@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
             }
 
             var codeAction = new MyCodeAction(
-                                "Use var", // TODO: use localizable strings.
+                                CSharpFeaturesResources.UseImplicitTyping,
                                 c => ReplaceTypeWithVar(context, document, root, node));
 
             context.RegisterCodeFix(codeAction, context.Diagnostics.First());

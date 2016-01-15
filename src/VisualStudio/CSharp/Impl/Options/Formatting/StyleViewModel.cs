@@ -179,12 +179,11 @@ class C{
             Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, s_intrinsicPreviewMemberAccessTrue, s_intrinsicPreviewMemberAccessFalse, this, optionSet));
             Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, CSharpVSResources.UseVarWhenGeneratingLocals, s_varPreviewTrue, s_varPreviewFalse, this, optionSet));
 
-            // TODO (BalajiK): Localize all strings from here.
-            Items.Add(new HeaderItemViewModel() { Header = "Type Inference preferences:" });
+            Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.SetTypeInferencePreferences });
 
-            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, "use var for intrinsic types", s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, "use var where typing is apparent", s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWherePossible, "use var where possible", s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, CSharpVSResources.UseVarForIntrinsicTypes, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, CSharpVSResources.UseVarWhenTypeIsApparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet));
+            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWherePossible, CSharpVSResources.UseVarWhenPossible, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet));
         }
     }
 }

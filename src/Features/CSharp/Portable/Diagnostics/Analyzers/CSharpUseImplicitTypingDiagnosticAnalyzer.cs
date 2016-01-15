@@ -3,7 +3,6 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,18 +15,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpUseImplicitTypingDiagnosticAnalyzer : CSharpTypingStyleDiagnosticAnalyzerBase
     {
-        // TODO: 
-        // 1. localize title and message
-        // 2. tweak severity and custom tags 
-        //      a. need to have various levels of diagnostics to report based on option settings.
+
+        private static readonly LocalizableString s_Title =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseImplicitTypingDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+
+        private static readonly LocalizableString s_Message =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseImplicitTyping), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+
         private static readonly DiagnosticDescriptor s_descriptorUseImplicitTyping = new DiagnosticDescriptor(
             id: IDEDiagnosticIds.UseImplicitTypingDiagnosticId,
-            title: "Use implicit typing",
-            messageFormat: "Use var instead of explicit type name",
+            title: s_Title,
+            messageFormat: s_Message,
             category: DiagnosticCategory.Style,
             defaultSeverity: DiagnosticSeverity.Info,
-            isEnabledByDefault: true,
-            customTags: DiagnosticCustomTags.Unnecessary);
+            isEnabledByDefault: true);
 
         public CSharpUseImplicitTypingDiagnosticAnalyzer() : base(s_descriptorUseImplicitTyping)
         {

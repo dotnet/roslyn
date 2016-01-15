@@ -14,18 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpUseExplicitTypingDiagnosticAnalyzer : CSharpTypingStyleDiagnosticAnalyzerBase
     {
-        // TODO: 
-        // 1. localize title and message
-        // 2. tweak severity and custom tags 
-        //      a. need to have various levels of diagnostics to report based on option settings.
+        private static readonly LocalizableString s_Title =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitTypingDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+
+        private static readonly LocalizableString s_Message =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitTyping), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+
         private static readonly DiagnosticDescriptor s_descriptorUseImplicitTyping = new DiagnosticDescriptor(
             id: IDEDiagnosticIds.UseExplicitTypingDiagnosticId,
-            title: "Use explicit typing",
-            messageFormat: "Use type name instead of var",
+            title: s_Title,
+            messageFormat: s_Message,
             category: DiagnosticCategory.Style,
             defaultSeverity: DiagnosticSeverity.Info,
-            isEnabledByDefault: true,
-            customTags: DiagnosticCustomTags.Unnecessary);
+            isEnabledByDefault: true);
 
         public CSharpUseExplicitTypingDiagnosticAnalyzer() : base(s_descriptorUseImplicitTyping)
         {

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     {
         internal const string FeatureName = "CSharpCodeStyle";
 
-        // TODO (BalajiK): repurpose this instead of adding a new one below?
+        // TODO: get sign off on public api changes.
         public static readonly Option<bool> UseVarWhenDeclaringLocals = new Option<bool>(FeatureName, "UseVarWhenDeclaringLocals", defaultValue: true);
 
         public static readonly Option<bool> UseVarForIntrinsicTypes = new Option<bool>(FeatureName, "UseImplicitTypingForIntrinsics", defaultValue: false);

@@ -43,9 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
         public override void Initialize(AnalysisContext context)
         {
-            // TODO: check for generatedcode and bail.
-            // context.ConfigureGeneratedCodeAnalysis() See https://github.com/dotnet/roslyn/pull/7526
-
             context.RegisterSyntaxNodeAction(HandleVariableDeclaration, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement);
         }
 

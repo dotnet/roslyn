@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping
             }
 
             var codeAction = new MyCodeAction(
-                "Use typename instead of var", // TODO: use localizable strings.
+                CSharpFeaturesResources.UseExplicitTyping,
                 c => HandleDeclaration(document, root, node, context.CancellationToken));
 
             context.RegisterCodeFix(codeAction, context.Diagnostics.First());
