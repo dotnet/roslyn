@@ -23,12 +23,36 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
+        private class ProjectInfo
+        {
+            public readonly VersionStamp VersionStamp;
+            public readonly SymbolTreeInfo SymbolTreeInfo;
+
+            public ProjectInfo(VersionStamp versionStamp, SymbolTreeInfo info)
+            {
+                VersionStamp = versionStamp;
+                SymbolTreeInfo = info;
+            }
+        }
+
+        private class MetadataInfo
+        {
+            public readonly DateTime TimeStamp;
+            public readonly SymbolTreeInfo SymbolTreeInfo;
+            public readonly HashSet<ProjectId> ReferencingProjects;
+
+            public MetadataInfo(DateTime timeStamp, SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
+            {
+                TimeStamp = timeStamp;
+                SymbolTreeInfo = info;
+                ReferencingProjects = referencingProjects;
+            }
+        }
+
         // Concurrent dictionaries so they can be read from the SymbolTreeInfoCacheService while 
         // they are being populated/updated by the IncrementalAnalyzer.
-        private readonly ConcurrentDictionary<ProjectId, Tuple<VersionStamp, SymbolTreeInfo>> _projectToInfo = 
-            new ConcurrentDictionary<ProjectId, Tuple<VersionStamp, SymbolTreeInfo>>();
-        private readonly ConcurrentDictionary<string, Tuple<DateTime, SymbolTreeInfo, HashSet<ProjectId>>> _metadataPathToInfo =
-            new ConcurrentDictionary<string, Tuple<DateTime, SymbolTreeInfo, HashSet<ProjectId>>>();
+        private readonly ConcurrentDictionary<ProjectId, ProjectInfo> _projectToInfo = new ConcurrentDictionary<ProjectId, ProjectInfo>();
+        private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo = new ConcurrentDictionary<string, MetadataInfo>();
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
@@ -45,21 +69,29 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             return reference.FilePath ?? reference.Display;
         }
 
-        private static ValueTuple<bool, DateTime> GetLastWriteTime(string path)
+        private static bool TryGetLastWriteTime(string path, out DateTime time)
         {
-            return IOUtilities.PerformIO(
-                () => ValueTuple.Create(true, File.GetLastWriteTimeUtc(path)),
-                ValueTuple.Create(false, default(DateTime)));
+            var succeeded = false;
+            time = IOUtilities.PerformIO(
+                () =>
+                {
+                    var result = File.GetLastWriteTimeUtc(path);
+                    succeeded = true;
+                    return result;
+                },
+                default(DateTime));
+
+            return succeeded;
         }
 
         private class SymbolTreeInfoCacheService : ISymbolTreeInfoCacheService
         {
-            private readonly ConcurrentDictionary<ProjectId, Tuple<VersionStamp, SymbolTreeInfo>> _projectToInfo;
-            private readonly ConcurrentDictionary<string, Tuple<DateTime, SymbolTreeInfo, HashSet<ProjectId>>> _metadataPathToInfo;
+            private readonly ConcurrentDictionary<ProjectId, ProjectInfo> _projectToInfo;
+            private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo;
 
             public SymbolTreeInfoCacheService(
-                ConcurrentDictionary<ProjectId, Tuple<VersionStamp, SymbolTreeInfo>> projectToInfo,
-                ConcurrentDictionary<string, Tuple<DateTime, SymbolTreeInfo, HashSet<ProjectId>>> metadataPathToInfo)
+                ConcurrentDictionary<ProjectId, ProjectInfo> projectToInfo,
+                ConcurrentDictionary<string, MetadataInfo> metadataPathToInfo)
             {
                 _projectToInfo = projectToInfo;
                 _metadataPathToInfo = metadataPathToInfo;
@@ -70,13 +102,13 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 var key = GetReferenceKey(reference);
                 if (key != null)
                 {
-                    Tuple<DateTime, SymbolTreeInfo, HashSet<ProjectId>> tuple;
-                    if (_metadataPathToInfo.TryGetValue(key, out tuple))
+                    MetadataInfo metadataInfo;
+                    if (_metadataPathToInfo.TryGetValue(key, out metadataInfo))
                     {
-                        var version = GetLastWriteTime(key);
-                        if (version.Item1 && version.Item2 == tuple.Item1)
+                        DateTime writeTime;
+                        if (TryGetLastWriteTime(key, out writeTime) && writeTime == metadataInfo.TimeStamp)
                         {
-                            return Task.FromResult(ValueTuple.Create(true, tuple.Item2));
+                            return Task.FromResult(ValueTuple.Create(true, metadataInfo.SymbolTreeInfo));
                         }
                     }
                 }
@@ -86,13 +118,13 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public async Task<ValueTuple<bool, SymbolTreeInfo>> TryGetSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
-                Tuple<VersionStamp, SymbolTreeInfo> tuple;
-                if (_projectToInfo.TryGetValue(project.Id, out tuple))
+                ProjectInfo projectInfo;
+                if (_projectToInfo.TryGetValue(project.Id, out projectInfo))
                 {
                     var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-                    if (version == tuple.Item1)
+                    if (version == projectInfo.VersionStamp)
                     {
-                        return ValueTuple.Create(true, tuple.Item2);
+                        return ValueTuple.Create(true, projectInfo.SymbolTreeInfo);
                     }
                 }
 
@@ -102,7 +134,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
         private class IncrementalAnalyzer : IncrementalAnalyzerBase
         {
-            private readonly ConcurrentDictionary<ProjectId, Tuple<VersionStamp, SymbolTreeInfo>> _projectToInfo;
+            private readonly ConcurrentDictionary<ProjectId, ProjectInfo> _projectToInfo;
 
             // Note: the Incremental-Analyzer infrastructure guarantees that it will call all the methods
             // on this type in a serial fashion.  As such, we don't need explicit locking, or threadsafe
@@ -110,11 +142,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             // needs to be a ConcurrentDictionary as it will be read and written from multiple types.
             // However, the HashSet<ProjectId> is ok as it will only be used by this type and there is
             // no concurrency in this type on its own.
-            private readonly ConcurrentDictionary<string, Tuple<DateTime, SymbolTreeInfo, HashSet<ProjectId>>> _metadataPathToInfo;
+            private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo;
 
             public IncrementalAnalyzer(
-                ConcurrentDictionary<ProjectId, Tuple<VersionStamp, SymbolTreeInfo>> projectToInfo,
-                ConcurrentDictionary<string, Tuple<DateTime, SymbolTreeInfo, HashSet<ProjectId>>> metadataPathToInfo)
+                ConcurrentDictionary<ProjectId, ProjectInfo> projectToInfo,
+                ConcurrentDictionary<string, MetadataInfo> metadataPathToInfo)
             {
                 _projectToInfo = projectToInfo;
                 _metadataPathToInfo = metadataPathToInfo;
@@ -130,15 +162,15 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 await UpdateReferencesAync(project, cancellationToken).ConfigureAwait(false);
 
                 var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-                Tuple<VersionStamp, SymbolTreeInfo> tuple;
-                if (_projectToInfo.TryGetValue(project.Id, out tuple) && tuple.Item1 == version)
+                ProjectInfo projectInfo;
+                if (_projectToInfo.TryGetValue(project.Id, out projectInfo) && projectInfo.VersionStamp == version)
                 {
                     return;
                 }
 
                 var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
-                tuple = Tuple.Create(version, info);
-                _projectToInfo.AddOrUpdate(project.Id, tuple, (_1, _2) => tuple);
+                projectInfo = new ProjectInfo(version, info);
+                _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
             }
 
             private async Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
@@ -156,15 +188,15 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 var key = GetReferenceKey(reference);
                 if (key != null)
                 {
-                    var lastWriteTime = GetLastWriteTime(key);
-                    if (!lastWriteTime.Item1)
+                    DateTime lastWriteTime;
+                    if (!TryGetLastWriteTime(key, out lastWriteTime))
                     {
                         // Couldn't get the write time.  Just ignore this reference.
                         return compilation;
                     }
 
-                    Tuple<DateTime, SymbolTreeInfo, HashSet<ProjectId>> tuple;
-                    if (_metadataPathToInfo.TryGetValue(key, out tuple) && tuple.Item1 == lastWriteTime.Item2) 
+                    MetadataInfo metadataInfo;
+                    if (_metadataPathToInfo.TryGetValue(key, out metadataInfo) && metadataInfo.TimeStamp == lastWriteTime) 
                     {
                         // We've already computed and cached the info for this reference.
                         return compilation;
@@ -175,12 +207,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     if (assembly != null)
                     {
                         var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, cancellationToken).ConfigureAwait(false);
-                        tuple = tuple ?? Tuple.Create(lastWriteTime.Item2, info, new HashSet<ProjectId>());
+                        metadataInfo = metadataInfo ?? new MetadataInfo(lastWriteTime, info, new HashSet<ProjectId>());
 
                         // Keep track that this dll is referenced by this project.
-                        tuple.Item3.Add(project.Id);
+                        metadataInfo.ReferencingProjects.Add(project.Id);
 
-                        _metadataPathToInfo.AddOrUpdate(key, tuple, (_1, _2) => tuple);
+                        _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
                     }
                 }
 
@@ -189,7 +221,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public override void RemoveProject(ProjectId projectId)
             {
-                Tuple<VersionStamp, SymbolTreeInfo> tuple;
+                ProjectInfo tuple;
                 _projectToInfo.TryRemove(projectId, out tuple);
 
                 RemoveMetadataReferences(projectId);
@@ -200,12 +232,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 foreach (var kvp in _metadataPathToInfo.ToArray())
                 {
                     var tuple = kvp.Value;
-                    if (kvp.Value.Item3.Remove(projectId))
+                    if (kvp.Value.ReferencingProjects.Remove(projectId))
                     {
-                        if (kvp.Value.Item3.Count == 0)
+                        if (kvp.Value.ReferencingProjects.Count == 0)
                         {
                             // This metadata dll isn't referenced by any project.  We can just dump it.
-                            Tuple<DateTime, SymbolTreeInfo, HashSet<ProjectId>> unneeded;
+                            MetadataInfo unneeded;
                             _metadataPathToInfo.TryRemove(kvp.Key, out unneeded);
                         }
                     }
