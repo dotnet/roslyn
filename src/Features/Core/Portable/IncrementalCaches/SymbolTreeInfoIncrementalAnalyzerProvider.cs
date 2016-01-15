@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
             {
-                if (!project.SupportsCompilation || project.FilePath == null)
+                if (!project.SupportsCompilation)
                 {
                     return;
                 }
