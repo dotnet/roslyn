@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -42,8 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// and <see cref="SnippetShortcutExists_NonBlocking"/>, we return the current set of known 
         /// snippets rather than waiting for initial results.
         /// </summary>
-        protected IList<SnippetInfo> snippets = SpecializedCollections.EmptyList<SnippetInfo>();
-        protected ISet<string> snippetShortcuts = SpecializedCollections.EmptySet<string>();
+        protected ImmutableArray<SnippetInfo> snippets = ImmutableArray.Create<SnippetInfo>();
+        protected IImmutableSet<string> snippetShortcuts = ImmutableHashSet.Create<string>();
 
         // Guard the snippets and snippetShortcut fields so that returned result sets are always
         // complete.
@@ -223,11 +224,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
         }
 
-        private IList<SnippetInfo> ExtractSnippetInfo(IVsExpansionEnumeration expansionEnumerator)
+        private ImmutableArray<SnippetInfo> ExtractSnippetInfo(IVsExpansionEnumeration expansionEnumerator)
         {
             AssertIsForeground();
 
-            IList<SnippetInfo> snippetList = new List<SnippetInfo>();
+            var snippetListBuilder = ImmutableArray.CreateBuilder<SnippetInfo>();
 
             uint count = 0;
             uint fetched = 0;
@@ -250,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                         if (!string.IsNullOrEmpty(snippetInfo.shortcut))
                         {
-                            snippetList.Add(new SnippetInfo(snippetInfo.shortcut, snippetInfo.title, snippetInfo.description, snippetInfo.path));
+                            snippetListBuilder.Add(new SnippetInfo(snippetInfo.shortcut, snippetInfo.title, snippetInfo.description, snippetInfo.path));
                         }
                     }
                 }
@@ -260,12 +261,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 Marshal.FreeCoTaskMem(pSnippetInfo[0]);
             }
 
-            return snippetList;
+            return snippetListBuilder.ToImmutable();
         }
 
-        protected static HashSet<string> GetShortcutsHashFromSnippets(IList<SnippetInfo> updatedSnippets)
+        protected static IImmutableSet<string> GetShortcutsHashFromSnippets(ImmutableArray<SnippetInfo> updatedSnippets)
         {
-            return new HashSet<string>(updatedSnippets.Select(s => s.Shortcut), StringComparer.OrdinalIgnoreCase);
+            return new HashSet<string>(updatedSnippets.Select(s => s.Shortcut), StringComparer.OrdinalIgnoreCase)
+                .ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
         }
 
         private static VsExpansion ConvertToVsExpansionAndFree(IntPtr expansionPtr)
