@@ -423,12 +423,15 @@ partial interface IBar : IFoo, IBam
 {
 }
 
-partial interface IBar : IBaz
+partial interface IBar : IBaz, IBaz
 {
 }
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
+                // (25,32): error CS0528: 'IBaz' is already listed in interface list
+                // partial interface IBar : IBaz, IBaz
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "IBaz").WithArguments("IBaz").WithLocation(25, 32),
                 // (21,19): error CS0061: Inconsistent accessibility: base interface 'IFoo' is less accessible than interface 'IBar'
                 // partial interface IBar : IFoo, IBam
                 Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IBar").WithArguments("IBar", "IFoo").WithLocation(21, 19),
@@ -436,7 +439,7 @@ partial interface IBar : IBaz
                 // partial interface IBar : IFoo, IBam
                 Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IBar").WithArguments("IBar", "IBam").WithLocation(21, 19),
                 // (25,19): error CS0061: Inconsistent accessibility: base interface 'IBaz' is less accessible than interface 'IBar'
-                // partial interface IBar : IBaz
+                // partial interface IBar : IBaz, IBaz
                 Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IBar").WithArguments("IBar", "IBaz").WithLocation(25, 19));
         }
 

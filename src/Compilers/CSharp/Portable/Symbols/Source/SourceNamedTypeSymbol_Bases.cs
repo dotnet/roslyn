@@ -259,9 +259,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                int n = baseInterfaces.Count;
                 foreach (var t in partInterfaces) // this could probably be done more efficiently with a side hash table if it proves necessary
                 {
+                    int n = baseInterfaces.Count;
+
                     for (int i = 0; i < n; i++)
                     {
                         if (t == baseInterfaces[i])
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     baseInterfaces.Add(t);
-                    interfaceLocations[t] = decl.NameLocation; // there could be duplicates, not sure how
+                    interfaceLocations.Add(t, decl.NameLocation);
 
                 alreadyInInterfaceList:;
                 }
