@@ -227,9 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
             var escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters);
 
+            var isVerbatim = useQuotes && !escapeNonPrintable && ContainsNewLine(value);
+
             if (useQuotes)
             {
-                if (!escapeNonPrintable)
+                if (isVerbatim)
                 {
                     builder.Append('@');
                 }
@@ -245,14 +247,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (useQuotes && c == quote)
                 {
-                    if (escapeNonPrintable)
+                    if (isVerbatim)
                     {
-                        builder.Append('\\');
+                        builder.Append(quote);
                         builder.Append(quote);
                     }
                     else
                     {
-                        builder.Append(quote);
+                        builder.Append('\\');
                         builder.Append(quote);
                     }
                 }
@@ -268,6 +270,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return pooledBuilder.ToStringAndFree();
+        }
+
+        private static bool ContainsNewLine(string s)
+        {
+            foreach (char c in s)
+            {
+                if (SyntaxFacts.IsNewLine(c))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
