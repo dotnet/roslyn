@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Resources;
-using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -297,11 +296,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             // Verify DiagnosticAnalyzer.SupportedDiagnostics is also exception safe.
             var analyzer = new MyAnalyzer(descriptor);
             var exceptionDiagnostics = new List<Diagnostic>();
+
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diag) => exceptionDiagnostics.Add(diag);
             var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance);
             var descriptors = AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
 
-            Assert.Equal(1, descriptors.Length);
+            Assert.Equal(1, descriptors.Length); 
             Assert.Equal(descriptor.Id, descriptors[0].Id);
 
             // Access and evaluate localizable fields.

@@ -876,6 +876,7 @@
     <Compile Include="Syntax\SeparatedSyntaxListBuilder.vb" />
     <Compile Include="Syntax\SimpleSyntaxReference.vb" />
     <Compile Include="Syntax\SingleLineLambdaExpressionSyntax.vb" />
+    <Compile Include="Syntax\SkippedTokensTriviaSyntax.vb" />
     <Compile Include="Syntax\StructuredTriviaSyntax.vb" />
     <Compile Include="Syntax\SyntaxEquivalence.vb" />
     <Compile Include="Syntax\SyntaxExtensions.vb" />

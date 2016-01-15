@@ -207,38 +207,6 @@ recurse:
             Return IsGlobalStatementContext(token, position)
         End Function
 
-        ''' <summary>
-        ''' If the position is inside of token, return that token; otherwise, return the token to right.
-        ''' </summary>
-        <Extension()>
-        Public Function FindTokenOnRightOfPosition(
-            syntaxTree As SyntaxTree,
-            position As Integer,
-            cancellationToken As CancellationToken,
-            Optional includeSkipped As Boolean = True,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
-
-            Return syntaxTree.GetRoot(cancellationToken).FindTokenOnRightOfPosition(
-                position, includeSkipped, includeDirectives, includeDocumentationComments)
-        End Function
-
-        ''' <summary>
-        ''' If the position is inside of token, return that token; otherwise, return the token to left. 
-        ''' </summary>
-        <Extension()>
-        Public Function FindTokenOnLeftOfPosition(
-            syntaxTree As SyntaxTree,
-            position As Integer,
-            cancellationToken As CancellationToken,
-            Optional includeSkipped As Boolean = True,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
-
-            Return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
-                position, includeSkipped, includeDirectives, includeDocumentationComments)
-        End Function
-
         <Extension()>
         Public Function IsRightOfDot(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)

@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
-            : this(compilation, analyzers, new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true), cancellationToken)
+            : this(compilation, analyzers, new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, analyzerExceptionFilter: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true), cancellationToken)
         {
         }
 
@@ -568,11 +568,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 AsyncQueue<CompilationEvent> eventQueue = null;
                                                 try
                                                 {
-                                                // Get event queue with pending events to analyze.
-                                                eventQueue = getEventQueue();
+                                                    // Get event queue with pending events to analyze.
+                                                    eventQueue = getEventQueue();
 
-                                                // Execute analyzer driver on the given analysis scope with the given event queue.
-                                                await ComputeAnalyzerDiagnosticsCoreAsync(driver, eventQueue, analysisScope, cancellationToken: linkedCts.Token).ConfigureAwait(false);
+                                                    // Execute analyzer driver on the given analysis scope with the given event queue.
+                                                    await ComputeAnalyzerDiagnosticsCoreAsync(driver, eventQueue, analysisScope, cancellationToken: linkedCts.Token).ConfigureAwait(false);
                                                 }
                                                 finally
                                                 {
@@ -997,7 +997,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
         /// </param>
         /// </summary>
-        public static bool IsDiagnosticAnalyzerSuppressed(DiagnosticAnalyzer analyzer, CompilationOptions options, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
+        public static bool IsDiagnosticAnalyzerSuppressed(
+            DiagnosticAnalyzer analyzer,
+            CompilationOptions options,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
         {
             VerifyAnalyzerArgumentForStaticApis(analyzer);
 
