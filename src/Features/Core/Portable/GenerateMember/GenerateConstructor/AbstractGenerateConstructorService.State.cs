@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,7 +11,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
@@ -93,23 +93,74 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 this.ParameterTypes = this.ParameterTypes ?? GetParameterTypes(service, document, cancellationToken);
                 this.ParameterRefKinds = this.ParameterRefKinds ?? this.Arguments.Select(service.GetRefKind).ToList();
 
-                return !ClashesWithExistingConstructor(service, document, cancellationToken);
+                return !ClashesWithExistingConstructor(document, cancellationToken);
             }
 
-            private bool ClashesWithExistingConstructor(TService service, SemanticDocument document, CancellationToken cancellationToken)
+            private bool ClashesWithExistingConstructor(SemanticDocument document, CancellationToken cancellationToken)
             {
-                var parameters = this.ParameterTypes.Zip(this.ParameterRefKinds, (t, r) => CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    attributes: null,
-                    refKind: r,
-                    isParams: false,
-                    type: t,
-                    name: string.Empty)).ToList();
+                if (this.ParameterTypes == null ||
+                    this.ParameterRefKinds == null)
+                {
+                    return false;
+                }
+
+                if(this.ParameterTypes.Count != this.ParameterRefKinds.Count)
+                {
+                    return false;
+                }
+
+                if (!this.TypeToGenerateIn.InstanceConstructors.Any(c => c.Parameters.Length == this.ParameterTypes.Count))
+                {
+                    return false;
+                }
 
                 var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.TypeToGenerateIn.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
+                for (int i = 0; i < ParameterTypes.Count; i++)
+                {
+                    var compareParameterName = false;
+                    var type = this.ParameterTypes[i];
+                    var refKind = this.ParameterRefKinds[i];
+                    string parameterName = GetParameterName(syntaxFacts, i);
+                    if (!string.IsNullOrEmpty(parameterName))
+                    {
+                        compareParameterName = true;
+                    }
+                    var parameterSymbol = CodeGenerationSymbolFactory.CreateParameterSymbol(
+                        attributes: null,
+                        refKind: refKind,
+                        isParams: false,
+                        type: type,
+                        name: parameterName);
+                    var result = this.TypeToGenerateIn.InstanceConstructors.Any(c =>
+                    {
+                        if (i >= c.Parameters.Length)
+                        {
+                            return false;
+                        }
 
-                return this.TypeToGenerateIn.InstanceConstructors.Any(
-                    c => SignatureComparer.Instance.HaveSameSignature(parameters, c.Parameters, compareParameterName: true, isCaseSensitive: syntaxFacts.IsCaseSensitive));
+                        return SymbolEquivalenceComparer
+                            .Instance
+                            .ParameterEquivalenceComparer
+                            .Equals(parameterSymbol, c.Parameters[i], compareParameterName, syntaxFacts.IsCaseSensitive);
+                    });
+                    if (result == false)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            private string GetParameterName(ISyntaxFactsService service, int i)
+            {
+                if (i >= this.Arguments?.Count)
+                {
+                    return string.Empty;
+                }
+
+                return service.GetNameForArgument(this.Arguments?[i]);
             }
 
             internal List<ITypeSymbol> GetParameterTypes(
