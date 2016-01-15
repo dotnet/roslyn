@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reported diagnostic has a source location in file &apos;{0}&apos;, which is not part of the compilation being analyzed..
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location in file &apos;{1}&apos;, which is not part of the compilation being analyzed..
         /// </summary>
         internal static string InvalidDiagnosticLocationReported {
             get {
