@@ -1851,7 +1851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.PropertyAccess:
                     case BoundKind.IndexerAccess:
-                        return CheckIsVariable(argumentSyntax, arg, BindValueKind.OutParameter, false, diagnostics);
+                        return CheckIsVariable(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
                 }
             }
 

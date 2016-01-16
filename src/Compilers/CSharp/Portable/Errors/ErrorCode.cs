@@ -1323,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsLocalFunction = 8103,
         ERR_ReturnTypesDontMatch = 8104,
         ERR_DynamicLocalFunctionParameter = 8105,
-        ERR_CantInferVoid = 8106
+        ERR_CantInferVoid = 8106,
 
         ERR_AutoPropertyCannotBeRefReturning = 8890,
         ERR_RefPropertyMustHaveGetAccessor = 8891,

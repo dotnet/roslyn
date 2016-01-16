@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private CompilationUnitSyntax ParseFileExperimental(string text)
         {
-            var experimentalFeatures = TestOptions.s_experimentalFeatures;
-            return ParseFile(text, parseOptions: CSharpParseOptions.Default.WithFeatures(experimentalFeatures));
+            return ParseFile(text, parseOptions: TestOptions.ExperimentalParseOptions);
         }
 
         [Fact]

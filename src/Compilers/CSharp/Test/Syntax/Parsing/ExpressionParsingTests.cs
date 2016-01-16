@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private ExpressionSyntax ParseExpressionExperimental(string text)
         {
-            var experimentalFeatures = TestOptions.s_experimentalFeatures;
-            return SyntaxFactory.ParseExpression(text, options: CSharpParseOptions.Default.WithFeatures(experimentalFeatures));
+            return SyntaxFactory.ParseExpression(text, options: TestOptions.ExperimentalParseOptions);
         }
 
         [Fact]

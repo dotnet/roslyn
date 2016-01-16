@@ -1542,7 +1542,7 @@ class Program
 
             CompileAndVerifyExperimental(text, options: TestOptions.UnsafeDebugDll).VerifyIL("Program.Main()", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       41 (0x29)
   .maxstack  2
   .locals init (int& V_0, //rl
                 int V_1, //int
@@ -1554,30 +1554,29 @@ class Program
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldind.i4
-  IL_0009:  ldc.i4.0
-  IL_000a:  add
-  IL_000b:  stloc.1
-  IL_000c:  ldloc.0
-  IL_000d:  call       ""string int.ToString()""
-  IL_0012:  stloc.2
-  IL_0013:  ldloc.0
-  IL_0014:  ldind.i4
-  IL_0015:  conv.i8
-  IL_0016:  stloc.3
-  IL_0017:  ldloc.0
-  IL_0018:  ldind.i4
-  IL_0019:  call       ""void Program.N(int)""
-  IL_001e:  nop
-  IL_001f:  ldloc.1
-  IL_0020:  conv.i8
-  IL_0021:  ldloc.3
-  IL_0022:  add
-  IL_0023:  conv.i4
-  IL_0024:  stloc.s    V_4
-  IL_0026:  br.s       IL_0028
-  IL_0028:  ldloc.s    V_4
-  IL_002a:  ret
-}");
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.0
+  IL_000b:  call       ""string int.ToString()""
+  IL_0010:  stloc.2
+  IL_0011:  ldloc.0
+  IL_0012:  ldind.i4
+  IL_0013:  conv.i8
+  IL_0014:  stloc.3
+  IL_0015:  ldloc.0
+  IL_0016:  ldind.i4
+  IL_0017:  call       ""void Program.N(int)""
+  IL_001c:  nop
+  IL_001d:  ldloc.1
+  IL_001e:  conv.i8
+  IL_001f:  ldloc.3
+  IL_0020:  add
+  IL_0021:  conv.i4
+  IL_0022:  stloc.s    V_4
+  IL_0024:  br.s       IL_0026
+  IL_0026:  ldloc.s    V_4
+  IL_0028:  ret
+}
+");
         }
 
     }

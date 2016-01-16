@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private StatementSyntax ParseStatementExperimental(string text)
         {
-            var experimentalFeatures = TestOptions.s_experimentalFeatures;
-            return ParseStatement(text, offset: 0, options: CSharpParseOptions.Default.WithFeatures(experimentalFeatures));
+            return ParseStatement(text, offset: 0, options: TestOptions.ExperimentalParseOptions);
         }
 
         [Fact]
