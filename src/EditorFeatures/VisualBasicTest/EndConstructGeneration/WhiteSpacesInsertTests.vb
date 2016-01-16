@@ -35,6 +35,7 @@ End Class",
                 beforeCaret:={1, -1},
                  after:="Class X
 		Sub y()
+
 		End Sub
 End Class",
                 afterCaret:={2, -1})
