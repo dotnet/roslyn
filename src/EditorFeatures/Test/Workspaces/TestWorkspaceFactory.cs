@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
-    public partial class TestWorkspaceFactory
+    public partial class TestWorkspace
     {
         private const string CSharpExtension = ".cs";
         private const string CSharpScriptExtension = ".csx";

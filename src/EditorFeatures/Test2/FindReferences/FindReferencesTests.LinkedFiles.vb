@@ -24,7 +24,7 @@ class C
         <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
     </Project>
 </Workspace>
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
+            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -56,7 +56,7 @@ End Class
         <Document IsLinkFile="true" LinkAssemblyName="VBProj1" LinkFilePath="C.vb"/>
     </Project>
 </Workspace>
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
+            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -93,7 +93,7 @@ End Class
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
+            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
                 Dim linkedDocument = workspace.Documents.Single(Function(d) d.IsLinkFile)

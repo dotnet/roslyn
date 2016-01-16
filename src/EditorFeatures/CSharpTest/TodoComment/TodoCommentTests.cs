@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
 
         private static async Task TestAsync(string codeWithMarker)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(codeWithMarker))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker))
             {
                 var commentTokens = new TodoCommentTokens();
                 var provider = new TodoCommentIncrementalAnalyzerProvider(commentTokens);

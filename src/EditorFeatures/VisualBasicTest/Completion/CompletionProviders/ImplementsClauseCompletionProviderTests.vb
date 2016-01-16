@@ -610,7 +610,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRootNamespaceInDefaultListing() As Task
 
-            Dim workspace =
+            Dim element =
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <CompilationOptions RootNamespace="Workcover.Licensing"/>
@@ -640,9 +640,9 @@ End Interface
                     </Project>
                 </Workspace>
 
-            Using testWorkspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspace)
-                Dim position = testWorkspace.Documents.Single().CursorPosition.Value
-                Dim document = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id)
+            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(element)
+                Dim position = workspace.Documents.Single().CursorPosition.Value
+                Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
                 Dim triggerInfo = New CompletionTriggerInfo()
 
                 Dim completionList = Await GetCompletionListAsync(document, position, triggerInfo)

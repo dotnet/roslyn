@@ -2578,7 +2578,7 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(markup, parseOptions: option))
+                using (var workspace = await TestWorkspace.CreateCSharpAsync(markup, parseOptions: option))
                 {
                     var subjectDocument = workspace.Documents.Single();
 
@@ -2613,7 +2613,7 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(code, parseOptions: option))
+                using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions: option))
                 {
                     await TestIndentationAsync(indentationLine, expectedIndentation, workspace);
                 }
@@ -2631,7 +2631,7 @@ class C
 
             foreach (var option in optionsSet)
             {
-                using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(code, parseOptions: option))
+                using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions: option))
                 {
                     var wpfTextView = workspace.Documents.First().GetTextView();
                     var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;

@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 
         private static async Task AssertExtentAsync(string code, int pos, bool isSignificant, int start, int length, CSharpParseOptions options)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(code, options))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, options))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             int endLength,
             CSharpParseOptions options)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(code, options))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, options))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 

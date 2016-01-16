@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             compilationOptions As CompilationOptions
         ) As Task(Of TestWorkspace)
 
-            Return TestWorkspaceFactory.CreateVisualBasicAsync(
+            Return TestWorkspace.CreateVisualBasicAsync(
                 definition,
                 DirectCast(parseOptions, ParseOptions),
                 If(DirectCast(compilationOptions, CompilationOptions), New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public MustInherit Class AbstractSimplificationTests
 
         Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional simplificationOptions As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
+            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(definition)
                 Dim hostDocument = workspace.Documents.Single()
 
                 Dim spansToAddSimplifierAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))

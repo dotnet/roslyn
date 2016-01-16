@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         Private Sub VerifyAllAvailableDiagnostics(test As XElement, diagnostics As XElement, Optional ordered As Boolean = True, Optional enabled As Boolean = True)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
 
                 ' turn off diagnostic
                 If Not enabled Then

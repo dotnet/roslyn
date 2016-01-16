@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Implem
         End Function
 
         Private Function GetWorkspaceAsync(code As String) As Threading.Tasks.Task(Of TestWorkspace)
-            Return TestWorkspaceFactory.CreateWorkspaceAsync(
+            Return TestWorkspace.CreateWorkspaceAsync(
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
                         <Document>

@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var warningSpans = spanMap.GetOrAdd("Warning", _ => new List<TextSpan>());
 
             using (var workspace = IsWorkspaceElement(initialMarkup)
-                ? await TestWorkspaceFactory.CreateWorkspaceAsync(initialMarkup)
+                ? await TestWorkspace.CreateWorkspaceAsync(initialMarkup)
                 : await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
                 ApplyOptionsToWorkspace(workspace, options);
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution)
         {
-            using (var expectedWorkspace = await TestWorkspaceFactory.CreateWorkspaceAsync(expectedText))
+            using (var expectedWorkspace = await TestWorkspace.CreateWorkspaceAsync(expectedText))
             {
                 var expectedSolution = expectedWorkspace.CurrentSolution;
                 Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());

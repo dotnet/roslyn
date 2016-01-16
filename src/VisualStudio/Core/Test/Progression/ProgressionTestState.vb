@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         Public Shared Async Function CreateAsync(workspaceXml As XElement) As Task(Of ProgressionTestState)
-            Dim workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml,
+            Dim workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceXml,
                                                               exportProvider:=MinimalTestExportProvider.CreateExportProvider(CompositionCatalog))
 
             Return New ProgressionTestState(workspace)

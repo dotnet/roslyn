@@ -239,7 +239,7 @@ System.Console$$.WriteLine(message)
                               </Document>
                           </Project>
                       </Workspace>
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xml)
+            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(xml)
                 Dim hostDocument = workspace.Documents.Single()
 
                 Assert.Null(Await VsLanguageBlock.GetCurrentBlockAsync(
@@ -257,7 +257,7 @@ System.Console$$.WriteLine(message)
                               </Document>
                           </Project>
                       </Workspace>
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xml)
+            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(xml)
                 Dim hostDocument = workspace.Documents.Single()
 
                 Dim tuple = Await VsLanguageBlock.GetCurrentBlockAsync(

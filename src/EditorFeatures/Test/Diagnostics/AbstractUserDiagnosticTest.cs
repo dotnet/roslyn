@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = isLine
                 ? await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions)
-                : await TestWorkspaceFactory.CreateWorkspaceAsync(initialMarkup))
+                : await TestWorkspace.CreateWorkspaceAsync(initialMarkup))
             {
                 var codeActions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
                 await TestAddDocument(workspace, expectedMarkup, index, expectedContainers, expectedDocumentName,

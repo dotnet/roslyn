@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         Protected Async Function VerifySendEnterThroughToEditorAsync(initialMarkup As String, textTypedSoFar As String, expected As Boolean) As Threading.Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicAsync(initialMarkup)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initialMarkup)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim documentId = workspace.GetDocumentId(hostDocument)
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         Protected Async Function VerifyCommitCharactersAsync(initialMarkup As String, textTypedSoFar As String, ParamArray chars As Char()) As Threading.Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicAsync(initialMarkup)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initialMarkup)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim documentId = workspace.GetDocumentId(hostDocument)
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
             MarkupTestFile.GetPosition(markup, code, position)
 
-            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicAsync(code)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
                 Dim document = workspace.Documents.First()
                 Dim text = document.TextBuffer.CurrentSnapshot.AsText()
                 Dim options = workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic, triggerOnLetter)

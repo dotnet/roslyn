@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     using System.Threading.Tasks;
     using RelativePathResolver = WORKSPACES::Microsoft.CodeAnalysis.RelativePathResolver;
 
-    public partial class TestWorkspaceFactory
+    public partial class TestWorkspace
     {
         /// <summary>
         /// This place-holder value is used to set a project's file path to be null.  It was explicitly chosen to be

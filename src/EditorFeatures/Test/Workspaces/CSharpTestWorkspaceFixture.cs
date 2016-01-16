@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     {
         protected override Task<TestWorkspace> CreateWorkspaceAsync()
         {
-            return TestWorkspaceFactory.CreateCSharpAsync(
+            return TestWorkspace.CreateCSharpAsync(
                 new string[] { string.Empty, },
                 new CSharpParseOptions[] { new CSharpParseOptions(kind: SourceCodeKind.Regular), });
         }

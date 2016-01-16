@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         [HandleProcessCorruptedStateExceptions]
         public static async Task<Tuple<TestWorkspace, EnvDTE.FileCodeModel>> CreateWorkspaceAndFileCodeModelAsync(string file)
         {
-            var workspace = await TestWorkspaceFactory.CreateCSharpAsync(file, exportProvider: VisualStudioTestExportProvider.ExportProvider);
+            var workspace = await TestWorkspace.CreateCSharpAsync(file, exportProvider: VisualStudioTestExportProvider.ExportProvider);
 
             try
             {

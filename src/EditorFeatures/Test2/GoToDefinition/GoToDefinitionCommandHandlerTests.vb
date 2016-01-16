@@ -57,7 +57,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(
+            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(
                     definition,
                     exportProvider:=MinimalTestExportProvider.CreateExportProvider(GoToTestHelpers.Catalog.WithPart(GetType(CSharpGoToDefinitionService))))
 
@@ -91,7 +91,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition, exportProvider:=GoToTestHelpers.ExportProvider)
+            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(definition, exportProvider:=GoToTestHelpers.ExportProvider)
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 

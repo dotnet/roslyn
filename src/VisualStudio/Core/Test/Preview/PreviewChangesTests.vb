@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
 
         <WpfFact>
         Public Async Function TestListStructure() As Task
-            Using workspace = Await TestWorkspaceFactory.CreateCSharpAsync(<text>
+            Using workspace = Await TestWorkspace.CreateCSharpAsync(<text>
 Class C
 {
     void Foo()
@@ -74,7 +74,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml, exportProvider:=_exportProvider)
+            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceXml, exportProvider:=_exportProvider)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -118,7 +118,7 @@ Class C
 
         <WpfFact>
         Public Async Function TestCheckedItems() As Task
-            Using workspace = Await TestWorkspaceFactory.CreateCSharpAsync(<text>
+            Using workspace = Await TestWorkspace.CreateCSharpAsync(<text>
 Class C
 {
     void Foo()
@@ -181,7 +181,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml, exportProvider:=_exportProvider)
+            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceXml, exportProvider:=_exportProvider)
                 Dim docId = workspace.Documents.First().Id
                 Dim document = workspace.CurrentSolution.GetDocument(docId)
 
@@ -264,7 +264,7 @@ End Class
                                    </Project>
                                </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml, , exportProvider:=_exportProvider)
+            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceXml, , exportProvider:=_exportProvider)
                 Dim documentId1 = workspace.Documents.Where(Function(d) d.Project.Name = "VBProj1").Single().Id
                 Dim document1 = workspace.CurrentSolution.GetDocument(documentId1)
 
