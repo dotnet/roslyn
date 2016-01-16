@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
 
         <WpfFact>
         Public Async Function TestListStructure() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(<text>
+            Using workspace = Await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(<text>
 Class C
 {
     void Foo()
@@ -118,7 +118,7 @@ Class C
 
         <WpfFact>
         Public Async Function TestCheckedItems() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(<text>
+            Using workspace = Await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(<text>
 Class C
 {
     void Foo()

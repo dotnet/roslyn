@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public async Task TestFindReferencesSynchronousCall()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync("class C { C() { new C(); } }"))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync("class C { C() { new C(); } }"))
             {
                 var findReferencesPresenter = new MockReferencedSymbolsPresenter();
 

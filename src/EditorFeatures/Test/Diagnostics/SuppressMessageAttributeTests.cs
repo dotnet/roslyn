@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             if (language == LanguageNames.CSharp)
             {
-                return CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(source);
+                return TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(source);
             }
             else
             {
-                return VisualBasicWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(
+                return TestWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(
                     source,
                     compilationOptions: new VisualBasic.VisualBasicCompilationOptions(
                         OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
         {
             var code = @"class C
 ";
-            using (var workspace = await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(code))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(code))
             {
                 var hostDocument = workspace.Documents.First();
                 var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
         public async Task EmptyTextChanges()
         {
             var code = @"class C";
-            using (var workspace = await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(code))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(code))
             {
                 var hostDocument = workspace.Documents.First();
                 var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentId(hostDocument));

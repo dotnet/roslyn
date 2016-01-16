@@ -336,7 +336,6 @@
     <Compile Include="Utilities\TestWaitContext.cs" />
     <Compile Include="Utilities\TestWaitIndicator.cs" />
     <Compile Include="Workspaces\CSharpTestWorkspaceFixture.cs" />
-    <Compile Include="Workspaces\CSharpWorkspaceFactory.cs" />
     <Compile Include="Workspaces\MefTestWorkspace.cs" />
     <Compile Include="Workspaces\NoCompilationConstants.cs" />
     <Compile Include="Workspaces\NoCompilationContentTypeDefinitions.cs" />
@@ -358,7 +357,6 @@
     <Compile Include="Workspaces\ProjectCacheHostServiceFactoryTests.cs" />
     <Compile Include="Workspaces\TextFactoryTests.cs" />
     <Compile Include="Workspaces\VisualBasicTestWorkspaceFixture.cs" />
-    <Compile Include="Workspaces\VisualBasicWorkspaceFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

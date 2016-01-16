@@ -270,7 +270,7 @@ End Module
         End Function
 
         Protected Overrides Function CreateWorkspaceAsync(code As String) As Task(Of TestWorkspace)
-            Return VisualBasicWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(code)
+            Return TestWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(code)
         End Function
     End Class
 End Namespace

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
     {
         protected override Task<TestWorkspace> CreateWorkspaceAsync(string markup)
         {
-            return CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(markup);
+            return TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
