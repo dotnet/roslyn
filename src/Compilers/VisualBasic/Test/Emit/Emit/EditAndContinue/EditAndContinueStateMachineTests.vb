@@ -4023,7 +4023,7 @@ End Class")
 
         End Sub
 
-        <Fact, WorkItem(1170899, "DevDiv")>
+        <Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")>
         Public Sub HoistedAnonymousTypes1()
             Dim source0 = MarkedSource("
 Imports System

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     public class ScriptSemanticsTests : CSharpTestBase
     {
-        [WorkItem(543890)]
+        [WorkItem(543890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543890")]
         [Fact]
         public void ThisIndexerAccessInScript()
         {
@@ -45,7 +45,7 @@ this[1]
             Assert.Equal(0, summary.MethodGroup.Length);
         }
 
-        [WorkItem(540875)]
+        [WorkItem(540875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540875")]
         [Fact]
         public void MainInScript2()
         {
@@ -68,7 +68,7 @@ this[1]
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(540875)]
+        [WorkItem(540875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540875")]
         [Fact]
         public void MainInScript1()
         {
@@ -330,7 +330,7 @@ object y = x;";
             Assert.Same(symbol0, symbol1);
         }
 
-        [WorkItem(543890)]
+        [WorkItem(543890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543890")]
         [Fact]
         public void ThisIndexerAccessInSubmission()
         {
@@ -362,8 +362,8 @@ this[1]
         /// <summary>
         /// LookupSymbols should not include the submission class.
         /// </summary>
-        [WorkItem(530986)]
-        [WorkItem(1010871)]
+        [WorkItem(530986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530986")]
+        [WorkItem(1010871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010871")]
         [Fact]
         public void LookupSymbols()
         {
@@ -404,7 +404,7 @@ this[1]
             submission.VerifyDiagnostics();
         }
 
-        [WorkItem(543370)]
+        [WorkItem(543370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543370")]
         [Fact]
         public void CheckedDecimalAddition()
         {
@@ -416,7 +416,7 @@ decimal d = checked(2M + 1M);
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(543370)]
+        [WorkItem(543370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543370")]
         [Fact]
         public void CheckedEnumAddition()
         {
@@ -429,7 +429,7 @@ FileAccess fa = checked(FileAccess.Read + 1);
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(543370)]
+        [WorkItem(543370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543370")]
         [Fact]
         public void DelegateAddition()
         {
@@ -441,7 +441,7 @@ a += null;
             compilation.VerifyDiagnostics();
         }
 
-        [WorkItem(870885)]
+        [WorkItem(870885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/870885")]
         [Fact]
         public void Bug870885()
         {
@@ -454,7 +454,7 @@ a += null;
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "o").WithArguments("o"));
         }
 
-        [WorkItem(949595)]
+        [WorkItem(949595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949595")]
         [Fact]
         public void GlobalAttributes()
         {
@@ -815,7 +815,7 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference"));
         }
 
-        [WorkItem(529387)]
+        [WorkItem(529387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529387")]
         [Fact]
         public void IsVariable_PreviousSubmission()
         {
@@ -839,7 +839,7 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&x").WithLocation(1, 1));
         }
 
-        [WorkItem(530404)]
+        [WorkItem(530404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530404")]
         [Fact]
         public void DiagnosticsPass()
         {
@@ -852,7 +852,7 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null").WithLocation(1, 65));
         }
 
-        [WorkItem(527850)]
+        [WorkItem(527850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527850")]
         [Fact]
         public void ArithmeticOperators_MultiplicationExpression()
         {
@@ -867,8 +867,8 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i* i"));
         }
 
-        [WorkItem(527850)]
-        [WorkItem(522569)]
+        [WorkItem(527850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527850")]
+        [WorkItem(522569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522569")]
         [WorkItem(4737, "https://github.com/dotnet/roslyn/issues/4737")]
         [Fact(Skip = "4737")]
         public void TopLevelLabel()
@@ -880,7 +880,7 @@ goto Label;");
             s0.VerifyDiagnostics();
         }
 
-        [WorkItem(541210)]
+        [WorkItem(541210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541210")]
         [Fact]
         public void TopLevelGoto()
         {
@@ -891,7 +891,7 @@ goto Label;");
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "Object").WithArguments("Object"));
         }
 
-        [WorkItem(541166)]
+        [WorkItem(541166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541166")]
         [Fact]
         public void DefineExtensionMethods()
         {

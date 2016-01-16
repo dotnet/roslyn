@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
             Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Sub(x As Integer) x |</MethodBody>, s_expectedKeywords)
         End Function
 
-        <WorkItem(541354)>
+        <WorkItem(541354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541354")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterStringLiteralTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>test = "F" |</MethodBody>, s_expectedKeywords)
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim query = Aggregate |</MethodBody>, s_expectedKeywords)
         End Function
 
-        <WorkItem(543637)>
+        <WorkItem(543637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543637")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneInTypeArgumentListTest() As Task
             Dim code =
@@ -193,37 +193,37 @@ End Module
             Await VerifyRecommendationsMissingAsync(code, s_expectedKeywords)
         End Function
 
-        <WorkItem(544106)>
+        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterAddHandlerEventNameTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>AddHandler System.Console.CancelKeyPress |</MethodBody>, s_expectedKeywords)
         End Function
 
-        <WorkItem(544106)>
+        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterAddHandlerIdentifierTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>AddHandler System.Console.CancelKeyPress, Foo |</MethodBody>, s_expectedKeywords)
         End Function
 
-        <WorkItem(544106)>
+        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterAddHandlerAddressOfIdentifierTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>AddHandler System.Console.CancelKeyPress, AddressOf Foo |</MethodBody>, s_expectedKeywords)
         End Function
 
-        <WorkItem(544106)>
+        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterRemoveHandlerEventNameTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>RemoveHandler System.Console.CancelKeyPress |</MethodBody>, s_expectedKeywords)
         End Function
 
-        <WorkItem(544106)>
+        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterRemoveHandlerIdentifierTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>RemoveHandler System.Console.CancelKeyPress, Foo |</MethodBody>, s_expectedKeywords)
         End Function
 
-        <WorkItem(544106)>
+        <WorkItem(544106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544106")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterRemoveHandlerAddressOfIdentifierTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>RemoveHandler System.Console.CancelKeyPress, AddressOf Foo |</MethodBody>, s_expectedKeywords)
@@ -239,38 +239,38 @@ Imports S |
             Await VerifyRecommendationsMissingAsync(code, s_expectedKeywords)
         End Function
 
-        <WorkItem(546505)>
+        <WorkItem(546505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546505")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoCrashInVariableDeclarationTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x As New TypeInfo(New |)</MethodBody>, s_expectedKeywords)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(544278)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(544278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544278")>
         Public Async Function NoneAfterMidStatementTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Mid(s, 1, 1) |</MethodBody>, s_expectedKeywords)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(544576)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(544576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544576")>
         Public Async Function NoneAfterExternalMethodDeclarationTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Declare Sub S Lib "L" Alias "A" |</ClassDeclaration>, s_expectedKeywords)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(545988)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(545988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545988")>
         Public Async Function NoneAfterNamedArgumentTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Foo(f:=|</MethodBody>, s_expectedKeywords)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(546659)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(546659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546659")>
         Public Async Function NoneInUsingStatementTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Using Foo |</MethodBody>, s_expectedKeywords)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(531329)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending), WorkItem(531329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531329")>
         Public Async Function NoneInForStatementTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>For i = 1 |</MethodBody>, s_expectedKeywords)
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterEolTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -278,7 +278,7 @@ Imports S |
 |</MethodBody>, s_expectedKeywords)
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterExplicitLineContinuationTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -286,7 +286,7 @@ Imports S |
 |</MethodBody>, s_expectedKeywords)
         End Function
 
-        <WorkItem(975804)>
+        <WorkItem(975804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/975804")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterIncompleteObjectCreationTest() As Task
             Await VerifyRecommendationsMissingAsync(

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public class SmartIndenterEnterOnTokenTests : FormatterTestsBase
     {
-        [WorkItem(537808)]
+        [WorkItem(537808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task MethodBody1()
@@ -593,7 +593,7 @@ int
                 expectedIndentation: 4);
         }
 
-        [WorkItem(537802)]
+        [WorkItem(537802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537802")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task EmbededStatement()
@@ -616,7 +616,7 @@ int
                 expectedIndentation: 8);
         }
 
-        [WorkItem(537808)]
+        [WorkItem(537808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task MethodBraces1()
@@ -634,7 +634,7 @@ int
                 expectedIndentation: 4);
         }
 
-        [WorkItem(537808)]
+        [WorkItem(537808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task MethodBraces2()
@@ -653,7 +653,7 @@ int
                 expectedIndentation: 4);
         }
 
-        [WorkItem(537795)]
+        [WorkItem(537795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537795")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Property1()
@@ -674,7 +674,7 @@ int
                 expectedIndentation: 4);
         }
 
-        [WorkItem(537563)]
+        [WorkItem(537563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537563")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Class1()
@@ -691,7 +691,7 @@ int
         }
 
         [Fact]
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ArrayInitializer1()
         {
@@ -727,7 +727,7 @@ int
         }
 
         [Fact]
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task ArrayInitializer3()
         {
@@ -808,7 +808,7 @@ int
         }
 
         [Fact]
-        [WorkItem(853748)]
+        [WorkItem(853748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853748")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ArrayInitializer()
         {
@@ -829,8 +829,8 @@ int
         }
 
         [Fact]
-        [WorkItem(939305)]
-        [WorkItem(1070773)]
+        [WorkItem(939305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939305")]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ArrayExpression()
         {
@@ -851,7 +851,7 @@ int
         }
 
         [Fact]
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task CollectionExpression()
         {
@@ -873,7 +873,7 @@ int
         }
 
         [Fact]
-        [WorkItem(1070773)]
+        [WorkItem(1070773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task ObjectInitializer()
         {
@@ -913,7 +913,7 @@ class What
         }
 
         [Fact]
-        [WorkItem(1070774)]
+        [WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInitializerWithTypeBody_Implicit()
         {
@@ -930,7 +930,7 @@ class What
         }
 
         [Fact]
-        [WorkItem(1070774)]
+        [WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInitializerWithTypeBody_ImplicitNew()
         {
@@ -947,7 +947,7 @@ class What
         }
 
         [Fact]
-        [WorkItem(1070774)]
+        [WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInitializerWithTypeBody_Explicit()
         {
@@ -964,7 +964,7 @@ class What
         }
 
         [Fact]
-        [WorkItem(1070774)]
+        [WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInitializerWithTypeBody_Collection()
         {
@@ -982,7 +982,7 @@ class X {
         }
 
         [Fact]
-        [WorkItem(1070774)]
+        [WorkItem(1070774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070774")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInitializerWithTypeBody_ObjectInitializers()
         {

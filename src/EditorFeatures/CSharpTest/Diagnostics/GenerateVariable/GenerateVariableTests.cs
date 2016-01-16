@@ -455,7 +455,7 @@ count: 1);
 @"class Class { void Method() { A.[|B|].C a; } }");
         }
 
-        [WorkItem(539336)]
+        [WorkItem(539336, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539336")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMissingInAttribute()
         {
@@ -487,7 +487,7 @@ count: 1);
 @"[A.B.[|C|]]class Class { }");
         }
 
-        [WorkItem(539340)]
+        [WorkItem(539340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539340")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestSpansField()
         {
@@ -520,7 +520,7 @@ count: 1);
 @"class C { void M() { this.[|Foo|] += Bar(); }");
         }
 
-        [WorkItem(539427)]
+        [WorkItem(539427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539427")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFromLambda()
         {
@@ -530,7 +530,7 @@ count: 1);
         }
 
         // TODO: Move to TypeInferrer.InferTypes, or something
-        [WorkItem(539466)]
+        [WorkItem(539466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539466")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInMethodOverload1()
         {
@@ -540,7 +540,7 @@ count: 1);
         }
 
         // TODO: Move to TypeInferrer.InferTypes, or something
-        [WorkItem(539466)]
+        [WorkItem(539466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539466")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInMethodOverload2()
         {
@@ -549,7 +549,7 @@ count: 1);
 @"class Class { private bool foo; void Method(int i) { System.Console.WriteLine(this.foo); } }");
         }
 
-        [WorkItem(539468)]
+        [WorkItem(539468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExplicitProperty1()
         {
@@ -558,7 +558,7 @@ count: 1);
 @"class Class : ITest { bool ITest.SomeProp { get; set; } } interface ITest { bool SomeProp { get; set; } }");
         }
 
-        [WorkItem(539468)]
+        [WorkItem(539468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExplicitProperty2()
         {
@@ -567,7 +567,7 @@ count: 1);
 @"class Class : ITest { bool ITest.SomeProp { } } interface ITest { bool SomeProp { get; set; } }");
         }
 
-        [WorkItem(539468)]
+        [WorkItem(539468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExplicitProperty3()
         {
@@ -577,7 +577,7 @@ count: 1);
 index: 1);
         }
 
-        [WorkItem(539468)]
+        [WorkItem(539468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExplicitProperty4()
         {
@@ -585,7 +585,7 @@ index: 1);
 @"class Class { bool ITest.[|SomeProp|] { } } interface ITest { }");
         }
 
-        [WorkItem(539468)]
+        [WorkItem(539468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExplicitProperty5()
         {
@@ -593,7 +593,7 @@ index: 1);
 @"class Class : ITest { bool ITest.[|SomeProp|] { } } interface ITest { bool SomeProp { get; } }");
         }
 
-        [WorkItem(539489)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestEscapedName()
         {
@@ -602,7 +602,7 @@ index: 1);
 @"class Class { private object foo; void Method() { @foo; } }");
         }
 
-        [WorkItem(539489)]
+        [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestEscapedKeyword()
         {
@@ -611,7 +611,7 @@ index: 1);
 @"class Class { private object @int; void Method() { @int; } }");
         }
 
-        [WorkItem(539529)]
+        [WorkItem(539529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539529")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestRefLambda()
         {
@@ -620,7 +620,7 @@ index: 1);
 @"class Class { private object test; void Method() { test = (ref int x) => x = 10; } }");
         }
 
-        [WorkItem(539595)]
+        [WorkItem(539595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539595")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnError()
         {
@@ -628,7 +628,7 @@ index: 1);
 @"class Class { void F<U,V>(U u1, V v1) { Foo<string,int>([|u1|], u2); } }");
         }
 
-        [WorkItem(539571)]
+        [WorkItem(539571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539571")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNameSimplification()
         {
@@ -637,7 +637,7 @@ index: 1);
 @"namespace TestNs { class Program { private static Test blah ; class Test { void Meth ( ) { Program . blah = new Test ( ) ; } } } } ");
         }
 
-        [WorkItem(539717)]
+        [WorkItem(539717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539717")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPostIncrement()
         {
@@ -646,7 +646,7 @@ index: 1);
 @"class Program { private static int i ; static void Main ( string [ ] args ) { i ++ ; } } ");
         }
 
-        [WorkItem(539717)]
+        [WorkItem(539717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539717")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPreDecrement()
         {
@@ -655,7 +655,7 @@ index: 1);
 @"class Program { private static int i ; static void Main ( string [ ] args ) { -- i ; } } ");
         }
 
-        [WorkItem(539738)]
+        [WorkItem(539738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539738")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateIntoScript()
         {
@@ -665,7 +665,7 @@ index: 1);
 parseOptions: Options.Script);
         }
 
-        [WorkItem(539558)]
+        [WorkItem(539558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539558")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task BugFix5565()
         {
@@ -697,7 +697,7 @@ class Program
 compareTokens: false);
         }
 
-        [WorkItem(539536)]
+        [WorkItem(539536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539536")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task BugFix5538()
         {
@@ -707,7 +707,7 @@ compareTokens: false);
 index: 2);
         }
 
-        [WorkItem(539665)]
+        [WorkItem(539665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539665")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task BugFix5697()
         {
@@ -736,7 +736,7 @@ class D
 compareTokens: false);
         }
 
-        [WorkItem(539793)]
+        [WorkItem(539793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539793")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestIncrement()
         {
@@ -749,7 +749,7 @@ new[] { string.Format(FeaturesResources.GenerateFieldIn, "p", "Program"), string
 @"class Program { private static int p ; static void Main ( ) { p ++ ; } } ");
         }
 
-        [WorkItem(539834)]
+        [WorkItem(539834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539834")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestNotInGoto()
         {
@@ -757,7 +757,7 @@ new[] { string.Format(FeaturesResources.GenerateFieldIn, "p", "Program"), string
 @"class Program { static void Main ( ) { goto [|foo|] ; } } ");
         }
 
-        [WorkItem(539826)]
+        [WorkItem(539826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539826")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestOnLeftOfDot()
         {
@@ -766,7 +766,7 @@ new[] { string.Format(FeaturesResources.GenerateFieldIn, "p", "Program"), string
 @"class Program { private static object foo ; static void Main ( ) { foo . ToString ( ) ; } } ");
         }
 
-        [WorkItem(539840)]
+        [WorkItem(539840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539840")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotBeforeAlias()
         {
@@ -774,7 +774,7 @@ new[] { string.Format(FeaturesResources.GenerateFieldIn, "p", "Program"), string
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { [|global|] :: System . String s ; } } ");
         }
 
-        [WorkItem(539871)]
+        [WorkItem(539871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539871")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMissingOnGenericName()
         {
@@ -782,7 +782,7 @@ new[] { string.Format(FeaturesResources.GenerateFieldIn, "p", "Program"), string
 @"class C < T > { public delegate void Foo < R > ( R r ) ; static void M ( ) { Foo < T > r = [|Goo < T >|] ; } } ");
         }
 
-        [WorkItem(539934)]
+        [WorkItem(539934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539934")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestOnDelegateAddition()
         {
@@ -792,7 +792,7 @@ new[] { string.Format(FeaturesResources.GenerateFieldIn, "p", "Program"), string
 parseOptions: null);
         }
 
-        [WorkItem(539986)]
+        [WorkItem(539986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestReferenceTypeParameter1()
         {
@@ -801,7 +801,7 @@ parseOptions: null);
 @"class C < T > { public void Test ( ) { C < T > c = A . M ; } } class A { public static C < object > M { get ; internal set ; } } ");
         }
 
-        [WorkItem(539986)]
+        [WorkItem(539986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestReferenceTypeParameter2()
         {
@@ -810,7 +810,7 @@ parseOptions: null);
 @"class C < T > { public void Test ( ) { C < T > c = A . M ; } class A { public static C < T > M { get ; internal set ; } } } ");
         }
 
-        [WorkItem(540159)]
+        [WorkItem(540159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540159")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestEmptyIdentifierName()
         {
@@ -820,7 +820,7 @@ parseOptions: null);
 @"class C { static void M ( ) { int i = [|@ |]} } ");
         }
 
-        [WorkItem(541194)]
+        [WorkItem(541194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541194")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestForeachVar()
         {
@@ -829,7 +829,7 @@ parseOptions: null);
 @"using System.Collections.Generic; class C { private IEnumerable < object > list ; void M ( ) { foreach ( var v in list ) { } } } ");
         }
 
-        [WorkItem(541265)]
+        [WorkItem(541265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541265")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExtensionMethodUsedAsInstance()
         {
@@ -839,7 +839,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541549)]
+        [WorkItem(541549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541549")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestDelegateInvoke()
         {
@@ -848,7 +848,7 @@ parseOptions: null);
 @"using System ; class Program { private static int x ; static void Main ( string [ ] args ) { Func < int , int > f = x => x + 1 ; f ( x ) ; } } ");
         }
 
-        [WorkItem(541597)]
+        [WorkItem(541597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541597")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestComplexAssign1()
         {
@@ -857,7 +857,7 @@ parseOptions: null);
 @"class Program { private static int a ; static void Main ( string [ ] args ) { a = a + 10 ; } } ");
         }
 
-        [WorkItem(541597)]
+        [WorkItem(541597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541597")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestComplexAssign2()
         {
@@ -866,7 +866,7 @@ parseOptions: null);
 @"class Program { private static int a ; static void Main ( string [ ] args ) { a = a + 10 ; } } ");
         }
 
-        [WorkItem(541659)]
+        [WorkItem(541659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541659")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestTypeNamedVar()
         {
@@ -875,7 +875,7 @@ parseOptions: null);
 @"using System ; class Program { private static var p ; public static void Main ( ) { var v = p ; } } class var { } ");
         }
 
-        [WorkItem(541675)]
+        [WorkItem(541675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541675")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestStaticExtensionMethodArgument()
         {
@@ -884,7 +884,7 @@ parseOptions: null);
 @"using System ; class Program { private static string ss ; static void Main ( string [ ] args ) { MyExtension . ExMethod ( ss ) ; } } static class MyExtension { public static int ExMethod ( this string s ) { return s . Length ; } } ");
         }
 
-        [WorkItem(539675)]
+        [WorkItem(539675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539675")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task AddBlankLineBeforeCommentBetweenMembers1()
         {
@@ -910,7 +910,7 @@ parseOptions: null);
 compareTokens: false);
         }
 
-        [WorkItem(539675)]
+        [WorkItem(539675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539675")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task AddBlankLineBeforeCommentBetweenMembers2()
         {
@@ -937,7 +937,7 @@ index: 1,
 compareTokens: false);
         }
 
-        [WorkItem(543813)]
+        [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task AddBlankLineBetweenMembers1()
         {
@@ -962,7 +962,7 @@ index: 1,
 compareTokens: false);
         }
 
-        [WorkItem(543813)]
+        [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task AddBlankLineBetweenMembers2()
         {
@@ -987,7 +987,7 @@ index: 0,
 compareTokens: false);
         }
 
-        [WorkItem(543813)]
+        [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task DontAddBlankLineBetweenFields()
         {
@@ -1017,7 +1017,7 @@ index: 1,
 compareTokens: false);
         }
 
-        [WorkItem(543813)]
+        [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task DontAddBlankLineBetweenAutoProperties()
         {
@@ -1047,7 +1047,7 @@ index: 0,
 compareTokens: false);
         }
 
-        [WorkItem(539665)]
+        [WorkItem(539665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539665")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestIntoEmptyClass()
         {
@@ -1074,7 +1074,7 @@ class D
 compareTokens: false);
         }
 
-        [WorkItem(540595)]
+        [WorkItem(540595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540595")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInScript()
         {
@@ -1087,7 +1087,7 @@ parseOptions: Options.Script,
 compareTokens: false);
         }
 
-        [WorkItem(542535)]
+        [WorkItem(542535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542535")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConstantInParameterValue()
         {
@@ -1102,7 +1102,7 @@ Initial,
 @"class C { private const bool undeclared ; const int y = 1 ; public void Foo ( bool x = undeclared ) { } } ");
         }
 
-        [WorkItem(542900)]
+        [WorkItem(542900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542900")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFromAttributeNamedArgument1()
         {
@@ -1111,7 +1111,7 @@ Initial,
 @"using System ; class ProgramAttribute : Attribute { public int Name { get ; set ; } [ Program ( Name = 0 ) ] static void Main ( string [ ] args ) { } } ");
         }
 
-        [WorkItem(542900)]
+        [WorkItem(542900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542900")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFromAttributeNamedArgument2()
         {
@@ -1121,7 +1121,7 @@ Initial,
 index: 1);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility1_InternalPrivate()
         {
@@ -1131,7 +1131,7 @@ index: 1);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility2_InternalProtected()
         {
@@ -1141,7 +1141,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility3_InternalInternal()
         {
@@ -1151,7 +1151,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility4_InternalProtectedInternal()
         {
@@ -1161,7 +1161,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility5_InternalPublic()
         {
@@ -1171,7 +1171,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility6_PublicInternal()
         {
@@ -1181,7 +1181,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility7_PublicProtectedInternal()
         {
@@ -1191,7 +1191,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility8_PublicProtected()
         {
@@ -1201,7 +1201,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility9_PublicPrivate()
         {
@@ -1211,7 +1211,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility10_PrivatePrivate()
         {
@@ -1221,7 +1221,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility11_PrivateProtected()
         {
@@ -1231,7 +1231,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility12_PrivateProtectedInternal()
         {
@@ -1241,7 +1241,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility13_PrivateInternal()
         {
@@ -1251,7 +1251,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility14_ProtectedPrivate()
         {
@@ -1261,7 +1261,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility15_ProtectedInternal()
         {
@@ -1271,7 +1271,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility16_ProtectedInternalProtected()
         {
@@ -1281,7 +1281,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(541698)]
+        [WorkItem(541698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestMinimalAccessibility17_ProtectedInternalInternal()
         {
@@ -1291,7 +1291,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [WorkItem(543153)]
+        [WorkItem(543153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543153")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestAnonymousObjectInitializer1()
         {
@@ -1301,7 +1301,7 @@ parseOptions: null);
 index: 1);
         }
 
-        [WorkItem(543124)]
+        [WorkItem(543124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543124")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNoGenerationIntoAnonymousType()
         {
@@ -1309,7 +1309,7 @@ index: 1);
 @"class Program { static void Main ( string [ ] args ) { var v = new { } ; bool b = v . [|Bar|] ; } } ");
         }
 
-        [WorkItem(543543)]
+        [WorkItem(543543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543543")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOfferedForBoundParametersOfOperators()
         {
@@ -1317,7 +1317,7 @@ index: 1);
 @"class Program { public Program ( string s ) { } static void Main ( string [ ] args ) { Program p = """" ; } public static implicit operator Program ( string str ) { return new Program ( [|str|] ) ; } } ");
         }
 
-        [WorkItem(544175)]
+        [WorkItem(544175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544175")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnNamedParameterName1()
         {
@@ -1325,7 +1325,7 @@ index: 1);
 @"using System ; class class1 { public void Test ( ) { Foo ( [|x|] : x ) ; } public string Foo ( int x ) { } } ");
         }
 
-        [WorkItem(544271)]
+        [WorkItem(544271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnNamedParameterName2()
         {
@@ -1333,7 +1333,7 @@ index: 1);
 @"class Foo { public Foo ( int a = 42 ) { } } class DogBed : Foo { public DogBed ( int b ) : base ( [|a|] : b ) { } } ");
         }
 
-        [WorkItem(544164)]
+        [WorkItem(544164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544164")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyOnObjectInitializer()
         {
@@ -1402,7 +1402,7 @@ index: 1);
 index: 3);
         }
 
-        [WorkItem(544319)]
+        [WorkItem(544319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544319")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnIncompleteMember1()
         {
@@ -1410,7 +1410,7 @@ index: 3);
 @"using System; class Class1 { Console.[|WriteLine|](); }");
         }
 
-        [WorkItem(544319)]
+        [WorkItem(544319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544319")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnIncompleteMember2()
         {
@@ -1418,7 +1418,7 @@ index: 3);
 @"using System; class Class1 { [|WriteLine|](); }");
         }
 
-        [WorkItem(544319)]
+        [WorkItem(544319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544319")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnIncompleteMember3()
         {
@@ -1426,7 +1426,7 @@ index: 3);
 @"using System; class Class1 { [|WriteLine|] }");
         }
 
-        [WorkItem(544384)]
+        [WorkItem(544384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544384")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPointerType()
         {
@@ -1435,7 +1435,7 @@ index: 3);
 @"class Program { static int x ; private static unsafe int * p2 ; unsafe static void F ( int * p ) { * p = 1 ; } static unsafe void Main ( string [ ] args ) { int [ ] a = new int [ 10 ] ; fixed ( int * p2 = & x , int * p3 = ) F ( GetP2 ( p2 ) ) ; } unsafe private static int * GetP2 ( int * p2 ) { return p2 ; } } ");
         }
 
-        [WorkItem(544510)]
+        [WorkItem(544510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544510")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNotOnUsingAlias()
         {
@@ -1443,7 +1443,7 @@ index: 3);
 @"using [|S|] = System ; S . Console . WriteLine ( ""hello world"" ) ; ");
         }
 
-        [WorkItem(544907)]
+        [WorkItem(544907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544907")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestExpressionTLambda()
         {
@@ -1506,7 +1506,7 @@ index: 3);
 index: 1);
         }
 
-        [WorkItem(809542)]
+        [WorkItem(809542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestLocalBeforeComment()
         {
@@ -1537,7 +1537,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(809542)]
+        [WorkItem(809542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestLocalAfterComment()
         {
@@ -1653,7 +1653,7 @@ class Program
 compareTokens: false);
         }
 
-        [WorkItem(545217)]
+        [WorkItem(545217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545217")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateLocalNameSimplification()
         {
@@ -1764,7 +1764,7 @@ index: 3);
 @"class Program { void Main ( ) { [|base|] . ToString ( ) ; } } ");
         }
 
-        [WorkItem(545273)]
+        [WorkItem(545273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFromAssign1()
         {
@@ -1783,7 +1783,7 @@ index: 2);
 index: 2);
         }
 
-        [WorkItem(545273)]
+        [WorkItem(545273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFromAssign1NotAsVar()
         {
@@ -1794,7 +1794,7 @@ index: 2,
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
-        [WorkItem(545273)]
+        [WorkItem(545273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFromAssign2()
         {
@@ -1804,7 +1804,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
 index: 2);
         }
 
-        [WorkItem(545269)]
+        [WorkItem(545269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInVenus1()
         {
@@ -1823,7 +1823,7 @@ class C
 ");
         }
 
-        [WorkItem(545269)]
+        [WorkItem(545269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInVenus2()
         {
@@ -1856,7 +1856,7 @@ class C
 ");
         }
 
-        [WorkItem(546027)]
+        [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyFromAttribute()
         {
@@ -1865,7 +1865,7 @@ class C
 @"using System ; [ AttributeUsage ( AttributeTargets . Class ) ] class MyAttrAttribute : Attribute { public int Version { get ; set ; } } [ MyAttr ( 123 , Version = 1 ) ] class D { } ");
         }
 
-        [WorkItem(545232)]
+        [WorkItem(545232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545232")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestNewLinePreservationBeforeInsertingLocal()
         {
@@ -1911,7 +1911,7 @@ index: 3,
 compareTokens: false);
         }
 
-        [WorkItem(863346)]
+        [WorkItem(863346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInGenericMethod_Local()
         {
@@ -1953,7 +1953,7 @@ index: 3,
 compareTokens: false);
         }
 
-        [WorkItem(863346)]
+        [WorkItem(863346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateInGenericMethod_Property()
         {
@@ -1995,7 +1995,7 @@ class TestClass<T1>
 compareTokens: false);
         }
 
-        [WorkItem(865067)]
+        [WorkItem(865067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865067")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithYieldReturn()
         {
@@ -2004,7 +2004,7 @@ compareTokens: false);
 @"using System; using System.Collections.Generic; class Program { private DayOfWeek abc; IEnumerable<DayOfWeek> Foo ( ) { yield return abc; } }");
         }
 
-        [WorkItem(877580)]
+        [WorkItem(877580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/877580")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestWithThrow()
         {
@@ -2013,7 +2013,7 @@ compareTokens: false);
 @"using System; class Program { private Exception MyExp; void Foo ( ) { throw MyExp; } }", index: 1);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeField()
         {
@@ -2022,7 +2022,7 @@ compareTokens: false);
 @"class Class { private unsafe int* foo; void Method() { int* a = foo; } }");
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeField2()
         {
@@ -2031,7 +2031,7 @@ compareTokens: false);
 @"class Class { private unsafe int*[] foo; void Method() { int*[] a = foo; } }");
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeFieldInUnsafeClass()
         {
@@ -2040,7 +2040,7 @@ compareTokens: false);
 @"unsafe class Class { private int* foo; void Method() { int* a = foo; } }");
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeFieldInNestedClass()
         {
@@ -2049,7 +2049,7 @@ compareTokens: false);
 @"unsafe class Class { class MyClass { private int* foo; void Method() { int* a = foo; } } }");
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeFieldInNestedClass2()
         {
@@ -2058,7 +2058,7 @@ compareTokens: false);
 @"class Class { private static unsafe int* foo; unsafe class MyClass { void Method() { int* a = Class.foo; } } }");
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeReadOnlyField()
         {
@@ -2068,7 +2068,7 @@ compareTokens: false);
 index: 1);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeReadOnlyField2()
         {
@@ -2078,7 +2078,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeReadOnlyFieldInUnsafeClass()
         {
@@ -2088,7 +2088,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeReadOnlyFieldInNestedClass()
         {
@@ -2098,7 +2098,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeReadOnlyFieldInNestedClass2()
         {
@@ -2108,7 +2108,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeProperty()
         {
@@ -2118,7 +2118,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafeProperty2()
         {
@@ -2128,7 +2128,7 @@ index: 2);
 index: 2);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafePropertyInUnsafeClass()
         {
@@ -2138,7 +2138,7 @@ index: 2);
 index: 2);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafePropertyInNestedClass()
         {
@@ -2148,7 +2148,7 @@ index: 2);
 index: 2);
         }
 
-        [WorkItem(530177)]
+        [WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestUnsafePropertyInNestedClass2()
         {
@@ -2158,7 +2158,7 @@ index: 2);
 index: 2);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfProperty()
         {
@@ -2167,7 +2167,7 @@ index: 2);
 @"class C { public object Z { get; private set; } void M() { var x = nameof(Z); } }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfField()
         {
@@ -2177,7 +2177,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfReadonlyField()
         {
@@ -2187,7 +2187,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfLocal()
         {
@@ -2197,7 +2197,7 @@ index: 2);
 index: 3);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfProperty2()
         {
@@ -2206,7 +2206,7 @@ index: 3);
 @"class C { public object Z { get; private set; } void M() { var x = nameof(Z.X); } }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfField2()
         {
@@ -2216,7 +2216,7 @@ index: 3);
 index: 1);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfReadonlyField2()
         {
@@ -2226,7 +2226,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfLocal2()
         {
@@ -2236,7 +2236,7 @@ index: 2);
 index: 3);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfProperty3()
         {
@@ -2245,7 +2245,7 @@ index: 3);
 @"class C { public object Z { get; private set; } void M() { var x = nameof(Z.X.Y); } }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfField3()
         {
@@ -2255,7 +2255,7 @@ index: 3);
 index: 1);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfReadonlyField3()
         {
@@ -2265,7 +2265,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfLocal3()
         {
@@ -2275,28 +2275,28 @@ index: 2);
 index: 3);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfMissing()
         {
             await TestMissingAsync(@"class C { void M() { var x = [|nameof(1 + 2)|]; } }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfMissing2()
         {
             await TestMissingAsync(@"class C { void M() { var y = 1 + 2; var x = [|nameof(y)|]; } }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfMissing3()
         {
             await TestMissingAsync(@"class C { void M() { var y = 1 + 2; var z = """"; var x = [|nameof(y, z)|]; } }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfProperty4()
         {
@@ -2306,7 +2306,7 @@ index: 3);
 index: 2);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfField4()
         {
@@ -2315,7 +2315,7 @@ index: 2);
 @"class C { private object y; void M() { var x = nameof(y, z); } }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfReadonlyField4()
         {
@@ -2325,7 +2325,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfLocal4()
         {
@@ -2335,7 +2335,7 @@ index: 1);
 index: 3);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfProperty5()
         {
@@ -2345,7 +2345,7 @@ index: 3);
 index: 2);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfField5()
         {
@@ -2354,7 +2354,7 @@ index: 2);
 @"class C { private object y; void M() { var x = nameof(y); } private object nameof(object y) { return null; } }");
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfReadonlyField5()
         {
@@ -2364,7 +2364,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem(1032176)]
+        [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestInsideNameOfLocal5()
         {
@@ -2374,7 +2374,7 @@ index: 1);
 index: 3);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessProperty()
         {
@@ -2383,7 +2383,7 @@ index: 3);
 @"class C { public C Instance { get ; private set ; } void Main ( C a ) { C x = a ? . Instance ; } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessField()
         {
@@ -2393,7 +2393,7 @@ index: 3);
 index: 1);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessReadonlyField()
         {
@@ -2403,7 +2403,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessVarProperty()
         {
@@ -2412,7 +2412,7 @@ index: 2);
 @"class C { public object Instance { get ; private set ; } void Main ( C a ) { var x = a ? . Instance ; } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessVarField()
         {
@@ -2422,7 +2422,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessVarReadOnlyField()
         {
@@ -2432,7 +2432,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessNullableProperty()
         {
@@ -2441,7 +2441,7 @@ index: 2);
 @"class C { public int B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B ; } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessNullableField()
         {
@@ -2451,7 +2451,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConditionalAccessNullableReadonlyField()
         {
@@ -2461,7 +2461,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInConditionalAccessExpression()
         {
@@ -2470,7 +2470,7 @@ index: 2);
 @"class C { public E B { get ; private set ; } void Main ( C a ) { C x = a ? . B . C ; } public class E { public C C { get ; internal set ; } } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInConditionalAccessExpression2()
         {
@@ -2479,7 +2479,7 @@ index: 2);
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int x = a ? . B . C ; } public class E { public int C { get ; internal set ; } } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInConditionalAccessExpression3()
         {
@@ -2488,7 +2488,7 @@ index: 2);
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B . C ; } public class E { public int C { get ; internal set ; } } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGeneratePropertyInConditionalAccessExpression4()
         {
@@ -2497,7 +2497,7 @@ index: 2);
 @"class C { public E B { get ; private set ; } void Main ( C a ) { var x = a ? . B . C ; } public class E { public object C { get ; internal set ; } } } ");
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInConditionalAccessExpression()
         {
@@ -2507,7 +2507,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInConditionalAccessExpression2()
         {
@@ -2517,7 +2517,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInConditionalAccessExpression3()
         {
@@ -2527,7 +2527,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateFieldInConditionalAccessExpression4()
         {
@@ -2537,7 +2537,7 @@ index: 1);
 index: 1);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInConditionalAccessExpression()
         {
@@ -2547,7 +2547,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInConditionalAccessExpression2()
         {
@@ -2557,7 +2557,7 @@ index: 2);
 index: 2);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInConditionalAccessExpression3()
         {
@@ -2567,7 +2567,7 @@ index: 2);
 index: 2);
         }
 
-        [WorkItem(1064748)]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInConditionalAccessExpression4()
         {

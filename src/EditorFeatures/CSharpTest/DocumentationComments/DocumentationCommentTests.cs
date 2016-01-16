@@ -233,7 +233,7 @@ class C
             await VerifyTypingCharacterAsync(code, expected);
         }
 
-        [WorkItem(538699)]
+        [WorkItem(538699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538699")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task TypingCharacter_VoidMethod2()
         {
@@ -653,7 +653,7 @@ $$
             await VerifyPressingEnterAsync(code, expected);
         }
 
-        [WorkItem(537513)]
+        [WorkItem(537513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task PressingEnter_NotInterleavedInClassName1()
         {
@@ -671,7 +671,7 @@ $$ C
             await VerifyPressingEnterAsync(code, expected);
         }
 
-        [WorkItem(537513)]
+        [WorkItem(537513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task PressingEnter_NotInterleavedInClassName2()
         {
@@ -689,7 +689,7 @@ $$C
             await VerifyPressingEnterAsync(code, expected);
         }
 
-        [WorkItem(537513)]
+        [WorkItem(537513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task PressingEnter_NotInterleavedInClassName3()
         {
@@ -707,8 +707,8 @@ $$C
             await VerifyPressingEnterAsync(code, expected);
         }
 
-        [WorkItem(537514)]
-        [WorkItem(537532)]
+        [WorkItem(537514, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537514")]
+        [WorkItem(537532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537532")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task PressingEnter_NotAfterClassName1()
         {
@@ -726,7 +726,7 @@ $$
             await VerifyPressingEnterAsync(code, expected);
         }
 
-        [WorkItem(537552)]
+        [WorkItem(537552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537552")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task PressingEnter_NotAfterClassName2()
         {
@@ -744,7 +744,7 @@ $$
             await VerifyPressingEnterAsync(code, expected);
         }
 
-        [WorkItem(537535)]
+        [WorkItem(537535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537535")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task PressingEnter_NotAfterCtorName()
         {
@@ -764,7 +764,7 @@ $$
             await VerifyPressingEnterAsync(code, expected);
         }
 
-        [WorkItem(537511)]
+        [WorkItem(537511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task PressingEnter_NotInsideCtor()
         {
@@ -790,7 +790,7 @@ $$
             await VerifyPressingEnterAsync(code, expected);
         }
 
-        [WorkItem(537550)]
+        [WorkItem(537550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task PressingEnter_NotBeforeDocComment()
         {
@@ -971,7 +971,7 @@ class C
             await VerifyPressingEnterAsync(code, expected);
         }
 
-        [WorkItem(538702)]
+        [WorkItem(538702, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538702")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task PressingEnter_InsertSlashes8()
         {
@@ -1105,7 +1105,7 @@ class C
             await VerifyPressingEnterAsync(code, expected);
         }
 
-        [WorkItem(538701)]
+        [WorkItem(538701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538701")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task PressingEnter_DontInsertSlashes2()
         {
@@ -1123,7 +1123,7 @@ class C{}";
             await VerifyPressingEnterAsync(code, expected);
         }
 
-        [WorkItem(542426)]
+        [WorkItem(542426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542426")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task PressingEnter_PreserveParams()
         {
@@ -1411,7 +1411,7 @@ class C
             await VerifyInsertCommentCommandAsync(code, expected, autoGenerateXmlDocComments: false);
         }
 
-        [WorkItem(538714)]
+        [WorkItem(538714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task Command_BeforeClass1()
         {
@@ -1428,7 +1428,7 @@ class C { }";
             await VerifyInsertCommentCommandAsync(code, expected);
         }
 
-        [WorkItem(538714)]
+        [WorkItem(538714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task Command_BeforeClass2()
         {
@@ -1447,7 +1447,7 @@ class C { }";
             await VerifyInsertCommentCommandAsync(code, expected);
         }
 
-        [WorkItem(538714)]
+        [WorkItem(538714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task Command_BeforeClass3()
         {
@@ -1470,7 +1470,7 @@ class C { }";
             await VerifyInsertCommentCommandAsync(code, expected);
         }
 
-        [WorkItem(527604)]
+        [WorkItem(527604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527604")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task Command_Class_NotIfMultilineDocCommentExists()
         {
@@ -1548,7 +1548,7 @@ class C
             await VerifyInsertCommentCommandAsync(code, expected);
         }
 
-        [WorkItem(538482)]
+        [WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task Command_FirstClassOnLine()
         {
@@ -1563,7 +1563,7 @@ class C { } class D { }";
             await VerifyInsertCommentCommandAsync(code, expected);
         }
 
-        [WorkItem(538482)]
+        [WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task Command_NotOnSecondClassOnLine()
         {
@@ -1574,7 +1574,7 @@ class C { } class D { }";
             await VerifyInsertCommentCommandAsync(code, expected);
         }
 
-        [WorkItem(538482)]
+        [WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task Command_FirstMethodOnLine()
         {
@@ -1596,7 +1596,7 @@ class C { } class D { }";
             await VerifyInsertCommentCommandAsync(code, expected);
         }
 
-        [WorkItem(538482)]
+        [WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task Command_NotOnSecondMethodOnLine()
         {
@@ -1615,7 +1615,7 @@ class C { } class D { }";
             await VerifyInsertCommentCommandAsync(code, expected);
         }
 
-        [WorkItem(917904)]
+        [WorkItem(917904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917904")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public async Task TestUseTab()
         {

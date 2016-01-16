@@ -390,7 +390,7 @@ End Class
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(540629, "DevDiv")>
+        <WorkItem(540629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540629")>
         <Fact()>
         Public Sub BC30002ERR_UndefinedType1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -726,7 +726,7 @@ BC30039: Loop control variable cannot be a property or a late-bound indexed arra
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(545641, "DevDiv")>
+        <Fact(), WorkItem(545641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545641")>
         Public Sub MissingLatebindingHelpers()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
@@ -995,7 +995,7 @@ BC30043: 'MyClass' is valid only within an instance method.
 </expected>)
         End Sub
 
-        <WorkItem(542958, "DevDiv")>
+        <WorkItem(542958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542958")>
         <Fact()>
         Public Sub BC30043ERR_UseOfKeywordNotInInstanceMethod1_MyClassInAttribute_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1031,7 +1031,7 @@ BC30043: 'MyClass' is valid only within an instance method.
 </expected>)
         End Sub
 
-        <WorkItem(542958, "DevDiv")>
+        <WorkItem(542958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542958")>
         <Fact()>
         Public Sub BC30043ERR_UseOfKeywordNotInInstanceMethod1_MeInAttribute_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1067,7 +1067,7 @@ BC30043: 'Me' is valid only within an instance method.
 </expected>)
         End Sub
 
-        <WorkItem(542958, "DevDiv")>
+        <WorkItem(542958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542958")>
         <Fact()>
         Public Sub BC30043ERR_UseOfKeywordNotInInstanceMethod1_MyBaseInAttribute_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1210,7 +1210,7 @@ BC30049: 'Redim' statement requires an array.
 </expected>)
         End Sub
 
-        <WorkItem(542209, "DevDiv")>
+        <WorkItem(542209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542209")>
         <Fact()>
         Public Sub BC30052ERR_ArrayRankLimit()
             CompilationUtils.CreateCompilationWithMscorlib(
@@ -1360,7 +1360,7 @@ BC30057: Too many arguments to 'Public Sub test(name As String, age As Integer)'
         End Sub
 
         ' 30057 is better here
-        <WorkItem(528720, "DevDiv")>
+        <WorkItem(528720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528720")>
         <Fact()>
         Public Sub BC30057ERR_TooManyArgs1_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1956,7 +1956,7 @@ End Class
 
         End Sub
 
-        <WorkItem(542967, "DevDiv")>
+        <WorkItem(542967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542967")>
         <Fact()>
         Public Sub BC30059ERR_RequiredConstExpr_QueryInAttr()
 
@@ -1982,7 +1982,7 @@ End Class
     </compilation>, references:={SystemCoreRef}).VerifyDiagnostics(Diagnostic(ERRID.ERR_RequiredConstExpr, "(From x In q Select x).Count()"))
         End Sub
 
-        <WorkItem(542967, "DevDiv")>
+        <WorkItem(542967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542967")>
         <Fact()>
         Public Sub BC30059ERR_RequiredConstExpr_QueryInAttr_2()
 
@@ -2009,7 +2009,7 @@ End Class
     </compilation>, references:={SystemCoreRef}).VerifyDiagnostics(Diagnostic(ERRID.ERR_BadInstanceMemberAccess, "F1"))
         End Sub
 
-        <WorkItem(542967, "DevDiv")>
+        <WorkItem(542967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542967")>
         <Fact()>
         Public Sub BC30059ERR_RequiredConstExpr_QueryInAttr_3()
 
@@ -2298,7 +2298,7 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
         End Sub
 
 
-        <WorkItem(575055, "DevDiv")>
+        <WorkItem(575055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575055")>
         <Fact>
         Public Sub BC30068ERR_IdentifierWithSameNameDifferentScope()
             Dim source = <compilation>
@@ -2326,7 +2326,7 @@ End Module
 
 
         ' change error 30098 to 30068
-        <WorkItem(538107, "DevDiv")>
+        <WorkItem(538107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538107")>
         <Fact()>
         Public Sub BC30068ERR_LValueRequired_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -3249,7 +3249,7 @@ End Module
             Diagnostic(ERRID.ERR_TypeNotExpression1, "Program").WithArguments("Program"))
         End Sub
 
-        <WorkItem(545166, "DevDiv")>
+        <WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
         <Fact()>
         Public Sub BC30109ERR_ClassNotExpression1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -3741,7 +3741,7 @@ BC42024: Unused local variable: 'i'.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(528749, "DevDiv")>
+        <Fact(), WorkItem(528749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528749")>
         Public Sub BC30209ERR_StrictDisallowImplicitObject_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="StrictDisallowImplicitObject">
@@ -3969,7 +3969,7 @@ BC30277: Type character '#' does not match declared data type 'Integer'.
 </expected>)
         End Sub
 
-        <WorkItem(528681, "DevDiv")>
+        <WorkItem(528681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528681")>
         <Fact()>
         Public Sub BC30277ERR_TypecharNoMatch2_3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -4320,7 +4320,7 @@ BC30282: Constructor call is valid only as the first statement in an instance co
 </errors>)
         End Sub
 
-        <WorkItem(541012, "DevDiv")>
+        <WorkItem(541012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541012")>
         <Fact()>
         Public Sub BC30283ERR_CantOverrideConstructor()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -4372,7 +4372,7 @@ BC42024: Unused local variable: 'i'.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(531346, "DevDiv")>
+        <Fact(), WorkItem(531346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531346")>
         Public Sub UnicodeCaseInsensitiveLocals()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="UnicodeCaseInsensitiveLocals">
@@ -5116,7 +5116,7 @@ BC30333: Value of type 'Integer()' cannot be converted to 'Object()' because 'In
 </expected>)
         End Sub
 
-        <WorkItem(579764, "DevDiv")>
+        <WorkItem(579764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579764")>
         <Fact()>
         Public Sub BC30311ERR_WithArray_ParseAndDeclarationErrors()
             'This test is because previously in native command line compiler we would produce errors for both parsing and binding errors,  now 
@@ -5155,7 +5155,7 @@ End Module        </file>
         End Sub
 
 
-        <Fact(), WorkItem(542069, "DevDiv")>
+        <Fact(), WorkItem(542069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542069")>
         Public Sub BC30337ERR_ForLoopType1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="ForLoopType1">
@@ -5206,7 +5206,7 @@ BC33038: Type 'base' must define operator '>=' to be used in a 'For' statement.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(542069, "DevDiv")>
+        <Fact(), WorkItem(542069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542069")>
         Public Sub BC30337ERR_ForLoopType1_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="ForLoopType1">
@@ -5229,7 +5229,7 @@ BC30337: 'For' loop control variable cannot be of type 'Date' because the type d
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(542069, "DevDiv"), WorkItem(544464, "DevDiv")>
+        <Fact(), WorkItem(542069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542069"), WorkItem(544464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544464")>
         Public Sub BC30337ERR_ForLoopType1_3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="ForLoopType1">
@@ -5506,7 +5506,7 @@ BC30369: Cannot refer to an instance member of a class from within a shared meth
 </expected>)
         End Sub
 
-        <Fact, WorkItem(529193, "DevDiv")>
+        <Fact, WorkItem(529193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529193")>
         Public Sub BC30369ERR_BadInstanceMemberAccess_8()
             CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
@@ -5579,7 +5579,7 @@ BC30375: 'New' cannot be used on an interface.
 
         End Sub
 
-        <Fact(), WorkItem(999399, "DevDiv")>
+        <Fact(), WorkItem(999399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999399")>
         Public Sub BC30387ERR_NoConstructorOnBase2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoConstructorOnBase2">
@@ -5786,7 +5786,7 @@ BC30390: 'B.Private Sub M()' is not accessible in this context because it is 'Pr
 </expected>)
         End Sub
 
-        <WorkItem(540640, "DevDiv")>
+        <WorkItem(540640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540640")>
         <Fact()>
         Public Sub BC30390ERR_InaccessibleMember3_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -5875,7 +5875,7 @@ BC30393: 'Exit Try' can only appear inside a 'Try' statement.
 </expected>)
         End Sub
 
-        <WorkItem(542801, "DevDiv")>
+        <WorkItem(542801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542801")>
         <Fact()>
         Public Sub BC30393ERR_ExitTryNotWithinTry_ExitFromFinally()
 
@@ -6902,7 +6902,7 @@ BC30456: 'bar1' is not a member of 'S1'.
 </expected>)
         End Sub
 
-        <WorkItem(538903, "DevDiv")>
+        <WorkItem(538903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538903")>
         <Fact()>
         Public Sub BC30456ERR_NameNotMember2_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -7042,7 +7042,7 @@ BC30456: 'M' is not a member of 'M1.B'.
 </expected>)
         End Sub
 
-        <WorkItem(529710, "DevDiv")>
+        <WorkItem(529710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529710")>
         <Fact()>
         Public Sub BC30456ERR_NameNotMember3_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -7459,7 +7459,7 @@ BC30500: Constant 'f1' cannot depend on its own value.
 
         End Sub
 
-        <Fact(), WorkItem(528728, "DevDiv")>
+        <Fact(), WorkItem(528728, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528728")>
         Public Sub BC30500ERR_CircularEvaluation1_03()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="CircularEvaluation1">
@@ -7861,7 +7861,7 @@ BC30512: Option Strict On disallows implicit conversions from 'UInteger' to 'Int
 </expected>)
         End Sub
 
-        <WorkItem(528762, "DevDiv")>
+        <WorkItem(528762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528762")>
         <Fact>
         Public Sub BC30512ERR_NarrowingConversionDisallowed2_8()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -8110,7 +8110,7 @@ BC30518: Overload resolution failed because no accessible 'sub1' can be called w
 </expected>)
         End Sub
 
-        <WorkItem(546763, "DevDiv")>
+        <WorkItem(546763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546763")>
         <Fact()>
         Public Sub BC30518ERR_NoCallableOverloadCandidates_LateBindingDisabled()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -8143,7 +8143,7 @@ BC30518: Overload resolution failed because no accessible 'ForEach' can be calle
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(542956, "DevDiv")>
+        <Fact(), WorkItem(542956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542956")>
         Public Sub BC30518ERR_NoCallableOverloadCandidates2_trycatch()
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
@@ -8822,7 +8822,7 @@ BC30545: Property access must assign to the property or use its value.
 </expected>)
         End Sub
 
-        <WorkItem(531311, "DevDiv")>
+        <WorkItem(531311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531311")>
         <Fact()>
         Public Sub BC30545ERR_PropertyAccessIgnored_Latebound()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -9157,7 +9157,7 @@ BC42017: Late bound resolution; runtime errors could occur.
 </expected>)
         End Sub
 
-        <WorkItem(546763, "DevDiv")>
+        <WorkItem(546763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546763")>
         <Fact()>
         Public Sub BC30574ERR_StrictDisallowsLateBinding_16745()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -9701,7 +9701,7 @@ BC30616: Variable 's' hides a variable in an enclosing block.
         End Sub
 
         ' spec changes in Roslyn
-        <WorkItem(528680, "DevDiv")>
+        <WorkItem(528680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528680")>
         <Fact()>
         Public Sub BC30616ERR_BlockLocalShadowing1_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -10308,7 +10308,7 @@ BC42104: Variable 'a6' is used before it has been assigned a value. A null refer
 </expected>)
         End Sub
 
-        <WorkItem(542258, "DevDiv")>
+        <WorkItem(542258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542258")>
         <Fact()>
         Public Sub BC30672ERR_InitWithExplicitArraySizes_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -10396,7 +10396,7 @@ BC30676: 'E' is not an event of 'C1'.
 
         End Sub
 
-        <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
+        <Fact(), WorkItem(918579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918579"), WorkItem(34, "CodePlex")>
         Public Sub BC30685ERR_AmbiguousAcrossInterfaces3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="AmbiguousAcrossInterfaces3">
@@ -10588,7 +10588,7 @@ BC30734: 'value' is already declared as a parameter of this method.
 </expected>)
         End Sub
 
-        <WorkItem(528680, "DevDiv")>
+        <WorkItem(528680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528680")>
         <Fact()>
         Public Sub BC30734ERR_LocalNamedSameAsParam1_3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -10692,7 +10692,7 @@ BC30742: Value '65536' cannot be converted to 'Char'.
 </expected>)
         End Sub
 
-        <WorkItem(574290, "DevDiv")>
+        <WorkItem(574290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574290")>
         <Fact()>
         Public Sub BC30742ERR_PassVBNullToAsc()
             Dim source =
@@ -10791,7 +10791,7 @@ BC30754: 'GoTo LB1' is not valid because 'LB1' is inside a 'Try', 'Catch' or 'Fi
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(543055, "DevDiv")>
+        <WorkItem(543055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543055")>
         <Fact()>
         Public Sub BC30754ERR_GotoIntoTryHandler_2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -11006,7 +11006,7 @@ BC32023: Expression is of type 'Type1', which is not a collection type.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(540627, "DevDiv")>
+        <WorkItem(540627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540627")>
         <Fact()>
         Public Sub BC30758ERR_BadAttributeNonPublicConstructor()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -11241,7 +11241,7 @@ BC30920: First statement of this 'Sub New' must be an explicit call to 'MyBase.N
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(531309, "DevDiv")>
+        <WorkItem(531309, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531309")>
         <Fact()>
         Public Sub BC30933ERR_LateBoundOverloadInterfaceCall1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -11351,7 +11351,7 @@ BC30939: 'AddressOf' expression cannot be converted to '[Delegate]' because type
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(529157, "DevDiv")>
+        <Fact(), WorkItem(529157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529157")>
         Public Sub BC30940ERR_ReturnFromEventMethod() 'diag behavior change by design- not worth investing in.
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="ReturnFromEventMethod">
@@ -11389,7 +11389,7 @@ BC30451: 'value' is not declared. It may be inaccessible due to its protection l
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542270, "DevDiv")>
+        <WorkItem(542270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542270")>
         <Fact()>
         Public Sub BC30949ERR_ArrayInitializerForNonConstDim()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -11412,7 +11412,7 @@ BC30949: Array initializer cannot be specified for a non constant dimension; use
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542270, "DevDiv")>
+        <WorkItem(542270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542270")>
         <Fact()>
         Public Sub BC30949ERR_ArrayInitializerForNonConstDim_1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -11620,7 +11620,7 @@ BC42104: Variable 'y' is used before it has been assigned a value. A null refere
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542268, "DevDiv")>
+        <WorkItem(542268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542268")>
         <Fact()>
         Public Sub BC30980ERR_CircularInference2_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -11645,7 +11645,7 @@ BC42104: Variable 'a' is used before it has been assigned a value. A null refere
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542268, "DevDiv")>
+        <WorkItem(542268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542268")>
         <Fact()>
         Public Sub BC30980ERR_CircularInference2_3a()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -11667,7 +11667,7 @@ BC42104: Variable 'a' is used before it has been assigned a value. A null refere
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(542191, "DevDiv")>
+        <Fact(), WorkItem(542191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542191")>
         Public Sub BC30982ERR_NoSuitableWidestType1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="NoSuitableWidestType1">
@@ -11952,7 +11952,7 @@ BC31082: 'ex' is not a local variable or parameter, and so cannot be used as a '
 </expected>)
         End Sub
 
-        <WorkItem(538613, "DevDiv")>
+        <WorkItem(538613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538613")>
         <Fact()>
         Public Sub BC30251_ModuleConstructorCall()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -11973,7 +11973,7 @@ BC30251: Type 'M' has no constructors.
 </expected>)
         End Sub
 
-        <WorkItem(538613, "DevDiv")>
+        <WorkItem(538613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538613")>
         <Fact()>
         Public Sub BC30251_ModuleGenericConstructorCall()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -11994,7 +11994,7 @@ BC30251: Type 'M' has no constructors.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(570936, "DevDiv")>
+        <Fact(), WorkItem(570936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570936")>
         Public Sub BC31092ERR_ParamArrayWrongType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="ParamArrayWrongType">
@@ -12020,7 +12020,7 @@ BC31092: ParamArray parameters must have an array type.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(570936, "DevDiv")>
+        <Fact(), WorkItem(570936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570936")>
         Public Sub BC31092ERR_ParamArrayWrongType_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="ParamArrayWrongType">
@@ -12100,7 +12100,7 @@ BC31095: Reference to object under construction is not valid when calling anothe
 </expected>)
         End Sub
 
-        <WorkItem(541798, "DevDiv")>
+        <WorkItem(541798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541798")>
         <Fact()>
         Public Sub BC31095ERR_InvalidMeReference()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -12129,7 +12129,7 @@ BC31095: Reference to object under construction is not valid when calling anothe
 </expected>)
         End Sub
 
-        <WorkItem(541799, "DevDiv")>
+        <WorkItem(541799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541799")>
         <Fact()>
         Public Sub BC31096ERR_InvalidImplicitMeReference()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -12530,7 +12530,7 @@ BC31148: XML namespace prefix 'p6' is not defined.
 ]]></errors>)
         End Sub
 
-        <WorkItem(531633, "DevDiv")>
+        <WorkItem(531633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531633")>
         <Fact()>
         Public Sub BC31148ERR_UndefinedXmlPrefix_3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -13507,7 +13507,7 @@ BC31394: Expression of type 'ArgIterator' cannot be converted to 'Object' or 'Va
     </expected>)
         End Sub
 
-        <WorkItem(527685, "DevDiv")>
+        <WorkItem(527685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527685")>
         <Fact()>
         Public Sub BC31394ERR_RestrictedConversion1_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -13538,7 +13538,7 @@ BC42109: Variable 'TypeRefInstance' is used before it has been assigned a value.
     </expected>)
         End Sub
 
-        <WorkItem(527685, "DevDiv")>
+        <WorkItem(527685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527685")>
         <Fact()>
         Public Sub BC31394ERR_RestrictedConversion1_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -13565,7 +13565,7 @@ BC31394: Expression of type 'RuntimeArgumentHandle' cannot be converted to 'Obje
     </expected>)
         End Sub
 
-        <Fact(), WorkItem(529561, "DevDiv")>
+        <Fact(), WorkItem(529561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529561")>
         Public Sub BC31396ERR_RestrictedType1_1()
             CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -13832,7 +13832,7 @@ BC31419: 'IsNot' requires operands that have reference types, but this operand h
 </expected>)
         End Sub
 
-        <WorkItem(542192, "DevDiv")>
+        <WorkItem(542192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542192")>
         <Fact()>
         Public Sub BC31428ERR_VoidArrayDisallowed()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -14190,7 +14190,7 @@ End Class
 } // end of class DerivedAttribute
 ]]>.Value.Replace(vbLf, vbNewLine)
 
-        <WorkItem(528981, "DevDiv")>
+        <WorkItem(528981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528981")>
         <Fact()>
         Public Sub BC31501ERR_BadAttributeReadOnlyProperty2()
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(
@@ -14205,7 +14205,7 @@ End Class
 
         End Sub
 
-        <WorkItem(540627, "DevDiv")>
+        <WorkItem(540627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540627")>
         <Fact()>
         Public Sub BC31511ERR_BadAttributeNonPublicProperty1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -14234,7 +14234,7 @@ End Class
     )
         End Sub
 
-        <WorkItem(539101, "DevDiv")>
+        <WorkItem(539101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539101")>
         <Fact()>
         Public Sub BC32000ERR_UseOfLocalBeforeDeclaration1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -14283,7 +14283,7 @@ BC32001: 'MyBase' is not valid within a Module.
 </expected>)
         End Sub
 
-        <WorkItem(542958, "DevDiv")>
+        <WorkItem(542958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542958")>
         <Fact()>
         Public Sub BC32001ERR_UseOfKeywordFromModule1_MeAsAttributeInModule()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -14318,7 +14318,7 @@ BC32001: 'Me' is not valid within a Module.
 </expected>)
         End Sub
 
-        <WorkItem(542960, "DevDiv")>
+        <WorkItem(542960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542960")>
         <Fact()>
         Public Sub BC32001ERR_UseOfKeywordFromModule1_MyBaseAsAttributeInModule()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -14690,7 +14690,7 @@ BC32014: Bounds can be specified only for the top-level array when initializing 
 </expected>)
         End Sub
 
-        <WorkItem(545621, "DevDiv")>
+        <WorkItem(545621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545621")>
         <Fact()>
         Public Sub BC32014ERR_NoConstituentArraySizes1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -14715,7 +14715,7 @@ BC32014: Bounds can be specified only for the top-level array when initializing 
     </expected>)
         End Sub
 
-        <WorkItem(528729, "DevDiv")>
+        <WorkItem(528729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528729")>
         <Fact()>
         Public Sub BC32016ERR_FunctionResultCannotBeIndexed1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -14738,7 +14738,7 @@ BC32016: 'Public Function FreeFile() As Integer' has no parameters and its retur
 </expected>)
         End Sub
 
-        <Fact, WorkItem(543658, "DevDiv")>
+        <Fact, WorkItem(543658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543658")>
         Public Sub BC32021ERR_NamedArgAlsoOmitted2()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="NamedArgAlsoOmitted2">
@@ -15428,7 +15428,7 @@ BC32059: Array lower bounds can be only '0'.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542204, "DevDiv")>
+        <WorkItem(542204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542204")>
         <Fact()>
         Public Sub BC32079ERR_TypeParameterDisallowed()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -15457,7 +15457,7 @@ BC32079: Type parameters or types constructed with type parameters are not allow
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542204, "DevDiv")>
+        <WorkItem(542204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542204")>
         <Fact()>
         Public Sub BC32079ERR_OpenTypeDisallowed()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -15602,7 +15602,7 @@ BC32096: 'For Each' on type 'T1' is ambiguous because the type implements multip
                                  </errors>)
         End Sub
 
-        <WorkItem(543616, "DevDiv")>
+        <WorkItem(543616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543616")>
         <Fact()>
         Public Sub BC32096ERR_ForEachAmbiguousIEnumerable1_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -15749,7 +15749,7 @@ BC32098: Type parameters cannot be used as qualifiers.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(545050, "DevDiv")>
+        <Fact(), WorkItem(545050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545050")>
         Public Sub BC32126ERR_AddressOfNullableMethod()
             CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="AddressOfNullableMethod">
@@ -15823,7 +15823,7 @@ BC32128: 'IsNot' operand of type 'S1?' can be compared only to 'Nothing' because
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(545669, "DevDiv")>
+        <WorkItem(545669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545669")>
         <Fact()>
         Public Sub BC32303ERR_IllegalCallOrIndex()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -16690,7 +16690,7 @@ BC36582: Too many arguments to extension method 'Public Sub FooGeneric01()' defi
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(543658, "DevDiv")>
+        <Fact(), WorkItem(543658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543658")>
         Public Sub BC36583ERR_NamedArgAlsoOmitted3()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
     <compilation name="NamedArgAlsoOmitted3">
@@ -17623,7 +17623,7 @@ BC42104: Variable 'y' is used before it has been assigned a value. A null refere
 
         End Sub
 
-        <WorkItem(528732, "DevDiv")>
+        <WorkItem(528732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528732")>
         <Fact()>
         Public Sub BC36666ERR_InaccessibleReturnTypeOfMember2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -18467,7 +18467,7 @@ BC40052: Range specified for 'Case' statement is not valid. Make sure that the l
         End Sub
 
         <Fact>
-        <WorkItem(759127, "DevDiv")>
+        <WorkItem(759127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/759127")>
         Public Sub BC41000WRN_AttributeSpecifiedMultipleTimes()
             ' No warnings Expected - Previously would generate a BC41000.  The signature of Attribute 
             ' determined From attribute used in original bug.
@@ -18986,7 +18986,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(528718, "DevDiv")>
+        <WorkItem(528718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528718")>
         <Fact()>
         Public Sub BC42025WRN_SharedMemberThroughInstance_3()
             CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -19039,7 +19039,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
 </errors>)
         End Sub
 
-        <Fact(), WorkItem(528734, "DevDiv")>
+        <Fact(), WorkItem(528734, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528734")>
         Public Sub BC42026WRN_RecursivePropertyCall()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="RecursivePropertyCall">
@@ -19650,7 +19650,7 @@ BC42104: Variable 'v' is used before it has been assigned a value. A null refere
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(546820, "DevDiv")>
+        <WorkItem(546820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_StaticLocal()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -19669,7 +19669,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation1, <errors></errors>)
         End Sub
 
-        <WorkItem(542080, "DevDiv")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -19732,7 +19732,7 @@ BC42104: Variable 'S' is used before it has been assigned a value. A null refere
 </errors>)
         End Sub
 
-        <WorkItem(542080, "DevDiv")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -19761,7 +19761,7 @@ BC42104: Variable 'S' is used before it has been assigned a value. A null refere
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542080, "DevDiv")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_4()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -19789,7 +19789,7 @@ BC42104: Variable 'Y' is used before it has been assigned a value. A null refere
 </errors>)
         End Sub
 
-        <WorkItem(542080, "DevDiv")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_5()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -19919,7 +19919,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
                  </errors>)
         End Sub
 
-        <WorkItem(528735, "DevDiv")>
+        <WorkItem(528735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528735")>
         <Fact()>
         Public Sub BC42105WRN_DefAsgNoRetValFuncRef1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -19963,7 +19963,7 @@ BC42105: Function 'F6' doesn't return a value on all code paths. A null referenc
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(545313, "DevDiv")>
+        <WorkItem(545313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545313")>
         <Fact()>
         Public Sub BC42105WRN_DefAsgNoRetValFuncRef1b()
             ' Make sure initializers are analyzed for errors/warnings
@@ -19996,7 +19996,7 @@ BC42105: Function '<anonymous method>' doesn't return a value on all code paths.
 </errors>)
         End Sub
 
-        <WorkItem(837973, "DevDiv")>
+        <WorkItem(837973, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837973")>
         <Fact()>
         Public Sub Bug837973()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -20065,7 +20065,7 @@ BC42105: Function 'Async_Regress134668_Test3' doesn't return a value on all code
 ]]></errors>)
         End Sub
 
-        <WorkItem(545313, "DevDiv")>
+        <WorkItem(545313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545313")>
         <Fact()>
         Public Sub BC42105WRN_DefAsgNoRetValFuncRef1c()
             ' Make sure initializers are analyzed for errors/warnings ONLY ONCE 
@@ -20219,7 +20219,7 @@ BC42107: Property 'P6' doesn't return a value on all code paths. A null referenc
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(540421, "DevDiv")>
+        <WorkItem(540421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540421")>
         <Fact()>
         Public Sub BC42108WRN_DefAsgUseNullRefByRefStr()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20319,7 +20319,7 @@ BC42108: Variable 's' is passed by reference before it has been assigned a value
 </errors>)
         End Sub
 
-        <WorkItem(540421, "DevDiv")>
+        <WorkItem(540421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540421")>
         <Fact()>
         Public Sub BC42108WRN_DefAsgUseNullRefByRefStr2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20411,7 +20411,7 @@ BC42109: Variable 's' is used before it has been assigned a value. A null refere
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(546818, "DevDiv")>
+        <WorkItem(546818, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546818")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr_NoError()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -20437,7 +20437,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation1, <errors></errors>)
         End Sub
 
-        <WorkItem(547098, "DevDiv")>
+        <WorkItem(547098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547098")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr_NoError2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20475,9 +20475,9 @@ Imports System
             CompilationUtils.AssertTheseDiagnostics(compilation1, <errors></errors>)
         End Sub
 
-        <WorkItem(546377, "DevDiv")>
-        <WorkItem(546423, "DevDiv")>
-        <WorkItem(546420, "DevDiv")>
+        <WorkItem(546377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546377")>
+        <WorkItem(546423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546423")>
+        <WorkItem(546420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546420")>
         <Fact()>
         Public Sub Bug15747()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20499,9 +20499,9 @@ End Module
     </compilation>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(546377, "DevDiv")>
-        <WorkItem(546423, "DevDiv")>
-        <WorkItem(546420, "DevDiv")>
+        <WorkItem(546377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546377")>
+        <WorkItem(546423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546423")>
+        <WorkItem(546420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546420")>
         <Fact()>
         Public Sub Bug15747b()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20523,7 +20523,7 @@ End Module
     </compilation>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(546175, "DevDiv")>
+        <WorkItem(546175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546175")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr_Dev11Compat()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -20596,7 +20596,7 @@ End Module
                               Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "g").WithArguments("g"))
         End Sub
 
-        <WorkItem(546175, "DevDiv")>
+        <WorkItem(546175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546175")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr_Dev11Compat2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -20658,7 +20658,7 @@ End Module
                               Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "g").WithArguments("g"))
         End Sub
 
-        <WorkItem(652008, "DevDiv")>
+        <WorkItem(652008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652008")>
         <Fact()>
         Public Sub BC42110WRN_FieldInForNotExplicit_DiagnosticRemoved()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -20697,7 +20697,7 @@ BC42322: Runtime errors might occur when converting 'String' to 'IEnumerator(Of 
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(545479, "DevDiv")>
+        <WorkItem(545479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545479")>
         <Fact()>
         Public Sub BC42322WRN_InterfaceConversion2_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20774,7 +20774,7 @@ BC42324: Using the iteration variable in a lambda expression may have unexpected
 
         End Sub
 
-        <WorkItem(545252, "DevDiv")>
+        <WorkItem(545252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545252")>
         <Fact()>
         Public Sub BC30413ERR_WithEventsIsDelegate()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20793,7 +20793,7 @@ End Class
 
         End Sub
 
-        <WorkItem(545195, "DevDiv")>
+        <WorkItem(545195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545195")>
         <Fact()>
         Public Sub BC42328WRN_RelDelegatePassedToRemoveHandler()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -21135,7 +21135,7 @@ BC42353: Function 'Fun1' doesn't return a value on all code paths. Are you missi
 </expected>)
         End Sub
 
-        <WorkItem(542802, "DevDiv")>
+        <WorkItem(542802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542802")>
         <Fact()>
         Public Sub BC42353WRN_DefAsgNoRetValFuncVal1_Lambda()
 
@@ -21163,7 +21163,7 @@ End Class
             VerifyDiagnostics(compilation, Diagnostic(ERRID.WRN_DefAsgNoRetValFuncVal1, "End Function").WithArguments("<anonymous method>"))
         End Sub
 
-        <WorkItem(542816, "DevDiv")>
+        <WorkItem(542816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542816")>
         <Fact()>
         Public Sub BC42353WRN_DefAsgNoRetValFuncVal1_Lambda_2()
 
@@ -21438,7 +21438,7 @@ End Class
 </errors>)
         End Sub
 
-        <WorkItem(938459, "DevDiv")>
+        <WorkItem(938459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938459")>
         <Fact>
         Public Sub UnimplementedMethodsIncorrectSquiggleLocationInterfaceInheritenceOrdering()
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -21569,7 +21569,7 @@ BC30002: Type 'System.Void' is not defined.
 </errors>)
         End Sub
 
-        <Fact(), WorkItem(530126, "DevDiv")>
+        <Fact(), WorkItem(530126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530126")>
         Public Sub Bug_15314_Class()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="NotYetImplementedInRoslyn">
@@ -21596,7 +21596,7 @@ BC30026: 'End Sub' expected.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(530126, "DevDiv")>
+        <Fact(), WorkItem(530126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530126")>
         Public Sub Bug_15314_Interface()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="NotYetImplementedInRoslyn">
@@ -21619,7 +21619,7 @@ BC30289: Statement cannot appear within a method body. End of method assumed.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(530126, "DevDiv")>
+        <Fact(), WorkItem(530126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530126")>
         Public Sub Bug_15314_Enum()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="NotYetImplementedInRoslyn">
@@ -21645,7 +21645,7 @@ BC30289: Statement cannot appear within a method body. End of method assumed.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(530126, "DevDiv")>
+        <Fact(), WorkItem(530126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530126")>
         Public Sub Bug_15314_Structure()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="NotYetImplementedInRoslyn">
@@ -21689,7 +21689,7 @@ BC30451: 'Environent' is not declared. It may be inaccessible due to its protect
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(545179, "DevDiv")>
+        <Fact(), WorkItem(545179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545179")>
         Public Sub Bug13459()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="NotYetImplementedInRoslyn">
@@ -21722,7 +21722,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub BaseConstructorImplicitCallWithoutSystemVoid()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21754,7 +21754,7 @@ Public Class C2
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub ParamArrayBindingCheckForAttributeConstructor()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21787,7 +21787,7 @@ BC30002: Type 'System.String' is not defined.
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub DefaultPropertyBindingCheckForAttributeConstructor()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21828,7 +21828,7 @@ BC30002: Type 'System.Void' is not defined.
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub ConstBindingCheckForDateTimeConstantConstructor()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -21860,7 +21860,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub ConstBindingCheckForDecimalConstantConstructor()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -21892,7 +21892,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub SynthesizedInstanceConstructorBinding()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21914,7 +21914,7 @@ Public Class C1
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub SynthesizedSharedConstructorBinding()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21946,7 +21946,7 @@ BC30002: Type 'System.DateTime' is not defined.
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub EnumWithoutMscorReference()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21972,7 +21972,7 @@ Enum E
 </errors>)
         End Sub
 
-        <WorkItem(541468, "DevDiv")>
+        <WorkItem(541468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541468")>
         <Fact()>
         Public Sub TypeUsedViaAlias01()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -22012,7 +22012,7 @@ BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neut
 ]]></errors>)
         End Sub
 
-        <WorkItem(541468, "DevDiv")>
+        <WorkItem(541468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541468")>
         <Fact()>
         Public Sub TypeUsedViaAlias02()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
@@ -22033,7 +22033,7 @@ BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries bec
 </errors>)
         End Sub
 
-        <WorkItem(541468, "DevDiv")>
+        <WorkItem(541468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541468")>
         <Fact()>
         Public Sub TypeUsedViaAlias03()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
@@ -22059,7 +22059,7 @@ BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries bec
 </errors>)
         End Sub
 
-        <WorkItem(541468, "DevDiv")>
+        <WorkItem(541468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541468")>
         <Fact()>
         Public Sub TypeUsedViaAlias04()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
@@ -22121,7 +22121,7 @@ BC30260: 'Main' is already declared as 'Friend Const main As Object' in this mod
 </expected>)
         End Sub
 
-        <WorkItem(542596, "DevDiv")>
+        <WorkItem(542596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542596")>
         <Fact()>
         Public Sub RegularArgumentAfterNamed()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -23354,7 +23354,7 @@ BC30401: 'E4' cannot implement 'Blah' because there is no matching event on inte
 </errors>)
         End Sub
 
-        <WorkItem(543095, "DevDiv")>
+        <WorkItem(543095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543095")>
         <Fact()>
         Public Sub SelectCase_CaseStatementError()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -23389,7 +23389,7 @@ Ca
 </expected>)
         End Sub
 
-        <WorkItem(543095, "DevDiv")>
+        <WorkItem(543095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543095")>
         <Fact()>
         Public Sub SelectCase_CaseStatementError_02()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -23426,7 +23426,7 @@ BC30451: 'y' is not declared. It may be inaccessible due to its protection level
 </expected>)
         End Sub
 
-        <WorkItem(543095, "DevDiv")>
+        <WorkItem(543095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543095")>
         <Fact()>
         Public Sub SelectCase()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -23452,7 +23452,7 @@ End Structure
             Diagnostic(ERRID.ERR_NameNotDeclared1, "ca").WithArguments("ca"))
         End Sub
 
-        <WorkItem(543300, "DevDiv")>
+        <WorkItem(543300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543300")>
         <Fact()>
         Public Sub BoundConversion()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -23493,7 +23493,7 @@ End Class
                                            Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Linq"))
         End Sub
 
-        <WorkItem(543300, "DevDiv")>
+        <WorkItem(543300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543300")>
         <Fact()>
         Public Sub BoundConversion_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -23516,7 +23516,7 @@ End Sub
                 Diagnostic(ERRID.ERR_InvalidEndSub, "End Sub"))
         End Sub
 
-        <WorkItem(543319, "DevDiv")>
+        <WorkItem(543319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543319")>
         <Fact()>
         Public Sub CaseOnlyAppearInSelect()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23540,7 +23540,7 @@ End Module
             VerifyDiagnostics(compilation, Diagnostic(ERRID.ERR_CaseNoSelect, "Case ""b"""))
         End Sub
 
-        <WorkItem(543319, "DevDiv")>
+        <WorkItem(543319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543319")>
         <Fact()>
         Public Sub CaseOnlyAppearInSelect_1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23566,7 +23566,7 @@ End Class
                 Diagnostic(ERRID.ERR_CaseNoSelect, "Case ""b"""))
         End Sub
 
-        <WorkItem(543333, "DevDiv")>
+        <WorkItem(543333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543333")>
         <Fact()>
         Public Sub BindReturn()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23584,7 +23584,7 @@ End Class
                               Diagnostic(ERRID.ERR_InvalidEndSub, "End sub"))
         End Sub
 
-        <WorkItem(543746, "DevDiv")>
+        <WorkItem(543746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543746")>
         <Fact()>
         Public Sub LocalConstAssignedToSelf()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23603,7 +23603,7 @@ End Module
                     Diagnostic(ERRID.WRN_DefAsgUseNullRef, "X").WithArguments("X"))
         End Sub
 
-        <WorkItem(543746, "DevDiv")>
+        <WorkItem(543746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543746")>
         <Fact>
         Public Sub LocalConstCycle()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23627,7 +23627,7 @@ End Module
                     Diagnostic(ERRID.ERR_UseOfLocalBeforeDeclaration1, "c").WithArguments("c"))
         End Sub
 
-        <WorkItem(543823, "DevDiv")>
+        <WorkItem(543823, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543823")>
         <Fact()>
         Public Sub LocalConstCycle02()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23651,7 +23651,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543821, "DevDiv")>
+        <WorkItem(543821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543821")>
         <Fact()>
         Public Sub LocalConstCycle03()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23675,7 +23675,7 @@ End Module
                               Diagnostic(ERRID.WRN_DefAsgUseNullRef, "Z").WithArguments("Z"))
         End Sub
 
-        <WorkItem(543755, "DevDiv")>
+        <WorkItem(543755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543755")>
         <Fact()>
         Public Sub BracketedIdentifierMissingEndBracket()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23706,7 +23706,7 @@ BC30034: Bracketed identifier is missing closing ']'.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(536245, "DevDiv"), WorkItem(543652, "DevDiv")>
+        <Fact(), WorkItem(536245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536245"), WorkItem(543652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543652")>
         Public Sub BC30192ERR_ParamArrayMustBeLast()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
                 <compilation>
@@ -23730,7 +23730,7 @@ BC30050: ParamArray parameter must be an array.
 </expected>)
         End Sub
 
-        <WorkItem(544501, "DevDiv")>
+        <WorkItem(544501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544501")>
         <Fact()>
         Public Sub TestCombinePrivateAndNotOverridable()
             Dim compilation =
@@ -23772,7 +23772,7 @@ BC31408: 'Private' and 'NotOverridable' cannot be combined.
 </expected>)
         End Sub
 
-        <WorkItem(546098, "DevDiv")>
+        <WorkItem(546098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546098")>
         <Fact()>
         Public Sub InstanceMemberOfStructInsideSharedLambda()
             Dim compilation =
@@ -23800,7 +23800,7 @@ BC30369: Cannot refer to an instance member of a class from within a shared meth
 </expected>)
         End Sub
 
-        <WorkItem(546053, "DevDiv")>
+        <WorkItem(546053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546053")>
         <Fact()>
         Public Sub EventHandlerBindingError()
             Dim compilation =
@@ -23826,7 +23826,7 @@ BC30676: 'evt' is not an event of 'Object'.
 </expected>)
         End Sub
 
-        <WorkItem(530912, "DevDiv")>
+        <WorkItem(530912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530912")>
         <Fact()>
         Public Sub Bug_17183_LateBinding_Object()
             Dim compilation =
@@ -23863,7 +23863,7 @@ BC30574: Option Strict On disallows late binding.
 </expected>)
         End Sub
 
-        <WorkItem(530912, "DevDiv")>
+        <WorkItem(530912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530912")>
         <Fact()>
         Public Sub Bug_17183_LateBinding_Array()
             Dim compilation =
@@ -23902,7 +23902,7 @@ BC30574: Option Strict On disallows late binding.
 </expected>)
         End Sub
 
-        <WorkItem(530912, "DevDiv")>
+        <WorkItem(530912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530912")>
         <Fact()>
         Public Sub Bug_17183_LateBinding_COM()
             Dim compilation =
@@ -23948,7 +23948,7 @@ BC30574: Option Strict On disallows late binding.
 </expected>)
         End Sub
 
-        <WorkItem(531400, "DevDiv")>
+        <WorkItem(531400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531400")>
         <Fact()>
         Public Sub Bug18070()
             Dim compilation =
@@ -24008,7 +24008,7 @@ Font)
 
         End Sub
 
-        <WorkItem(566606, "DevDiv")>
+        <WorkItem(566606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566606")>
         <Fact()>
         Public Sub BrokenFor()
             Dim compilation =
@@ -24327,7 +24327,7 @@ BC36908: Late-bound extension methods are not supported.
 </expected>)
         End Sub
 
-        <WorkItem(573728, "DevDiv")>
+        <WorkItem(573728, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573728")>
         <Fact()>
         Public Sub Bug573728()
             Dim compilation =
@@ -24355,7 +24355,7 @@ BC30057: Too many arguments to 'D'.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(792754, "DevDiv")>
+        <Fact(), WorkItem(792754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792754")>
         Public Sub NameClashAcrossFiles()
             Dim comp =
                 CreateCompilationWithMscorlibAndVBRuntime(

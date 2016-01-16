@@ -254,7 +254,7 @@ class C
             Assert.Equal(expectedError, error);
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void AsyncLambda_Instance_CaptureNothing()
         {
@@ -293,7 +293,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void AsyncLambda_Instance_CaptureLocal()
         {
@@ -346,7 +346,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "x");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void AsyncLambda_Instance_CaptureParameter()
         {
@@ -399,7 +399,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "u");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void AsyncLambda_Instance_CaptureLambdaParameter()
         {
@@ -438,7 +438,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void AsyncLambda_Instance_CaptureThis()
         {
@@ -491,7 +491,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "this", "ch");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void AsyncLambda_Instance_CaptureThisAndLocal()
         {
@@ -559,7 +559,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "this", "ch", "x");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void AsyncLambda_Static_CaptureNothing()
         {
@@ -598,7 +598,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void AsyncLambda_Static_CaptureLocal()
         {
@@ -651,7 +651,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "x");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void AsyncLambda_Static_CaptureParameter()
         {
@@ -704,7 +704,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "u");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void AsyncLambda_Static_CaptureLambdaParameter()
         {
@@ -743,7 +743,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void GenericAsyncLambda_Instance_CaptureNothing()
         {
@@ -788,7 +788,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void GenericAsyncLambda_Instance_CaptureLocal()
         {
@@ -847,7 +847,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "x", "<>TypeVariables");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void GenericAsyncLambda_Instance_CaptureParameter()
         {
@@ -906,7 +906,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "u", "<>TypeVariables");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void GenericAsyncLambda_Instance_CaptureLambdaParameter()
         {
@@ -951,7 +951,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void GenericAsyncLambda_Instance_CaptureThis()
         {
@@ -1010,7 +1010,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "this", "ch", "<>TypeVariables");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void GenericAsyncLambda_Instance_CaptureThisAndLocal()
         {
@@ -1084,7 +1084,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "this", "ch", "x", "<>TypeVariables");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void GenericAsyncLambda_Static_CaptureNothing()
         {
@@ -1129,7 +1129,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void GenericAsyncLambda_Static_CaptureLocal()
         {
@@ -1188,7 +1188,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "x", "<>TypeVariables");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void GenericAsyncLambda_Static_CaptureParameter()
         {
@@ -1247,7 +1247,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "u", "<>TypeVariables");
         }
 
-        [WorkItem(1112496)]
+        [WorkItem(1112496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112496")]
         [Fact]
         public void GenericAsyncLambda_Static_CaptureLambdaParameter()
         {
@@ -1292,7 +1292,7 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables");
         }
 
-        [WorkItem(1134746, "DevDiv")]
+        [WorkItem(1134746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134746")]
         [Fact]
         public void CacheInvalidation()
         {

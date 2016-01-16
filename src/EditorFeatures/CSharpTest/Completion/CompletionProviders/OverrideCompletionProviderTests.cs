@@ -43,7 +43,7 @@ public class b : a
 }", "foo()");
         }
 
-        [WorkItem(543799)]
+        [WorkItem(543799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543799")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedParameterDefaultValue1()
         {
@@ -58,7 +58,7 @@ public class b : a
 }", "foo(int x = 42)", "void a.foo([int x = 42])");
         }
 
-        [WorkItem(543799)]
+        [WorkItem(543799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543799")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedParameterDefaultValue2()
         {
@@ -529,7 +529,7 @@ class SomeClass : Derived
             await VerifyItemExistsAsync(markup, "Foo()", "void Derived.Foo()");
         }
 
-        [WorkItem(543748)]
+        [WorkItem(543748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543748")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotOfferedBaseClassMember()
         {
@@ -665,7 +665,7 @@ public class SomeClass : Base<int, Exception>
             await VerifyItemIsAbsentAsync(markup, "Foo(T t, S s)");
         }
 
-        [WorkItem(543756)]
+        [WorkItem(543756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543756")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ParameterTypeSimplified()
         {
@@ -774,7 +774,7 @@ public class SomeClass : Base
             await VerifyItemExistsAsync(markup, "foo(int x, out string y)", "void Base.foo(int x, out string y)");
         }
 
-        [WorkItem(529714)]
+        [WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
         [WpfFact(Skip = "529714"), Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task GenericMethodTypeParametersRenamed()
         {
@@ -864,7 +864,7 @@ class Derived<X> : CFoo
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
         }
 
-        [WorkItem(543798)]
+        [WorkItem(543798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543798")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitOptionalParameterValuesAreGenerated()
         {
@@ -1859,7 +1859,7 @@ public class SomeClass : Base
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo(int x, out string y)", expectedCodeAfterCommit);
         }
 
-        [WorkItem(529714)]
+        [WorkItem(529714, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
         [WpfFact(Skip = "529714"), Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitGenericMethodTypeParametersRenamed()
         {
@@ -1895,7 +1895,7 @@ class Derived<X> : CFoo
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Something<X1>(X1 arg)", expectedCodeAfterCommit);
         }
 
-        [WorkItem(544560)]
+        [WorkItem(544560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestUnsafe1()
         {
@@ -1931,7 +1931,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "F()", expectedCodeAfterCommit);
         }
 
-        [WorkItem(544560)]
+        [WorkItem(544560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestUnsafe2()
         {
@@ -1967,7 +1967,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "F()", expectedCodeAfterCommit);
         }
 
-        [WorkItem(544560)]
+        [WorkItem(544560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestUnsafe3()
         {
@@ -2003,7 +2003,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "F()", expectedCodeAfterCommit);
         }
 
-        [WorkItem(544560)]
+        [WorkItem(544560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestUnsafe4()
         {
@@ -2039,7 +2039,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "F(int* i)", expectedCodeAfterCommit);
         }
 
-        [WorkItem(545534)]
+        [WorkItem(545534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545534")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestPrivateVirtualProperty()
         {
@@ -2080,7 +2080,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Foo", expectedCodeAfterCommit);
         }
 
-        [WorkItem(636706)]
+        [WorkItem(636706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636706")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CrossLanguageParameterizedPropertyOverride()
         {
@@ -2159,7 +2159,7 @@ End Class
 
         #region "Commit: With Trivia"
 
-        [WorkItem(529199)]
+        [WorkItem(529199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitSurroundingTriviaDirective()
         {
@@ -2192,7 +2192,7 @@ class Derived : Base
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [WorkItem(529199)]
+        [WorkItem(529199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitBeforeTriviaDirective()
         {
@@ -2257,7 +2257,7 @@ class Derived : Base
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [WorkItem(529199)]
+        [WorkItem(529199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitBeforeComment()
         {
@@ -2356,7 +2356,7 @@ int bar;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [WorkItem(736742)]
+        [WorkItem(736742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736742")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AcrossPartialTypes1()
         {
@@ -2414,7 +2414,7 @@ int bar;
             }
         }
 
-        [WorkItem(736742)]
+        [WorkItem(736742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736742")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AcrossPartialTypes2()
         {
@@ -2477,7 +2477,7 @@ int bar;
         #region "EditorBrowsable should be ignored"
 
         [WpfFact]
-        [WorkItem(545678)]
+        [WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EditorBrowsable_IgnoredWhenOverridingMethods()
         {

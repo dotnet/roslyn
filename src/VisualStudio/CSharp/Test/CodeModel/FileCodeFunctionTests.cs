@@ -529,7 +529,7 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        [WorkItem(530496)]
+        [WorkItem(530496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530496")]
         public async Task TestCodeElementFromPoint()
         {
             var text = await (await GetCurrentDocumentAsync()).GetTextAsync();
@@ -544,7 +544,7 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        [WorkItem(726710)]
+        [WorkItem(726710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726710")]
         public async Task TestCodeElementFromPointBetweenMembers()
         {
             var text = await (await GetCurrentDocumentAsync()).GetTextAsync();
@@ -570,7 +570,7 @@ public class Ref<T> where T : Entity
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        [WorkItem(924179)]
+        [WorkItem(924179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924179")]
         public async Task ConversionOperator()
         {
             CodeClass classObject = (CodeClass)await GetCodeElementAsync("Ref");

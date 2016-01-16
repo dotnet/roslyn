@@ -363,7 +363,7 @@ F(y => y + 1, G(), x => x + 1, (int x) => x, u => u, async (u, v) => u + v);
             expected.AssertEqual(actual);
         }
 
-        [Fact, WorkItem(830419)]
+        [Fact, WorkItem(830419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830419")]
         public void MatchLambdas2b()
         {
             var src1 = @"

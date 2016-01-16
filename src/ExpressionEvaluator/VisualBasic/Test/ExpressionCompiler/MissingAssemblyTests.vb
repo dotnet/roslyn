@@ -234,7 +234,7 @@ End Class
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
         End Sub
 
-        <WorkItem(1114866)>
+        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub ERR_UndefinedType1()
             Dim source = "
@@ -271,7 +271,7 @@ End Class
             Assert.True(GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml(Of T)"}, globalNamespace).IsDefault)
         End Sub
 
-        <WorkItem(1151888, "DevDiv")>
+        <WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")>
         <Fact>
         Public Sub ERR_NameNotMember2()
             Const source = "
@@ -321,7 +321,7 @@ End Class
         End Sub
 
 
-        <WorkItem(1124725, "DevDiv")>
+        <WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")>
         <WorkItem(597, "GitHub")>
         <Fact>
         Public Sub PseudoVariableType()
@@ -371,7 +371,7 @@ End Class
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
         End Sub
 
-        <WorkItem(1114866)>
+        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds()
             Dim source = "
@@ -409,7 +409,7 @@ End Class
         ''' <remarks>
         ''' Windows.UI.Xaml is the only (win8) winmd with more than two parts.
         ''' </remarks>
-        <WorkItem(1114866)>
+        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds_MultipleParts()
             Dim source = "
@@ -444,7 +444,7 @@ End Class
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
         End Sub
 
-        <WorkItem(1114866)>
+        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds_GetType()
             Dim source = "
@@ -479,7 +479,7 @@ End Class
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
         End Sub
 
-        <WorkItem(1154988)>
+        <WorkItem(1154988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")>
         <Fact>
         Public Sub CompileWithRetrySameErrorReported()
             Dim source = " 

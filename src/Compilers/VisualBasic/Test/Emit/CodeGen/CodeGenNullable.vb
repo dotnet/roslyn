@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenNullable
         Inherits BasicTestBase
 
-        <Fact(), WorkItem(544947, "DevDiv")>
+        <Fact(), WorkItem(544947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544947")>
         Public Sub LiftedIntrinsicNegationLocal()
             CompileAndVerify(
                 <compilation>
@@ -1394,7 +1394,7 @@ Else: Ret2=True
 
         End Sub
 
-        <Fact(), WorkItem(544948, "DevDiv")>
+        <Fact(), WorkItem(544948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544948")>
         Public Sub NothingOrZeroInBinaryExpression()
             CompileAndVerify(
                 <compilation>
@@ -1948,7 +1948,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(544930, "DevDiv")>
+        <Fact(), WorkItem(544930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544930")>
         Public Sub LiftedBinaryIf1a()
             CompileAndVerify(
                 <compilation>
@@ -2124,7 +2124,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact, WorkItem(545064, "DevDiv")>
+        <Fact, WorkItem(545064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545064")>
         Public Sub LiftedBinaryIf5_Nested()
             Dim source =
                 <compilation>
@@ -2150,7 +2150,7 @@ End Module
 
         End Sub
 
-        <Fact(), WorkItem(544945, "DevDiv")>
+        <Fact(), WorkItem(544945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544945")>
         Public Sub LiftedBinaryRelationalWithNothingLiteral()
             Dim source =
                 <compilation>
@@ -2180,7 +2180,7 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(544946, "DevDiv")>
+        <Fact(), WorkItem(544946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544946")>
         Public Sub LiftedBinaryConcatLikeWithNothingLiteral()
             Dim source =
                 <compilation>
@@ -2205,7 +2205,7 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(544947, "DevDiv")>
+        <Fact(), WorkItem(544947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544947")>
         Public Sub LiftedBinaryDivisionWithNothingLiteral()
             Dim source =
                 <compilation>
@@ -3088,7 +3088,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(544589, "DevDiv")>
+        <Fact(), WorkItem(544589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544589")>
         Public Sub LiftedShortCircuitOperations()
             CompileAndVerify(
                 <compilation>
@@ -3199,7 +3199,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545124, "DevDiv")>
+        <Fact(), WorkItem(545124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545124")>
         Public Sub LogicalOperationsWithNullableEnum()
             CompileAndVerify(
                 <compilation>
@@ -3299,7 +3299,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545125, "DevDiv")>
+        <Fact(), WorkItem(545125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545125")>
         Public Sub ArithmeticOperationsWithNullableType()
             CompileAndVerify(
                 <compilation>
@@ -3365,7 +3365,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545437, "DevDiv")>
+        <Fact(), WorkItem(545437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545437")>
         Public Sub Regress13840()
             CompileAndVerify(
                 <compilation>
@@ -3394,7 +3394,7 @@ End Module
 
 #Region "Diagnostics"
 
-        <Fact(), WorkItem(544942, "DevDiv"), WorkItem(599013, "DevDiv")>
+        <Fact(), WorkItem(544942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544942"), WorkItem(599013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599013")>
         Public Sub BC30424ERR_ConstAsNonConstant_Nullable()
             Dim source =
                 <compilation>
@@ -3468,7 +3468,7 @@ End Module
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_NameNotMember2, "ns.field").WithArguments("field", "S?"))
         End Sub
 
-        <Fact(), WorkItem(544945, "DevDiv")>
+        <Fact(), WorkItem(544945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544945")>
         Public Sub BC42037And42038WRN_EqualToLiteralNothing_Nullable()
             Dim source =
                 <compilation>
@@ -3498,7 +3498,7 @@ End Class
                                                                           )
         End Sub
 
-        <Fact(), WorkItem(545050, "DevDiv")>
+        <Fact(), WorkItem(545050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545050")>
         Public Sub DoNotGiveBC32126ERR_AddressOfNullableMethod()
             Dim source =
                 <compilation>
@@ -3570,7 +3570,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545126, "DevDiv")>
+        <Fact(), WorkItem(545126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545126")>
         Public Sub BC36629ERR_NullableTypeInferenceNotSupported()
             Dim source =
                 <compilation>
@@ -3778,7 +3778,7 @@ BC33112: Nullable modifier cannot be used with a variable whose implicit type is
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(545126, "DevDiv")>
+        <Fact(), WorkItem(545126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545126")>
         Public Sub BC36629ERR_NullableTypeInferenceNotSupported_2()
             Dim source =
                 <compilation>
@@ -4593,7 +4593,7 @@ expectedOutput:=<![CDATA[:catenation right to integer?(null):
         '''    explicit: int? --> int
         ''' </summary>
         ''' <remarks></remarks>
-        <Fact, WorkItem(545166, "DevDiv")>
+        <Fact, WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
         Public Sub Op_ExplicitImplicitOnNullable()
             CompileAndVerify(
                 <compilation>

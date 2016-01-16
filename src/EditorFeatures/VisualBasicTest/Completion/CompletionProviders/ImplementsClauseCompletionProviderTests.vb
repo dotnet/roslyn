@@ -36,7 +36,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "J")
         End Function
 
-        <WorkItem(995986)>
+        <WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSuggestAliasedInterfaces() As Task
             Dim text = <text>Imports IAliasToI = I
@@ -60,7 +60,7 @@ End Class</text>.Value
             Await VerifyItemExistsAsync(text, "J")
         End Function
 
-        <WorkItem(995986)>
+        <WorkItem(995986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995986")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSuggestAliasedNamespace() As Task
             Dim text = <text>Imports AliasedNS = NS
@@ -219,7 +219,7 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546391)>
+        <WorkItem(546391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546391")>
         Public Async Function TestAfterProperty() As Task
             Dim text = <text>Imports System
 Imports System.Runtime.InteropServices
@@ -243,7 +243,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546410)>
+        <WorkItem(546410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546410")>
         Public Async Function TestSuggestionInImplementsList() As Task
             Dim text = <text>Imports System
 Interface I
@@ -264,7 +264,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546413)>
+        <WorkItem(546413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546413")>
         Public Async Function TestNestedInterface() As Task
             Dim text = <text>Namespace Outer
     Namespace Inner
@@ -288,7 +288,7 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546413)>
+        <WorkItem(546413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546413")>
         Public Async Function TestNoNestedInterface() As Task
             Dim text = <text>Public Class B
     Public Interface I
@@ -307,7 +307,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546405)>
+        <WorkItem(546405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546405")>
         Public Async Function TestDotIntoGlobal() As Task
             Dim text = <text>Imports System
 Class C
@@ -321,7 +321,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546415)>
+        <WorkItem(546415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546415")>
         Public Async Function TestInheritedInterfaceMembers() As Task
             Dim text = <text>Interface I1
     Function Bar() As Object
@@ -342,8 +342,8 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546415)>
-        <WorkItem(546488)>
+        <WorkItem(546415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546415")>
+        <WorkItem(546488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546488")>
         Public Async Function TestInheritedInterfaceMembers2() As Task
             Dim text = <text>Interface I1
     Function Bar() As Object
@@ -363,7 +363,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546415)>
+        <WorkItem(546415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546415")>
         Public Async Function TestInheritedInterface() As Task
             Dim text = <text>Interface I1
     Function Bar() As Object
@@ -382,7 +382,7 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(530353)>
+        <WorkItem(530353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530353")>
         Public Async Function TestNothingToImplement() As Task
             Dim text = <text>Interface I
     Sub Foo()
@@ -406,7 +406,7 @@ End Class</text>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546431)>
+        <WorkItem(546431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546431")>
         Public Async Function TestNextToImplicitLineContinuation() As Task
             Dim text = <text>Public Interface I2
     Function Goo() As Boolean
@@ -422,7 +422,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546431)>
+        <WorkItem(546431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546431")>
         Public Async Function TestNextToImplicitLineContinuation2() As Task
             Dim text = <text>Public Interface I2
     Function Foo() As Boolean
@@ -439,7 +439,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546406)>
+        <WorkItem(546406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546406")>
         Public Async Function TestDisplayTypeArguments() As Task
             Dim text = <text>Imports System
 Class A
@@ -453,7 +453,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(546406)>
+        <WorkItem(546406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546406")>
         Public Async Function TestCommitTypeArgumentsOnParen() As Task
             Dim text = <text>Imports System
 Class A
@@ -470,7 +470,7 @@ End Class</text>.Value
             Await VerifyProviderCommitAsync(text, "IEquatable(Of Integer)", expected, "("c, "")
         End Function
 
-        <WorkItem(546802)>
+        <WorkItem(546802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestKeywordIdentifierShowUnescaped() As Task
             Dim text = <text>Interface [Interface]
@@ -511,7 +511,7 @@ End Class</text>.Value
             Await VerifyProviderCommitAsync(text, "Interface", expected, "."c, "")
         End Function
 
-        <WorkItem(543812)>
+        <WorkItem(543812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543812")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEventsAfterDotInImplementsClause() As Task
             Dim markup = <Text>
@@ -606,7 +606,7 @@ End Class
             Await VerifyItemExistsAsync(test.Value, "Bar", "Sub IFoo.Bar()" & vbCrLf & "Some Summary")
         End Function
 
-        <WorkItem(530507)>
+        <WorkItem(530507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530507")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRootNamespaceInDefaultListing() As Task
 

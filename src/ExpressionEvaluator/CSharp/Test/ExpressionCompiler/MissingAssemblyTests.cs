@@ -140,7 +140,7 @@ public class C
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
         }
 
-        [WorkItem(1151888, "DevDiv")]
+        [WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
         [Fact]
         public void ERR_NoSuchMemberOrExtension_CompilationReferencesSystemCore()
         {
@@ -196,7 +196,7 @@ public class C
         /// this test only covers our ability to identify an assembly to attempt to load, not
         /// our ability to actually load or consume it.
         /// </remarks>
-        [WorkItem(1151888, "DevDiv")]
+        [WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
         [Fact]
         public void ERR_NoSuchMemberOrExtension_CompilationDoesNotReferenceSystemCore()
         {
@@ -463,7 +463,7 @@ class C
             Assert.Throws<Exception>(() => ExpressionCompiler.ShouldTryAgainWithMoreMetadataBlocks(gmdbpf, missingAssemblyIdentities, ref references));
         }
 
-        [WorkItem(1124725, "DevDiv")]
+        [WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")]
         [Fact]
         public void PseudoVariableType()
         {
@@ -498,7 +498,7 @@ class C
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
         }
 
-        [WorkItem(1114866)]
+        [WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
         [ConditionalFact(typeof(OSVersionWin8))]
         public void NotYetLoadedWinMds()
         {
@@ -537,7 +537,7 @@ class C
         /// <remarks>
         /// Windows.UI.Xaml is the only (win8) winmd with more than two parts.
         /// </remarks>
-        [WorkItem(1114866)]
+        [WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")]
         [ConditionalFact(typeof(OSVersionWin8))]
         public void NotYetLoadedWinMds_MultipleParts()
         {
@@ -573,7 +573,7 @@ class C
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
         }
 
-        [WorkItem(1154988)]
+        [WorkItem(1154988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")]
         [Fact]
         public void CompileWithRetrySameErrorReported()
         {
@@ -614,7 +614,7 @@ class C
             Assert.Equal($"error CS0012: The type 'MissingType' is defined in an assembly that is not referenced. You must add a reference to assembly '{missingIdentity}'.", errorMessage);
         }
 
-        [WorkItem(1151888)]
+        [WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")]
         [Fact]
         public void SucceedOnRetry()
         {

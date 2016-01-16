@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' <summary>
         ''' MakeAssemblyReferences should drop unreferenced assemblies.
         ''' </summary>
-        <WorkItem(1141029)>
+        <WorkItem(1141029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")>
         <Fact>
         Public Sub AssemblyDuplicateReferences()
             Const sourceA =
@@ -386,7 +386,7 @@ End Class"
             End Using
         End Sub
 
-        <WorkItem(1170032)>
+        <WorkItem(1170032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170032")>
         <Fact>
         Public Sub DuplicateTypesInMscorlib()
             Const sourceConsole =

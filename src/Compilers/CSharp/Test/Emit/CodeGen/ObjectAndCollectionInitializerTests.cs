@@ -793,7 +793,7 @@ public class Test
 }");
         }
 
-        [WorkItem(2021, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=2021")]
+        [WorkItem(2021, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/2021")]
         [Fact()]
         public void ObjectInitializerFieldlikeEvent()
         {
@@ -1930,7 +1930,7 @@ class Program
             var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(1073330)]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerArray()
         {
             var source = @"
@@ -1979,7 +1979,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1073330)]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerMDArray()
         {
             var source = @"
@@ -2071,7 +2071,7 @@ class C
         }
 
 
-        [Fact, WorkItem(1073330)]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerJaggedArrayNestedInitializer()
         {
             var source = @"
@@ -2128,7 +2128,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1073330)]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerArrayNestedObjectInitializer()
         {
             var source = @"
@@ -3338,7 +3338,7 @@ partial class C : IEnumerable
 ");
         }
 
-        [Fact, WorkItem(1089276, "DevDiv")]
+        [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
         public void PointerIndexing_01()
         {
             var source = @"
@@ -3365,7 +3365,7 @@ unsafe class C
             CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1");
         }
 
-        [Fact, WorkItem(1089276, "DevDiv")]
+        [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
         public void PointerIndexing_02()
         {
             var source = @"

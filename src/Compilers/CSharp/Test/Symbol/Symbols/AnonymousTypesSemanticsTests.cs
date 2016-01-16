@@ -682,7 +682,7 @@ public class ClassA
             Assert.Equal("System.Type System.Object.GetType()", syms[index++]);
         }
 
-        [WorkItem(543189, "DevDiv")]
+        [WorkItem(543189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543189")]
         [Fact()]
         public void CheckAnonymousTypeAsConstValue()
         {
@@ -699,7 +699,7 @@ public class A
             Assert.Equal("<anonymous type: int a>.a", info.Symbol.ToDisplayString());
         }
 
-        [WorkItem(546416, "DevDiv")]
+        [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Queryable()
         {
@@ -727,7 +727,7 @@ public class Program
 }", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics();
         }
 
-        [WorkItem(546416, "DevDiv")]
+        [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Enumerable()
         {
@@ -756,7 +756,7 @@ public class Program
 }", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics();
         }
 
-        [WorkItem(546416, "DevDiv")]
+        [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Enumerable2()
         {

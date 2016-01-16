@@ -761,7 +761,7 @@ class Cats
             }
         }
 
-        [WpfFact, WorkItem(530469)]
+        [WpfFact, WorkItem(530469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530469")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotWhenStartedFromTextualWordInTrivia()
         {
@@ -778,7 +778,7 @@ End Module";
             }
         }
 
-        [WpfFact, WorkItem(530495)]
+        [WpfFact, WorkItem(530495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530495")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotWhenCaseCorrectingReference()
         {
@@ -797,7 +797,7 @@ End Module";
             }
         }
 
-        [WpfFact, WorkItem(599508)]
+        [WpfFact, WorkItem(599508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599508")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotWhenNewIdentifierReferenceBinds()
         {
@@ -819,7 +819,7 @@ End Module";
             }
         }
 
-        [WpfFact, WorkItem(530400)]
+        [WpfFact, WorkItem(530400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530400")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotWhenDeclaringEnumMembers()
         {
@@ -835,7 +835,7 @@ End Enum";
             }
         }
 
-        [WpfFact, WorkItem(1028072)]
+        [WpfFact, WorkItem(1028072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028072")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingDoesNotThrowAggregateException()
         {
@@ -859,7 +859,7 @@ End Enum";
             Assert.Throws<AggregateException>(() => RenameTrackingTaggerProvider.WaitForIsRenamableIdentifier(source.Task, CancellationToken.None));
         }
 
-        [WpfFact, WorkItem(1063943)]
+        [WpfFact, WorkItem(1063943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063943")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotFromReferenceWithWrongNumberOfArguments()
         {
@@ -1070,7 +1070,7 @@ class C
         }
 
         [WpfFact]
-        [WorkItem(762964)]
+        [WorkItem(762964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762964")]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTracking_NoTagWhenFirstEditChangesReferenceToAnotherSymbol()
         {

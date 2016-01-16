@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
     Public Class EqualsKeywordRecommenderTests
-        <WorkItem(543136)>
+        <WorkItem(543136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543136")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EqualsAfterJoinInOnIdentifierTest() As Task
             Dim method = <MethodBody>
@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
             Await VerifyRecommendationsAreExactlyAsync(method, "Equals")
         End Function
 
-        <WorkItem(543136)>
+        <WorkItem(543136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543136")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function EqualsAfterJoinInOnBinaryExpressionTest() As Task
             Dim method = <MethodBody>

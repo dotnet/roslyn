@@ -2267,7 +2267,7 @@ abstract class C
                 "void M()");
         }
 
-        [WorkItem(537447, "DevDiv")]
+        [WorkItem(537447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537447")]
         [Fact]
         public void TestBug2239()
         {
@@ -3807,7 +3807,7 @@ enum E { A = 1, B = 2, C = 4, D = A | B | C }";
                 SymbolDisplayPartKind.NumericLiteral);
         }
 
-        [Fact, WorkItem(545462, "DevDiv")]
+        [Fact, WorkItem(545462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545462")]
         public void DateTimeDefaultParameterValue()
         {
             var text = @"
@@ -3843,7 +3843,7 @@ class C
                 SymbolDisplayPartKind.Punctuation);
         }
 
-        [Fact, WorkItem(545681, "DevDiv")]
+        [Fact, WorkItem(545681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545681")]
         public void TypeParameterFromMetadata()
         {
             var src1 = @"
@@ -3881,7 +3881,7 @@ public class Gen<V>
             Assert.Equal(msym1.ToDisplayString(), msym2.ToDisplayString());
         }
 
-        [Fact, WorkItem(545625, "DevDiv")]
+        [Fact, WorkItem(545625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545625")]
         public void ReverseArrayRankSpecifiers()
         {
             var text = @"
@@ -3922,7 +3922,7 @@ public class C
                 SymbolDisplayPartKind.Punctuation);
         }
 
-        [Fact, WorkItem(546638, "DevDiv")]
+        [Fact, WorkItem(546638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546638")]
         public void InvariantCultureNegatives()
         {
             var text = @"
@@ -4049,7 +4049,7 @@ class C
                 SymbolDisplayPartKind.Keyword);
         }
 
-        [WorkItem(791756, "DevDiv")]
+        [WorkItem(791756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/791756")]
         [Fact]
         public void KindOptions()
         {
@@ -4145,7 +4145,7 @@ namespace N
         }
 
 
-        [WorkItem(765287, "DevDiv")]
+        [WorkItem(765287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765287")]
         [Fact]
         public void TestVbSymbols()
         {
@@ -4223,7 +4223,7 @@ End Class
             Assert.Equal(null, SymbolDisplay.FormatPrimitive(SymbolDisplayFormat.TestFormat, quoteStrings: false, useHexadecimalNumbers: false));
         }
 
-        [WorkItem(879984, "DevDiv")]
+        [WorkItem(879984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879984")]
         [Fact]
         public void EnumAmbiguityResolution()
         {
@@ -4260,7 +4260,7 @@ enum E2 // Identical to E1, but has [Flags]
             Assert.Equal("M(e1 = A, e2 = A)", method.ToDisplayString(memberFormat)); // Alphabetically first candidate chosen for both enums.
         }
 
-        [Fact, WorkItem(1028003, "DevDiv")]
+        [Fact, WorkItem(1028003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1028003")]
         public void UnconventionalExplicitInterfaceImplementation()
         {
             var il = @"

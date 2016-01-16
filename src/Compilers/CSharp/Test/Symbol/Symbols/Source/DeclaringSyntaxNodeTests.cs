@@ -279,7 +279,7 @@ class C1 {
             }
         }
 
-        [WorkItem(543829, "DevDiv")]
+        [WorkItem(543829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543829")]
         [Fact]
         public void AnonymousTypeSymbolWithExplicitNew()
         {

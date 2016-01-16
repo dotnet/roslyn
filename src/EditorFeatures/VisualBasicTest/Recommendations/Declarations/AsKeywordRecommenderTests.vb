@@ -263,13 +263,13 @@ Catch foo |</MethodBody>, "As")
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Event Foo |</ClassDeclaration>, "As")
         End Function
 
-        <WorkItem(543118)>
+        <WorkItem(543118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543118")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AsAfterLetIdentifierTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>From i1 In New Integer() {4, 5} Let i2  |</MethodBody>, "As")
         End Function
 
-        <WorkItem(543637)>
+        <WorkItem(543637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543637")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AsInGenericTypeParameterListTest() As Task
             Dim code =
@@ -283,7 +283,7 @@ End Module
             Await VerifyRecommendationsContainAsync(code, "As")
         End Function
 
-        <WorkItem(543637)>
+        <WorkItem(543637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543637")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoAsInGenericTypeArgumentListTest() As Task
             Dim code =
@@ -298,7 +298,7 @@ End Module
             Await VerifyRecommendationsMissingAsync(code, "As")
         End Function
 
-        <WorkItem(544192)>
+        <WorkItem(544192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544192")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AsAfterPropertyNameTest() As Task
             Dim code =
@@ -311,7 +311,7 @@ End Class
             Await VerifyRecommendationsContainAsync(code, "As")
         End Function
 
-        <WorkItem(544192)>
+        <WorkItem(544192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544192")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoAsAfterPropertyOpenParenTest() As Task
             Dim code =
@@ -324,7 +324,7 @@ End Class
             Await VerifyRecommendationsMissingAsync(code, "As")
         End Function
 
-        <WorkItem(544192)>
+        <WorkItem(544192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544192")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AsAfterPropertyCloseParenTest() As Task
             Dim code =
@@ -342,19 +342,19 @@ End Class
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Function Foo |</ClassDeclaration>, "As")
         End Function
 
-        <WorkItem(530387)>
+        <WorkItem(530387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530387")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoAsAfterSubNameTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Foo |</ClassDeclaration>, "As")
         End Function
 
-        <WorkItem(530387)>
+        <WorkItem(530387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530387")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoAsAfterSubNameWithParensTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Foo() |</ClassDeclaration>, "As")
         End Function
 
-        <WorkItem(530387)>
+        <WorkItem(530387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530387")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoAsAfterSubNameWithBodyTest() As Task
             Dim code =
@@ -367,7 +367,7 @@ End Class
             Await VerifyRecommendationsMissingAsync(code, "As")
         End Function
 
-        <WorkItem(530387)>
+        <WorkItem(530387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530387")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoAsAfterSubNameWithBodyAndParametersTest() As Task
             Dim code =
@@ -380,13 +380,13 @@ End Class
             Await VerifyRecommendationsMissingAsync(code, "As")
         End Function
 
-        <WorkItem(546659)>
+        <WorkItem(546659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546659")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AsInUsingBlockTest() As Task
             Await VerifyRecommendationsContainAsync(<MethodBody>Using Foo |</MethodBody>, "As")
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoAsAfterEolTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -396,7 +396,7 @@ Dim Foo
                 "As")
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoAsAfterColonTest() As Task
             Await VerifyRecommendationsMissingAsync(
@@ -406,7 +406,7 @@ Dim Foo : |
                 "As")
         End Function
 
-        <WorkItem(530953)>
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AsAfterExplicitLineContinuationTest() As Task
             Await VerifyRecommendationsContainAsync(
@@ -416,7 +416,7 @@ Dim Foo _
                 "As")
         End Function
 
-        <WorkItem(547254)>
+        <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterPublicAsyncTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public Async |</ClassDeclaration>, "As")

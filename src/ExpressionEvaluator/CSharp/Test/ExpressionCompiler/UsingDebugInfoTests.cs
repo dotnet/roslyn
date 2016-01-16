@@ -139,7 +139,7 @@ namespace B
             Assert.Equal("ZA Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", externAliasStrings.Single());
         }
 
-        [WorkItem(1084059)]
+        [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         [Fact]
         public void ImportKinds_StaticType()
         {
@@ -318,7 +318,7 @@ namespace D
             Assert.True(externAliasStrings.IsDefault);
         }
 
-        [WorkItem(999086)]
+        [WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")]
         [Fact]
         public void BadPdb_InvalidAliasSyntax()
         {
@@ -354,7 +354,7 @@ public class C
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
-        [WorkItem(999086)]
+        [WorkItem(999086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999086")]
         [Fact]
         public void BadPdb_DotInAlias()
         {
@@ -390,7 +390,7 @@ public class C
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
-        [WorkItem(1007917)]
+        [WorkItem(1007917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007917")]
         [Fact]
         public void BadPdb_NestingLevel_TooMany()
         {
@@ -432,7 +432,7 @@ public class C
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
-        [WorkItem(1007917)]
+        [WorkItem(1007917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007917")]
         [Fact]
         public void BadPdb_NestingLevel_TooFew()
         {
@@ -477,7 +477,7 @@ namespace N
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
-        [WorkItem(1084059)]
+        [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         [Fact]
         public void BadPdb_NonStaticTypeImport()
         {
@@ -677,7 +677,7 @@ class C
             Assert.Equal("System", namespaceSymbol.ToTestDisplayString());
         }
 
-        [WorkItem(1084059)]
+        [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
         [Fact]
         public void ImportsForStaticType()
         {

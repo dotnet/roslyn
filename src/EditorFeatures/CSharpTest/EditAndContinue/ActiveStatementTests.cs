@@ -162,7 +162,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(846588)]
+        [WorkItem(846588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846588")]
         [Fact]
         public void Update_Leaf_Block()
         {
@@ -585,7 +585,7 @@ class C
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
         }
 
-        [WorkItem(755959)]
+        [WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")]
         [Fact]
         public void Delete_Leaf_CommentActiveStatement()
         {
@@ -649,7 +649,7 @@ namespace N
 
         #region Constructors
 
-        [WorkItem(740949)]
+        [WorkItem(740949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740949")]
         [Fact]
         public void Updated_Inner_Constructor()
         {
@@ -698,7 +698,7 @@ class Foo
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Foo f = new Foo(5*2);"));
         }
 
-        [WorkItem(741249)]
+        [WorkItem(741249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/741249")]
         [Fact]
         public void Updated_Leaf_Constructor()
         {
@@ -746,7 +746,7 @@ class Foo
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(742334)]
+        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         [Fact]
         public void Updated_Leaf_Constructor_Parameter()
         {
@@ -795,7 +795,7 @@ class Foo
                 Diagnostic(RudeEditKind.Renamed, "int b", FeaturesResources.Parameter));
         }
 
-        [WorkItem(742334)]
+        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         [Fact]
         public void Updated_Leaf_Constructor_Parameter_DefaultValue()
         {
@@ -844,7 +844,7 @@ class Foo
                 Diagnostic(RudeEditKind.InitializerUpdate, "int a = 42", FeaturesResources.Parameter));
         }
 
-        [WorkItem(742334)]
+        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         [Fact]
         public void Updated_Leaf_ConstructorChaining1()
         {
@@ -894,7 +894,7 @@ class A
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(742334)]
+        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         [Fact]
         public void Updated_Leaf_ConstructorChaining2()
         {
@@ -944,7 +944,7 @@ class A
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(742334)]
+        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         [Fact]
         public void InstanceConstructorWithoutInitializer()
         {
@@ -1341,7 +1341,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(742334)]
+        [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
         [Fact]
         public void InstanceFieldInitializer_Leaf_Update1()
         {
@@ -2331,7 +2331,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(755749)]
+        [WorkItem(755749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755749")]
         [Fact]
         public void Lock_Insert_Leaf()
         {
@@ -2363,7 +2363,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "lock (lockThis)", CSharpFeaturesResources.LockStatement));
         }
 
-        [WorkItem(755749)]
+        [WorkItem(755749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755749")]
         [Fact]
         public void Lock_Insert_Leaf2()
         {
@@ -2551,7 +2551,7 @@ class Test
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "lock (d)", CSharpFeaturesResources.LockStatement));
         }
 
-        [WorkItem(755752)]
+        [WorkItem(755752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755752")]
         [Fact]
         public void Lock_Update_Leaf()
         {
@@ -2765,7 +2765,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(755742)]
+        [WorkItem(755742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755742")]
         [Fact]
         public void Fixed_Insert_Leaf()
         {
@@ -2842,7 +2842,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(755742)]
+        [WorkItem(755742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755742")]
         [Fact]
         public void Fixed_Insert_Leaf3()
         {
@@ -2887,7 +2887,7 @@ class Test
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "fixed (int* pj = &value)", CSharpFeaturesResources.FixedStatement));
         }
 
-        [WorkItem(755742)]
+        [WorkItem(755742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755742")]
         [Fact]
         public void Fixed_Reorder_Leaf1()
         {
@@ -2935,7 +2935,7 @@ class Test
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [WorkItem(755746)]
+        [WorkItem(755746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755746")]
         [Fact]
         public void Fixed_Update_Leaf1()
         {
@@ -2978,7 +2978,7 @@ class Test
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "fixed (int* p = &value)", CSharpFeaturesResources.FixedStatement));
         }
 
-        [WorkItem(755746)]
+        [WorkItem(755746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755746")]
         [Fact]
         public void Fixed_Update_Leaf2()
         {

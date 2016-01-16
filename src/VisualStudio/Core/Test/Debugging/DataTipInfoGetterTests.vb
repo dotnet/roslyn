@@ -166,7 +166,7 @@ class C
 end class</text>)
         End Function
 
-        <WorkItem(538152)>
+        <WorkItem(538152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538152")>
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestOnComma() As Task
             Await TestNoDataTipAsync(<text>
@@ -178,7 +178,7 @@ class C
 end class</text>)
         End Function
 
-        <WorkItem(546280)>
+        <WorkItem(546280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546280")>
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestOnParameter() As Task
             Await TestAsync(<text>
@@ -194,7 +194,7 @@ End Module
 </text>)
         End Function
 
-        <WorkItem(942699)>
+        <WorkItem(942699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942699")>
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Async Function TestOnCatchVariable() As Task
             Await TestAsync(<text>
@@ -308,7 +308,7 @@ End Class
 </text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")>
         Public Async Function TestConditionalAccessExpression() As Task
             Const sourceTemplate = "
 Class A
@@ -374,7 +374,7 @@ End Class
             Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]") %></text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")>
         Public Async Function TestConditionalAccessExpression_Dictionary() As Task
             Const sourceTemplate = "
 Class A

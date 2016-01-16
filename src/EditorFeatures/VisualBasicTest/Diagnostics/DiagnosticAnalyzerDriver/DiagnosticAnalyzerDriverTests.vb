@@ -25,7 +25,7 @@ Public Class DiagnosticAnalyzerDriverTests
         End Using
     End Function
 
-    <Fact, WorkItem(908658)>
+    <Fact, WorkItem(908658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908658")>
     Public Async Function DiagnosticAnalyzerDriverVsAnalyzerDriverOnCodeBlock() As Task
         Dim methodNames As String() = {"Initialize", "AnalyzeCodeBlock"}
         Dim source = <file><![CDATA[
@@ -70,7 +70,7 @@ End Class
         End Using
     End Function
 
-    <WorkItem(908621)>
+    <WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")>
     <Fact>
     Public Sub DiagnosticServiceIsSafeAgainstAnalyzerExceptions()
         Dim analyzer = New ThrowingDiagnosticAnalyzer(Of SyntaxKind)()

@@ -1326,7 +1326,7 @@ End Class
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.D"), preserveLocalVariables:=False)})
         End Sub
 
-        <WorkItem(835827)>
+        <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         <Fact>
         Public Sub NestedClass_Insert_PInvoke_Syntactic()
             Dim src1 As String = <![CDATA[
@@ -1355,7 +1355,7 @@ End Class
                 Diagnostic(RudeEditKind.Insert, "Declare Ansi Sub B Lib ""B"" ()", FeaturesResources.Method))
         End Sub
 
-        <WorkItem(835827)>
+        <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         <Fact>
         Public Sub NestedClass_Insert_PInvoke_Semantic1()
             Dim src1 As String = <![CDATA[
@@ -1394,7 +1394,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertDllImport, "CType"))
         End Sub
 
-        <WorkItem(835827)>
+        <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         <Fact>
         Public Sub NestedClass_Insert_PInvoke_Semantic2()
             Dim src1 As String = <![CDATA[
@@ -1421,7 +1421,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertDllImport, "puts"))
         End Sub
 
-        <WorkItem(835827)>
+        <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         <Fact>
         Public Sub NestedClass_Insert_VirtualAbstract()
             Dim src1 As String = <text>
@@ -2510,7 +2510,7 @@ End Class
                 Diagnostic(RudeEditKind.Insert, "b As Integer", FeaturesResources.Parameter))
         End Sub
 
-        <Fact, WorkItem(789577)>
+        <Fact, WorkItem(789577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789577")>
         Public Sub ConstructorUpdate_AnonymousTypeInFieldInitializer()
             Dim src1 = "Class C : Dim a As Integer = F(New With { .A = 1, .B = 2 })" & vbLf & "Sub New()" & vbLf & " x = 1 : End Sub : End Class"
             Dim src2 = "Class C : Dim a As Integer = F(New With { .A = 1, .B = 2 })" & vbLf & "Sub New()" & vbLf & " x = 2 : End Sub : End Class"
@@ -3134,7 +3134,7 @@ End Class
                 {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
         End Sub
 
-        <Fact, WorkItem(2504)>
+        <Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")>
         Public Sub InstanceCtor_Partial_Insert_WithParameters_LambdaInInitializer1()
             Dim src1 As String = "
 Imports System
@@ -3888,7 +3888,7 @@ End Class
                  SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
         End Sub
 
-        <Fact, WorkItem(2504)>
+        <Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")>
         Public Sub FieldInsert_ConstructorInsert_WithInitializersAndLambdas1()
             Dim src1 = "
 Imports System
@@ -3936,7 +3936,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(2504)>
+        <Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")>
         Public Sub FieldInsert_ConstructorInsert_WithInitializersButNoExistingLambdas1()
             Dim src1 = "
 Imports System

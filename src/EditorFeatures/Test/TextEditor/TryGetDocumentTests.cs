@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
     public class TryGetDocumentTests
     {
         [Fact]
-        [WorkItem(624315)]
+        [WorkItem(624315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624315")]
         public async Task MultipleTextChangesTest()
         {
             var code = @"class C

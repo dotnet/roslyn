@@ -223,7 +223,7 @@ Next
         ''' <summary>
         ''' LookupSymbols should not include the submission class.
         ''' </summary>
-        <WorkItem(530986)>
+        <WorkItem(530986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530986")>
         <Fact>
         Public Sub LookupSymbols()
             Dim text = "1 + "

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenTests : CSharpTestBase
     {
         [Fact()]
-        [WorkItem(776642, "DevDiv")]
+        [WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")]
         public void Bug776642a()
         {
             const string source = @"
@@ -104,7 +104,7 @@ class Program
         }
 
         [Fact()]
-        [WorkItem(776642, "DevDiv")]
+        [WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")]
         public void Bug776642b()
         {
             const string source = @"
@@ -174,7 +174,7 @@ class Program
         }
 
         [Fact()]
-        [WorkItem(776642, "DevDiv")]
+        [WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")]
         public void Bug776642c()
         {
             const string source = @"
@@ -236,7 +236,7 @@ class Program
         }
 
         [Fact()]
-        [WorkItem(776642, "DevDiv")]
+        [WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")]
         public void Bug776642_static()
         {
             const string source = @"
@@ -290,7 +290,7 @@ class Program
         }
 
         [Fact()]
-        [WorkItem(531366, "DevDiv")]
+        [WorkItem(531366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531366")]
         public void Bug18015()
         {
             const string source = @"
@@ -327,7 +327,7 @@ public class C { }
         }
 
         [Fact()]
-        [WorkItem(546857, "DevDiv")]
+        [WorkItem(546857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546857")]
         public void Bug16996_MissingReturnValue()
         {
             string source = @"
@@ -374,7 +374,7 @@ public class C
         }
 
         [Fact()]
-        [WorkItem(546857, "DevDiv")]
+        [WorkItem(546857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546857")]
         public void Bug16996_MissingReturnValue01()
         {
             string source = @"
@@ -426,7 +426,7 @@ public class C
 }
 ");
         }
-        [WorkItem(546412, "DevDiv")]
+        [WorkItem(546412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546412")]
         [Fact]
         public void TestBug15818()
         {
@@ -451,7 +451,7 @@ class C
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 
-        [WorkItem(546853, "DevDiv")]
+        [WorkItem(546853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546853")]
         [Fact]
         public void TestBug16981()
         {
@@ -523,7 +523,7 @@ class C
 }
 ");
         }
-        [WorkItem(546853, "DevDiv")]
+        [WorkItem(546853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546853")]
         [Fact]
 
         public void TestBug16981b()
@@ -603,7 +603,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(540019, "DevDiv")]
+        [Fact, WorkItem(540019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540019")]
         public void TestBug6156()
         {
             var source = @"
@@ -769,7 +769,7 @@ True
 ");
         }
 
-        [WorkItem(546749, "DevDiv")]
+        [WorkItem(546749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546749")]
         [Fact()]
         public void TestToStringOnStruct()
         {
@@ -848,7 +848,7 @@ class Clazz
 ");
         }
 
-        [Fact, WorkItem(543499, "DevDiv")]
+        [Fact, WorkItem(543499, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543499")]
         public void TestGeneratingImplicitConstructor()
         {
             var source = @"
@@ -872,7 +872,7 @@ public class H
 ");
         }
 
-        [Fact, WorkItem(543499, "DevDiv")]
+        [Fact, WorkItem(543499, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543499")]
         public void TestGeneratingImplicitStaticConstructor()
         {
             var source = @"
@@ -2225,7 +2225,7 @@ class P
 ");
         }
 
-        [WorkItem(538677, "DevDiv")]
+        [WorkItem(538677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538677")]
         [Fact]
         public void PropertyAssignmentExpression()
         {
@@ -3582,7 +3582,7 @@ public class D
 ");
         }
 
-        [Fact, WorkItem(538674, "DevDiv")]
+        [Fact, WorkItem(538674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538674")]
         public void ArrayOneDimensionWithNoIntIndex()
         {
             string source = @"
@@ -6809,7 +6809,7 @@ DBNull
 ");
         }
 
-        [WorkItem(538105, "DevDiv")]
+        [WorkItem(538105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538105")]
         [Fact]
         public void Temporaries()
         {
@@ -6957,7 +6957,7 @@ class Program
 ");
         }
 
-        [WorkItem(543325, "DevDiv")]
+        [WorkItem(543325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543325")]
         [Fact()]
         public void EmitCastingMethodGroupToDelegate()
         {
@@ -6995,7 +6995,7 @@ class Derived : Base
 ");
         }
 
-        [WorkItem(543325, "DevDiv")]
+        [WorkItem(543325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543325")]
         [Fact()]
         public void EmitCastingMethodGroupToDelegate_2()
         {
@@ -7033,7 +7033,7 @@ class Derived : Base
 ");
         }
 
-        [WorkItem(543325, "DevDiv")]
+        [WorkItem(543325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543325")]
         [Fact()]
         public void EmitCastingMethodGroupToDelegate_3()
         {
@@ -7629,7 +7629,7 @@ Qc
 ");
         }
 
-        [WorkItem(538177, "DevDiv")]
+        [WorkItem(538177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538177")]
         [Fact]
         public void Bug3712()
         {
@@ -7663,8 +7663,8 @@ class A
 ");
         }
 
-        [WorkItem(538052, "DevDiv")]
-        [WorkItem(538224, "DevDiv")]
+        [WorkItem(538052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538052")]
+        [WorkItem(538224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538224")]
         [Fact]
         public void NamespaceAndTypeAlias()
         {
@@ -8230,7 +8230,7 @@ public class Program
 ");
         }
 
-        [WorkItem(542417, "DevDiv")]
+        [WorkItem(542417, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542417")]
         [Fact]
         public void OptionalForConstructor()
         {
@@ -9014,7 +9014,7 @@ struct S1
         }
 
 
-        [Fact, WorkItem(543618, "DevDiv")]
+        [Fact, WorkItem(543618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543618")]
         public void ImplicitConversionCharToDecimal()
         {
             var source = @"
@@ -9038,7 +9038,7 @@ VerifyIL("Test.Main", @"
 }");
         }
 
-        [Fact, WorkItem(543618, "DevDiv")]
+        [Fact, WorkItem(543618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543618")]
         public void ConversionDecimalToChar()
         {
             var source = @"
@@ -9062,7 +9062,7 @@ VerifyIL("Test.Main", @"
 }");
         }
 
-        [WorkItem(543621, "DevDiv")]
+        [WorkItem(543621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543621")]
         [Fact]
         public void PartialMethodInvocationInIfStatement()
         {
@@ -9080,7 +9080,7 @@ VerifyIL("Test.Main", @"
             CompileAndVerify(source);
         }
 
-        [Fact, WorkItem(529173, "DevDiv")]
+        [Fact, WorkItem(529173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529173")]
         public void CallWithStruct()
         {
             var source = @"
@@ -9148,7 +9148,7 @@ VerifyIL("Program.Main", @"
 }");
         }
 
-        [Fact, WorkItem(543611, "DevDiv")]
+        [Fact, WorkItem(543611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")]
         public void CallOnConst()
         {
             var source = @"
@@ -9178,7 +9178,7 @@ VerifyIL("Test.Main", @"
 }");
         }
 
-        [Fact, WorkItem(543611, "DevDiv")]
+        [Fact, WorkItem(543611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543611")]
         public void CallOnReadonlyValField()
         {
             var source = @"
@@ -9219,7 +9219,7 @@ VerifyIL("Test.Main", @"
 }");
         }
 
-        [Fact(), WorkItem(543691, "DevDiv")]
+        [Fact(), WorkItem(543691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543691")]
         public void NullableAsArgsForTypeParameter()
         {
             CreateCompilationWithMscorlibAndSystemCore(@"
@@ -9244,7 +9244,7 @@ class C
 ").VerifyDiagnostics();
         }
 
-        [Fact(), WorkItem(543693, "DevDiv")]
+        [Fact(), WorkItem(543693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543693")]
         public void Anonymous()
         {
             var source = @"
@@ -9283,7 +9283,7 @@ class P
 
         #region Regression
 
-        [WorkItem(538224, "DevDiv")]
+        [WorkItem(538224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538224")]
         [Fact]
         public void CallMethodFromInterface01()
         {
@@ -9334,7 +9334,7 @@ namespace NS
 }");
         }
 
-        [WorkItem(538224, "DevDiv")]
+        [WorkItem(538224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538224")]
         [Fact]
         public void CallMethodFromGenInterface01()
         {
@@ -9378,7 +9378,7 @@ namespace NS
 ");
         }
 
-        [WorkItem(538226, "DevDiv")]
+        [WorkItem(538226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538226")]
         [Fact]
         public void JumpWithFloatOperand()
         {
@@ -9523,7 +9523,7 @@ namespace CodeGen
 ");
         }
 
-        [WorkItem(538245, "DevDiv")]
+        [WorkItem(538245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538245")]
         [Fact]
         public void CallParamsCtor()
         {
@@ -9600,7 +9600,7 @@ class MyClass
 ");
         }
 
-        [Fact, WorkItem(538246, "DevDiv"), WorkItem(543655, "DevDiv")]
+        [Fact, WorkItem(538246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538246"), WorkItem(543655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543655")]
         public void FloatDoubleInfinity()
         {
             string source = @"
@@ -9768,7 +9768,7 @@ VerifyIL("MyClass.Main", @"
 }");
         }
 
-        [WorkItem(538839, "DevDiv")]
+        [WorkItem(538839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538839")]
         [Fact]
         public void LocalNumericConstInitWithDifferentType()
         {
@@ -9796,7 +9796,7 @@ class Program
 }");
         }
 
-        [WorkItem(539425, "DevDiv")]
+        [WorkItem(539425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539425")]
         [Fact]
         public void ConstantLiftedEquality()
         {
@@ -9920,7 +9920,7 @@ class Program
             CompileAndVerify(source, expectedOutput: string.Empty);
         }
 
-        [WorkItem(540093, "DevDiv")]
+        [WorkItem(540093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540093")]
         [Fact]
         public void UsingReferenceTypeConstField()
         {
@@ -9946,7 +9946,7 @@ class MyMainClass
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(528060, "DevDiv")]
+        [WorkItem(528060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528060")]
         [WorkItem(1043494, "DevDiv")]
         [Fact(Skip = "1043494")]
         public void DoubleDivByNegativeZero()
@@ -9999,8 +9999,8 @@ class MyClass
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(540096, "DevDiv")]
-        [WorkItem(540878, "DevDiv")]
+        [WorkItem(540096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540096")]
+        [WorkItem(540878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540878")]
         [Fact]
         public void MissingOutFlagForParameter()
         {
@@ -10034,7 +10034,7 @@ return 0;
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(540097, "DevDiv")]
+        [WorkItem(540097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540097")]
         [Fact]
         public void CallBaseMethodExplicitlyWithCall()
         {
@@ -10074,7 +10074,7 @@ namespace Microsoft.Conformance.Expressions
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(540149, "DevDiv")]
+        [WorkItem(540149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540149")]
         [Fact]
         public void LHSParenthesizedProperty()
         {
@@ -10107,7 +10107,7 @@ namespace Microsoft.Conformance.ParenthesizedExpression
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(540158, "DevDiv")]
+        [WorkItem(540158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540158")]
         [Fact]
         public void LoadMaxConstantForToString()
         {
@@ -10134,7 +10134,7 @@ public class MyClass
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(540252, "DevDiv")]
+        [WorkItem(540252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540252")]
         [Fact]
         public void OverloadResolutionWithConsoleWriteLineMethodGroup()
         {
@@ -10156,7 +10156,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "Hello");
         }
 
-        [WorkItem(540331, "DevDiv")]
+        [WorkItem(540331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540331")]
         [Fact]
         public void StringComparisonOpEquality()
         {
@@ -10202,7 +10202,7 @@ class Test
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(528183, "DevDiv")]
+        [WorkItem(528183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528183")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
         public void TestExternWithoutDLLImport()
         {
@@ -10227,7 +10227,7 @@ class Test
             Assert.Throws(typeof(PeVerifyException), () => CompileAndVerify(source));
         }
 
-        [WorkItem(541790, "DevDiv")]
+        [WorkItem(541790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541790")]
         [Fact]
         public void TestLINQQueryableAnyExtensionMethod()
         {
@@ -10252,7 +10252,7 @@ public class Test
                 expectedOutput: @"Success");
         }
 
-        [WorkItem(528651, "DevDiv")]
+        [WorkItem(528651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528651")]
         [Fact]
         public void UserDefinedObject()
         {
@@ -10277,7 +10277,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion));
         }
 
-        [WorkItem(542631, "DevDiv")]
+        [WorkItem(542631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542631")]
         [Fact]
         public void Queryable()
         {
@@ -10295,7 +10295,7 @@ class C
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542267, "DevDiv")]
+        [WorkItem(542267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542267")]
         [Fact]
         public void PartialMethod()
         {
@@ -10309,7 +10309,7 @@ class C
             CompileAndVerify(source);
         }
 
-        [WorkItem(542275, "DevDiv")]
+        [WorkItem(542275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542275")]
         [Fact]
         public void CallUnimplementedPartialMethod()
         {
@@ -10336,7 +10336,7 @@ class C
 }");
         }
 
-        [WorkItem(542297, "DevDiv")]
+        [WorkItem(542297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542297")]
         [Fact]
         public void GenericClassNameIdenticalToAliasSimpleName()
         {
@@ -10370,7 +10370,7 @@ namespace basic068One.basic068Three
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(542489, "DevDiv")]
+        [WorkItem(542489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542489")]
         [Fact]
         public void PartialMethodOnlyHasDeclareButNotImplement()
         {
@@ -10390,7 +10390,7 @@ partial class program
             CompileAndVerify(source);
         }
 
-        [WorkItem(538544, "DevDiv")]
+        [WorkItem(538544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538544")]
         [Fact]
         public void DecimalLiteral01()
         {
@@ -10411,7 +10411,7 @@ public class MyClass {
 ");
         }
 
-        [WorkItem(543897, "DevDiv")]
+        [WorkItem(543897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543897")]
         [Fact]
         public void DecimalLiteral02()
         {
@@ -10441,8 +10441,8 @@ public class MyClass {
 
         // Breaking change: native compiler considers
         // digits < 1e-49 when rounding.
-        [WorkItem(529827, "DevDiv")]
-        [WorkItem(568494, "DevDiv")]
+        [WorkItem(529827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529827")]
+        [WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")]
         [Fact]
         public void DecimalLiteral_BreakingChange()
         {
@@ -10947,7 +10947,7 @@ class Program
             var compilation = CompileAndVerify(source, expectedOutput: "11");
         }
 
-        [WorkItem(543888, "DevDiv")]
+        [WorkItem(543888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543888")]
         [Fact]
         public void DecimalConversion05()
         {
@@ -10984,7 +10984,7 @@ Five
 ");
         }
 
-        [WorkItem(543888, "DevDiv")]
+        [WorkItem(543888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543888")]
         [Fact]
         public void DecimalConversion06()
         {
@@ -11017,7 +11017,7 @@ public class C
 ");
         }
 
-        [WorkItem(543888, "DevDiv")]
+        [WorkItem(543888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543888")]
         [Fact]
         public void DecimalConversion07()
         {
@@ -11048,7 +11048,7 @@ E2
 ");
         }
 
-        [WorkItem(539392, "DevDiv")]
+        [WorkItem(539392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539392")]
         [Fact]
         public void DecimalBinaryOp_01()
         {
@@ -11077,7 +11077,7 @@ class C
 }");
         }
 
-        [WorkItem(543279, "DevDiv")]
+        [WorkItem(543279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543279")]
         [Fact]
         public void DecimalBinaryOp_02()
         {
@@ -11424,7 +11424,7 @@ OverflowException
 ");
         }
 
-        [WorkItem(542568, "DevDiv")]
+        [WorkItem(542568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542568")]
         [Fact]
         public void ImplicitConversionForOptional()
         {
@@ -11436,7 +11436,7 @@ OverflowException
             CompileAndVerify(source);
         }
 
-        [WorkItem(542742, "DevDiv")]
+        [WorkItem(542742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542742")]
         [Fact]
         public void CodeGenEmptyStatement()
         {
@@ -11450,7 +11450,7 @@ OverflowException
             CompileAndVerify(source);
         }
 
-        [WorkItem(542458, "DevDiv")]
+        [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
         [Fact]
         public void DefaultParamValueIsStruct_SameAssembly()
         {
@@ -11489,7 +11489,7 @@ public class DefaultParameterValues
 ");
         }
 
-        [WorkItem(542458, "DevDiv")]
+        [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
         [Fact]
         public void DefaultParamValueIsStruct_DifferentAssembly()
         {
@@ -11531,7 +11531,7 @@ public class Test
 ");
         }
 
-        [WorkItem(542458, "DevDiv")]
+        [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
         [Fact]
         public void DefaultParamValueIsStruct_MetadataAssembly()
         {
@@ -11561,7 +11561,7 @@ public class Test
 ");
         }
 
-        [WorkItem(542417, "DevDiv")]
+        [WorkItem(542417, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542417")]
         [Fact]
         public void DefaultParameterInGenericMethod()
         {
@@ -11588,7 +11588,7 @@ public class Program
             CompileAndVerify(source, expectedOutput: "Foo<System.String>(test3, test2)");
         }
 
-        [WorkItem(542920, "DevDiv")]
+        [WorkItem(542920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542920")]
         [Fact]
         public void PassExceptionVarByRef()
         {
@@ -11707,7 +11707,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [WorkItem(543089, "DevDiv")]
+        [WorkItem(543089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543089")]
         [Fact()]
         public void NoOutAttributeOnMethodReturn()
         {
@@ -11733,7 +11733,7 @@ class C
             var compilation = CompileAndVerify(source, expectedOutput: @"1A");
         }
 
-        [WorkItem(543090, "DevDiv")]
+        [WorkItem(543090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543090")]
         [Fact()]
         public void EmitAttributeOnPartialMethodReturnType()
         {
@@ -11765,7 +11765,7 @@ partial class C
             var compilation = CompileAndVerify(source, expectedOutput: @"1A");
         }
 
-        [WorkItem(543530, "DevDiv")]
+        [WorkItem(543530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543530")]
         [Fact()]
         public void EmitAttributeWithNullTypeArgument1()
         {
@@ -11805,7 +11805,7 @@ class C1
 }";
             var compilation = CompileAndVerify(source, expectedOutput: "null;null;C1;");
         }
-        [WorkItem(543091, "DevDiv")]
+        [WorkItem(543091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543091")]
         [Fact()]
         public void EmitAttributeOnPartialMethodParameter()
         {
@@ -11837,7 +11837,7 @@ partial class C
             var compilation = CompileAndVerify(source, expectedOutput: @"1A");
         }
 
-        [WorkItem(543156, "DevDiv")]
+        [WorkItem(543156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543156")]
         [Fact()]
         public void OverloadResolutionWithParams()
         {
@@ -11866,7 +11866,7 @@ class Test
             var compilation = CompileAndVerify(source, expectedOutput: @"00");
         }
 
-        [WorkItem(543157, "DevDiv")]
+        [WorkItem(543157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543157")]
         [Fact()]
         public void MultipleUseOfObjectInstance()
         {
@@ -11902,7 +11902,7 @@ class Program
             var compilation = CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [WorkItem(543566, "DevDiv")]
+        [WorkItem(543566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543566")]
         [Fact()]
         public void OptionalTypeParameterWithDefaultT()
         {
@@ -11931,7 +11931,7 @@ class Test
             var compilation = CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [Fact(), WorkItem(543667, "DevDiv")]
+        [Fact(), WorkItem(543667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543667")]
         public void BaseCallInAnonymousMethodInGenericMethodWithHoistedLocal()
         {
             string source = @"
@@ -12212,7 +12212,7 @@ notequal2");
 ");
         }
 
-        [WorkItem(529267, "DevDiv")]
+        [WorkItem(529267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529267")]
         [Fact]
         public void ModifyRangeVariable()
         {
@@ -12242,7 +12242,7 @@ class C
                 Diagnostic(ErrorCode.ERR_QueryOutRefRangeVariable, "x").WithArguments("x"));
         }
 
-        [Fact, WorkItem(529430, "DevDiv")]
+        [Fact, WorkItem(529430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529430")]
         public void DelegateEqualityComparison()
         {
             string source = @"
@@ -12360,7 +12360,7 @@ TrueFalseTrueFalse");
 ");
         }
 
-        [WorkItem(529593, "DevDiv")]
+        [WorkItem(529593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529593")]
         [Fact]
         public void FloatToDecimal01()
         {
@@ -12395,7 +12395,7 @@ True
 False");
         }
 
-        [WorkItem(529593, "DevDiv")]
+        [WorkItem(529593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529593")]
         [Fact]
         public void FloatToDecimal02()
         {
@@ -12542,7 +12542,7 @@ class C
             compilation.VerifyIL("C.Main", expectedIL);
         }
 
-        [WorkItem(545862, "DevDiv")]
+        [WorkItem(545862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545862")]
         [Fact]
         public void TestPropertyAndTypeWithSameNameInDelegateInstantiation()
         {
@@ -12578,7 +12578,7 @@ class C
             compilation.VerifyIL("C.R", expectedIL);
         }
 
-        [WorkItem(545778, "DevDiv")]
+        [WorkItem(545778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545778")]
         [Fact]
         public void FormattingCharactersInName1()
         {
@@ -12597,7 +12597,7 @@ enum " + "\u0915\u094d\u200d\u0937" + @"
             CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
-        [WorkItem(545778, "DevDiv")]
+        [WorkItem(545778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545778")]
         [Fact]
         public void FormattingCharactersInName2()
         {
@@ -12615,7 +12615,7 @@ enum " + "\u0915\u094d\u200d\u0937" + @"
             Assert.False(field.CanBeReferencedByName);
         }
 
-        [WorkItem(545716, "DevDiv")]
+        [WorkItem(545716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545716")]
         [Fact]
         public void Regress14344()
         {
@@ -12758,7 +12758,7 @@ System.Console.WriteLine(s1);
             compilation.VerifyIL("Program.Main", expectedIL);
         }
 
-        [Fact(), WorkItem(546860, "DevDiv")]
+        [Fact(), WorkItem(546860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546860")]
         public void Bug17007()
         {
             CompileAndVerify(
@@ -12787,7 +12787,7 @@ expectedOutput: "-100");
         /// Diagnostics from other methods should be ignored
         /// when compiling and emitting synthesized methods.
         /// </summary>
-        [WorkItem(546867, "DevDiv")]
+        [WorkItem(546867, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546867")]
         [Fact]
         public void IgnoreOtherDiagnosticsCompilingSynthesizedMethods()
         {
@@ -12834,7 +12834,7 @@ expectedOutput: "-100");
         }
 
         [Fact()]
-        [WorkItem(546957, "DevDiv")]
+        [WorkItem(546957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546957")]
         public void Bug17352_VarArgCtor()
         {
             string source = @"
@@ -12903,7 +12903,7 @@ blah");
 ");
         }
 
-        [WorkItem(530067, "DevDiv")]
+        [WorkItem(530067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530067")]
         [Fact]
         public void NopAfterCall()
         {
@@ -12953,7 +12953,7 @@ class C
 }");
         }
 
-        [WorkItem(530067, "DevDiv")]
+        [WorkItem(530067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530067")]
         [Fact]
         public void NopAfterCall_ForLoop()
         {
@@ -13119,7 +13119,7 @@ public class Program
 }");
         }
 
-        [WorkItem(598029, "DevDiv")]
+        [WorkItem(598029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598029")]
         [Fact]
         public void TypeParameterInterfaceVersusNonInterface1()
         {
@@ -13176,7 +13176,7 @@ class D : C, IFoo
         }
 
         // Same as above, but C.ToString is "new virtual", rather than "override".
-        [WorkItem(598029, "DevDiv")]
+        [WorkItem(598029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598029")]
         [Fact]
         public void TypeParameterInterfaceVersusNonInterface2()
         {
@@ -13229,7 +13229,7 @@ class D : C, IFoo
             CompileAndVerify(source, expectedOutput: "D");
         }
 
-        [WorkItem(638119, "DevDiv")]
+        [WorkItem(638119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638119")]
         [Fact]
         public void ArrayInitZero()
         {
@@ -13486,7 +13486,7 @@ False
 True");
         }
 
-        [Fact, WorkItem(649805, "DevDiv")]
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
         public void Repro649805()
         {
             var source = @"
@@ -13526,7 +13526,7 @@ public class Test
         }
 
 
-        [WorkItem(653588, "DevDiv")]
+        [WorkItem(653588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653588")]
         [Fact]
         public void SelfAssignStructCallTarget()
         {
@@ -13589,7 +13589,7 @@ public class Test
 ");
         }
 
-        [WorkItem(653588, "DevDiv")]
+        [WorkItem(653588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653588")]
         [Fact]
         public void UnusedStructFieldLoad()
         {
@@ -13632,7 +13632,7 @@ class A
 ");
         }
 
-        [WorkItem(665317, "DevDiv")]
+        [WorkItem(665317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665317")]
         [Fact]
         public void InitGenericElement()
         {
@@ -13858,7 +13858,7 @@ class cls1 : i1
 ");
         }
 
-        [WorkItem(797996, "DevDiv")]
+        [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
         [Fact]
         public void MissingMember_System_String__op_Equality()
         {
@@ -13893,7 +13893,7 @@ class C
             }
         }
 
-        [WorkItem(797996, "DevDiv")]
+        [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
         [Fact]
         public void MissingMember_System_Type__GetTypeFromHandle()
         {
@@ -13926,7 +13926,7 @@ class C
             }
         }
 
-        [WorkItem(797996, "DevDiv")]
+        [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
         [Fact]
         public void MissingMember_System_Type__GetTypeFromHandle_2()
         {
@@ -14058,7 +14058,7 @@ using System;
 ");
         }
 
-        [WorkItem(530049, "DevDiv")]
+        [WorkItem(530049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530049")]
         [Fact]
         public void Regress530049()
         {
@@ -14106,7 +14106,7 @@ class c1
 "); ;
         }
 
-        [WorkItem(876784, "DevDiv")]
+        [WorkItem(876784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876784")]
         [Fact]
         public void Repro876784()
         {
@@ -14133,7 +14133,7 @@ public static class AExtensions
             comp.VerifyEmitDiagnostics();
         }
 
-        [WorkItem(877317, "DevDiv")]
+        [WorkItem(877317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/877317")]
         [Fact]
         public void Repro877317()
         {

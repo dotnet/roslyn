@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBAsyncTests
         Inherits BasicTestBase
 
-        <WorkItem(1085911)>
+        <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
         <Fact>
         Public Sub SimpleAsyncMethod()
             Dim source =
@@ -162,7 +162,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub TestAsync()
             Dim source =
 <compilation>
@@ -370,7 +370,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact(), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -506,7 +506,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact(), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -640,7 +640,7 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem(1085911)>
+        <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
         <Fact>
         Public Sub AsyncReturnVariable()
             Dim source =

@@ -162,7 +162,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(545871, "DevDiv")>
+    <WorkItem(545871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545871")>
     <Fact>
     Public Sub FW_Hash()
         ParseAndVerify(<![CDATA[
@@ -174,7 +174,7 @@ End Module
     End Sub
 
 
-    <WorkItem(679758, "DevDiv")>
+    <WorkItem(679758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679758")>
     <Fact>
     Public Sub TypeCharMismatch()
         ParseAndVerify(<![CDATA[
@@ -188,8 +188,8 @@ End Module
         )
     End Sub
 
-    <WorkItem(530922, "DevDiv")>
-    <WorkItem(658448, "DevDiv")>
+    <WorkItem(530922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530922")>
+    <WorkItem(658448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658448")>
     <Fact>
     Public Sub FullWidthDirective()
         ParseAndVerify(<![CDATA[
@@ -269,7 +269,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(531493, "DevDiv")>
+    <WorkItem(531493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531493")>
     <Fact>
     Public Sub Repro18189()
         ParseAndVerify(<![CDATA[
@@ -280,7 +280,7 @@ REM _
         ]]>)
     End Sub
 
-    <WorkItem(697520, "DevDiv")>
+    <WorkItem(697520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697520")>
     <Fact>
     Public Sub BigShift()
         ParseAndVerify(<![CDATA[
@@ -311,7 +311,7 @@ End Module
 )
     End Sub
 
-    <WorkItem(530921, "DevDiv")>
+    <WorkItem(530921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530921")>
     <Fact>
     Public Sub Repro17195()
         ParseAndVerify(<![CDATA[
@@ -324,7 +324,7 @@ _
         ]]>)
     End Sub
 
-    <WorkItem(530679, "DevDiv")>
+    <WorkItem(530679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530679")>
     <Fact>
     Public Sub Repro16694()
         ParseAndVerify(<![CDATA[
@@ -347,7 +347,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(545871, "DevDiv")>
+    <WorkItem(545871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545871")>
     <Fact>
     Public Sub ParseIfDirectiveWithCChar()
         ParseAndVerify(<![CDATA[
@@ -394,7 +394,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(538581, "DevDiv")>
+    <WorkItem(538581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538581")>
     <Fact>
     Public Sub ParseDisabledIfDirectiveWithBad()
         ParseAndVerify(<![CDATA[
@@ -406,7 +406,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(528617, "DevDiv")>
+    <WorkItem(528617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528617")>
     <Fact>
     Public Sub LineContinuationInDisabledText()
         ParseAndVerify(<![CDATA[
@@ -421,7 +421,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(545211, "DevDiv")>
+    <WorkItem(545211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545211")>
     <Fact>
     Public Sub FunctionKeywordInDisabledText()
         ParseAndVerify(<![CDATA[
@@ -431,7 +431,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(586984, "DevDiv")>
+    <WorkItem(586984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586984")>
     <Fact>
     Public Sub DW_Underscore()
         ParseAndVerify(<![CDATA[
@@ -460,7 +460,7 @@ Region
         ]]>)
     End Sub
 
-    <WorkItem(586984, "DevDiv")>
+    <WorkItem(586984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586984")>
     <Fact>
     Public Sub DW_Underscore_001()
         ParseAndVerify(<![CDATA[
@@ -498,7 +498,7 @@ Region
     Diagnostic(ERRID.ERR_LbNoMatchingIf, "#End If"))
     End Sub
 
-    <WorkItem(538578, "DevDiv")>
+    <WorkItem(538578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538578")>
     <Fact>
     Public Sub ParseDisabledIfDirectiveWithUnderscore()
         ParseAndVerify(<![CDATA[
@@ -585,7 +585,7 @@ _ _
         </errors>)
     End Sub
 
-    <WorkItem(542109, "DevDiv")>
+    <WorkItem(542109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542109")>
     <Fact>
     Public Sub BC30277_ParseConstTypeChar()
         ParseAndVerify(<![CDATA[
@@ -597,7 +597,7 @@ _ _
         </errors>)
     End Sub
 
-    <WorkItem(541882, "DevDiv")>
+    <WorkItem(541882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541882")>
     <Fact>
     Public Sub ParseConstWithLineContinuation()
         ParseAndVerify(<![CDATA[
@@ -618,7 +618,7 @@ blah _
         ]]>)
     End Sub
 
-    <WorkItem(528617, "DevDiv")>
+    <WorkItem(528617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528617")>
     <Fact()>
     Public Sub ParseConstWithLineContinuation1()
         ParseAndVerify(<![CDATA[
@@ -633,8 +633,8 @@ blah _
         </errors>)
     End Sub
 
-    <WorkItem(537851, "DevDiv")>
-    <WorkItem(538488, "DevDiv")>
+    <WorkItem(537851, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537851")>
+    <WorkItem(538488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538488")>
     <Fact>
     Public Sub ParseLiteralIfDirective()
         ParseAndVerify(<![CDATA[
@@ -663,7 +663,7 @@ blah _
         ]]>)
     End Sub
 
-    <WorkItem(538486, "DevDiv")>
+    <WorkItem(538486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538486")>
     <Fact>
     Public Sub ParseNothingStringCompare()
         ParseAndVerify(<![CDATA[
@@ -687,7 +687,7 @@ End Class
         ]]>)
     End Sub
 
-    <WorkItem(536090, "DevDiv")>
+    <WorkItem(536090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536090")>
     <Fact>
     Public Sub BC30035ERR_Syntax_ParsePreprocessorIfAfterLineTerminator()
         ParseAndVerify(<![CDATA[
@@ -704,7 +704,7 @@ End Class
         </errors>)
     End Sub
 
-    <WorkItem(538589, "DevDiv")>
+    <WorkItem(538589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538589")>
     <Fact>
     Public Sub ParsePreprocessorSeparatedWithColon()
         ParseAndVerify(<![CDATA[
@@ -1136,7 +1136,7 @@ Sub DynLateSetLHS010()
              </errors>)
     End Sub
 
-    <WorkItem(527211, "DevDiv")>
+    <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
     <WorkItem(904877, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30681ERR_ExpectedEndRegion()
@@ -1146,7 +1146,7 @@ Sub DynLateSetLHS010()
         Diagnostic(ERRID.ERR_ExpectedEndRegion, "#Region ""Start"""))
     End Sub
 
-    <WorkItem(527211, "DevDiv")>
+    <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
     <WorkItem(904877, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30681ERR_ExpectedEndRegion2()
@@ -1218,7 +1218,7 @@ End Class
         </errors>)
     End Sub
 
-    <WorkItem(527211, "DevDiv")>
+    <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
     <WorkItem(927710, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30205ERR_ExpectedEOS()
@@ -1266,7 +1266,7 @@ End Module]]>,
 
     End Sub
 
-    <WorkItem(537144, "DevDiv")>
+    <WorkItem(537144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537144")>
     <WorkItem(929947, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseNestedDirectives()
@@ -1279,7 +1279,7 @@ End Module]]>,
     End Sub
 
 
-    <WorkItem(538483, "DevDiv")>
+    <WorkItem(538483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538483")>
     <Fact>
     Public Sub ParseDirectiveWithStatementOnLine()
         ParseAndVerify(<![CDATA[
@@ -1291,7 +1291,7 @@ End Module]]>,
             </error>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 0)
     End Sub
 
-    <WorkItem(538750, "DevDiv")>
+    <WorkItem(538750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538750")>
     <Fact>
     Public Sub ParseDirectiveWithStrings()
         ParseAndVerify(<![CDATA[
@@ -1344,7 +1344,7 @@ End Class
             ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
     End Sub
 
-    <WorkItem(528675, "DevDiv")>
+    <WorkItem(528675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528675")>
     <Fact()>
     Public Sub ParseDirectiveAfterLabel()
         ParseAndVerify(<![CDATA[
@@ -1359,7 +1359,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(552845, "DevDiv")>
+    <WorkItem(552845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552845")>
     <Fact()>
     Public Sub Repro552845()
         ParseAndVerify(<![CDATA[
@@ -1369,7 +1369,7 @@ End Module
                 </errors>)
     End Sub
 
-    <WorkItem(552845, "DevDiv")>
+    <WorkItem(552845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552845")>
     <Fact()>
     Public Sub Repro552845_1()
         ParseAndVerify(<![CDATA[
@@ -1379,7 +1379,7 @@ End Module
                            </errors>)
     End Sub
 
-    <WorkItem(552845, "DevDiv")>
+    <WorkItem(552845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552845")>
     <Fact()>
     Public Sub Repro552845_2()
         ParseAndVerify(<![CDATA[
@@ -1390,7 +1390,7 @@ End Module
              </errors>)
     End Sub
 
-    <WorkItem(552845, "DevDiv")>
+    <WorkItem(552845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552845")>
     <Fact()>
     Public Sub Repro552845_3()
         ParseAndVerify(<![CDATA[
@@ -1403,7 +1403,7 @@ End Module
 
 
     <WorkItem(9710, "DevDiv_Projects/Roslyn")>
-    <WorkItem(542447, "DevDiv")>
+    <WorkItem(542447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542447")>
     <Fact>
     Public Sub ParseConditionalIfElseIfElse()
         ParseAndVerify(<![CDATA[
@@ -1457,7 +1457,7 @@ Namespace CHDIR48
      </errors>)
     End Sub
 
-    <WorkItem(675842, "DevDiv")>
+    <WorkItem(675842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675842")>
     <Fact()>
     Public Sub BadDateInConditionalCompilation()
         ' Failed to parse.
@@ -1570,7 +1570,7 @@ BC30059: Constant expression is required.
 </expected>)
     End Sub
 
-    <WorkItem(780817, "DevDiv")>
+    <WorkItem(780817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780817")>
     <Fact>
     Public Sub ParseProjConstsCaseInsensitivity()
 
