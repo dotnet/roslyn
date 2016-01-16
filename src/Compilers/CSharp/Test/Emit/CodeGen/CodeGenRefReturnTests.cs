@@ -1404,7 +1404,7 @@ class Program
 
             CompileAndVerifyExperimental(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
 {
-  // Code size      174 (0xae)
+  // Code size      168 (0xa8)
   .maxstack  4
   .locals init (Program V_0, //program
                 long V_1) //long
@@ -1413,83 +1413,77 @@ class Program
   IL_0006:  ldloc.0
   IL_0007:  callvirt   ""ref int Program.P.get""
   IL_000c:  ldind.i4
-  IL_000d:  ldc.i4.0
-  IL_000e:  add
-  IL_000f:  ldloc.0
-  IL_0010:  callvirt   ""ref int Program.P.get""
-  IL_0015:  call       ""string int.ToString()""
-  IL_001a:  pop
-  IL_001b:  ldloc.0
-  IL_001c:  callvirt   ""ref int Program.P.get""
-  IL_0021:  ldind.i4
-  IL_0022:  conv.i8
-  IL_0023:  stloc.1
-  IL_0024:  ldloc.0
-  IL_0025:  ldloc.0
-  IL_0026:  callvirt   ""ref int Program.P.get""
-  IL_002b:  ldind.i4
-  IL_002c:  callvirt   ""void Program.N(int)""
-  IL_0031:  ldloc.0
-  IL_0032:  ldc.i4.0
-  IL_0033:  callvirt   ""ref int Program.this[int].get""
-  IL_0038:  ldind.i4
+  IL_000d:  ldloc.0
+  IL_000e:  callvirt   ""ref int Program.P.get""
+  IL_0013:  call       ""string int.ToString()""
+  IL_0018:  pop
+  IL_0019:  ldloc.0
+  IL_001a:  callvirt   ""ref int Program.P.get""
+  IL_001f:  ldind.i4
+  IL_0020:  conv.i8
+  IL_0021:  stloc.1
+  IL_0022:  ldloc.0
+  IL_0023:  ldloc.0
+  IL_0024:  callvirt   ""ref int Program.P.get""
+  IL_0029:  ldind.i4
+  IL_002a:  callvirt   ""void Program.N(int)""
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4.0
+  IL_0031:  callvirt   ""ref int Program.this[int].get""
+  IL_0036:  ldind.i4
+  IL_0037:  add
+  IL_0038:  ldloc.0
   IL_0039:  ldc.i4.0
-  IL_003a:  add
-  IL_003b:  add
-  IL_003c:  ldloc.0
-  IL_003d:  ldc.i4.0
-  IL_003e:  callvirt   ""ref int Program.this[int].get""
-  IL_0043:  call       ""string int.ToString()""
-  IL_0048:  pop
-  IL_0049:  ldloc.1
-  IL_004a:  ldloc.0
-  IL_004b:  ldc.i4.0
-  IL_004c:  callvirt   ""ref int Program.this[int].get""
-  IL_0051:  ldind.i4
-  IL_0052:  conv.i8
-  IL_0053:  add
-  IL_0054:  stloc.1
-  IL_0055:  ldloc.0
-  IL_0056:  ldloc.0
-  IL_0057:  ldc.i4.0
-  IL_0058:  callvirt   ""ref int Program.this[int].get""
-  IL_005d:  ldind.i4
-  IL_005e:  callvirt   ""void Program.N(int)""
-  IL_0063:  ldloc.0
-  IL_0064:  ldloc.0
-  IL_0065:  ldflda     ""int Program.field""
-  IL_006a:  callvirt   ""ref int Program.M(ref int)""
-  IL_006f:  ldind.i4
-  IL_0070:  ldc.i4.0
-  IL_0071:  add
-  IL_0072:  add
-  IL_0073:  ldloc.0
-  IL_0074:  ldloc.0
-  IL_0075:  ldflda     ""int Program.field""
-  IL_007a:  callvirt   ""ref int Program.M(ref int)""
-  IL_007f:  call       ""string int.ToString()""
-  IL_0084:  pop
-  IL_0085:  ldloc.1
-  IL_0086:  ldloc.0
-  IL_0087:  ldloc.0
-  IL_0088:  ldflda     ""int Program.field""
-  IL_008d:  callvirt   ""ref int Program.M(ref int)""
-  IL_0092:  ldind.i4
-  IL_0093:  conv.i8
-  IL_0094:  add
-  IL_0095:  stloc.1
-  IL_0096:  ldloc.0
-  IL_0097:  ldloc.0
-  IL_0098:  ldloc.0
-  IL_0099:  ldflda     ""int Program.field""
-  IL_009e:  callvirt   ""ref int Program.M(ref int)""
-  IL_00a3:  ldind.i4
-  IL_00a4:  callvirt   ""void Program.N(int)""
-  IL_00a9:  conv.i8
-  IL_00aa:  ldloc.1
-  IL_00ab:  add
-  IL_00ac:  conv.i4
-  IL_00ad:  ret
+  IL_003a:  callvirt   ""ref int Program.this[int].get""
+  IL_003f:  call       ""string int.ToString()""
+  IL_0044:  pop
+  IL_0045:  ldloc.1
+  IL_0046:  ldloc.0
+  IL_0047:  ldc.i4.0
+  IL_0048:  callvirt   ""ref int Program.this[int].get""
+  IL_004d:  ldind.i4
+  IL_004e:  conv.i8
+  IL_004f:  add
+  IL_0050:  stloc.1
+  IL_0051:  ldloc.0
+  IL_0052:  ldloc.0
+  IL_0053:  ldc.i4.0
+  IL_0054:  callvirt   ""ref int Program.this[int].get""
+  IL_0059:  ldind.i4
+  IL_005a:  callvirt   ""void Program.N(int)""
+  IL_005f:  ldloc.0
+  IL_0060:  ldloc.0
+  IL_0061:  ldflda     ""int Program.field""
+  IL_0066:  callvirt   ""ref int Program.M(ref int)""
+  IL_006b:  ldind.i4
+  IL_006c:  add
+  IL_006d:  ldloc.0
+  IL_006e:  ldloc.0
+  IL_006f:  ldflda     ""int Program.field""
+  IL_0074:  callvirt   ""ref int Program.M(ref int)""
+  IL_0079:  call       ""string int.ToString()""
+  IL_007e:  pop
+  IL_007f:  ldloc.1
+  IL_0080:  ldloc.0
+  IL_0081:  ldloc.0
+  IL_0082:  ldflda     ""int Program.field""
+  IL_0087:  callvirt   ""ref int Program.M(ref int)""
+  IL_008c:  ldind.i4
+  IL_008d:  conv.i8
+  IL_008e:  add
+  IL_008f:  stloc.1
+  IL_0090:  ldloc.0
+  IL_0091:  ldloc.0
+  IL_0092:  ldloc.0
+  IL_0093:  ldflda     ""int Program.field""
+  IL_0098:  callvirt   ""ref int Program.M(ref int)""
+  IL_009d:  ldind.i4
+  IL_009e:  callvirt   ""void Program.N(int)""
+  IL_00a3:  conv.i8
+  IL_00a4:  ldloc.1
+  IL_00a5:  add
+  IL_00a6:  conv.i4
+  IL_00a7:  ret
 }");
         }
     }

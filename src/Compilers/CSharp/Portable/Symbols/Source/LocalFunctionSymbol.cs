@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Threading;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -134,6 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return ComputeReturnType();
+            }
+        }
+
+        internal override RefKind RefKind
+        {
+            get
+            {
+                return RefKind.None;
             }
         }
 
