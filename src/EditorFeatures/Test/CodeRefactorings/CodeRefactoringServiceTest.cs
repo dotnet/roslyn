@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
         public async Task VerifyRefactoringDisabledAsync(CodeRefactoringProvider codeRefactoring)
         {
             var refactoringService = new CodeRefactorings.CodeRefactoringService(GetMetadata(codeRefactoring));
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(@"class Program {}"))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(@"class Program {}"))
             {
                 var project = workspace.CurrentSolution.Projects.Single();
                 var document = project.Documents.Single();

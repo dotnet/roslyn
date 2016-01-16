@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
         End Function
 
         Protected Overrides Function CreateTestWorkspaceAsync(initialMarkup As String) As Task(Of TestWorkspace)
-            Return TestWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(initialMarkup)
+            Return TestWorkspaceFactory.CreateVisualBasicWorkspaceAsync(initialMarkup)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 
         protected async Task VerifyRegionsAsync(string markupCode, params Tuple<string, string, string, bool, bool>[] expectedRegionData)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceFromFileAsync(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
+            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
             {
                 var hostDocument = workspace.Documents.Single();
                 Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 
         protected async Task VerifyNoRegionsAsync(string markupCode)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceFromFileAsync(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
+            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
             {
                 var hostDocument = workspace.Documents.Single();
                 Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");

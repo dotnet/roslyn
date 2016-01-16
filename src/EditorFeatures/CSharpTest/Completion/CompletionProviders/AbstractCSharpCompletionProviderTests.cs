@@ -131,7 +131,7 @@ text;
 
         protected async Task VerifySendEnterThroughToEnterAsync(string initialMarkup, string textTypedSoFar, bool sendThroughEnterEnabled, bool expected)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(initialMarkup))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(initialMarkup))
             {
                 var hostDocument = workspace.DocumentWithCursor;
                 var documentId = workspace.GetDocumentId(hostDocument);
@@ -160,7 +160,7 @@ text;
 
         private async Task VerifyTextualTriggerCharacterWorkerAsync(string markup, bool expectedTriggerCharacter, bool triggerOnLetter)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(markup))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(markup))
             {
                 var document = workspace.Documents.Single();
                 var position = document.CursorPosition.Value;
@@ -199,7 +199,7 @@ text;
             Assert.NotNull(validChars);
             invalidChars = invalidChars ?? new[] { 'x' };
 
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(initialMarkup))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(initialMarkup))
             {
                 var hostDocument = workspace.DocumentWithCursor;
                 var documentId = workspace.GetDocumentId(hostDocument);

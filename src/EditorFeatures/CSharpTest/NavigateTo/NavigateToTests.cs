@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
         private async Task<TestWorkspace> SetupWorkspaceAsync(string content)
         {
-            var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(content);
+            var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(content);
             var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
 
             _provider = new NavigateToItemProvider(

@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             string expectedDocumentationComment = null,
             CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(code, parseOptions))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(code, parseOptions))
             {
                 var testDocument = workspace.Documents.Single();
                 var position = testDocument.CursorPosition.Value;

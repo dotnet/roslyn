@@ -129,7 +129,7 @@ End Class",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(539727)>
         Public Async Function DeletesSelectedText() As Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync("Interface IFoo ~~")
+            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicWorkspaceAsync("Interface IFoo ~~")
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
 

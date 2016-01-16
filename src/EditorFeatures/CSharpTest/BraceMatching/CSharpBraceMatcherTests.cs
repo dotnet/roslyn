@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
     {
         protected override Task<TestWorkspace> CreateWorkspaceFromCodeAsync(string code)
         {
-            return TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(code);
+            return TestWorkspaceFactory.CreateCSharpWorkspaceAsync(code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]

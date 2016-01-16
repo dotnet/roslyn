@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             start As Integer,
             length As Integer) As Task
 
-            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(code)
+            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicWorkspaceAsync(code)
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 Dim provider = New TextStructureNavigatorProvider(

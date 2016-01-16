@@ -57,51 +57,51 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// Creates a single buffer in a workspace.
         /// </summary>
         /// <param name="content">Lines of text, the buffer contents</param>
-        internal static Task<TestWorkspace> CreateWorkspaceFromFileAsync(
+        internal static Task<TestWorkspace> CreateWorkspaceAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             string content)
         {
-            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, new[] { content });
+            return CreateWorkspaceAsync(language, compilationOptions, parseOptions, new[] { content });
         }
 
         /// <summary>
         /// Creates a single buffer in a workspace.
         /// </summary>
         /// <param name="content">Lines of text, the buffer contents</param>
-        internal static Task<TestWorkspace> CreateWorkspaceFromFileAsync(
+        internal static Task<TestWorkspace> CreateWorkspaceAsync(
             string workspaceKind,
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             string content)
         {
-            return CreateWorkspaceFromFilesAsync(workspaceKind, language, compilationOptions, parseOptions, new[] { content });
+            return CreateWorkspaceAsync(workspaceKind, language, compilationOptions, parseOptions, new[] { content });
         }
 
         /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
-        internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
+        internal static Task<TestWorkspace> CreateWorkspaceAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             params string[] files)
         {
-            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, files, exportProvider: null);
+            return CreateWorkspaceAsync(language, compilationOptions, parseOptions, files, exportProvider: null);
         }
 
         /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
-        internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
+        internal static Task<TestWorkspace> CreateWorkspaceAsync(
             string workspaceKind,
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             params string[] files)
         {
-            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, files, exportProvider: null, workspaceKind: workspaceKind);
+            return CreateWorkspaceAsync(language, compilationOptions, parseOptions, files, exportProvider: null, workspaceKind: workspaceKind);
         }
 
-        internal static async Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
+        internal static async Task<TestWorkspace> CreateWorkspaceAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
@@ -182,27 +182,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         #region C#
 
-        public static Task<TestWorkspace> CreateCSharpWorkspaceFromFileAsync(
+        public static Task<TestWorkspace> CreateCSharpWorkspaceAsync(
             string file,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null)
         {
-            return CreateCSharpWorkspaceFromFilesAsync(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
+            return CreateCSharpWorkspaceAsync(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
         }
 
-        public static Task<TestWorkspace> CreateCSharpWorkspaceFromFilesAsync(
+        public static Task<TestWorkspace> CreateCSharpWorkspaceAsync(
             string[] files,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null)
         {
-            return CreateWorkspaceFromFilesAsync(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, metadataReferences);
+            return CreateWorkspaceAsync(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, metadataReferences);
         }
 
-        public static Task<TestWorkspace> CreateCSharpWorkspaceFromFilesAsync(
+        public static Task<TestWorkspace> CreateCSharpWorkspaceAsync(
             string[] files,
             ParseOptions[] parseOptions = null,
             CompilationOptions compilationOptions = null,
@@ -215,28 +215,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         #region VB
 
-        public static Task<TestWorkspace> CreateVisualBasicWorkspaceFromFileAsync(
+        public static Task<TestWorkspace> CreateVisualBasicWorkspaceAsync(
             string file,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null)
         {
-            return CreateVisualBasicWorkspaceFromFilesAsync(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
+            return CreateVisualBasicWorkspaceAsync(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
         }
 
-        public static Task<TestWorkspace> CreateVisualBasicWorkspaceFromFilesAsync(
+        public static Task<TestWorkspace> CreateVisualBasicWorkspaceAsync(
             string[] files,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null)
         {
-            return TestWorkspaceFactory.CreateWorkspaceFromFilesAsync(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider, metadataReferences);
+            return TestWorkspaceFactory.CreateWorkspaceAsync(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider, metadataReferences);
         }
 
         /// <param name="files">Can pass in multiple file contents with individual source kind: files will be named test1.vb, test2.vbx, etc.</param>
-        public static Task<TestWorkspace> CreateVisualBasicWorkspaceFromFilesAsync(
+        public static Task<TestWorkspace> CreateVisualBasicWorkspaceAsync(
             string[] files,
             ParseOptions[] parseOptions = null,
             CompilationOptions compilationOptions = null,

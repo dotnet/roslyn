@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Dim list As IList(Of TextSpan) = Nothing
             MarkupTestFile.GetSpans(codeWithMarker.NormalizedValue, code, list)
 
-            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(code)
+            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicWorkspaceAsync(code)
                 Dim commentTokens = New TodoCommentTokens()
                 Dim provider = New TodoCommentIncrementalAnalyzerProvider(commentTokens)
                 Dim worker = DirectCast(provider.CreateIncrementalAnalyzer(workspace), TodoCommentIncrementalAnalyzer)

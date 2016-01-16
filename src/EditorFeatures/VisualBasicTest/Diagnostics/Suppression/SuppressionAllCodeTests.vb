@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
         Inherits AbstractSuppressionAllCodeTests
 
         Protected Overrides Function CreateWorkspaceFromFileAsync(definition As String, parseOptions As ParseOptions) As Threading.Tasks.Task(Of TestWorkspace)
-            Return TestWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(definition, DirectCast(parseOptions, VisualBasicParseOptions))
+            Return TestWorkspaceFactory.CreateVisualBasicWorkspaceAsync(definition, DirectCast(parseOptions, VisualBasicParseOptions))
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of Analyzer, ISuppressionFixProvider)

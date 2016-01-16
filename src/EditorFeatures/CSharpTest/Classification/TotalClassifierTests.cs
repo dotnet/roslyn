@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         internal override async Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(
             string code, TextSpan textSpan, CSharpParseOptions options)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(code, options))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(code, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 

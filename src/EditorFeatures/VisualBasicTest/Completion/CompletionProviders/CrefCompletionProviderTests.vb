@@ -423,7 +423,7 @@ Class C
 End Class]]></a>.Value.NormalizeLineEndings()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(PickySemanticFactsService)))
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceFromFilesAsync(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, exportProvider)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, exportProvider)
                 ' This test uses MEF to compose in an ISyntaxFactsService that 
                 ' asserts it isn't asked to speculate on nodes inside documentation trivia.
                 ' This verifies that the provider is asking for a speculative SemanticModel

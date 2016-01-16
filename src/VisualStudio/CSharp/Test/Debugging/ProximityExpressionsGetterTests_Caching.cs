@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
     {
         private async Task TestCachingAsync(string markup, params string[][] expectedArray)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(markup))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(markup))
             {
                 var testDocument = workspace.Documents.Single();
                 var spans = testDocument.AnnotatedSpans;

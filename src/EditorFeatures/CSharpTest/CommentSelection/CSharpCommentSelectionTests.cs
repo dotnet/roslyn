@@ -108,7 +108,7 @@ class C
 
         private static async Task UncommentSelectionAsync(string markup, string expected)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(markup))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(markup))
             {
                 var doc = workspace.Documents.First();
                 SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));

@@ -1894,7 +1894,7 @@ $$
 
         protected override Task<TestWorkspace> CreateTestWorkspaceAsync(string code)
         {
-            return TestWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(code);
+            return TestWorkspaceFactory.CreateCSharpWorkspaceAsync(code);
         }
     }
 }
