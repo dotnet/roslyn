@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         {
             var stylePreferences = GetCurrentTypingStylePreferences(optionSet);
 
-            var isTypeApparent = IsTypeApparentFromRHS(declarationStatement, semanticModel, cancellationToken);
+            var isTypeApparent = IsTypeApparentInDeclaration(declarationStatement, semanticModel, stylePreferences, cancellationToken);
             var isIntrinsicType = IsIntrinsicType(declarationStatement);
 
             return stylePreferences.HasFlag(TypingStyles.VarForIntrinsic) && isIntrinsicType
@@ -96,6 +96,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             return issueSpan != default(TextSpan);
         }
 
+        /// <summary>
+        /// Analyzes the assignment expression and rejects a given declaration if it is unsuitable for implicit typing.
+        /// </summary>
+        /// <returns>
+        /// false, if implicit typing cannot be used.
+        /// true, otherwise.
+        /// </returns>
         protected override bool AnalyzeAssignment(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
             // var cannot be assigned null
@@ -113,33 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 return false;
             }
 
-            // TODO: deal with ErrorTypeSymbols?
-
-            // TODO: What to do with implicit conversions? For now, using .ConvertedType rather than .Type here.
-            // This is a problem. For eg. double x = 4; changing this to var, changes its type from double to int.
-            var initializerTypeInfo = semanticModel.GetTypeInfo(initializer.Value, cancellationToken);
-            var initializerType = initializerTypeInfo.Type;
-            var implicitlyConverted = initializerType != initializerTypeInfo.ConvertedType;
-
-            if (implicitlyConverted)
-            {
-                return false;
-                // TODO, based on tests.
-                /*
-                *    object obj = 1;
-                */
-            }
-            else
-            {
-                // check for presence of casts:
-                // if types don't match between left and right side of assignment, there could be explicit casts.
-                // In such cases, don't replace with var or it would change the semantics.
-                if (!declaredType.Equals(initializerType))
-                {
-                    return false;
-                }
-            }
-
             // variables declared using var cannot be used further in the same initialization expression.
             if (initializer.DescendantNodesAndSelf()
                     .Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText.Equals(identifier.ValueText))
@@ -148,7 +128,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
                 return false;
             }
 
-            return true;
+            // Get the conversion that occurred between the expression's type and type implied by the expression's context
+            // and filter out implicit conversions. If an implicit conversion (other than identity) exists
+            // and if we're replacing the declaration with 'var' we'd be changing the semantics by inferring type of
+            // initializer expression and thereby losing the conversion.
+            var conversion = semanticModel.GetConversion(initializer.Value, cancellationToken);
+            if (conversion.Exists && conversion.IsImplicit && !conversion.IsIdentity)
+            {
+                return false;
+            }
+
+            // final check to compare type information on both sides of assignment.
+            var initializerTypeInfo = semanticModel.GetTypeInfo(initializer.Value, cancellationToken);
+            return declaredType.Equals(initializerTypeInfo.Type);
         }
     }
 }

@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             return stylePreferences;
         }
 
-        protected bool IsTypeApparentFromRHS(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+        protected bool IsTypeApparentInDeclaration(SyntaxNode declarationStatement, SemanticModel semanticModel, TypingStyles stylePreferences, CancellationToken cancellationToken)
         {
             // use var in foreach statement to make it concise.
             if (declarationStatement.IsKind(SyntaxKind.ForEachStatement))
@@ -82,65 +83,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             var initializer = variableDeclaration.Variables.Single().Initializer;
             var initializerExpression = initializer.Value;
 
-            // default(T)
+            // default(type)
             if (initializerExpression.IsKind(SyntaxKind.DefaultExpression))
             {
                 return true;
             }
 
-            // constructors of form = new TypeSomething();
-            // object creation expression that contains a typename and not an anonymous object creation expression.
+            // literals, use var if options allow usage here.
+            if (initializerExpression.IsAnyLiteralExpression())
+            {
+                return stylePreferences.HasFlag(TypingStyles.VarForIntrinsic);
+            }
+
+            // constructor invocations cases:
+            //      = new type();
             if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression) &&
                 !initializerExpression.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
                 return true;
             }
 
-            // invocation expression
-            // a. int.Parse, TextSpan.From static methods? 
-            // return type or 1 ref/out type matches some part of identifier name within a dotted name.
-            // also consider Generic method invocation with type parameters *and* not inferred
-            if (initializerExpression.IsKind(SyntaxKind.InvocationExpression))
+            // explicit conversion cases: 
+            //      (type)expr, expr is type, expr as type
+            if (initializerExpression.IsKind(SyntaxKind.CastExpression) ||
+                initializerExpression.IsKind(SyntaxKind.IsExpression) ||
+                initializerExpression.IsKind(SyntaxKind.AsExpression))
             {
-                var invocation = (InvocationExpressionSyntax)initializerExpression;
-
-                // literals.
-                if (invocation.IsAnyLiteralExpression())
-                {
-                    return true;
-                }
-
-                // if memberaccessexpression, get method symbol and check IsStatic.
-                var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
-                if (!symbol.IsKind(SymbolKind.Method))
-                {
-                    return false;
-                }
-
-                var methodSymbol = (IMethodSymbol)symbol;
-                if (!methodSymbol.IsStatic || methodSymbol.ReturnsVoid)
-                {
-                    // if its a ref/out method, then the return type may not be obvious from the name.
-                    return false;
-                }
-
-                var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
-
-                IList<string> nameParts;
-                if (invocation.Expression.TryGetNameParts(out nameParts))
-                {
-                    var typeNameIndex = nameParts.IndexOf(methodSymbol.Name) - 1;
-                    if (typeNameIndex >= 0)
-                    {
-                        // returned type is spelled out in the invocation.
-                        return declaredTypeSymbol.Name == nameParts[typeNameIndex];
-                    }
-                }
+                return true;
             }
 
-            // c. Factory Methods? - probably not.
+            // other Conversion cases:
+            //      a. conversion with helpers like: int.Parse, TextSpan.From methods 
+            //      b. types that implement IConvertible and then invoking .ToType()
+            //      c. System.Convert.Totype()
+            var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
+            var expressionOnRightSide = initializerExpression.WalkDownParentheses();
 
-            // TODO: Cast expressions.
+            var memberName = expressionOnRightSide.GetRightmostName();
+            if (memberName == null)
+            {
+                return false;
+            }
+
+            var possibleMethodSymbol = semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol;
+            if (possibleMethodSymbol == null || !possibleMethodSymbol.IsKind(SymbolKind.Method))
+            {
+                return false;
+            }
+
+            var methodSymbol = (IMethodSymbol)possibleMethodSymbol;
+            if (memberName.IsRightSideOfDot())
+            {
+                var typeName = memberName.GetLeftSideOfDot();
+                return PossibleConversionMethod(methodSymbol, declaredTypeSymbol, semanticModel, typeName, cancellationToken);
+            }
 
             return false;
         }
@@ -149,6 +145,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             declarationStatement.IsKind(SyntaxKind.VariableDeclaration)
             ? ((VariableDeclarationSyntax)declarationStatement).Variables.Single().Initializer.Value.IsAnyLiteralExpression()
             : false;
+
+        private bool PossibleConversionMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, SemanticModel semanticModel, ExpressionSyntax typeName, CancellationToken cancellationToken)
+        {
+            if (methodSymbol.ReturnsVoid)
+            {
+                return false;
+            }
+
+            var typeInInvocation = semanticModel.GetTypeInfo(typeName, cancellationToken).Type;
+
+            // case: int.Parse or TextSpan.FromBounds
+            if (methodSymbol.Name.StartsWith("Parse", StringComparison.Ordinal) 
+                || methodSymbol.Name.StartsWith("From", StringComparison.Ordinal))
+            {
+                return typeInInvocation.Equals(declaredType);
+            }
+
+            // take `char` from `char? c = `
+            var declaredTypeName = declaredType.IsNullable() 
+                    ? declaredType.GetTypeArguments().First().Name
+                    : declaredType.Name;
+
+            // case: Convert.ToString or iConvertible.ToChar
+            if (methodSymbol.Name.Equals("To" + declaredTypeName, StringComparison.Ordinal))
+            {
+                var convertType = semanticModel.Compilation.ConvertType();
+                var iConvertibleType = semanticModel.Compilation.IConvertibleType();
+
+                return typeInInvocation.Equals(convertType)
+                    || typeInInvocation.Equals(iConvertibleType);
+            }
+
+            return false;
+        }
 
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {

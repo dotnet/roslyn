@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.UseImplicitTyping;
@@ -10,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -552,6 +550,7 @@ class C
         {
             await TestAsync(
 @"using System;
+using System.Collections.Generic;
 class C
 {
     static void M()
@@ -560,6 +559,7 @@ class C
     }
 }",
 @"using System;
+using System.Collections.Generic;
 class C
 {
     static void M()
@@ -574,6 +574,7 @@ class C
         {
             await TestAsync(
 @"using System;
+using System.Collections.Generic;
 class C
 {
     static void M()
@@ -589,6 +590,7 @@ class C
     }
 }",
 @"using System;
+using System.Collections.Generic;
 class C
 {
     static void M()
@@ -751,7 +753,8 @@ class C
 }", options: ImplicitTypingEverywhere());
         }
 
-        // TODO: Tests for ConditionalAccessExpression.
+        // TODO: Tests for ConditionalAccessExpression, CheckedExpression, 
+        // assigning to an interface type, await expressions, parenthesized expressions.
         // TODO: Tests with various options - where apparent, primitive types etc.
     }
 }

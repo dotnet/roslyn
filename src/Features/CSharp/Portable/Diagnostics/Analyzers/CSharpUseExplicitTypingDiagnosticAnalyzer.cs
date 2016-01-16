@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         {
             var stylePreferences = GetCurrentTypingStylePreferences(optionSet);
 
-            var isTypeApparent = IsTypeApparentFromRHS(declarationStatement, semanticModel, cancellationToken);
+            var isTypeApparent = IsTypeApparentInDeclaration(declarationStatement, semanticModel, stylePreferences, cancellationToken);
             var isIntrinsicType = IsIntrinsicType(declarationStatement);
 
             return stylePreferences.HasFlag(TypingStyles.NoVarForIntrinsic) && isIntrinsicType
@@ -85,14 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
 
             // cannot find type if initializer resolves to an ErrorTypeSymbol
             var initializerTypeInfo = semanticModel.GetTypeInfo(initializer.Value, cancellationToken);
-            var initializerType = initializerTypeInfo.Type;
-            if (initializerType.IsErrorType())
-            {
-                return false;
-            }
-
-            return true;
+            return !initializerTypeInfo.Type.IsErrorType();
         }
-
     }
 }

@@ -1,3 +1,0 @@
-Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeInferencePreferenceOptions
-Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeInferencePreferenceOptions.ExplicitTyping = 1 -> Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeInferencePreferenceOptions
-Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeInferencePreferenceOptions.ImplicitTyping = 0 -> Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeInferencePreferenceOptions
