@@ -72,12 +72,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             var options = new PrintOptions();
 
             options.EscapeNonPrintableCharacters = true;
-            Assert.Equal(@"""\t""", Formatter.FormatObject("\t", options)); // TODO (acasey): escape
-            Assert.Equal(@"9 '\t'", Formatter.FormatObject('\t', options));
-
-            options.EscapeNonPrintableCharacters = false;
             Assert.Equal(@"""\t""", Formatter.FormatObject("\t", options));
             Assert.Equal(@"'\t'", Formatter.FormatObject('\t', options));
+
+            options.EscapeNonPrintableCharacters = false;
+            Assert.Equal("\"\t\"", Formatter.FormatObject("\t", options));
+            Assert.Equal("'\t'", Formatter.FormatObject('\t', options));
         }
 
         [Fact]

@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         protected abstract string NullLiteral { get; }
 
         protected abstract string FormatLiteral(bool value);
-        protected abstract string FormatLiteral(string value, bool quote, bool useHexadecimalNumbers = false);
-        protected abstract string FormatLiteral(char value, bool quote, bool includeCodePoints = false, bool useHexadecimalNumbers = false);
+        protected abstract string FormatLiteral(string value, bool quote, bool escapeNonPrintable, bool useHexadecimalNumbers = false);
+        protected abstract string FormatLiteral(char value, bool quote, bool escapeNonPrintable, bool includeCodePoints = false, bool useHexadecimalNumbers = false);
         protected abstract string FormatLiteral(sbyte value, bool useHexadecimalNumbers = false);
         protected abstract string FormatLiteral(byte value, bool useHexadecimalNumbers = false);
         protected abstract string FormatLiteral(short value, bool useHexadecimalNumbers = false);
@@ -60,13 +60,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return FormatLiteral((int)obj, options.UseHexadecimalNumbers);
 
                 case SpecialType.System_String:
-                    return FormatLiteral((string)obj, options.QuoteStringsAndCharacters, options.UseHexadecimalNumbers);
+                    return FormatLiteral((string)obj, options.QuoteStringsAndCharacters, options.EscapeNonPrintableCharacters, options.UseHexadecimalNumbers);
 
                 case SpecialType.System_Boolean:
                     return FormatLiteral((bool)obj);
 
                 case SpecialType.System_Char:
-                    return FormatLiteral((char)obj, options.QuoteStringsAndCharacters, options.IncludeCharacterCodePoints, options.UseHexadecimalNumbers);
+                    return FormatLiteral((char)obj, options.QuoteStringsAndCharacters, options.EscapeNonPrintableCharacters, options.IncludeCharacterCodePoints, options.UseHexadecimalNumbers);
 
                 case SpecialType.System_Int64:
                     return FormatLiteral((long)obj, options.UseHexadecimalNumbers);

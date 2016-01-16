@@ -22,13 +22,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
             Return ObjectDisplay.FormatLiteral(value)
         End Function
 
-        Protected Overrides Function FormatLiteral(value As String, useQuotes As Boolean, Optional useHexadecimalNumbers As Boolean = False) As String
-            Dim options As ObjectDisplayOptions = GetObjectDisplayOptions(useQuotes:=useQuotes, useHexadecimalNumbers:=useHexadecimalNumbers)
+        Protected Overrides Function FormatLiteral(value As String, useQuotes As Boolean, escapeNonPrintable As Boolean, Optional useHexadecimalNumbers As Boolean = False) As String
+            Dim options As ObjectDisplayOptions = GetObjectDisplayOptions(useQuotes:=useQuotes, escapeNonPrintable:=escapeNonPrintable, useHexadecimalNumbers:=useHexadecimalNumbers)
             Return ObjectDisplay.FormatLiteral(value, options)
         End Function
 
-        Protected Overrides Function FormatLiteral(c As Char, useQuotes As Boolean, Optional includeCodePoints As Boolean = False, Optional useHexadecimalNumbers As Boolean = False) As String
-            Dim options As ObjectDisplayOptions = GetObjectDisplayOptions(useQuotes:=useQuotes, includeCodePoints:=includeCodePoints, useHexadecimalNumbers:=useHexadecimalNumbers)
+        Protected Overrides Function FormatLiteral(c As Char, useQuotes As Boolean, escapeNonPrintable As Boolean, Optional includeCodePoints As Boolean = False, Optional useHexadecimalNumbers As Boolean = False) As String
+            Dim options As ObjectDisplayOptions = GetObjectDisplayOptions(useQuotes:=useQuotes, escapeNonPrintable:=escapeNonPrintable, includeCodePoints:=includeCodePoints, useHexadecimalNumbers:=useHexadecimalNumbers)
             Return ObjectDisplay.FormatLiteral(c, options)
         End Function
 

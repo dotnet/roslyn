@@ -16,15 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
             return ObjectDisplay.FormatLiteral(value);
         }
 
-        protected override string FormatLiteral(string value, bool useQuotes, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(string value, bool useQuotes, bool escapeNonPrintable, bool useHexadecimalNumbers = false)
         {
-            var options = GetObjectDisplayOptions(useQuotes: useQuotes, useHexadecimalNumbers: useHexadecimalNumbers);
+            var options = GetObjectDisplayOptions(useQuotes: useQuotes, escapeNonPrintable: escapeNonPrintable, useHexadecimalNumbers: useHexadecimalNumbers);
             return ObjectDisplay.FormatLiteral(value, options);
         }
 
-        protected override string FormatLiteral(char c, bool useQuotes, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(char c, bool useQuotes, bool escapeNonPrintable, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
         {
-            var options = GetObjectDisplayOptions(useQuotes: useQuotes, includeCodePoints: includeCodePoints, useHexadecimalNumbers: useHexadecimalNumbers);
+            var options = GetObjectDisplayOptions(useQuotes: useQuotes, escapeNonPrintable: escapeNonPrintable, includeCodePoints: includeCodePoints, useHexadecimalNumbers: useHexadecimalNumbers);
             return ObjectDisplay.FormatLiteral(c, options);
         }
 

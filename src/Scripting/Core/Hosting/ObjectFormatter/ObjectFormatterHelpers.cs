@@ -357,13 +357,18 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return SpecialType.None;
         }
 
-        internal static ObjectDisplayOptions GetObjectDisplayOptions(bool useQuotes = false, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
+        internal static ObjectDisplayOptions GetObjectDisplayOptions(bool useQuotes = false, bool escapeNonPrintable = false, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
         {
             var options = ObjectDisplayOptions.None;
 
             if (useQuotes)
             {
                 options |= ObjectDisplayOptions.UseQuotes;
+            }
+
+            if (escapeNonPrintable)
+            {
+                options |= ObjectDisplayOptions.EscapeNonPrintableCharacters;
             }
 
             if (includeCodePoints)
