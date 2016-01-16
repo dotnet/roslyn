@@ -404,7 +404,7 @@ End Class
             Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?!B?!$$C|]") %></text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(2602)>
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(2602, "https://github.com/dotnet/roslyn/issues/2602")>
         Public Async Function TestParameterizedProperty() As Task
             Const sourceTemplate = "
 Class Class1

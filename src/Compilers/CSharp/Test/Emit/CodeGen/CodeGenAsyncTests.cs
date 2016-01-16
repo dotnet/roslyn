@@ -3593,7 +3593,7 @@ System.Console.WriteLine(x);";
         /// since the static initialization of the class must be
         /// handled synchronously in the .cctor.
         /// </summary>
-        [WorkItem(5787)]
+        [WorkItem(5787, "https://github.com/dotnet/roslyn/issues/5787")]
         [Fact]
         public void AwaitInScriptStaticInitializer()
         {

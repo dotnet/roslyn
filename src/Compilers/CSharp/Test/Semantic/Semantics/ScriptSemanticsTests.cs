@@ -748,7 +748,7 @@ static int Baz = w;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(1, 22));
         }
 
-        [WorkItem(550)]
+        [WorkItem(550, "https://github.com/dotnet/roslyn/issues/550")]
         [Fact]
         public void ERR_VariableUsedBeforeDeclaration_02()
         {
@@ -773,7 +773,7 @@ void F()
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "c").WithArguments("c").WithLocation(5, 16));
         }
 
-        [WorkItem(550)]
+        [WorkItem(550, "https://github.com/dotnet/roslyn/issues/550")]
         [Fact]
         public void ERR_UseDefViolation()
         {
@@ -869,7 +869,7 @@ System.TypedReference c;
 
         [WorkItem(527850)]
         [WorkItem(522569)]
-        [WorkItem(4737)]
+        [WorkItem(4737, "https://github.com/dotnet/roslyn/issues/4737")]
         [Fact(Skip = "4737")]
         public void TopLevelLabel()
         {

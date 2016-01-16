@@ -3356,7 +3356,7 @@ class C
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"));
         }
 
-        [Fact, WorkItem(3192)]
+        [Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")]
         public void HoistedAnonymousTypes_Nested()
         {
             var source0 = MarkedSource(@"
@@ -3502,7 +3502,7 @@ class C
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"));
         }
 
-        [Fact, WorkItem(3192)]
+        [Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")]
         public void HoistedGenericTypes()
         {
             var source0 = MarkedSource(@"
@@ -3815,7 +3815,7 @@ class C
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "2"));
         }
 
-        [Fact, WorkItem(3192)]
+        [Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")]
         public void HoistedAnonymousTypes_Delete()
         {
             var source0 = MarkedSource(@"

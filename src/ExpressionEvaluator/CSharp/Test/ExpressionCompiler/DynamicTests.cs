@@ -272,7 +272,7 @@ class Generic<T>
             locals.Free();
         }
 
-        [WorkItem(4106)]
+        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
         [Fact]
         public void LocalDuplicateConstantAndNonConstantDynamic()
         {
@@ -319,7 +319,7 @@ class Generic<T>
             locals.Free();
         }
 
-        [WorkItem(4106)]
+        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
         [Fact]
         public void LocalDuplicateConstantAndNonConstantNonDynamic()
         {
@@ -366,7 +366,7 @@ class Generic<T>
             locals.Free();
         }
 
-        [WorkItem(4106)]
+        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
         [Fact]
         public void LocalDuplicateConstantAndConstantDynamic()
         {
@@ -433,7 +433,7 @@ class Generic<T>
             locals.Free();
         }
 
-        [WorkItem(4106)]
+        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
         [Fact]
         public void LocalDuplicateConstantAndConstantNonDynamic()
         {

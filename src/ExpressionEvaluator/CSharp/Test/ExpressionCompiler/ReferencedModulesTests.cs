@@ -659,7 +659,7 @@ class C
         /// <summary>
         /// Intrinsic methods assembly should not be dropped.
         /// </summary>
-        [WorkItem(4140)]
+        [WorkItem(4140, "https://github.com/dotnet/roslyn/issues/4140")]
         [Fact]
         public void IntrinsicMethods()
         {

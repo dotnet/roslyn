@@ -1284,7 +1284,7 @@ End Class
             Assert.Equal("ModuleAssemblyName", c.Assembly.Identity.Name)
         End Sub
 
-        <WorkItem(3719)>
+        <WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")>
         <Fact()>
         Public Sub GetEntryPoint_Script()
             Dim source = <![CDATA[System.Console.WriteLine(1)]]>

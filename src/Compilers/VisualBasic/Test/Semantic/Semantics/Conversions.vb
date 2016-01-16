@@ -4330,7 +4330,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Integer(*,*)'.
 
         End Sub
 
-        <WorkItem(31)>
+        <WorkItem(31, "https://roslyn.codeplex.com/workitem/31")>
         <Fact()>
         Public Sub BugCodePlex_31()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(

@@ -4206,7 +4206,7 @@ End Class
                                   {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
-        <Fact(), WorkItem(2543)>
+        <Fact(), WorkItem(2543, "https://github.com/dotnet/roslyn/issues/2543")>
         Public Sub Field_InitializerUpdate2()
             Dim src1 = "Class C : Dim a, b As Integer = 0 : End Class"
             Dim src2 = "Class C : Dim a, b As Integer = 1 : End Class"
@@ -4271,7 +4271,7 @@ End Class
                                   {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
-        <Fact(), WorkItem(2543)>
+        <Fact(), WorkItem(2543, "https://github.com/dotnet/roslyn/issues/2543")>
         Public Sub Field_InitializerUpdate_AsNew2()
             Dim src1 = "Class C : Dim a, b As New C(1) : End Class"
             Dim src2 = "Class C : Dim a, b As New C(2) : End Class"
@@ -4964,7 +4964,7 @@ End Class
                                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
-        <Fact(), WorkItem(2543)>
+        <Fact(), WorkItem(2543, "https://github.com/dotnet/roslyn/issues/2543")>
         Public Sub PrivateFieldInsert2()
             Dim src1 = "Class C : Private a As Integer = 1 : End Class"
             Dim src2 = "Class C : Private a, b As Integer = 1 : End Class"
@@ -5806,7 +5806,7 @@ End Class
                                   {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), syntaxMap(0))})
         End Sub
 
-        <Fact(), WorkItem(2543)>
+        <Fact(), WorkItem(2543, "https://github.com/dotnet/roslyn/issues/2543")>
         Public Sub FieldInitializerUpdate_Lambdas_ImplicitCtor_AsNew1()
             Dim src1 = "Class C : Dim a, b As New C((<N:0.0>Function(n) n + 1</N:0.0>)(1))" & vbCrLf & "Sub New(a As Integer) : End Sub : End Class"
             Dim src2 = "Class C : Dim a, b As New C((<N:0.0>Function(n) n + 1</N:0.0>)(2))" & vbCrLf & "Sub New(a As Integer) : End Sub : End Class"

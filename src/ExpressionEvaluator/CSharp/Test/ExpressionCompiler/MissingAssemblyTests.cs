@@ -661,7 +661,7 @@ class C
             Assert.Null(errorMessage);
         }
 
-        [WorkItem(2547)]
+        [WorkItem(2547, "https://github.com/dotnet/roslyn/issues/2547")]
         [Fact]
         public void TryDifferentLinqLibraryOnRetry()
         {

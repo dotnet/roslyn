@@ -1627,7 +1627,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(2240)>
+        <WorkItem(2240, "https://github.com/dotnet/roslyn/issues/2240")>
         <Fact>
         Public Sub AsyncLambda()
             Const source =
@@ -2610,7 +2610,7 @@ End Class"
             locals.Free()
         End Sub
 
-        <WorkItem(947)>
+        <WorkItem(947, "unknown")>
         <Fact>
         Public Sub DuplicateEditorBrowsableAttributes()
             Const libSource = "

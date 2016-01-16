@@ -2601,7 +2601,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
 
-        [Fact, WorkItem(1291)]
+        [Fact, WorkItem(1291, "https://github.com/dotnet/roslyn/issues/1291")]
         public void Lambdas_Insert_ThisOnly_Top2()
         {
             var src1 = @"

@@ -444,8 +444,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <WpfFact, WorkItem(937915), Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        <WorkItem(759)>
+        <WpfFact, WorkItem(937915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems#id=937915&_a=edit"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
         Public Sub TestDiagnosticAnalyzerExceptionHandledGracefully2()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -932,7 +932,7 @@ public class B
             End Using
         End Sub
 
-        <WpfFact, WorkItem(592)>
+        <WpfFact, WorkItem(592, "https://github.com/dotnet/roslyn/issues/592")>
         Private Sub TestSyntaxNodeAnalyzersForExpressionBody()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -973,7 +973,7 @@ public class B
             End Using
         End Sub
 
-        <WpfFact, WorkItem(592)>
+        <WpfFact, WorkItem(592, "https://github.com/dotnet/roslyn/issues/592")>
         Private Sub TestMethodSymbolAnalyzersForExpressionBody()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1085,7 +1085,7 @@ End Class
             End Sub
         End Class
 
-        <WpfFact, WorkItem(565)>
+        <WpfFact, WorkItem(565, "https://github.com/dotnet/roslyn/issues/565")>
         Public Sub TestFieldDeclarationAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">

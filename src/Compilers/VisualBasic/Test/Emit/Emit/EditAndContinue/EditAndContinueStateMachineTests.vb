@@ -4155,7 +4155,7 @@ End Class
             diff2.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"))
         End Sub
 
-        <Fact, WorkItem(3192)>
+        <Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")>
         Public Sub HoistedAnonymousTypes_Complex()
             Dim source0 = MarkedSource("
 Imports System
@@ -4296,7 +4296,7 @@ End Class
             diff2.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"))
         End Sub
 
-        <Fact, WorkItem(3192)>
+        <Fact, WorkItem(3192, "https://github.com/dotnet/roslyn/issues/3192")>
         Public Sub HoistedAnonymousTypes_Delete()
             Dim source0 = MarkedSource("
 Imports System.Linq

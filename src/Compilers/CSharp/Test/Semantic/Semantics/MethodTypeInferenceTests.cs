@@ -679,7 +679,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "E").WithArguments("E"));
         }
 
-        [WorkItem(9142)]
+        [WorkItem(9142, "unknown")]
         [Fact]
         public void Bug9145()
         {

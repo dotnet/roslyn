@@ -1030,7 +1030,7 @@ B: goto A;";
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "A").WithArguments("A").WithLocation(3, 9));
         }
 
-        [Fact, WorkItem(3712)]
+        [Fact, WorkItem(3712, "https://github.com/dotnet/roslyn/pull/3172")]
         public void Label_GetDeclaredSymbol_Script()
         {
             string source =
@@ -1044,7 +1044,7 @@ L1: goto L0;";
             Assert.Equal("L0", symbol.Name);
         }
 
-        [Fact, WorkItem(3712)]
+        [Fact, WorkItem(3712, "https://github.com/dotnet/roslyn/pull/3172")]
         public void Label_GetDeclaredSymbol_Error_Script()
         {
             string source = @"

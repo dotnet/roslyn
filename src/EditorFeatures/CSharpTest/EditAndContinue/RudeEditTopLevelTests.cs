@@ -4297,7 +4297,7 @@ partial class C
             //    new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
         }
 
-        [WorkItem(2068)]
+        [WorkItem(2068, "https://github.com/dotnet/roslyn/issues/2068")]
         [Fact]
         public void Insert_ExternConstruct()
         {

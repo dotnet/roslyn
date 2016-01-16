@@ -5171,7 +5171,7 @@ BC30521: Overload resolution failed because no accessible 'foo' is most specific
 ]]></expected>)
         End Sub
 
-        <Fact(), WorkItem(32)>
+        <Fact(), WorkItem(32, "https://roslyn.codeplex.com/workitem/31")>
         Public Sub BugCodePlex_32()
             Dim compilationDef =
 <compilation>

@@ -39,7 +39,7 @@ End Enum
         End Sub
 
         <Fact>
-        <WorkItem(759)>
+        <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
             Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(

@@ -2158,7 +2158,7 @@ public class Source
             Assert.Throws<ObjectDisposedException>(() => compilation.GetTypeByMetadataName("System.Int64").GetMembers());
         }
 
-        [WorkItem(43)]
+        [WorkItem(43, "https://roslyn.codeplex.com/workitem/43")]
         [Fact]
         public void ReusingCorLibManager()
         {
@@ -2173,7 +2173,7 @@ public class Source
             Assert.True(corlib1.ReferenceManagerEquals(corlib2));
         }
 
-        [WorkItem(5138)]
+        [WorkItem(5138, "https://github.com/dotnet/roslyn/issues/5138")]
         [Fact]
         public void AsymmetricUnification()
         {

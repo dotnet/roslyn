@@ -593,7 +593,7 @@ public class B
                     Diagnostic("MethodExpressionBodyDiagnostic"));
         }
 
-        [Fact, WorkItem(592)]
+        [Fact, WorkItem(592, "https://github.com/dotnet/roslyn/issues/592")]
         public void TestSyntaxNodeAnalyzersForExpressionBody()
         {
             string source = @"
@@ -613,7 +613,7 @@ public class B
                     Diagnostic("MethodExpressionBodyDiagnostic"));
         }
 
-        [Fact, WorkItem(592)]
+        [Fact, WorkItem(592, "https://github.com/dotnet/roslyn/issues/592")]
         public void TestMethodSymbolAnalyzersForExpressionBody()
         {
             string source = @"
@@ -674,7 +674,7 @@ public class B
                      Diagnostic("MyFieldDiagnostic", @"public string field = ""field"";").WithLocation(4, 5));
         }
 
-        [Fact, WorkItem(565)]
+        [Fact, WorkItem(565, "https://github.com/dotnet/roslyn/issues/565")]
         public void TestCallbacksForFieldDeclarationWithMultipleVariables()
         {
             string source = @"

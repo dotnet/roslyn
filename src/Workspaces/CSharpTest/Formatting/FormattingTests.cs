@@ -6407,7 +6407,7 @@ class Program
 }");
         }
 
-        [WorkItem(62)]
+        [WorkItem(62, "https://github.com/dotnet/roslyn/issues/62")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpaceAfterWhenInExceptionFilter()
         {

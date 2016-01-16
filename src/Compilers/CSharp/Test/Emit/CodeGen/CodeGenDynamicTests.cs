@@ -974,7 +974,7 @@ public class C
             CompileAndVerify(source, new[] { SystemCoreRef });
         }
 
-        [Fact, WorkItem(16)]
+        [Fact, WorkItem(16, "unknown")]
         public void RemoveAtOfKeywordAsDynamicMemberName()
         {
             string source = @"

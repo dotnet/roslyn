@@ -60,7 +60,7 @@ End Class
     End Function
 
     <Fact>
-    <WorkItem(759)>
+    <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
     Public Async Function DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions() As Task
         Dim source = TestResource.AllInOneVisualBasicCode
         Using Workspace = Await TestWorkspace.CreateVisualBasicAsync(source)

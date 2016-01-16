@@ -6958,7 +6958,7 @@ class C
                 );
         }
 
-        [Fact, WorkItem(30)]
+        [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
         public void BugCodePlex_30_01()
         {
             string source1 = @"
@@ -6979,7 +6979,7 @@ class C
 2");
         }
 
-        [Fact, WorkItem(30)]
+        [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
         public void BugCodePlex_30_02()
         {
             string source1 = @"
@@ -7005,7 +7005,7 @@ class C
 1");
         }
 
-        [Fact, WorkItem(30)]
+        [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
         public void BugCodePlex_30_03()
         {
             string source1 = @"

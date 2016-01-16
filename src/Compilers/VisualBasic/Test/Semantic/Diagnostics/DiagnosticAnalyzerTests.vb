@@ -572,7 +572,7 @@ End Class
             End Sub
         End Class
 
-        <Fact, WorkItem(565)>
+        <Fact, WorkItem(565, "https://github.com/dotnet/roslyn/issues/565")>
         Public Sub TestFieldDeclarationAnalyzer()
             Dim analyzer = New FieldDeclarationAnalyzer()
             Dim sources = <compilation>

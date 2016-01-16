@@ -86,7 +86,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(759)]
+        [WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
         public async Task DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;

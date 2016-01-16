@@ -1653,7 +1653,7 @@ End Class
             Assert.Throws(Of ObjectDisposedException)(Function() c.GetTypeByMetadataName("System.Int64").GetMembers())
         End Sub
 
-        <Fact, WorkItem(43)>
+        <Fact, WorkItem(43, "https://roslyn.codeplex.com/workitem/43")>
         Public Sub ReusingCorLibManager()
             Dim corlib1 = VisualBasicCompilation.Create("Comp")
             Dim assembly1 = corlib1.Assembly

@@ -1007,7 +1007,7 @@ class What
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationString_1()
         {
@@ -1028,7 +1028,7 @@ class What
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationString_2()
         {
@@ -1049,7 +1049,7 @@ class What
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationString_3()
         {
@@ -1070,7 +1070,7 @@ class What
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationString_4()
         {
@@ -1091,7 +1091,7 @@ class What
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task OutsideInterpolationString()
         {
@@ -1112,7 +1112,7 @@ class What
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_1()
         {
@@ -1133,7 +1133,7 @@ Program.number}"";
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_2()
         {
@@ -1155,7 +1155,7 @@ Program.number}"";
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_3()
         {
@@ -1176,7 +1176,7 @@ Program.number}"";
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_4()
         {
@@ -1197,7 +1197,7 @@ Program.number}"";
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_5()
         {
@@ -1218,7 +1218,7 @@ Program.number}"";
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_6()
         {
@@ -1239,7 +1239,7 @@ Program.number}"";
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task InsideInterpolationSyntax_7()
         {
@@ -1260,7 +1260,7 @@ Program.number}"";
         }
 
         [Fact]
-        [WorkItem(872)]
+        [WorkItem(872, "https://github.com/dotnet/roslyn/issues/872")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task IndentLambdaBodyOneIndentationToFirstTokenOfTheStatement()
         {

@@ -781,8 +781,8 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <WorkItem(539801)>
-        <WorkItem(5886)>
+        <WorkItem(539801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems#id=539801&_a=edit")>
+        <WorkItem(5886, "https://github.com/dotnet/roslyn/pull/5886")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpEnumToEnumMemberName()
             Using result = RenameEngineResult.Create(
@@ -866,7 +866,7 @@ class {|unresolve3:$$D|} // Rename to C
         End Sub
 
         <Fact>
-        <WorkItem(6874)>
+        <WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems#_a=edit&id=6874")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicEnum()
             Using result = RenameEngineResult.Create(
@@ -886,7 +886,7 @@ class {|unresolve3:$$D|} // Rename to C
         End Sub
 
         <Fact>
-        <WorkItem(6874)>
+        <WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems#_a=edit&id=6874")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicEnumMember()
             Using result = RenameEngineResult.Create(

@@ -1578,7 +1578,7 @@ class C
             locals.Free();
         }
 
-        [WorkItem(2240)]
+        [WorkItem(2240, "https://github.com/dotnet/roslyn/issues/2240")]
         [Fact]
         public void AsyncLambda()
         {
@@ -2635,7 +2635,7 @@ class C
             locals.Free();
         }
 
-        [WorkItem(947)]
+        [WorkItem(947, "unknown")]
         [Fact]
         public void DuplicateEditorBrowsableAttributes()
         {

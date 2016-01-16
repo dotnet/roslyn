@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Assert.False(threw);
         }
 
-        [Fact, WorkItem(887)]
+        [Fact, WorkItem(887, "https://github.com/dotnet/roslyn/issues/887")]
         public void TestDescriptorIsExceptionSafe()
         {
             // Test descriptor with LocalizableResourceString fields that can throw.

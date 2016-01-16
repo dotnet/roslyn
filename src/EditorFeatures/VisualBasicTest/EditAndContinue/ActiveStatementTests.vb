@@ -4749,7 +4749,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(1359)>
+        <Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")>
         Public Sub Lambdas_LeafEdits_GeneralStatement()
             Dim src1 = "
 Class C
@@ -4771,7 +4771,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(1359)>
+        <Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")>
         Public Sub Lambdas_LeafEdits_NestedLambda()
             Dim src1 = "
 Class C

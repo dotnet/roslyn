@@ -430,7 +430,7 @@ Type ""#help"" for more information.
 > ", runner.Console.Out.ToString());
         }
 
-        [WorkItem(5748)]
+        [WorkItem(5748, "unknown")]
         [Fact]
         public void RelativePath()
         {

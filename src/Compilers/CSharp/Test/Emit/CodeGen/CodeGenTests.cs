@@ -11682,7 +11682,7 @@ public class Test
 }");
         }
 
-        [WorkItem(2272)]
+        [WorkItem(2272, "https://github.com/dotnet/roslyn/issues/2272")]
         [Fact]
         public void DefaultParamValueIsEnum()
         {

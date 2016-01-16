@@ -1393,7 +1393,7 @@ class A
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Identity.Name);
         }
 
-        [WorkItem(3719)]
+        [WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")]
         [Fact]
         public void GetEntryPoint_Script()
         {

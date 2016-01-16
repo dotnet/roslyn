@@ -4436,7 +4436,7 @@ enum E2 // Identical to E1, but has [Flags]
             Assert.Equal("E1", e1.ToDisplayString(format));
         }
 
-        [WorkItem(6262)]
+        [WorkItem(6262, "https://github.com/dotnet/roslyn/issues/6262")]
         [Fact]
         public void FormattedSymbolEquality()
         {

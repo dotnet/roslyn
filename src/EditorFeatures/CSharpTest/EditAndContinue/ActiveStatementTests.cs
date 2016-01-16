@@ -6555,7 +6555,7 @@ class Test
 
         #region Lambdas
 
-        [Fact, WorkItem(1359)]
+        [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_GeneralStatement()
         {
             string src1 = @"
@@ -6582,7 +6582,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact, WorkItem(1359)]
+        [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_Nested1()
         {
             string src1 = @"
@@ -6609,7 +6609,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact, WorkItem(1359)]
+        [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_Nested2()
         {
             string src1 = @"
@@ -6637,7 +6637,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "G(a =>       2       )"));
         }
 
-        [Fact, WorkItem(1359)]
+        [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_IfStatement()
         {
             string src1 = @"
@@ -6664,7 +6664,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact, WorkItem(1359)]
+        [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_WhileStatement()
         {
             string src1 = @"
@@ -6691,7 +6691,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact, WorkItem(1359)]
+        [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_DoStatement()
         {
             string src1 = @"
@@ -6718,7 +6718,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact, WorkItem(1359)]
+        [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_SwitchStatement()
         {
             string src1 = @"
@@ -6753,7 +6753,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact, WorkItem(1359)]
+        [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_LockStatement()
         {
             string src1 = @"
@@ -6780,7 +6780,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact, WorkItem(1359)]
+        [Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")]
         public void Lambdas_LeafEdits_UsingStatement1()
         {
             string src1 = @"
