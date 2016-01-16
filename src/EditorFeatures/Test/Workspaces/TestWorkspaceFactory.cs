@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return await CreateWorkspaceAsync(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
         }
 
-        internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
+        internal static Task<TestWorkspace> CreateWorkspaceAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions[] parseOptions,
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null)
         {
-            return CreateWorkspaceFromFilesAsync(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider);
+            return CreateWorkspaceAsync(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider);
         }
 
         #endregion
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ExportProvider exportProvider = null,
             string[] metadataReferences = null)
         {
-            return TestWorkspaceFactory.CreateWorkspaceAsync(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider, metadataReferences);
+            return CreateWorkspaceAsync(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider, metadataReferences);
         }
 
         /// <param name="files">Can pass in multiple file contents with individual source kind: files will be named test1.vb, test2.vbx, etc.</param>
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null)
         {
-            return TestWorkspaceFactory.CreateWorkspaceFromFilesAsync(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider);
+            return CreateWorkspaceAsync(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider);
         }
 
         #endregion
