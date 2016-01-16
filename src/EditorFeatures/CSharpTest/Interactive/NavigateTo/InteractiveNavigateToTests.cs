@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
         private async Task<TestWorkspace> SetupWorkspaceAsync(params string[] files)
         {
-            var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFilesAsync(files, parseOptions: Options.Script);
+            var workspace = await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFilesAsync(files, parseOptions: Options.Script);
             var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
 
             _provider = new NavigateToItemProvider(

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         [Fact]
         public async Task TryGetSymbolTouchingPositionOnLeadingTrivia()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(
+            using (var workspace = await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(
                 @"using System;
                 class Program
                 {

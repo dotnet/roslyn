@@ -939,8 +939,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             private static async Task<TestWorkspace> CreateWorkspaceFromFileAsync(string file, bool isVisualBasic, ParseOptions parseOptions, CompilationOptions compilationOptions)
             {
                 return isVisualBasic ?
-                    await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(file, (VB.VisualBasicParseOptions)parseOptions, (VB.VisualBasicCompilationOptions)compilationOptions) :
-                    await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(file, (CS.CSharpParseOptions)parseOptions, (CS.CSharpCompilationOptions)compilationOptions);
+                    await VisualBasicWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(file, (VB.VisualBasicParseOptions)parseOptions, (VB.VisualBasicCompilationOptions)compilationOptions) :
+                    await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(file, (CS.CSharpParseOptions)parseOptions, (CS.CSharpCompilationOptions)compilationOptions);
             }
         }
     }

@@ -8,17 +8,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public partial class CSharpWorkspaceFactory : TestWorkspaceFactory
     {
-        public static Task<TestWorkspace> CreateWorkspaceFromFileAsync(
+        public static Task<TestWorkspace> CreateCSharpWorkspaceFromFileAsync(
             string file,
             CSharpParseOptions parseOptions = null,
             CSharpCompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null)
         {
-            return CreateWorkspaceFromFilesAsync(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
+            return CreateCSharpWorkspaceFromFilesAsync(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
         }
 
-        public static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
+        public static Task<TestWorkspace> CreateCSharpWorkspaceFromFilesAsync(
             string[] files,
             CSharpParseOptions parseOptions = null,
             CSharpCompilationOptions compilationOptions = null,
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return CreateWorkspaceFromFilesAsync(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, metadataReferences);
         }
 
-        public static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
+        public static Task<TestWorkspace> CreateCSharpWorkspaceFromFilesAsync(
             string[] files,
             CSharpParseOptions[] parseOptions = null,
             CSharpCompilationOptions compilationOptions = null,

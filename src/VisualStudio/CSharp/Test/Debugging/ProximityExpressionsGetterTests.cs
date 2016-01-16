@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             Console.WriteLine(typeof(FactAttribute));
 
             var text = Resources.ProximityExpressionsGetterTestFile;
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(text))
+            using (var workspace = await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(text))
             {
                 var languageDebugInfo = new CSharpLanguageDebugInfoService();
 
@@ -124,7 +124,7 @@ namespace ConsoleApplication1
             string markup,
             Func<CSharpProximityExpressionsService, Document, int, Task> continuation)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup))
+            using (var workspace = await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(markup))
             {
                 var testDocument = workspace.Documents.Single();
                 var caretPosition = testDocument.CursorPosition.Value;

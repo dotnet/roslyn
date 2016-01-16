@@ -42,7 +42,7 @@ namespace MyNamespace
 #endregion
 }";
 
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code))
+            using (var workspace = await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -79,7 +79,7 @@ Namespace MyNamespace
 #End Region
 End Namespace";
 
-            using (var workspace = await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code))
+            using (var workspace = await VisualBasicWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -110,7 +110,7 @@ End Namespace";
     End Sub
 End Module";
 
-            using (var workspace = await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code))
+            using (var workspace = await VisualBasicWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 

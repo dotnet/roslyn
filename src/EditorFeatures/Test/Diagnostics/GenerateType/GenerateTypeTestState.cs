@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             string languageName)
         {
             var workspace = languageName == LanguageNames.CSharp
-                  ? isLine ? await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(initial, exportProvider: s_exportProvider) : await TestWorkspaceFactory.CreateWorkspaceAsync(initial, exportProvider: s_exportProvider)
-                  : isLine ? await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(initial, exportProvider: s_exportProvider) : await TestWorkspaceFactory.CreateWorkspaceAsync(initial, exportProvider: s_exportProvider);
+                  ? isLine ? await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(initial, exportProvider: s_exportProvider) : await TestWorkspaceFactory.CreateWorkspaceAsync(initial, exportProvider: s_exportProvider)
+                  : isLine ? await VisualBasicWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(initial, exportProvider: s_exportProvider) : await TestWorkspaceFactory.CreateWorkspaceAsync(initial, exportProvider: s_exportProvider);
 
             return new GenerateTypeTestState(projectToBeModified, typeName, existingFileName, workspace);
         }

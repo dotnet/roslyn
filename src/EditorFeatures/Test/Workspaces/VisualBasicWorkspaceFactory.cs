@@ -7,17 +7,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class VisualBasicWorkspaceFactory : TestWorkspaceFactory
     {
-        public static Task<TestWorkspace> CreateWorkspaceFromFileAsync(
+        public static Task<TestWorkspace> CreateVisualBasicWorkspaceFromFileAsync(
             string file,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null)
         {
-            return CreateWorkspaceFromFilesAsync(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
+            return CreateVisualBasicWorkspaceFromFilesAsync(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
         }
 
-        public static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
+        public static Task<TestWorkspace> CreateVisualBasicWorkspaceFromFilesAsync(
             string[] files,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         /// <param name="files">Can pass in multiple file contents with individual source kind: files will be named test1.vb, test2.vbx, etc.</param>
-        public static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
+        public static Task<TestWorkspace> CreateVisualBasicWorkspaceFromFilesAsync(
             string[] files,
             ParseOptions[] parseOptions = null,
             CompilationOptions compilationOptions = null,

@@ -915,7 +915,7 @@ $$
         internal async Task<Holder> CreateSessionAsync(string code, Dictionary<OptionKey, object> optionSet = null)
         {
             return CreateSession(
-                await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code),
+                await CSharpWorkspaceFactory.CreateCSharpWorkspaceFromFileAsync(code),
                 BraceCompletionSessionProvider.CurlyBrace.OpenCharacter, BraceCompletionSessionProvider.CurlyBrace.CloseCharacter, optionSet);
         }
     }

@@ -115,7 +115,7 @@ End Class</code>
 
         Friend Overloads Async Function CreateSessionAsync(code As String) As Threading.Tasks.Task(Of Holder)
             Return CreateSession(
-                Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code),
+                Await VisualBasicWorkspaceFactory.CreateVisualBasicWorkspaceFromFileAsync(code),
                 BraceCompletionSessionProvider.LessAndGreaterThan.OpenCharacter, BraceCompletionSessionProvider.LessAndGreaterThan.CloseCharacter)
         End Function
     End Class
