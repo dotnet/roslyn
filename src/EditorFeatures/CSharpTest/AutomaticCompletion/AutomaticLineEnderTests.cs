@@ -843,7 +843,7 @@ $$
 
         protected override Task<TestWorkspace> CreateWorkspaceAsync(string code)
         {
-            return TestWorkspaceFactory.CreateCSharpWorkspaceAsync(code);
+            return TestWorkspaceFactory.CreateCSharpAsync(code);
         }
 
         protected override Action CreateNextHandler(TestWorkspace workspace)

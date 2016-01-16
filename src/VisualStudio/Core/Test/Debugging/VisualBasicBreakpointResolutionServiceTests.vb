@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             Dim source As String = Nothing
             MarkupTestFile.GetPositionAndSpan(markup.NormalizedValue, source, position, expectedSpan)
 
-            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicWorkspaceAsync(source)
+            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicAsync(source)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
                 Dim result As BreakpointResolutionResult = Await VisualBasicBreakpointResolutionService.GetBreakpointAsync(document, position.Value, length, CancellationToken.None)
                 Assert.True(expectedSpan.Value = result.TextSpan,

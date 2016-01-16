@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             compilationOptions As CompilationOptions
         ) As Task(Of TestWorkspace)
 
-            Return TestWorkspaceFactory.CreateVisualBasicWorkspaceAsync(
+            Return TestWorkspaceFactory.CreateVisualBasicAsync(
                 definition,
                 parseOptions,
                 If(compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))

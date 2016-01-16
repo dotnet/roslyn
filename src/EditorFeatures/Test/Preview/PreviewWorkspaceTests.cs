@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTagger()
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync("class { }"))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync("class { }"))
             using (var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution))
             {
                 //// preview workspace and owner of the solution now share solution and its underlying text buffer
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync("class { }"))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync("class { }"))
             {
                 // set up listener to wait until diagnostic finish running
                 var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>() as DiagnosticService;

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 
         public static async Task<EncapsulateFieldTestState> CreateAsync(string markup)
         {
-            var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(markup, exportProvider: s_exportProvider);
+            var workspace = await TestWorkspaceFactory.CreateCSharpAsync(markup, exportProvider: s_exportProvider);
             return new EncapsulateFieldTestState(workspace);
         }
 

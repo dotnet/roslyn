@@ -258,7 +258,7 @@ class c { }";
 
         protected override Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup)
         {
-            return TestWorkspaceFactory.CreateCSharpWorkspaceAsync(initialMarkup);
+            return TestWorkspaceFactory.CreateCSharpAsync(initialMarkup);
         }
     }
 }

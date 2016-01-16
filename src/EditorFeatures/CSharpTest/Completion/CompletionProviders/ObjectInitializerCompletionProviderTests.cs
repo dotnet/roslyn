@@ -569,7 +569,7 @@ class d
     }
 }";
 
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(markup))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(markup))
             {
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
@@ -745,7 +745,7 @@ class Container
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(markup))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(markup))
             {
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;

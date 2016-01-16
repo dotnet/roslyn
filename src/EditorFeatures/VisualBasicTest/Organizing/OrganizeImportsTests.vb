@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.OrganizeImports
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public Class OrganizeImportsTests
         Private Async Function CheckAsync(initial As XElement, final As XElement, specialCaseSystem As Boolean) As Threading.Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicWorkspaceAsync(initial.NormalizedValue)
+            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicAsync(initial.NormalizedValue)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Dim newRoot = Await (Await OrganizeImportsService.OrganizeImportsAsync(document, specialCaseSystem)).GetSyntaxRootAsync()
 

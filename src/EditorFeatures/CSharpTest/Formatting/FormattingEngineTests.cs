@@ -349,7 +349,7 @@ class Program
         if (true) { }
     }
 }";
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(code))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(code))
             {
                 var subjectDocument = workspace.Documents.Single();
                 var spans = subjectDocument.SelectedSpans;
@@ -444,7 +444,7 @@ class Program
         if (true) { }
     }
 }";
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(code))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(code))
             {
                 var subjectDocument = workspace.Documents.Single();
                 var spans = subjectDocument.SelectedSpans;
@@ -1275,7 +1275,7 @@ class C : Attribute
 
         private static async Task AssertFormatAfterTypeCharAsync(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(code))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(code))
             {
                 if (changedOptionSet != null)
                 {

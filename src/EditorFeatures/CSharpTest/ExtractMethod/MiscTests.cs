@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
     [|void Method() {}|]
 }";
 
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(markupCode))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(markupCode))
             {
                 var testDocument = workspace.Documents.Single();
                 var container = testDocument.GetOpenTextContainer();

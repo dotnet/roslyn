@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var code = @"
     a
 ";
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(code))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(code))
             {
                 var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetService<IErrorLoggerService>()));
                 var fixService = new CodeFixService(
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 () => codefix,
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
             var code = @"class Program { }";
-            var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(code);
+            var workspace = await TestWorkspaceFactory.CreateCSharpAsync(code);
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
             var errorLogger = logger.First().Value;
             var fixService = new CodeFixService(

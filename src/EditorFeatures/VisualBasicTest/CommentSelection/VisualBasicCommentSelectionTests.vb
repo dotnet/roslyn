@@ -75,7 +75,7 @@ End Module</code>
 
             MarkupTestFile.GetSpans(code, codeWithoutMarkup, spans)
 
-            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicWorkspaceAsync(codeWithoutMarkup)
+            Using workspace = Await TestWorkspaceFactory.CreateVisualBasicAsync(codeWithoutMarkup)
                 Dim doc = workspace.Documents.First()
                 SetupSelection(doc.GetTextView(), spans.Select(Function(s) Span.FromBounds(s.Start, s.End)))
 

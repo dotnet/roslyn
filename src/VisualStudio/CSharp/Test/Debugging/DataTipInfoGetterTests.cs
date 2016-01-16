@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         private async Task TestSpanGetterAsync(string markup, Func<Document, int, TextSpan?, Task> continuation)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(markup))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(markup))
             {
                 var testHostDocument = workspace.Documents.Single();
                 var position = testHostDocument.CursorPosition.Value;

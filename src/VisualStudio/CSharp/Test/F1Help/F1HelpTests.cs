@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
     {
         private async Task TestAsync(string markup, string expectedText)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(markup))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(markup))
             {
                 var caret = workspace.Documents.First().CursorPosition;
 

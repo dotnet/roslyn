@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     string x = @""/// <summary>$$
 /// </summary>"";
 }";
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(code))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(code))
             {
                 var document = workspace.Documents.First();
                 var subjectBuffer = document.TextBuffer;

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         [WorkItem(530368)]
         public async Task LargeNumberOfSpans()
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync(@"class Program
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync(@"class Program
 {
     void M()
     {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         [WpfFact]
         public async Task TestSynchronousOutlining()
         {
-            using (var workspace = await TestWorkspaceFactory.CreateCSharpWorkspaceAsync("class Program {\r\n\r\n}"))
+            using (var workspace = await TestWorkspaceFactory.CreateCSharpAsync("class Program {\r\n\r\n}"))
             {
                 WpfTestCase.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
 

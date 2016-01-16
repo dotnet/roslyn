@@ -348,7 +348,6 @@
     <Compile Include="Workspaces\TestHostDocument.cs" />
     <Compile Include="Workspaces\TestHostProject.cs" />
     <Compile Include="Workspaces\TestHostSolution.cs" />
-    <Compile Include="Workspaces\TestOptionServiceFactory.cs" />
     <Compile Include="Workspaces\TestWorkspace.cs" />
     <Compile Include="Workspaces\TestWorkspaceFactory.cs" />
     <Compile Include="Workspaces\TestWorkspaceFactory_XmlConsumption.cs" />
