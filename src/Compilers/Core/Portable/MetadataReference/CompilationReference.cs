@@ -4,13 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Reference to another C# or VB compilation.
     /// </summary>
-    public abstract class CompilationReference : MetadataReference
+    public abstract class CompilationReference : MetadataReference, IEquatable<CompilationReference>
     {
         public Compilation Compilation { get { return CompilationCore; } }
         internal abstract Compilation CompilationCore { get; }
@@ -109,6 +110,38 @@ namespace Microsoft.CodeAnalysis
             {
                 return Compilation.AssemblyName;
             }
+        }
+
+        public bool Equals(CompilationReference other)
+        {
+            if (object.ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other == null)
+            {
+                return false;
+            }
+
+            // MetadataProperty implements value equality
+            return object.ReferenceEquals(this.Compilation, other.Compilation) && object.Equals(this.Properties, other.Properties);
+        }
+
+        public override bool Equals(object obj)
+        {
+            var compilation = obj as CompilationReference;
+            if (compilation == null)
+            {
+                return false;
+            }
+
+            return Equals(compilation);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(this.Compilation.GetHashCode(), this.Properties.GetHashCode());
         }
     }
 }
