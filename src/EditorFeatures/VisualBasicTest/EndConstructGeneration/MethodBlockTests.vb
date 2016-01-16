@@ -45,11 +45,13 @@ Class c1
     End Sub
 End Class",
                 beforeCaret:={2, -1},
-                after:="<Microsoft.VisualBasic.CompilerServices.DesignerGenerated>
+                after:=$"<Microsoft.VisualBasic.CompilerServices.DesignerGenerated>
 Class c1
     Sub New()
+
         ' {ThisCallIsRequiredByTheDesigner}
         InitializeComponent()
+
         ' {AddAnyInitializationAfter}
 
     End Sub
