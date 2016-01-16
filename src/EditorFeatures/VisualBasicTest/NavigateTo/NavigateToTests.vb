@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Sub
 
         Private Async Function SetupWorkspaceAsync(workspaceElement As XElement) As Task(Of TestWorkspace)
-            Dim workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceElement)
+            Dim workspace = Await TestWorkspace.CreateAsync(workspaceElement)
             SetupNavigateTo(workspace)
             Return workspace
         End Function

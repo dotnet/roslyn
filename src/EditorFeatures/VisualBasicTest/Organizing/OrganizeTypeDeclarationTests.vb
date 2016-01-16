@@ -952,7 +952,7 @@ End Namespace</element>
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(
+            Using workspace = Await TestWorkspace.CreateAsync(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C

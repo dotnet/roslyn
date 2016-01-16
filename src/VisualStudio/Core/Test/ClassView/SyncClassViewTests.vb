@@ -861,7 +861,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             ParamArray presentationNodes As NodeVerifier()
         ) As Task
 
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 

@@ -74,7 +74,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceXml, exportProvider:=_exportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml, exportProvider:=_exportProvider)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -181,7 +181,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceXml, exportProvider:=_exportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml, exportProvider:=_exportProvider)
                 Dim docId = workspace.Documents.First().Id
                 Dim document = workspace.CurrentSolution.GetDocument(docId)
 
@@ -264,7 +264,7 @@ End Class
                                    </Project>
                                </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceXml, , exportProvider:=_exportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml, , exportProvider:=_exportProvider)
                 Dim documentId1 = workspace.Documents.Where(Function(d) d.Project.Name = "VBProj1").Single().Id
                 Dim document1 = workspace.CurrentSolution.GetDocument(documentId1)
 

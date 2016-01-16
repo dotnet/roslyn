@@ -1080,7 +1080,7 @@ interface I
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = await TestWorkspace.CreateWorkspaceAsync(XElement.Parse(@"
+            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C

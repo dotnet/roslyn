@@ -612,7 +612,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                              </Project>
                          </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(markup)
+            Using workspace = Await TestWorkspace.CreateAsync(markup)
 
                 Dim asyncListener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(ValueTuple.Create(FeatureAttribute.DiagnosticService, asyncListener))

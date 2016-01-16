@@ -349,9 +349,9 @@
     <Compile Include="Workspaces\TestHostProject.cs" />
     <Compile Include="Workspaces\TestHostSolution.cs" />
     <Compile Include="Workspaces\TestWorkspace.cs" />
-    <Compile Include="Workspaces\TestWorkspaceFactory.cs" />
-    <Compile Include="Workspaces\TestWorkspaceFactory_XmlConsumption.cs" />
-    <Compile Include="Workspaces\TestWorkspaceFactory_XmlCreation.cs" />
+    <Compile Include="Workspaces\TestWorkspace_Create.cs" />
+    <Compile Include="Workspaces\TestWorkspace_XmlConsumption.cs" />
+    <Compile Include="Workspaces\TestWorkspace_XmlCreation.cs" />
     <Compile Include="Workspaces\TestWorkspaceFixture.cs" />
     <Compile Include="Workspaces\ProjectCacheHostServiceFactoryTests.cs" />
     <Compile Include="Workspaces\TextFactoryTests.cs" />

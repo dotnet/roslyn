@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(Catalog)
 
         Public Async Function TestAsync(workspaceDefinition As XElement, expectedResult As Boolean, executeOnDocument As Func(Of Document, Integer, IEnumerable(Of Lazy(Of INavigableItemsPresenter)), Boolean)) As System.Threading.Tasks.Task
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceDefinition, exportProvider:=ExportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition, exportProvider:=ExportProvider)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value

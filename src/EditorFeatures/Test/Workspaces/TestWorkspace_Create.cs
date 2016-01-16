@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var workspaceElement = CreateWorkspaceElement(
                 CreateProjectElement(compilationOptions?.ModuleName ?? "Test", language, commonReferences, parseOptions, compilationOptions, documentElements));
 
-            return await CreateWorkspaceAsync(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
+            return await CreateAsync(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
         }
 
         internal static Task<TestWorkspace> CreateAsync(
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var workspaceElement = CreateWorkspaceElement(
                 CreateProjectElement("Test", language, true, parseOptions.FirstOrDefault(), compilationOptions, documentElements));
 
-            return CreateWorkspaceAsync(workspaceElement, exportProvider: exportProvider);
+            return CreateAsync(workspaceElement, exportProvider: exportProvider);
         }
 
         #region C#

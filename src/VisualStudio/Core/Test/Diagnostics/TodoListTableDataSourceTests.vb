@@ -314,7 +314,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                              </Project>
                          </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(markup)
+            Using workspace = Await TestWorkspace.CreateAsync(markup)
                 Dim projects = workspace.CurrentSolution.Projects.ToArray()
 
                 Dim item1 = CreateItem(workspace, projects(0).DocumentIds.First())

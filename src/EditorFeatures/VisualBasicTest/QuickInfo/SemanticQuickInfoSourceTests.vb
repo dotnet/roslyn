@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Function
 
         Protected Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of Object)()) As Task
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(markup)
+            Using workspace = Await TestWorkspace.CreateAsync(markup)
                 Await TestSharedAsync(workspace, workspace.Documents.First().CursorPosition.Value, expectedResults)
             End Using
         End Function

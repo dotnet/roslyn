@@ -640,7 +640,7 @@ End Interface
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(element)
+            Using workspace = Await TestWorkspace.CreateAsync(element)
                 Dim position = workspace.Documents.Single().CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
                 Dim triggerInfo = New CompletionTriggerInfo()

@@ -213,7 +213,7 @@ End Class</text>
         End Sub
 
         Private Function GetWorkspaceAsync(code As XElement) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateWorkspaceAsync(
+            Return TestWorkspace.CreateAsync(
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
                         <Document>

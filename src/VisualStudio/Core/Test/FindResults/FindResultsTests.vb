@@ -134,7 +134,7 @@ using System.Threading;
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceXml, exportProvider:=s_exportProvider)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml, exportProvider:=s_exportProvider)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If Not doc.CursorPosition.HasValue Then

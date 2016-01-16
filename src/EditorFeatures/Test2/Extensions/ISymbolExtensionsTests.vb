@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         Inherits TestBase
 
         Private Async Function TestIsAccessibleWithinAsync(workspaceDefinition As XElement, expectedVisible As Boolean) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)

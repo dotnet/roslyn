@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     </Project>
 </Workspace>", SecurityElement.Escape(markup));
 
-            using (var workspace = await TestWorkspace.CreateWorkspaceAsync(xmlString))
+            using (var workspace = await TestWorkspace.CreateAsync(xmlString))
             {
                 var position = workspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
@@ -256,7 +256,7 @@ using System.Linq;
 
         private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<object>[] expectedResults)
         {
-            using (var workspace = await TestWorkspace.CreateWorkspaceAsync(xmlString))
+            using (var workspace = await TestWorkspace.CreateAsync(xmlString))
             {
                 var position = workspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
@@ -4244,7 +4244,7 @@ class C
     </Submission>
 </Workspace>
 ";
-            using (var workspace = await TestWorkspace.CreateWorkspaceAsync(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
+            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
             {
                 await TestWithOptionsAsync(workspace, MainDescription("(parameter) int x = 1"));
             }

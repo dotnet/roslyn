@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceXml)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
                 Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
@@ -34,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateWorkspaceAsync(workspaceXml)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
                 Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)

@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
                                     </Document>
                            </Project>
                        </Workspace>
-            Return TestWorkspace.CreateWorkspaceAsync(test)
+            Return TestWorkspace.CreateAsync(test)
         End Function
 
         Public Class TestDiagnosticAnalyzerService

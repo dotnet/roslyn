@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
     </Project>
 </Workspace>", languageName, code);
 
-            return TestWorkspace.CreateWorkspaceAsync(xml, exportProvider: exportProvider);
+            return TestWorkspace.CreateAsync(xml, exportProvider: exportProvider);
         }
 
         public void SendEscape()
