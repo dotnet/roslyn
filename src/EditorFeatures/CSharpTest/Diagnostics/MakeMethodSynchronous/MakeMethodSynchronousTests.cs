@@ -116,6 +116,32 @@ compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestTrailingTrivia()
+        {
+            await TestAsync(
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    async // comment
+    Task [|Foo|]()
+    {
+    }
+}",
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    void Foo()
+    {
+    }
+}",
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestRenameMethod()
         {
             await TestAsync(
@@ -228,6 +254,34 @@ class C
     {
         Func<string, Task> f =
             a => { };
+    }
+}",
+compareTokens: false);
+        }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestLambdaWithExpressionBody()
+        {
+            await TestAsync(
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    void Foo()
+    {
+        Func<string, Task> f =
+            async [|a|] => 1;
+    }
+}",
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    void Foo()
+    {
+        Func<string, Task> f =
+            a => 1;
     }
 }",
 compareTokens: false);

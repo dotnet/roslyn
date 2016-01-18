@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -44,10 +45,12 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 
         private async Task<Solution> FixNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
+            // See if we're on an actual method declaration (otherwise we're on a lambda declaration).
+            // If we're on a method declaration, we'll get an IMethodSymbol back.  In that case, check
+            // if it has the 'Async' suffix, and remove that suffix if so.
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
 
-            // If the method ends with 'Async' then remove that as part of the fix.
             if (methodSymbolOpt?.MethodKind == MethodKind.Ordinary && 
                 methodSymbolOpt.Name.Length > AsyncSuffix.Length && 
                 methodSymbolOpt.Name.EndsWith(AsyncSuffix))
@@ -92,7 +95,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
             var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
 
-            var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbolOpt, node, taskType, taskOfTType);
+            var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbolOpt, node, taskType, taskOfTType)
+                .WithAdditionalAnnotations(Formatter.Annotation);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(node, newNode);
