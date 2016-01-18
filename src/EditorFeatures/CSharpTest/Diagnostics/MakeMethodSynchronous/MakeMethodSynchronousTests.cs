@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.MakeMethodSynchronous;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -314,6 +315,40 @@ class C
     }
 }",
 compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestFixAll()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    {|FixAllInDocument:async Task FooAsync()
+    {
+        BarAsync();
+    }
+
+    async Task<int> BarAsync()
+    {
+        FooAsync();
+    }|}
+}",
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    void Foo()
+    {
+        Bar();
+    }
+
+    int Bar()
+    {
+        Foo();
+    }
+}", compareTokens: false, fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
         }
     }
 }

@@ -17,8 +17,12 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 {
     internal abstract class AbstractMakeMethodSynchronousCodeFixProvider : CodeFixProvider
     {
+        public static readonly string EquivalenceKey = FeaturesResources.Make_method_synchronous;
+
         protected abstract bool IsMethodOrAnonymousFunction(SyntaxNode node);
         protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, ITypeSymbol taskType, ITypeSymbol taskOfTType);
+
+        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -30,14 +34,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            for (var node = token.Parent; node != null; node = node.Parent)
+            var node = token.GetAncestor(IsMethodOrAnonymousFunction);
+            if (node != null)
             {
-                if (IsMethodOrAnonymousFunction(node))
-                {
-                    context.RegisterCodeFix(new MyCodeAction(FeaturesResources.Make_method_synchronous,
-                        c => FixNodeAsync(context.Document, node, c)), diagnostic);
-                    return;
-                }
+                context.RegisterCodeFix(new MyCodeAction(c => FixNodeAsync(context.Document, node, c)), diagnostic);
             }
         }
 
@@ -107,10 +107,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
-            public MyCodeAction(
-                string title,
-                Func<CancellationToken, Task<Solution>> createChangedSolution,
-                string equivalenceKey = null) : base(title, createChangedSolution, equivalenceKey)
+            public MyCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution) 
+                : base(FeaturesResources.Make_method_synchronous, createChangedSolution, AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey)
             {
             }
         }
