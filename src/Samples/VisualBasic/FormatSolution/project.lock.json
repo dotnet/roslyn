@@ -3,6 +3,22 @@
   "version": 1,
   "targets": {
     ".NETFramework,Version=v4.5.2": {
+      "Microsoft.Composition/1.0.27": {
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        }
+      },
       "System.Collections/4.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -51,6 +67,17 @@
         },
         "runtime": {
           "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Metadata/1.2.0-rc2-23608": {
+        "dependencies": {
+          "System.Collections.Immutable": "[1.1.37, )"
+        },
+        "compile": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -87,6 +114,22 @@
       }
     },
     ".NETFramework,Version=v4.5.2/win7": {
+      "Microsoft.Composition/1.0.27": {
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        }
+      },
       "System.Collections/4.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -135,6 +178,17 @@
         },
         "runtime": {
           "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Metadata/1.2.0-rc2-23608": {
+        "dependencies": {
+          "System.Collections.Immutable": "[1.1.37, )"
+        },
+        "compile": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -171,6 +225,22 @@
       }
     },
     ".NETFramework,Version=v4.5.2/win7-anycpu": {
+      "Microsoft.Composition/1.0.27": {
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        }
+      },
       "System.Collections/4.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -219,6 +289,17 @@
         },
         "runtime": {
           "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Metadata/1.2.0-rc2-23608": {
+        "dependencies": {
+          "System.Collections.Immutable": "[1.1.37, )"
+        },
+        "compile": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Resources.ResourceManager/4.0.0": {
@@ -256,6 +337,27 @@
     }
   },
   "libraries": {
+    "Microsoft.Composition/1.0.27": {
+      "sha512": "pwu80Ohe7SBzZ6i69LVdzowp6V+LaVRzd5F7A6QlD42vQkX0oT7KXKWWPlM/S00w1gnMQMRnEdbtOV12z6rXdQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.xml",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.XML",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.XML",
+        "License-Stable.rtf",
+        "Microsoft.Composition.nuspec",
+        "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp"
+      ]
+    },
     "System.Collections/4.0.0": {
       "sha512": "i2vsGDIEbWdHcUSNDPKZP/ZWod6o740el7mGTCy0dqbCxQh74W4QoC+klUwPEtGEFuvzJ7bJgvwJqscosVNyZQ==",
       "type": "Package",
@@ -450,6 +552,20 @@
         "System.Linq.nuspec"
       ]
     },
+    "System.Reflection.Metadata/1.2.0-rc2-23608": {
+      "sha512": "OTjZOWW+lJqVLkLeuZNWyNGL4PDSSJZIm5XPig0TOAwag46OyoEVz5t0AvE95SXj3mCaovSVpt8FvaXMiYt91w==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet5.2/System.Reflection.Metadata.dll",
+        "lib/dotnet5.2/System.Reflection.Metadata.xml",
+        "lib/portable-net45+win8/System.Reflection.Metadata.dll",
+        "lib/portable-net45+win8/System.Reflection.Metadata.xml",
+        "package/services/metadata/core-properties/c3d433fae9784b3da60bd437eacfbdd6.psmdcp",
+        "System.Reflection.Metadata.nuspec"
+      ]
+    },
     "System.Resources.ResourceManager/4.0.0": {
       "sha512": "qmqeZ4BJgjfU+G2JbrZt4Dk1LsMxO4t+f/9HarNY6w8pBgweO6jT+cknUH7c3qIrGvyUqraBhU45Eo6UtA0fAw==",
       "type": "Package",
@@ -634,7 +750,8 @@
   },
   "projectFileDependencyGroups": {
     "": [
-      "System.Collections.Immutable >= 1.1.37"
+      "System.Collections.Immutable >= 1.1.37",
+      "System.Reflection.Metadata >= 1.2.0-rc2-23608"
     ],
     ".NETFramework,Version=v4.5.2": []
   }

@@ -1,15 +1,11 @@
 {
     "dependencies": {
-        "Microsoft.CodeAnalysis.Analyzers": "1.0.0",
-        "Microsoft.CodeAnalysis.Common": "1.0.0",
-        "Microsoft.CodeAnalysis.VisualBasic": "1.0.0",
-        "Microsoft.CodeAnalysis.VisualBasic.Workspaces": "1.0.0",
-        "Microsoft.CodeAnalysis.Workspaces.Common": "1.0.0",
         "Microsoft.Composition": "1.0.27",
         "System.Collections.Immutable": "1.1.37",
         "System.Reflection.Metadata": "1.2.0-rc2-23608"
+
     },
     "frameworks": {
-        "net45": {}
-    },
+        ".NETPortable,Version=v4.5,Profile=Profile7": {}
+    }
 }

@@ -24,8 +24,8 @@ Namespace BasicAnalyzers
         Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CompilationStartedAnalyzerRuleId, Title, MessageFormat, DiagnosticCategories.Stateful, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description)
 #End Region
 
-        Friend Const DontInheritInterfaceTypeName As String = "MyInterfaces.Interface"
-        Friend Const AllowedInternalImplementationTypeName As String = "MyInterfaces.MyInterfaceImpl"
+        Public Const DontInheritInterfaceTypeName As String = "MyInterfaces.Interface"
+        Public Const AllowedInternalImplementationTypeName As String = "MyInterfaces.MyInterfaceImpl"
 
         Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
             Get

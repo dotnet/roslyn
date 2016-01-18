@@ -98,6 +98,8 @@ namespace TestHelper
         /// </summary>
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected"> DiagnosticResults that should appear after the analyzer is run on the source</param>
+        /// <param name="parseOptions">The parse options for the compilation.</param>
+        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         protected void VerifyCSharpDiagnostic(string source, ParseOptions parseOptions, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
         {
             VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), parseOptions, compilationOptions, expected);
@@ -109,6 +111,8 @@ namespace TestHelper
         /// </summary>
         /// <param name="source">A class in the form of a string to run the analyzer on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
+        /// <param name="parseOptions">The parse options for the compilation.</param>
+        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         protected void VerifyBasicDiagnostic(string source, ParseOptions parseOptions, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
         {
             VerifyDiagnostics(new[] { source }, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), parseOptions, compilationOptions, expected);
@@ -120,6 +124,8 @@ namespace TestHelper
         /// </summary>
         /// <param name="sources">An array of strings to create source documents from to run the analyzers on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
+        /// <param name="parseOptions">The parse options for the compilation.</param>
+        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         protected void VerifyCSharpDiagnostic(string[] sources, ParseOptions parseOptions, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
         {
             VerifyDiagnostics(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), parseOptions, compilationOptions, expected);
@@ -131,6 +137,8 @@ namespace TestHelper
         /// </summary>
         /// <param name="sources">An array of strings to create source documents from to run the analyzers on</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
+        /// <param name="parseOptions">The parse options for the compilation.</param>
+        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         protected void VerifyBasicDiagnostic(string[] sources, ParseOptions parseOptions, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
         {
             VerifyDiagnostics(sources, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), parseOptions, compilationOptions, expected);
@@ -144,6 +152,8 @@ namespace TestHelper
         /// <param name="language">The language of the classes represented by the source strings</param>
         /// <param name="analyzer">The analyzer to be run on the source code</param>
         /// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
+        /// <param name="parseOptions">The parse options for the compilation.</param>
+        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         private void VerifyDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer, ParseOptions parseOptions, CompilationOptions compilationOptions, params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(sources, language, analyzer, parseOptions, compilationOptions);

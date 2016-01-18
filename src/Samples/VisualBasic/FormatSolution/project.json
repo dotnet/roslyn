@@ -1,6 +1,7 @@
 ﻿{
   "dependencies": {
-    "System.Collections.Immutable": "1.1.37"
+    "System.Collections.Immutable": "1.1.37",
+    "System.Reflection.Metadata": "1.2.0-rc2-23608"
   },
   "frameworks": {
     "net452": {}
