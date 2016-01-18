@@ -245,6 +245,7 @@
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.AbstractIntroduceVariableCodeAction.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.IntroduceVariableAllOccurrenceCodeAction.cs" />
     <Compile Include="LanguageServices\ProjectInfoService\IProjectInfoService.cs" />
+    <Compile Include="MakeMethodSynchronous\AbstractMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="Navigation\NavigationOptions.cs" />
     <Compile Include="Navigation\NavigationOptionsProvider.cs" />
     <Compile Include="QuickInfo\QuickInfoUtilities.cs" />
