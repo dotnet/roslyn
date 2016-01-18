@@ -22,7 +22,7 @@ End Class",
 "Imports System.Threading.Tasks
 
 Class C
-    Sub Foo() 
+    Sub Foo()
     End Sub
 End Class",
 compareTokens:=False)
@@ -58,7 +58,7 @@ End Class",
 "Imports System.Threading.Tasks
 
 Class C
-    Public Sub Foo() 
+    Public Sub Foo()
     End Sub
 End Class",
 compareTokens:=False)
@@ -76,7 +76,7 @@ End Class",
 "Imports System.Threading.Tasks
 
 Class C
-    Public Sub Foo() 
+    Public Sub Foo()
     End Sub
 End Class",
 compareTokens:=False)
