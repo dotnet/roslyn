@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
     internal abstract class AbstractMakeMethodSynchronousCodeFixProvider : CodeFixProvider
     {
         protected abstract bool IsMethodOrAnonymousFunction(SyntaxNode node);
-        protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node);
+        protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, ITypeSymbol taskType, ITypeSymbol taskOfTType);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -88,7 +88,11 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 
         private async Task<Solution> RemoveAsyncTokenAsync(Document document, IMethodSymbol methodSymbolOpt, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbolOpt, node);
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
+            var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
+
+            var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbolOpt, node, taskType, taskOfTType);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(node, newNode);

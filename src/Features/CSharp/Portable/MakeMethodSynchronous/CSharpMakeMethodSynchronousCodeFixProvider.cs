@@ -26,28 +26,29 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             return node.IsKind(SyntaxKind.MethodDeclaration) || node.IsAnyLambdaOrAnonymousMethod();
         }
 
-        protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node)
+        protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, ITypeSymbol taskType, ITypeSymbol taskOfTType)
         {
             return node.TypeSwitch(
-                (MethodDeclarationSyntax method) => FixMethod(methodSymbolOpt, method),
+                (MethodDeclarationSyntax method) => FixMethod(methodSymbolOpt, method, taskType, taskOfTType),
                 (AnonymousMethodExpressionSyntax method) => FixAnonymousMethod(method),
                 (ParenthesizedLambdaExpressionSyntax lambda) => FixParenthesizedLambda(lambda),
                 (SimpleLambdaExpressionSyntax lambda) => FixSimpleLambda(lambda),
                 _ => node);
         }
 
-        private SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method)
+        private SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, ITypeSymbol taskType, ITypeSymbol taskOfTType)
         {
             var newReturnType = method.ReturnType;
-            if (methodSymbol.ReturnType.Name == "Task")
-            {
-                // If the return type is Task<T>, then make the new return type "T".
-                // If it is task, then make the new return type "void".
-                newReturnType = methodSymbol.ReturnType.GetTypeArguments().Length == 1
-                    ? methodSymbol.ReturnType.GetTypeArguments()[0].GenerateTypeSyntax()
-                    : SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
 
-                newReturnType = newReturnType.WithTriviaFrom(method.ReturnType);
+            // If the return type is Task<T>, then make the new return type "T".
+            // If it is Task, then make the new return type "void".
+            if (methodSymbol.ReturnType.OriginalDefinition.Equals(taskType))
+            {
+                newReturnType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)).WithTriviaFrom(method.ReturnType);
+            }
+            else if (methodSymbol.ReturnType.OriginalDefinition.Equals(taskOfTType))
+            {
+                newReturnType = methodSymbol.ReturnType.GetTypeArguments()[0].GenerateTypeSyntax().WithTriviaFrom(method.ReturnType);
             }
 
             var asyncTokenIndex = method.Modifiers.IndexOf(SyntaxKind.AsyncKeyword);

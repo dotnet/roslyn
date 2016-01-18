@@ -66,6 +66,56 @@ compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestSecondModifier()
+        {
+            await TestAsync(
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task [|Foo|]()
+    {
+    }
+}",
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    public void Foo()
+    {
+    }
+}",
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestFirstModifier()
+        {
+            await TestAsync(
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    async public Task [|Foo|]()
+    {
+    }
+}",
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    public void Foo()
+    {
+    }
+}",
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestRenameMethod()
         {
             await TestAsync(
