@@ -383,7 +383,7 @@ End Namespace
         Public Async Function SearchWithNullFilePathsOnProject() As Task
             Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
-                        <Project Language="C#" CommonReferences="true" FilePath=<%= TestWorkspaceFactory.NullFilePath %>>
+                        <Project Language="C#" CommonReferences="true" FilePath=<%= TestWorkspace.NullFilePath %>>
                             <Document FilePath="Z:\SomeVenusDocument.aspx.cs">
                                 namespace Animal { class Dog&lt;X&gt; { void Bark() { } } }
                             </Document>

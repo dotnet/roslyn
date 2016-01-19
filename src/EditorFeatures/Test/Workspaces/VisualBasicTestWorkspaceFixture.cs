@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     {
         protected override Task<TestWorkspace> CreateWorkspaceAsync()
         {
-            return VisualBasicWorkspaceFactory.CreateWorkspaceFromFilesAsync(
+            return TestWorkspace.CreateVisualBasicAsync(
                 new string[] { string.Empty },
                 new VisualBasicParseOptions[] { new VisualBasicParseOptions(kind: SourceCodeKind.Regular) },
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
