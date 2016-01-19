@@ -273,10 +273,10 @@ using G=   H.I;
 	}
 }</Test>
 
-            Using testWorkspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml)
-                Dim document = testWorkspace.Documents.Single()
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
+                Dim document = workspace.Documents.Single()
 
-                Dim optionService = testWorkspace.Services.GetService(Of IOptionService)()
+                Dim optionService = workspace.Services.GetService(Of IOptionService)()
                 Dim optionSet = optionService.GetOptions()
                 optionSet = optionSet.WithChangedOption(FormattingOptions.UseTabs, document.Project.Language, True)
                 optionSet = optionSet.WithChangedOption(FormattingOptions.TabSize, document.Project.Language, tabSize)
@@ -294,10 +294,10 @@ using G=   H.I;
         End Function
 
         Public Async Function TestProjectionFormattingAsync(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement) As Tasks.Task
-            Using testWorkspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXmlWithSubjectBufferDocument)
-                Dim subjectBufferDocument = testWorkspace.Documents.Single()
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXmlWithSubjectBufferDocument)
+                Dim subjectBufferDocument = workspace.Documents.Single()
 
-                Dim surfaceBufferDocument = testWorkspace.CreateProjectionBufferDocument(
+                Dim surfaceBufferDocument = workspace.CreateProjectionBufferDocument(
                     surfaceBufferDocumentXml.NormalizedValue,
                     {subjectBufferDocument},
                     LanguageNames.VisualBasic,
@@ -331,15 +331,15 @@ using G=   H.I;
                                                    </Import>)
             Next
 
-            Using testWorkspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
                 Dim expansionClient = New SnippetExpansionClient(
                     Guids.VisualBasicDebuggerLanguageId,
-                    testWorkspace.Documents.Single().GetTextView(),
-                    testWorkspace.Documents.Single().GetTextBuffer(),
+                    workspace.Documents.Single().GetTextView(),
+                    workspace.Documents.Single().GetTextBuffer(),
                     Nothing)
 
                 Dim updatedDocument = expansionClient.AddImports(
-                    testWorkspace.CurrentSolution.Projects.Single().Documents.Single(),
+                    workspace.CurrentSolution.Projects.Single().Documents.Single(),
                     snippetNode,
                     placeSystemNamespaceFirst, CancellationToken.None)
 

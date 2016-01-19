@@ -173,7 +173,7 @@ End Class
             Dim position As Integer = 0
             MarkupTestFile.GetPosition(codeWithMarkup, code, position)
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
                 Dim hostdoc = workspace.Documents.First()
                 Dim buffer = hostdoc.GetTextBuffer()
 

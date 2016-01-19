@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
 
         Protected Async Function TestMissing(definition As XElement) As Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
+            Using workspace = Await TestWorkspace.CreateAsync(definition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Assert.Null(diagnosticAndFix)
             End Using
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                             Optional fileNameToExpected As Dictionary(Of String, String) = Nothing,
                             Optional verifySolutions As Action(Of Solution, Solution) = Nothing,
                             Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing) As Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
+            Using workspace = TestWorkspace.CreateWorkspace(definition)
                 onAfterWorkspaceCreated?.Invoke(workspace)
 
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                               expectedProjectReferenceTo As String,
                                               Optional index As Integer = 0) As Task
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xmlDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(xmlDefinition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                                          expectedAssemblyIdentity As String,
                                                          Optional index As Integer = 0) As Task
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xmlDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(xmlDefinition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         Private _aggregator As NavigateToTestAggregator
 
         Private Async Function SetupWorkspaceAsync(content As String) As Task(Of TestWorkspace)
-            Dim workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(content)
+            Dim workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
             SetupNavigateTo(workspace)
             Return workspace
         End Function
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Sub
 
         Private Async Function SetupWorkspaceAsync(workspaceElement As XElement) As Task(Of TestWorkspace)
-            Dim workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
+            Dim workspace = Await TestWorkspace.CreateAsync(workspaceElement)
             SetupNavigateTo(workspace)
             Return workspace
         End Function

@@ -1174,7 +1174,7 @@ Partial Class C
     End Property
 End Class</text>.NormalizedValue()
 
-            Dim workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProvider)
+            Dim workspace = Await TestWorkspace.CreateAsync(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProvider)
             Using testState = New ExtractInterfaceTestState(workspace)
                 Dim result = testState.ExtractViaCommand()
                 Assert.True(result.Succeeded)
@@ -1260,7 +1260,7 @@ End Namespace
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(
+            Using workspace = Await TestWorkspace.CreateAsync(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Public Class C
