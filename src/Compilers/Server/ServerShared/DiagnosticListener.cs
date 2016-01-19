@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         void UpdateKeepAlive(TimeSpan timeSpan);
 
         /// <summary>
+        /// Called each time the server listens for new connections.
+        /// </summary>
+        void ConnectionListening();
+
+        /// <summary>
         /// Called when a connection to the server occurs.
         /// </summary>
         void ConnectionReceived();
@@ -41,6 +46,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal sealed class EmptyDiagnosticListener : IDiagnosticListener
     {
         public void UpdateKeepAlive(TimeSpan timeSpan)
+        {
+        }
+
+        public void ConnectionListening()
         {
         }
 
