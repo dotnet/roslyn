@@ -906,14 +906,16 @@ class Hello
             GC.KeepAlive(rootDirectory);
         }
 
-        private async Task<bool> RunCompilationAsync(TempDirectory compilationDir, string languageName, int i)
+        private async Task RunCompilationAsync(RequestLanguage language, string pipeName, int i)
         {
+            var compilationDir = Temp.CreateDirectory();
+
             TempFile sourceFile;
             string exeFileName;
             string prefix;
             string sourceText;
 
-            if (languageName == LanguageNames.CSharp)
+            if (language == RequestLanguage.CSharpCompile)
             {
                 exeFileName = $"hellocs{i}.exe";
                 prefix = "CS";
@@ -942,35 +944,27 @@ End Module";
 
             await sourceFile.WriteAllTextAsync(sourceText);
 
+            // Create a client to run the build.  Infinite timeout is used to account for the 
+            // case where these tests are run under extreme load.  In high load scenarios the 
+            // client will correctly drop down to a local compilation if the server doesn't respond
+            // fast enough.
+            var client = ServerUtil.CreateBuildClient(language);
+            client.TimeoutOverride = Timeout.Infinite;
+
+            // Compile the code.  Use
             var buildPaths = new BuildPaths(
                 clientDir: CompilerDirectory,
                 workingDir: compilationDir.Path,
                 sdkDir: RuntimeEnvironment.GetRuntimeDirectory());
-            var client = new TestableDesktopBuildClient
+            var result = await client.RunCompilationAsync(new[] { $"/shared:{pipeName}", "/nologo", Path.GetFileName(sourceFile.Path), $"/out:{exeFileName}" }, buildPaths);
+            Assert.Equal(0, result.ExitCode);
+            Assert.True(result.RanOnServer);
 
+            // Run the EXE and verify it prints the desired output.
+            var exeFile = Temp.AddFile(GetResultFile(compilationDir, exeFileName));
+            var exeResult = RunCompilerOutput(exeFile);
+            Assert.Equal($"{prefix} Hello number {i}\r\n", exeResult.Output);
         }
-
-        // Run output in directory set up by SetupDirectory
-        private void RunOutput(TempRoot root, TempDirectory dir, string languageName, int i)
-        {
-            string exeFileName;
-            string prefix;
-
-            if (languageName == LanguageNames.CSharp)
-            {
-                exeFileName = $"hellocs{i}.exe";
-                prefix = "CS";
-            }
-            else
-            {
-                exeFileName = $"hellovb{i}.exe";
-                prefix = "VB";
-            }
-
-            var exeFile = root.AddFile(GetResultFile(dir, exeFileName));
-            var runningResult = RunCompilerOutput(exeFile);
-            Assert.Equal($"{prefix} Hello number {i}\r\n", runningResult.Output);
-       }
 
         [WorkItem(997372)]
         [WorkItem(761326, "DevDiv")]
@@ -982,46 +976,18 @@ End Module";
             {
                 // Run this many compiles simultaneously in different directories.
                 const int numberOfCompiles = 20;
-                var directories = new TempDirectory[numberOfCompiles];
+                var tasks = new Task[numberOfCompiles];
 
                 for (int i = 0; i < numberOfCompiles; ++i)
                 {
-                    directories[i] = SetupDirectory(Temp, i);
-
-                for (int i = 0; i < numberOfCompiles; ++i)
-                {
-                    processesCS[i] = RunCompilerCS(directories[i], i, serverData);
+                    var language = i % 2 == 0 ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile;
+                    tasks[i] = RunCompilationAsync(language, serverData.PipeName, i);
                 }
 
-                for (int i = 0; i < numberOfCompiles; ++i)
-                {
-                    processesVB[i] = RunCompilerVB(directories[i], i, serverData);
-                }
+                await Task.WhenAll(tasks);
 
-                for (int i = 0; i < numberOfCompiles; ++i)
-                {
-                    AssertNoOutputOrErrors(processesCS[i]);
-                    processesCS[i].WaitForExit();
-                    processesCS[i].Close();
-                    AssertNoOutputOrErrors(processesVB[i]);
-                    processesVB[i].WaitForExit();
-                    processesVB[i].Close();
-                }
-
-                for (int i = 0; i < numberOfCompiles; ++i)
-                {
-                    RunOutput(Temp, directories[i], i);
-                }
-
-                var total = numberOfCompiles * 2;
-                await serverData.Verify(total, total);
+                await serverData.Verify(numberOfCompiles, numberOfCompiles);
             }
-        }
-
-        private void AssertNoOutputOrErrors(Process process)
-        {
-            Assert.Equal(string.Empty, process.StandardOutput.ReadToEnd());
-            Assert.Equal(string.Empty, process.StandardError.ReadToEnd());
         }
 
         [Fact]

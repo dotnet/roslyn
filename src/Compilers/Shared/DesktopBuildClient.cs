@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         private readonly CompileFunc _compileFunc;
         private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
 
+        /// <summary>
+        /// When set it overrides all timeout values in milliseconds when communicating with the server.
+        /// </summary>
+        internal int? TimeoutOverride { get; set; }
+
         internal DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
             _language = language;
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libDirectory, 
             CancellationToken cancellationToken)
         {
-            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TryCreateServer, cancellationToken);
+            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
         }
 
         public static Task<BuildResponse> RunServerCompilation(
@@ -80,8 +85,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 GetPipeNameFromFileInfo(buildPaths.ClientDirectory),
                 keepAlive,
                 libEnvVariable,
-                TryCreateServerCore,
-                cancellationToken);
+                timeoutOverride: null,
+                tryCreateServerFunc: TryCreateServerCore,
+                cancellationToken: cancellationToken);
         }
 
         private static Task<BuildResponse> RunServerCompilationCore(
@@ -91,12 +97,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string pipeName,
             string keepAlive,
             string libEnvVariable,
+            int? timeoutOverride,
             Func<string, string, bool> tryCreateServerFunc,
             CancellationToken cancellationToken)
         {
 
             var clientDir = buildPaths.ClientDirectory;
-
+            var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
+            var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
             var clientMutexName = BuildProtocolConstants.GetClientMutexName(pipeName);
             bool holdsMutex;
             using (var clientMutex = new Mutex(initiallyOwned: true,
@@ -109,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         try
                         {
-                            holdsMutex = clientMutex.WaitOne(TimeOutMsNewProcess);
+                            holdsMutex = clientMutex.WaitOne(timeoutNewProcess);
 
                             if (!holdsMutex)
                             {
@@ -125,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // Check for an already running server
                     var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
                     bool wasServerRunning = WasServerMutexOpen(serverMutexName);
-                    var timeout = wasServerRunning ? TimeOutMsExistingProcess : TimeOutMsNewProcess;
+                    var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
 
                     NamedPipeClientStream pipe = null;
 
