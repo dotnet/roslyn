@@ -333,7 +333,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                 leftExpressionType = semanticInfo.Type
             End If
 
-            Return leftExpressionType IsNot Nothing AndAlso method.ReduceExtensionMethod(leftExpressionType) IsNot Nothing
+            Dim methodSymbol As IMethodSymbol = Nothing
+            Try
+                ' ReduceExtensionMethod can throw ArgumentExceptions if they are not of the expected type
+                methodSymbol = method.ReduceExtensionMethod(leftExpressionType)
+            Catch ex As ArgumentException
+                Return False
+            End Try
+            Return leftExpressionType IsNot Nothing AndAlso methodSymbol IsNot Nothing
         End Function
 
         Friend Overrides Function IsViableField(field As IFieldSymbol, expression As SyntaxNode, semanticModel As SemanticModel, syntaxFacts As ISyntaxFactsService, cancellationToken As CancellationToken) As Boolean
