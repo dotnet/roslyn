@@ -83,7 +83,13 @@ namespace GitMergeBot
             }
 
             var newBranchName = await MakePrBranch(_options.SourceUser, _options.RepoName, remoteIntoBranch, newBranchPrefix);
-            await SubmitPullRequest(newBranchName);
+            var pullRequest = await SubmitPullRequest(newBranchName);
+
+            // pullRequest could be null if we are running in debug mode.
+            if (pullRequest != null)
+            {
+                await CommentOnIssue(_options.SourceUser, _options.RepoName, pullRequest.Number, "@dotnet-bot test vsi please");
+            }
             return;
         }
 
@@ -131,7 +137,7 @@ namespace GitMergeBot
             {
                 var resp = await _client.Connection.Post<string>(
                     uri: new Uri($"https://api.github.com/repos/{user}/{repo}/git/refs"),
-                    body: $"{{\"ref\": \"refs/heads/{branchName}\", \"sha\": \"{sha}\"",
+                    body: $"{{\"ref\": \"refs/heads/{branchName}\", \"sha\": \"{sha}\"}}",
                     accepts: "*/*",
                     contentType: "application/json");
                 var statusCode = resp.HttpResponse.StatusCode;
@@ -144,10 +150,24 @@ namespace GitMergeBot
             return branchName;
         }
 
+        private async Task CommentOnIssue(string user, string repo, int issueNumber, string message)
+        {
+                var resp = await _client.Connection.Post<string>(
+                    uri: new Uri($"https://api.github.com/repos/{user}/{repo}/issues/{issueNumber}/comments"),
+                    body: $"{{\"body\": \"{message}\"}}",
+                    accepts: "*/*",
+                    contentType: "application/json");
+                var statusCode = resp.HttpResponse.StatusCode;
+                if (statusCode != HttpStatusCode.Created)
+                {
+                    throw new Exception($"Failed commenting on issue {issueNumber} on {user}/{repo} with code {statusCode}");
+                }
+        }
+
         /// <summary>
         /// Creates a pull request 
         /// </summary>
-        private async Task SubmitPullRequest(string newBranchName)
+        private async Task<PullRequest> SubmitPullRequest(string newBranchName)
         {
             var remoteName = $"{_options.SourceUser}-{_options.RepoName}";
             var prTitle = $"Merge {_options.SourceBranch} into {_options.DestinationBranch}";
@@ -169,18 +189,17 @@ git push {remoteName} {newBranchName} --force
 ```
 
 Once the merge can be made and all the tests pass, you are free to merge the pull request.
-
-@dotnet-bot test vsi please
 ".Trim();
 
             if (_options.Debug)
             {
                 WriteDebugLine($"Create PR with title: {prTitle}.");
                 WriteDebugLine($"Create PR with body:\r\n{prMessage}");
+                return null;
             }
             else
             {
-                await _client.PullRequest.Create(
+                return await _client.PullRequest.Create(
                     owner: _options.DestinationUser,
                     name: _options.RepoName,
                     newPullRequest: new NewPullRequest(
