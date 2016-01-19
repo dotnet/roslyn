@@ -254,10 +254,22 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         public enum ResponseType
         {
+            // The client and server are using incompatible protocol versions.
             MismatchedVersion,
+
+            // The build request completed on the server and the results are contained
+            // in the message. 
             Completed,
+
+            // The build request could not be run on the server due because it created
+            // an unresolvable inconsistency with analyzers.  
             AnalyzerInconsistency,
+
+            // The shutdown request completed and the server process information is 
+            // contained in the message. 
             Shutdown,
+
+            // The request was rejected by the server.  
             Rejected,
         }
 
