@@ -301,6 +301,48 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WorkItem(8036, "https://github.com/dotnet/Roslyn/issues/8036")>
+        Public Async Function TestAddProjectReference_CSharpToVB_ExtensionMethod() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='Visual Basic' AssemblyName='VBAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.vb'>
+Imports System.Runtime.CompilerServices
+
+Namespace N
+    Public Module M
+        &lt;Extension&gt;
+        Public Sub Extension(o As Object)
+        End Sub
+    End Module
+End Namespace
+                        </Document>
+                    </Project>
+                    <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
+                        <CompilationOptions></CompilationOptions>
+                        <Document FilePath="Test1.cs">
+class C
+{
+    void M()
+    {
+        object o;
+        o.$$Extension();
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            ' This is not currently supported because we can't find extension methods across
+            ' projects of different languge types.  This is due to being unable to 'Reduce'
+            ' the extension method properly when the extension method and the receiver are
+            ' from different languages (the compilation layer doesn't allow for this).
+            '
+            ' This test just verifies that we don't crash trying.
+            Await TestMissing(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddProjectReferenceMissingForCircularReference() As Task
             Dim input =
                 <Workspace>
