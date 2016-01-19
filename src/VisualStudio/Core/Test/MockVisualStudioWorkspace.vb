@@ -89,6 +89,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Friend Overrides Function RenameFileCodeModelInstance(documentId As DocumentId, newFilePath As String) As Boolean
             Throw New NotImplementedException()
         End Function
+
+        Friend Overrides Function TryInstallPackage(projectId As ProjectId, packageName As String) As Boolean
+            Return False
+        End Function
     End Class
 
     Public Class MockInvisibleEditor

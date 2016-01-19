@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -64,33 +67,82 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private class ProjectSearchScope : SearchScope
+        private abstract class ProjectSearchScope : SearchScope
         {
-            private readonly bool _includeDirectReferences;
-            private readonly Project _project;
+            protected readonly Project _project;
 
             public ProjectSearchScope(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 Project project,
-                bool includeDirectReferences,
-                bool exact,
+                bool ignoreCase,
                 CancellationToken cancellationToken)
-                : base(provider, exact, cancellationToken)
+                : base(provider, ignoreCase, cancellationToken)
             {
                 _project = project;
-                _includeDirectReferences = includeDirectReferences;
+            }
+
+            public override SymbolReference CreateReference<T>(SymbolResult<T> symbol)
+            {
+                return new ProjectSymbolReference(
+                    provider, symbol.WithSymbol<INamespaceOrTypeSymbol>(symbol.Symbol), _project.Id);
+            }
+        }
+
+        private class ProjectAndDirectReferencesSearchScope : ProjectSearchScope
+        {
+            public ProjectAndDirectReferencesSearchScope(
+                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider, 
+                Project project,
+                bool ignoreCase,
+                CancellationToken cancellationToken)
+                : base(provider, project, ignoreCase, cancellationToken)
+            {
             }
 
             protected override Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
             {
-                return SymbolFinder.FindDeclarationsAsync(
-                    _project, searchQuery, filter, _includeDirectReferences, cancellationToken);
+                return SymbolFinder.FindDeclarationsAsync(_project, searchQuery, filter, cancellationToken);
+            }
+        }
+
+        private class ProjectSourceOnlySearchScope : ProjectSearchScope
+        {
+            private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> _projectToAssembly;
+
+            public ProjectSourceOnlySearchScope(
+                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+                Project project, bool ignoreCase, CancellationToken cancellationToken)
+                : base(provider, project, ignoreCase, cancellationToken)
+            {
+                _projectToAssembly = projectToAssembly;
             }
 
-            public override SymbolReference CreateReference<T>(SymbolResult<T> searchResult)
+            protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
             {
-                return new ProjectSymbolReference(
-                    provider, searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol), _project.Id);
+                var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
+                var result = await service.TryGetSymbolTreeInfoAsync(_project, cancellationToken).ConfigureAwait(false);
+                if (!result.Item1)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                }
+
+                // Don't create the assembly until it is actually needed by the SymbolTreeInfo.FindAsync
+                // code.  Creating the assembly can be costly and we want to avoid it until it is actually
+                // needed.
+                var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
+
+                return await result.Item2.FindAsync(searchQuery, lazyAssembly, cancellationToken).ConfigureAwait(false);
+            }
+
+            private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)
+            {
+                return new AsyncLazy<IAssemblySymbol>(
+                    async c =>
+                    {
+                        var compilation = await project.GetCompilationAsync(c).ConfigureAwait(false);
+                        return compilation.Assembly;
+                    }, cacheResult: true);
             }
         }
 
@@ -122,10 +174,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     _metadataReference);
             }
 
-            protected override Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
+            protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
             {
-                return SymbolFinder.FindDeclarationsAsync(
-                    _solution, _assembly, _metadataReference, searchQuery, filter, cancellationToken);
+                var service = _solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
+                var result = await service.TryGetSymbolTreeInfoAsync(_metadataReference, cancellationToken).ConfigureAwait(false);
+                if (!result.Item1)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                }
+
+                return await result.Item2.FindAsync(searchQuery, _assembly, cancellationToken).ConfigureAwait(false);
             }
         }
     }

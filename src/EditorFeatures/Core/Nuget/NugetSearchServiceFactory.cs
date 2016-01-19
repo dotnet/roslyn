@@ -5,9 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+#if false
 using Elfie.Model;
 using Elfie.Model.Structures;
 using Elfie.Model.Tree;
+#endif
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Nuget;
@@ -25,9 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.Nuget
 
         private class NugetSearchService : INugetSearchService
         {
+#if false
             private static Lazy<IMemberDatabase> s_memberDatabase = new Lazy<IMemberDatabase>(
                 () => MemberDatabase.LoadWithDiagnostics(@"C:\Temp\NuGet.All.PublicTypesOnly.ardb"),
                 isThreadSafe: true);
+#endif
 
             private HostWorkspaceServices workspaceServices;
 
@@ -38,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Nuget
 
             public IEnumerable<NugetSearchResult> Search(string name, int arity, CancellationToken cancellationToken)
             {
+#if false
                 var database = s_memberDatabase.Value;
                 var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
 
@@ -55,9 +60,12 @@ namespace Microsoft.CodeAnalysis.Editor.Nuget
                             yield return new NugetSearchResult(nameParts, symbol.PackageName.ToString());
                         }
                     }
-                }
+                
+#endif
+                yield break;
             }
 
+#if false
             private void GetFullName(List<string> nameParts, Path8 path)
             {
                 if (!path.IsEmpty)
@@ -66,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Nuget
                     nameParts.Add(path.Name.ToString());
                 }
             }
+#endif
         }
     }
 }

@@ -1,7 +1,6 @@
-﻿using System;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -47,9 +46,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             }
 
-            internal Task<List<SymbolReference>> FindInProjectAsync(Project project, bool includeDirectReferences, bool exact)
+            internal Task<List<SymbolReference>> FindInProjectAndDirectReferencesAsync(
+                Project project, bool exact)
             {
-                var searchScope = new ProjectSearchScope(_owner, project, includeDirectReferences, exact, _cancellationToken);
+                var searchScope = new ProjectAndDirectReferencesSearchScope(_owner, project, exact, _cancellationToken);
+                return DoAsync(searchScope);
+            }
+
+            internal Task<List<SymbolReference>> FindInProjectSourceOnlyAsync(
+                ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+                Project project, bool exact)
+            {
+                var searchScope = new ProjectSourceOnlySearchScope(_owner, projectToAssembly, project, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 
