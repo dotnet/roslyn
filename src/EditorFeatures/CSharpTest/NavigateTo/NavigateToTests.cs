@@ -822,6 +822,7 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")]
         public async Task DottedPattern7()
         {
             var source = "namespace Foo { namespace Bar { class Baz<X,Y,Z> { void Quux() { } } } }";
@@ -829,7 +830,7 @@ class D
             {
                 var expecteditems = new List<NavigateToItem>
                 {
-                    new NavigateToItem("Quux", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, true, null)
+                    new NavigateToItem("Quux", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Prefix, true, null)
                 };
 
                 var items = _aggregator.GetItems("Baz.Q");
