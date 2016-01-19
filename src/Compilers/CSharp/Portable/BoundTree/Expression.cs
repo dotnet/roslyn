@@ -448,28 +448,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundObjectCreationExpression : IObjectCreationExpression
     {
-        private ImmutableArray<IMemberInitializer> _lazyMemberInitializers;
+        private ComputedState _lazyComputedState;
+
+        private ComputedState GetComputedState()
+        {
+            if (_lazyComputedState == null)
+            {
+                var constructorArguments = BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters);
+                var memberInitializers = GetMemberInitializers(this.InitializerExpressionOpt as BoundObjectInitializerExpression);
+                Interlocked.CompareExchange(ref _lazyComputedState, new ComputedState(constructorArguments, memberInitializers), null);
+            }
+            return _lazyComputedState;
+        }
+
+        private sealed class ComputedState
+        {
+            internal ComputedState(ImmutableArray<IArgument> constructorArguments, ImmutableArray<IMemberInitializer> memberInitializers)
+            {
+                ConstructorArguments = constructorArguments;
+                MemberInitializers = memberInitializers;
+            }
+            internal readonly ImmutableArray<IArgument> ConstructorArguments;
+            internal readonly ImmutableArray<IMemberInitializer> MemberInitializers;
+        }
 
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
-        ImmutableArray<IArgument> IObjectCreationExpression.ConstructorArguments => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters);
+        ImmutableArray<IArgument> IObjectCreationExpression.ConstructorArguments => GetComputedState().ConstructorArguments;
 
         IArgument IObjectCreationExpression.ArgumentMatchingParameter(IParameterSymbol parameter)
         {
             return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Constructor, parameter);
         }
 
-        ImmutableArray<IMemberInitializer> IObjectCreationExpression.MemberInitializers
-        {
-            get
-            {
-                if (_lazyMemberInitializers.IsDefault)
-                {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyMemberInitializers, GetMemberInitializers(this.InitializerExpressionOpt as BoundObjectInitializerExpression));
-                }
-                return _lazyMemberInitializers;
-            }
-        }
+        ImmutableArray<IMemberInitializer> IObjectCreationExpression.MemberInitializers => GetComputedState().MemberInitializers;
 
         private static ImmutableArray<IMemberInitializer> GetMemberInitializers(BoundObjectInitializerExpression objectInitializerExpression)
         {

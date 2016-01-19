@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Roslyn.Utilities
 
@@ -1014,6 +1015,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundObjectCreationExpression
         Implements IObjectCreationExpression
 
+        Private _lazyComputedState As ComputedState
+
+        Private Function GetComputedState() As ComputedState
+            If _lazyComputedState Is Nothing Then
+                Dim constructorArguments = BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters)
+                Dim memberInitializers = GetMemberInitializers(Me.InitializerOpt)
+                Interlocked.CompareExchange(_lazyComputedState, New ComputedState(constructorArguments, memberInitializers), Nothing)
+            End If
+            Return _lazyComputedState
+        End Function
+
+        Private NotInheritable Class ComputedState
+            Friend Sub New(arguments As ImmutableArray(Of IArgument), initializers As ImmutableArray(Of IMemberInitializer))
+                ConstructorArguments = arguments
+                MemberInitializers = initializers
+            End Sub
+            Friend ReadOnly ConstructorArguments As ImmutableArray(Of IArgument)
+            Friend ReadOnly MemberInitializers As ImmutableArray(Of IMemberInitializer)
+        End Class
+
         Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IObjectCreationExpression.ArgumentMatchingParameter
             Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.ConstructorOpt.Parameters)
         End Function
@@ -1026,18 +1047,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IConstructorArguments As ImmutableArray(Of IArgument) Implements IObjectCreationExpression.ConstructorArguments
             Get
-                Return BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters)
+                Return GetComputedState().ConstructorArguments
             End Get
         End Property
 
-        Private _lazyMemberInitializers As ImmutableArray(Of IMemberInitializer)
-
         Private ReadOnly Property IMemberInitializers As ImmutableArray(Of IMemberInitializer) Implements IObjectCreationExpression.MemberInitializers
             Get
-                If _lazyMemberInitializers.IsDefault Then
-                    ImmutableInterlocked.InterlockedInitialize(_lazyMemberInitializers, GetMemberInitializers(Me.InitializerOpt))
-                End If
-                Return _lazyMemberInitializers
+                Return GetComputedState().MemberInitializers
             End Get
         End Property
 
