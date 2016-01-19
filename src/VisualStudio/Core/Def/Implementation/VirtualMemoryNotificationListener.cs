@@ -3,6 +3,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -19,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export, Shared]
     internal sealed class VirtualMemoryNotificationListener : ForegroundThreadAffinitizedObject, IVsBroadcastMessageEvents
     {
-        private readonly IOptionService _optionService;
+        private readonly VisualStudioWorkspace _workspace;
         private readonly WorkspaceCacheService _workspaceCacheService;
 
         private bool _alreadyLogged;
@@ -29,8 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspace workspace) : base(assertIsForeground: true)
         {
-            // hold onto option service
-            _optionService = workspace.Services.GetService<IOptionService>();
+            _workspace = workspace;
 
             _workspaceCacheService = workspace.Services.GetService<IWorkspaceCacheService>() as WorkspaceCacheService;
             if (_workspaceCacheService == null)
@@ -70,7 +70,15 @@ namespace Microsoft.VisualStudio.LanguageServices
                         _workspaceCacheService.FlushCaches();
 
                         // turn off full solution analysis
-                        _optionService.SetOptions(_optionService.GetOptions().WithChangedOption(RunTimeOptions.FullSolutionAnalysis, false));
+                        if (_workspace.Options.GetOption(RunTimeOptions.FullSolutionAnalysis))
+                        {
+                            _workspace.Services.GetService<IOptionService>().SetOptions(_workspace.Options.WithChangedOption(RunTimeOptions.FullSolutionAnalysis, false));
+
+                            // let user know full analysis is turned off due to memory concern
+                            // no close info bar action
+                            _workspace.Services.GetService<IErrorReportingService>().ShowErrorInfo(ServicesVSResources.FullSolutionAnalysisOff, () => { });
+                        }
+
                         break;
                     }
             }

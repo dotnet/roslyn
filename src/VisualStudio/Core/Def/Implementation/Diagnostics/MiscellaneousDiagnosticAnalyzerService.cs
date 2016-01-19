@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             public async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
-                // if closed file diagnostic is off and document is not opened, then don't do anything
+                // if full analysis is off and document is not opened, then don't do anything
                 if (!_workspace.Options.GetOption(RunTimeOptions.FullSolutionAnalysis) && !document.IsOpen())
                 {
                     return;
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                // no closed file diagnostic and file is not opened, remove any existing diagnostics
+                // full analysis is off and file is not opened, remove any existing diagnostics
                 if (!_workspace.Options.GetOption(RunTimeOptions.FullSolutionAnalysis) && !document.IsOpen())
                 {
                     RaiseEmptyDiagnosticUpdated(document.Id);
