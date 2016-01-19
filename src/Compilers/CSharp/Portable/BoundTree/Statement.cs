@@ -320,37 +320,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.None;
     }
 
-    partial class BoundLocalDeclaration : IVariableDeclarationStatement
+    partial class BoundLocalDeclaration : IVariableDeclarationStatement, IVariable
     {
-        private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
-            new ConditionalWeakTable<BoundLocalDeclaration, object>();
-
         ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
         {
-            get
-            {
-                return (ImmutableArray<IVariable>) s_variablesMappings.GetValue(this, 
-                    declaration => ImmutableArray.Create<IVariable>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
-            }
+            get { return ImmutableArray.Create<IVariable>(this); }
         }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
+
+        ILocalSymbol IVariable.Variable
+        {
+            get { return this.LocalSymbol; }
+        }
+
+        IExpression IVariable.InitialValue
+        {
+            get { return this.InitializerOpt; }
+        }
     }
 
     partial class BoundMultipleLocalDeclarations : IVariableDeclarationStatement
     {
-        private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_variablesMappings =
-            new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
-
         ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
         {
-            get
-            {
-                return (ImmutableArray<IVariable>)s_variablesMappings.GetValue(this,
-                    multipleDeclarations =>
-                        multipleDeclarations.LocalDeclarations.SelectAsArray(declaration => 
-                            (IVariable)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
-            }
+            get { return this.LocalDeclarations.As<IVariable>(); }
         }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
