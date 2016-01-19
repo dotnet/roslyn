@@ -89,11 +89,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return result;
                 }
 
-                MemberDisplayFormat memberFormat = _memberDisplayFormat;
-
-                bool includeNonPublic = memberFormat == MemberDisplayFormat.SeparateLines;
-                bool inlineMembers = memberFormat == MemberDisplayFormat.SingleLine;
-
                 Type type = obj.GetType();
                 TypeInfo typeInfo = type.GetTypeInfo();
 
@@ -187,10 +182,23 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     result.Append(_formatter.TypeNameFormatter.FormatTypeName(type, _typeNameOptions));
                 }
 
+                MemberDisplayFormat memberFormat = _memberDisplayFormat;
+
                 if (memberFormat == MemberDisplayFormat.Hidden)
                 {
-                    return result;
+                    if (collection != null)
+                    {
+                        // NB: Collections specifically ignore MemberDisplayFormat.Hidden.
+                        memberFormat = MemberDisplayFormat.SingleLine;
+                    }
+                    else
+                    {
+                        return result;
+                    }
                 }
+
+                bool includeNonPublic = memberFormat == MemberDisplayFormat.SeparateLines;
+                bool inlineMembers = memberFormat == MemberDisplayFormat.SingleLine;
 
                 object proxy = GetDebuggerTypeProxy(obj);
                 if (proxy != null)
@@ -548,10 +556,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 FormatCollectionHeader(result, array);
 
-                if (_memberDisplayFormat == MemberDisplayFormat.Hidden)
-                {
-                    return;
-                }
+                // NB: Arrays specifically ignore MemberDisplayFormat.Hidden.
 
                 if (array.Rank > 1)
                 {

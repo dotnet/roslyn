@@ -18,8 +18,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         /// <summary>
         /// Display just a simple description of the object, like type name or ToString(). Don't
-        /// display any members or items of the object.
+        /// display any members of the object.
         /// </summary>
+        /// <remarks>
+        /// <see cref="CommonObjectFormatter"/> does not apply this format to collections elements - 
+        /// they are shown regardless.
+        /// </remarks>
         Hidden,
     }
 
