@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
         Private Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, taskType As ITypeSymbol, taskOfTType As ITypeSymbol) As SyntaxNode
             Dim functionStatement = node.SubOrFunctionStatement
 
-            ' if this returns Task<T>, then we want to convert this to a T returning function.
+            ' if this returns Task(of T), then we want to convert this to a T returning function.
             ' if this returns Task, then we want to convert it to a Sub method.
             If methodSymbol.ReturnType.OriginalDefinition.Equals(taskOfTType) Then
                 Dim newAsClause = functionStatement.AsClause.WithType(methodSymbol.ReturnType.GetTypeArguments()(0).GenerateTypeSyntax())
@@ -91,10 +91,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
             Dim modifiers = subOrFunctionStatement.Modifiers
             Dim asyncTokenIndex = modifiers.IndexOf(SyntaxKind.AsyncKeyword)
 
-            Dim newSubKeyword = subOrFunctionStatement.SubOrFunctionKeyword
+            Dim newSubOrFunctionKeyword = subOrFunctionStatement.SubOrFunctionKeyword
             Dim newModifiers As SyntaxTokenList
             If asyncTokenIndex = 0 Then
-                ' Have to move the trivia on teh async token appropriately.
+                ' Have to move the trivia on the async token appropriately.
                 Dim asyncLeadingTrivia = modifiers(0).LeadingTrivia
 
                 If modifiers.Count > 1 Then
@@ -104,16 +104,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
                         modifiers(1).WithPrependedLeadingTrivia(asyncLeadingTrivia))
                     newModifiers = newModifiers.RemoveAt(0)
                 Else
-                    ' move it to the return type.
+                    ' move it to the 'sub' or 'function' keyword.
                     newModifiers = modifiers.RemoveAt(0)
-                    newSubKeyword = newSubKeyword.WithPrependedLeadingTrivia(asyncLeadingTrivia)
+                    newSubOrFunctionKeyword = newSubOrFunctionKeyword.WithPrependedLeadingTrivia(asyncLeadingTrivia)
                 End If
             Else
                 newModifiers = modifiers.RemoveAt(asyncTokenIndex)
             End If
 
-            Dim newSubStatement = subOrFunctionStatement.WithModifiers(newModifiers).WithSubOrFunctionKeyword(newSubKeyword)
-            Return newSubStatement
+            Dim newSubOrFunctionStatement = subOrFunctionStatement.WithModifiers(newModifiers).WithSubOrFunctionKeyword(newSubOrFunctionKeyword)
+            Return newSubOrFunctionStatement
         End Function
 
         Private Function FixMultiLineLambdaExpression(node As MultiLineLambdaExpressionSyntax) As SyntaxNode
