@@ -54,16 +54,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             var options = new PrintOptions();
 
-            var array = new[] { 1, 2, 3 };
-
             options.MemberDisplayFormat = MemberDisplayFormat.Hidden;
-            Assert.Equal("int[3]", Formatter.FormatObject(array, options));
+            Assert.Equal("PrintOptions", Formatter.FormatObject(options, options));
 
             options.MemberDisplayFormat = MemberDisplayFormat.SingleLine;
-            Assert.Equal("int[3] { 1, 2, 3 }", Formatter.FormatObject(array, options));
+            Assert.Equal("PrintOptions { Ellipsis=\"...\", EscapeNonPrintableCharacters=true, MaximumOutputLength=1024, MemberDisplayFormat=SingleLine, NumberRadix=Decimal }", Formatter.FormatObject(options, options));
 
             options.MemberDisplayFormat = MemberDisplayFormat.SeparateLines;
-            Assert.Equal("int[3] {\r\n  1,\r\n  2,\r\n  3\r\n}\r\n", Formatter.FormatObject(array, options));
+            Assert.Equal(@"PrintOptions {
+  Ellipsis: ""..."",
+  EscapeNonPrintableCharacters: true,
+  MaximumOutputLength: 1024,
+  MemberDisplayFormat: SeparateLines,
+  NumberRadix: Decimal,
+  _maximumOutputLength: 1024,
+  _memberDisplayFormat: SeparateLines,
+  _numberRadix: Decimal
+}
+", Formatter.FormatObject(options, options));
         }
 
         [Fact]
