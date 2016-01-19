@@ -176,9 +176,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             //    Value – contains a sequence similar to the one passed to this function, but
             //            calculated for the child namespace. 
             IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>> nestedNamespaces = null;
+            bool isGlobalNamespace = this.IsGlobalNamespace;
 
             MetadataHelpers.GetInfoForImmediateNamespaceMembers(
-                this.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat).Length,
+                isGlobalNamespace,
+                isGlobalNamespace ? 0 : this.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat).Length,
                 typesByNS,
                 StringComparer.Ordinal,
                 out nestedTypes, out nestedNamespaces);
