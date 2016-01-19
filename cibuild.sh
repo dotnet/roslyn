@@ -55,10 +55,15 @@ done
 run_make()
 {
     local is_good=false
-    
+ 
+    MAKE="make"
+    if [[ $OSTYPE == *bsd* ]]; then
+        MAKE="gmake"
+    fi
+
     for i in `seq 1 $RETRY_COUNT`
     do
-        make "$@" BUILD_CONFIGURATION=$BUILD_CONFIGURATION
+        $MAKE "$@" BUILD_CONFIGURATION=$BUILD_CONFIGURATION
         if [ $? -eq 0 ]; then
             is_good=true
             break
