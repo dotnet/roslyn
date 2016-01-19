@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         private int _maximumOutputLength = 1024;
 
         public string Ellipsis { get; set; } = "...";
-        public bool EscapeNonPrintableCharacters { get; set; }
+        public bool EscapeNonPrintableCharacters { get; set; } = true;
 
         public NumberRadix NumberRadix
         {
