@@ -11,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 
+using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
+
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal struct RunRequest
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 case LanguageNames.CSharp:
                     compiler = new CSharpCompilerServer(
-                        this,
+                        AssemblyReferenceProvider,
                         args: request.Arguments,
                         clientDirectory: ClientDirectory,
                         baseDirectory: request.CurrentDirectory,
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return true;
                 case LanguageNames.VisualBasic:
                     compiler = new VisualBasicCompilerServer(
-                        this,
+                        AssemblyReferenceProvider,
                         args: request.Arguments,
                         clientDirectory: ClientDirectory,
                         baseDirectory: request.CurrentDirectory,
@@ -81,6 +83,36 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     compiler = null;
                     return false;
             }
+        }
+
+        public BuildResponse RunCompilation(RunRequest request, CancellationToken cancellationToken)
+        {
+            Log($"CurrentDirectory = '{request.CurrentDirectory}'");
+            Log($"LIB = '{request.LibDirectory}'");
+            for (int i = 0; i < request.Arguments.Length; ++i)
+            {
+                Log($"Argument[{i}] = '{request.Arguments[i]}'");
+            }
+
+            CommonCompiler compiler;
+            if (!TryCreateCompiler(request, out compiler))
+            {
+                // We can't do anything with a request we don't know about. 
+                Log($"Got request with id '{request.Language}'");
+                return new RejectedBuildResponse();
+            }
+
+            bool utf8output = compiler.Arguments.Utf8Output;
+            if (!CheckAnalyzers(request.CurrentDirectory, compiler.Arguments.AnalyzerReferences))
+            {
+                return new AnalyzerInconsistencyBuildResponse();
+            }
+
+            Log($"****Running {request.Language} compiler...");
+            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+            int returnCode = compiler.Run(output, cancellationToken);
+            Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
+            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
         }
     }
 }

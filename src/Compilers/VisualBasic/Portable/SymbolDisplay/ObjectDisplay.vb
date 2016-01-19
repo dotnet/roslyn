@@ -142,8 +142,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         Friend Function FormatLiteral(c As Char, options As ObjectDisplayOptions) As String
             ValidateOptions(options)
 
-            If Not options.IncludesOption(ObjectDisplayOptions.UseQuotes) Then
-                Return c.ToString()
+            If IsPrintable(c) OrElse Not options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters) Then
+                Return If(options.IncludesOption(ObjectDisplayOptions.UseQuotes),
+                    """" & EscapeQuote(c) & """c",
+                    c.ToString())
             End If
 
             Dim wellKnown = GetWellKnownCharacterName(c)
@@ -151,12 +153,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 Return wellKnown
             End If
 
-            If Not IsPrintable(c) Then
-                Dim codepoint = AscW(c)
-                Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
-            End If
-
-            Return """"c & EscapeQuote(c) & """"c & "c"
+            Dim codepoint = AscW(c)
+            Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
         End Function
 
         Private Function EscapeQuote(c As Char) As String
@@ -363,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         Friend Iterator Function TokenizeString(str As String, options As ObjectDisplayOptions) As IEnumerable(Of Integer)
             Dim useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes)
             Dim useHexadecimalNumbers = options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers)
-            Dim escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableStringCharacters)
+            Dim escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters)
 
             If str.Length = 0 Then
                 If useQuotes Then
@@ -503,7 +501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         Private Sub ValidateOptions(options As ObjectDisplayOptions)
             ' This option is not supported and has no meaning in Visual Basic...should not be passed...
             Debug.Assert(Not options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints))
-            Debug.Assert(Not options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableStringCharacters) Or options.IncludesOption(ObjectDisplayOptions.UseQuotes))
+            Debug.Assert(Not options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters) Or options.IncludesOption(ObjectDisplayOptions.UseQuotes))
         End Sub
 
     End Module

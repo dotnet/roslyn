@@ -45,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
         End Function
 
         Private Async Function TestSpanGetterAsync(parsedInput As String, position As Integer, continuation As Func(Of Document, Integer, Task)) As Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(parsedInput)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(parsedInput)
                 Dim debugInfo = New VisualBasicLanguageDebugInfoService()
                 Await continuation(workspace.CurrentSolution.Projects.First.Documents.First, position)
             End Using

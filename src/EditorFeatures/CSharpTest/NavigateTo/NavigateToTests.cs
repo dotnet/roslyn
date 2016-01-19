@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         private INavigateToItemProvider _provider;
         private NavigateToTestAggregator _aggregator;
 
-        private async Task<TestWorkspace> SetupWorkspaceAsync(params string[] lines)
+        private async Task<TestWorkspace> SetupWorkspaceAsync(string content)
         {
-            var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(lines);
+            var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(content);
             var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
 
             _provider = new NavigateToItemProvider(
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NoItemsForEmptyFile()
         {
-            using (var workspace = await SetupWorkspaceAsync())
+            using (var workspace = await SetupWorkspaceAsync(""))
             {
                 Assert.Empty(_aggregator.GetItems("Hello"));
             }
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task DescriptionItems()
         {
-            using (var workspace = await SetupWorkspaceAsync("public", "class", "Foo", "{ }"))
+            using (var workspace = await SetupWorkspaceAsync("public\r\nclass\r\nFoo\r\n{ }"))
             {
                 var item = _aggregator.GetItems("F").Single(x => x.Kind != "Method");
                 var itemDisplay = item.DisplayFactory.CreateItemDisplay(item);

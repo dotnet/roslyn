@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
                 else if (symbol is INamedTypeSymbol)
                 {
-                    AddDescriptionForNamedType((INamedTypeSymbol)symbol);
+                    await AddDescriptionForNamedTypeAsync((INamedTypeSymbol)symbol).ConfigureAwait(false);
                 }
                 else if (symbol is INamespaceSymbol)
                 {
@@ -315,14 +315,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     PlainText(FeaturesResources.RepresentsAnObjectWhoseOperations));
             }
 
-            private void AddDescriptionForNamedType(INamedTypeSymbol symbol)
+            private async Task AddDescriptionForNamedTypeAsync(INamedTypeSymbol symbol)
             {
-                if (symbol.IsAwaitable(_semanticModel, _position))
+                if (symbol.IsAwaitableNonDynamic(_semanticModel, _position))
                 {
                     AddAwaitablePrefix();
                 }
 
-                var token = _semanticModel.SyntaxTree.GetTouchingToken(_position, this.CancellationToken);
+                var token = await _semanticModel.SyntaxTree.GetTouchingTokenAsync(_position, this.CancellationToken).ConfigureAwait(false);
                 if (token != default(SyntaxToken))
                 {
                     var syntaxFactsService = this.Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
@@ -480,8 +480,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private void AddDescriptionForMethod(IMethodSymbol method)
             {
                 // TODO : show duplicated member case
-                // TODO : a way to check whether it is a member call off dynamic type?
-                var awaitable = method.IsAwaitable(_semanticModel, _position);
+                var awaitable = method.IsAwaitableNonDynamic(_semanticModel, _position);
                 var extension = method.IsExtensionMethod || method.MethodKind == MethodKind.ReducedExtension;
                 if (awaitable && extension)
                 {

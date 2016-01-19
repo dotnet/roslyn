@@ -1,7 +1,9 @@
 ﻿{
   "dependencies": {
     "System.Collections.Immutable": "1.1.37",
-    "xunit": "2.1.0"
+    "System.Reflection.Metadata": "1.2.0-rc2-23608",
+    "xunit": "2.1.0",
+    "xunit.runner.console": "2.1.0"
   },
   "frameworks": {
     "net452": {}

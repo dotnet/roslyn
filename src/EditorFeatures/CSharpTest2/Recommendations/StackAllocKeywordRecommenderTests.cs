@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -10,97 +10,97 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class StackAllocKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAtRoot_Interactive()
+        public async Task TestNotAtRoot_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterClass_Interactive()
+        public async Task TestNotAfterClass_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"class C { }
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterGlobalStatement_Interactive()
+        public async Task TestNotAfterGlobalStatement_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"System.Console.WriteLine();
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotAfterGlobalVariableDeclaration_Interactive()
+        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"int i = 0;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInUsingAlias()
+        public async Task TestNotInUsingAlias()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"using Foo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInEmptyStatement()
+        public async Task TestNotInEmptyStatement()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInEmptySpace()
+        public async Task TestNotInEmptySpace()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"var v = $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InUnsafeEmptySpace()
+        public async Task TestInUnsafeEmptySpace()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"unsafe class C {
     void Foo() {
       var v = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InUnsafeEmptySpace_NotAfterNonPointer()
+        public async Task TestInUnsafeEmptySpace_NotAfterNonPointer()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"unsafe class C {
     void Foo() {
       int v = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InUnsafeEmptySpace_AfterPointer()
+        public async Task TestInUnsafeEmptySpace_AfterPointer()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"unsafe class C {
     void Foo() {
       int* v = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInField()
+        public async Task TestNotInField()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"unsafe class C {
     int* v = $$");
         }
 
         [WorkItem(544504)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InsideForStatementVarDecl1()
+        public async Task TestInsideForStatementVarDecl1()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C
 {
     unsafe static void Main(string[] args)
@@ -110,9 +110,9 @@ $$");
 
         [WorkItem(544504)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InsideForStatementVarDecl2()
+        public async Task TestInsideForStatementVarDecl2()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C
 {
     unsafe static void Main(string[] args)
@@ -122,9 +122,9 @@ $$");
 
         [WorkItem(544504)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InsideForStatementVarDecl3()
+        public async Task TestInsideForStatementVarDecl3()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class C
 {
     unsafe static void Main(string[] args)

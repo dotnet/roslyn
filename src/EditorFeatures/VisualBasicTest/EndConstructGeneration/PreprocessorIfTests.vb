@@ -14,28 +14,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function ApplyAfterHashIf() As Threading.Tasks.Task
             Await VerifyStatementEndConstructAppliedAsync(
-                before:={"#If True Then"},
+                before:="#If True Then",
                 beforeCaret:={0, -1},
-                after:={"#If True Then",
-                        "",
-                        "#End If"},
+                after:="#If True Then
+
+#End If",
                 afterCaret:={1, -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyAfterHashIfWhenEndIfExists() As Threading.Tasks.Task
             Await VerifyStatementEndConstructNotAppliedAsync(
-                text:={"#If True Then",
-                       "#End If"},
+                text:="#If True Then
+#End If",
                 caret:={0, -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(537976)>
         Public Async Function DontApplyAfterHashElseIfWhenEndIfExists() As Threading.Tasks.Task
             Await VerifyStatementEndConstructNotAppliedAsync(
-                text:={"#If True Then",
-                       "#ElseIf True Then",
-                       "#End If"},
+                text:="#If True Then
+#ElseIf True Then
+#End If",
                 caret:={1, -1})
         End Function
     End Class

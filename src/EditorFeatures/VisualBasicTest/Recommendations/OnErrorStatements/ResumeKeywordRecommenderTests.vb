@@ -1,34 +1,27 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class ResumeKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ResumeNextAfterOnError()
-            VerifyRecommendationsContain(<MethodBody>On Error |</MethodBody>, "Resume Next")
-        End Sub
+        Public Async Function ResumeNextAfterOnErrorTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>On Error |</MethodBody>, "Resume Next")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ResumeInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Resume")
-        End Sub
+        Public Async Function ResumeInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Resume")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ResumeNotInLambda()
+        Public Async Function ResumeNotInLambdaTest() As Task
             ' On Error statements are never allowed within lambdas
-            VerifyRecommendationsMissing(<MethodBody>
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Dim x = Sub()
             |
 End Sub</MethodBody>, "Resume")
-        End Sub
+        End Function
     End Class
 End Namespace

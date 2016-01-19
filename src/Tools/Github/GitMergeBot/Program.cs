@@ -159,6 +159,7 @@ This is an automatically generated pull request from {_options.SourceBranch} int
 ``` bash
 git remote add {remoteName} ""https://github.com/{_options.SourceUser}/{_options.RepoName}.git""
 git fetch {remoteName}
+git fetch upstream
 git checkout {newBranchName}
 git reset --hard upstream/{_options.DestinationBranch}
 git merge upstream/{_options.SourceBranch}
@@ -168,6 +169,8 @@ git push {remoteName} {newBranchName} --force
 ```
 
 Once the merge can be made and all the tests pass, you are free to merge the pull request.
+
+@dotnet-bot test vsi please
 ".Trim();
 
             if (_options.Debug)

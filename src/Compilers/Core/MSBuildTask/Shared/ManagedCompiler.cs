@@ -517,6 +517,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     return completedResponse.ReturnCode;
 
+                case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 

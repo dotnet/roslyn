@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
         Private Async Function TestWithRootNamespaceAsync(rootNamespace As String, text As String, searchText As String, ParamArray expectedNames() As String) As Tasks.Task
             Dim compilationOptions = If(rootNamespace Is Nothing, Nothing, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:=rootNamespace))
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceFromLinesAsync(LanguageNames.VisualBasic, compilationOptions, Nothing, text)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceFromFileAsync(LanguageNames.VisualBasic, compilationOptions, Nothing, text)
                 Dim nameResolver = New BreakpointResolver(workspace.CurrentSolution, searchText)
                 Dim results = Await nameResolver.DoAsync(CancellationToken.None)
 

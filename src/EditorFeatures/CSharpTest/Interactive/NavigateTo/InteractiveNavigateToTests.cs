@@ -423,8 +423,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task DescriptionItems()
         {
-            var code = new string[] { "public", "class", "Foo", "{ }" };
-            using (var workspace = await SetupWorkspaceAsync(string.Join(Environment.NewLine, code)))
+            var code = "public\r\nclass\r\nFoo\r\n{ }";
+            using (var workspace = await SetupWorkspaceAsync(code))
             {
                 var item = _aggregator.GetItems("F").Single(x => x.Kind != "Method");
                 var itemDisplay = item.DisplayFactory.CreateItemDisplay(item);

@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override string FormatLiteral(int value, ObjectDisplayOptions options)
         {
-            return ObjectDisplay.FormatLiteral(value, options & ~(ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableStringCharacters));
+            return ObjectDisplay.FormatLiteral(value, options & ~(ObjectDisplayOptions.UseQuotes | ObjectDisplayOptions.EscapeNonPrintableCharacters));
         }
 
         internal override string FormatPrimitiveObject(object value, ObjectDisplayOptions options)
@@ -216,9 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override string FormatString(string str, ObjectDisplayOptions options)
         {
-            return ObjectDisplay.FormatString(str, useQuotes: options.IncludesOption(ObjectDisplayOptions.UseQuotes));
+            return ObjectDisplay.FormatLiteral(str, options);
         }
-
-        internal override ObjectDisplayOptions QuotedStringOptions => ObjectDisplayOptions.UseQuotes;
     }
 }
