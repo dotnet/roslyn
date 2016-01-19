@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         private readonly CompileFunc _compileFunc;
         private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
 
-        protected DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
+        internal DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
             _language = language;
             _compileFunc = compileFunc;
@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var workingDir = Directory.GetCurrentDirectory();
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir);
             var originalArguments = BuildClient.GetCommandLineArgs(arguments).Concat(extraArguments).ToArray();
-            return client.RunCompilation(originalArguments, buildPaths);
+            return client.RunCompilation(originalArguments, buildPaths).ExitCode;
         }
 
-        protected override int RunLocalCompilation(List<string> arguments, string clientDir, string sdkDir)
+        protected override int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
         {
-            return _compileFunc(clientDir, sdkDir, arguments.ToArray(), _analyzerAssemblyLoader);
+            return _compileFunc(arguments, buildPaths, textWriter, _analyzerAssemblyLoader);
         }
 
         protected override Task<BuildResponse> RunServerCompilation(

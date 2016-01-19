@@ -61,7 +61,9 @@
     <Compile Include="..\..\Shared\CoreClrBuildClient.cs">
       <Link>CoreClrBuildClient.cs</Link>
     </Compile>
-    <Compile Include="Vbc.cs" />
+    <Compile Include="..\..\Shared\Vbc.cs">
+      <Link>Vbc.cs</Link>
+    </Compile>
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>

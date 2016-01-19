@@ -906,74 +906,87 @@ class Hello
             GC.KeepAlive(rootDirectory);
         }
 
-        // Set up directory for multiple simultaneous compilers.
-        private TempDirectory SetupDirectory(TempRoot root, int i)
+        private async Task<bool> RunCompilationAsync(TempDirectory compilationDir, string languageName, int i)
         {
-            TempDirectory dir = root.CreateDirectory();
-            var helloFileCs = dir.CreateFile(string.Format("hello{0}.cs", i));
-            helloFileCs.WriteAllText(string.Format(
-@"using System;
+            TempFile sourceFile;
+            string exeFileName;
+            string prefix;
+            string sourceText;
+
+            if (languageName == LanguageNames.CSharp)
+            {
+                exeFileName = $"hellocs{i}.exe";
+                prefix = "CS";
+                sourceFile = compilationDir.CreateFile($"hello{i}.cs");
+                sourceText = 
+$@"using System;
 class Hello 
 {{
     public static void Main()
-    {{ Console.WriteLine(""CS Hello number {0}""); }}
-}}", i));
-
-            var helloFileVb = dir.CreateFile(string.Format("hello{0}.vb", i));
-            helloFileVb.WriteAllText(string.Format(
-@"Imports System
+    {{ Console.WriteLine(""CS Hello number {i}""); }}
+}}";
+            }
+            else
+            {
+                exeFileName = $"hellovb{i}.exe";
+                prefix = "VB";
+                sourceFile = compilationDir.CreateFile($"hello{i}.vb");
+                sourceText =
+$@"Imports System
 Module Hello 
     Sub Main()
-       Console.WriteLine(""VB Hello number {0}"") 
+       Console.WriteLine(""VB Hello number {i}"") 
     End Sub
-End Module", i));
+End Module";
+            }
 
-            return dir;
-        }
+            await sourceFile.WriteAllTextAsync(sourceText);
 
-        // Run compiler in directory set up by SetupDirectory
-        private Process RunCompilerCS(TempDirectory dir, int i, ServerData serverData)
-        {
-            return StartProcess(CSharpCompilerClientExecutable, string.Format("/shared:{1} /nologo hello{0}.cs /out:hellocs{0}.exe", i, serverData.PipeName), dir.Path);
-        }
+            var buildPaths = new BuildPaths(
+                clientDir: CompilerDirectory,
+                workingDir: compilationDir.Path,
+                sdkDir: RuntimeEnvironment.GetRuntimeDirectory());
+            var client = new TestableDesktopBuildClient
 
-        // Run compiler in directory set up by SetupDirectory
-        private Process RunCompilerVB(TempDirectory dir, int i, ServerData serverData)
-        {
-            return StartProcess(BasicCompilerClientExecutable, string.Format("/shared:{1} /nologo hello{0}.vb /r:Microsoft.VisualBasic.dll /out:hellovb{0}.exe", i, serverData.PipeName), dir.Path);
         }
 
         // Run output in directory set up by SetupDirectory
-        private void RunOutput(TempRoot root, TempDirectory dir, int i)
+        private void RunOutput(TempRoot root, TempDirectory dir, string languageName, int i)
         {
-            var exeFile = root.AddFile(GetResultFile(dir, string.Format("hellocs{0}.exe", i)));
+            string exeFileName;
+            string prefix;
+
+            if (languageName == LanguageNames.CSharp)
+            {
+                exeFileName = $"hellocs{i}.exe";
+                prefix = "CS";
+            }
+            else
+            {
+                exeFileName = $"hellovb{i}.exe";
+                prefix = "VB";
+            }
+
+            var exeFile = root.AddFile(GetResultFile(dir, exeFileName));
             var runningResult = RunCompilerOutput(exeFile);
-            Assert.Equal(string.Format("CS Hello number {0}\r\n", i), runningResult.Output);
-
-            exeFile = root.AddFile(GetResultFile(dir, string.Format("hellovb{0}.exe", i)));
-            runningResult = RunCompilerOutput(exeFile);
-            Assert.Equal(string.Format("VB Hello number {0}\r\n", i), runningResult.Output);
-        }
-
+            Assert.Equal($"{prefix} Hello number {i}\r\n", runningResult.Output);
+       }
 
         [WorkItem(997372)]
         [WorkItem(761326, "DevDiv")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7618")]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MultipleSimultaneousCompiles()
         {
             using (var serverData = ServerUtil.CreateServer())
             {
                 // Run this many compiles simultaneously in different directories.
-                const int numberOfCompiles = 10;
-                TempDirectory[] directories = new TempDirectory[numberOfCompiles];
-                Process[] processesVB = new Process[numberOfCompiles];
-                Process[] processesCS = new Process[numberOfCompiles];
+                const int numberOfCompiles = 20;
+                var directories = new TempDirectory[numberOfCompiles];
 
                 for (int i = 0; i < numberOfCompiles; ++i)
                 {
                     directories[i] = SetupDirectory(Temp, i);
-                }
 
                 for (int i = 0; i < numberOfCompiles; ++i)
                 {

@@ -10,19 +10,18 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
     internal sealed class Vbc : VisualBasicCompiler
     {
-        internal Vbc(string responseFile, string clientDirectory, string baseDirectory, string sdkDirectory, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
-            : base(VisualBasicCommandLineParser.Default, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, Environment.GetEnvironmentVariable("LIB"), analyzerLoader)
+        internal Vbc(string responseFile, BuildPaths buildPaths, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
+            : base(VisualBasicCommandLineParser.Default, responseFile, args, buildPaths.ClientDirectory, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, Environment.GetEnvironmentVariable("LIB"), analyzerLoader)
         {
         }
 
-        internal static int Run(string clientDirectory, string sdkDirectory, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
+        internal static int Run(string[] args, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
         {
             FatalError.Handler = FailFast.OnFatalException;
 
-            var responseFile = Path.Combine(clientDirectory, VisualBasicCompiler.ResponseFileName);
-            Vbc compiler = new Vbc(responseFile, clientDirectory, Directory.GetCurrentDirectory(), sdkDirectory, args, analyzerLoader);
-
-            return ConsoleUtil.RunWithOutput(compiler.Arguments.Utf8Output, (textWriterOut, _) => compiler.Run(textWriterOut));
+            var responseFile = Path.Combine(buildPaths.ClientDirectory, VisualBasicCompiler.ResponseFileName);
+            var compiler = new Vbc(responseFile, buildPaths, args, analyzerLoader);
+            return compiler.Run(textWriter);
         }
 
         protected override uint GetSqmAppID()
