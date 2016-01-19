@@ -114,29 +114,23 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(CompilationReference other)
         {
-            if (object.ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
             if (other == null)
             {
                 return false;
             }
 
+            if (object.ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             // MetadataProperty implements value equality
-            return object.ReferenceEquals(this.Compilation, other.Compilation) && object.Equals(this.Properties, other.Properties);
+            return object.Equals(this.Compilation, other.Compilation) && object.Equals(this.Properties, other.Properties);
         }
 
         public override bool Equals(object obj)
         {
-            var compilation = obj as CompilationReference;
-            if (compilation == null)
-            {
-                return false;
-            }
-
-            return Equals(compilation);
+            return Equals(obj as CompilationReference);
         }
 
         public override int GetHashCode()

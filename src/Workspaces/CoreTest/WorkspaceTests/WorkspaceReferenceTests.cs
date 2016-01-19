@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceTests
     public class WorkspaceReferenceTests
     {
         [Fact]
-        public async Task PEReferenceTest()
+        public async Task CheckPEReferencesSameAfterSolutionChangedTest()
         {
             using (var ws = new AdhocWorkspace())
             {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceTests
                 var compilation1 = await project.GetCompilationAsync();
                 var references1 = compilation1.ExternalReferences;
 
-                // change project
+                // just some arbitary action to create new snpahost that doesnt affect references
                 var info = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "code.cs");
                 var document = ws.AddDocument(info);
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceTests
         }
 
         [Fact]
-        public async Task P2PReferenceTest()
+        public async Task CheckP2PReferencesSameAfterSolutionChangedTest()
         {
             using (var ws = new AdhocWorkspace())
             {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceTests
                 var compilation1 = await project.GetCompilationAsync();
                 var references1 = compilation1.ExternalReferences;
 
-                // change project
+                // just some arbitary action to create new snpahost that doesnt affect references
                 var info = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "code.cs");
                 var document = ws.AddDocument(info);
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceTests
         }
 
         [Fact]
-        public async Task CrossLanguageReferenceTest()
+        public async Task CheckCrossLanguageReferencesSameAfterSolutionChangedTest()
         {
             using (var ws = new AdhocWorkspace())
             {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceTests
                 var compilation1 = await project.GetCompilationAsync();
                 var references1 = compilation1.ExternalReferences;
 
-                // change project
+                // just some arbitary action to create new snpahost that doesnt affect references
                 var info = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "code.cs");
                 var document = ws.AddDocument(info);
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceTests
         }
 
         [Fact]
-        public async Task CompilationReferenceChangedTest()
+        public async Task CheckP2PReferencesNotSameAfterReferenceChangedTest()
         {
             using (var ws = new AdhocWorkspace())
             {
@@ -153,10 +153,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceTests
                 var compilation1 = await project.GetCompilationAsync();
                 var references1 = compilation1.ExternalReferences;
 
-                // change project
+                // some random action that causes reference project to be changed.
                 var referenceDocumentInfo = DocumentInfo.Create(DocumentId.CreateNewId(referenceProject.Id), "code.cs");
                 var referenceDocument = ws.AddDocument(referenceDocumentInfo);
 
+                // just some arbitary action to create new snpahost that doesnt affect references
                 var info = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "code.cs");
                 var document = ws.AddDocument(info);
 
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceTests
         }
 
         [Fact]
-        public async Task PEReferenceChangedTest()
+        public async Task CheckPEReferencesNotSameAfterReferenceChangedTest()
         {
             using (var ws = new AdhocWorkspace())
             {
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceTests
                 var compilation1 = await project.GetCompilationAsync();
                 var references1 = compilation1.ExternalReferences;
 
-                // change project
+                // explicitly change references
                 var forkedProject = project.WithMetadataReferences(ImmutableArray.Create<MetadataReference>(
                     PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location),
                     PortableExecutableReference.CreateFromFile(typeof(Workspace).Assembly.Location)));
