@@ -51,24 +51,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
 
             Dim sort = New Sort()
             str = New TestVisualBasicObjectFormatter(maximumLineLength:=51).FormatObject(sort, SingleLineOptions)
-            Assert.Equal("Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, a ...", str)
-            Assert.Equal(51, str.Length)
+            Assert.Equal("Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1...", str)
+            Assert.Equal(51 + 3, str.Length)
 
             str = New TestVisualBasicObjectFormatter(maximumLineLength:=5).FormatObject(sort, SingleLineOptions)
-            Assert.Equal("S ...", str)
-            Assert.Equal(5, str.Length)
+            Assert.Equal("Sort ...", str)
+            Assert.Equal(5 + 3, str.Length)
 
             str = New TestVisualBasicObjectFormatter(maximumLineLength:=4).FormatObject(sort, SingleLineOptions)
-            Assert.Equal("...", str)
+            Assert.Equal("Sort...", str)
 
             str = New TestVisualBasicObjectFormatter(maximumLineLength:=3).FormatObject(sort, SingleLineOptions)
-            Assert.Equal("...", str)
+            Assert.Equal("Sor...", str)
 
             str = New TestVisualBasicObjectFormatter(maximumLineLength:=2).FormatObject(sort, SingleLineOptions)
-            Assert.Equal("...", str)
+            Assert.Equal("So...", str)
 
             str = New TestVisualBasicObjectFormatter(maximumLineLength:=1).FormatObject(sort, SingleLineOptions)
-            Assert.Equal("...", str)
+            Assert.Equal("S...", str)
 
             str = New TestVisualBasicObjectFormatter(maximumLineLength:=80).FormatObject(sort, SingleLineOptions)
             Assert.Equal("Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1, AG=1 }", str)

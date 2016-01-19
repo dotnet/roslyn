@@ -39,24 +39,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
             var sort = new Sort();
             str = new TestCSharpObjectFormatter(maximumLineLength: 51).FormatObject(sort, SingleLineOptions);
-            Assert.Equal(@"Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, a ...", str);
-            Assert.Equal(51, str.Length);
+            Assert.Equal(@"Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1...", str);
+            Assert.Equal(51 + 3, str.Length);
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 5).FormatObject(sort, SingleLineOptions);
-            Assert.Equal(@"S ...", str);
-            Assert.Equal(5, str.Length);
+            Assert.Equal(@"Sort ...", str);
+            Assert.Equal(5 + 3, str.Length);
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 4).FormatObject(sort, SingleLineOptions);
-            Assert.Equal(@"...", str);
+            Assert.Equal(@"Sort...", str);
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 3).FormatObject(sort, SingleLineOptions);
-            Assert.Equal(@"...", str);
+            Assert.Equal(@"Sor...", str);
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 2).FormatObject(sort, SingleLineOptions);
-            Assert.Equal(@"...", str);
+            Assert.Equal(@"So...", str);
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 1).FormatObject(sort, SingleLineOptions);
-            Assert.Equal(@"...", str);
+            Assert.Equal(@"S...", str);
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 80).FormatObject(sort, SingleLineOptions);
             Assert.Equal(@"Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1, AG=1 }", str);
@@ -324,17 +324,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                     MaximumOutputLength = i,
                     MemberDisplayFormat = MemberDisplayFormat.SingleLine,
                 };
-                var str = Formatter.FormatObject(obj, printOptions);
 
-                var expected = output.Substring(0, i - " ...".Length);
-                if (!expected.EndsWith(" ", StringComparison.Ordinal))
-                {
-                    expected += " ";
-                }
-
-                expected += "...";
-
-                Assert.Equal(expected, str);
+                var actual = Formatter.FormatObject(obj, printOptions);
+                var expected = output.Substring(0, i) + "...";
+                Assert.Equal(expected, actual);
             }
         }
 
@@ -344,10 +337,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             object obj = new LongMembers();
 
             var str = new TestCSharpObjectFormatter(maximumLineLength: 20).FormatObject(obj, SingleLineOptions);
-            Assert.Equal("LongMembers { Lo ...", str);
+            Assert.Equal("LongMembers { LongNa...", str);
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 20).FormatObject(obj, SeparateLinesOptions);
-            Assert.Equal("LongMembers {\r\n  LongName012345 ...\r\n  LongValue: \"01 ...\r\n}\r\n", str);
+            Assert.Equal("LongMembers {\r\n  LongName0123456789...\r\n  LongValue: \"012345...\r\n}\r\n", str);
         }
 
         [Fact]
