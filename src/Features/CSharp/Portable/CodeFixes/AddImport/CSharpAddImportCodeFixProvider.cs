@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         }
 
         private async Task<CompilationUnitSyntax> AddImportWorkerAsync(
-            Document document, CompilationUnitSyntax root, SyntaxNode contextNode, 
+            Document document, CompilationUnitSyntax root, SyntaxNode contextNode,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -647,8 +647,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             var semanticInfo = semanticModel.GetTypeInfo(leftExpression, cancellationToken);
             var leftExpressionType = semanticInfo.Type;
+            IMethodSymbol reducedExtensionMethod = null;
+            try
+            {
+                // ReduceExtensionMethod can throw ArgumentExceptions if they are not of the expected type
+                reducedExtensionMethod = method.ReduceExtensionMethod(leftExpressionType);
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
 
-            return leftExpressionType != null && method.ReduceExtensionMethod(leftExpressionType) != null;
+            return leftExpressionType != null && reducedExtensionMethod != null;
         }
 
         internal override bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
