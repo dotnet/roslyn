@@ -583,6 +583,7 @@ end namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")>
         Public Async Function TestDottedPattern7() As Task
             Using workspace = Await SetupWorkspaceAsync("namespace Foo
 namespace Bar
@@ -594,7 +595,7 @@ end namespace
 end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
                 {
-                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
+                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Prefix, True, Nothing)
                 }
 
                 Dim items = _aggregator.GetItems("Baz.Q").ToList()
