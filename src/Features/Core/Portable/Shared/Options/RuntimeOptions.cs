@@ -4,10 +4,13 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Shared.Options
 {
-    internal static class ServiceFeatureOnOffOptions
+    /// <summary>
+    /// Options that aren't persisted. options here will be reset to default on new process.
+    /// </summary>
+    internal static class RunTimeOptions
     {
         public const string OptionName = "ServiceFeaturesOnOff";
 
-        public static readonly PerLanguageOption<bool> ClosedFileDiagnostic = new PerLanguageOption<bool>(OptionName, "Closed File Diagnostic", defaultValue: true);
+        public static readonly Option<bool> FullSolutionAnalysis = new Option<bool>(OptionName, "FullSolutionAnalysisDiagnostic", defaultValue: true);
     }
 }

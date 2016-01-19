@@ -253,8 +253,8 @@
     <Compile Include="ReplaceMethodWithProperty\IReplaceMethodWithPropertyService.cs" />
     <Compile Include="Shared\Options\OrganizerOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceComponentOnOffOptionsProvider.cs" />
-    <Compile Include="Shared\Options\ServiceFeatureOnOffOptions.cs" />
-    <Compile Include="Shared\Options\ServiceFeatureOnOffOptionsProvider.cs" />
+    <Compile Include="Shared\Options\RuntimeOptions.cs" />
+    <Compile Include="Shared\Options\RunTimeOptionsProvider.cs" />
     <Compile Include="Shared\Utilities\LinkedFilesSymbolEquivalenceComparer.cs" />
     <Compile Include="Shared\Utilities\SupportedPlatformData.cs" />
     <Compile Include="Completion\Providers\SymbolCompletionItem.cs" />

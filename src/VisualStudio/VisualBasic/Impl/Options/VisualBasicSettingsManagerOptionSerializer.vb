@@ -20,7 +20,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         SimplificationOptions.PerLanguageFeatureName,
         ExtractMethodOptions.FeatureName,
         FeatureOnOffOptions.OptionName,
-        ServiceFeatureOnOffOptions.OptionName,
         FormattingOptions.InternalTabFeatureName,
         VisualStudioNavigationOptions.FeatureName), [Shared]>
     Friend NotInheritable Class VisualBasicSettingsManagerOptionSerializer
@@ -49,7 +48,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 GetType(FormattingOptions),
                 GetType(ExtractMethodOptions),
                 GetType(SimplificationOptions),
-                GetType(ServiceFeatureOnOffOptions),
                 GetType(VisualStudioNavigationOptions)}
 
             Dim Flags As BindingFlags = BindingFlags.Public Or BindingFlags.Static
@@ -87,7 +85,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 Return [option].Feature = FormattingOptions.InternalTabFeatureName Or
                        [option].Feature = ExtractMethodOptions.FeatureName Or
                        [option].Feature = SimplificationOptions.PerLanguageFeatureName Or
-                       [option].Feature = ServiceFeatureOnOffOptions.OptionName Or
                        [option].Feature = VisualStudioNavigationOptions.FeatureName
             End If
 

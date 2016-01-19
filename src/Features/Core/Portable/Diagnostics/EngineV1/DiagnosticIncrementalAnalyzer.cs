@@ -103,15 +103,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return SpecializedTasks.EmptyTask;
         }
 
-        private bool CheckOption(Workspace workspace, string language, bool documentOpened)
+        private bool CheckOption(Workspace workspace, string language, bool forceAnalysis)
         {
             var optionService = workspace.Services.GetService<IOptionService>();
-            if (optionService == null || optionService.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, language))
+            if (optionService == null || optionService.GetOption(RunTimeOptions.FullSolutionAnalysis))
             {
                 return true;
             }
 
-            if (documentOpened)
+            if (forceAnalysis)
             {
                 return true;
             }
@@ -337,8 +337,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             try
             {
-                // Compilation actions can report diagnostics on open files, so "documentOpened = true"
-                if (!CheckOption(project.Solution.Workspace, project.Language, documentOpened: true))
+                // we only report project diagnostics when full solution analysis is on.
+                if (!CheckOption(project.Solution.Workspace, project.Language, forceAnalysis: false))
                 {
                     return;
                 }

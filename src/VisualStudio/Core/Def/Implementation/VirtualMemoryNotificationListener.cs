@@ -5,6 +5,8 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -17,7 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export, Shared]
     internal sealed class VirtualMemoryNotificationListener : ForegroundThreadAffinitizedObject, IVsBroadcastMessageEvents
     {
-        private WorkspaceCacheService _workspaceCacheService;
+        private readonly IOptionService _optionService;
+        private readonly WorkspaceCacheService _workspaceCacheService;
+
         private bool _alreadyLogged;
 
         [ImportingConstructor]
@@ -25,6 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspace workspace) : base(assertIsForeground: true)
         {
+            // hold onto option service
+            _optionService = workspace.Services.GetService<IOptionService>();
+
             _workspaceCacheService = workspace.Services.GetService<IWorkspaceCacheService>() as WorkspaceCacheService;
             if (_workspaceCacheService == null)
             {
@@ -61,6 +68,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                         }
 
                         _workspaceCacheService.FlushCaches();
+
+                        // turn off full solution analysis
+                        _optionService.SetOptions(_optionService.GetOptions().WithChangedOption(RunTimeOptions.FullSolutionAnalysis, false));
                         break;
                     }
             }

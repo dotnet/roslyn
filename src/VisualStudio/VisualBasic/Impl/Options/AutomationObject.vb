@@ -44,15 +44,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property ClosedFileDiagnostics As Boolean
-            Get
-                Return GetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic)
-            End Get
-            Set(value As Boolean)
-                SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value)
-            End Set
-        End Property
-
         Public Property RenameTrackingPreview As Boolean
             Get
                 Return GetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview)

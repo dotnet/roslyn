@@ -9,16 +9,10 @@ using Microsoft.CodeAnalysis.Options.Providers;
 namespace Microsoft.CodeAnalysis.Shared.Options
 {
     [ExportOptionProvider, Shared]
-    internal class ServiceFeatureOnOffOptionsProvider : IOptionProvider
+    internal class RunTimeOptionsProvider : IOptionProvider
     {
-        private readonly IEnumerable<IOption> _options = new List<IOption>
-            {
-                ServiceFeatureOnOffOptions.ClosedFileDiagnostic
-            }.ToImmutableArray();
+        private readonly IEnumerable<IOption> _options = new List<IOption> { RunTimeOptions.FullSolutionAnalysis }.ToImmutableArray();
 
-        public IEnumerable<IOption> GetOptions()
-        {
-            return _options;
-        }
+        public IEnumerable<IOption> GetOptions() => _options;
     }
 }
