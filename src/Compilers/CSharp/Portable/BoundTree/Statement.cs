@@ -146,8 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundSwitchStatement : ISwitchStatement
     {
-        private static readonly ConditionalWeakTable<BoundSwitchStatement, object> s_switchSectionsMappings =
-            new ConditionalWeakTable<BoundSwitchStatement, object>();
+        private static readonly ConditionalWeakTable<BoundSwitchStatement, StrongBox<ImmutableArray<ICase>>> s_switchSectionsMappings =
+            new ConditionalWeakTable<BoundSwitchStatement, StrongBox<ImmutableArray<ICase>>>();
 
         IExpression ISwitchStatement.Value => this.BoundExpression;
 
@@ -155,11 +155,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (ImmutableArray<ICase>) s_switchSectionsMappings.GetValue(this, 
+                return s_switchSectionsMappings.GetValue(
+                    this, 
                     switchStatement =>
                     {
-                        return switchStatement.SwitchSections.SelectAsArray(switchSection => (ICase)new SwitchSection(switchSection));   
-                    });
+                        return new StrongBox<ImmutableArray<ICase>>(
+                            switchStatement.SwitchSections.SelectAsArray<BoundSwitchSection, ICase>(switchSection => new SwitchSection(switchSection)));   
+                    }).Value;
             }
         }
 
@@ -352,15 +354,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundLocalDeclaration : IVariableDeclarationStatement
     {
-        private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
-            new ConditionalWeakTable<BoundLocalDeclaration, object>();
+        private static readonly ConditionalWeakTable<BoundLocalDeclaration, StrongBox<ImmutableArray<IVariable>>> s_variablesMappings =
+            new ConditionalWeakTable<BoundLocalDeclaration, StrongBox<ImmutableArray<IVariable>>>();
 
         ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
         {
             get
             {
-                return (ImmutableArray<IVariable>) s_variablesMappings.GetValue(this, 
-                    declaration => ImmutableArray.Create<IVariable>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+                return s_variablesMappings.GetValue(
+                            this, 
+                            declaration => 
+                                new StrongBox<ImmutableArray<IVariable>>(
+                                    ImmutableArray.Create<IVariable>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)))
+                       ).Value;
             }
         }
 
@@ -369,17 +375,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundMultipleLocalDeclarations : IVariableDeclarationStatement
     {
-        private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_variablesMappings =
-            new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
+        private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, StrongBox<ImmutableArray<IVariable>>> s_variablesMappings =
+            new ConditionalWeakTable<BoundMultipleLocalDeclarations, StrongBox<ImmutableArray<IVariable>>>();
 
         ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
         {
             get
             {
-                return (ImmutableArray<IVariable>)s_variablesMappings.GetValue(this,
-                    multipleDeclarations =>
-                        multipleDeclarations.LocalDeclarations.SelectAsArray(declaration => 
-                            (IVariable)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+                return s_variablesMappings.GetValue(
+                            this,
+                            multipleDeclarations =>
+                                new StrongBox<ImmutableArray<IVariable>>(
+                                    multipleDeclarations.LocalDeclarations.SelectAsArray<BoundLocalDeclaration, IVariable>(
+                                        declaration => new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)))
+                       ).Value;
             }
         }
 
