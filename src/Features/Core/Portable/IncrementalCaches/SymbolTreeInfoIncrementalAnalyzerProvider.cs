@@ -167,8 +167,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             private readonly ConcurrentDictionary<ProjectId, ProjectInfo> _projectToInfo;
             private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo;
 
-            private readonly Dictionary<ProjectId, Project> _idTolastSeenProject = new Dictionary<ProjectId, Project>();
-
             public IncrementalAnalyzer(
                 ConcurrentDictionary<ProjectId, ProjectInfo> projectToInfo,
                 ConcurrentDictionary<string, MetadataInfo> metadataPathToInfo)
@@ -207,13 +205,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                Project lastSeenProject;
-                if (_idTolastSeenProject.TryGetValue(project.Id, out lastSeenProject) && lastSeenProject == project)
-                {
-                    // We already saw this project.  No need to do anything;
-                    return;
-                }
-
                 // Check the semantic version of this project.  The semantic version will change
                 // if any of the source files changed, or if the project version itself changed.
                 // (The latter happens when something happens to the project like metadata 
@@ -229,9 +220,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     projectInfo = new ProjectInfo(version, info);
                     _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
                 }
-
-                // Mark that we've completed processing this project.
-                _idTolastSeenProject[project.Id] = project;
             }
 
             private async Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
@@ -288,7 +276,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             {
                 ProjectInfo info;
                 _projectToInfo.TryRemove(projectId, out info);
-                _idTolastSeenProject.Remove(projectId);
 
                 RemoveMetadataReferences(projectId);
             }
