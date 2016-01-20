@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         public static async Task<ExtractInterfaceTestState> CreateAsync(string markup, string languageName, CompilationOptions compilationOptions)
         {
             var workspace = languageName == LanguageNames.CSharp
-                ? await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
-                : await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions);
+                ? await TestWorkspace.CreateCSharpAsync(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
+                : await TestWorkspace.CreateVisualBasicAsync(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions);
             return new ExtractInterfaceTestState(workspace);
         }
 

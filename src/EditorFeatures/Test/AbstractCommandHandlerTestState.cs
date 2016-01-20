@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             ExportProvider exportProvider,
             string workspaceKind)
         {
-            this.Workspace = TestWorkspaceFactory.CreateWorkspace(
+            this.Workspace = TestWorkspace.CreateWorkspace(
                 workspaceElement,
                 exportProvider: exportProvider,
                 workspaceKind: workspaceKind);

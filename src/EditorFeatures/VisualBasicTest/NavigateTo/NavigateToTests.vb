@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         Private _aggregator As NavigateToTestAggregator
 
         Private Async Function SetupWorkspaceAsync(content As String) As Task(Of TestWorkspace)
-            Dim workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(content)
+            Dim workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
             SetupNavigateTo(workspace)
             Return workspace
         End Function
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Sub
 
         Private Async Function SetupWorkspaceAsync(workspaceElement As XElement) As Task(Of TestWorkspace)
-            Dim workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
+            Dim workspace = Await TestWorkspace.CreateAsync(workspaceElement)
             SetupNavigateTo(workspace)
             Return workspace
         End Function
@@ -583,6 +583,7 @@ end namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")>
         Public Async Function TestDottedPattern7() As Task
             Using workspace = Await SetupWorkspaceAsync("namespace Foo
 namespace Bar
@@ -594,7 +595,7 @@ end namespace
 end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
                 {
-                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
+                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Prefix, True, Nothing)
                 }
 
                 Dim items = _aggregator.GetItems("Baz.Q").ToList()
