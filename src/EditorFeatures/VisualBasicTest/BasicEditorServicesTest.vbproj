@@ -205,6 +205,7 @@
     <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceCommandHandlerTests.vb" />
     <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests.vb" />
     <Compile Include="Diagnostics\InsertMissingCast\InsertMissingCastTests.vb" />
+    <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
     <Compile Include="Diagnostics\MoveToTopOfFile\MoveToTopOfFileTests.vb" />
     <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />

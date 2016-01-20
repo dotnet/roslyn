@@ -91,6 +91,7 @@
     <Compile Include="ChangeSignature\SignatureChange.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SearchScope.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolReference.cs" />
+    <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.SymbolReferenceFinder.cs" />
     <Compile Include="CodeFixes\CodeFixContextExtensions.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleCodeAction.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
@@ -245,6 +246,7 @@
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.AbstractIntroduceVariableCodeAction.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.IntroduceVariableAllOccurrenceCodeAction.cs" />
     <Compile Include="LanguageServices\ProjectInfoService\IProjectInfoService.cs" />
+    <Compile Include="MakeMethodSynchronous\AbstractMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="Navigation\NavigationOptions.cs" />
     <Compile Include="Navigation\NavigationOptionsProvider.cs" />
     <Compile Include="QuickInfo\QuickInfoUtilities.cs" />
@@ -255,6 +257,7 @@
     <Compile Include="Shared\Options\ServiceComponentOnOffOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptionsProvider.cs" />
+    <Compile Include="Shared\Utilities\IOUtilities.cs" />
     <Compile Include="Shared\Utilities\LinkedFilesSymbolEquivalenceComparer.cs" />
     <Compile Include="Shared\Utilities\SupportedPlatformData.cs" />
     <Compile Include="Completion\Providers\SymbolCompletionItem.cs" />

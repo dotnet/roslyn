@@ -108,7 +108,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.CSharp.CodeGeneration.CSharpSyntaxGenerator),
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicSyntaxGenerator),
                 typeof(CSharp.LanguageServices.CSharpContentTypeLanguageService),
-                typeof(VisualBasic.LanguageServices.VisualBasicContentTypeLanguageService)
+                typeof(VisualBasic.LanguageServices.VisualBasicContentTypeLanguageService),
+                typeof(IncrementalCaches.SymbolTreeInfoIncrementalAnalyzerProvider),
             };
 
             return MinimalTestExportProvider.GetLanguageNeutralTypes()

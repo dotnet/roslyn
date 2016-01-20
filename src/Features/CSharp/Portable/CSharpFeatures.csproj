@@ -325,6 +325,7 @@
     <Compile Include="LanguageServices\CSharpSymbolDisplayService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayService.SymbolDescriptionBuilder.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayServiceFactory.cs" />
+    <Compile Include="MakeMethodSynchronous\CSharpMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="MetadataAsSource\CSharpMetadataAsSourceService.cs" />
     <Compile Include="MetadataAsSource\CSharpMetadataAsSourceServiceFactory.cs" />
     <Compile Include="OrganizeImports\CSharpOrganizeImportsService.cs" />
