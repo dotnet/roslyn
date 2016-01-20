@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Security;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem
+namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal static class IOUtilities
     {
