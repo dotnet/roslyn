@@ -820,8 +820,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         }
                         catch (Exception e)
                         {
-                            // TODO (tomat): format exception
-                            Console.Error.WriteLine(e);
+                            Console.Error.WriteLine(_replServiceProvider.ObjectFormatter.FormatUnhandledException(e));
                             return null;
                         }
                     }))).ConfigureAwait(false);
