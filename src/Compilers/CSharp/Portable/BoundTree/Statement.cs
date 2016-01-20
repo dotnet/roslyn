@@ -320,23 +320,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.None;
     }
 
-    partial class BoundLocalDeclaration : IVariableDeclarationStatement, IVariable
+    partial class BoundLocalDeclaration : IVariableDeclarationStatement
     {
         ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
         {
-            get { return ImmutableArray.Create<IVariable>(this); }
+            get { return ImmutableArray.Create<IVariable>(ToVariableDeclaration()); }
         }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
 
-        ILocalSymbol IVariable.Variable
+        internal IVariable ToVariableDeclaration()
         {
-            get { return this.LocalSymbol; }
-        }
-
-        IExpression IVariable.InitialValue
-        {
-            get { return this.InitializerOpt; }
+            return new VariableDeclaration(LocalSymbol, InitializerOpt, Syntax);
         }
     }
 
@@ -344,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
         {
-            get { return this.LocalDeclarations.As<IVariable>(); }
+            get { return this.LocalDeclarations.SelectAsArray(declaration => declaration.ToVariableDeclaration()); }
         }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;

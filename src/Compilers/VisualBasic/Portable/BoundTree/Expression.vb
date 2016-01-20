@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.nodes.Add(operation)
                     Select Case operation.Kind
                         Case OperationKind.InvocationExpression
-                            Me.nodes.AddRange(DirectCast(operation, IInvocationExpression).ArgumentsInSourceOrder())
+                            Me.nodes.AddRange(DirectCast(operation, IInvocationExpression).ArgumentsInSourceOrder)
                         Case OperationKind.ObjectCreationExpression
                             Dim objectCreationExpression = DirectCast(operation, IObjectCreationExpression)
                             Me.nodes.AddRange(objectCreationExpression.ConstructorArguments)
