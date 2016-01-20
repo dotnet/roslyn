@@ -1306,7 +1306,7 @@ Program.number}"";
             int? expectedIndentation)
         {
             // create tree service
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
             {
                 var hostdoc = workspace.Documents.First();
 
@@ -1335,7 +1335,7 @@ Program.number}"";
             int? expectedIndentation)
         {
             // create tree service
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
             {
                 var hostdoc = workspace.Documents.First();
                 var buffer = hostdoc.GetTextBuffer();

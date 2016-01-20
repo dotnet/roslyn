@@ -21,7 +21,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
-    public class TestWorkspace : Workspace
+    public partial class TestWorkspace : Workspace
     {
         public const string WorkspaceName = "Test";
 
