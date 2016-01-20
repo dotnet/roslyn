@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 if (!_metadataPathToInfo.TryGetValue(key, out metadataInfo) || metadataInfo.TimeStamp == lastWriteTime)
                 {
                     var info = await GetInfoForReferenceAsync(project, reference, cancellationToken).ConfigureAwait(false);
-                    metadataInfo = new MetadataInfo(lastWriteTime, info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
+                    metadataInfo = new MetadataInfo(lastWriteTime, info, metadataInfo?.ReferencingProjects ?? new HashSet<ProjectId>());
                     _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
                 }
 
