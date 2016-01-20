@@ -216,22 +216,16 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 {
                     // Update the symbol tree infos for metadata and source in parallel.
                     var referencesTask = UpdateReferencesAync(project, cancellationToken);
-                    var projectTask = UpdateProjectSymbolTreeInfo(project, version, projectInfo, cancellationToken);
+                    var projectTask = SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken);
 
                     await Task.WhenAll(referencesTask, projectTask).ConfigureAwait(false);
-                    projectInfo = await projectTask.ConfigureAwait(false);
+                    var info = await projectTask.ConfigureAwait(false);
 
                     // Mark that we're up to date with this project.  Future calls with the same 
                     // semantic version can bail out immediately.
+                    projectInfo = new ProjectInfo(version, info);
                     _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
                 }
-            }
-
-            private async Task<ProjectInfo> UpdateProjectSymbolTreeInfo(Project project, VersionStamp version, ProjectInfo projectInfo, CancellationToken cancellationToken)
-            {
-                var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
-                projectInfo = new ProjectInfo(version, info);
-                return projectInfo;
             }
 
             private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
