@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
         private async Task<TestWorkspace> SetupWorkspaceAsync(string content)
         {
-            var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(content);
+            var workspace = await TestWorkspace.CreateCSharpAsync(content);
             var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
 
             _provider = new NavigateToItemProvider(
@@ -822,6 +822,7 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")]
         public async Task DottedPattern7()
         {
             var source = "namespace Foo { namespace Bar { class Baz<X,Y,Z> { void Quux() { } } } }";
@@ -829,7 +830,7 @@ class D
             {
                 var expecteditems = new List<NavigateToItem>
                 {
-                    new NavigateToItem("Quux", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, true, null)
+                    new NavigateToItem("Quux", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Prefix, true, null)
                 };
 
                 var items = _aggregator.GetItems("Baz.Q");
@@ -842,7 +843,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task NoNavigationToGeneratedFiles()
         {
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(@"
+            using (var workspace = await TestWorkspace.CreateAsync(@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
         <Document FilePath=""File1.cs"">

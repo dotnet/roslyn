@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
              string source,
              params DiagnosticDescription[] expectedDiagnostics)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(source))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source))
             {
                 var actualDiagnostics = await this.GetDiagnosticsAsync(workspace);
                 actualDiagnostics.Verify(expectedDiagnostics);

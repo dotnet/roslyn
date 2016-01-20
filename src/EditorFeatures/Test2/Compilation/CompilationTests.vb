@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim project = GetProject(workspace.CurrentSolution, "TestAssembly")
                 Assert.Null(Await project.GetCompilationAsync())
 

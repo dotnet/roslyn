@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim solution = workspace.CurrentSolution
                 Dim project = solution.Projects(0)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects(0)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
 
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects(0)
 
                 Dim referenceName = "Test"
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects(0)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
 
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim projectDiagnosticAnalyzer1 = New ProjectDiagnosticAnalyzer(1)
                 Dim projectDiagnosticAnalyzer2 = New ProjectDiagnosticAnalyzer2(2)
 
@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim analyzer1 = New ProjectDiagnosticAnalyzer(1)
                 Dim analyzer2 = New ProjectDiagnosticAnalyzer2(2)
 
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzerReference1 = CreateAnalyzerFileReference("x:\temp.dll")
                 Dim analyzerReference2 = CreateAnalyzerFileReference("x:\temp.dll")
@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 ' Add duplicate analyzer references: one as VSIX analyzer reference and other one as project analyzer reference.
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzerReference1 = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location)
@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzer = New ProjectDiagnosticAnalyzer(0)
                 Dim analyzerReference1 = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -421,7 +421,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzer = New ThrowsExceptionAnalyzer
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzer = New CodeBlockStartedAnalyzer(Of Microsoft.CodeAnalysis.CSharp.SyntaxKind)
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -491,7 +491,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzer = New CodeBlockStartedAnalyzer(Of Microsoft.CodeAnalysis.CSharp.SyntaxKind)
 
@@ -522,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService()
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
@@ -556,7 +556,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzer = New CodeBlockEndedAnalyzer()
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -589,7 +589,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzer = New CodeBlockStartedAndEndedAnalyzer(Of Microsoft.CodeAnalysis.CSharp.SyntaxKind)
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -665,7 +665,7 @@ class AnonymousFunctions
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzer = New CodeBlockStartedAndEndedAnalyzer(Of Microsoft.CodeAnalysis.CSharp.SyntaxKind)
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -699,7 +699,7 @@ class AnonymousFunctions
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' turn off heuristic
@@ -762,7 +762,7 @@ class AnonymousFunctions
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzer = New StatefulCompilationAnalyzer
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -787,7 +787,7 @@ class AnonymousFunctions
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzer = New StatefulCompilationAnalyzer
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -822,7 +822,7 @@ class AnonymousFunctions
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Test partial type diagnostic reported on user file.
@@ -858,7 +858,7 @@ class AnonymousFunctions
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Test partial type diagnostic reported on all source files.
@@ -906,7 +906,7 @@ public class B
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Test code block analyzer
@@ -947,7 +947,7 @@ public class B
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Test syntax node analyzer
@@ -988,7 +988,7 @@ public class B
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Test method symbol analyzer
@@ -1040,7 +1040,7 @@ End Class
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzer = New MustOverrideMethodAnalyzer()
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -1101,7 +1101,7 @@ public class B
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim analyzer = New FieldDeclarationAnalyzer()
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -1163,7 +1163,7 @@ public class B
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Add analyzer
@@ -1659,7 +1659,7 @@ End Class
         End Sub
 
         Private Sub TestCodeBlockActionCore(test As XElement, Optional onlyStatelessAction As Boolean = False)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Add analyzer
@@ -1719,7 +1719,7 @@ namespace ConsoleApplication1
         End Sub
 
         Private Sub TestGenericNameCore(test As XElement, expectedMessage As String, expectedId As String, ParamArray analyzers As DiagnosticAnalyzer())
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Add analyzer
@@ -1785,7 +1785,7 @@ class MyClass
                        </Workspace>
 
             ' Ensure that adding a dummy analyzer with no supported diagnostics doesn't bring down entire analysis.
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Add analyzer
@@ -1822,7 +1822,7 @@ class MyClass
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Add analyzer
@@ -1867,7 +1867,7 @@ class MyClass
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = TestWorkspace.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single(Function(p As Project) p.Name = "MainAssembly")
 
                 ' Analyzer reports a diagnostic if it receives a merged namespace symbol across assemblies in compilation.

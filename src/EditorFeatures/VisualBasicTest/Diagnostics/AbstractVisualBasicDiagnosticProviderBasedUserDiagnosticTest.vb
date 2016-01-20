@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             compilationOptions As CompilationOptions
         ) As Task(Of TestWorkspace)
 
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(
+            Return TestWorkspace.CreateVisualBasicAsync(
                 definition,
                 parseOptions,
                 If(compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
         End Function
 
         Protected Overloads Async Function TestMissingWithWorkspaceXmlAsync(initialMarkup As XElement) As Threading.Tasks.Task
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(initialMarkup)
+            Using workspace = TestWorkspace.CreateWorkspace(initialMarkup)
                 Dim diagnostics = Await GetDiagnosticAndFixAsync(workspace)
                 Assert.Null(diagnostics)
             End Using
