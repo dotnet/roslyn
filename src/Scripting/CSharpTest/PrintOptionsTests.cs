@@ -39,14 +39,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void ValidNumberRadix()
         {
+            var formatter = new TestCSharpObjectFormatter(includeCodePoints: true);
             var options = new PrintOptions();
 
             options.NumberRadix = 10;
-            Assert.Equal("10", Formatter.FormatObject(10, options));
-            // TODO (acasey): other consumers
+            Assert.Equal("10", formatter.FormatObject(10, options));
+            Assert.Equal("int[10] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }", formatter.FormatObject(new int[10], options));
+            Assert.Equal(@"16 '\u0010'", formatter.FormatObject('\u0010', options));
 
             options.NumberRadix = 16;
-            Assert.Equal("0x0000000a", Formatter.FormatObject(10, options));
+            Assert.Equal("0x0000000a", formatter.FormatObject(10, options));
+            Assert.Equal("int[0x0000000a] { 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000 }", formatter.FormatObject(new int[10], options));
+            Assert.Equal(@"0x0010 '\u0010'", formatter.FormatObject('\u0010', options));
         }
 
         [Fact]

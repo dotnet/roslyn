@@ -7,11 +7,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
     public sealed class TestCSharpObjectFormatter : CSharpObjectFormatter
     {
+        private readonly bool _includeCodePoints;
         private readonly bool _quoteStringsAndCharacters;
         private readonly int _maximumLineLength;
 
-        public TestCSharpObjectFormatter(bool quoteStringsAndCharacters = true, int maximumLineLength = int.MaxValue)
+        public TestCSharpObjectFormatter(bool includeCodePoints = false, bool quoteStringsAndCharacters = true, int maximumLineLength = int.MaxValue)
         {
+            _includeCodePoints = includeCodePoints;
             _quoteStringsAndCharacters = quoteStringsAndCharacters;
             _maximumLineLength = maximumLineLength;
         }
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
         protected override CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
             new CommonPrimitiveFormatterOptions(
                 numberRadix: printOptions.NumberRadix,
-                includeCodePoints: false,
+                includeCodePoints: _includeCodePoints,
                 escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters,
                 quoteStringsAndCharacters: _quoteStringsAndCharacters);
     }

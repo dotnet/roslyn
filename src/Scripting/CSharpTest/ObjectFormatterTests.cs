@@ -782,9 +782,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         //
         // When adding a new test to this region, ADD IT ADD THE END, so you
         // don't have to update all the other baselines.
-        //
-        // TODO (acasey): if this doesn't work on *nix, move it to the
-        // desktop test suite.
 #line 10000 "z:\Fixture.cs"
 
         private static class Fixture
