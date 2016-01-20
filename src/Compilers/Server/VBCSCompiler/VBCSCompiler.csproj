@@ -51,6 +51,9 @@
     <Compile Include="..\..\Shared\AbstractAnalyzerAssemblyLoader.cs">
       <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\Shared\DesktopBuildClient.cs">
+      <Link>DesktopBuildClient.cs</Link>
+    </Compile>
     <Compile Include="..\..\Shared\ExitingTraceListener.cs">
       <Link>ExitingTraceListener.cs</Link>
     </Compile>

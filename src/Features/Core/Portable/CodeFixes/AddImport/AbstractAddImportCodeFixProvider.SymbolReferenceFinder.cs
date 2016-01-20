@@ -46,25 +46,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             }
 
-            internal Task<List<SymbolReference>> FindInProjectAndDirectReferencesAsync(
+            internal Task<List<SymbolReference>> FindInAllSymbolsInProjectAsync(
                 Project project, bool exact)
             {
-                var searchScope = new ProjectAndDirectReferencesSearchScope(_owner, project, exact, _cancellationToken);
+                var searchScope = new AllSymbolsProjectSearchScope(_owner, project, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 
-            internal Task<List<SymbolReference>> FindInProjectSourceOnlyAsync(
+            internal Task<List<SymbolReference>> FindInSourceSymbolsInProjectAsync(
                 ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
                 Project project, bool exact)
             {
-                var searchScope = new ProjectSourceOnlySearchScope(_owner, projectToAssembly, project, exact, _cancellationToken);
+                var searchScope = new SourceSymbolsProjectSearchScope(_owner, projectToAssembly, project, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 
-            internal Task<List<SymbolReference>> FindInMetadataAsync(
+            internal Task<List<SymbolReference>> FindInMetadataSymbolsAsync(
                 Solution solution, IAssemblySymbol assembly, PortableExecutableReference metadataReference, bool exact)
             {
-                var searchScope = new MetadataSearchScope(_owner, solution, assembly, metadataReference, exact, _cancellationToken);
+                var searchScope = new MetadataSymbolsSearchScope(_owner, solution, assembly, metadataReference, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 

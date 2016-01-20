@@ -143,11 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             }
         }
 
-        protected override Compilation CreateCompilation(PortableExecutableReference reference)
-        {
-            return CSharpCompilation.Create("TempAssembly", references: SpecializedCollections.SingletonEnumerable(reference));
-        }
-
         protected override bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)

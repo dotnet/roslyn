@@ -6,12 +6,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     internal sealed class TestableDiagnosticListener : IDiagnosticListener
     {
+        public int ListeningCount;
         public int ConnectionCount;
         public int CompletedCount;
         public DateTime? LastProcessedTime;
         public TimeSpan? KeepAlive;
         public bool HasDetectedBadConnection;
         public bool HitKeepAliveTimeout;
+        public event EventHandler Listening;
+
+        public void ConnectionListening()
+        {
+            ListeningCount++;
+            Listening?.Invoke(this, EventArgs.Empty);
+        }
 
         public void ConnectionReceived()
         {

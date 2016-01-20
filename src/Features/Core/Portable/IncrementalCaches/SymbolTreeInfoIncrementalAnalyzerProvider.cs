@@ -18,6 +18,20 @@ using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.IncrementalCaches
 {
+    /// <summary>
+    /// Features like add-using want to be able to quickly search symbol indices for projects and
+    /// metadata.  However, creating those indices can be expensive.  As such, we don't want to
+    /// construct them during the add-using process itself.  Instead, we expose this type as an 
+    /// Incremental-Analyzer to walk our projects/metadata in the background to keep the indices
+    /// up to date.
+    /// 
+    /// We also then export this type as a service that can give back the index for a project or
+    /// metadata dll on request.  If the index has been produced then it will be returned and 
+    /// can be used by add-using.  Otherwise, nothing is returned and no results will be found.
+    /// 
+    /// This means that as the project is being indexed, partial results may be returned.  However
+    /// once it is fully indexed, then total results will be returned.
+    /// </summary>
     [Shared]
     [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host)]
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
@@ -39,6 +53,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         {
             public readonly DateTime TimeStamp;
             public readonly SymbolTreeInfo SymbolTreeInfo;
+
+            /// <summary>
+            /// Note: the Incremental-Analyzer infrastructure guarantees that it will call all the methods
+            /// on <see cref="IncrementalAnalyzer"/> in a serial fashion.  As that is the only type that
+            /// reads/writes these <see cref="MetadataInfo"/> objects, we don't need to lock this.
+            /// </summary>
             public readonly HashSet<ProjectId> ReferencingProjects;
 
             public MetadataInfo(DateTime timeStamp, SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
@@ -97,7 +117,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public Task<ValueTuple<bool, SymbolTreeInfo>> TryGetSymbolTreeInfoAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
+            public async Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(
+                Solution solution,
+                IAssemblySymbol assembly,
+                PortableExecutableReference reference,
+                CancellationToken cancellationToken)
             {
                 var key = GetReferenceKey(reference);
                 if (key != null)
@@ -108,15 +132,21 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                         DateTime writeTime;
                         if (TryGetLastWriteTime(key, out writeTime) && writeTime == metadataInfo.TimeStamp)
                         {
-                            return Task.FromResult(ValueTuple.Create(true, metadataInfo.SymbolTreeInfo));
+                            return metadataInfo.SymbolTreeInfo;
                         }
                     }
                 }
 
-                return Task.FromResult(default(ValueTuple<bool, SymbolTreeInfo>));
+                // If we didn't have it in our cache, see if we can load it from disk.
+                // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
+                // try to create the metadata.
+                var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(
+                    solution, assembly, reference, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return info;
             }
 
-            public async Task<ValueTuple<bool, SymbolTreeInfo>> TryGetSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
+            public async Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(
+                Project project, CancellationToken cancellationToken)
             {
                 ProjectInfo projectInfo;
                 if (_projectToInfo.TryGetValue(project.Id, out projectInfo))
@@ -124,25 +154,20 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                     if (version == projectInfo.VersionStamp)
                     {
-                        return ValueTuple.Create(true, projectInfo.SymbolTreeInfo);
+                        return projectInfo.SymbolTreeInfo;
                     }
                 }
 
-                return default(ValueTuple<bool, SymbolTreeInfo>);
+                return null;
             }
         }
 
         private class IncrementalAnalyzer : IncrementalAnalyzerBase
         {
             private readonly ConcurrentDictionary<ProjectId, ProjectInfo> _projectToInfo;
-
-            // Note: the Incremental-Analyzer infrastructure guarantees that it will call all the methods
-            // on this type in a serial fashion.  As such, we don't need explicit locking, or threadsafe
-            // collections (if they're only used by this type).  So, for example, the map we populate
-            // needs to be a ConcurrentDictionary as it will be read and written from multiple types.
-            // However, the HashSet<ProjectId> is ok as it will only be used by this type and there is
-            // no concurrency in this type on its own.
             private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo;
+
+            private readonly Dictionary<ProjectId, Project> _idTolastSeenProject = new Dictionary<ProjectId, Project>();
 
             public IncrementalAnalyzer(
                 ConcurrentDictionary<ProjectId, ProjectInfo> projectToInfo,
@@ -152,77 +177,118 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            {
+                if (!document.SupportsSyntaxTree)
+                {
+                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
+                    return SpecializedTasks.EmptyTask;
+                }
+
+                if (bodyOpt != null)
+                {
+                    // This was a method level edit.  This can't change the symbol tree info
+                    // for this project.  Bail immediately.
+                    return SpecializedTasks.EmptyTask;
+                }
+
+                return UpdateSymbolTreeInfoAsync(document.Project, cancellationToken);
+            }
+            
+            public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            {
+                return UpdateSymbolTreeInfoAsync(project, cancellationToken);
+            }
+
+            private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
                 if (!project.SupportsCompilation)
                 {
                     return;
                 }
 
-                await UpdateReferencesAync(project, cancellationToken).ConfigureAwait(false);
-
-                var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-                ProjectInfo projectInfo;
-                if (_projectToInfo.TryGetValue(project.Id, out projectInfo) && projectInfo.VersionStamp == version)
+                Project lastSeenProject;
+                if (_idTolastSeenProject.TryGetValue(project.Id, out lastSeenProject) && lastSeenProject == project)
                 {
+                    // We already saw this project.  No need to do anything;
                     return;
                 }
 
-                var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
-                projectInfo = new ProjectInfo(version, info);
-                _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
+                // Check the semantic version of this project.  The semantic version will change
+                // if any of the source files changed, or if the project version itself changed.
+                // (The latter happens when something happens to the project like metadata 
+                // changing on disk).
+                var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+
+                ProjectInfo projectInfo;
+                if (!_projectToInfo.TryGetValue(project.Id, out projectInfo) || projectInfo.VersionStamp != version)
+                {
+                    await UpdateReferencesAync(project, cancellationToken).ConfigureAwait(false);
+
+                    var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
+                    projectInfo = new ProjectInfo(version, info);
+                    _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
+                }
+
+                // Mark that we've completed processing this project.
+                _idTolastSeenProject[project.Id] = project;
             }
 
             private async Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
             {
-                Compilation compilation = null;
                 foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
                 {
-                    compilation = await UpdateReferenceAsync(project, reference, compilation, cancellationToken).ConfigureAwait(false);
+                    await UpdateReferenceAsync(project, reference, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            private async Task<Compilation> UpdateReferenceAsync(
-                Project project, PortableExecutableReference reference, Compilation compilation, CancellationToken cancellationToken)
+            private async Task UpdateReferenceAsync(
+                Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
                 var key = GetReferenceKey(reference);
-                if (key != null)
+                if (key == null)
                 {
-                    DateTime lastWriteTime;
-                    if (!TryGetLastWriteTime(key, out lastWriteTime))
-                    {
-                        // Couldn't get the write time.  Just ignore this reference.
-                        return compilation;
-                    }
-
-                    MetadataInfo metadataInfo;
-                    if (_metadataPathToInfo.TryGetValue(key, out metadataInfo) && metadataInfo.TimeStamp == lastWriteTime) 
-                    {
-                        // We've already computed and cached the info for this reference.
-                        return compilation;
-                    }
-
-                    compilation = compilation ?? await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    if (assembly != null)
-                    {
-                        var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, cancellationToken).ConfigureAwait(false);
-                        metadataInfo = metadataInfo ?? new MetadataInfo(lastWriteTime, info, new HashSet<ProjectId>());
-
-                        // Keep track that this dll is referenced by this project.
-                        metadataInfo.ReferencingProjects.Add(project.Id);
-
-                        _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
-                    }
+                    return;
                 }
 
-                return compilation;
+                DateTime lastWriteTime;
+                if (!TryGetLastWriteTime(key, out lastWriteTime))
+                {
+                    // Couldn't get the write time.  Just ignore this reference.
+                    return;
+                }
+
+                MetadataInfo metadataInfo;
+                if (_metadataPathToInfo.TryGetValue(key, out metadataInfo) && metadataInfo.TimeStamp == lastWriteTime)
+                {
+                    // We've already computed and cached the info for this reference.
+                    return;
+                }
+
+                var compilationService = project.LanguageServices.GetService<ICompilationFactoryService>();
+                var compilation = compilationService.CreateCompilation("TempAssembly", compilationService.GetDefaultCompilationOptions())
+                    .WithReferences(reference);
+
+                var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
+                if (assembly == null)
+                {
+                    return;
+                }
+
+                var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                metadataInfo = metadataInfo ?? new MetadataInfo(lastWriteTime, info, new HashSet<ProjectId>());
+
+                // Keep track that this dll is referenced by this project.
+                metadataInfo.ReferencingProjects.Add(project.Id);
+
+                _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
             }
 
             public override void RemoveProject(ProjectId projectId)
             {
-                ProjectInfo tuple;
-                _projectToInfo.TryRemove(projectId, out tuple);
+                ProjectInfo info;
+                _projectToInfo.TryRemove(projectId, out info);
+                _idTolastSeenProject.Remove(projectId);
 
                 RemoveMetadataReferences(projectId);
             }
@@ -231,7 +297,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             {
                 foreach (var kvp in _metadataPathToInfo.ToArray())
                 {
-                    var tuple = kvp.Value;
                     if (kvp.Value.ReferencingProjects.Remove(projectId))
                     {
                         if (kvp.Value.ReferencingProjects.Count == 0)

@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -37,8 +39,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         internal abstract bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
-
-        protected abstract Compilation CreateCompilation(PortableExecutableReference reference);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             var description = reference.GetDescription(semanticModel, node);// this.GetDescription(reference.SearchResult.Symbol, semanticModel, node);
                             if (description != null)
                             {
-                                var action = new MyCodeAction2(description, 
+                                var action = new MyCodeAction(description, 
                                     c => reference.GetOperationsAsync(document, node, placeSystemNamespaceFirst, c));
                                 context.RegisterCodeFix(action, diagnostic);
                             }
@@ -130,21 +130,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
             Project project, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
-            var allSymbolReferences = new List<Reference>();
-            await FindResultsInCurrentProject(project, allSymbolReferences, finder, exact).ConfigureAwait(false);
-            await FindResultsInUnreferencedProjects(projectToAssembly, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
-            await FindResultsInUnreferencedMetadataReferences(referenceToCompilation, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
-            return allSymbolReferences;
+            var allReferences = new List<Reference>();
+
+            // First search the current project to see if any symbols (source or metadata) match the 
+            // search string.
+            await FindResultsInAllProjectSymbolsAsync(project, allReferences, finder, exact).ConfigureAwait(false);
+
+            // Now search unreferenced projects, and see if they have any source symbols that match
+            // the search string.
+            await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+
+            // Finally, check and see if we have any metadata symbols that match the search string.
+            await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+
+            return allReferences;
         }
 
-        private async Task FindResultsInCurrentProject(
+        private async Task FindResultsInAllProjectSymbolsAsync(
             Project project, List<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact)
         {
-            var references = await finder.FindInProjectAndDirectReferencesAsync(project, exact).ConfigureAwait(false);
+            var references = await finder.FindInAllSymbolsInProjectAsync(project, exact).ConfigureAwait(false);
             AddRange(allSymbolReferences, references);
         }
 
-        private async Task FindResultsInUnreferencedProjects(
+        private async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
             Project project, List<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
@@ -162,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // direct references.  i.e. we don't want to search in its metadata references
                 // or in the projects it references itself. We'll be searching those entities
                 // individually.
-                AddRange(allSymbolReferences, await finder.FindInProjectSourceOnlyAsync(projectToAssembly, unreferencedProject, exact: exact).ConfigureAwait(false));
+                AddRange(allSymbolReferences, await finder.FindInSourceSymbolsInProjectAsync(projectToAssembly, unreferencedProject, exact: exact).ConfigureAwait(false));
                 if (allSymbolReferences.Count >= MaxResults)
                 {
                     return;
@@ -170,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private async Task FindResultsInUnreferencedMetadataReferences(
+        private async Task FindResultsInUnreferencedMetadataSymbolsAsync(
             ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
             Project project, List<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact,
             CancellationToken cancellationToken)
@@ -200,14 +209,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             foreach (var reference in newReferences)
             {
-                var compilation = referenceToCompilation.GetOrAdd(reference, CreateCompilation);
+                var compilation = referenceToCompilation.GetOrAdd(reference, r => CreateCompilation(project, r));
 
                 // Ignore netmodules.  First, they're incredibly esoteric and barely used.
                 // Second, the SymbolFinder api doesn't even support searching them. 
                 var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
                 if (assembly != null)
                 {
-                    findTasks.Add(finder.FindInMetadataAsync(project.Solution, assembly, reference, exact));
+                    findTasks.Add(finder.FindInMetadataSymbolsAsync(project.Solution, assembly, reference, exact));
                 }
             }
 
@@ -224,15 +233,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 AddRange(allSymbolReferences, await doneTask.ConfigureAwait(false));
 
                 // If we've got enough, no need to keep searching. 
-                // Note: Should we cancel the existing work?  IMO, no.  These tasks will
-                // cause our indices to be created if necessary.  And that's good for future searches.
-                // If the indices are already created, then searching them should be quick. 
+                // Note: We do not cancel the existing tasks that are still executing.  These tasks will
+                // cause our indices to be created if necessary.  And that's good for future searches which
+                // we will invariably perform.
                 if (allSymbolReferences.Count >= MaxResults)
                 {
                     break;
                 }
             }
         }
+
+        /// <summary>
+        /// Called when when we want to search a metadata reference.  We create a dummy compilation
+        /// containing just that reference and we search that.  That way we can get actual symbols
+        /// returned.
+        /// 
+        /// We don't want to use the project that the reference is actually associated with as 
+        /// getting the compilation for that project may be extremely expensive.  For example,
+        /// in a large solution it may cause us to build an enormous amount of skeleton assemblies.
+        /// </summary>
+        private Compilation CreateCompilation(Project project, PortableExecutableReference reference)
+        {
+            var compilationService = project.LanguageServices.GetService<ICompilationFactoryService>();
+            var compilation = compilationService.CreateCompilation("TempAssembly", compilationService.GetDefaultCompilationOptions());
+            return compilation.WithReferences(reference);
+        }
+
 
         bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference x, PortableExecutableReference y)
         {
@@ -316,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return reference.SymbolResult.Symbol != null;
         }
 
-        private class MyCodeAction2 : CodeAction
+        private class MyCodeAction : CodeAction
         {
             private readonly string _title;
             private readonly Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> _getOperations;
@@ -324,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public override string Title => _title;
             public override string EquivalenceKey => _title;
 
-            public MyCodeAction2(string title, Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> getOperations)
+            public MyCodeAction(string title, Func<CancellationToken, Task<IEnumerable<CodeActionOperation>>> getOperations)
             {
                 _title = title;
                 _getOperations = getOperations;
@@ -333,22 +359,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
                 return _getOperations(cancellationToken);
-            }
-        }
-
-        //private class MyCodeAction : CodeAction.SolutionChangeAction
-        //{
-        //    public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) :
-        //        base(title, createChangedSolution, equivalenceKey: title)
-        //    {
-        //    }
-        //}
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) :
-                base(title, createChangedSolution, equivalenceKey: title)
-            {
             }
         }
     }

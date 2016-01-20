@@ -16,6 +16,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
+        /// <summary>
+        /// SearchScope is used to control where the <see cref="AbstractAddImportCodeFixProvider{TSimpleNameSyntax}"/>
+        /// searches.  We search different scopes in different ways.  For example we use 
+        /// SymbolTreeInfos to search unreferenced projects and metadata dlls.  However,
+        /// for the current project we're editing we defer to the compiler to do the 
+        /// search.
+        /// </summary>
         private abstract class SearchScope
         {
             public readonly bool Exact;
@@ -88,9 +95,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private class ProjectAndDirectReferencesSearchScope : ProjectSearchScope
+        /// <summary>
+        /// SearchScope used for searching *all* the symbols contained within a project/compilation.
+        /// i.e. the symbols created from source *and* symbols from references (both project and
+        /// metadata).
+        /// </summary>
+        private class AllSymbolsProjectSearchScope : ProjectSearchScope
         {
-            public ProjectAndDirectReferencesSearchScope(
+            public AllSymbolsProjectSearchScope(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider, 
                 Project project,
                 bool ignoreCase,
@@ -105,11 +117,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private class ProjectSourceOnlySearchScope : ProjectSearchScope
+        /// <summary>
+        /// SearchScope used for searching *only* the source symbols contained within a project/compilation.
+        /// i.e. symbols from metadata will not be searched.
+        /// </summary>
+        private class SourceSymbolsProjectSearchScope : ProjectSearchScope
         {
             private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> _projectToAssembly;
 
-            public ProjectSourceOnlySearchScope(
+            public SourceSymbolsProjectSearchScope(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
                 Project project, bool ignoreCase, CancellationToken cancellationToken)
@@ -121,9 +137,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
-                var result = await service.TryGetSymbolTreeInfoAsync(_project, cancellationToken).ConfigureAwait(false);
-                if (!result.Item1)
+                var info = await service.TryGetSymbolTreeInfoAsync(_project, cancellationToken).ConfigureAwait(false);
+                if (info == null)
                 {
+                    // Looks like there was nothing in the cache.  Return no results for now.
                     return SpecializedCollections.EmptyEnumerable<ISymbol>();
                 }
 
@@ -132,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // needed.
                 var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
 
-                return await result.Item2.FindAsync(searchQuery, lazyAssembly, cancellationToken).ConfigureAwait(false);
+                return await info.FindAsync(searchQuery, lazyAssembly, cancellationToken).ConfigureAwait(false);
             }
 
             private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)
@@ -146,13 +163,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private class MetadataSearchScope : SearchScope
+        private class MetadataSymbolsSearchScope : SearchScope
         {
             private readonly IAssemblySymbol _assembly;
             private readonly PortableExecutableReference _metadataReference;
             private readonly Solution _solution;
 
-            public MetadataSearchScope(
+            public MetadataSymbolsSearchScope(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 Solution solution,
                 IAssemblySymbol assembly,
@@ -177,13 +194,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
-                var result = await service.TryGetSymbolTreeInfoAsync(_metadataReference, cancellationToken).ConfigureAwait(false);
-                if (!result.Item1)
+                var info = await service.TryGetSymbolTreeInfoAsync(_solution, _assembly, _metadataReference, cancellationToken).ConfigureAwait(false);
+                if (info == null)
                 {
                     return SpecializedCollections.EmptyEnumerable<ISymbol>();
                 }
 
-                return await result.Item2.FindAsync(searchQuery, _assembly, cancellationToken).ConfigureAwait(false);
+                return await info.FindAsync(searchQuery, _assembly, cancellationToken).ConfigureAwait(false);
             }
         }
     }

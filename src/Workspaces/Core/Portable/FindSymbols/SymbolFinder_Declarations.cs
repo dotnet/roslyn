@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (referenceOpt != null)
                 {
-                    var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(solution, assembly, referenceOpt, cancellationToken).ConfigureAwait(false);
+                    var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(solution, assembly, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                     if (info != null)
                     {
                         var symbols = await info.FindAsync(query, assembly, cancellationToken).ConfigureAwait(false);

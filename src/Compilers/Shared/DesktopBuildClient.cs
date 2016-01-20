@@ -124,8 +124,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                     // Check for an already running server
                     var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
-                    Mutex mutexIgnore;
-                    bool wasServerRunning = Mutex.TryOpenExisting(serverMutexName, out mutexIgnore);
+                    bool wasServerRunning = WasServerMutexOpen(serverMutexName);
                     var timeout = wasServerRunning ? TimeOutMsExistingProcess : TimeOutMsNewProcess;
 
                     NamedPipeClientStream pipe = null;
@@ -158,6 +157,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
 
             return Task.FromResult<BuildResponse>(null);
+        }
+
+        internal static bool WasServerMutexOpen(string mutexName)
+        {
+            Mutex mutex;
+            var open = Mutex.TryOpenExisting(mutexName, out mutex);
+            if (open)
+            {
+                mutex.Close();
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
