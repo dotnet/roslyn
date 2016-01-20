@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                 return UpdateSymbolTreeInfoAsync(document.Project, cancellationToken);
             }
-
+            
             public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
             {
                 return UpdateSymbolTreeInfoAsync(project, cancellationToken);
@@ -200,12 +200,17 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                await UpdateReferencesAync(project, cancellationToken).ConfigureAwait(false);
-
+                // Check the semantic version of this project.  The semantic version will change
+                // if any of the source files changed, or if the project version itself changed.
+                // (The latter happens when something happens to the project like metadata 
+                // changing on disk).
                 var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+
                 ProjectInfo projectInfo;
                 if (!_projectToInfo.TryGetValue(project.Id, out projectInfo) || projectInfo.VersionStamp != version)
                 {
+                    await UpdateReferencesAync(project, cancellationToken).ConfigureAwait(false);
+
                     var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
                     projectInfo = new ProjectInfo(version, info);
                     _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
