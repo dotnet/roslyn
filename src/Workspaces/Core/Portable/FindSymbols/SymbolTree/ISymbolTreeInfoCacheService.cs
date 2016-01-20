@@ -7,7 +7,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 {
     internal interface ISymbolTreeInfoCacheService : IWorkspaceService
     {
-        Task<ValueTuple<bool, SymbolTreeInfo>> TryGetSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken);
-        Task<ValueTuple<bool, SymbolTreeInfo>> TryGetSymbolTreeInfoAsync(PortableExecutableReference reference, CancellationToken cancellationToken);
+        /// <summary>
+        /// Returns null if the info cannot be retrieved from the cache.
+        /// </summary>
+        Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Returns null if the info cannot be retrieved from the cache.
+        /// </summary>
+        Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(Solution solution, IAssemblySymbol assembly, PortableExecutableReference reference, CancellationToken cancellationToken);
     }
 }

@@ -109,8 +109,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
-                var result = await service.TryGetSymbolTreeInfoAsync(_project, cancellationToken).ConfigureAwait(false);
-                if (!result.Item1)
+                var info = await service.TryGetSymbolTreeInfoAsync(_project, cancellationToken).ConfigureAwait(false);
+                if (info == null)
                 {
                     return SpecializedCollections.EmptyEnumerable<ISymbol>();
                 }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // needed.
                 var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
 
-                return await result.Item2.FindAsync(searchQuery, lazyAssembly, cancellationToken).ConfigureAwait(false);
+                return await info.FindAsync(searchQuery, lazyAssembly, cancellationToken).ConfigureAwait(false);
             }
 
             private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)
@@ -163,13 +163,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
-                var result = await service.TryGetSymbolTreeInfoAsync(_metadataReference, cancellationToken).ConfigureAwait(false);
-                if (!result.Item1)
+                var info = await service.TryGetSymbolTreeInfoAsync(_solution, _assembly, _metadataReference, cancellationToken).ConfigureAwait(false);
+                if (info == null)
                 {
                     return SpecializedCollections.EmptyEnumerable<ISymbol>();
                 }
 
-                return await result.Item2.FindAsync(searchQuery, _assembly, cancellationToken).ConfigureAwait(false);
+                return await info.FindAsync(searchQuery, _assembly, cancellationToken).ConfigureAwait(false);
             }
         }
     }

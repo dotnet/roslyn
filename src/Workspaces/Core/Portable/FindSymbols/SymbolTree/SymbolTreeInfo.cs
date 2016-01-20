@@ -236,7 +236,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// this gives you SymbolTreeInfo for a metadata
         /// </summary>
-        public static async Task<SymbolTreeInfo> TryGetInfoForMetadataAssemblyAsync(Solution solution, IAssemblySymbol assembly, PortableExecutableReference reference, CancellationToken cancellationToken)
+        public static async Task<SymbolTreeInfo> TryGetInfoForMetadataAssemblyAsync(
+            Solution solution,
+            IAssemblySymbol assembly,
+            PortableExecutableReference reference, 
+            bool loadOnly,
+            CancellationToken cancellationToken)
         {
             var metadata = assembly.GetMetadata();
             if (metadata == null)
@@ -257,7 +262,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return info;
                 }
 
-                info = await LoadOrCreateAsync(solution, assembly, reference.FilePath, cancellationToken).ConfigureAwait(false);
+                info = await LoadOrCreateAsync(solution, assembly, reference.FilePath, loadOnly, cancellationToken).ConfigureAwait(false);
+                if (info == null && loadOnly)
+                {
+                    return null;
+                }
+
                 return s_metadataIdToInfo.GetValue(metadata.Id, _ => info);
             }
         }
@@ -267,7 +277,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            return await LoadOrCreateAsync(project.Solution, compilation.Assembly, project.FilePath, cancellationToken).ConfigureAwait(false);
+            return await LoadOrCreateAsync(
+                project.Solution, compilation.Assembly, project.FilePath, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         internal static SymbolTreeInfo Create(VersionStamp version, IAssemblySymbol assembly, CancellationToken cancellationToken)

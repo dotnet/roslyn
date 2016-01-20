@@ -97,7 +97,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public Task<ValueTuple<bool, SymbolTreeInfo>> TryGetSymbolTreeInfoAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
+            public async Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(
+                Solution solution,
+                IAssemblySymbol assembly,
+                PortableExecutableReference reference,
+                CancellationToken cancellationToken)
             {
                 var key = GetReferenceKey(reference);
                 if (key != null)
@@ -108,15 +112,21 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                         DateTime writeTime;
                         if (TryGetLastWriteTime(key, out writeTime) && writeTime == metadataInfo.TimeStamp)
                         {
-                            return Task.FromResult(ValueTuple.Create(true, metadataInfo.SymbolTreeInfo));
+                            return metadataInfo.SymbolTreeInfo;
                         }
                     }
                 }
 
-                return Task.FromResult(default(ValueTuple<bool, SymbolTreeInfo>));
+                // If we didn't have it in our cache, see if we can load it from disk.
+                // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
+                // try to create the metadata.
+                var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(
+                    solution, assembly, reference, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return info;
             }
 
-            public async Task<ValueTuple<bool, SymbolTreeInfo>> TryGetSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
+            public async Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(
+                Project project, CancellationToken cancellationToken)
             {
                 ProjectInfo projectInfo;
                 if (_projectToInfo.TryGetValue(project.Id, out projectInfo))
@@ -124,11 +134,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                     if (version == projectInfo.VersionStamp)
                     {
-                        return ValueTuple.Create(true, projectInfo.SymbolTreeInfo);
+                        return projectInfo.SymbolTreeInfo;
                     }
                 }
 
-                return default(ValueTuple<bool, SymbolTreeInfo>);
+                return null;
             }
         }
 
@@ -206,7 +216,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
                     if (assembly != null)
                     {
-                        var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, cancellationToken).ConfigureAwait(false);
+                        var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                         metadataInfo = metadataInfo ?? new MetadataInfo(lastWriteTime, info, new HashSet<ProjectId>());
 
                         // Keep track that this dll is referenced by this project.
