@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 
         protected async Task CheckResultAsync(string initial, string final, bool specialCaseSystem, CSharpParseOptions options = null)
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(initial))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(initial))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
                 var newRoot = await (await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync();

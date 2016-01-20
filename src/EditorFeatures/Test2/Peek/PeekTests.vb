@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
 
         <WpfFact, WorkItem(827025), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Async Function TestWorksAcrossLanguages() As Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(<Workspace>
+            Using workspace = Await TestWorkspace.CreateAsync(<Workspace>
                                                                                   <Project Language="C#" AssemblyName="Reference" CommonReferences="true">
                                                                                       <Document>public class {|Identifier:TestClass|} { }</Document>
                                                                                   </Project>
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
 
         <WpfFact, WorkItem(824336), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Async Function TestPeekDefinitionWhenInvokedOnLiteral() As Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(<Workspace>
+            Using workspace = Await TestWorkspace.CreateAsync(<Workspace>
                                                                                   <Project Language="C#" CommonReferences="true">
                                                                                       <Document>class C { string s = $$"Foo"; }</Document>
                                                                                   </Project>
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
 
         <WpfFact, WorkItem(824331), WorkItem(820289), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Async Function TestPeekDefinitionWhenExtensionMethodFromMetadata() As Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(<Workspace>
+            Using workspace = Await TestWorkspace.CreateAsync(<Workspace>
                                                                                   <Project Language="C#" CommonReferences="true">
                                                                                       <Document>
                                                                                using System.Linq;
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
 
         <WpfFact, WorkItem(819660), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Async Function TestPeekDefinitionFromVisualBasicMetadataAsSource() As Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(<Workspace>
+            Using workspace = Await TestWorkspace.CreateAsync(<Workspace>
                                                                                   <Project Language="Visual Basic" CommonReferences="true">
                                                                                       <Document><![CDATA[<System.$$Serializable()>
 Class AA
@@ -101,7 +101,7 @@ End Class
 
         <WpfFact, WorkItem(819602), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Async Function TestPeekDefinitionOnParamNameXmlDocComment() As Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(<Workspace>
+            Using workspace = Await TestWorkspace.CreateAsync(<Workspace>
                                                                                   <Project Language="Visual Basic" CommonReferences="true">
                                                                                       <Document><![CDATA[
 Class C
@@ -122,7 +122,7 @@ End Class
 
         <WpfFact, WorkItem(820363), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Async Function TestPeekDefinitionOnLinqVariable() As Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(<Workspace>
+            Using workspace = Await TestWorkspace.CreateAsync(<Workspace>
                                                                                   <Project Language="Visual Basic" CommonReferences="true">
                                                                                       <Document><![CDATA[
 Module M
@@ -173,7 +173,7 @@ End Module
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
@@ -182,9 +182,9 @@ End Module
 
         End Function
 
-        Private Async Function GetPeekResultCollectionAsync(workspace As XElement) As Task(Of PeekResultCollection)
-            Using testWorkspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspace)
-                Return GetPeekResultCollection(testWorkspace)
+        Private Async Function GetPeekResultCollectionAsync(element As XElement) As Task(Of PeekResultCollection)
+            Using workspace = Await TestWorkspace.CreateAsync(element)
+                Return GetPeekResultCollection(workspace)
             End Using
         End Function
 

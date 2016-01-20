@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
-    public partial class TestWorkspaceFactory
+    public partial class TestWorkspace
     {
         protected static XElement CreateWorkspaceElement(
             params XElement[] projectElements)

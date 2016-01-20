@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                 leftExpressionType = semanticInfo.Type
             End If
 
-            Return leftExpressionType IsNot Nothing AndAlso method.ReduceExtensionMethod(leftExpressionType) IsNot Nothing
+            Return IsViableExtensionMethod(method, leftExpressionType)
         End Function
 
         Friend Overrides Function IsViableField(field As IFieldSymbol, expression As SyntaxNode, semanticModel As SemanticModel, syntaxFacts As ISyntaxFactsService, cancellationToken As CancellationToken) As Boolean

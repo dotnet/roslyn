@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim snapshot = workspace.CurrentSolution
                 Dim Type = (Await GetProject(snapshot, "CSharpAssembly").GetCompilationAsync()).GlobalNamespace.GetTypeMembers("CSClass").Single()
 
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim snapshot = workspace.CurrentSolution
                 Dim Type = (Await GetProject(snapshot, "VBAssembly").GetCompilationAsync()).GlobalNamespace.GetTypeMembers("VBClass").Single()
 
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim compilation = Await GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync()
                 Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
 
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim compilation = Await GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync()
                 Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
 
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim compilation = Await GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync()
                 Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
 
