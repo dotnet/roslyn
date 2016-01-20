@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var info = await service.TryGetSymbolTreeInfoAsync(_project, cancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
+                    // Looks like there was nothing in the cache.  Return no results for now.
                     return SpecializedCollections.EmptyEnumerable<ISymbol>();
                 }
 
