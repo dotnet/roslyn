@@ -106,15 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Building Project.
-        /// </summary>
-        internal static string BuildingProject {
-            get {
-                return ResourceManager.GetString("BuildingProject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to C#/VB Build Table Data Source.
         /// </summary>
         internal static string BuildTableSourceName {
@@ -999,15 +990,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string RemoveSuppressMultipleOccurrences {
             get {
                 return ResourceManager.GetString("RemoveSuppressMultipleOccurrences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Resetting Interactive.
-        /// </summary>
-        internal static string ResettingInteractive {
-            get {
-                return ResourceManager.GetString("ResettingInteractive", resourceCulture);
             }
         }
         
