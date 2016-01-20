@@ -88,7 +88,7 @@ namespace GitMergeBot
             // pullRequest could be null if we are running in debug mode.
             if (pullRequest != null)
             {
-                await CommentOnIssue(_options.SourceUser, _options.RepoName, pullRequest.Number, "@dotnet-bot test vsi please");
+                await _client.Issue.Comment.Create(_options.SourceUser, _options.RepoName, pullRequest.Number, "@dotnet-bot test vsi please");
             }
             return;
         }
@@ -148,20 +148,6 @@ namespace GitMergeBot
             }
 
             return branchName;
-        }
-
-        private async Task CommentOnIssue(string user, string repo, int issueNumber, string message)
-        {
-                var resp = await _client.Connection.Post<string>(
-                    uri: new Uri($"https://api.github.com/repos/{user}/{repo}/issues/{issueNumber}/comments"),
-                    body: $"{{\"body\": \"{message}\"}}",
-                    accepts: "*/*",
-                    contentType: "application/json");
-                var statusCode = resp.HttpResponse.StatusCode;
-                if (statusCode != HttpStatusCode.Created)
-                {
-                    throw new Exception($"Failed commenting on issue {issueNumber} on {user}/{repo} with code {statusCode}");
-                }
         }
 
         /// <summary>
