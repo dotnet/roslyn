@@ -254,9 +254,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 AddRange(allSymbolReferences, await doneTask.ConfigureAwait(false));
 
                 // If we've got enough, no need to keep searching. 
-                // Note: Should we cancel the existing work?  IMO, no.  These tasks will
-                // cause our indices to be created if necessary.  And that's good for future searches.
-                // If the indices are already created, then searching them should be quick. 
+                // Note: We do not cancel the existing tasks that are still executing.  These tasks will
+                // cause our indices to be created if necessary.  And that's good for future searches which
+                // we will invariably perform.
                 if (allSymbolReferences.Count >= MaxResults)
                 {
                     break;
