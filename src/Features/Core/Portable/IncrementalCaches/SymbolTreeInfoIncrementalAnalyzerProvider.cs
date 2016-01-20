@@ -18,6 +18,20 @@ using static Roslyn.Utilities.PortableShim;
 
 namespace Microsoft.CodeAnalysis.IncrementalCaches
 {
+    /// <summary>
+    /// Features like add-using want to be able to quickly search symbol indices for projects and
+    /// metadata.  However, creating those indices can be expensive.  As such, we don't want to
+    /// construct them during the add-using process itself.  Instead, we expose this type as an 
+    /// Incremental-Analyzer to walk our projects/metadata in the background to keep the indices
+    /// up to date.
+    /// 
+    /// We also then export this type as a service that can give back the index for a project or
+    /// metadata dll on request.  If the index has been produced then it will be returned and 
+    /// can be used by add-using.  Otherwise, nothing is returned and no results will be found.
+    /// 
+    /// This means that as the project is being indexed, partial results may be returned.  However
+    /// once it is fully indexed, then total results will be returned.
+    /// </summary>
     [Shared]
     [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host)]
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
