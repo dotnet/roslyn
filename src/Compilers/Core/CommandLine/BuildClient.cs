@@ -72,24 +72,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal RunCompilationResult RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null)
         {
-            var utf8Output = originalArguments.Any(CommandLineParser.IsUtf8Option);
-            if (utf8Output)
-            {
-                // The utf8output option is only valid when we are sending the compiler output to Console.Out.
-                if (textWriter != null && textWriter != Console.Out)
-                {
-                    throw new InvalidOperationException("Cannot provide a custom TextWriter when using /utf8output");
-                }
-
-                return ConsoleUtil.RunWithUtf8Output(utf8Writer => RunCompilationCore(originalArguments, buildPaths, utf8Writer));
-            }
-
             textWriter = textWriter ?? Console.Out;
-            return RunCompilationCore(originalArguments, buildPaths, textWriter);
-        }
 
-        internal RunCompilationResult RunCompilationCore(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter)
-        {
             var args = originalArguments.Select(arg => arg.Trim()).ToArray();
 
             bool hasShared;
@@ -179,8 +163,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
-                    textWriter.Write(completedResponse.Output);
-                    return new RunCompilationResult(completedResponse.ReturnCode, ranOnServer: true);
+                    return ConsoleUtil.RunWithUtf8Output(completedResponse.Utf8Output, textWriter, tw =>
+                    {
+                        tw.Write(completedResponse.Output);
+                        return new RunCompilationResult(completedResponse.ReturnCode, ranOnServer: true);
+                    });
 
                 case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:

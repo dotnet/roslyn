@@ -38,5 +38,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
             }
         }
+
+        internal static T RunWithUtf8Output<T>(bool utf8Output, TextWriter textWriter, Func<TextWriter, T> func)
+        {
+            if (utf8Output)
+            {
+                if (textWriter != Console.Out)
+                {
+                    throw new InvalidOperationException("Utf8Output is only supported when writing to Console.Out");
+                }
+
+                return RunWithUtf8Output(func);
+            }
+
+            return func(textWriter);
+        }
     }
 }

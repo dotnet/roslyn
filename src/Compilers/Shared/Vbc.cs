@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
             var responseFile = Path.Combine(buildPaths.ClientDirectory, VisualBasicCompiler.ResponseFileName);
             var compiler = new Vbc(responseFile, buildPaths, args, analyzerLoader);
-            return compiler.Run(textWriter);
+            return ConsoleUtil.RunWithUtf8Output(compiler.Arguments.Utf8Output, textWriter, tw => compiler.Run(tw));
         }
 
         protected override uint GetSqmAppID()

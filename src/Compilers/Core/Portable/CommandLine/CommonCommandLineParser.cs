@@ -119,19 +119,6 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        internal static bool IsUtf8Option(string arg)
-        {
-            string name;
-            string value;
-            if (!TryParseOption(arg, out name, out value))
-            {
-                return false;
-            }
-
-            var comparer = StringComparer.OrdinalIgnoreCase;
-            return (comparer.Equals("utf8output", name) || comparer.Equals("utf8output+")) && value == null;
-        }
-
         internal static void ParseAndNormalizeFile(
             string unquoted,
             string baseDirectory,
