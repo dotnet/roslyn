@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
 {
     public class UseImplicitTypingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace) => 
+        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace) =>
             new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 new CSharpUseImplicitTypingDiagnosticAnalyzer(), new UseImplicitTypingCodeFixProvider());
 
@@ -31,10 +31,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, true)
             .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, false);
 
-        private IDictionary<OptionKey, object> ImplicitTypingButKeepIntrinsics() =>
+        private IDictionary<OptionKey, object> ImplicitTypingWhereApparentAndForIntrinsics() =>
             Options(CSharpCodeStyleOptions.UseVarWherePossible, false)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, true)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, false);
+            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, true)
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, true);
+
+        private IDictionary<OptionKey, object> ImplicitTypingButKeepIntrinsics() =>
+            Options(CSharpCodeStyleOptions.UseVarWherePossible, true)
+            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, false)
+            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, true);
 
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
@@ -262,7 +267,7 @@ class Program
 }", options: ImplicitTypingEverywhere());
         }
 
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
         public async Task NotOnImplicitConversion()
         {
             await TestMissingAsync(
@@ -271,13 +276,14 @@ class Program
 {
     void Method()
     {
+        int i = int.MaxValue;
+        [|long|] l = i;
     }
 }", options: ImplicitTypingEverywhere());
         }
 
-        // TODO: should we or should we not? also, check boxing cases.
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
-        public async Task NotOnExplicitConversion()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task NotOnBoxingImplicitConversion()
         {
             await TestMissingAsync(
 @"using System;
@@ -285,6 +291,8 @@ class Program
 {
     void Method()
     {
+        int i = int.MaxValue;
+        [|object|] o = i;
     }
 }", options: ImplicitTypingEverywhere());
         }
@@ -314,6 +322,28 @@ class C
     {
         [|int|] i = (i = 20);
     }
+}", options: ImplicitTypingEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task NotOnAssignmentToInterfaceType()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    public void ProcessRead()
+    {
+        [|IInterface|] i = new A();
+    }
+}
+class A : IInterface
+{
+
+}
+interface IInterface
+{
+
 }", options: ImplicitTypingEverywhere());
         }
 
@@ -753,8 +783,410 @@ class C
 }", options: ImplicitTypingEverywhere());
         }
 
-        // TODO: Tests for ConditionalAccessExpression, CheckedExpression, 
-        // assigning to an interface type, await expressions, parenthesized expressions.
-        // TODO: Tests with various options - where apparent, primitive types etc.
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarOnExplicitConversion()
+        {
+            await TestAsync(
+@"using System;
+class Program
+{
+    void Method()
+    {
+        double x = 1234.7;
+        [|int|] a = (int)x;
+    }
+}",
+@"using System;
+class Program
+{
+    void Method()
+    {
+        double x = 1234.7;
+        var a = (int)x;
+    }
+}", options: ImplicitTypingEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarInConditionalAccessExpression()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    static void M()
+    {
+       C obj = new C();
+       [|C|] anotherObj = obj?.Test();
+    }
+    C Test()
+    {
+        return this;
+    }
+}",
+@"using System;
+class C
+{
+    static void M()
+    {
+       C obj = new C();
+       var anotherObj = obj?.Test();
+    }
+    C Test()
+    {
+        return this;
+    }
+}", options: ImplicitTypingEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarInCheckedExpression()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    static void M()
+    {
+       long number1 = int.MaxValue + 20L;
+       [|int|] intNumber = checked((int)number1);
+    }
+}",
+@"using System;
+class C
+{
+    static void M()
+    {
+       long number1 = int.MaxValue + 20L;
+       var intNumber = checked((int)number1);
+    }
+}", options: ImplicitTypingEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarInAwaitExpression()
+        {
+            await TestAsync(
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    public async void ProcessRead()
+    {
+        [|string|] text = await ReadTextAsync(null);
+    }
+
+    private async Task<string> ReadTextAsync(string filePath)
+    {
+        return string.Empty;
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    public async void ProcessRead()
+    {
+        var text = await ReadTextAsync(null);
+    }
+
+    private async Task<string> ReadTextAsync(string filePath)
+    {
+        return string.Empty;
+    }
+}", options: ImplicitTypingEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarInParenthesizedExpression()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void ProcessRead()
+    {
+        [|int|] text = (5);
+    }
+}",
+@"using System;
+class C
+{
+    public void ProcessRead()
+    {
+        var text = (5);
+    }
+}", options: ImplicitTypingEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task DoNotSuggestVarOnIntrinsicTypeWithOption()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void M()
+    {
+        [|int|] s = 5;
+    }
+}", options: ImplicitTypingButKeepIntrinsics());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarWhereTypingIsEvident_DefaultExpression()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        [|C|] text = default(C);
+    }
+}",
+@"using System;
+class C
+{
+    public void Process()
+    {
+        var text = default(C);
+    }
+}", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarWhereTypingIsEvident_Literals()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        [|int|] text = 5;
+    }
+}",
+@"using System;
+class C
+{
+    public void Process()
+    {
+        var text = 5;
+    }
+}", options: ImplicitTypingWhereApparentAndForIntrinsics());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task DoNotSuggestVarWhereTypingIsEvident_Literals()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        [|int|] text = 5;
+    }
+}", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarWhereTypingIsEvident_ObjectCreationExpression()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        [|C|] c = new C();
+    }
+}",
+@"using System;
+class C
+{
+    public void Process()
+    {
+        var c = new C();
+    }
+}", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarWhereTypingIsEvident_CastExpression()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        object o = int.MaxValue;
+        [|int|] i = (int)o;
+    }
+}",
+@"using System;
+class C
+{
+    public void Process()
+    {
+        object o = int.MaxValue;
+        var i = (int)o;
+    }
+}", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarWhereTypingIsEvident_IsExpression()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        A a = new A();
+        [|bool|] s = a is IInterface;
+    }
+}
+class A : IInterface
+{
+
+}
+interface IInterface
+{
+
+}",
+@"using System;
+class C
+{
+    public void Process()
+    {
+        A a = new A();
+        var s = a is IInterface;
+    }
+}
+class A : IInterface
+{
+
+}
+interface IInterface
+{
+
+}", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarWhereTypingIsEvident_AsExpression()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        A a = new A();
+        [|IInterface|] s = a as IInterface;
+    }
+}
+class A : IInterface
+{
+
+}
+interface IInterface
+{
+
+}",
+@"using System;
+class C
+{
+    public void Process()
+    {
+        A a = new A();
+        var s = a as IInterface;
+    }
+}
+class A : IInterface
+{
+
+}
+interface IInterface
+{
+
+}", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarWhereTypingIsEvident_ConversionHelpers()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        [|int|] a = int.Parse(""1"");
+    }
+}",
+@"using System;
+class C
+{
+    public void Process()
+    {
+        var a = int.Parse(""1"");
+    }
+}", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarWhereTypingIsEvident_ConvertToType()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        int integralValue = 12534;
+        [|decimal|] decimalValue = Convert.ToDecimal(integralValue);
+    }
+}",
+@"using System;
+class C
+{
+    public void Process()
+    {
+        int integralValue = 12534;
+        var decimalValue = Convert.ToDecimal(integralValue);
+    }
+}", options: ImplicitTypingWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestVarWhereTypingIsEvident_IConvertibleToType()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    public void Process()
+    {
+        int codePoint = 1067;
+        IConvertible iConv = codePoint;
+        [|char|] ch = iConv.ToChar(null);
+    }
+}",
+@"using System;
+class C
+{
+    public void Process()
+    {
+        int codePoint = 1067;
+        IConvertible iConv = codePoint;
+        var ch = iConv.ToChar(null);
+    }
+}", options: ImplicitTypingWhereApparent());
+        }
     }
 }

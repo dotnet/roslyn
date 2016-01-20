@@ -105,8 +105,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
         /// </returns>
         protected override bool AnalyzeAssignment(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
+            var expression = initializer.Value;
+
             // var cannot be assigned null
-            if (initializer.Value.IsKind(SyntaxKind.NullLiteralExpression))
+            if (expression.IsKind(SyntaxKind.NullLiteralExpression))
             {
                 return false;
             }
@@ -132,15 +134,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             // and filter out implicit conversions. If an implicit conversion (other than identity) exists
             // and if we're replacing the declaration with 'var' we'd be changing the semantics by inferring type of
             // initializer expression and thereby losing the conversion.
-            var conversion = semanticModel.GetConversion(initializer.Value, cancellationToken);
+            var conversion = semanticModel.GetConversion(expression, cancellationToken);
             if (conversion.Exists && conversion.IsImplicit && !conversion.IsIdentity)
             {
                 return false;
             }
 
             // final check to compare type information on both sides of assignment.
-            var initializerTypeInfo = semanticModel.GetTypeInfo(initializer.Value, cancellationToken);
-            return declaredType.Equals(initializerTypeInfo.Type);
+            var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            return declaredType.Equals(initializerType);
         }
     }
 }

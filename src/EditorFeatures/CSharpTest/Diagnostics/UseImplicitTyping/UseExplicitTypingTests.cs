@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, false)
             .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, false);
 
-        private IDictionary<OptionKey, object> ImplicitTypingWhereApparent() =>
-            Options(CSharpCodeStyleOptions.UseVarWherePossible, false)
-            .With(CSharpCodeStyleOptions.UseVarWhenTypeIsApparent, true)
-            .With(CSharpCodeStyleOptions.UseVarForIntrinsicTypes, false);
-
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
             var options = new Dictionary<OptionKey, object>();
@@ -254,33 +249,6 @@ class Product
     public int Price { get; set; }
 }
 ");
-        }
-
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
-        public async Task NotOnImplicitConversion()
-        {
-            await TestMissingAsync(
-@"using System;
-class Program
-{
-    void Method()
-    {
-    }
-}", options: ExplicitTypingEverywhere());
-        }
-
-        // TODO: should we or should we not? also, check boxing cases.
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
-        public async Task NotOnExplicitConversion()
-        {
-            await TestMissingAsync(
-@"using System;
-class Program
-{
-    void Method()
-    {
-    }
-}", options: ExplicitTypingEverywhere());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
@@ -729,7 +697,119 @@ class Program
 }", options: ExplicitTypingEverywhere());
         }
 
-        // TODO: Tests for ConditionalAccessExpression.
-        // TODO: Tests with various options - where apparent, primitive types etc.
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        public async Task SuggestExplicitTypeOnExplicitConversion()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    static void M()
+    {
+        double x = 1234.7;
+        [|var|] a = (int)x;
+    }
+}",
+@"using System;
+class C
+{
+    static void M()
+    {
+        double x = 1234.7;
+        int a = (int)x;
+    }
+}", options: ExplicitTypingEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTyping)]
+        public async Task SuggestExplicitTypeOnConditionalAccessExpression()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    static void M()
+    {
+       C obj = new C();
+       [|var|] anotherObj = obj?.Test();
+    }
+    C Test()
+    {
+        return this;
+    }
+}",
+@"using System;
+class C
+{
+    static void M()
+    {
+       C obj = new C();
+       C anotherObj = obj?.Test();
+    }
+    C Test()
+    {
+        return this;
+    }
+}", options: ExplicitTypingEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestExplicitTypeInCheckedExpression()
+        {
+            await TestAsync(
+@"using System;
+class C
+{
+    static void M()
+    {
+       long number1 = int.MaxValue + 20L;
+       [|var|] intNumber = checked((int)number1);
+    }
+}",
+@"using System;
+class C
+{
+    static void M()
+    {
+       long number1 = int.MaxValue + 20L;
+       int intNumber = checked((int)number1);
+    }
+}", options: ExplicitTypingEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitTyping)]
+        public async Task SuggestExplicitTypeInAwaitExpression()
+        {
+            await TestAsync(
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    public async void ProcessRead()
+    {
+        [|var|] text = await ReadTextAsync(null);
+    }
+
+    private async Task<string> ReadTextAsync(string filePath)
+    {
+        return string.Empty;
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    public async void ProcessRead()
+    {
+        string text = await ReadTextAsync(null);
+    }
+
+    private async Task<string> ReadTextAsync(string filePath)
+    {
+        return string.Empty;
+    }
+}", options: ExplicitTypingEverywhere());
+        }
+
     }
 }

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             // variable declaration cases.
             var variableDeclaration = (VariableDeclarationSyntax)declarationStatement;
             var initializer = variableDeclaration.Variables.Single().Initializer;
-            var initializerExpression = initializer.Value;
+            var initializerExpression = GetInitializerExpression(initializer);
 
             // default(type)
             if (initializerExpression.IsKind(SyntaxKind.DefaultExpression))
@@ -145,6 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypingStyles
             declarationStatement.IsKind(SyntaxKind.VariableDeclaration)
             ? ((VariableDeclarationSyntax)declarationStatement).Variables.Single().Initializer.Value.IsAnyLiteralExpression()
             : false;
+
+        private ExpressionSyntax GetInitializerExpression(EqualsValueClauseSyntax initializer) =>
+            initializer.Value is CheckedExpressionSyntax
+                ? ((CheckedExpressionSyntax)initializer.Value).Expression
+                : initializer.Value;
 
         private bool PossibleConversionMethod(IMethodSymbol methodSymbol, ITypeSymbol declaredType, SemanticModel semanticModel, ExpressionSyntax typeName, CancellationToken cancellationToken)
         {
