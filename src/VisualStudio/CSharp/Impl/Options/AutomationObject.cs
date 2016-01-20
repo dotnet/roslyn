@@ -36,12 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CompletionOptions.TriggerOnTypingLetters, value); }
         }
 
-        public int ClosedFileDiagnostics
-        {
-            get { return GetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic); }
-            set { SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value); }
-        }
-
         public int DisplayLineSeparators
         {
             get { return GetBooleanOption(FeatureOnOffOptions.LineSeparator); }

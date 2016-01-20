@@ -3,7 +3,7 @@
   <!-- Contains a simple typing scenario for Websites (script blocks in markup) -->
   <InitTest>
     <StartTarget DontResetOptions="true" />
-    <EnableClosedFileDiagnostic Enabled="true" Language="C#"/>
+    <EnableFullSolutionAnalysis Enabled="true" />
     <AddProject ProjectName="CSharpWebSite" LanguageName="C# - Web" ProjectTemplate="Website"/>
     <AddItem FileName="Default.aspx" UseCodeSeparation="true" Language="CSharp" />
     <ForceGC/>

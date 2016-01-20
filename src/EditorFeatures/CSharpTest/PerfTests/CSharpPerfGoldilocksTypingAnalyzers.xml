@@ -8,7 +8,7 @@
 <TaoTest xmlns="http://microsoft.com/schemas/VSLanguages/TAO">
   <InitTest>
     <StartTarget DontResetOptions="true" />
-    <EnableClosedFileDiagnostic Enabled="true" Language="C#"/>
+    <EnableFullSolutionAnalysis Enabled="true" />
     <OpenProject ProjectFile="C:\Roslyn\LegacyTest\RealworldProjects\RoslynSolutions\Roslyn-CSharp.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
     <Wait Seconds="60" />
     <AddAnalyzersToSolution CommonAnalyzers="Microsoft.CodeAnalysis.FxCopAnalyzers.dll"

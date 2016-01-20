@@ -3,7 +3,7 @@
 <TaoTest xmlns="http://microsoft.com/schemas/VSLanguages/TAO">
   <InitTest>
     <StartTarget DontResetOptions="true" />
-    <EnableClosedFileDiagnostic Enabled="true" Language="Visual Basic"/>
+    <EnableFullSolutionAnalysis Enabled="true" />
     <AddProject ProjectName="TestProj" LanguageName="Visual Basic"  ProjectTemplate="None"/>
     <!-- This file is the same one the AusGov RPS test opens. -->
     <AddExistingItem ProjectName="TestProj" FileName="PerfTests\Sources\IndividualDS.vb" />

@@ -43,8 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         CSharpFormattingOptions.SpacingFeatureName,
         CSharpFormattingOptions.WrappingFeatureName,
         FormattingOptions.InternalTabFeatureName,
-        FeatureOnOffOptions.OptionName,
-        ServiceFeatureOnOffOptions.OptionName), Shared]
+        FeatureOnOffOptions.OptionName), Shared]
     internal sealed class CSharpSettingsManagerOptionSerializer : AbstractSettingsManagerOptionSerializer
     {
         [ImportingConstructor]
@@ -86,7 +85,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                     typeof(SimplificationOptions),
                     typeof(CSharpCodeStyleOptions),
                     typeof(ExtractMethodOptions),
-                    typeof(ServiceFeatureOnOffOptions),
                     typeof(CSharpFormattingOptions)
                 };
 
@@ -123,7 +121,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                     option == CompletionOptions.TriggerOnTypingLetters ||
                     option.Feature == SimplificationOptions.PerLanguageFeatureName ||
                     option.Feature == ExtractMethodOptions.FeatureName ||
-                    option.Feature == ServiceFeatureOnOffOptions.OptionName ||
                     option.Feature == FormattingOptions.InternalTabFeatureName)
                 {
                     return true;
