@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <param name="implicitReferenceLocations">All implicit reference locations.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A list of implicit conflicts.</returns>
-        IEnumerable<Location> ComputeImplicitReferenceConflicts(
+        Task<IEnumerable<Location>> ComputeImplicitReferenceConflictsAsync(
             ISymbol renameSymbol,
             ISymbol renamedSymbol,
             IEnumerable<ReferenceLocation> implicitReferenceLocations,

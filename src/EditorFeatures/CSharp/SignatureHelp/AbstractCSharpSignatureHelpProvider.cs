@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
 
         protected IList<SymbolDisplayPart> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
-            if (method.IsAwaitable(semanticModel, position))
+            if (method.IsAwaitableNonDynamic(semanticModel, position))
             {
                 return method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position);
             }

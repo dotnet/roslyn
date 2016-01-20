@@ -14,26 +14,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterNamespace() As Threading.Tasks.Task
             Await VerifyStatementEndConstructAppliedAsync(
-                before:={"Namespace foo"},
+                before:="Namespace foo",
                 beforeCaret:={0, -1},
-                after:={"Namespace foo",
-                        "",
-                        "End Namespace"},
+                after:="Namespace foo
+
+End Namespace",
                 afterCaret:={1, -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function TestApplyAfterNestedNamespace() As Threading.Tasks.Task
             Await VerifyStatementEndConstructAppliedAsync(
-                before:={"Namespace foo",
-                         "Namespace bar",
-                         "End Namespace"},
+                before:="Namespace foo
+Namespace bar
+End Namespace",
                 beforeCaret:={1, -1},
-                after:={"Namespace foo",
-                        "Namespace bar",
-                        "",
-                        "End Namespace",
-                        "End Namespace"},
+                after:="Namespace foo
+Namespace bar
+
+End Namespace
+End Namespace",
                 afterCaret:={2, -1})
         End Function
 
@@ -41,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyRecommit() As Threading.Tasks.Task
             Await VerifyStatementEndConstructNotAppliedAsync(
-                text:={"NameSpace Bar",
-                       "End Namespace"},
+                text:="NameSpace Bar
+End Namespace",
                 caret:={0, -1})
         End Function
 
@@ -50,11 +50,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyInvalidNSInMethod() As Threading.Tasks.Task
             Await VerifyStatementEndConstructNotAppliedAsync(
-                text:={"Class C",
-                       "    Sub S",
-                       "        NameSpace T",
-                       "    End Sub",
-                       "End Class"},
+                text:="Class C
+    Sub S
+        NameSpace T
+    End Sub
+End Class",
                 caret:={2, -1})
         End Function
 
@@ -62,9 +62,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyInvalidNSInModule() As Threading.Tasks.Task
             Await VerifyStatementEndConstructNotAppliedAsync(
-                text:={"Module M",
-                       "    Namespace n",
-                       "End Module"},
+                text:="Module M
+    Namespace n
+End Module",
                 caret:={1, -1})
         End Function
     End Class

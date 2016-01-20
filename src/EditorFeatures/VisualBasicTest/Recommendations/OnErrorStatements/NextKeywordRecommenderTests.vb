@@ -1,60 +1,53 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class NextKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NextAfterOnErrorResume()
-            VerifyRecommendationsAreExactly(<MethodBody>On Error Resume |</MethodBody>, "Next")
-        End Sub
+        Public Async Function NextAfterOnErrorResumeTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>On Error Resume |</MethodBody>, "Next")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NextAfterResumeStatement()
-            VerifyRecommendationsAreExactly(<MethodBody>Resume |</MethodBody>, "Next")
-        End Sub
+        Public Async Function NextAfterResumeStatementTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>Resume |</MethodBody>, "Next")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NextNotInLambdaAfterResume()
+        Public Async Function NextNotInLambdaAfterResumeTest() As Task
             ' On Error statements are never allowed within lambdas
-            VerifyRecommendationsMissing(<MethodBody>
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Dim x = Sub()
             Resume |
 End Sub</MethodBody>, "Next")
-        End Sub
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NextNotInLambdaAfterOnErrorResume()
+        Public Async Function NextNotInLambdaAfterOnErrorResumeTest() As Task
             ' On Error statements are never allowed within lambdas
-            VerifyRecommendationsMissing(<MethodBody>
+            Await VerifyRecommendationsMissingAsync(<MethodBody>
 Dim x = Sub()
             On Error Resume |
 End Sub</MethodBody>, "Next")
-        End Sub
+        End Function
 
         <WorkItem(530953)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterEol()
-            VerifyRecommendationsMissing(
+        Public Async Function NotAfterEolTest() As Task
+            Await VerifyRecommendationsMissingAsync(
 <MethodBody>On Error Resume 
 |</MethodBody>, "Next")
-        End Sub
+        End Function
 
         <WorkItem(530953)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterExplicitLineContinuation()
-            VerifyRecommendationsContain(
+        Public Async Function AfterExplicitLineContinuationTest() As Task
+            Await VerifyRecommendationsContainAsync(
 <MethodBody>On Error Resume _
 |</MethodBody>, "Next")
-        End Sub
+        End Function
     End Class
 End Namespace

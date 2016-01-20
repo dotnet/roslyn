@@ -1,44 +1,41 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations.ModifierKeywordRecommenderTests
     Public Class InsideNamespaceDeclaration
 
         ''' <summary>
         ''' Declarations outside of any namespace in the file are considered to be in the project's root namespace
         ''' </summary>
-        Private Sub VerifyContains(ParamArray recommendations As String())
-            VerifyRecommendationsContain(<NamespaceDeclaration>|</NamespaceDeclaration>, recommendations)
-            VerifyRecommendationsContain(<File>|</File>, recommendations)
-            VerifyRecommendationsContain(
+        Private Async Function VerifyContainsAsync(ParamArray recommendations As String()) As Task
+            Await VerifyRecommendationsContainAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, recommendations)
+            Await VerifyRecommendationsContainAsync(<File>|</File>, recommendations)
+            Await VerifyRecommendationsContainAsync(
 <File>Imports System
 |</File>, recommendations)
-        End Sub
+        End Function
 
         ''' <summary>
         ''' Declarations outside of any namespace in the file are considered to be in the project's root namespace
         ''' </summary>
-        Private Sub VerifyMissing(ParamArray recommendations As String())
-            VerifyRecommendationsMissing(<NamespaceDeclaration>|</NamespaceDeclaration>, recommendations)
-            VerifyRecommendationsMissing(<File>|</File>, recommendations)
-            VerifyRecommendationsMissing(
+        Private Async Function VerifyMissingAsync(ParamArray recommendations As String()) As Task
+            Await VerifyRecommendationsMissingAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, recommendations)
+            Await VerifyRecommendationsMissingAsync(<File>|</File>, recommendations)
+            Await VerifyRecommendationsMissingAsync(
 <File>Imports System
 |</File>, recommendations)
-        End Sub
+        End Function
 
         <WorkItem(530100)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AccessibilityModifiers()
-            VerifyContains("Public", "Friend")
-            VerifyMissing("Protected", "Private", "Protected Friend")
-        End Sub
+        Public Async Function AccessibilityModifiersTest() As Task
+            Await VerifyContainsAsync("Public", "Friend")
+            Await VerifyMissingAsync("Protected", "Private", "Protected Friend")
+        End Function
 
         <WorkItem(530100)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassModifiers()
-            VerifyContains("MustInherit", "NotInheritable", "Partial")
-        End Sub
+        Public Async Function ClassModifiersTest() As Task
+            Await VerifyContainsAsync("MustInherit", "NotInheritable", "Partial")
+        End Function
     End Class
 End Namespace

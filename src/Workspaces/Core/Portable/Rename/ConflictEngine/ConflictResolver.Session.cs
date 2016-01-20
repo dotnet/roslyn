@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     if (IsRenameValid(conflictResolution, renamedSymbolInNewSolution))
                     {
-                        AddImplicitConflicts(
+                        await AddImplicitConflictsAsync(
                             renamedSymbolInNewSolution,
                             _renameLocationSet.Symbol,
                             _renameLocationSet.ImplicitLocations,
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             _renameSymbolDeclarationLocation,
                             renamedSpansTracker.GetAdjustedPosition(_renameSymbolDeclarationLocation.SourceSpan.Start, _documentIdOfRenameSymbolDeclaration),
                             conflictResolution,
-                            _cancellationToken);
+                            _cancellationToken).ConfigureAwait(false);
                     }
 
                     foreach (var relatedLocation in conflictResolution.RelatedLocations)

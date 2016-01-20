@@ -1,26 +1,21 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class DelegateSubFunctionKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub SubAndFunctionAfterDelegate()
-            VerifyRecommendationsAreExactly(<ClassDeclaration>Delegate |</ClassDeclaration>, "Sub", "Function")
-        End Sub
+        Public Async Function SubAndFunctionAfterDelegateTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Delegate |</ClassDeclaration>, "Sub", "Function")
+        End Function
 
         <WorkItem(530953)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterExplicitLineContinuation()
-            VerifyRecommendationsAreExactly(
+        Public Async Function AfterExplicitLineContinuationTest() As Task
+            Await VerifyRecommendationsAreExactlyAsync(
 <ClassDeclaration>Delegate _
 |</ClassDeclaration>, "Sub", "Function")
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                             return completedResponse.ReturnCode;
                         });
 
+                case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
                     return RunLocalCompilation(arguments, buildPaths.ClientDirectory, buildPaths.SdkDirectory);
 

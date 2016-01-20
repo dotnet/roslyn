@@ -24,9 +24,9 @@ governing permissions and limitations under the License.
 -->
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="ConvertToAutoPropertyRefactoring.Microsoft.a95ab02d-0f23-4c9a-a8d2-b29692654076" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
-    <DisplayName>Convert to Auto Property for C#</DisplayName>
-    <Description xml:space="preserve">This is a sample C# code refactoring that converts properties to auto-implemented properties using the .NET Compiler Platform ("Roslyn") SDK Preview.</Description>
+    <Identity Id="RemoveByValVB.Microsoft.a95ab02d-0f23-4c9a-a8d2-b29692654076" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
+    <DisplayName>Remove ByVal for Visual Basic</DisplayName>
+    <Description xml:space="preserve">This is a sample code refactoring extension for the Microsoft Roslyn CTP.</Description>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="14.0" />
@@ -34,7 +34,5 @@ governing permissions and limitations under the License.
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
   </Dependencies>
-  <Assets>
-    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="ConvertToAutoPropertyCS.dll" />
-  </Assets>
+  <Assets></Assets>
 </PackageManifest>

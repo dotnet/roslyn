@@ -592,6 +592,7 @@
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.UnitTests" />
     <Import Include="Roslyn.Test.Utilities" />
     <Import Include="Roslyn.Utilities" />
+    <Import Include="System.Threading.Tasks" />
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>

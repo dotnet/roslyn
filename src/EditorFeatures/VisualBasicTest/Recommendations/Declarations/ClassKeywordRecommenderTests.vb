@@ -1,23 +1,18 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class ClassKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>|</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>|</ClassDeclaration>, "Class")
+        End Function
 
         <Fact, WorkItem(530727)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassFollowsClass()
+        Public Async Function ClassFollowsClassTest() As Task
             Dim code =
 <File>
 Class C1
@@ -25,12 +20,12 @@ Class C1
 End Class
 |
 </File>
-            VerifyRecommendationsContain(code, "Class")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Class")
+        End Function
 
         <Fact, WorkItem(530727)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassPrecedesClass()
+        Public Async Function ClassPrecedesClassTest() As Task
             Dim code =
 <File>
 |
@@ -38,237 +33,237 @@ Class C1
 
 End Class
 </File>
-            VerifyRecommendationsContain(code, "Class")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassFollowsDelegateDeclaration()
+        Public Async Function ClassFollowsDelegateDeclarationTest() As Task
             Dim code =
 <File>
 Delegate Sub DelegateType()
 |
 </File>
-            VerifyRecommendationsContain(code, "Class")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotInMethodDeclaration()
-            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Class")
-        End Sub
+        Public Async Function ClassNotInMethodDeclarationTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassInNamespace()
-            VerifyRecommendationsContain(<NamespaceDeclaration>|</NamespaceDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassInNamespaceTest() As Task
+            Await VerifyRecommendationsContainAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassInInterface()
-            VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassInInterfaceTest() As Task
+            Await VerifyRecommendationsContainAsync(<InterfaceDeclaration>|</InterfaceDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotInEnum()
-            VerifyRecommendationsMissing(<EnumDeclaration>|</EnumDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotInEnumTest() As Task
+            Await VerifyRecommendationsMissingAsync(<EnumDeclaration>|</EnumDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassInStructure()
-            VerifyRecommendationsContain(<StructureDeclaration>|</StructureDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassInStructureTest() As Task
+            Await VerifyRecommendationsContainAsync(<StructureDeclaration>|</StructureDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassInModule()
-            VerifyRecommendationsContain(<ModuleDeclaration>|</ModuleDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassInModuleTest() As Task
+            Await VerifyRecommendationsContainAsync(<ModuleDeclaration>|</ModuleDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassAfterPartial()
-            VerifyRecommendationsContain(<File>Partial |</File>, "Class")
-        End Sub
+        Public Async Function ClassAfterPartialTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>Partial |</File>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassAfterPublicInFile()
-            VerifyRecommendationsContain(<File>Public |</File>, "Class")
-        End Sub
+        Public Async Function ClassAfterPublicInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>Public |</File>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassAfterPublicInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Public |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassAfterPublicInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassMissingAfterProtectedInFile()
-            VerifyRecommendationsMissing(<File>Protected |</File>, "Class")
-        End Sub
+        Public Async Function ClassMissingAfterProtectedInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Protected |</File>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassExistsAfterProtectedInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Protected |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassExistsAfterProtectedInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Protected |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassAfterFriendInFile()
-            VerifyRecommendationsContain(<File>Friend |</File>, "Class")
-        End Sub
+        Public Async Function ClassAfterFriendInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>Friend |</File>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassAfterFriendInClassDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Friend |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassAfterFriendInClassDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Friend |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterPrivateInFile()
-            VerifyRecommendationsMissing(<File>Private |</File>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterPrivateInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Private |</File>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassAfterPrivateInNestedClass()
-            VerifyRecommendationsContain(<ClassDeclaration>Private |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassAfterPrivateInNestedClassTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Private |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterPrivateInNamespace()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function ClassNotAfterPrivateInNamespaceTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 Namespace Foo
     Private |
 End Namespace</File>, "Class")
-        End Sub
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterProtectedFriendInFile()
-            VerifyRecommendationsMissing(<File>Protected Friend |</File>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterProtectedFriendInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>Protected Friend |</File>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassAfterProtectedFriendInClass()
-            VerifyRecommendationsContain(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassAfterProtectedFriendInClassTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Protected Friend |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterOverloads()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overloads |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterOverloadsTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overloads |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overrides |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overrides |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterOverridable()
-            VerifyRecommendationsMissing(<ClassDeclaration>Overridable |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterOverridableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Overridable |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterNotOverridable()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterNotOverridableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterMustOverride()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterMustOverrideTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterMustOverrideOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterMustOverrideOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>MustOverride Overrides |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterNotOverridableOverrides()
-            VerifyRecommendationsMissing(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterNotOverridableOverridesTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>NotOverridable Overrides |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterConst()
-            VerifyRecommendationsMissing(<ClassDeclaration>Const |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterConstTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Const |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterDefault()
-            VerifyRecommendationsMissing(<ClassDeclaration>Default |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterDefaultTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Default |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassAfterMustInherit()
-            VerifyRecommendationsContain(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassAfterMustInheritTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>MustInherit |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassAfterNotInheritable()
-            VerifyRecommendationsContain(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassAfterNotInheritableTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>NotInheritable |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterNarrowing()
-            VerifyRecommendationsMissing(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterNarrowingTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Narrowing |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterWidening()
-            VerifyRecommendationsMissing(<ClassDeclaration>Widening |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterWideningTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Widening |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterReadOnly()
-            VerifyRecommendationsMissing(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterReadOnlyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>ReadOnly |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterWriteOnly()
-            VerifyRecommendationsMissing(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterWriteOnlyTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>WriteOnly |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterCustom()
-            VerifyRecommendationsMissing(<ClassDeclaration>Custom |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterCustomTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Custom |</ClassDeclaration>, "Class")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ClassNotAfterShared()
-            VerifyRecommendationsMissing(<ClassDeclaration>Shared |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function ClassNotAfterSharedTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Shared |</ClassDeclaration>, "Class")
+        End Function
 
         <WorkItem(547254)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterAsync()
-            VerifyRecommendationsMissing(<ClassDeclaration>Async |</ClassDeclaration>, "Class")
-        End Sub
+        Public Async Function AfterAsyncTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Async |</ClassDeclaration>, "Class")
+        End Function
     End Class
 End Namespace

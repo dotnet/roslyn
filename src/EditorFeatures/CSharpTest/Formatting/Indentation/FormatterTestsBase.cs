@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             TextSpan span = default(TextSpan))
         {
             // create tree service
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code))
             {
                 if (baseIndentation.HasValue)
                 {
