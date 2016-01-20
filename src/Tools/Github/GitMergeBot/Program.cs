@@ -88,7 +88,20 @@ namespace GitMergeBot
             // pullRequest could be null if we are running in debug mode.
             if (pullRequest != null)
             {
-                await _client.Issue.Comment.Create(_options.SourceUser, _options.RepoName, pullRequest.Number, "@dotnet-bot test vsi please");
+                // Nasty retry-loop because I suspect that github has a race condition where it says that 
+                // A PR has been created while it doesn't let us comment on it.
+                int retries = 0;
+                while (true) {
+                    try {
+                        await _client.Issue.Comment.Create(_options.DestinationUser, _options.RepoName, pullRequest.Number, "@dotnet-bot test vsi please");
+                        break;
+                    }
+                    catch (NotFoundException) when (retries < 10)
+                    {
+                        retries += 1;
+                        await Task.Delay(2000);
+                    }
+                }
             }
             return;
         }
