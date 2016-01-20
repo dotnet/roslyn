@@ -266,6 +266,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             {
                 ProjectInfo info;
                 _projectToInfo.TryRemove(projectId, out info);
+                _idTolastSeenProject.Remove(projectId);
 
                 RemoveMetadataReferences(projectId);
             }
