@@ -36,6 +36,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         internal abstract bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
 
+        /// <summary>
+        /// Called when when we want to search a metadata reference.  We create a dummy compilation
+        /// containing just that reference and we search that.  That way we can get actual symbols
+        /// returned.
+        /// 
+        /// We don't want to use the project that the reference is actually associated with as 
+        /// getting the compilation for that project may be extremely expensive.  For example,
+        /// in a large solution it may cause us to build an enormous amount of skeleton assemblies.
+        /// </summary>
         protected abstract Compilation CreateCompilation(PortableExecutableReference reference);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
