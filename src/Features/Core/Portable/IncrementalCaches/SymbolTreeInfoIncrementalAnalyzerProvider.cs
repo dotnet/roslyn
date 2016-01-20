@@ -274,7 +274,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             {
                 foreach (var kvp in _metadataPathToInfo.ToArray())
                 {
-                    var tuple = kvp.Value;
                     if (kvp.Value.ReferencingProjects.Remove(projectId))
                     {
                         if (kvp.Value.ReferencingProjects.Count == 0)
