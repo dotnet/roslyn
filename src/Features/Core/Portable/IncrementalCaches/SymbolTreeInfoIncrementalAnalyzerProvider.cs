@@ -214,20 +214,34 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 ProjectInfo projectInfo;
                 if (!_projectToInfo.TryGetValue(project.Id, out projectInfo) || projectInfo.VersionStamp != version)
                 {
-                    await UpdateReferencesAync(project, cancellationToken).ConfigureAwait(false);
+                    // Update the symbol tree infos for metadata and source in parallel.
+                    var referencesTask = UpdateReferencesAync(project, cancellationToken);
+                    var projectTask = UpdateProjectSymbolTreeInfo(project, version, projectInfo, cancellationToken);
 
-                    var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
-                    projectInfo = new ProjectInfo(version, info);
+                    await Task.WhenAll(referencesTask, projectTask).ConfigureAwait(false);
+                    projectInfo = await projectTask.ConfigureAwait(false);
+
+                    // Mark that we're up to date with this project.  Future calls with the same 
+                    // semantic version can bail out immediately.
                     _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
                 }
             }
 
-            private async Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
+            private async Task<ProjectInfo> UpdateProjectSymbolTreeInfo(Project project, VersionStamp version, ProjectInfo projectInfo, CancellationToken cancellationToken)
             {
-                foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
-                {
-                    await UpdateReferenceAsync(project, reference, cancellationToken).ConfigureAwait(false);
-                }
+                var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
+                projectInfo = new ProjectInfo(version, info);
+                return projectInfo;
+            }
+
+            private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
+            {
+                // Process all metadata references in parallel.
+                var tasks = project.MetadataReferences.OfType<PortableExecutableReference>()
+                                   .Select(r => UpdateReferenceAsync(project, r, cancellationToken))
+                                   .ToArray();
+
+                return Task.WhenAll(tasks);
             }
 
             private async Task UpdateReferenceAsync(
