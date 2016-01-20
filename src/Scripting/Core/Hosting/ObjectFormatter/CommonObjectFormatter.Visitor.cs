@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                                     _memberDisplayFormat = MemberDisplayFormat.Hidden;
                                     _primitiveOptions = new CommonPrimitiveFormatterOptions(
-                                        _primitiveOptions.UseHexadecimalNumbers, 
+                                        _primitiveOptions.NumberRadix, 
                                         _primitiveOptions.IncludeCharacterCodePoints, 
                                         quoteStringsAndCharacters: !noQuotes, 
                                         escapeNonPrintableCharacters: _primitiveOptions.EscapeNonPrintableCharacters);

@@ -17,16 +17,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         protected abstract string NullLiteral { get; }
 
         protected abstract string FormatLiteral(bool value);
-        protected abstract string FormatLiteral(string value, bool quote, bool escapeNonPrintable, bool useHexadecimalNumbers = false);
-        protected abstract string FormatLiteral(char value, bool quote, bool escapeNonPrintable, bool includeCodePoints = false, bool useHexadecimalNumbers = false);
-        protected abstract string FormatLiteral(sbyte value, bool useHexadecimalNumbers = false);
-        protected abstract string FormatLiteral(byte value, bool useHexadecimalNumbers = false);
-        protected abstract string FormatLiteral(short value, bool useHexadecimalNumbers = false);
-        protected abstract string FormatLiteral(ushort value, bool useHexadecimalNumbers = false);
-        protected abstract string FormatLiteral(int value, bool useHexadecimalNumbers = false);
-        protected abstract string FormatLiteral(uint value, bool useHexadecimalNumbers = false);
-        protected abstract string FormatLiteral(long value, bool useHexadecimalNumbers = false);
-        protected abstract string FormatLiteral(ulong value, bool useHexadecimalNumbers = false);
+        protected abstract string FormatLiteral(string value, bool quote, bool escapeNonPrintable, int numberRadix = NumberRadixDecimal);
+        protected abstract string FormatLiteral(char value, bool quote, bool escapeNonPrintable, bool includeCodePoints = false, int numberRadix = NumberRadixDecimal);
+        protected abstract string FormatLiteral(sbyte value, int numberRadix = NumberRadixDecimal);
+        protected abstract string FormatLiteral(byte value, int numberRadix = NumberRadixDecimal);
+        protected abstract string FormatLiteral(short value, int numberRadix = NumberRadixDecimal);
+        protected abstract string FormatLiteral(ushort value, int numberRadix = NumberRadixDecimal);
+        protected abstract string FormatLiteral(int value, int numberRadix = NumberRadixDecimal);
+        protected abstract string FormatLiteral(uint value, int numberRadix = NumberRadixDecimal);
+        protected abstract string FormatLiteral(long value, int numberRadix = NumberRadixDecimal);
+        protected abstract string FormatLiteral(ulong value, int numberRadix = NumberRadixDecimal);
         protected abstract string FormatLiteral(double value);
         protected abstract string FormatLiteral(float value);
         protected abstract string FormatLiteral(decimal value);
@@ -57,49 +57,49 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             switch (GetPrimitiveSpecialType(type))
             {
                 case SpecialType.System_Int32:
-                    return FormatLiteral((int)obj, options.UseHexadecimalNumbers);
+                    return FormatLiteral((int)obj, options.NumberRadix);
 
                 case SpecialType.System_String:
-                    return FormatLiteral((string)obj, options.QuoteStringsAndCharacters, options.EscapeNonPrintableCharacters, options.UseHexadecimalNumbers);
+                    return FormatLiteral((string)obj, options.QuoteStringsAndCharacters, options.EscapeNonPrintableCharacters, options.NumberRadix);
 
                 case SpecialType.System_Boolean:
                     return FormatLiteral((bool)obj);
 
                 case SpecialType.System_Char:
-                    return FormatLiteral((char)obj, options.QuoteStringsAndCharacters, options.EscapeNonPrintableCharacters, options.IncludeCharacterCodePoints, options.UseHexadecimalNumbers);
+                    return FormatLiteral((char)obj, options.QuoteStringsAndCharacters, options.EscapeNonPrintableCharacters, options.IncludeCharacterCodePoints, options.NumberRadix);
 
                 case SpecialType.System_Int64:
-                    return FormatLiteral((long)obj, options.UseHexadecimalNumbers);
+                    return FormatLiteral((long)obj, options.NumberRadix);
 
                 case SpecialType.System_Double:
                     return FormatLiteral((double)obj);
 
                 case SpecialType.System_Byte:
-                    return FormatLiteral((byte)obj, options.UseHexadecimalNumbers);
+                    return FormatLiteral((byte)obj, options.NumberRadix);
 
                 case SpecialType.System_Decimal:
                     return FormatLiteral((decimal)obj);
 
                 case SpecialType.System_UInt32:
-                    return FormatLiteral((uint)obj, options.UseHexadecimalNumbers);
+                    return FormatLiteral((uint)obj, options.NumberRadix);
 
                 case SpecialType.System_UInt64:
-                    return FormatLiteral((ulong)obj, options.UseHexadecimalNumbers);
+                    return FormatLiteral((ulong)obj, options.NumberRadix);
 
                 case SpecialType.System_Single:
                     return FormatLiteral((float)obj);
 
                 case SpecialType.System_Int16:
-                    return FormatLiteral((short)obj, options.UseHexadecimalNumbers);
+                    return FormatLiteral((short)obj, options.NumberRadix);
 
                 case SpecialType.System_UInt16:
-                    return FormatLiteral((ushort)obj, options.UseHexadecimalNumbers);
+                    return FormatLiteral((ushort)obj, options.NumberRadix);
 
                 case SpecialType.System_DateTime:
                     return FormatLiteral((DateTime)obj);
 
                 case SpecialType.System_SByte:
-                    return FormatLiteral((sbyte)obj, options.UseHexadecimalNumbers);
+                    return FormatLiteral((sbyte)obj, options.NumberRadix);
 
                 case SpecialType.System_Object:
                 case SpecialType.System_Void:

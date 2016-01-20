@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void InvalidNumberRadix()
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => new PrintOptions().NumberRadix = (NumberRadix)3);
+            Assert.Throws<ArgumentOutOfRangeException>(() => new PrintOptions().NumberRadix = 3);
         }
 
         [Fact]
@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             var options = new PrintOptions();
 
-            options.NumberRadix = NumberRadix.Decimal;
+            options.NumberRadix = 10;
             Assert.Equal("10", Formatter.FormatObject(10, options));
             // TODO (acasey): other consumers
 
-            options.NumberRadix = NumberRadix.Hexadecimal;
+            options.NumberRadix = 16;
             Assert.Equal("0x0000000a", Formatter.FormatObject(10, options));
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("PrintOptions", Formatter.FormatObject(options, options));
 
             options.MemberDisplayFormat = MemberDisplayFormat.SingleLine;
-            Assert.Equal("PrintOptions { Ellipsis=\"...\", EscapeNonPrintableCharacters=true, MaximumOutputLength=1024, MemberDisplayFormat=SingleLine, NumberRadix=Decimal }", Formatter.FormatObject(options, options));
+            Assert.Equal("PrintOptions { Ellipsis=\"...\", EscapeNonPrintableCharacters=true, MaximumOutputLength=1024, MemberDisplayFormat=SingleLine, NumberRadix=10 }", Formatter.FormatObject(options, options));
 
             options.MemberDisplayFormat = MemberDisplayFormat.SeparateLines;
             Assert.Equal(@"PrintOptions {
@@ -66,10 +66,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
   EscapeNonPrintableCharacters: true,
   MaximumOutputLength: 1024,
   MemberDisplayFormat: SeparateLines,
-  NumberRadix: Decimal,
+  NumberRadix: 10,
   _maximumOutputLength: 1024,
   _memberDisplayFormat: SeparateLines,
-  _numberRadix: Decimal
+  _numberRadix: 10
 }
 ", Formatter.FormatObject(options, options));
         }

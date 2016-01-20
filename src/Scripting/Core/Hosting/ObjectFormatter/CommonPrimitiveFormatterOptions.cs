@@ -4,14 +4,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     public struct CommonPrimitiveFormatterOptions
     {
-        public bool UseHexadecimalNumbers { get; }
+        public int NumberRadix { get; }
         public bool IncludeCharacterCodePoints { get; }
         public bool QuoteStringsAndCharacters { get; }
         public bool EscapeNonPrintableCharacters { get; }
 
-        public CommonPrimitiveFormatterOptions(bool useHexadecimalNumbers, bool includeCodePoints, bool quoteStringsAndCharacters, bool escapeNonPrintableCharacters)
+        public CommonPrimitiveFormatterOptions(int numberRadix, bool includeCodePoints, bool quoteStringsAndCharacters, bool escapeNonPrintableCharacters)
         {
-            UseHexadecimalNumbers = useHexadecimalNumbers;
+            NumberRadix = numberRadix;
             IncludeCharacterCodePoints = includeCodePoints;
             QuoteStringsAndCharacters = quoteStringsAndCharacters;
             EscapeNonPrintableCharacters = escapeNonPrintableCharacters;

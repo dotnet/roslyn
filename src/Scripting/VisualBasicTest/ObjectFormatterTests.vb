@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
         Public Sub QuotedStrings()
             Dim s = "a" & ChrW(&HFFFE) & ChrW(&HFFFF) & vbCrLf & "b"
 
-            Dim options = New PrintOptions With {.NumberRadix = NumberRadix.Hexadecimal}
+            Dim options = New PrintOptions With {.NumberRadix = ObjectFormatterHelpers.NumberRadixHexadecimal}
             Dim withQuotes = New TestVisualBasicObjectFormatter(quoteStringsAndCharacters:=True)
             Dim withoutQuotes = New TestVisualBasicObjectFormatter(quoteStringsAndCharacters:=False)
 

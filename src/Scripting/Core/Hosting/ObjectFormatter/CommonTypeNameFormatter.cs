@@ -173,13 +173,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                         if (anyNonzeroLowerBound)
                         {
-                            AppendArrayBound(sb, lowerBound, options.UseHexadecimalArrayBounds);
+                            AppendArrayBound(sb, lowerBound, options.ArrayBoundRadix);
                             sb.Append("..");
-                            AppendArrayBound(sb, length + lowerBound, options.UseHexadecimalArrayBounds);
+                            AppendArrayBound(sb, length + lowerBound, options.ArrayBoundRadix);
                         }
                         else
                         {
-                            AppendArrayBound(sb, length, options.UseHexadecimalArrayBounds);
+                            AppendArrayBound(sb, length, options.ArrayBoundRadix);
                         }
                     }
 
@@ -198,9 +198,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return sb.ToString();
         }
 
-        private void AppendArrayBound(StringBuilder sb, long bound, bool useHexadecimalNumbers)
+        private void AppendArrayBound(StringBuilder sb, long bound, int numberRadix)
         {
-            var options = new CommonPrimitiveFormatterOptions(useHexadecimalNumbers, includeCodePoints: false, quoteStringsAndCharacters: true, escapeNonPrintableCharacters: true);
+            var options = new CommonPrimitiveFormatterOptions(numberRadix, includeCodePoints: false, quoteStringsAndCharacters: true, escapeNonPrintableCharacters: true);
             var formatted = int.MinValue <= bound && bound <= int.MaxValue
                 ? PrimitiveFormatter.FormatPrimitive((int)bound, options)
                 : PrimitiveFormatter.FormatPrimitive(bound, options);

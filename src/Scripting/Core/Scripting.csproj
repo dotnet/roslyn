@@ -84,7 +84,6 @@
     <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatterOptions.cs" />
     <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatter.cs" />
     <Compile Include="Hosting\CommonObjectFilter.cs" />
-    <Compile Include="Hosting\ObjectFormatter\NumberRadix.cs" />
     <Compile Include="Hosting\ObjectFilter.cs" />
     <Compile Include="Hosting\PrintOptions.cs" />
     <Compile Include="Hosting\ObjectFormatter\ObjectFormatter.cs" />

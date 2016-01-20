@@ -4,12 +4,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     public struct CommonTypeNameFormatterOptions
     {
-        public bool UseHexadecimalArrayBounds { get; }
+        public int ArrayBoundRadix { get; }
         public bool ShowNamespaces { get; }
 
-        public CommonTypeNameFormatterOptions(bool useHexadecimalArrayBounds, bool showNamespaces)
+        public CommonTypeNameFormatterOptions(int arrayBoundRadix, bool showNamespaces)
         {
-            UseHexadecimalArrayBounds = useHexadecimalArrayBounds;
+            ArrayBoundRadix = arrayBoundRadix;
             ShowNamespaces = showNamespaces;
         }
     }

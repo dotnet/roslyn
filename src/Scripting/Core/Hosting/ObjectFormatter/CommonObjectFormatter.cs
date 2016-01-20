@@ -3,10 +3,9 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using static Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatterHelpers;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
@@ -44,14 +43,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         protected virtual CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
             new CommonPrimitiveFormatterOptions(
-                useHexadecimalNumbers: printOptions.NumberRadix == NumberRadix.Hexadecimal,
+                numberRadix: printOptions.NumberRadix,
                 includeCodePoints: false,
                 quoteStringsAndCharacters: true,
                 escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters);
 
         protected virtual CommonTypeNameFormatterOptions GetTypeNameOptions(PrintOptions printOptions) =>
             new CommonTypeNameFormatterOptions(
-                useHexadecimalArrayBounds: printOptions.NumberRadix == NumberRadix.Hexadecimal,
+                arrayBoundRadix: printOptions.NumberRadix,
                 showNamespaces: false);
 
         public override string FormatUnhandledException(Exception e)
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var builder = pooled.Builder;
 
             var declaringType = method.DeclaringType;
-            var options = new CommonTypeNameFormatterOptions(useHexadecimalArrayBounds: false, showNamespaces: true);
+            var options = new CommonTypeNameFormatterOptions(arrayBoundRadix: NumberRadixDecimal, showNamespaces: true);
 
             builder.Append(TypeNameFormatter.FormatTypeName(declaringType, options));
             builder.Append('.');

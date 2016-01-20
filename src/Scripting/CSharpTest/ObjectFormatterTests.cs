@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.Add(2, 0x2b);
 
             var str = Formatter.
-                FormatObject(obj, new PrintOptions { NumberRadix = NumberRadix.Hexadecimal });
+                FormatObject(obj, new PrintOptions { NumberRadix = ObjectFormatterHelpers.NumberRadixHexadecimal });
 
             Assert.Equal("SortedDictionary<int, int>(3) { { 0x00000001, 0x0000001a }, { 0x00000002, 0x0000002b }, { 0x00000003, 0x0000003c } }", str);
         }

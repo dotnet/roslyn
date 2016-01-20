@@ -22,46 +22,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
             Return ObjectDisplay.FormatLiteral(value)
         End Function
 
-        Protected Overrides Function FormatLiteral(value As String, useQuotes As Boolean, escapeNonPrintable As Boolean, Optional useHexadecimalNumbers As Boolean = False) As String
-            Dim options As ObjectDisplayOptions = GetObjectDisplayOptions(useQuotes:=useQuotes, escapeNonPrintable:=escapeNonPrintable, useHexadecimalNumbers:=useHexadecimalNumbers)
+        Protected Overrides Function FormatLiteral(value As String, useQuotes As Boolean, escapeNonPrintable As Boolean, Optional numberRadix As Integer = NumberRadixDecimal) As String
+            Dim options As ObjectDisplayOptions = GetObjectDisplayOptions(useQuotes:=useQuotes, escapeNonPrintable:=escapeNonPrintable, numberRadix:=numberRadix)
             Return ObjectDisplay.FormatLiteral(value, options)
         End Function
 
-        Protected Overrides Function FormatLiteral(c As Char, useQuotes As Boolean, escapeNonPrintable As Boolean, Optional includeCodePoints As Boolean = False, Optional useHexadecimalNumbers As Boolean = False) As String
-            Dim options As ObjectDisplayOptions = GetObjectDisplayOptions(useQuotes:=useQuotes, escapeNonPrintable:=escapeNonPrintable, includeCodePoints:=includeCodePoints, useHexadecimalNumbers:=useHexadecimalNumbers)
+        Protected Overrides Function FormatLiteral(c As Char, useQuotes As Boolean, escapeNonPrintable As Boolean, Optional includeCodePoints As Boolean = False, Optional numberRadix As Integer = NumberRadixDecimal) As String
+            Dim options As ObjectDisplayOptions = GetObjectDisplayOptions(useQuotes:=useQuotes, escapeNonPrintable:=escapeNonPrintable, includeCodePoints:=includeCodePoints, numberRadix:=numberRadix)
             Return ObjectDisplay.FormatLiteral(c, options)
         End Function
 
-        Protected Overrides Function FormatLiteral(value As SByte, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
+        Protected Overrides Function FormatLiteral(value As SByte, Optional numberRadix As Integer = NumberRadixDecimal) As String
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix:=numberRadix))
         End Function
 
-        Protected Overrides Function FormatLiteral(value As Byte, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
+        Protected Overrides Function FormatLiteral(value As Byte, Optional numberRadix As Integer = NumberRadixDecimal) As String
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix:=numberRadix))
         End Function
 
-        Protected Overrides Function FormatLiteral(value As Short, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
+        Protected Overrides Function FormatLiteral(value As Short, Optional numberRadix As Integer = NumberRadixDecimal) As String
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix:=numberRadix))
         End Function
 
-        Protected Overrides Function FormatLiteral(value As UShort, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
+        Protected Overrides Function FormatLiteral(value As UShort, Optional numberRadix As Integer = NumberRadixDecimal) As String
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix:=numberRadix))
         End Function
 
-        Protected Overrides Function FormatLiteral(value As Integer, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
+        Protected Overrides Function FormatLiteral(value As Integer, Optional numberRadix As Integer = NumberRadixDecimal) As String
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix:=numberRadix))
         End Function
 
-        Protected Overrides Function FormatLiteral(value As UInteger, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
+        Protected Overrides Function FormatLiteral(value As UInteger, Optional numberRadix As Integer = NumberRadixDecimal) As String
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix:=numberRadix))
         End Function
 
-        Protected Overrides Function FormatLiteral(value As Long, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
+        Protected Overrides Function FormatLiteral(value As Long, Optional numberRadix As Integer = NumberRadixDecimal) As String
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix:=numberRadix))
         End Function
 
-        Protected Overrides Function FormatLiteral(value As ULong, Optional useHexadecimalNumbers As Boolean = False) As String
-            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers:=useHexadecimalNumbers))
+        Protected Overrides Function FormatLiteral(value As ULong, Optional numberRadix As Integer = NumberRadixDecimal) As String
+            Return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix:=numberRadix))
         End Function
 
         Protected Overrides Function FormatLiteral(value As Double) As String

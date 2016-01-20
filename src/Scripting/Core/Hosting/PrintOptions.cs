@@ -1,19 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using static Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatterHelpers;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     public class PrintOptions
     {
-        private NumberRadix _numberRadix = NumberRadix.Decimal;
+        private int _numberRadix = NumberRadixDecimal;
         private MemberDisplayFormat _memberDisplayFormat;
         private int _maximumOutputLength = 1024;
 
         public string Ellipsis { get; set; } = "...";
         public bool EscapeNonPrintableCharacters { get; set; } = true;
 
-        public NumberRadix NumberRadix
+        public int NumberRadix
         {
             get
             {
@@ -22,12 +23,24 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             set
             {
-                if (!value.IsValid())
+                if (!IsValidRadix(value))
                 {
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
 
                 _numberRadix = value;
+            }
+        }
+
+        private static bool IsValidRadix(int radix)
+        {
+            switch (radix)
+            {
+                case NumberRadixDecimal:
+                case NumberRadixHexadecimal:
+                    return true;
+                default:
+                    return false;
             }
         }
 

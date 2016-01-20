@@ -16,56 +16,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
             return ObjectDisplay.FormatLiteral(value);
         }
 
-        protected override string FormatLiteral(string value, bool useQuotes, bool escapeNonPrintable, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(string value, bool useQuotes, bool escapeNonPrintable, int numberRadix = NumberRadixDecimal)
         {
-            var options = GetObjectDisplayOptions(useQuotes: useQuotes, escapeNonPrintable: escapeNonPrintable, useHexadecimalNumbers: useHexadecimalNumbers);
+            var options = GetObjectDisplayOptions(useQuotes: useQuotes, escapeNonPrintable: escapeNonPrintable, numberRadix: numberRadix);
             return ObjectDisplay.FormatLiteral(value, options);
         }
 
-        protected override string FormatLiteral(char c, bool useQuotes, bool escapeNonPrintable, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(char c, bool useQuotes, bool escapeNonPrintable, bool includeCodePoints = false, int numberRadix = NumberRadixDecimal)
         {
-            var options = GetObjectDisplayOptions(useQuotes: useQuotes, escapeNonPrintable: escapeNonPrintable, includeCodePoints: includeCodePoints, useHexadecimalNumbers: useHexadecimalNumbers);
+            var options = GetObjectDisplayOptions(useQuotes: useQuotes, escapeNonPrintable: escapeNonPrintable, includeCodePoints: includeCodePoints, numberRadix: numberRadix);
             return ObjectDisplay.FormatLiteral(c, options);
         }
 
-        protected override string FormatLiteral(sbyte value, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(sbyte value, int numberRadix = NumberRadixDecimal)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix: numberRadix));
         }
 
-        protected override string FormatLiteral(byte value, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(byte value, int numberRadix = NumberRadixDecimal)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix: numberRadix));
         }
 
-        protected override string FormatLiteral(short value, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(short value, int numberRadix = NumberRadixDecimal)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix: numberRadix));
         }
 
-        protected override string FormatLiteral(ushort value, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(ushort value, int numberRadix = NumberRadixDecimal)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix: numberRadix));
         }
 
-        protected override string FormatLiteral(int value, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(int value, int numberRadix = NumberRadixDecimal)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix: numberRadix));
         }
 
-        protected override string FormatLiteral(uint value, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(uint value, int numberRadix = NumberRadixDecimal)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix: numberRadix));
         }
 
-        protected override string FormatLiteral(long value, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(long value, int numberRadix = NumberRadixDecimal)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix: numberRadix));
         }
 
-        protected override string FormatLiteral(ulong value, bool useHexadecimalNumbers = false)
+        protected override string FormatLiteral(ulong value, int numberRadix = NumberRadixDecimal)
         {
-            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(useHexadecimalNumbers: useHexadecimalNumbers));
+            return ObjectDisplay.FormatLiteral(value, GetObjectDisplayOptions(numberRadix: numberRadix));
         }
 
         protected override string FormatLiteral(double value)

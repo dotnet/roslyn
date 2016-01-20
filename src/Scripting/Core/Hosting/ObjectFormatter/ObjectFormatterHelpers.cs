@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         internal static readonly object VoidValue = new object();
 
+        internal const int NumberRadixDecimal = 10;
+        internal const int NumberRadixHexadecimal = 16;
+
         internal static bool HasOverriddenToString(TypeInfo type)
         {
             if (type.IsInterface)
@@ -357,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return SpecialType.None;
         }
 
-        internal static ObjectDisplayOptions GetObjectDisplayOptions(bool useQuotes = false, bool escapeNonPrintable = false, bool includeCodePoints = false, bool useHexadecimalNumbers = false)
+        internal static ObjectDisplayOptions GetObjectDisplayOptions(bool useQuotes = false, bool escapeNonPrintable = false, bool includeCodePoints = false, int numberRadix = NumberRadixDecimal)
         {
             var options = ObjectDisplayOptions.None;
 
@@ -376,9 +379,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 options |= ObjectDisplayOptions.IncludeCodePoints;
             }
 
-            if (useHexadecimalNumbers)
+            if (numberRadix == NumberRadixHexadecimal)
             {
                 options |= ObjectDisplayOptions.UseHexadecimalNumbers;
+            }
+            else
+            {
+                // If we ever support a radix other than decimal or hex, we'll
+                // need to propagate the numeric (vs boolean) option down to
+                // ObjectDisplay.
+                Debug.Assert(numberRadix == NumberRadixDecimal);
             }
 
             return options;

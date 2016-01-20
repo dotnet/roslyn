@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 
         protected override CommonPrimitiveFormatterOptions GetPrimitiveOptions(PrintOptions printOptions) =>
             new CommonPrimitiveFormatterOptions(
-                useHexadecimalNumbers: printOptions.NumberRadix == NumberRadix.Hexadecimal, 
+                numberRadix: printOptions.NumberRadix, 
                 includeCodePoints: false,
                 escapeNonPrintableCharacters: printOptions.EscapeNonPrintableCharacters, 
                 quoteStringsAndCharacters: _quoteStringsAndCharacters);
