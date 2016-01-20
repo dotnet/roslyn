@@ -15,28 +15,52 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
         private const string SerializationFormat = "9";
 
-        /// <summary>
-        /// this is for a metadata reference in a solution
-        /// </summary>
-        private static async Task<SymbolTreeInfo> LoadOrCreateAsync(Solution solution, IAssemblySymbol assembly, string filePath, CancellationToken cancellationToken)
+        private static bool ShouldCreateFromScratch(
+            Solution solution,
+            IAssemblySymbol assembly,
+            string filePath,
+            out string prefix,
+            out VersionStamp version,
+            CancellationToken cancellationToken)
         {
+            prefix = null;
+            version = default(VersionStamp);
+
             var service = solution.Workspace.Services.GetService<IAssemblySerializationInfoService>();
             if (service == null)
             {
-                return Create(VersionStamp.Default, assembly, cancellationToken);
+                return true;
             }
 
             // check whether the assembly that belong to a solution is something we can serialize
             if (!service.Serializable(solution, filePath))
             {
-                return Create(VersionStamp.Default, assembly, cancellationToken);
+                return true;
             }
 
-            string prefix;
-            VersionStamp version;
             if (!service.TryGetSerializationPrefixAndVersion(solution, filePath, out prefix, out version))
             {
-                return Create(VersionStamp.Default, assembly, cancellationToken);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// this is for a metadata reference in a solution
+        /// </summary>
+        private static async Task<SymbolTreeInfo> LoadOrCreateAsync(
+            Solution solution,
+            IAssemblySymbol assembly,
+            string filePath,
+            bool loadOnly,
+            CancellationToken cancellationToken)
+        {
+            string prefix;
+            VersionStamp version;
+            if (ShouldCreateFromScratch(solution, assembly, filePath, out prefix, out version, cancellationToken))
+            {
+                return loadOnly ? null : Create(VersionStamp.Default, assembly, cancellationToken);
             }
 
             var persistentStorageService = solution.Workspace.Services.GetService<IPersistentStorageService>();
@@ -63,6 +87,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
+
+                if (loadOnly)
+                {
+                    return null;
+                }
 
                 // compute it if we couldn't load it from cache
                 info = Create(version, assembly, cancellationToken);
