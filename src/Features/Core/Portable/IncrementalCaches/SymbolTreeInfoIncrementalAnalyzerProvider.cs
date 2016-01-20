@@ -39,6 +39,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         {
             public readonly DateTime TimeStamp;
             public readonly SymbolTreeInfo SymbolTreeInfo;
+
+            /// <summary>
+            /// Note: the Incremental-Analyzer infrastructure guarantees that it will call all the methods
+            /// on <see cref="IncrementalAnalyzer"/> in a serial fashion.  As that is the only type that
+            /// reads/writes these <see cref="MetadataInfo"/> objects, we don't need to lock this.
+            /// </summary>
             public readonly HashSet<ProjectId> ReferencingProjects;
 
             public MetadataInfo(DateTime timeStamp, SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
@@ -145,13 +151,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         private class IncrementalAnalyzer : IncrementalAnalyzerBase
         {
             private readonly ConcurrentDictionary<ProjectId, ProjectInfo> _projectToInfo;
-
-            // Note: the Incremental-Analyzer infrastructure guarantees that it will call all the methods
-            // on this type in a serial fashion.  As such, we don't need explicit locking, or threadsafe
-            // collections (if they're only used by this type).  So, for example, the map we populate
-            // needs to be a ConcurrentDictionary as it will be read and written from multiple types.
-            // However, the HashSet<ProjectId> is ok as it will only be used by this type and there is
-            // no concurrency in this type on its own.
             private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo;
 
             private readonly Dictionary<ProjectId, Project> _idTolastSeenProject = new Dictionary<ProjectId, Project>();
