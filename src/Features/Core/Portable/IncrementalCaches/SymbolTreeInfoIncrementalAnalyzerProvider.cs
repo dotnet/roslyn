@@ -218,48 +218,52 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             private async Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
             {
-                Compilation compilation = null;
                 foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
                 {
-                    compilation = await UpdateReferenceAsync(project, reference, compilation, cancellationToken).ConfigureAwait(false);
+                    await UpdateReferenceAsync(project, reference, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            private async Task<Compilation> UpdateReferenceAsync(
-                Project project, PortableExecutableReference reference, Compilation compilation, CancellationToken cancellationToken)
+            private async Task UpdateReferenceAsync(
+                Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
                 var key = GetReferenceKey(reference);
-                if (key != null)
+                if (key == null)
                 {
-                    DateTime lastWriteTime;
-                    if (!TryGetLastWriteTime(key, out lastWriteTime))
-                    {
-                        // Couldn't get the write time.  Just ignore this reference.
-                        return compilation;
-                    }
-
-                    MetadataInfo metadataInfo;
-                    if (_metadataPathToInfo.TryGetValue(key, out metadataInfo) && metadataInfo.TimeStamp == lastWriteTime) 
-                    {
-                        // We've already computed and cached the info for this reference.
-                        return compilation;
-                    }
-
-                    compilation = compilation ?? await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    if (assembly != null)
-                    {
-                        var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        metadataInfo = metadataInfo ?? new MetadataInfo(lastWriteTime, info, new HashSet<ProjectId>());
-
-                        // Keep track that this dll is referenced by this project.
-                        metadataInfo.ReferencingProjects.Add(project.Id);
-
-                        _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
-                    }
+                    return;
                 }
 
-                return compilation;
+                DateTime lastWriteTime;
+                if (!TryGetLastWriteTime(key, out lastWriteTime))
+                {
+                    // Couldn't get the write time.  Just ignore this reference.
+                    return;
+                }
+
+                MetadataInfo metadataInfo;
+                if (_metadataPathToInfo.TryGetValue(key, out metadataInfo) && metadataInfo.TimeStamp == lastWriteTime)
+                {
+                    // We've already computed and cached the info for this reference.
+                    return;
+                }
+
+                var compilationService = project.LanguageServices.GetService<ICompilationFactoryService>();
+                var compilation = compilationService.CreateCompilation("TempAssembly", compilationService.GetDefaultCompilationOptions())
+                    .WithReferences(reference);
+
+                var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
+                if (assembly == null)
+                {
+                    return;
+                }
+
+                var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                metadataInfo = metadataInfo ?? new MetadataInfo(lastWriteTime, info, new HashSet<ProjectId>());
+
+                // Keep track that this dll is referenced by this project.
+                metadataInfo.ReferencingProjects.Add(project.Id);
+
+                _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
             }
 
             public override void RemoveProject(ProjectId projectId)
