@@ -97,10 +97,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             End Get
         End Property
 
-        Protected Overrides Function CreateCompilation(reference As PortableExecutableReference) As Compilation
-            Return VisualBasicCompilation.Create("TempAssembly", references:=SpecializedCollections.SingletonEnumerable(reference))
-        End Function
-
         Protected Overrides Function CanAddImport(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
             If node.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing Then
                 Return False
