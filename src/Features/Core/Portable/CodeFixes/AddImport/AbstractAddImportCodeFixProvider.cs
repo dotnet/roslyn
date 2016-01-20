@@ -115,8 +115,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
             Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
+            // First search the current project to see if any symbols (source or metadata) match the 
+            // search string.
             await FindResultsInAllProjectSymbolsAsync(project, allSymbolReferences, finder, exact).ConfigureAwait(false);
+
+            // Now search unreferenced projects, and see if they have any source symbols that match
+            // the search string.
             await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+
+            // Finally, check and see if we have any metadata symbols that match the search string.
             await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
         }
 
