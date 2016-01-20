@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // "Select", but that name has no bearing on the code in question that we're
                 // trying to fix up.
                 var extensionMethodSymbols = OfType<IMethodSymbol>(symbols)
-                    .Where(s => s.Symbol.IsExtensionMethod && _owner.IsViableExtensionMethod(type, s.Symbol))
+                    .Where(s => s.Symbol.IsExtensionMethod && _owner.IsViableExtensionMethod(s.Symbol, type))
                     .Select(s => s.WithDesiredName(null))
                     .ToList();
 
