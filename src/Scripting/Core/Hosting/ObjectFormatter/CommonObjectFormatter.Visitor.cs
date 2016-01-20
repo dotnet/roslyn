@@ -349,8 +349,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return comparisonResult;
                 });
 
-                foreach (var member in _formatter.Filter.Filter(members))
+                foreach (var member in members)
                 {
+                    if (!_formatter.Filter.Include(member))
+                    {
+                        continue;
+                    }
+
                     bool rootHidden = false, ignoreVisibility = false;
                     var browsable = (DebuggerBrowsableAttribute)member.GetCustomAttributes(typeof(DebuggerBrowsableAttribute), false).FirstOrDefault();
                     if (browsable != null)

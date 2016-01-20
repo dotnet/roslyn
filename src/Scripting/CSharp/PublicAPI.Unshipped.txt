@@ -1,12 +1,12 @@
 Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript
-Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFilter
+Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpMemberFilter
 Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter
 Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.CSharpObjectFormatter() -> void
 Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpPrimitiveFormatter
 Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter
 Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpTypeNameFormatter.CSharpTypeNameFormatter(Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter primitiveFormatter) -> void
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFilter.IsGeneratedMemberName(string name) -> bool
-override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.Filter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFilter
+override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpMemberFilter.IsGeneratedMemberName(string name) -> bool
+override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.Filter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.FormatRefKind(System.Reflection.ParameterInfo parameter) -> string
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.PrimitiveFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter
 override Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.CSharpObjectFormatter.TypeNameFormatter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter

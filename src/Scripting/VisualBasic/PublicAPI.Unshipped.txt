@@ -1,11 +1,11 @@
-Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFilter
+Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicMemberFilter
 Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter
 Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter
 Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter
 Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicTypeNameFormatter.New(pFormatter As Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter) -> Void
 Microsoft.CodeAnalysis.VisualBasic.Scripting.VisualBasicScript
-Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFilter.IsGeneratedMemberName(name As String) -> Boolean
+Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicMemberFilter.IsGeneratedMemberName(name As String) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicObjectFormatter.FormatRefKind(parameter As System.Reflection.ParameterInfo) -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(c As Char, useQuotes As Boolean, escapeNonPrintable As Boolean, includeCodePoints As Boolean = False, numberRadix As Integer = 10) -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.VisualBasicPrimitiveFormatter.FormatLiteral(value As Boolean) -> String

@@ -6,7 +6,7 @@ Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Args.get -> Sy
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.CommandLineScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Print(object value) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.PrintOptions.get -> Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
-Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFilter
+Microsoft.CodeAnalysis.Scripting.Hosting.CommonMemberFilter
 Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter
 Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter
 Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatter.FormatPrimitive(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatterOptions options) -> string
@@ -52,7 +52,7 @@ Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.IsShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.MetadataShadowCopyProvider(string directory = null, System.Collections.Generic.IEnumerable<string> noShadowCopyDirectories = null, System.Globalization.CultureInfo documentationCommentsCulture = null) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.NeedsShadowCopy(string fullPath) -> bool
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.SuppressShadowCopy(string originalPath) -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFilter
+Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter
 Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.Ellipsis.get -> string
@@ -163,8 +163,8 @@ abstract Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.Primit
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatObject(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions options) -> string
 abstract Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatUnhandledException(System.Exception e) -> string
 abstract Microsoft.CodeAnalysis.Scripting.Script.ReturnType.get -> System.Type
-override Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFilter.Filter(System.Collections.Generic.IEnumerable<System.Diagnostics.StackFrame> frames) -> System.Collections.Generic.IEnumerable<System.Diagnostics.StackFrame>
-override Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFilter.Filter(System.Collections.Generic.IEnumerable<System.Reflection.MemberInfo> members) -> System.Collections.Generic.IEnumerable<System.Reflection.MemberInfo>
+override Microsoft.CodeAnalysis.Scripting.Hosting.CommonMemberFilter.Include(System.Diagnostics.StackFrame frame) -> bool
+override Microsoft.CodeAnalysis.Scripting.Hosting.CommonMemberFilter.Include(System.Reflection.MemberInfo member) -> bool
 override Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.FormatObject(object obj, Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions options) -> string
 override Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.FormatUnhandledException(System.Exception e) -> string
 override Microsoft.CodeAnalysis.Scripting.Script<T>.ReturnType.get -> System.Type
@@ -178,12 +178,12 @@ override Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.GetHashCode() -> 
 static Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver
 static Microsoft.CodeAnalysis.Scripting.ScriptOptions.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 static Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
-virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFilter.IsGeneratedMemberName(string name) -> bool
-virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.Filter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFilter
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonMemberFilter.IsGeneratedMemberName(string name) -> bool
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.Filter.get -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.GetPrimitiveOptions(Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions printOptions) -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonPrimitiveFormatterOptions
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonObjectFormatter.GetTypeNameOptions(Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions printOptions) -> Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatArrayTypeName(System.Type arrayType, System.Array arrayOpt, Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions options) -> string
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatTypeArguments(System.Type[] typeArguments, Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions options) -> string
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatTypeName(System.Type type, Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions options) -> string
-virtual Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFilter.Filter(System.Collections.Generic.IEnumerable<System.Diagnostics.StackFrame> frames) -> System.Collections.Generic.IEnumerable<System.Diagnostics.StackFrame>
-virtual Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFilter.Filter(System.Collections.Generic.IEnumerable<System.Reflection.MemberInfo> members) -> System.Collections.Generic.IEnumerable<System.Reflection.MemberInfo>
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter.Include(System.Diagnostics.StackFrame frame) -> bool
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter.Include(System.Reflection.MemberInfo member) -> bool

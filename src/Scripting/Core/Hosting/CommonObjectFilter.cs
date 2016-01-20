@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -9,39 +8,36 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    public class CommonObjectFilter : ObjectFilter
+    public class CommonMemberFilter : MemberFilter
     {
-        public override IEnumerable<StackFrame> Filter(IEnumerable<StackFrame> frames)
+        public override bool Include(StackFrame frame)
         {
-            foreach (var frame in frames)
+            var method = frame.GetMethod();
+            if (IsHiddenMember(method))
             {
-                var method = frame.GetMethod();
-                if (IsHiddenMember(method))
-                {
-                    continue;
-                }
-
-                var type = method.DeclaringType;
-
-                // TODO (https://github.com/dotnet/roslyn/issues/5250): look for other types indicating that we're in Roslyn code
-                if (type == typeof(CommandLineRunner))
-                {
-                    yield break;
-                }
-
-                // TODO (tomat): we don't want to include awaiter helpers, shouldn't they be marked by DebuggerHidden in FX?
-                if (IsTaskAwaiter(type) || IsTaskAwaiter(type.DeclaringType))
-                {
-                    continue;
-                }
-
-                yield return frame;
+                return false;
             }
+
+            var type = method.DeclaringType;
+
+            // TODO (https://github.com/dotnet/roslyn/issues/5250): look for other types indicating that we're in Roslyn code
+            if (type == typeof(CommandLineRunner))
+            {
+                return false;
+            }
+
+            // TODO (tomat): we don't want to include awaiter helpers, shouldn't they be marked by DebuggerHidden in FX?
+            if (IsTaskAwaiter(type) || IsTaskAwaiter(type.DeclaringType))
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        public override IEnumerable<MemberInfo> Filter(IEnumerable<MemberInfo> members)
+        public override bool Include(MemberInfo member)
         {
-            return members.Where(m => !IsGeneratedMemberName(m.Name));
+            return !IsGeneratedMemberName(member.Name);
         }
 
         private bool IsHiddenMember(MemberInfo info)

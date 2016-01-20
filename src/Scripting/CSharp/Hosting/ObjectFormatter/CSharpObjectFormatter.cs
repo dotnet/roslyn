@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
     {
         protected override CommonTypeNameFormatter TypeNameFormatter { get; }
         protected override CommonPrimitiveFormatter PrimitiveFormatter { get; }
-        protected override ObjectFilter Filter { get; }
+        protected override MemberFilter Filter { get; }
 
         public CSharpObjectFormatter()
         {
             PrimitiveFormatter = new CSharpPrimitiveFormatter();
             TypeNameFormatter = new CSharpTypeNameFormatter(PrimitiveFormatter);
-            Filter = new CSharpObjectFilter();
+            Filter = new CSharpMemberFilter();
         }
 
         protected override string FormatRefKind(ParameterInfo parameter)

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return visitor.FormatObject(obj);
         }
 
-        protected virtual ObjectFilter Filter { get; } = new CommonObjectFilter();
+        protected virtual MemberFilter Filter { get; } = new CommonMemberFilter();
 
         protected abstract CommonTypeNameFormatter TypeNameFormatter { get; }
         protected abstract CommonPrimitiveFormatter PrimitiveFormatter { get; }
@@ -66,8 +66,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             builder.AppendLine(e.Message);
 
             var trace = new StackTrace(e, needFileInfo: true);
-            foreach (var frame in Filter.Filter(trace.GetFrames()))
+            foreach (var frame in trace.GetFrames())
             {
+                if (!Filter.Include(frame))
+                {
+                    continue;
+                }
+
                 var method = frame.GetMethod();
                 var methodDisplay = FormatMethodSignature(method);
 

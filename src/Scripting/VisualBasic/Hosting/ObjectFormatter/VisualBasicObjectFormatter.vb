@@ -4,8 +4,8 @@ Imports Microsoft.CodeAnalysis.Scripting.Hosting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
-    Public Class VisualBasicObjectFilter
-        Inherits CommonObjectFilter
+    Public Class VisualBasicMemberFilter
+        Inherits CommonMemberFilter
 
         Protected Overrides Function IsGeneratedMemberName(name As String) As Boolean
             ' TODO (tomat)

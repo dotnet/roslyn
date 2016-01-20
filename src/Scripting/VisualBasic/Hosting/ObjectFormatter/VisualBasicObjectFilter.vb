@@ -10,12 +10,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
         Protected Overrides ReadOnly Property TypeNameFormatter As CommonTypeNameFormatter
         Protected Overrides ReadOnly Property PrimitiveFormatter As CommonPrimitiveFormatter
-        Protected Overrides ReadOnly Property Filter As ObjectFilter
+        Protected Overrides ReadOnly Property Filter As MemberFilter
 
         Public Sub New()
             PrimitiveFormatter = New VisualBasicPrimitiveFormatter()
             TypeNameFormatter = New VisualBasicTypeNameFormatter(PrimitiveFormatter)
-            Filter = New VisualBasicObjectFilter()
+            Filter = New VisualBasicMemberFilter()
         End Sub
 
         Protected Overrides Function FormatRefKind(parameter As ParameterInfo) As String
