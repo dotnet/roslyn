@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             // First search the current project to see if any symbols (source or metadata) match the 
             // search string.
-            await FindResultsInAllProjectSymbolsAsync(project, allSymbolReferences, finder, exact).ConfigureAwait(false);
+            await FindResultsInAllProjectSymbolsAsync(project, allSymbolReferences, finder, exact, cancellationToken).ConfigureAwait(false);
 
             // Now search unreferenced projects, and see if they have any source symbols that match
             // the search string.
@@ -128,9 +128,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
         private async Task FindResultsInAllProjectSymbolsAsync(
-            Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact)
+            Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
-            var references = await finder.FindInAllProjectSymbolsAsync(project, exact).ConfigureAwait(false);
+            var references = await finder.FindInAllProjectSymbolsAsync(project, exact, cancellationToken).ConfigureAwait(false);
             AddRange(allSymbolReferences, references);
         }
 
@@ -186,17 +186,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             var viableUnreferencedProjects = GetViableUnreferencedProjects(project);
-            foreach (var unreferencedProject in viableUnreferencedProjects)
+
+            // Search all unreferenced projects in parallel.
+            var findTasks = new HashSet<Task<List<SymbolReference>>>();
+
+            // Create another cancellation token so we can both search all projects in parallel,
+            // but also stop any searches once we get enough results.
+            using (var nestedTokenSource = new CancellationTokenSource())
+            using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken))
             {
-                // Search in this unreferenced project.  But don't search in any of its'
-                // direct references.  i.e. we don't want to search in its metadata references
-                // or in the projects it references itself. We'll be searching those entities
-                // individually.
-                AddRange(allSymbolReferences, await finder.FindInSourceProjectSymbolsAsync(projectToAssembly, unreferencedProject, exact: exact).ConfigureAwait(false));
-                if (allSymbolReferences.Count >= MaxResults)
+                foreach (var unreferencedProject in viableUnreferencedProjects)
                 {
-                    return;
+                    // Search in this unreferenced project.  But don't search in any of its'
+                    // direct references.  i.e. we don't want to search in its metadata references
+                    // or in the projects it references itself. We'll be searching those entities
+                    // individually.
+                    findTasks.Add(finder.FindInSourceProjectSymbolsAsync(projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token));
                 }
+
+                await WaitForTasksAsync(allSymbolReferences, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -228,39 +236,59 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // Search all metadata references in parallel.
             var findTasks = new HashSet<Task<List<SymbolReference>>>();
 
-            foreach (var reference in newReferences)
+            // Create another cancellation token so we can both search all projects in parallel,
+            // but also stop any searches once we get enough results.
+            using (var nestedTokenSource = new CancellationTokenSource())
+            using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken))
             {
-                var compilation = referenceToCompilation.GetOrAdd(reference, r => CreateCompilation(project, r));
-
-                // Ignore netmodules.  First, they're incredibly esoteric and barely used.
-                // Second, the SymbolFinder api doesn't even support searching them. 
-                var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                if (assembly != null)
+                foreach (var reference in newReferences)
                 {
-                    findTasks.Add(finder.FindInMetadataAsync(project.Solution, assembly, reference, exact));
+                    var compilation = referenceToCompilation.GetOrAdd(reference, r => CreateCompilation(project, r));
+
+                    // Ignore netmodules.  First, they're incredibly esoteric and barely used.
+                    // Second, the SymbolFinder api doesn't even support searching them. 
+                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
+                    if (assembly != null)
+                    {
+                        findTasks.Add(finder.FindInMetadataAsync(project.Solution, assembly, reference, exact, linkedTokenSource.Token));
+                    }
+                }
+
+                await WaitForTasksAsync(allSymbolReferences, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task WaitForTasksAsync(
+            List<SymbolReference> allSymbolReferences,
+            HashSet<Task<List<SymbolReference>>> findTasks,
+            CancellationTokenSource nestedTokenSource,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                while (findTasks.Count > 0)
+                {
+                    // Keep on looping through the 'find' tasks, processing each when they finish.
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var doneTask = await Task.WhenAny(findTasks).ConfigureAwait(false);
+
+                    // One of the tasks finished.  Remove it from the list we're waiting on.
+                    findTasks.Remove(doneTask);
+
+                    // Add its results to the final result set we're keeping.
+                    AddRange(allSymbolReferences, await doneTask.ConfigureAwait(false));
+
+                    // Once we get enough, just stop.
+                    if (allSymbolReferences.Count >= MaxResults)
+                    {
+                        return;
+                    }
                 }
             }
-
-            while (findTasks.Count > 0)
+            finally
             {
-                // Keep on looping through the 'find' tasks, processing each when they finish.
-                cancellationToken.ThrowIfCancellationRequested();
-                var doneTask = await Task.WhenAny(findTasks).ConfigureAwait(false);
-
-                // One of the tasks finished.  Remove it from the list we're waiting on.
-                findTasks.Remove(doneTask);
-
-                // Add its results to the final result set we're keeping.
-                AddRange(allSymbolReferences, await doneTask.ConfigureAwait(false));
-
-                // If we've got enough, no need to keep searching. 
-                // Note: We do not cancel the existing tasks that are still executing.  These tasks will
-                // cause our indices to be created if necessary.  And that's good for future searches which
-                // we will invariably perform.
-                if (allSymbolReferences.Count >= MaxResults)
-                {
-                    break;
-                }
+                // Cancel any nested work that's still happening.
+                nestedTokenSource.Cancel();
             }
         }
 

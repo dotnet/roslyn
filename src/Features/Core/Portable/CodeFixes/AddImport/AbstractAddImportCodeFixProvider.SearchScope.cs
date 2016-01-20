@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private abstract class SearchScope
         {
             public readonly bool Exact;
-            protected readonly CancellationToken cancellationToken;
+            public readonly CancellationToken CancellationToken;
 
             protected SearchScope(bool exact, CancellationToken cancellationToken)
             {
-                this.Exact = exact;
-                this.cancellationToken = cancellationToken;
+                Exact = exact;
+                CancellationToken = cancellationToken;
             }
 
             protected abstract Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             protected override Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
             {
-                return SymbolFinder.FindDeclarationsAsync(_project, searchQuery, filter, cancellationToken);
+                return SymbolFinder.FindDeclarationsAsync(_project, searchQuery, filter, CancellationToken);
             }
         }
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetSymbolTreeInfoAsync(_project, cancellationToken).ConfigureAwait(false);
+                var info = await service.TryGetSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
                     // Looks like there was nothing in the cache.  Return no results for now.
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // needed.
                 var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
 
-                return await info.FindAsync(searchQuery, lazyAssembly, cancellationToken).ConfigureAwait(false);
+                return await info.FindAsync(searchQuery, lazyAssembly, CancellationToken).ConfigureAwait(false);
             }
 
             private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)
@@ -180,13 +180,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetSymbolTreeInfoAsync(_solution, _assembly, _metadataReference, cancellationToken).ConfigureAwait(false);
+                var info = await service.TryGetSymbolTreeInfoAsync(_solution, _assembly, _metadataReference, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
                     return SpecializedCollections.EmptyEnumerable<ISymbol>();
                 }
 
-                return await info.FindAsync(searchQuery, _assembly, cancellationToken).ConfigureAwait(false);
+                return await info.FindAsync(searchQuery, _assembly, CancellationToken).ConfigureAwait(false);
             }
         }
     }
