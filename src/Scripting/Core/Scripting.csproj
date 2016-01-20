@@ -83,8 +83,8 @@
     <Compile Include="Hosting\ObjectFormatter\CommonPrimitiveFormatter.cs" />
     <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatterOptions.cs" />
     <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatter.cs" />
-    <Compile Include="Hosting\CommonObjectFilter.cs" />
-    <Compile Include="Hosting\ObjectFilter.cs" />
+    <Compile Include="Hosting\CommonMemberFilter.cs" />
+    <Compile Include="Hosting\MemberFilter.cs" />
     <Compile Include="Hosting\PrintOptions.cs" />
     <Compile Include="Hosting\ObjectFormatter\ObjectFormatter.cs" />
     <Compile Include="Hosting\ObjectFormatter\ObjectFormatterHelpers.cs" />
