@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
-        private class ProjectInfo
+        private struct ProjectInfo
         {
             public readonly VersionStamp VersionStamp;
             public readonly SymbolTreeInfo SymbolTreeInfo;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             }
         }
 
-        private class MetadataInfo
+        private struct MetadataInfo
         {
             public readonly DateTime TimeStamp;
             public readonly SymbolTreeInfo SymbolTreeInfo;
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                         ? null
                         : await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                    metadataInfo = new MetadataInfo(lastWriteTime, info, metadataInfo?.ReferencingProjects ?? new HashSet<ProjectId>());
+                    metadataInfo = new MetadataInfo(lastWriteTime, info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                     _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
                 }
 
