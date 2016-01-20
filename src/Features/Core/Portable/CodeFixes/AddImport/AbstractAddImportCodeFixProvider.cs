@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             internal Task<List<SymbolReference>> FindInProjectAndDirectReferencesAsync(
                 Project project, bool exact)
             {
-                var searchScope = new ProjectAndDirectReferencesSearchScope(project, exact, _cancellationToken);
+                var searchScope = new AllSymbolsProjectSearchScope(project, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 
@@ -407,14 +407,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
                 Project project, bool exact)
             {
-                var searchScope = new ProjectSourceOnlySearchScope(projectToAssembly, project, exact, _cancellationToken);
+                var searchScope = new SourceSymbolsProjectSearchScope(projectToAssembly, project, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 
             internal Task<List<SymbolReference>> FindInMetadataAsync(
                 Solution solution, IAssemblySymbol assembly, PortableExecutableReference metadataReference, bool exact)
             {
-                var searchScope = new MetadataSearchScope(solution, assembly, metadataReference, exact, _cancellationToken);
+                var searchScope = new MetadataSymbolsSearchScope(solution, assembly, metadataReference, exact, _cancellationToken);
                 return DoAsync(searchScope);
             }
 

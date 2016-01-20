@@ -16,6 +16,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
+        /// <summary>
+        /// SearchScope is used to control where the <see cref="AbstractAddImportCodeFixProvider{TSimpleNameSyntax}"/>
+        /// searches.  We search different scopes in different ways.  For example we use 
+        /// SymbolTreeInfos to search unreferenced projects and metadata dlls.  However,
+        /// for the current project we're editing we defer to the compiler to do the 
+        /// search.
+        /// </summary>
         private abstract class SearchScope
         {
             public readonly bool Exact;
@@ -81,9 +88,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private class ProjectAndDirectReferencesSearchScope : ProjectSearchScope
+        /// <summary>
+        /// SearchScope used for searching *all* the symbols contained within a project/compilation.
+        /// i.e. the symbols created from source *and* symbols from references (both project and
+        /// metadata).
+        /// </summary>
+        private class AllSymbolsProjectSearchScope : ProjectSearchScope
         {
-            public ProjectAndDirectReferencesSearchScope(Project project, bool ignoreCase, CancellationToken cancellationToken)
+            public AllSymbolsProjectSearchScope(Project project, bool ignoreCase, CancellationToken cancellationToken)
                 : base(project, ignoreCase, cancellationToken)
             {
             }
@@ -94,11 +106,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private class ProjectSourceOnlySearchScope : ProjectSearchScope
+        /// <summary>
+        /// SearchScope used for searching *only* the source symbols contained within a project/compilation.
+        /// i.e. symbols from metadata will not be searched.
+        /// </summary>
+        private class SourceSymbolsProjectSearchScope : ProjectSearchScope
         {
             private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> _projectToAssembly;
 
-            public ProjectSourceOnlySearchScope(
+            public SourceSymbolsProjectSearchScope(
                 ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
                 Project project, bool ignoreCase, CancellationToken cancellationToken)
                 : base(project, ignoreCase, cancellationToken)
@@ -134,13 +150,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private class MetadataSearchScope : SearchScope
+        private class MetadataSymbolsSearchScope : SearchScope
         {
             private readonly IAssemblySymbol _assembly;
             private readonly PortableExecutableReference _metadataReference;
             private readonly Solution _solution;
 
-            public MetadataSearchScope(
+            public MetadataSymbolsSearchScope(
                 Solution solution,
                 IAssemblySymbol assembly,
                 PortableExecutableReference metadataReference,
