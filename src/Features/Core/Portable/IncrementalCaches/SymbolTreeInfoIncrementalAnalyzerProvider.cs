@@ -214,8 +214,10 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 ProjectInfo projectInfo;
                 if (!_projectToInfo.TryGetValue(project.Id, out projectInfo) || projectInfo.VersionStamp != version)
                 {
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
                     // Update the symbol tree infos for metadata and source in parallel.
-                    var referencesTask = UpdateReferencesAync(project, cancellationToken);
+                    var referencesTask = UpdateReferencesAync(project, compilation, cancellationToken);
                     var projectTask = SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken);
 
                     await Task.WhenAll(referencesTask, projectTask).ConfigureAwait(false);
@@ -228,18 +230,18 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
             }
 
-            private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
+            private Task UpdateReferencesAync(Project project, Compilation compilation, CancellationToken cancellationToken)
             {
                 // Process all metadata references in parallel.
                 var tasks = project.MetadataReferences.OfType<PortableExecutableReference>()
-                                   .Select(r => UpdateReferenceAsync(project, r, cancellationToken))
+                                   .Select(r => UpdateReferenceAsync(project, compilation, r, cancellationToken))
                                    .ToArray();
 
                 return Task.WhenAll(tasks);
             }
 
             private async Task UpdateReferenceAsync(
-                Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
+                Project project, Compilation compilation, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
                 var key = GetReferenceKey(reference);
                 if (key == null)
@@ -257,26 +259,17 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 MetadataInfo metadataInfo;
                 if (!_metadataPathToInfo.TryGetValue(key, out metadataInfo) || metadataInfo.TimeStamp == lastWriteTime)
                 {
-                    var info = await GetInfoForReferenceAsync(project, reference, cancellationToken).ConfigureAwait(false);
+                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
+                    var info = assembly == null
+                        ? null
+                        : await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+
                     metadataInfo = new MetadataInfo(lastWriteTime, info, metadataInfo?.ReferencingProjects ?? new HashSet<ProjectId>());
                     _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
                 }
 
                 // Keep track that this dll is referenced by this project.
                 metadataInfo.ReferencingProjects.Add(project.Id);
-            }
-
-            private async Task<SymbolTreeInfo> GetInfoForReferenceAsync(
-                Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
-            {
-                var compilationService = project.LanguageServices.GetService<ICompilationFactoryService>();
-                var compilation = compilationService.CreateCompilation("TempAssembly", compilationService.GetDefaultCompilationOptions())
-                    .WithReferences(reference);
-
-                var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                return assembly == null
-                    ? null
-                    : await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             public override void RemoveProject(ProjectId projectId)
