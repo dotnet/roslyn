@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             // no concurrency in this type on its own.
             private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo;
 
-            private readonly Dictionary<ProjectId, Project> idTolastSeenProject = new Dictionary<ProjectId, Project>();
+            private readonly Dictionary<ProjectId, Project> _idTolastSeenProject = new Dictionary<ProjectId, Project>();
 
             public IncrementalAnalyzer(
                 ConcurrentDictionary<ProjectId, ProjectInfo> projectToInfo,
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
 
                 Project lastSeenProject;
-                if (idTolastSeenProject.TryGetValue(project.Id, out lastSeenProject) && lastSeenProject == project)
+                if (_idTolastSeenProject.TryGetValue(project.Id, out lastSeenProject) && lastSeenProject == project)
                 {
                     // We already saw this project.  No need to do anything;
                     return;
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
 
                 // Mark that we've completed processing this project.
-                idTolastSeenProject[project.Id] = project;
+                _idTolastSeenProject[project.Id] = project;
             }
 
             private async Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
