@@ -33,7 +33,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
         ''' </summary>
         Public Async Function GenerateBaselineAsync() As Task
             Dim text = Resources.ProximityExpressionsGetterTestFile
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(text)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(text)
                 Dim languageDebugInfo = New VisualBasicLanguageDebugInfoService()
 
                 Dim hostdoc = workspace.Documents.First()
@@ -132,7 +132,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
 
         Private Async Function TestProximityExpressionsGetterAsync(markup As String,
                                                    continuation As Func(Of VisualBasicProximityExpressionsService, Document, Integer, Task)) As Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(markup)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(markup)
                 Dim testDocument = workspace.Documents.Single()
                 Dim snapshot = testDocument.TextBuffer.CurrentSnapshot
                 Dim caretPosition = testDocument.CursorPosition.Value
@@ -213,7 +213,7 @@ End Module</text>.Value, "local", True)
             Dim caretPosition As Integer
             MarkupTestFile.GetPosition(input, parsedInput, caretPosition)
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(parsedInput)
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(parsedInput)
                 Dim service = New VisualBasicProximityExpressionsService()
                 Dim hostdoc = workspace.Documents.First()
                 Dim snapshot = hostdoc.TextBuffer.CurrentSnapshot

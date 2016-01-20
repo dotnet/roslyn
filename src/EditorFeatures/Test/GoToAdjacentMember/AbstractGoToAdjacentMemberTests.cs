@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
 
             foreach (var kind in kinds)
             {
-                using (var workspace = await TestWorkspaceFactory.CreateWorkspaceFromFileAsync(
+                using (var workspace = await TestWorkspace.CreateAsync(
                     LanguageName,
                     compilationOptions: null,
                     parseOptions: DefaultParseOptions.WithKind(kind),
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
 
         protected async Task<int?> GetTargetPositionAsync(string code, bool next)
         {
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceFromFileAsync(
+            using (var workspace = await TestWorkspace.CreateAsync(
                 LanguageName,
                 compilationOptions: null,
                 parseOptions: DefaultParseOptions,
