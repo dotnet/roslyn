@@ -3,7 +3,7 @@
 <TaoTest xmlns="http://microsoft.com/schemas/VSLanguages/TAO">
   <InitTest>
     <StartTarget DontResetOptions="true" />
-    <EnableClosedFileDiagnostic Enabled="true" Language="C#"/>
+    <EnableFullSolutionAnalysis Enabled="true" />
     <AddProject ProjectName="TestProj" LanguageName="C#"  ProjectTemplate="ConsoleApplication"/>
     <ForceGC/>
   </InitTest>

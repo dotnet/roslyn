@@ -10,7 +10,7 @@
 <TaoTest xmlns="http://microsoft.com/schemas/VSLanguages/TAO">
   <InitTest>
     <StartTarget DontResetOptions="true" />
-    <EnableClosedFileDiagnostic Enabled="true" Language="Visual Basic"/>
+    <EnableFullSolutionAnalysis Enabled="true" />
     <OpenProject ProjectFile="C:\Roslyn\LegacyTest\RealworldProjects\RoslynSolutions\Roslyn-VB.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
   </InitTest>
 

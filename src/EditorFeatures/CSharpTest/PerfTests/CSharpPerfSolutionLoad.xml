@@ -4,7 +4,7 @@
   <InitTest>
     <EnsureCodeMarker />
     <StartTarget DontResetOptions="true" />
-    <EnableClosedFileDiagnostic Enabled="true" Language="C#"/>
+    <EnableFullSolutionAnalysis Enabled="true" />
   </InitTest>
 
   <ScenarioList>
