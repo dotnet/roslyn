@@ -154,6 +154,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             // no concurrency in this type on its own.
             private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo;
 
+            private readonly Dictionary<ProjectId, Project> idTolastSeenProject = new Dictionary<ProjectId, Project>();
+
             public IncrementalAnalyzer(
                 ConcurrentDictionary<ProjectId, ProjectInfo> projectToInfo,
                 ConcurrentDictionary<string, MetadataInfo> metadataPathToInfo)
@@ -162,10 +164,40 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            {
+                if (!document.SupportsSyntaxTree)
+                {
+                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
+                    return SpecializedTasks.EmptyTask;
+                }
+
+                if (bodyOpt != null)
+                {
+                    // This was a method level edit.  This can't change the symbol tree info
+                    // for this project.  Bail immediately.
+                    return SpecializedTasks.EmptyTask;
+                }
+
+                return UpdateSymbolTreeInfoAsync(document.Project, cancellationToken);
+            }
+
+            public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            {
+                return UpdateSymbolTreeInfoAsync(project, cancellationToken);
+            }
+
+            private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
                 if (!project.SupportsCompilation)
                 {
+                    return;
+                }
+
+                Project lastSeenProject;
+                if (idTolastSeenProject.TryGetValue(project.Id, out lastSeenProject) && lastSeenProject == project)
+                {
+                    // We already saw this project.  No need to do anything;
                     return;
                 }
 
@@ -173,14 +205,15 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                 var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                 ProjectInfo projectInfo;
-                if (_projectToInfo.TryGetValue(project.Id, out projectInfo) && projectInfo.VersionStamp == version)
+                if (!_projectToInfo.TryGetValue(project.Id, out projectInfo) || projectInfo.VersionStamp != version)
                 {
-                    return;
+                    var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
+                    projectInfo = new ProjectInfo(version, info);
+                    _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
                 }
 
-                var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
-                projectInfo = new ProjectInfo(version, info);
-                _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
+                // Mark that we've completed processing this project.
+                idTolastSeenProject[project.Id] = project;
             }
 
             private async Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
