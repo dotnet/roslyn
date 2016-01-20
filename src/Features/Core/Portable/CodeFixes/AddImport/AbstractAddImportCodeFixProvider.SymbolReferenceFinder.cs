@@ -495,8 +495,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 return GetProposedNamespaces(
                     searchScope,
-                        propertySymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)).Concat(
-                        fieldSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace))));
+                    propertySymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)).Concat(
+                       fieldSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace))));
             }
 
             private async Task<IEnumerable<SymbolResult<IMethodSymbol>>> GetAddMethodsAsync(
