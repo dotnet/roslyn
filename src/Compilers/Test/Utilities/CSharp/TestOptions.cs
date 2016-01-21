@@ -58,5 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return options.WithFeature("localFunctions", "true");
         }
+
+        public static CSharpParseOptions WithRefsFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("RefLocalsAndReturns", "true");
+        }
     }
 }
