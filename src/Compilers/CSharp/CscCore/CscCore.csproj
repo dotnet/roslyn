@@ -73,12 +73,6 @@
     <None Include="csc.cmd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="csc.exe.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="csc.rsp">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="csc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
