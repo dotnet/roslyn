@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ThisParameterSymbol(MethodSymbol forMethod) : this(forMethod, forMethod.ContainingType)
         {
         }
+
         internal ThisParameterSymbol(MethodSymbol forMethod, TypeSymbol containingType)
         {
             _containingMethod = forMethod;
@@ -143,5 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return 0; }
         }
+
+        public override bool IsReadOnly => false;
     }
 }

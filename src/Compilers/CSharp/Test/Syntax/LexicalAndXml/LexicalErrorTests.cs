@@ -191,7 +191,7 @@ public class C
     }    
 }
 ";
-            ParserErrorMessageTests.ParseAndValidate(test,
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular.WithReadOnlyVariablesFeature(),
                 // (7,15): error CS1031: Type expected
                 //         const const double d = 0;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(7, 15),
@@ -201,15 +201,15 @@ public class C
                 // (8,21): error CS1031: Type expected
                 //         const const const long l = 0;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(8, 21),
-                // (9,15): error CS0106: The modifier 'readonly' is not valid for this item
+                // (9,15): error CS1116:  The local modifier 'const' cannot be used with 'readonly' 
                 //         const readonly readonly readonly const double r = 0;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 15),
-                // (9,24): error CS0106: The modifier 'readonly' is not valid for this item
+                Diagnostic(ErrorCode.ERR_The_local_modifier_const_cannot_be_used_with_readonly, "readonly").WithLocation(9, 15),
+                // (9,24): error CS1031: Type expected
                 //         const readonly readonly readonly const double r = 0;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 24),
-                // (9,33): error CS0106: The modifier 'readonly' is not valid for this item
+                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithArguments("readonly").WithLocation(9, 24),
+                // (9,33): error CS1031: Type expected
                 //         const readonly readonly readonly const double r = 0;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 33),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithArguments("readonly").WithLocation(9, 33),
                 // (9,42): error CS1031: Type expected
                 //         const readonly readonly readonly const double r = 0;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(9, 42)

@@ -546,19 +546,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement BindDeclarationStatement(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
             var typeSyntax = node.Declaration.Type;
-            bool isConst = node.IsConst;
+            var kind = node.LocalDeclarationKind;
 
             bool isVar;
             AliasSymbol alias;
-            TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
+            TypeSymbol declType = BindVariableType(node, diagnostics, typeSyntax, ref kind, isVar: out isVar, alias: out alias);
 
             // UNDONE: "possible expression" feature for IDE
-
-            LocalDeclarationKind kind = LocalDeclarationKind.RegularVariable;
-            if (isConst)
-            {
-                kind = LocalDeclarationKind.Constant;
-            }
 
             var variableList = node.Declaration.Variables;
             int variableCount = variableList.Count;
@@ -581,7 +575,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
+        private TypeSymbol BindVariableType(
+            CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref LocalDeclarationKind kind, out bool isVar, out AliasSymbol alias)
         {
             Debug.Assert(declarationNode.Kind() == SyntaxKind.LocalDeclarationStatement);
 
@@ -597,11 +592,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // There are a number of ways in which a var decl can be illegal, but in these 
                 // cases we should report an error and then keep right on going with the inference.
 
-                if (isConst)
+                if (kind == LocalDeclarationKind.Constant)
                 {
                     Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, declarationNode);
                     // Keep processing it as a non-const local.
-                    isConst = false;
+                    kind = LocalDeclarationKind.RegularVariable;
                 }
 
                 // In the dev10 compiler the error recovery semantics for the illegal case
@@ -641,11 +636,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, declType);
                 }
 
-                if (isConst && !declType.CanBeConst())
+                if (kind == LocalDeclarationKind.Constant && !declType.CanBeConst())
                 {
                     Error(diagnostics, ErrorCode.ERR_BadConstType, typeSyntax, declType);
                     // Keep processing it as a non-const local.
-                    isConst = false;
+                    kind = LocalDeclarationKind.RegularVariable;
                 }
             }
 
@@ -1113,20 +1108,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            MessageID cause = 0;
-            if (local.IsForEach)
-            {
-                cause = MessageID.IDS_FOREACHLOCAL;
-            }
-            else if (local.IsUsing)
-            {
-                cause = MessageID.IDS_USINGLOCAL;
-            }
-            else if (local.IsFixed)
-            {
-                cause = MessageID.IDS_FIXEDLOCAL;
-            }
-            else
+            var cause = local.IsForEach  ? MessageID.IDS_FOREACHLOCAL      :
+                        local.IsUsing    ? MessageID.IDS_USINGLOCAL        :
+                        local.IsFixed    ? MessageID.IDS_FIXEDLOCAL        : 0;
+
+            if (cause == 0)
             {
                 Error(diagnostics, GetStandardLvalueError(kind), tree);
                 return false;
@@ -1153,6 +1139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int index = (cause != 0 ? 4 : 0) + (checkingReceiver ? 2 : 0) + (kind == BindValueKind.OutParameter ? 0 : 1);
 
             Debug.Assert(index != 2 && index != 3);
+
             // There is no way that we can have no cause AND a read-only local nested in a struct with a
             // writable field. What would make the local read-only if not one of the causes above?  (Const
             // locals may not be structs, so we would already have errored out in that scenario.)
@@ -1373,6 +1360,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // names - only their types - which works great in signatures, but not at all
                     // at the top level.
                     diagnostics.Add(ErrorCode.WRN_AssignmentToLockOrDispose, parameter.Syntax.Location, parameterSymbol.Name);
+                }
+                else if (parameterSymbol.IsReadOnly)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AssgReadonlyLocalCause,
+                        parameter.Syntax.Location, parameterSymbol.Name, MessageID.IDS_readonly_parameter.Localize());
                 }
                 return true;
             }
@@ -2365,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
-                    var lambdaRefKind = anonymousFunction.RefKind(i);
+                    var lambdaRefKind = anonymousFunction.ParameterRefKind(i);
                     var delegateParameterType = delegateParameters[i].Type;
                     var delegateRefKind = delegateParameters[i].RefKind;
 

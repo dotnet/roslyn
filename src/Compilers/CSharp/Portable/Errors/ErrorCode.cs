@@ -252,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_GenericConstraintNotSatisfiedTyVar = 314, // Requires SymbolDistinguisher.
         ERR_GenericConstraintNotSatisfiedValType = 315, // Requires SymbolDistinguisher.
         ERR_DuplicateGeneratedName = 316,
+
         // unused 317-399
         ERR_GlobalSingleTypeNameNotFound = 400,
         ERR_NewBoundMustBeLast = 401,
@@ -666,7 +667,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_ExtensionTypeParam = 1111,
         ERR_ExplicitExtension = 1112,
         ERR_ValueTypeExtDelegate = 1113,
-        // unused 1114-1199
+        ERR_The_parameter_modifier_out_cannot_be_used_with_readonly = 1114,
+        ERR_The_parameter_modifier_ref_cannot_be_used_with_readonly = 1115,
+
+        // unused 1116-1199
         // Below five error codes are unused.
         // WRN_FeatureDeprecated2 = 1200,
         // WRN_FeatureDeprecated3 = 1201,
@@ -1058,7 +1062,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidOutputName = 2041,
         ERR_InvalidDebugInformationFormat = 2042,
         ERR_LegacyObjectIdSyntax = 2043,
-        // unused 2044-2999
+        ERR_The_readonly_modifier_can_only_be_used_with_members_that_have_a_body = 2044,
+        // unused 2045-2999
         WRN_CLS_NoVarArgs = 3000,
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.
         WRN_CLS_BadReturnType = 3002,

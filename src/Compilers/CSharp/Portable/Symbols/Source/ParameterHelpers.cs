@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -35,7 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxToken refKeyword;
                 SyntaxToken paramsKeyword;
                 SyntaxToken thisKeyword;
-                var refKind = GetModifiers(parameterSyntax.Modifiers, out outKeyword, out refKeyword, out paramsKeyword, out thisKeyword);
+                SyntaxToken readonlyKeyword;
+                var refKind = GetModifiers(parameterSyntax.Modifiers, 
+                    out outKeyword, out refKeyword, out paramsKeyword, out thisKeyword, out readonlyKeyword);
 
                 if (parameterSyntax.IsArgList)
                 {
@@ -54,6 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (parameterSyntax.Default != null && firstDefault == -1)
                 {
                     firstDefault = parameterIndex;
+                }
+
+                if (readonlyKeyword.Kind() != SyntaxKind.None)
+                {
+                    if (IsAnyMethodWithoutBody(owner) || IsPropertyWithoutBody(owner))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_The_readonly_modifier_can_only_be_used_with_members_that_have_a_body, readonlyKeyword.GetLocation());
+                    }
                 }
 
                 Debug.Assert(parameterSyntax.Type != null);
@@ -96,6 +107,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             binder.ValidateParameterNameConflicts(typeParameters, parameters, diagnostics);
             return parameters;
+        }
+
+        private static bool IsPropertyWithoutBody(Symbol owner)
+        {
+            var property = owner as PropertySymbol;
+            if ((object)property != null)
+            {
+                var getterWithoutBody = property.GetMethod == null || IsAnyMethodWithoutBody(property.GetMethod);
+                var setterWithoutBody = property.SetMethod == null || IsAnyMethodWithoutBody(property.SetMethod);
+                return getterWithoutBody && setterWithoutBody;
+            }
+
+            return false;
+        }
+
+        private static bool IsAnyMethodWithoutBody(Symbol owner)
+        {
+            var method = owner as SourceMethodSymbol;
+            return (object)method != null && method.BodySyntax == null;
         }
 
         private static void ReportParameterErrors(
@@ -201,7 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken refKeyword;
             SyntaxToken paramsKeyword;
             SyntaxToken thisKeyword;
-            GetModifiers(parameterSyntax.Modifiers, out outKeyword, out refKeyword, out paramsKeyword, out thisKeyword);
+            SyntaxToken readonlyKeyword;
+            GetModifiers(parameterSyntax.Modifiers, out outKeyword, out refKeyword, out paramsKeyword, out thisKeyword, out readonlyKeyword);
 
             // CONSIDER: We are inconsistent here regarding where the error is reported; is it
             // CONSIDER: reported on the parameter name, or on the value of the initializer?
@@ -337,7 +368,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        private static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken outKeyword, out SyntaxToken refKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword)
+        private static RefKind GetModifiers(
+            SyntaxTokenList modifiers,
+            out SyntaxToken outKeyword,
+            out SyntaxToken refKeyword,
+            out SyntaxToken paramsKeyword,
+            out SyntaxToken thisKeyword,
+            out SyntaxToken readonlyKeyword)
         {
             var refKind = RefKind.None;
 
@@ -345,6 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             refKeyword = default(SyntaxToken);
             paramsKeyword = default(SyntaxToken);
             thisKeyword = default(SyntaxToken);
+            readonlyKeyword = default(SyntaxToken);
 
             foreach (var modifier in modifiers)
             {
@@ -369,6 +407,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     case SyntaxKind.ThisKeyword:
                         thisKeyword = modifier;
+                        break;
+                    case SyntaxKind.ReadOnlyKeyword:
+                        readonlyKeyword = modifier;
                         break;
                 }
             }

@@ -19,10 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Flags]
         private enum ParameterSyntaxKind : byte
         {
-            Regular = 0,
-            ParamsParameter = 1,
-            ExtensionThisParameter = 2,
-            DefaultParameter = 4,
+            Regular                 = 0,
+            ParamsParameter         = 1 << 0,
+            ExtensionThisParameter  = 1 << 1,
+            DefaultParameter        = 1 << 2,
+            ReadOnlyParameter       = 1 << 3,
         }
 
         private readonly SyntaxReference _syntaxRef;
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             TypeSymbol parameterType,
             RefKind refKind,
+            bool isReadOnly,
             string name,
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
@@ -58,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isExtensionMethodThis)
             {
                 _parameterSyntaxKind |= ParameterSyntaxKind.ExtensionThisParameter;
+            }
+
+            if (isReadOnly)
+            {
+                _parameterSyntaxKind |= ParameterSyntaxKind.ReadOnlyParameter;
             }
 
             var parameterSyntax = this.CSharpSyntaxNode;
@@ -1050,6 +1057,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Force binding of default value.
             var unused = this.ExplicitDefaultConstantValue;
         }
+
+        public override bool IsReadOnly => (_parameterSyntaxKind & ParameterSyntaxKind.ReadOnlyParameter) != 0;
     }
 
     internal sealed class SourceComplexParameterSymbolWithCustomModifiers : SourceComplexParameterSymbol
@@ -1062,6 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             TypeSymbol parameterType,
             RefKind refKind,
+            bool isReadOnly,
             ImmutableArray<CustomModifier> customModifiers,
             ushort countOfCustomModifiersPrecedingByRef,
             string name,
@@ -1070,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConstantValue defaultSyntaxValue,
             bool isParams,
             bool isExtensionMethodThis)
-            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, defaultSyntaxValue, isParams, isExtensionMethodThis)
+            : base(owner, ordinal, parameterType, refKind, isReadOnly, name, locations, syntaxRef, defaultSyntaxValue, isParams, isExtensionMethodThis)
         {
             Debug.Assert(!customModifiers.IsDefaultOrEmpty);
 

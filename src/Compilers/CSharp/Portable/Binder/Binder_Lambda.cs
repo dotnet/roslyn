@@ -29,17 +29,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If we have types then the types array is non-null, but possibly empty.
         // If we have no modifiers then the modifiers array is null; if we have any modifiers
         // then the modifiers array is non-null and not empty.
-
-        private Tuple<ImmutableArray<RefKind>, ImmutableArray<TypeSymbol>, ImmutableArray<string>, bool> AnalyzeAnonymousFunction(
-            CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        private void AnalyzeAnonymousFunction(
+            CSharpSyntaxNode syntax, DiagnosticBag diagnostics,
+            out ImmutableArray<bool> parameterIsReadOnly,
+            out ImmutableArray<RefKind> parameterRefKinds,
+            out ImmutableArray<TypeSymbol> parameterTypes, 
+            out ImmutableArray<string> parameterNames, 
+            out bool isAsync)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 
             var names = default(ImmutableArray<string>);
             var refKinds = default(ImmutableArray<RefKind>);
+            var isReadOnly = default(ImmutableArray<bool>);
             var types = default(ImmutableArray<TypeSymbol>);
-            bool isAsync = false;
+            isAsync = false;
 
             var namesBuilder = ArrayBuilder<string>.GetInstance();
             SeparatedSyntaxList<ParameterSyntax>? parameterSyntaxList = null;
@@ -83,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
+                var isReadOnlyBuilder = ArrayBuilder<bool>.GetInstance();
 
                 // In the batch compiler case we probably should have given a syntax error if the
                 // user did something like (int x, y)=>x+y -- but in the IDE scenario we might be in
@@ -138,6 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     namesBuilder.Add(p.Identifier.ValueText);
                     typesBuilder.Add(type);
                     refKindsBuilder.Add(refKind);
+                    isReadOnlyBuilder.Add(p.Modifiers.Any(SyntaxKind.ReadOnlyKeyword));
                 }
 
                 if (hasExplicitlyTypedParameterList)
@@ -150,6 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKinds = refKindsBuilder.ToImmutable();
                 }
 
+                isReadOnly = isReadOnlyBuilder.ToImmutableAndFree();
+
                 typesBuilder.Free();
                 refKindsBuilder.Free();
             }
@@ -161,7 +170,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return Tuple.Create(refKinds, types, names, isAsync);
+            parameterIsReadOnly = isReadOnly;
+            parameterRefKinds = refKinds;
+            parameterTypes = types;
+            parameterNames = names;
         }
 
         private UnboundLambda BindAnonymousFunction(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
@@ -169,12 +181,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 
-            var results = AnalyzeAnonymousFunction(syntax, diagnostics);
-
-            var refKinds = results.Item1;
-            var types = results.Item2;
-            var names = results.Item3;
-            var isAsync = results.Item4;
+            ImmutableArray<bool> isReadOnly;
+            ImmutableArray<RefKind> refKinds;
+            ImmutableArray<TypeSymbol> types;
+            ImmutableArray<string> names;
+            bool isAsync;
+            AnalyzeAnonymousFunction(syntax, diagnostics, out isReadOnly, out refKinds, out types, out names, out isAsync);
 
             if (!types.IsDefault)
             {
@@ -188,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var lambda = new UnboundLambda(syntax, this, refKinds, types, names, isAsync);
+            var lambda = new UnboundLambda(syntax, this, refKinds, isReadOnly, types, names, isAsync);
             if (!names.IsDefault)
             {
                 var binder = new LocalScopeBinder(this);

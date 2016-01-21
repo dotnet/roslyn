@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationParameterSymbol : CodeGenerationSymbol, IParameterSymbol
     {
+        public bool IsReadOnly { get; }
         public RefKind RefKind { get; }
         public bool IsParams { get; }
         public ITypeSymbol Type { get; }
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public CodeGenerationParameterSymbol(
             INamedTypeSymbol containingType,
             IList<AttributeData> attributes,
+            bool isReadOnly,
             RefKind refKind,
             bool isParams,
             ITypeSymbol type,
@@ -31,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             object defaultValue)
             : base(containingType, attributes, Accessibility.NotApplicable, new DeclarationModifiers(), name)
         {
+            this.IsReadOnly = isReadOnly;
             this.RefKind = refKind;
             this.IsParams = isParams;
             this.Type = type;
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         protected override CodeGenerationSymbol Clone()
         {
             return new CodeGenerationParameterSymbol(
-                this.ContainingType, this.GetAttributes(), this.RefKind,
+                this.ContainingType, this.GetAttributes(), this.IsReadOnly, this.RefKind,
                 this.IsParams, this.Type, this.Name, this.IsOptional, this.HasExplicitDefaultValue,
                 this.ExplicitDefaultValue);
         }

@@ -160,8 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locals = ArrayBuilder<LocalSymbol>.GetInstance();
                     }
 
-                    LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
-
+                    var kind = decl.LocalDeclarationKind;
                     foreach (var vdecl in decl.Declaration.Variables)
                     {
                         var localSymbol = MakeLocal(decl.Declaration, vdecl, kind);

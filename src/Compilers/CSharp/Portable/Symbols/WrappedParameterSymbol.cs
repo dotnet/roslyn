@@ -169,6 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return underlyingParameter.CountOfCustomModifiersPrecedingByRef; }
         }
 
+        public override bool IsReadOnly => underlyingParameter.IsReadOnly;
+
         #endregion
     }
 }

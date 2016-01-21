@@ -152,6 +152,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsReadOnly => false;
+
         internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             // Emit [Dynamic] on synthesized parameter symbols when the original parameter was dynamic 

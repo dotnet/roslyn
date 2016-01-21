@@ -395,6 +395,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract ushort CountOfCustomModifiersPrecedingByRef { get; }
 
+        public abstract bool IsReadOnly { get; }
+
         #region IParameterSymbol Members
 
         ITypeSymbol IParameterSymbol.Type

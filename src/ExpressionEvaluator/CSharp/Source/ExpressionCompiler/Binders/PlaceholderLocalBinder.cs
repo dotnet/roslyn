@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var declaration = _syntax as LocalDeclarationStatementSyntax;
             if (declaration != null)
             {
-                var kind = declaration.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
+                var kind = declaration.LocalDeclarationKind;
                 foreach (var variable in declaration.Declaration.Variables)
                 {
                     var local = SourceLocalSymbol.MakeLocal(_containingMethod, this, declaration.Declaration.Type, variable.Identifier, kind, variable.Initializer);

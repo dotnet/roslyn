@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FOREACHLOCAL = MessageBase + 12506,
         IDS_USINGLOCAL = MessageBase + 12507,
         IDS_FIXEDLOCAL = MessageBase + 12508,
+        IDS_readonly_parameter = MessageBase + 12510,
         IDS_FeatureStaticClasses = MessageBase + 12511,
         IDS_FeaturePartialTypes = MessageBase + 12512,
         IDS_MethodGroup = MessageBase + 12513,
@@ -72,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureOptionalParameter = MessageBase + 12647,
         IDS_FeatureExceptionFilter = MessageBase + 12648,
         IDS_FeatureAutoPropertyInitializer = MessageBase + 12649,
+        IDS_FeatureReadOnlyParameters = MessageBase + 12650,
 
         IDS_SK_TYPE_OR_NAMESPACE = MessageBase + 12652,
         IDS_Contravariant = MessageBase + 12659,
@@ -164,6 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "digitSeparators";
                 case MessageID.IDS_FeatureLocalFunctions:
                     return "localFunctions";
+                case MessageID.IDS_FeatureReadOnlyParameters:
+                    return "readOnlyParameters";
 
                 default:
                     return null;

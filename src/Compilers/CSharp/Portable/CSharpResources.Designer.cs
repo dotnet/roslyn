@@ -8099,6 +8099,33 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to  The parameter modifier &apos;out&apos; cannot be used with &apos;readonly&apos; .
+        /// </summary>
+        internal static string ERR_The_parameter_modifier_out_cannot_be_used_with_readonly {
+            get {
+                return ResourceManager.GetString("ERR_The_parameter_modifier_out_cannot_be_used_with_readonly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  The parameter modifier &apos;ref&apos; cannot be used with &apos;readonly&apos; .
+        /// </summary>
+        internal static string ERR_The_parameter_modifier_ref_cannot_be_used_with_readonly {
+            get {
+                return ResourceManager.GetString("ERR_The_parameter_modifier_ref_cannot_be_used_with_readonly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;readonly&apos; modifier can only be used with members that have a body.
+        /// </summary>
+        internal static string ERR_The_readonly_modifier_can_only_be_used_with_members_that_have_a_body {
+            get {
+                return ResourceManager.GetString("ERR_The_readonly_modifier_can_only_be_used_with_members_that_have_a_body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Keyword &apos;this&apos; is not available in the current context.
         /// </summary>
         internal static string ERR_ThisInBadContext {
@@ -9261,6 +9288,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to readonly parameters.
+        /// </summary>
+        internal static string IDS_FeatureReadOnlyParameters {
+            get {
+                return ResourceManager.GetString("IDS_FeatureReadOnlyParameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to static classes.
         /// </summary>
         internal static string IDS_FeatureStaticClasses {
@@ -9419,6 +9455,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_PathList {
             get {
                 return ResourceManager.GetString("IDS_PathList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to readonly parameter.
+        /// </summary>
+        internal static string IDS_readonly_parameter {
+            get {
+                return ResourceManager.GetString("IDS_readonly_parameter", resourceCulture);
             }
         }
         
