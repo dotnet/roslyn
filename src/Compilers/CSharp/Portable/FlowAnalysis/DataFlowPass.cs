@@ -322,7 +322,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
 
-                if ((node.SyntaxTree.Options as CSharpParseOptions)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true)
+                if ((node.SyntaxTree.Options as CSharpParseOptions)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
+                    !member.NullableOptOut)
                 {
                     walker._performStaticNullChecks = true;
                 }
@@ -2994,10 +2995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool RespectNullableAnnotations(Symbol symbol)
         {
-            Debug.Assert(!(symbol is TypeSymbol));
-
-            // TODO: This is probably not always accurate when generic instantiations are involved, but is a good starting point.
-            return symbol.ContainingModule.UtilizesNullableReferenceTypes && symbol.IsDefinition; 
+            return compilation.RespectNullableAnnotations(symbol); 
         }
 
         protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method, ParameterSymbol parameter)

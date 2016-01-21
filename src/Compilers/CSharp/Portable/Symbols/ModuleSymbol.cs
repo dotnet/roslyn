@@ -197,6 +197,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                // We are in by default.
+                return false;
+            }
+        }
+
         /// <summary>
         /// Returns an array of assembly identities for assemblies referenced by this module.
         /// Items at the same position from ReferencedAssemblies and from ReferencedAssemblySymbols 

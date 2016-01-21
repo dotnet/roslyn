@@ -32,5 +32,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         #endregion
+
+        #region NullableOptOutAttribute
+
+        private bool? _nullableOptOut;
+        public bool? NullableOptOut
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _nullableOptOut;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(value.HasValue);
+                _nullableOptOut = value;
+                SetDataStored();
+            }
+        }
+
+        #endregion
     }
 }

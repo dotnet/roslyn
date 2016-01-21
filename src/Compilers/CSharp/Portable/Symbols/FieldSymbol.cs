@@ -157,6 +157,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes);
 
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                Debug.Assert(IsDefinition);
+
+                var associatedSymbol = AssociatedSymbol;
+                if ((object)associatedSymbol != null)
+                {
+                    switch (associatedSymbol.Kind)
+                    {
+                        case SymbolKind.Property:
+                        case SymbolKind.Event:
+                            return associatedSymbol.NullableOptOut;
+                    }
+
+                }
+
+                return ContainingType?.NullableOptOut == true;
+            }
+        }
+
         /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>

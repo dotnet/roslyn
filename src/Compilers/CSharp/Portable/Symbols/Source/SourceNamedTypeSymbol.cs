@@ -685,6 +685,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.True;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableOptOutAttribute))
+            {
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().NullableOptOut = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -818,6 +822,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
+            }
+        }
+
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data?.NullableOptOut ?? base.NullableOptOut;
             }
         }
 

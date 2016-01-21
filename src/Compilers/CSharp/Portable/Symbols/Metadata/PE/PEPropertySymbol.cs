@@ -659,5 +659,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get { return null; }
         }
+
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                var moduleSymbol = _containingType.ContainingPEModule;
+                bool optOut;
+
+                return moduleSymbol.Module.HasNullableOptOutAttribute(_handle, out optOut) ? optOut : base.NullableOptOut;
+            }
+        }
     }
 }

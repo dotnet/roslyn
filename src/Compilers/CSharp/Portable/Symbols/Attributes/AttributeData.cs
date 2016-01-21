@@ -620,6 +620,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 case SymbolKind.NetModule:
                     // Note that DefaultCharSetAttribute is emitted to metadata, although it's also decoded and used when emitting P/Invoke
+
+                    if (IsTargetAttribute(target, AttributeDescription.NullableOptOutForAssemblyAttribute))
+                    {
+                        return false;
+                    }
                     break;
 
                 case SymbolKind.NamedType:

@@ -527,8 +527,13 @@
     <Compile Include="Symbols\Attributes\PEAttributeData.cs" />
     <Compile Include="Symbols\Attributes\RetargetingAttributeData.cs" />
     <Compile Include="Symbols\Attributes\SourceAttributeData.cs" />
+    <Compile Include="Symbols\Attributes\WellKnownAttributeData\EventWellKnownAttributeData.cs" />
+    <Compile Include="Symbols\Attributes\WellKnownAttributeData\FieldWellKnownAttributeData.cs" />
+    <Compile Include="Symbols\Attributes\WellKnownAttributeData\MethodWellKnownAttributeData.cs" />
+    <Compile Include="Symbols\Attributes\WellKnownAttributeData\ModuleWellKnownAttributeData.cs" />
     <Compile Include="Symbols\Attributes\WellKnownAttributeData\ParameterEarlyWellKnownAttributeData.cs" />
     <Compile Include="Symbols\Attributes\WellKnownAttributeData\PropertyEarlyWellKnownAttributeData.cs" />
+    <Compile Include="Symbols\Attributes\WellKnownAttributeData\PropertyWellKnownAttributeData.cs" />
     <Compile Include="Symbols\Attributes\WellKnownAttributeData\TypeWellKnownAttributeData.cs" />
     <Compile Include="Symbols\BaseTypeAnalysis.cs" />
     <Compile Include="Symbols\ByRefReturnErrorTypeSymbol.cs" />

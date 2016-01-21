@@ -216,6 +216,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract ConstantValue ExplicitDefaultConstantValue { get; }
 
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                Debug.Assert(IsDefinition);
+                return ContainingSymbol?.NullableOptOut == true;
+            }
+        }
+
         /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>

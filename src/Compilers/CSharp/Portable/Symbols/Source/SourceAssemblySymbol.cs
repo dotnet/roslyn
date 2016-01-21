@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)info != null)
                 {
-                    diagnostics.Add(info, Location.None);
+                    diagnostics.Add(info, NoLocation.Singleton);
                 }
             }
         }

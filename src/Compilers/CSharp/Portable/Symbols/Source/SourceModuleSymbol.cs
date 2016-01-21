@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -39,6 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private NamespaceSymbol _globalNamespace;
 
         private bool _hasBadAttributes;
+
+        /// This maps from assembly name to a set of public keys. It uses concurrent dictionaries because it is built,
+        /// one attribute at a time, in the callback that validates an attribute's application to a symbol. It is assumed
+        /// to be complete after a call to GetAttributes(). 
+        private ConcurrentDictionary<string, ConcurrentSet<ImmutableArray<byte>>> _lazyNullableOptOutForAssemblyMap;
 
         internal SourceModuleSymbol(
             SourceAssemblySymbol assemblySymbol,
@@ -480,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        internal ModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -488,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (ModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -502,15 +508,93 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultCharSetAttribute))
             {
                 CharSet charSet = attribute.GetConstructorArgument<CharSet>(0, SpecialType.System_Enum);
-                if (!CommonModuleWellKnownAttributeData.IsValidCharSet(charSet))
+                if (!ModuleWellKnownAttributeData.IsValidCharSet(charSet))
                 {
                     CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
                 else
                 {
-                    arguments.GetOrCreateData<CommonModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
+                    arguments.GetOrCreateData<ModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
                 }
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableOptOutForAssemblyAttribute))
+            {
+                DecodeOneNullableOptOutForAssemblyAttribute(arguments.AttributeSyntaxOpt, attribute, arguments.Diagnostics);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableOptOutAttribute))
+            {
+                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().NullableOptOut = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+            }
+        }
+
+        private void DecodeOneNullableOptOutForAssemblyAttribute(
+            AttributeSyntax node,
+            CSharpAttributeData attrData,
+            DiagnosticBag diagnostics)
+        {
+            // this code won't be called unless we bound a well-formed, semantically correct ctor call.
+            Debug.Assert(!attrData.HasErrors);
+
+            string displayName = (string)attrData.CommonConstructorArguments[0].Value;
+
+            if (displayName == null)
+            {
+                diagnostics.Add(ErrorCode.WRN_InvalidAssemblyName, node.Location, "null");
+                return;
+            }
+
+            AssemblyIdentity identity;
+            AssemblyIdentityParts parts;
+            if (!AssemblyIdentity.TryParseDisplayName(displayName, out identity, out parts))
+            {
+                diagnostics.Add(ErrorCode.WRN_InvalidAssemblyName, node.Location, displayName);
+                return;
+            }
+
+            const AssemblyIdentityParts allowedParts = AssemblyIdentityParts.Name | AssemblyIdentityParts.PublicKey;
+
+            if ((parts & ~allowedParts) != 0)
+            {
+                diagnostics.Add(ErrorCode.WRN_InvalidAssemblyName, node.Location, displayName);
+                return;
+            }
+
+            if (_lazyNullableOptOutForAssemblyMap == null)
+            {
+                Interlocked.CompareExchange(ref _lazyNullableOptOutForAssemblyMap,
+                                            new ConcurrentDictionary<string, ConcurrentSet<ImmutableArray<byte>>>(StringComparer.OrdinalIgnoreCase), null);
+            }
+
+            ConcurrentSet<ImmutableArray<byte>> keys = _lazyNullableOptOutForAssemblyMap.GetOrAdd(identity.Name, name => new ConcurrentSet<ImmutableArray<byte>>());
+            keys.Add(identity.PublicKey);
+        }
+
+        public bool IsNullableOptOutForAssembly(AssemblySymbol assembly)
+        {
+            GetDecodedWellKnownAttributeData();
+
+            if (_lazyNullableOptOutForAssemblyMap == null)
+            {
+                return false;
+            }
+
+            ConcurrentSet<ImmutableArray<byte>> keys;
+                
+            if (_lazyNullableOptOutForAssemblyMap.TryGetValue(assembly.Identity.Name, out keys))
+            {
+                return keys.Contains(assembly.Identity.PublicKey);
+            }
+
+            return false;
+        }
+
+        internal override bool NullableOptOut
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data?.NullableOptOut ?? base.NullableOptOut;
             }
         }
 

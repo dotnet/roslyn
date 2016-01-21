@@ -31,6 +31,36 @@ namespace System.Runtime.CompilerServices
         {
         }
     }
+
+    /// <summary>
+    /// Opt out of nullability warnings that could originate from definitions in the given assembly. 
+    /// The attribute is not preserved in metadata and ignored if present in metadata.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Module, AllowMultiple = true)]
+    class NullableOptOutForAssemblyAttribute : Attribute
+    {
+        /// <param name=""assemblyName"">An assembly name - a simple name plus its PublicKey, if any.""/></param>
+        public NullableOptOutForAssemblyAttribute(string assemblyName) { }
+    }
+
+    /// <summary>
+    /// Opt-out or opt into nullability warnings that could originate from source code and definition(s) ...
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Module | // in this module. If nullable reference types feature is enabled, the warnings are opted into on the module level by default
+                    AttributeTargets.Class | // in this class
+                    AttributeTargets.Constructor | // of this constructor
+                    AttributeTargets.Delegate | // of this delegate
+                    AttributeTargets.Event | // of this event
+                    AttributeTargets.Field | // of this field
+                    AttributeTargets.Interface | // in this interface
+                    AttributeTargets.Method | // of this method
+                    AttributeTargets.Property | // of this property
+                    AttributeTargets.Struct, // in this structure
+                    AllowMultiple = false)]
+    class NullableOptOutAttribute : Attribute
+    {
+        public NullableOptOutAttribute(bool flag = true) { }
+    }
 }
 "; 
 
@@ -1196,6 +1226,50 @@ class B2 : A
         }
 
         [Fact]
+        public void Overriding_21()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+abstract class A
+{
+    public abstract event System.Action<string> E1; 
+    public abstract event System.Action<string>? E2; 
+}
+
+class B1 : A
+{
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public override event System.Action<string?> E1 {add {} remove{}}
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public override event System.Action<string> E2 {add {} remove{}}
+}
+
+class B2 : A
+{
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public override event System.Action<string?> E1; // 2
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public override event System.Action<string> E2; // 2
+
+    void Dummy()
+    {
+        var e1 = E1;
+        var e2 = E2;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Implementing_01()
         {
             var source = @"
@@ -1482,6 +1556,53 @@ class B2 : A2
         }
 
         [Fact]
+        public void Overriding_22()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+abstract class A1
+{
+    public abstract string?[] P1 {get; set;} 
+    public abstract string[] P2 {get; set;} 
+
+    public abstract string?[] this[int x] {get; set;} 
+    public abstract string[] this[short x] {get; set;} 
+}
+
+class B1 : A1
+{
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public override string[] P1 {get; set;} 
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public override string[]? P2 {get; set;} 
+    
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public override string[] this[int x] // 1
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+    
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public override string[]? this[short x] // 2
+    {
+        get {throw new System.NotImplementedException();}
+        set {}
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Implementing_03()
         {
             var source = @"
@@ -1722,6 +1843,43 @@ class B : A
         }
 
         [Fact]
+        public void Overriding_23()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+abstract class A
+{
+    public abstract string[] M1(); 
+    public abstract T[] M2<T>() where T : class; 
+}
+
+class B : A
+{
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public override string?[] M1()
+    {
+        return new string?[] {};
+    } 
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public override S?[] M2<S>()
+    {
+        return new S?[] {};
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Implementing_05()
         {
             var source = @"
@@ -1858,6 +2016,43 @@ class B : IA
         }
 
         [Fact]
+        public void Implementing_11()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+interface IA
+{
+    string[] M1(); 
+    T[] M2<T>() where T : class; 
+}
+
+class B : IA
+{
+    [System.Runtime.CompilerServices.NullableOptOut]
+    string?[] IA.M1()
+    {
+        return new string?[] {};
+    } 
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    S?[] IA.M2<S>() 
+    {
+        return new S?[] {};
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Overriding_19()
         {
             var source = @"
@@ -1912,6 +2107,41 @@ class B : A
             var m3 = b.GetMember<MethodSymbol>("M3");
             Assert.True(m3.Parameters[0].Type.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).Parameters[0].Type,
                 TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+        }
+
+        [Fact]
+        public void Overriding_24()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+abstract class A
+{
+    public abstract void M1(string[] x); 
+    public abstract void M2<T>(T[] x) where T : class; 
+}
+
+class B : A
+{
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public override void M1(string?[] x)
+    {
+    } 
+
+    [System.Runtime.CompilerServices.NullableOptOut]
+    public override void M2<T>(T?[] x)
+    {
+    } 
+}
+";
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2344,6 +2574,60 @@ partial class C1
 
             Assert.True(m1Impl.Parameters[3].Type.Equals(m1Def.Parameters[3].Type,
                 TypeSymbolEqualityOptions.SameType | TypeSymbolEqualityOptions.CompareNullableModifiersForReferenceTypes));
+        }
+
+        [Fact]
+        public void PartialMethods_02()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+partial class C1
+{
+    [System.Runtime.CompilerServices.NullableOptOut]
+    partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+}
+
+partial class C1
+{
+    partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+    { }
+}";
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PartialMethods_03()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+partial class C1
+{
+    partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+}
+
+partial class C1
+{
+    [System.Runtime.CompilerServices.NullableOptOut]
+    partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+    { }
+}";
+            var compilation = CreateCompilationWithMscorlib(new[] { source, attributesDefinitions }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -10697,6 +10981,1890 @@ class C
             c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
                                                                 parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
                                                                 references: new[] { c0.ToMetadataReference() });
+
+            c.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void OptOutFromAssembly_01()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+public class CL0 
+{
+    public object F1;
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_01_Lib");
+
+            string source = @"
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""OptOutFromAssembly_01_Lib"")]
+
+class C 
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 x1, object? y1)
+    {
+        x1.F1 = y1;
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                references: new[] { c0.EmitToImageReference() });
+
+            CompileAndVerify(c, symbolValidator: m =>
+                                                 {
+                                                     Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", (((PEModuleSymbol)m).GetAttributes().Single().ToString()));
+                                                 });
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                references: new[] { c0.ToMetadataReference() });
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OptOutFromAssembly_02()
+        {
+            CSharpCompilation c0 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+public class CL0 
+{
+    public object F1;
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_02_Lib1");
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, @"
+public class CL1 
+{
+    public object F2;
+}
+" }, parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_02_Lib2");
+
+            string source = @"
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""OptOutFromAssembly_02_Lib1"")]
+
+class C 
+{
+    static void Main()
+    {
+    }
+
+    void Test1(CL0 x1, object? y1)
+    {
+        x1.F1 = y1;
+    }
+
+    void Test2(CL1 x2, object? y2)
+    {
+        x2.F2 = y2;
+    }
+}
+";
+
+            var expected = new[]
+            {
+    // (17,17): warning CS8201: Possible null reference assignment.
+    //         x2.F2 = y2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2").WithLocation(17, 17)
+            };
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                references: new[] { c0.EmitToImageReference(), c1.EmitToImageReference() });
+
+            c.VerifyDiagnostics(expected);
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                references: new[] { c0.ToMetadataReference(), c1.ToMetadataReference() });
+
+            c.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void OptOutFromAssembly_03()
+        {
+            string source = @"
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(null)]
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""invalid, assembly, name"")]
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""name1, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""name2, PublicKeyToken=aaabbbcccdddeee"")]
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""name3, Version=1"")]
+
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""name1, PublicKey=01240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""name1, PublicKey=02240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
+[module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""name1"")]
+
+class C 
+{
+    static void Main()
+    {
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (2,9): warning CS1700: Assembly reference 'null' is invalid and cannot be resolved
+    // [module:System.Runtime.CompilerServices.NullableOptOutForAssembly(null)]
+    Diagnostic(ErrorCode.WRN_InvalidAssemblyName, "System.Runtime.CompilerServices.NullableOptOutForAssembly(null)").WithArguments("null").WithLocation(2, 9),
+    // (3,9): warning CS1700: Assembly reference 'invalid, assembly, name' is invalid and cannot be resolved
+    // [module:System.Runtime.CompilerServices.NullableOptOutForAssembly("invalid, assembly, name")]
+    Diagnostic(ErrorCode.WRN_InvalidAssemblyName, @"System.Runtime.CompilerServices.NullableOptOutForAssembly(""invalid, assembly, name"")").WithArguments("invalid, assembly, name").WithLocation(3, 9),
+    // (5,9): warning CS1700: Assembly reference 'name2, PublicKeyToken=aaabbbcccdddeee' is invalid and cannot be resolved
+    // [module:System.Runtime.CompilerServices.NullableOptOutForAssembly("name2, PublicKeyToken=aaabbbcccdddeee")]
+    Diagnostic(ErrorCode.WRN_InvalidAssemblyName, @"System.Runtime.CompilerServices.NullableOptOutForAssembly(""name2, PublicKeyToken=aaabbbcccdddeee"")").WithArguments("name2, PublicKeyToken=aaabbbcccdddeee").WithLocation(5, 9),
+    // (6,9): warning CS1700: Assembly reference 'name3, Version=1' is invalid and cannot be resolved
+    // [module:System.Runtime.CompilerServices.NullableOptOutForAssembly("name3, Version=1")]
+    Diagnostic(ErrorCode.WRN_InvalidAssemblyName, @"System.Runtime.CompilerServices.NullableOptOutForAssembly(""name3, Version=1"")").WithArguments("name3, Version=1").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void NullableOptOut_01()
+        {
+            string lib = @"
+using System;
+
+public class CL0 
+{
+    public class CL1 
+    {
+        public Action F1;
+        public Action? F2;
+
+        public Action P1 { get; set; }
+        public Action? P2 { get; set; }
+
+        public Action M1() { throw new System.NotImplementedException(); }
+        public Action? M2() { return null; }
+        public void M3(Action x3) {}
+    }
+}
+";
+
+            string source1 = @"
+using System;
+
+partial class C 
+{
+    partial class B 
+    {
+        public event Action E1;
+        public event Action? E2;
+
+        [System.Runtime.CompilerServices.NullableOptOut]
+        void Test11(Action? x11)
+        {
+            E1 = x11;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut]
+        void Test12(Action x12)
+        {
+            x12 = E1 ?? x12;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut]
+        void Test13(Action x13)
+        {
+            x13 = E2;
+        }
+    }
+}
+";
+
+            string source2 = @"
+using System;
+
+partial class C 
+{
+    partial class B 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut]
+        void Test21(CL0.CL1 c, Action? x21)
+        {
+            c.F1 = x21;
+            c.P1 = x21;
+            c.M3(x21);
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut]
+        void Test22(CL0.CL1 c, Action x22)
+        {
+            x22 = c.F1 ?? x22;
+            x22 = c.P1 ?? x22;
+            x22 = c.M1() ?? x22;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut]
+        void Test23(CL0.CL1 c, Action x23)
+        {
+            x23 = c.F2;
+            x23 = c.P2;
+            x23 = c.M2();
+        }
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, lib, source1, source2 },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, lib },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c1.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableOptOut_02()
+        {
+            string moduleAttributes = @"
+[module:System.Runtime.CompilerServices.NullableOptOut(true)]
+";
+
+            string lib = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(true)]
+public class CL0 
+{
+    [System.Runtime.CompilerServices.NullableOptOut(true)]
+    public class CL1 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action F1;
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action? F2;
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action P1 { get; set; }
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action? P2 { get; set; }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action M1() { throw new System.NotImplementedException(); }
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action? M2() { return null; }
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public void M3(Action x3) {}
+    }
+}
+";
+
+            string source1 = @"
+using System;
+
+
+partial class C 
+{
+
+    partial class B 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public event Action E1;
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public event Action? E2;
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test11(Action? x11)
+        {
+            E1 = x11;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test12(Action x12)
+        {
+            x12 = E1 ?? x12;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test13(Action x13)
+        {
+            x13 = E2;
+        }
+    }
+}
+";
+
+            string source2 = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(true)]
+partial class C 
+{
+    [System.Runtime.CompilerServices.NullableOptOut(true)]
+    partial class B 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test21(CL0.CL1 c, Action? x21)
+        {
+            c.F1 = x21;
+            c.P1 = x21;
+            c.M3(x21);
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test22(CL0.CL1 c, Action x22)
+        {
+            x22 = c.F1 ?? x22;
+            x22 = c.P1 ?? x22;
+            x22 = c.M1() ?? x22;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test23(CL0.CL1 c, Action x23)
+        {
+            x23 = c.F2;
+            x23 = c.P2;
+            x23 = c.M2();
+        }
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (18,18): warning CS8201: Possible null reference assignment.
+    //             E1 = x11;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x11").WithLocation(18, 18),
+    // (24,19): hidden CS8207: Expression is probably never null.
+    //             x12 = E1 ?? x12;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "E1").WithLocation(24, 19),
+    // (30,19): warning CS8201: Possible null reference assignment.
+    //             x13 = E2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "E2").WithLocation(30, 19),
+    // (13,20): warning CS8201: Possible null reference assignment.
+    //             c.F1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(13, 20),
+    // (14,20): warning CS8201: Possible null reference assignment.
+    //             c.P1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(14, 20),
+    // (15,18): warning CS8204: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
+    //             c.M3(x21);
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(15, 18),
+    // (21,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.F1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(21, 19),
+    // (22,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.P1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(22, 19),
+    // (23,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.M1() ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(23, 19),
+    // (29,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.F2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.F2").WithLocation(29, 19),
+    // (30,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.P2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.P2").WithLocation(30, 19),
+    // (31,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
+                );
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c1.VerifyDiagnostics();
+
+            var expected = new[] {
+    // (13,20): warning CS8201: Possible null reference assignment.
+    //             c.F1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(13, 20),
+    // (14,20): warning CS8201: Possible null reference assignment.
+    //             c.P1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(14, 20),
+    // (15,18): warning CS8204: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
+    //             c.M3(x21);
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(15, 18),
+    // (21,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.F1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(21, 19),
+    // (22,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.P1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(22, 19),
+    // (23,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.M1() ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(23, 19),
+    // (29,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.F2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.F2").WithLocation(29, 19),
+    // (30,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.P2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.P2").WithLocation(30, 19),
+    // (31,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
+                };
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(expected);
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void NullableOptOut_03()
+        {
+            string moduleAttributes = @"
+[module:System.Runtime.CompilerServices.NullableOptOut(true)]
+";
+
+            string lib = @"
+using System;
+
+public class CL0 
+{
+    public class CL1 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action F1;
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action? F2;
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action P1 { get; set; }
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action? P2 { get; set; }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action M1() { throw new System.NotImplementedException(); }
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action? M2() { return null; }
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public void M3(Action x3) {}
+    }
+}
+";
+
+            string source1 = @"
+using System;
+
+
+partial class C 
+{
+
+    partial class B 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public event Action E1;
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public event Action? E2;
+
+        void Test11(Action? x11)
+        {
+            E1 = x11;
+        }
+
+        void Test12(Action x12)
+        {
+            x12 = E1 ?? x12;
+        }
+
+        void Test13(Action x13)
+        {
+            x13 = E2;
+        }
+    }
+}
+";
+
+            string source2 = @"
+using System;
+
+partial class C 
+{
+    partial class B 
+    {
+        void Test21(CL0.CL1 c, Action? x21)
+        {
+            c.F1 = x21;
+            c.P1 = x21;
+            c.M3(x21);
+        }
+
+        void Test22(CL0.CL1 c, Action x22)
+        {
+            x22 = c.F1 ?? x22;
+            x22 = c.P1 ?? x22;
+            x22 = c.M1() ?? x22;
+        }
+
+        void Test23(CL0.CL1 c, Action x23)
+        {
+            x23 = c.F2;
+            x23 = c.P2;
+            x23 = c.M2();
+        }
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c1.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableOptOut_04()
+        {
+            string moduleAttributes = @"
+[module:System.Runtime.CompilerServices.NullableOptOut(false)]
+";
+
+            string lib = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(true)]
+public class CL0 
+{
+    public class CL1 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action F1;
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action? F2;
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action P1 { get; set; }
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action? P2 { get; set; }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action M1() { throw new System.NotImplementedException(); }
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action? M2() { return null; }
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public void M3(Action x3) {}
+    }
+}
+";
+
+            string source1 = @"
+using System;
+
+partial class C 
+{
+    partial class B 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public event Action E1;
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public event Action? E2;
+
+        void Test11(Action? x11)
+        {
+            E1 = x11;
+        }
+
+        void Test12(Action x12)
+        {
+            x12 = E1 ?? x12;
+        }
+
+        void Test13(Action x13)
+        {
+            x13 = E2;
+        }
+    }
+}
+";
+
+            string source2 = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(true)]
+partial class C 
+{
+    partial class B 
+    {
+        void Test21(CL0.CL1 c, Action? x21)
+        {
+            c.F1 = x21;
+            c.P1 = x21;
+            c.M3(x21);
+        }
+
+        void Test22(CL0.CL1 c, Action x22)
+        {
+            x22 = c.F1 ?? x22;
+            x22 = c.P1 ?? x22;
+            x22 = c.M1() ?? x22;
+        }
+
+        void Test23(CL0.CL1 c, Action x23)
+        {
+            x23 = c.F2;
+            x23 = c.P2;
+            x23 = c.M2();
+        }
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c1.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableOptOut_05()
+        {
+            string moduleAttributes = @"
+[module:System.Runtime.CompilerServices.NullableOptOut(false)]
+";
+
+            string lib = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(false)]
+public class CL0 
+{
+    [System.Runtime.CompilerServices.NullableOptOut(true)]
+    public class CL1 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action F1;
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action? F2;
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action P1 { get; set; }
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action? P2 { get; set; }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action M1() { throw new System.NotImplementedException(); }
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public Action? M2() { return null; }
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public void M3(Action x3) {}
+    }
+}
+";
+
+            string source1 = @"
+using System;
+
+partial class C 
+{
+    partial class B 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public event Action E1;
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        public event Action? E2;
+
+        void Test11(Action? x11)
+        {
+            E1 = x11;
+        }
+
+        void Test12(Action x12)
+        {
+            x12 = E1 ?? x12;
+        }
+
+        void Test13(Action x13)
+        {
+            x13 = E2;
+        }
+    }
+}
+";
+
+            string source2 = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(false)]
+partial class C 
+{
+    [System.Runtime.CompilerServices.NullableOptOut(true)]
+    partial class B 
+    {
+        void Test21(CL0.CL1 c, Action? x21)
+        {
+            c.F1 = x21;
+            c.P1 = x21;
+            c.M3(x21);
+        }
+
+        void Test22(CL0.CL1 c, Action x22)
+        {
+            x22 = c.F1 ?? x22;
+            x22 = c.P1 ?? x22;
+            x22 = c.M1() ?? x22;
+        }
+
+        void Test23(CL0.CL1 c, Action x23)
+        {
+            x23 = c.F2;
+            x23 = c.P2;
+            x23 = c.M2();
+        }
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c1.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableOptOut_06()
+        {
+            string moduleAttributes = @"
+[module:System.Runtime.CompilerServices.NullableOptOut(false)]
+";
+
+            string lib = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(false)]
+public class CL0 
+{
+    [System.Runtime.CompilerServices.NullableOptOut(false)]
+    public class CL1 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(true)]
+        public Action F1;
+        [System.Runtime.CompilerServices.NullableOptOut(true)]
+        public Action? F2;
+
+        [System.Runtime.CompilerServices.NullableOptOut(true)]
+        public Action P1 { get; set; }
+        [System.Runtime.CompilerServices.NullableOptOut(true)]
+        public Action? P2 { get; set; }
+
+        [System.Runtime.CompilerServices.NullableOptOut(true)]
+        public Action M1() { throw new System.NotImplementedException(); }
+        [System.Runtime.CompilerServices.NullableOptOut(true)]
+        public Action? M2() { return null; }
+        [System.Runtime.CompilerServices.NullableOptOut(true)]
+        public void M3(Action x3) {}
+    }
+}
+";
+
+            string source1 = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(false)]
+partial class C 
+{
+    [System.Runtime.CompilerServices.NullableOptOut(false)]
+    partial class B 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(true)]
+        public event Action E1;
+        [System.Runtime.CompilerServices.NullableOptOut(true)]
+        public event Action? E2;
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test11(Action? x11)
+        {
+            E1 = x11;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test12(Action x12)
+        {
+            x12 = E1 ?? x12;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test13(Action x13)
+        {
+            x13 = E2;
+        }
+    }
+}
+";
+
+            string source2 = @"
+using System;
+
+partial class C 
+{
+    partial class B 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test21(CL0.CL1 c, Action? x21)
+        {
+            c.F1 = x21;
+            c.P1 = x21;
+            c.M3(x21);
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test22(CL0.CL1 c, Action x22)
+        {
+            x22 = c.F1 ?? x22;
+            x22 = c.P1 ?? x22;
+            x22 = c.M1() ?? x22;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test23(CL0.CL1 c, Action x23)
+        {
+            x23 = c.F2;
+            x23 = c.P2;
+            x23 = c.M2();
+        }
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c1.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableOptOut_07()
+        {
+            string moduleAttributes = @"
+[module:System.Runtime.CompilerServices.NullableOptOut(false)]
+";
+
+            string lib = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(false)]
+public class CL0 
+{
+    [System.Runtime.CompilerServices.NullableOptOut(true)]
+    public class CL1 
+    {
+        public Action F1;
+        public Action? F2;
+
+        public Action P1 { get; set; }
+        public Action? P2 { get; set; }
+
+        public Action M1() { throw new System.NotImplementedException(); }
+        public Action? M2() { return null; }
+        public void M3(Action x3) {}
+    }
+}
+";
+
+            string source1 = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(false)]
+partial class C 
+{
+    [System.Runtime.CompilerServices.NullableOptOut(true)]
+    partial class B 
+    {
+        public event Action E1;
+        public event Action? E2;
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test11(Action? x11)
+        {
+            E1 = x11;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test12(Action x12)
+        {
+            x12 = E1 ?? x12;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test13(Action x13)
+        {
+            x13 = E2;
+        }
+    }
+}
+";
+
+            string source2 = @"
+using System;
+
+partial class C 
+{
+    partial class B 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test21(CL0.CL1 c, Action? x21)
+        {
+            c.F1 = x21;
+            c.P1 = x21;
+            c.M3(x21);
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test22(CL0.CL1 c, Action x22)
+        {
+            x22 = c.F1 ?? x22;
+            x22 = c.P1 ?? x22;
+            x22 = c.M1() ?? x22;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test23(CL0.CL1 c, Action x23)
+        {
+            x23 = c.F2;
+            x23 = c.P2;
+            x23 = c.M2();
+        }
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c1.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableOptOut_08()
+        {
+            string moduleAttributes = @"
+[module:System.Runtime.CompilerServices.NullableOptOut(false)]
+";
+
+            string lib = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(true)]
+public class CL0 
+{
+    public class CL1 
+    {
+        public Action F1;
+        public Action? F2;
+
+        public Action P1 { get; set; }
+        public Action? P2 { get; set; }
+
+        public Action M1() { throw new System.NotImplementedException(); }
+        public Action? M2() { return null; }
+        public void M3(Action x3) {}
+    }
+}
+";
+
+            string source1 = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(true)]
+partial class C 
+{
+    partial class B 
+    {
+        public event Action E1;
+        public event Action? E2;
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test11(Action? x11)
+        {
+            E1 = x11;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test12(Action x12)
+        {
+            x12 = E1 ?? x12;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test13(Action x13)
+        {
+            x13 = E2;
+        }
+    }
+}
+";
+
+            string source2 = @"
+using System;
+
+partial class C 
+{
+    partial class B 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test21(CL0.CL1 c, Action? x21)
+        {
+            c.F1 = x21;
+            c.P1 = x21;
+            c.M3(x21);
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test22(CL0.CL1 c, Action x22)
+        {
+            x22 = c.F1 ?? x22;
+            x22 = c.P1 ?? x22;
+            x22 = c.M1() ?? x22;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test23(CL0.CL1 c, Action x23)
+        {
+            x23 = c.F2;
+            x23 = c.P2;
+            x23 = c.M2();
+        }
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c1.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableOptOut_09()
+        {
+            string moduleAttributes = @"
+[module:System.Runtime.CompilerServices.NullableOptOut(true)]
+";
+
+            string lib = @"
+using System;
+
+public class CL0 
+{
+    public class CL1 
+    {
+        public Action F1;
+        public Action? F2;
+
+        public Action P1 { get; set; }
+        public Action? P2 { get; set; }
+
+        public Action M1() { throw new System.NotImplementedException(); }
+        public Action? M2() { return null; }
+        public void M3(Action x3) {}
+    }
+}
+";
+
+            string source1 = @"
+using System;
+
+partial class C 
+{
+    partial class B 
+    {
+        public event Action E1;
+        public event Action? E2;
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test11(Action? x11)
+        {
+            E1 = x11;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test12(Action x12)
+        {
+            x12 = E1 ?? x12;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test13(Action x13)
+        {
+            x13 = E2;
+        }
+    }
+}
+";
+
+            string source2 = @"
+using System;
+
+partial class C 
+{
+    partial class B 
+    {
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test21(CL0.CL1 c, Action? x21)
+        {
+            c.F1 = x21;
+            c.P1 = x21;
+            c.M3(x21);
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test22(CL0.CL1 c, Action x22)
+        {
+            x22 = c.F1 ?? x22;
+            x22 = c.P1 ?? x22;
+            x22 = c.M1() ?? x22;
+        }
+
+        [System.Runtime.CompilerServices.NullableOptOut(false)]
+        void Test23(CL0.CL1 c, Action x23)
+        {
+            x23 = c.F2;
+            x23 = c.P2;
+            x23 = c.M2();
+        }
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c1.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableOptOut_10()
+        {
+            string moduleAttributes = @"
+[module:System.Runtime.CompilerServices.NullableOptOut(true)]
+";
+
+            string lib = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(true)]
+public class CL0 
+{
+    [System.Runtime.CompilerServices.NullableOptOut(false)]
+    public class CL1 
+    {
+        public Action F1;
+        public Action? F2;
+
+        public Action P1 { get; set; }
+        public Action? P2 { get; set; }
+
+        public Action M1() { throw new System.NotImplementedException(); }
+        public Action? M2() { return null; }
+        public void M3(Action x3) {}
+    }
+}
+";
+
+            string source1 = @"
+using System;
+
+
+partial class C 
+{
+
+    partial class B 
+    {
+        
+        public event Action E1;
+        
+        public event Action? E2;
+
+        
+        void Test11(Action? x11)
+        {
+            E1 = x11;
+        }
+
+        
+        void Test12(Action x12)
+        {
+            x12 = E1 ?? x12;
+        }
+
+        
+        void Test13(Action x13)
+        {
+            x13 = E2;
+        }
+    }
+}
+";
+
+            string source2 = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(true)]
+partial class C 
+{
+    [System.Runtime.CompilerServices.NullableOptOut(false)]
+    partial class B 
+    {
+        
+        void Test21(CL0.CL1 c, Action? x21)
+        {
+            c.F1 = x21;
+            c.P1 = x21;
+            c.M3(x21);
+        }
+
+        
+        void Test22(CL0.CL1 c, Action x22)
+        {
+            x22 = c.F1 ?? x22;
+            x22 = c.P1 ?? x22;
+            x22 = c.M1() ?? x22;
+        }
+
+        
+        void Test23(CL0.CL1 c, Action x23)
+        {
+            x23 = c.F2;
+            x23 = c.P2;
+            x23 = c.M2();
+        }
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (18,18): warning CS8201: Possible null reference assignment.
+    //             E1 = x11;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x11").WithLocation(18, 18),
+    // (24,19): hidden CS8207: Expression is probably never null.
+    //             x12 = E1 ?? x12;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "E1").WithLocation(24, 19),
+    // (30,19): warning CS8201: Possible null reference assignment.
+    //             x13 = E2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "E2").WithLocation(30, 19),
+    // (13,20): warning CS8201: Possible null reference assignment.
+    //             c.F1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(13, 20),
+    // (14,20): warning CS8201: Possible null reference assignment.
+    //             c.P1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(14, 20),
+    // (15,18): warning CS8204: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
+    //             c.M3(x21);
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(15, 18),
+    // (21,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.F1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(21, 19),
+    // (22,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.P1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(22, 19),
+    // (23,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.M1() ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(23, 19),
+    // (29,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.F2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.F2").WithLocation(29, 19),
+    // (30,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.P2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.P2").WithLocation(30, 19),
+    // (31,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
+                );
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c1.VerifyDiagnostics();
+
+            var expected = new[] {
+    // (13,20): warning CS8201: Possible null reference assignment.
+    //             c.F1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(13, 20),
+    // (14,20): warning CS8201: Possible null reference assignment.
+    //             c.P1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(14, 20),
+    // (15,18): warning CS8204: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
+    //             c.M3(x21);
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(15, 18),
+    // (21,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.F1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(21, 19),
+    // (22,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.P1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(22, 19),
+    // (23,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.M1() ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(23, 19),
+    // (29,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.F2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.F2").WithLocation(29, 19),
+    // (30,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.P2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.P2").WithLocation(30, 19),
+    // (31,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
+                };
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(expected);
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void NullableOptOut_11()
+        {
+            string moduleAttributes = @"
+[module:System.Runtime.CompilerServices.NullableOptOut(true)]
+";
+
+            string lib = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(false)]
+public class CL0 
+{
+    
+    public class CL1 
+    {
+        public Action F1;
+        public Action? F2;
+
+        public Action P1 { get; set; }
+        public Action? P2 { get; set; }
+
+        public Action M1() { throw new System.NotImplementedException(); }
+        public Action? M2() { return null; }
+        public void M3(Action x3) {}
+    }
+}
+";
+
+            string source1 = @"
+using System;
+
+
+partial class C 
+{
+
+    partial class B 
+    {
+        
+        public event Action E1;
+        
+        public event Action? E2;
+
+        
+        void Test11(Action? x11)
+        {
+            E1 = x11;
+        }
+
+        
+        void Test12(Action x12)
+        {
+            x12 = E1 ?? x12;
+        }
+
+        
+        void Test13(Action x13)
+        {
+            x13 = E2;
+        }
+    }
+}
+";
+
+            string source2 = @"
+using System;
+
+[System.Runtime.CompilerServices.NullableOptOut(false)]
+partial class C 
+{
+    
+    partial class B 
+    {
+        
+        void Test21(CL0.CL1 c, Action? x21)
+        {
+            c.F1 = x21;
+            c.P1 = x21;
+            c.M3(x21);
+        }
+
+        
+        void Test22(CL0.CL1 c, Action x22)
+        {
+            x22 = c.F1 ?? x22;
+            x22 = c.P1 ?? x22;
+            x22 = c.M1() ?? x22;
+        }
+
+        
+        void Test23(CL0.CL1 c, Action x23)
+        {
+            x23 = c.F2;
+            x23 = c.P2;
+            x23 = c.M2();
+        }
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (18,18): warning CS8201: Possible null reference assignment.
+    //             E1 = x11;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x11").WithLocation(18, 18),
+    // (24,19): hidden CS8207: Expression is probably never null.
+    //             x12 = E1 ?? x12;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "E1").WithLocation(24, 19),
+    // (30,19): warning CS8201: Possible null reference assignment.
+    //             x13 = E2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "E2").WithLocation(30, 19),
+    // (13,20): warning CS8201: Possible null reference assignment.
+    //             c.F1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(13, 20),
+    // (14,20): warning CS8201: Possible null reference assignment.
+    //             c.P1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(14, 20),
+    // (15,18): warning CS8204: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
+    //             c.M3(x21);
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(15, 18),
+    // (21,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.F1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(21, 19),
+    // (22,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.P1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(22, 19),
+    // (23,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.M1() ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(23, 19),
+    // (29,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.F2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.F2").WithLocation(29, 19),
+    // (30,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.P2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.P2").WithLocation(30, 19),
+    // (31,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
+                );
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c1.VerifyDiagnostics();
+
+            var expected = new[] {
+    // (13,20): warning CS8201: Possible null reference assignment.
+    //             c.F1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(13, 20),
+    // (14,20): warning CS8201: Possible null reference assignment.
+    //             c.P1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(14, 20),
+    // (15,18): warning CS8204: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
+    //             c.M3(x21);
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(15, 18),
+    // (21,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.F1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(21, 19),
+    // (22,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.P1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(22, 19),
+    // (23,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.M1() ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(23, 19),
+    // (29,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.F2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.F2").WithLocation(29, 19),
+    // (30,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.P2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.P2").WithLocation(30, 19),
+    // (31,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
+                };
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(expected);
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void NullableOptOut_12()
+        {
+            string moduleAttributes = @"
+[module:System.Runtime.CompilerServices.NullableOptOut(false)]
+";
+
+            string lib = @"
+using System;
+
+
+public class CL0 
+{
+    
+    public class CL1 
+    {
+        public Action F1;
+        public Action? F2;
+
+        public Action P1 { get; set; }
+        public Action? P2 { get; set; }
+
+        public Action M1() { throw new System.NotImplementedException(); }
+        public Action? M2() { return null; }
+        public void M3(Action x3) {}
+    }
+}
+";
+
+            string source1 = @"
+using System;
+
+
+partial class C 
+{
+
+    partial class B 
+    {
+        
+        public event Action E1;
+        
+        public event Action? E2;
+
+        
+        void Test11(Action? x11)
+        {
+            E1 = x11;
+        }
+
+        
+        void Test12(Action x12)
+        {
+            x12 = E1 ?? x12;
+        }
+
+        
+        void Test13(Action x13)
+        {
+            x13 = E2;
+        }
+    }
+}
+";
+
+            string source2 = @"
+using System;
+
+
+partial class C 
+{
+    
+    partial class B 
+    {
+        
+        void Test21(CL0.CL1 c, Action? x21)
+        {
+            c.F1 = x21;
+            c.P1 = x21;
+            c.M3(x21);
+        }
+
+        
+        void Test22(CL0.CL1 c, Action x22)
+        {
+            x22 = c.F1 ?? x22;
+            x22 = c.P1 ?? x22;
+            x22 = c.M1() ?? x22;
+        }
+
+        
+        void Test23(CL0.CL1 c, Action x23)
+        {
+            x23 = c.F2;
+            x23 = c.P2;
+            x23 = c.M2();
+        }
+    }
+}
+";
+
+            CSharpCompilation c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib, source1, source2 },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(
+    // (18,18): warning CS8201: Possible null reference assignment.
+    //             E1 = x11;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x11").WithLocation(18, 18),
+    // (24,19): hidden CS8207: Expression is probably never null.
+    //             x12 = E1 ?? x12;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "E1").WithLocation(24, 19),
+    // (30,19): warning CS8201: Possible null reference assignment.
+    //             x13 = E2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "E2").WithLocation(30, 19),
+    // (13,20): warning CS8201: Possible null reference assignment.
+    //             c.F1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(13, 20),
+    // (14,20): warning CS8201: Possible null reference assignment.
+    //             c.P1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(14, 20),
+    // (15,18): warning CS8204: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
+    //             c.M3(x21);
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(15, 18),
+    // (21,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.F1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(21, 19),
+    // (22,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.P1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(22, 19),
+    // (23,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.M1() ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(23, 19),
+    // (29,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.F2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.F2").WithLocation(29, 19),
+    // (30,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.P2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.P2").WithLocation(30, 19),
+    // (31,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
+                );
+
+            CSharpCompilation c1 = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, lib },
+                                                                parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                                                options: TestOptions.ReleaseDll);
+
+            c1.VerifyDiagnostics();
+
+            var expected = new[] {
+    // (13,20): warning CS8201: Possible null reference assignment.
+    //             c.F1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(13, 20),
+    // (14,20): warning CS8201: Possible null reference assignment.
+    //             c.P1 = x21;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(14, 20),
+    // (15,18): warning CS8204: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
+    //             c.M3(x21);
+    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(15, 18),
+    // (21,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.F1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(21, 19),
+    // (22,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.P1 ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(22, 19),
+    // (23,19): hidden CS8207: Expression is probably never null.
+    //             x22 = c.M1() ?? x22;
+    Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(23, 19),
+    // (29,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.F2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.F2").WithLocation(29, 19),
+    // (30,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.P2;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.P2").WithLocation(30, 19),
+    // (31,19): warning CS8201: Possible null reference assignment.
+    //             x23 = c.M2();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c.M2()").WithLocation(31, 19)
+                };
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics(expected);
+
+            c = CreateCompilationWithMscorlib(new[] { attributesDefinitions, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"),
+                                              options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
         }
