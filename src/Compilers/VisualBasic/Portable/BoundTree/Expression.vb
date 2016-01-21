@@ -1025,12 +1025,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IMemberInitializers As ImmutableArray(Of IMemberInitializer) Implements IObjectCreationExpression.MemberInitializers
+        Private ReadOnly Property IMemberInitializers As ImmutableArray(Of ISymbolInitializer) Implements IObjectCreationExpression.MemberInitializers
             Get
                 Dim initializer = s_memberInitializersMappings.GetValue(Me, Function(objectCreationStatement)
                                                                                 Dim objectInitializerExpression As BoundObjectInitializerExpressionBase = Me.InitializerOpt
                                                                                 If objectInitializerExpression IsNot Nothing Then
-                                                                                    Dim builder = ArrayBuilder(Of IMemberInitializer).GetInstance(objectInitializerExpression.Initializers.Length)
+                                                                                    Dim builder = ArrayBuilder(Of ISymbolInitializer).GetInstance(objectInitializerExpression.Initializers.Length)
                                                                                     For Each memberAssignment In objectInitializerExpression.Initializers
                                                                                         Dim assignment = TryCast(memberAssignment, BoundAssignmentOperator)
                                                                                         Dim left = assignment?.Left
@@ -1046,10 +1046,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                     Return builder.ToImmutableAndFree()
                                                                                 End If
 
-                                                                                Return ImmutableArray(Of IMemberInitializer).Empty
+                                                                                Return ImmutableArray(Of ISymbolInitializer).Empty
                                                                             End Function)
 
-                Return DirectCast(initializer, ImmutableArray(Of IMemberInitializer))
+                Return DirectCast(initializer, ImmutableArray(Of ISymbolInitializer))
             End Get
         End Property
 
@@ -1078,13 +1078,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
                 Get
-                    Return OperationKind.FieldInitializer
-                End Get
-            End Property
-
-            Public ReadOnly Property MemberInitializerKind As MemberInitializerKind Implements IMemberInitializer.MemberInitializerKind
-                Get
-                    Return MemberInitializerKind.Field
+                    Return OperationKind.FieldInitializerInCreation
                 End Get
             End Property
 
@@ -1100,7 +1094,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public ReadOnly Property Value As IExpression Implements IMemberInitializer.Value
+            Public ReadOnly Property Value As IExpression Implements ISymbolInitializer.Value
                 Get
                     Return _value
                 End Get
@@ -1122,13 +1116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
                 Get
-                    Return OperationKind.PropertyInitializer
-                End Get
-            End Property
-
-            Public ReadOnly Property MemberInitializerKind As MemberInitializerKind Implements IMemberInitializer.MemberInitializerKind
-                Get
-                    Return MemberInitializerKind.Property
+                    Return OperationKind.PropertyInitializerInCreation
                 End Get
             End Property
 
@@ -1150,7 +1138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public ReadOnly Property Value As IExpression Implements IMemberInitializer.Value
+            Public ReadOnly Property Value As IExpression Implements ISymbolInitializer.Value
                 Get
                     Return _value
                 End Get
@@ -1379,6 +1367,105 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.LateBoundMemberReferenceExpression
+        End Function
+    End Class
+
+    Partial Class BoundFieldOrPropertyInitializer
+        Implements IFieldInitializer, IPropertyInitializer
+
+        Private ReadOnly Property IField As IFieldSymbol Implements IFieldInitializer.Field
+            Get
+                Return TryCast(Me.InitializedSymbols.FirstOrDefault(), IFieldSymbol)
+            End Get
+        End Property
+
+        Private ReadOnly Property ISetter As IMethodSymbol Implements IPropertyInitializer.Setter
+            Get
+                Dim initializedProperty As IPropertySymbol = TryCast(Me.InitializedSymbols.FirstOrDefault(), IPropertySymbol)
+                Return If(initializedProperty IsNot Nothing, initializedProperty.SetMethod, Nothing)
+            End Get
+        End Property
+
+        Private ReadOnly Property IValue As IExpression Implements ISymbolInitializer.Value
+            Get
+                Return Me.InitialValue
+            End Get
+        End Property
+
+        Protected Overrides Function StatementKind() As OperationKind
+            Return If(TypeOf Me.InitializedSymbols.FirstOrDefault() Is IPropertySymbol, OperationKind.PropertyInitializerAtDeclaration, OperationKind.FieldInitializerAtDeclaration)
+        End Function
+    End Class
+
+    Partial Class BoundEqualsValue
+        Implements ISymbolInitializer
+
+        Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
+            Get
+                Return (DirectCast(Me.Value, IExpression)).IsInvalid
+            End Get
+        End Property
+
+        Private ReadOnly Property IKind As OperationKind Implements IOperation.Kind
+            Get
+                Return Me.OperationKind()
+            End Get
+        End Property
+
+        Private ReadOnly Property ISyntax As SyntaxNode Implements IOperation.Syntax
+            Get
+                Return Me.Syntax
+            End Get
+        End Property
+
+        Private ReadOnly Property IValue As IExpression Implements ISymbolInitializer.Value
+            Get
+                Return Me.Value
+            End Get
+        End Property
+
+        Protected MustOverride Function OperationKind() As OperationKind
+    End Class
+
+    Partial Class BoundFieldEqualsValue
+        Implements IFieldInitializer
+
+        Private ReadOnly Property IField As IFieldSymbol Implements IFieldInitializer.Field
+            Get
+                Return Me.Field
+            End Get
+        End Property
+
+        Protected Overrides Function OperationKind() As OperationKind
+            Return OperationKind.FieldInitializerAtDeclaration
+        End Function
+    End Class
+
+    Partial Class BoundPropertyEqualsValue
+        Implements IPropertyInitializer
+
+        Private ReadOnly Property ISetter As IMethodSymbol Implements IPropertyInitializer.Setter
+            Get
+                Return Me.PropertySymbol?.SetMethod
+            End Get
+        End Property
+
+        Protected Overrides Function OperationKind() As OperationKind
+            Return OperationKind.PropertyInitializerAtDeclaration
+        End Function
+    End Class
+
+    Partial Class BoundParameterEqualsValue
+        Implements IParameterInitializer
+
+        Private ReadOnly Property IParameter As IParameterSymbol Implements IParameterInitializer.Parameter
+            Get
+                Return Me._Parameter
+            End Get
+        End Property
+
+        Protected Overrides Function OperationKind() As OperationKind
+            Return OperationKind.ParameterInitializerAtDeclaration
         End Function
     End Class
 

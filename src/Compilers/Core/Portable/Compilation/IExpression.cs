@@ -795,31 +795,21 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Explicitly-specified member initializers.
         /// </summary>
-        ImmutableArray<IMemberInitializer> MemberInitializers { get; }
+        ImmutableArray<ISymbolInitializer> MemberInitializers { get; }
     }
 
     /// <summary>
     /// Represents an object member initializer.
     /// </summary>
-    public interface IMemberInitializer : IOperation
+    public interface ISymbolInitializer : IOperation
     {
-        MemberInitializerKind MemberInitializerKind { get; }
         IExpression Value { get; }
     }
-
-    /// <summary>
-    /// Kinds of member initializers.
-    /// </summary>
-    public enum MemberInitializerKind
-    {
-        Field,
-        Property
-    }
-
+    
     /// <summary>
     /// Represents an initialization of a field.
     /// </summary>
-    public interface IFieldInitializer : IMemberInitializer
+    public interface IFieldInitializer : ISymbolInitializer
     {
         /// <summary>
         /// Initialized field.
@@ -830,7 +820,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a property.
     /// </summary>
-    public interface IPropertyInitializer : IMemberInitializer
+    public interface IPropertyInitializer : ISymbolInitializer
     {
         /// <summary>
         /// Set method used to initialize the property.
@@ -929,6 +919,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Name of the member.
         /// </summary>
         string MemberName { get; }
+    }
+    
+    /// <summary>
+    /// Represents an initialization of a parameter at the point of declaration.
+    /// </summary>
+    public interface IParameterInitializer : ISymbolInitializer
+    {
+        /// <summary>
+        /// Initialized parameter.
+        /// </summary>
+        IParameterSymbol Parameter { get; }
     }
 
     /// <summary>

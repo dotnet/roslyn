@@ -134,7 +134,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
             Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
-            Return If(expressionInitializer IsNot Nothing, New BoundEqualsValue(initializer, expressionInitializer), boundInitializer)
+            If expressionInitializer IsNot Nothing Then
+                If Me.MemberSymbol.Kind = SymbolKind.Parameter Then
+                    Return New BoundParameterEqualsValue(initializer, DirectCast(Me.RootBinder.ContainingMember, ParameterSymbol), expressionInitializer)
+                End If
+
+                If Me.MemberSymbol.Kind = SymbolKind.Property Then
+                    Return New BoundPropertyEqualsValue(initializer, DirectCast(Me.MemberSymbol, PropertySymbol), expressionInitializer)
+                End If
+
+                If Me.MemberSymbol.Kind = SymbolKind.Field Then
+                    Return New BoundFieldEqualsValue(initializer, DirectCast(Me.MemberSymbol, FieldSymbol), expressionInitializer)
+                End If
+            End If
+
+            Return boundInitializer
         End Function
 
         Friend Overrides Function GetBoundRoot() As BoundNode

@@ -2603,7 +2603,17 @@ EnteredRegion:
             Return Nothing
         End Function
 
-        Public Overrides Function VisitEqualsValue(node As BoundEqualsValue) As BoundNode
+        Public Overrides Function VisitFieldEqualsValue(node As BoundFieldEqualsValue) As BoundNode
+            VisitRvalue(node.Value)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitPropertyEqualsValue(node As BoundPropertyEqualsValue) As BoundNode
+            VisitRvalue(node.Value)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitParameterEqualsValue(node As BoundParameterEqualsValue) As BoundNode
             VisitRvalue(node.Value)
             Return Nothing
         End Function
