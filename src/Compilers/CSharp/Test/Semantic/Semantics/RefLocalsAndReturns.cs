@@ -804,5 +804,111 @@ public class Test
             );
         }
 
+        [Fact]
+        public void RefReturnNested()
+        {
+            var text = @"
+public class Test
+{
+    public static void Main()
+    {
+        ref char Foo(ref char a, ref char b)
+        {
+            // valid
+            return ref a;
+        }
+        
+        char Foo1(ref char a, ref char b)
+        {
+            return ref b;
+        }
+
+        ref char Foo2(ref char c, ref char b)
+        {
+            return c;
+        }
+    }
+}";
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
+            comp.VerifyDiagnostics(
+    // (14,13): error CS8894: By-reference returns may only be used in methods that return by reference
+    //             return ref b;
+    Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(14, 13),
+    // (19,13): error CS8895: By-value returns may only be used in methods that return by value
+    //             return c;
+    Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(19, 13),
+    // (6,18): warning CS0168: The variable 'Foo' is declared but never used
+    //         ref char Foo(ref char a, ref char b)
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 18),
+    // (12,14): warning CS0168: The variable 'Foo1' is declared but never used
+    //         char Foo1(ref char a, ref char b)
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo1").WithArguments("Foo1").WithLocation(12, 14),
+    // (17,18): warning CS0168: The variable 'Foo2' is declared but never used
+    //         ref char Foo2(ref char c, ref char b)
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo2").WithArguments("Foo2").WithLocation(17, 18)
+
+            );
+        }
+
+        [Fact]
+        public void RefReturnNestedArrow()
+        {
+            var text = @"
+public class Test
+{
+    public static void Main()
+    {
+        // valid
+        ref char Foo(ref char a, ref char b) => ref a;
+        
+        char Foo1(ref char a, ref char b) => ref b;
+
+        ref char Foo2(ref char c, ref char b) => c;
+
+        var arr = new int[1];
+        ref var r = ref arr[0];
+
+        ref char Moo1(ref char a, ref char b) => ref r;
+        char Moo3(ref char a, ref char b) => r;
+    }
+}";
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
+            comp.VerifyDiagnostics(
+    // (9,50): error CS8894: By-reference returns may only be used in methods that return by reference
+    //         char Foo1(ref char a, ref char b) => ref b;
+    Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "b").WithLocation(9, 50),
+    // (11,50): error CS8895: By-value returns may only be used in methods that return by value
+    //         ref char Foo2(ref char c, ref char b) => c;
+    Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "c").WithLocation(11, 50),
+    // (16,54): error CS8940: Cannot use ref local 'r' inside an anonymous method, lambda expression, or query expression
+    //         ref char Moo1(ref char a, ref char b) => ref r;
+    Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "r").WithArguments("r").WithLocation(16, 54),
+    // (16,54): error CS8896: The return expression must be of type 'char' because this method returns by reference
+    //         ref char Moo1(ref char a, ref char b) => ref r;
+    Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, "r").WithArguments("char").WithLocation(16, 54),
+    // (17,46): error CS8940: Cannot use ref local 'r' inside an anonymous method, lambda expression, or query expression
+    //         char Moo3(ref char a, ref char b) => r;
+    Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "r").WithArguments("r").WithLocation(17, 46),
+    // (17,46): error CS0266: Cannot implicitly convert type 'int' to 'char'. An explicit conversion exists (are you missing a cast?)
+    //         char Moo3(ref char a, ref char b) => r;
+    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "r").WithArguments("int", "char").WithLocation(17, 46),
+    // (7,18): warning CS0168: The variable 'Foo' is declared but never used
+    //         ref char Foo(ref char a, ref char b) => ref a;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(7, 18),
+    // (9,14): warning CS0168: The variable 'Foo1' is declared but never used
+    //         char Foo1(ref char a, ref char b) => ref b;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo1").WithArguments("Foo1").WithLocation(9, 14),
+    // (11,18): warning CS0168: The variable 'Foo2' is declared but never used
+    //         ref char Foo2(ref char c, ref char b) => c;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo2").WithArguments("Foo2").WithLocation(11, 18),
+    // (16,18): warning CS0168: The variable 'Moo1' is declared but never used
+    //         ref char Moo1(ref char a, ref char b) => ref r;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Moo1").WithArguments("Moo1").WithLocation(16, 18),
+    // (17,14): warning CS0168: The variable 'Moo3' is declared but never used
+    //         char Moo3(ref char a, ref char b) => r;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Moo3").WithArguments("Moo3").WithLocation(17, 14)
+            );
+        }
+
     }
 }

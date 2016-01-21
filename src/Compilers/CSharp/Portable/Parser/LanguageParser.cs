@@ -4552,7 +4552,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 (parentKind != SyntaxKind.CompilationUnit || IsScript);
 
             LocalFunctionStatementSyntax localFunction;
-            ParseVariableDeclarators(type, flags, variables, variableDeclarationsExpected, false, default(SyntaxList<SyntaxToken>), out localFunction);
+            ParseVariableDeclarators(
+                type, 
+                flags, 
+                variables, 
+                variableDeclarationsExpected, 
+                false, 
+                default(SyntaxList<SyntaxToken>), 
+                default(SyntaxToken), 
+                out localFunction);
+
             Debug.Assert(localFunction == null);
         }
 
@@ -4563,9 +4572,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool variableDeclarationsExpected,
             bool allowLocalFunctions,
             SyntaxList<SyntaxToken> mods,
+            SyntaxToken refTokenOpt,
             out LocalFunctionStatementSyntax localFunction)
         {
-            variables.Add(this.ParseVariableDeclarator(type, flags, isFirst: true, allowLocalFunctions: allowLocalFunctions, mods: mods, localFunction: out localFunction));
+            variables.Add(
+                this.ParseVariableDeclarator(
+                    type, 
+                    flags, 
+                    isFirst: true, 
+                    allowLocalFunctions: allowLocalFunctions, 
+                    mods: mods, 
+                    refTokenOpt: refTokenOpt, 
+                    localFunction: out localFunction));
+
             if (localFunction != null)
             {
                 // ParseVariableDeclarator returns null, so it is not added to variables
@@ -4582,7 +4601,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     variables.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                    variables.Add(this.ParseVariableDeclarator(type, flags, isFirst: false, allowLocalFunctions: false, mods: mods, localFunction: out localFunction));
+                    variables.Add(
+                        this.ParseVariableDeclarator(
+                            type, 
+                            flags, 
+                            isFirst: false, 
+                            allowLocalFunctions: false,
+                            mods: mods, 
+                            refTokenOpt: refTokenOpt,
+                            localFunction: out localFunction));
                 }
                 else if (!variableDeclarationsExpected || this.SkipBadVariableListTokens(variables, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                 {
@@ -4700,6 +4727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool isFirst,
             bool allowLocalFunctions,
             SyntaxList<SyntaxToken> mods,
+            SyntaxToken refTokenOpt,
             out LocalFunctionStatementSyntax localFunction,
             bool isExpressionContext = false)
         {
@@ -4835,7 +4863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.LessThanToken:
                     if (allowLocalFunctions && isFirst)
                     {
-                        localFunction = TryParseLocalFunctionStatementBody(mods, parentType, name);
+                        localFunction = TryParseLocalFunctionStatementBody(mods, refTokenOpt, parentType, name);
                         if (localFunction != null)
                         {
                             return null;
@@ -4846,7 +4874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OpenParenToken:
                     if (allowLocalFunctions && isFirst)
                     {
-                        localFunction = TryParseLocalFunctionStatementBody(mods, parentType, name);
+                        localFunction = TryParseLocalFunctionStatementBody(mods, refTokenOpt, parentType, name);
                         if (localFunction != null)
                         {
                             return null;
@@ -8100,7 +8128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 TypeSyntax type;
                 LocalFunctionStatementSyntax localFunction;
-                this.ParseDeclaration(out type, variables, true, mods.ToTokenList(), out localFunction);
+                this.ParseDeclaration(out type, variables, true, mods.ToTokenList(), refKeyword, out localFunction);
                 if (localFunction != null)
                 {
                     Debug.Assert(variables.Count == 0);
@@ -8134,7 +8162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables)
         {
             LocalFunctionStatementSyntax localFunction;
-            ParseDeclaration(out type, variables, false, default(SyntaxList<SyntaxToken>), out localFunction);
+            ParseDeclaration(out type, variables, false, default(SyntaxList<SyntaxToken>), default(SyntaxToken), out localFunction);
             Debug.Assert(localFunction == null);
         }
 
@@ -8143,6 +8171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
             bool allowLocalFunctions,
             SyntaxList<SyntaxToken> mods,
+            SyntaxToken refTokenOpt,
             out LocalFunctionStatementSyntax localFunction)
         {
             type = allowLocalFunctions ? ParseReturnType() : this.ParseType(false);
@@ -8161,6 +8190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 variables,
                 variableDeclarationsExpected: true,
                 allowLocalFunctions: allowLocalFunctions,
+                refTokenOpt: refTokenOpt,
                 mods: mods,
                 localFunction: out localFunction);
             _termState = saveTerm;
@@ -8259,7 +8289,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private LocalFunctionStatementSyntax TryParseLocalFunctionStatementBody(SyntaxList<SyntaxToken> modifiers, TypeSyntax type, SyntaxToken identifier)
+        private LocalFunctionStatementSyntax TryParseLocalFunctionStatementBody(
+            SyntaxList<SyntaxToken> modifiers, 
+            SyntaxToken refTokenOpt,
+            TypeSyntax type, 
+            SyntaxToken identifier)
         {
             // This may potentially be an ambiguous parse until very far into the token stream, so we may have to backtrack.
             // For example, "await x()" is ambiguous at the current point of parsing (right now we're right after the x).
@@ -8349,6 +8383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var decl = _syntaxFactory.LocalFunctionStatement(
                 modifiers,
+                refTokenOpt,
                 type,
                 identifier,
                 typeParameterListOpt,

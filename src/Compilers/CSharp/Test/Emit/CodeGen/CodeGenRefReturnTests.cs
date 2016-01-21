@@ -1486,5 +1486,191 @@ class Program
   IL_00a7:  ret
 }");
         }
+
+        [Fact]
+        public void RefReturnArrayAccessNested()
+        {
+            var text = @"
+class Program
+{
+    static ref int M()
+    {
+        ref int N()
+        {
+            return ref (new int[1])[0];
+        }
+
+        return ref N();
+    }
+}
+";
+
+            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  call       ""ref int Program.<M>g__N0_0()""
+  IL_0005:  ret
+}").VerifyIL("Program.<M>g__N0_0", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     ""int""
+  IL_0006:  ldc.i4.0
+  IL_0007:  ldelema    ""int""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReturnArrayAccessNested1()
+        {
+            var text = @"
+class Program
+{
+    static ref int M()
+    {
+        var arr = new int[1]{40};
+
+        ref int N()
+        {
+            ref int NN(ref int arg) => ref arg;
+
+            ref var r = ref NN(ref arr[0]); 
+            r += 2;
+
+            return ref r;
+        }
+
+        return ref N();
+    }
+
+    static void Main()
+    {
+        System.Console.WriteLine(M());
+    }
+}
+";
+
+            CompileAndVerifyExperimental(text, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  5
+  .locals init (Program.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Program.<>c__DisplayClass0_0""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.1
+  IL_000b:  newarr     ""int""
+  IL_0010:  dup
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldc.i4.s   40
+  IL_0014:  stelem.i4
+  IL_0015:  stfld      ""int[] Program.<>c__DisplayClass0_0.arr""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       ""ref int Program.<M>g__N0_0(ref Program.<>c__DisplayClass0_0)""
+  IL_0021:  ret
+}").VerifyIL("Program.<M>g__N0_0", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int[] Program.<>c__DisplayClass0_0.arr""
+  IL_0006:  ldc.i4.0
+  IL_0007:  ldelema    ""int""
+  IL_000c:  call       ""ref int Program.<M>g__NN0_1(ref int)""
+  IL_0011:  dup
+  IL_0012:  dup
+  IL_0013:  ldind.i4
+  IL_0014:  ldc.i4.2
+  IL_0015:  add
+  IL_0016:  stind.i4
+  IL_0017:  ret
+}").VerifyIL("Program.<M>g__NN0_1", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReturnArrayAccessNested2()
+        {
+            var text = @"
+class Program
+{
+    delegate ref int D();    
+
+    static D M()
+    {
+        var arr = new int[1]{40};
+
+        ref int N()
+        {
+            ref int NN(ref int arg) => ref arg;
+
+            ref var r = ref NN(ref arr[0]); 
+            r += 2;
+
+            return ref r;
+        }
+
+        return N;
+    }
+
+    static void Main()
+    {
+        System.Console.WriteLine(M()());
+    }
+}
+";
+
+            CompileAndVerifyExperimental(text, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  5
+  .locals init (Program.<>c__DisplayClass1_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""Program.<>c__DisplayClass1_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  newarr     ""int""
+  IL_000d:  dup
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.s   40
+  IL_0011:  stelem.i4
+  IL_0012:  stfld      ""int[] Program.<>c__DisplayClass1_0.arr""
+  IL_0017:  ldloc.0
+  IL_0018:  ldftn      ""ref int Program.<>c__DisplayClass1_0.<M>g__N0()""
+  IL_001e:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_0023:  ret
+}").VerifyIL("Program.<>c__DisplayClass1_0.<M>g__N0()", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int[] Program.<>c__DisplayClass1_0.arr""
+  IL_0006:  ldc.i4.0
+  IL_0007:  ldelema    ""int""
+  IL_000c:  call       ""ref int Program.<M>g__NN1_1(ref int)""
+  IL_0011:  dup
+  IL_0012:  dup
+  IL_0013:  ldind.i4
+  IL_0014:  ldc.i4.2
+  IL_0015:  add
+  IL_0016:  stind.i4
+  IL_0017:  ret
+}").VerifyIL("Program.<M>g__NN1_1(ref int)", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+        }
+
     }
 }

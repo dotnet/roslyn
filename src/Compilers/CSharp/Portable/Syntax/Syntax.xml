@@ -1647,6 +1647,9 @@
   <Node Name="LocalFunctionStatementSyntax" Base="StatementSyntax">
     <Kind Name="LocalFunctionStatement"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="RefKeyword"/>
+    </Field>
     <Field Name="ReturnType" Type="TypeSyntax"/>
     <Field Name="Identifier" Type="SyntaxToken">
       <PropertyComment>

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbol _explicitInterfaceType;
         private readonly string _name;
         private readonly bool _isExpressionBodied;
-        private readonly RefKind refKind;
+        private readonly RefKind _refKind;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private ImmutableArray<CustomModifier> _lazyReturnTypeCustomModifiers;
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckModifiersForBody(location, diagnostics);
             }
 
-            this.refKind = syntax.RefKeyword.Kind().GetRefKind();
+            _refKind = syntax.RefKeyword.Kind().GetRefKind();
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
             if (info != null)
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override RefKind RefKind
         {
-            get { return this.refKind; }
+            get { return _refKind; }
         }
 
         public override TypeSymbol ReturnType
