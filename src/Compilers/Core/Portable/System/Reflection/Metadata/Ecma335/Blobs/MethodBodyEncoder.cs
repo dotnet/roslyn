@@ -1,14 +1,9 @@
-﻿using System;
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#pragma warning disable RS0008 // Implement IEquatable<T> when overriding Object.Equals
-
+using System;
+using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-
-#if !SRM
-using PrimitiveTypeCode = Microsoft.Cci.PrimitiveTypeCode;
-#endif
 
 #if SRM
 namespace System.Reflection.Metadata.Ecma335.Blobs
@@ -23,148 +18,152 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
     enum MethodBodyAttributes
     {
         None = 0,
-        InitLocals = 1
+        InitLocals = 1,
+        LargeExceptionRegions = 2,
     }
 
 #if SRM
     public
 #endif
-    class MethodBodyEncoder
+    struct MethodBodiesEncoder
     {
-        public static int MethodBodyHeader(BlobBuilder builder, StandaloneSignatureHandle localVariablesSignature, int maxStack, int codeSize, int exceptionRegionCount, MethodBodyAttributes attributes)
+        public BlobBuilder Builder { get; }
+
+        public MethodBodiesEncoder(BlobBuilder builder = null)
+        {
+            if (builder == null)
+            {
+                builder = new BlobBuilder();
+            }
+
+            // Fat methods are 4-byte aligned. We calculate the alignment relative to the start of the ILStream.
+            //
+            // See ECMA-335 paragraph 25.4.5, Method data section:
+            // "At the next 4-byte boundary following the method body can be extra method data sections."
+            if ((builder.Count % 4) != 0)
+            {
+                // TODO: error message
+                throw new ArgumentException("Builder has to be aligned to 4 byte boundary", nameof(builder));
+            }
+
+            Builder = builder;
+        }
+
+        public MethodBodyEncoder AddMethodBody(
+            int maxStack = 8,
+            int exceptionRegionCount = 0,
+            StandaloneSignatureHandle localVariablesSignature = default(StandaloneSignatureHandle),
+            MethodBodyAttributes attributes = MethodBodyAttributes.InitLocals)
         {
             if (unchecked((ushort)maxStack) > ushort.MaxValue)
             {
                 throw new ArgumentOutOfRangeException(nameof(maxStack));
             }
 
-            if (codeSize < 0)
+            if (exceptionRegionCount < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(codeSize));
+                throw new ArgumentOutOfRangeException(nameof(exceptionRegionCount));
             }
 
+            return new MethodBodyEncoder(Builder, (ushort)maxStack, exceptionRegionCount, localVariablesSignature, attributes);
+        }
+    }
+
+#if SRM
+    public
+#endif
+    struct MethodBodyEncoder
+    {
+        public BlobBuilder Builder { get; }
+
+        private readonly ushort _maxStack;
+        private readonly int _exceptionRegionCount;
+        private readonly StandaloneSignatureHandle _localVariablesSignature;
+        private readonly byte _attributes;
+
+        internal MethodBodyEncoder(
+            BlobBuilder builder,
+            ushort maxStack,
+            int exceptionRegionCount,
+            StandaloneSignatureHandle localVariablesSignature,
+            MethodBodyAttributes attributes)
+        {
+            Builder = builder;
+            _maxStack = maxStack;
+            _localVariablesSignature = localVariablesSignature;
+            _attributes = (byte)attributes;
+            _exceptionRegionCount = exceptionRegionCount;
+        }
+
+        private int WriteHeader(int codeSize)
+        {
             const int TinyFormat = 2;
             const int FatFormat = 3;
             const int MoreSections = 8;
-            const int InitLocals = 0x10;
+            const byte InitLocals = 0x10;
 
             int offset;
 
-            bool isTiny = codeSize < 64 && maxStack <= 8 && localVariablesSignature.IsNil && exceptionRegionCount == 0;
+            bool isTiny = codeSize < 64 && _maxStack <= 8 && _localVariablesSignature.IsNil && _exceptionRegionCount == 0;
             if (isTiny)
             {
-                offset = builder.Count;
-                builder.WriteByte((byte)((codeSize << 2) | TinyFormat));
+                offset = Builder.Count;
+                Builder.WriteByte((byte)((codeSize << 2) | TinyFormat));
             }
             else
             {
-                builder.Align(4);
+                Builder.Align(4);
 
-                offset = builder.Count;
+                offset = Builder.Count;
 
                 ushort flags = (3 << 12) | FatFormat;
-                if (exceptionRegionCount > 0)
+                if (_exceptionRegionCount > 0)
                 {
                     flags |= MoreSections;
                 }
 
-                if ((attributes & MethodBodyAttributes.InitLocals) != 0)
+                if ((_attributes & (int)MethodBodyAttributes.InitLocals) != 0)
                 {
                     flags |= InitLocals;
                 }
 
-                builder.WriteUInt16(flags);
-                builder.WriteUInt16((ushort)maxStack);
-                builder.WriteInt32(codeSize);
-                builder.WriteInt32(localVariablesSignature.IsNil ? 0 : MetadataTokens.GetToken(localVariablesSignature));
+                Builder.WriteUInt16((ushort)(_attributes | flags));
+                Builder.WriteUInt16(_maxStack);
+                Builder.WriteInt32(codeSize);
+                Builder.WriteInt32(_localVariablesSignature.IsNil ? 0 : MetadataTokens.GetToken(_localVariablesSignature));
             }
 
             return offset;
         }
 
-        public static void WriteExceptionTableHeader(BlobBuilder builder, bool isSmallFormat, int exceptionRegionCount)
+        private ExceptionRegionEncoder CreateExceptionEncoder()
         {
-            const byte EHTableFlag = 0x01;
-            const byte FatFormatFlag = 0x40;
-
-            int dataSize = GetExceptionTableSize(exceptionRegionCount, isSmallFormat);
-
-            builder.Align(4);
-            if (isSmallFormat)
-            {
-                builder.WriteByte(EHTableFlag);
-                builder.WriteByte((byte)(dataSize & 0xff));
-                builder.WriteInt16(0);
-            }
-            else
-            {
-                builder.WriteByte(EHTableFlag | FatFormatFlag);
-                builder.WriteByte((byte)(dataSize & 0xff));
-                builder.WriteUInt16((ushort)((dataSize >> 8) & 0xffff));
-            }
+            return new ExceptionRegionEncoder(
+                Builder, 
+                _exceptionRegionCount,
+                hasLargeRegions: (_attributes & (int)MethodBodyAttributes.LargeExceptionRegions) != 0);
         }
 
-        private static int GetExceptionTableSize(int exceptionRegionCount, bool isSmallFormat)
+        public ExceptionRegionEncoder WriteInstructions(ImmutableArray<byte> buffer, out int offset)
         {
-            const int HeaderSize = 4;
-
-            const int SmallRegionSize =
-                sizeof(short) +  // Flags
-                sizeof(short) +  // TryOffset
-                sizeof(byte) +   // TryLength
-                sizeof(short) +  // HandlerOffset
-                sizeof(byte) +   // HandleLength
-                sizeof(int);     // ClassToken | FilterOffset
-
-            const int FatRegionSize =
-                sizeof(int) +    // Flags
-                sizeof(int) +    // TryOffset
-                sizeof(int) +    // TryLength
-                sizeof(int) +    // HandlerOffset
-                sizeof(int) +    // HandleLength
-                sizeof(int);     // ClassToken | FilterOffset
-
-            return HeaderSize + exceptionRegionCount * (isSmallFormat ? SmallRegionSize : FatRegionSize);
+            offset = WriteHeader(buffer.Length);
+            Builder.WriteBytes(buffer);
+            return CreateExceptionEncoder();
         }
 
-        public static void WriteExceptionRegion(
-            BlobBuilder builder, 
-            ExceptionRegionKind kind,
-            int tryOffset,
-            int tryLength,
-            int handlerOffset,
-            int handlerLength,
-            int catchTypeTokenOrFilterOffset,
-            bool isSmallFormat)
+        public ExceptionRegionEncoder WriteInstructions(ImmutableArray<byte> buffer, out int offset, out Blob instructionBlob)
         {
-            if (isSmallFormat)
-            {
-                builder.WriteUInt16((ushort)kind);
-                builder.WriteUInt16((ushort)tryOffset);
-                builder.WriteByte((byte)tryLength);
-                builder.WriteUInt16((ushort)handlerOffset);
-                builder.WriteByte((byte)handlerLength);
-            }
-            else
-            {
-                builder.WriteInt32((int)kind);
-                builder.WriteInt32(tryOffset);
-                builder.WriteInt32(tryLength);
-                builder.WriteInt32(handlerOffset);
-                builder.WriteInt32(handlerLength);
-            }
-
-            builder.WriteInt32(catchTypeTokenOrFilterOffset);
+            offset = WriteHeader(buffer.Length);
+            instructionBlob = Builder.ReserveBytes(buffer.Length);
+            new BlobWriter(instructionBlob).WriteBytes(buffer);
+            return CreateExceptionEncoder();
         }
 
-        public static bool IsSmallRegionCount(int exceptionRegionCount)
+        public ExceptionRegionEncoder WriteInstructions(BlobBuilder buffer, out int offset)
         {
-            return GetExceptionTableSize(exceptionRegionCount, isSmallFormat: true) <= 0xff;
-        }
-
-        public static bool IsSmallExceptionRegion(int startOffset, int length)
-        {
-            return startOffset <= 0xffff && length <= 0xff;
+            offset = WriteHeader(buffer.Count);
+            buffer.WriteContentTo(Builder);
+            return CreateExceptionEncoder();
         }
     }
 }

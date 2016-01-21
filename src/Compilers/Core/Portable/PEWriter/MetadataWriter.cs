@@ -2832,7 +2832,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private int[] SerializeMethodBodies(BlobBuilder ilWriter, PdbWriter pdbWriterOpt)
+        private int[] SerializeMethodBodies(BlobBuilder ilBuilder, PdbWriter pdbWriterOpt)
         {
             CustomDebugInfoWriter customDebugInfoWriter = (pdbWriterOpt != null) ? new CustomDebugInfoWriter(pdbWriterOpt) : null;
 
@@ -2841,6 +2841,8 @@ namespace Microsoft.Cci
 
             var lastLocalVariableHandle = default(LocalVariableHandle);
             var lastLocalConstantHandle = default(LocalConstantHandle);
+
+            var encoder = new MethodBodiesEncoder(ilBuilder);
 
             int methodRid = 1;
             foreach (IMethodDefinition method in methods)
@@ -2860,7 +2862,7 @@ namespace Microsoft.Cci
                         localSignatureHandleOpt = this.SerializeLocalVariablesSignature(body);
 
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
-                        bodyOffset = this.SerializeMethodBody(body, ilWriter, localSignatureHandleOpt);
+                        bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt);
 
                         pdbWriterOpt?.SerializeDebugInfo(body, localSignatureHandleOpt, customDebugInfoWriter);
                     }
@@ -2891,7 +2893,7 @@ namespace Microsoft.Cci
             return bodyOffsets;
         }
 
-        private int SerializeMethodBody(IMethodBody methodBody, BlobBuilder ilBuilder, StandaloneSignatureHandle localSignatureHandleOpt)
+        private int SerializeMethodBody(MethodBodiesEncoder encoder, IMethodBody methodBody, StandaloneSignatureHandle localSignatureHandleOpt)
         {
             int ilLength = methodBody.IL.Length;
             var exceptionRegions = methodBody.ExceptionRegions;
@@ -2906,25 +2908,22 @@ namespace Microsoft.Cci
                 return bodyOffset;
             }
 
-            bodyOffset = MethodBodyEncoder.MethodBodyHeader(
-                ilBuilder,
-                localSignatureHandleOpt,
-                methodBody.MaxStack,
-                ilLength,
-                exceptionRegions.Length,
-                methodBody.LocalsAreZeroed ? MethodBodyAttributes.InitLocals : MethodBodyAttributes.None);
+            MethodBodyAttributes attributes =
+                (methodBody.LocalsAreZeroed ? MethodBodyAttributes.InitLocals : 0) |
+                (MayUseSmallExceptionHeaders(exceptionRegions) ? 0 : MethodBodyAttributes.LargeExceptionRegions);
+
+            var bodyEncoder = encoder.AddMethodBody(methodBody.MaxStack, exceptionRegions.Length, localSignatureHandleOpt, attributes);
+
+            Blob ilBlob;
+            var ehEncoder = bodyEncoder.WriteInstructions(methodBody.IL, out bodyOffset, out ilBlob);
 
             if (isSmallBody)
             {
                 _smallMethodBodies.Add(methodBody.IL, bodyOffset);
             }
 
-            WriteMethodBodyIL(ilBuilder, methodBody);
-
-            if (exceptionRegions.Length > 0)
-            {
-                SerializeMethodBodyExceptionHandlerTable(exceptionRegions, ilBuilder);
-            }
+            SubstituteFakeTokens(ilBlob, methodBody.IL);
+            SerializeMethodBodyExceptionHandlerTable(ehEncoder, exceptionRegions);
 
             return bodyOffset;
         }
@@ -3063,13 +3062,10 @@ namespace Microsoft.Cci
             return _pseudoStringTokenToTokenMap[index];
         }
 
-        private void WriteMethodBodyIL(BlobBuilder builder, IMethodBody methodBody)
+        private void SubstituteFakeTokens(Blob blob, ImmutableArray<byte> methodBodyIL)
         {
-            ImmutableArray<byte> methodBodyIL = methodBody.IL;
-
             // write the raw body first and then patch tokens:
-            var writer = new BlobWriter(builder.ReserveBytes(methodBodyIL.Length));
-            writer.WriteBytes(methodBodyIL);
+            var writer = new BlobWriter(blob);
 
             int offset = 0;
             while (offset < methodBodyIL.Length)
@@ -3129,46 +3125,38 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeMethodBodyExceptionHandlerTable(ImmutableArray<ExceptionHandlerRegion> regions, BlobBuilder builder)
+        private void SerializeMethodBodyExceptionHandlerTable(ExceptionRegionEncoder encoder, ImmutableArray<ExceptionHandlerRegion> regions)
         {
-            bool isSmallFormat = MayUseSmallExceptionHeaders(regions.Length, regions);
+            encoder.StartRegions();
 
-            MethodBodyEncoder.WriteExceptionTableHeader(builder, isSmallFormat, regions.Length);
-            
             foreach (var region in regions)
             {
-                SerializeExceptionRegion(region, isSmallFormat, builder);
+                var exceptionType = region.ExceptionType;
+
+                encoder.AddRegion(
+                    region.HandlerKind,
+                    region.TryStartOffset,
+                    region.TryLength,
+                    region.HandlerStartOffset,
+                    region.HandlerLength,
+                    (exceptionType != null) ? GetTypeHandle(exceptionType) : default(EntityHandle), 
+                    region.FilterDecisionStartOffset);
             }
+
+            encoder.EndRegions();
         }
 
-        private void SerializeExceptionRegion(ExceptionHandlerRegion region, bool isSmallFormat, BlobBuilder builder)
+        private static bool MayUseSmallExceptionHeaders(ImmutableArray<ExceptionHandlerRegion> exceptionRegions)
         {
-            int exceptionTypeTokenOrFilterStartOffset = (region.HandlerKind == ExceptionRegionKind.Catch) ? 
-                MetadataTokens.GetToken(GetTypeHandle(region.ExceptionType)) :
-                region.FilterDecisionStartOffset;
-
-            MethodBodyEncoder.WriteExceptionRegion(
-                builder,
-                region.HandlerKind,
-                region.TryStartOffset,
-                region.TryLength,
-                region.HandlerStartOffset,
-                region.HandlerLength,
-                exceptionTypeTokenOrFilterStartOffset,
-                isSmallFormat);
-        }
-
-        private static bool MayUseSmallExceptionHeaders(int exceptionRegionCount, ImmutableArray<ExceptionHandlerRegion> exceptionRegions)
-        {
-            if (!MethodBodyEncoder.IsSmallRegionCount(exceptionRegionCount))
+            if (!ExceptionRegionEncoder.IsSmallRegionCount(exceptionRegions.Length))
             {
                 return false;
             }
 
             foreach (var region in exceptionRegions)
             {
-                if (!MethodBodyEncoder.IsSmallExceptionRegion(region.TryStartOffset, region.TryLength) ||
-                    !MethodBodyEncoder.IsSmallExceptionRegion(region.HandlerStartOffset, region.HandlerLength))
+                if (!ExceptionRegionEncoder.IsSmallExceptionRegion(region.TryStartOffset, region.TryLength) ||
+                    !ExceptionRegionEncoder.IsSmallExceptionRegion(region.HandlerStartOffset, region.HandlerLength))
                 {
                     return false;
                 }
