@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private bool CheckOption(Workspace workspace, string language, bool documentOpened)
         {
-            var optionService = workspace.Services.GetService<IOptionService>();
-            if (optionService == null || optionService.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, language))
+            if (workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, language) &&
+                workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
             {
                 return true;
             }

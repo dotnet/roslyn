@@ -439,6 +439,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Full solution analysis disabled due to low memory. go to tools-&gt;options and search &quot;Enable full solution analysis&quot; to turn it back on or restart VS to restore full solution analysis..
+        /// </summary>
+        internal static string FullSolutionAnalysisOff {
+            get {
+                return ResourceManager.GetString("FullSolutionAnalysisOff", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generated name:.
         /// </summary>
         internal static string GeneratedName {

@@ -84,6 +84,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
+        protected void BindToFullSolutionAnalysisOption(CheckBox checkbox, string languageName)
+        {
+            Binding binding = new Binding();
+
+            binding.Source = new FullSolutionAnalysisOptionBinding(OptionService, languageName);
+            binding.Path = new PropertyPath("Value");
+            binding.UpdateSourceTrigger = UpdateSourceTrigger.Explicit;
+
+            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
         internal virtual void LoadSettings()
         {
             foreach (var bindingExpression in _bindingExpressions)
@@ -96,6 +108,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             foreach (var bindingExpression in _bindingExpressions)
             {
+                if (!bindingExpression.IsDirty)
+                {
+                    continue;
+                }
+
                 bindingExpression.UpdateSource();
             }
         }

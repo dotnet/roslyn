@@ -303,6 +303,7 @@
     <Compile Include="CodeModel\RootCodeModel.cs" />
     <Compile Include="CodeModel\SyntaxNodeKey.cs" />
     <Compile Include="CodeModel\TextManagerAdapter.cs" />
+    <Compile Include="Options\FullSolutionAnalysisOptionBinding.cs" />
     <Compile Include="Options\OptionLogger.cs" />
     <Compile Include="Options\OptionPreviewControl.xaml.cs">
       <DependentUpon>OptionPreviewControl.xaml</DependentUpon>
