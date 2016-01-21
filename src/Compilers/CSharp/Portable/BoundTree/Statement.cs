@@ -322,35 +322,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundLocalDeclaration : IVariableDeclarationStatement
     {
-        private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
-            new ConditionalWeakTable<BoundLocalDeclaration, object>();
-
         ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
         {
-            get
-            {
-                return (ImmutableArray<IVariable>) s_variablesMappings.GetValue(this, 
-                    declaration => ImmutableArray.Create<IVariable>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
-            }
+            get { return ImmutableArray.Create<IVariable>(ToVariableDeclaration()); }
         }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
+
+        internal IVariable ToVariableDeclaration()
+        {
+            return new VariableDeclaration(LocalSymbol, InitializerOpt, Syntax);
+        }
     }
 
     partial class BoundMultipleLocalDeclarations : IVariableDeclarationStatement
     {
-        private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_variablesMappings =
-            new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
-
         ImmutableArray<IVariable> IVariableDeclarationStatement.Variables
         {
-            get
-            {
-                return (ImmutableArray<IVariable>)s_variablesMappings.GetValue(this,
-                    multipleDeclarations =>
-                        multipleDeclarations.LocalDeclarations.SelectAsArray(declaration => 
-                            (IVariable)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
-            }
+            get { return this.LocalDeclarations.SelectAsArray(declaration => declaration.ToVariableDeclaration()); }
         }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;

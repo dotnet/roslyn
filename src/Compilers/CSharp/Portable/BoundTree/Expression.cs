@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
@@ -121,7 +122,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ImmutableArray<IArgument> IInvocationExpression.ArgumentsInSourceOrder
         {
-            get
+            get { return GetComputedState().ArgumentsInSourceOrder; }
+        }
+
+        ImmutableArray<IArgument> IInvocationExpression.ArgumentsInParameterOrder
+        {
+            get { return GetComputedState().ArgumentsInParameterOrder; }
+        }
+
+        IArgument IInvocationExpression.ArgumentMatchingParameter(IParameterSymbol parameter)
+        {
+            return ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameter.ContainingSymbol as Symbols.MethodSymbol, parameter);
+        }
+
+        private ComputedState _lazyComputedState;
+
+        private ComputedState GetComputedState()
+        {
+            if (_lazyComputedState == null)
             {
                 ArrayBuilder<IArgument> sourceOrderArguments = ArrayBuilder<IArgument>.GetInstance(this.Arguments.Length);
                 for (int argumentIndex = 0; argumentIndex < this.Arguments.Length; argumentIndex++)
@@ -133,16 +151,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
                 }
-
-                return sourceOrderArguments.ToImmutableAndFree();
+                var parameterOrderArguments = DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters);
+                var state = new ComputedState(sourceOrderArguments.ToImmutableAndFree(), parameterOrderArguments);
+                Interlocked.CompareExchange(ref _lazyComputedState, state, null);
             }
+            return _lazyComputedState;
         }
-        
-        ImmutableArray<IArgument> IInvocationExpression.ArgumentsInParameterOrder => DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters);
 
-        IArgument IInvocationExpression.ArgumentMatchingParameter(IParameterSymbol parameter)
+        private sealed class ComputedState
         {
-            return ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameter.ContainingSymbol as Symbols.MethodSymbol, parameter);
+            internal ComputedState(ImmutableArray<IArgument> argumentsInSourceOrder, ImmutableArray<IArgument> argumentsInParameterOrder)
+            {
+                ArgumentsInSourceOrder = argumentsInSourceOrder;
+                ArgumentsInParameterOrder = argumentsInParameterOrder;
+            }
+            internal readonly ImmutableArray<IArgument> ArgumentsInSourceOrder;
+            internal readonly ImmutableArray<IArgument> ArgumentsInParameterOrder;
         }
 
         protected override OperationKind ExpressionKind => OperationKind.InvocationExpression;
@@ -189,8 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments.ToImmutableAndFree();
         }
 
-        private static readonly ConditionalWeakTable<BoundExpression, IArgument> s_argumentMappings = new ConditionalWeakTable<BoundExpression, IArgument>();
-
         private static IArgument DeriveArgument(int parameterIndex, int argumentIndex, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters)
         {
             if (argumentIndex >= boundArguments.Length)
@@ -209,41 +231,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return s_argumentMappings.GetValue(
-                boundArguments[argumentIndex],
-                (argument) =>
+            var argument = boundArguments[argumentIndex];
+            string name = !argumentNames.IsDefaultOrEmpty ? argumentNames[argumentIndex] : null;
+
+            if (name == null)
+            {
+                RefKind refMode = argumentRefKinds.IsDefaultOrEmpty ? RefKind.None : argumentRefKinds[argumentIndex];
+
+                if (refMode != RefKind.None)
                 {
-                    string name = !argumentNames.IsDefaultOrEmpty ? argumentNames[argumentIndex] : null;
+                    return new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
+                }
 
-                    if (name == null)
-                    {
-                        RefKind refMode = argumentRefKinds.IsDefaultOrEmpty ? RefKind.None : argumentRefKinds[argumentIndex];
+                if (argumentIndex >= parameters.Length - 1 &&
+                    parameters.Length > 0 &&
+                    parameters[parameters.Length - 1].IsParams &&
+                    // An argument that is an array of the appropriate type is not a params argument.
+                    (boundArguments.Length > argumentIndex + 1 ||
+                     argument.Type.TypeKind != TypeKind.Array ||
+                     !argument.Type.Equals(parameters[parameters.Length - 1].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true)))
+                {
+                    return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex));
+                }
+                else
+                {
+                    return new SimpleArgument(parameters[parameterIndex], argument);
+                }
+            }
 
-                        if (refMode != RefKind.None)
-                        {
-                            return new Argument(ArgumentKind.Positional, parameters[parameterIndex], argument);
-                        }
-
-                        if (argumentIndex >= parameters.Length - 1 &&
-                            parameters.Length > 0 &&
-                            parameters[parameters.Length - 1].IsParams &&
-                            // An argument that is an array of the appropriate type is not a params argument.
-                            (boundArguments.Length > argumentIndex + 1 ||
-                             argument.Type.TypeKind != TypeKind.Array ||
-                             !argument.Type.Equals(parameters[parameters.Length - 1].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds:true)))
-                        {
-                            return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex));
-                        }
-                        else
-                        {
-                            return new SimpleArgument(parameters[parameterIndex], argument);
-                        }
-                    }
-
-                    return new Argument(ArgumentKind.Named, parameters[parameterIndex], argument);
-                });
+            return new Argument(ArgumentKind.Named, parameters[parameterIndex], argument);
         }
-        
+
         private static IExpression CreateParamArray(IParameterSymbol parameter, ImmutableArray<BoundExpression> boundArguments, int firstArgumentElementIndex)
         {
             if (parameter.Type.TypeKind == TypeKind.Array)
@@ -430,54 +448,70 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundObjectCreationExpression : IObjectCreationExpression
     {
-        private static readonly ConditionalWeakTable<BoundObjectCreationExpression, object> s_memberInitializersMappings =
-            new ConditionalWeakTable<BoundObjectCreationExpression, object>();
+        private ComputedState _lazyComputedState;
+
+        private ComputedState GetComputedState()
+        {
+            if (_lazyComputedState == null)
+            {
+                var constructorArguments = BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters);
+                var memberInitializers = GetMemberInitializers(this.InitializerExpressionOpt as BoundObjectInitializerExpression);
+                Interlocked.CompareExchange(ref _lazyComputedState, new ComputedState(constructorArguments, memberInitializers), null);
+            }
+            return _lazyComputedState;
+        }
+
+        private sealed class ComputedState
+        {
+            internal ComputedState(ImmutableArray<IArgument> constructorArguments, ImmutableArray<IMemberInitializer> memberInitializers)
+            {
+                ConstructorArguments = constructorArguments;
+                MemberInitializers = memberInitializers;
+            }
+            internal readonly ImmutableArray<IArgument> ConstructorArguments;
+            internal readonly ImmutableArray<IMemberInitializer> MemberInitializers;
+        }
 
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
-        ImmutableArray<IArgument> IObjectCreationExpression.ConstructorArguments => BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters);
+        ImmutableArray<IArgument> IObjectCreationExpression.ConstructorArguments => GetComputedState().ConstructorArguments;
 
         IArgument IObjectCreationExpression.ArgumentMatchingParameter(IParameterSymbol parameter)
         {
             return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Constructor, parameter);
         }
 
-        ImmutableArray<IMemberInitializer> IObjectCreationExpression.MemberInitializers
+        ImmutableArray<IMemberInitializer> IObjectCreationExpression.MemberInitializers => GetComputedState().MemberInitializers;
+
+        private static ImmutableArray<IMemberInitializer> GetMemberInitializers(BoundObjectInitializerExpression objectInitializerExpression)
         {
-            get
+            if (objectInitializerExpression == null)
             {
-                return (ImmutableArray<IMemberInitializer>)s_memberInitializersMappings.GetValue(this,
-                    objectCreationExpression =>
-                    {
-                        var objectInitializerExpression = this.InitializerExpressionOpt as BoundObjectInitializerExpression;
-                        if (objectInitializerExpression != null)
-                        {
-                            var builder = ArrayBuilder<IMemberInitializer>.GetInstance(objectInitializerExpression.Initializers.Length);
-                            foreach (var memberAssignment in objectInitializerExpression.Initializers)
-                            {
-                                var assignment = memberAssignment as BoundAssignmentOperator;
-                                var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
-
-                                if (leftSymbol == null)
-                                {
-                                    continue;
-                                }
-
-                                switch (leftSymbol.Kind)
-                                {
-                                    case SymbolKind.Field:
-                                        builder.Add(new FieldInitializer(assignment.Syntax, (IFieldSymbol)leftSymbol, assignment.Right));
-                                        break;
-                                    case SymbolKind.Property:
-                                        builder.Add(new PropertyInitializer(assignment.Syntax, ((IPropertySymbol)leftSymbol).SetMethod, assignment.Right));
-                                        break;
-                                }
-                            }
-                            return builder.ToImmutableAndFree();
-                        }                        
-                        return ImmutableArray<IMemberInitializer>.Empty;
-                    });             
+                return ImmutableArray<IMemberInitializer>.Empty;
             }
+
+            var builder = ArrayBuilder<IMemberInitializer>.GetInstance(objectInitializerExpression.Initializers.Length);
+            foreach (var memberAssignment in objectInitializerExpression.Initializers)
+            {
+                var assignment = memberAssignment as BoundAssignmentOperator;
+                var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
+
+                if (leftSymbol == null)
+                {
+                    continue;
+                }
+
+                switch (leftSymbol.Kind)
+                {
+                    case SymbolKind.Field:
+                        builder.Add(new FieldInitializer(assignment.Syntax, (IFieldSymbol)leftSymbol, assignment.Right));
+                        break;
+                    case SymbolKind.Property:
+                        builder.Add(new PropertyInitializer(assignment.Syntax, ((IPropertySymbol)leftSymbol).SetMethod, assignment.Right));
+                        break;
+                }
+            }
+            return builder.ToImmutableAndFree();
         }
 
         protected override OperationKind ExpressionKind => OperationKind.ObjectCreationExpression;
@@ -759,9 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IReferenceExpression IAssignmentExpression.Target => this.Operand as IReferenceExpression;
 
-        private static readonly ConditionalWeakTable<BoundIncrementOperator, IExpression> s_incrementValueMappings = new ConditionalWeakTable<BoundIncrementOperator, IExpression>();
-
-        IExpression IAssignmentExpression.Value => s_incrementValueMappings.GetValue(this, (increment) => new BoundLiteral(this.Syntax, Semantics.Expression.SynthesizeNumeric(increment.Type, 1), increment.Type));
+        IExpression IAssignmentExpression.Value => new BoundLiteral(this.Syntax, Semantics.Expression.SynthesizeNumeric(this.Type, 1), this.Type);
 
         bool IHasOperatorExpression.UsesOperatorMethod => (this.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
 

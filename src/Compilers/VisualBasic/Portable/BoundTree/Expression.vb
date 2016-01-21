@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Roslyn.Utilities
 
@@ -325,15 +326,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IInvocationExpression.ArgumentsInSourceOrder
             Get
-                Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
+                Return GetArgumentsInOrder()
             End Get
         End Property
 
         Private ReadOnly Property IArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IInvocationExpression.ArgumentsInParameterOrder
             Get
-                Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
+                Return GetArgumentsInOrder()
             End Get
         End Property
+
+        Private _lazyArgumentsInOrder As ImmutableArray(Of IArgument)
+
+        Private Function GetArgumentsInOrder() As ImmutableArray(Of IArgument)
+            If _lazyArgumentsInOrder.IsDefault Then
+                ImmutableInterlocked.InterlockedInitialize(_lazyArgumentsInOrder, DeriveArguments(Me.Arguments, Me.Method.Parameters))
+            End If
+            Return _lazyArgumentsInOrder
+        End Function
 
         Private ReadOnly Property IIsVirtual As Boolean Implements IInvocationExpression.IsVirtual
             Get
@@ -378,15 +388,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return arguments.ToImmutable()
         End Function
 
-        Private Shared ReadOnly s_argumentMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundExpression, IArgument)
-
         Private Shared Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As IArgument
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
-                    Return s_argumentMappings.GetValue(argument, Function(a) New ByRefArgument(parameters(index), DirectCast(argument, BoundByRefArgumentWithCopyBack)))
+                    Return New ByRefArgument(parameters(index), DirectCast(argument, BoundByRefArgumentWithCopyBack))
                 Case Else
                     ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
-                    Return s_argumentMappings.GetValue(argument, Function(a) If(index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray, New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), a), New Argument(ArgumentKind.Positional, parameters(index), a)))
+                    Return If(index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray, New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), argument), New Argument(ArgumentKind.Positional, parameters(index), argument))
             End Select
         End Function
 
@@ -1007,7 +1015,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundObjectCreationExpression
         Implements IObjectCreationExpression
 
-        Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
+        Private _lazyComputedState As ComputedState
+
+        Private Function GetComputedState() As ComputedState
+            If _lazyComputedState Is Nothing Then
+                Dim constructorArguments = BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters)
+                Dim memberInitializers = GetMemberInitializers(Me.InitializerOpt)
+                Interlocked.CompareExchange(_lazyComputedState, New ComputedState(constructorArguments, memberInitializers), Nothing)
+            End If
+            Return _lazyComputedState
+        End Function
+
+        Private NotInheritable Class ComputedState
+            Friend Sub New(arguments As ImmutableArray(Of IArgument), initializers As ImmutableArray(Of IMemberInitializer))
+                ConstructorArguments = arguments
+                MemberInitializers = initializers
+            End Sub
+            Friend ReadOnly ConstructorArguments As ImmutableArray(Of IArgument)
+            Friend ReadOnly MemberInitializers As ImmutableArray(Of IMemberInitializer)
+        End Class
 
         Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IObjectCreationExpression.ArgumentMatchingParameter
             Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.ConstructorOpt.Parameters)
@@ -1021,37 +1047,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IConstructorArguments As ImmutableArray(Of IArgument) Implements IObjectCreationExpression.ConstructorArguments
             Get
-                Return BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters)
+                Return GetComputedState().ConstructorArguments
             End Get
         End Property
 
         Private ReadOnly Property IMemberInitializers As ImmutableArray(Of IMemberInitializer) Implements IObjectCreationExpression.MemberInitializers
             Get
-                Dim initializer = s_memberInitializersMappings.GetValue(Me, Function(objectCreationStatement)
-                                                                                Dim objectInitializerExpression As BoundObjectInitializerExpressionBase = Me.InitializerOpt
-                                                                                If objectInitializerExpression IsNot Nothing Then
-                                                                                    Dim builder = ArrayBuilder(Of IMemberInitializer).GetInstance(objectInitializerExpression.Initializers.Length)
-                                                                                    For Each memberAssignment In objectInitializerExpression.Initializers
-                                                                                        Dim assignment = TryCast(memberAssignment, BoundAssignmentOperator)
-                                                                                        Dim left = assignment?.Left
-                                                                                        If left IsNot Nothing Then
-                                                                                            Select Case left.Kind
-                                                                                                Case BoundKind.FieldAccess
-                                                                                                    builder.Add(New FieldInitializer(assignment.Syntax, DirectCast(left, BoundFieldAccess).FieldSymbol, assignment.Right))
-                                                                                                Case BoundKind.PropertyAccess
-                                                                                                    builder.Add(New PropertyInitializer(assignment.Syntax, DirectCast(left, BoundPropertyAccess).PropertySymbol.SetMethod, assignment.Right))
-                                                                                            End Select
-                                                                                        End If
-                                                                                    Next
-                                                                                    Return builder.ToImmutableAndFree()
-                                                                                End If
-
-                                                                                Return ImmutableArray(Of IMemberInitializer).Empty
-                                                                            End Function)
-
-                Return DirectCast(initializer, ImmutableArray(Of IMemberInitializer))
+                Return GetComputedState().MemberInitializers
             End Get
         End Property
+
+        Private Shared Function GetMemberInitializers(objectInitializerExpression As BoundObjectInitializerExpressionBase) As ImmutableArray(Of IMemberInitializer)
+            If objectInitializerExpression Is Nothing Then
+                Return ImmutableArray(Of IMemberInitializer).Empty
+            End If
+
+            Dim builder = ArrayBuilder(Of IMemberInitializer).GetInstance(objectInitializerExpression.Initializers.Length)
+            For Each memberAssignment In objectInitializerExpression.Initializers
+                Dim assignment = TryCast(memberAssignment, BoundAssignmentOperator)
+                Dim left = assignment?.Left
+                If left IsNot Nothing Then
+                    Select Case left.Kind
+                        Case BoundKind.FieldAccess
+                            builder.Add(New FieldInitializer(assignment.Syntax, DirectCast(left, BoundFieldAccess).FieldSymbol, assignment.Right))
+                        Case BoundKind.PropertyAccess
+                            builder.Add(New PropertyInitializer(assignment.Syntax, DirectCast(left, BoundPropertyAccess).PropertySymbol.SetMethod, assignment.Right))
+                    End Select
+                End If
+            Next
+            Return builder.ToImmutableAndFree()
+        End Function
 
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ObjectCreationExpression
