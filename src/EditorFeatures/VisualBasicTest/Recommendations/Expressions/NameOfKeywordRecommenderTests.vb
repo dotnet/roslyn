@@ -4,118 +4,117 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
     Public Class NameOfKeywordRecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInClassDeclaration()
-            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "NameOf")
-        End Sub
+        Public Async Function NotInClassDeclarationTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAtStartOfStatement()
-            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function NotAtStartOfStatementTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterReturn()
-            VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function AfterReturnTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Return |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InArgumentList_Position1()
-            VerifyRecommendationsContain(<MethodBody>Foo(|</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function InArgumentList_Position1Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InArgumentList_Position2()
-            VerifyRecommendationsContain(<MethodBody>Foo(bar, |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function InArgumentList_Position2Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar, |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InBinaryExpression()
-            VerifyRecommendationsContain(<MethodBody>Foo(bar + |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function InBinaryExpressionTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar + |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterNot()
-            VerifyRecommendationsContain(<MethodBody>Foo(Not |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function AfterNotTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(Not |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterTypeOf()
-            VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function AfterTypeOfTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>If TypeOf |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterDoWhile()
-            VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function AfterDoWhileTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Do While |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterDoUntil()
-            VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function AfterDoUntilTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Do Until |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterLoopWhile()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function AfterLoopWhileTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 Loop While |</MethodBody>, "NameOf")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterLoopUntil()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function AfterLoopUntilTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Do
 Loop Until |</MethodBody>, "NameOf")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterIf()
-            VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function AfterIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>If |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterElseIf()
-            VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function AfterElseIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>ElseIf |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterElseSpaceIf()
-            VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function AfterElseSpaceIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Else If |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterError()
-            VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function AfterErrorTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Error |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterThrow()
-            VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function AfterThrowTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Throw |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InVariableInitializer()
-            VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function InVariableInitializerTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InArrayInitializer()
-            VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function InArrayInitializerTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {|</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InArrayInitializerAfterComma()
-            VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function InArrayInitializerAfterCommaTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {0, |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterWhile()
-            VerifyRecommendationsContain(<MethodBody>While |</MethodBody>, "NameOf")
-        End Sub
+        Public Async Function AfterWhileTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>While |</MethodBody>, "NameOf")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterCall()
-            VerifyRecommendationsContain(<MethodBody>Call |</MethodBody>, "NameOf")
-        End Sub
-
+        Public Async Function AfterCallTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Call |</MethodBody>, "NameOf")
+        End Function
     End Class
 End Namespace

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             var span = new TextSpan(position, 0);
             var solution = document.Project.Solution;
             var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
-            var symbol = SymbolFinder.FindSymbolAtPosition(semanticModel, position, solution.Workspace, cancellationToken: cancellationToken);
+            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
             {
                 return SpecializedCollections.EmptyEnumerable<DocumentHighlights>();
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             }
 
             // get symbols from current document again
-            return SymbolFinder.FindSymbolAtPosition(currentSemanticModel, position, document.Project.Solution.Workspace, cancellationToken: cancellationToken);
+            return await SymbolFinder.FindSymbolAtPositionAsync(currentSemanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<IEnumerable<DocumentHighlights>> GetTagsForReferencedSymbolAsync(

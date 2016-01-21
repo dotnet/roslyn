@@ -8198,5 +8198,55 @@ End Module
 
         End Sub
 
+        <Fact, WorkItem(6416, "https://github.com/dotnet/roslyn/issues/6416")>
+        Public Sub CapturedMe001()
+
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+
+Imports System
+Imports System.Linq.Expressions
+
+
+Class Module1
+    Public Shared Sub Main()
+        Dim v = New Module1()
+        v.test()
+    End Sub
+
+    Public ReadOnly Property P1 As Integer
+        Get
+            Return 42
+        End Get
+    End Property
+
+    Public Sub test()
+        Dim local = 0
+        Dim f As Func(Of Expression(Of Func(Of Integer))) =
+                Function()
+                    System.Console.WriteLine(P1 + local)
+                    Return Function() P1
+                End Function
+
+        System.Console.WriteLine(DirectCast(f().Body, MemberExpression).Expression)
+    End Sub
+End Class
+
+
+
+                            ]]></file>
+                         </compilation>
+
+
+            CompileAndVerify(source,
+                 additionalRefs:={SystemCoreRef},
+                 options:=TestOptions.ReleaseExe,
+                 expectedOutput:=<![CDATA[
+42
+value(Module1)
+]]>).VerifyDiagnostics()
+
+        End Sub
+
     End Class
 End Namespace

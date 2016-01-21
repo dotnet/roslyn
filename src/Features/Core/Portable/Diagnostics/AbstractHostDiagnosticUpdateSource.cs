@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>> _analyzerHostDiagnosticsMap =
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>>.Empty;
 
-        internal abstract Workspace Workspace { get; }
+        public abstract Workspace Workspace { get; }
 
         public bool SupportGetDiagnostics
         {

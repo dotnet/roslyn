@@ -201,11 +201,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim t1IsDefinition = t1.IsDefinition
                 Dim t2IsDefinition = t2.IsDefinition
 
-                If (t1IsDefinition <> t2IsDefinition) Then
+                If (t1IsDefinition <> t2IsDefinition) AndAlso
+                   Not (DirectCast(t1, NamedTypeSymbol).HasTypeArgumentsCustomModifiers OrElse DirectCast(t2, NamedTypeSymbol).HasTypeArgumentsCustomModifiers) Then
                     Return False
                 End If
 
-                If Not t1IsDefinition Then ' This is a generic instantiation
+                If Not (t1IsDefinition AndAlso t2IsDefinition) Then ' This is a generic instantiation case
 
                     If t1.OriginalDefinition <> t2.OriginalDefinition Then
                         Return False ' different definition

@@ -7,13 +7,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal interface ICompilerServerHost
     {
-        Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; }
-        bool TryCreateCompiler(RunRequest request, out CommonCompiler compiler);
-        bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers);
+        BuildResponse RunCompilation(RunRequest request, CancellationToken cancellationToken);
     }
 }

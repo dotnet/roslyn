@@ -592,7 +592,7 @@ class Program
             int indentationLine)
         {
             // create tree service
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 

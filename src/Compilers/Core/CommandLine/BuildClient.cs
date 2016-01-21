@@ -93,13 +93,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         return HandleResponse(buildResponse, parsedArgs, buildPaths);
                     }
                 }
-                catch
+                catch (OperationCanceledException)
                 {
-                    // It's okay, and expected, for the server compilation to fail.  In that case just fall 
-                    // back to normal compilation. 
+                    return CommonCompiler.Succeeded;
                 }
             }
 
+            // It's okay, and expected, for the server compilation to fail.  In that case just fall 
+            // back to normal compilation. 
             return RunLocalCompilation(parsedArgs, buildPaths.ClientDirectory, buildPaths.SdkDirectory);
         }
 
@@ -128,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                             return completedResponse.ReturnCode;
                         });
 
+                case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
                     return RunLocalCompilation(arguments, buildPaths.ClientDirectory, buildPaths.SdkDirectory);
 

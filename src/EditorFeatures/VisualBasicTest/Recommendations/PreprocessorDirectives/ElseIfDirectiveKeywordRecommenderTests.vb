@@ -1,54 +1,47 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class ElseIfDirectiveKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashElseIfNotInFile()
-            VerifyRecommendationsMissing(<File>|</File>, "#ElseIf")
-        End Sub
+        Public Async Function HashElseIfNotInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>|</File>, "#ElseIf")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashElseIfInFileAfterIf()
-            VerifyRecommendationsContain(<File>
+        Public Async Function HashElseIfInFileAfterIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 #If True Then
 |</File>, "#ElseIf")
-        End Sub
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashElseIfInFileAfterElseIf()
-            VerifyRecommendationsContain(<File>
+        Public Async Function HashElseIfInFileAfterElseIfTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 #If True Then
 #ElseIf True Then
 |</File>, "#ElseIf")
-        End Sub
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashElseIfNotInFileAfterElseIf1()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function HashElseIfNotInFileAfterElseIf1Test() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #If True Then
 #Else
 |</File>, "#ElseIf")
-        End Sub
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashElseIfNotInFileAfterElseIf2()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function HashElseIfNotInFileAfterElseIf2Test() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #If True Then
 #ElseIf True Then
 #Else
 |</File>, "#ElseIf")
-        End Sub
+        End Function
     End Class
 End Namespace

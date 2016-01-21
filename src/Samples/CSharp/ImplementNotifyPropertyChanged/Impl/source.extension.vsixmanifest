@@ -25,7 +25,7 @@ governing permissions and limitations under the License.
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="ImplementNotifyPropertyChanged.4f1499c0-20db-4a1d-a357-819c30d74aaa" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
-    <DisplayName>Implement INotifyPropertyChanged for C#</DisplayName>
+    <DisplayName>Implement INotifyPropertyChanged for CSharp</DisplayName>
     <Description xml:space="preserve">This is a sample extension to implement INotifyPropertyChanged using the .NET Compiler Platform ("Roslyn") SDK Preview.</Description>
   </Metadata>
   <Installation>

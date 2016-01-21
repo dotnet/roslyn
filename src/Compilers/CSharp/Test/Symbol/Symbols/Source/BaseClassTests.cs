@@ -338,6 +338,111 @@ internal class F : A
                 );
         }
 
+        [Fact, WorkItem(7878, "https://github.com/dotnet/roslyn/issues/7878")]
+        public void BadVisibilityPartial()
+        {
+            var text = @"
+internal class NV
+{
+}
+
+public partial class C1
+{
+}
+
+partial class C1 : NV
+{
+}
+
+public partial class C1
+{
+}
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (10,15): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // partial class C1 : NV
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
+        }
+
+        [Fact, WorkItem(7878, "https://github.com/dotnet/roslyn/issues/7878")]
+        public void StaticBasePartial()
+        {
+            var text = @"
+static class NV
+{
+}
+
+public partial class C1
+{
+}
+
+partial class C1 : NV
+{
+}
+
+public partial class C1
+{
+}
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (10,15): error CS0709: 'C1': cannot derive from static class 'NV'
+                // partial class C1 : NV
+                Diagnostic(ErrorCode.ERR_StaticBaseClass, "C1").WithArguments("NV", "C1").WithLocation(10, 15),
+                // (10,15): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // partial class C1 : NV
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
+        }
+
+
+        [Fact, WorkItem(7878, "https://github.com/dotnet/roslyn/issues/7878")]
+        public void BadVisInterfacePartial()
+        {
+            var text = @"
+interface IFoo
+{
+    void Moo();
+}
+
+interface IBaz
+{
+    void Noo();
+}
+
+interface IBam
+{
+    void Zoo();
+}
+
+public partial interface IBar
+{
+}
+
+partial interface IBar : IFoo, IBam
+{
+}
+
+partial interface IBar : IBaz, IBaz
+{
+}
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (25,32): error CS0528: 'IBaz' is already listed in interface list
+                // partial interface IBar : IBaz, IBaz
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "IBaz").WithArguments("IBaz").WithLocation(25, 32),
+                // (21,19): error CS0061: Inconsistent accessibility: base interface 'IFoo' is less accessible than interface 'IBar'
+                // partial interface IBar : IFoo, IBam
+                Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IBar").WithArguments("IBar", "IFoo").WithLocation(21, 19),
+                // (21,19): error CS0061: Inconsistent accessibility: base interface 'IBam' is less accessible than interface 'IBar'
+                // partial interface IBar : IFoo, IBam
+                Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IBar").WithArguments("IBar", "IBam").WithLocation(21, 19),
+                // (25,19): error CS0061: Inconsistent accessibility: base interface 'IBaz' is less accessible than interface 'IBar'
+                // partial interface IBar : IBaz, IBaz
+                Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IBar").WithArguments("IBar", "IBaz").WithLocation(25, 19));
+        }
+
         [Fact]
         public void EricLiCase1()
         {

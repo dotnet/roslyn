@@ -227,6 +227,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return Nothing
             End Get
         End Property
+
+        Public Overrides Function GetMetadata() As AssemblyMetadata
+            Return _assembly.GetNonDisposableMetadata()
+        End Function
     End Class
 End Namespace
-

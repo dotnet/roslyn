@@ -124,8 +124,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                     // Check for an already running server
                     var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
-                    Mutex mutexIgnore;
-                    bool wasServerRunning = Mutex.TryOpenExisting(serverMutexName, out mutexIgnore);
+                    bool wasServerRunning = WasServerMutexOpen(serverMutexName);
                     var timeout = wasServerRunning ? TimeOutMsExistingProcess : TimeOutMsNewProcess;
 
                     NamedPipeClientStream pipe = null;
@@ -133,8 +132,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
                     {
                         pipe = TryConnectToServer(pipeName,
-                                                   timeout,
-                                                   cancellationToken);
+                                                  timeout,
+                                                  cancellationToken);
                     }
 
                     if (pipe != null)
@@ -157,12 +156,25 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
             }
 
-            return null;
+            return Task.FromResult<BuildResponse>(null);
+        }
+
+        internal static bool WasServerMutexOpen(string mutexName)
+        {
+            Mutex mutex;
+            var open = Mutex.TryOpenExisting(mutexName, out mutex);
+            if (open)
+            {
+                mutex.Close();
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
-        /// Try to compile using the server. Returns null if a response from the
-        /// server cannot be retrieved.
+        /// Try to compile using the server. Returns a null-containing Task if a response
+        /// from the server cannot be retrieved.
         /// </summary>
         private static async Task<BuildResponse> TryCompile(NamedPipeClientStream pipeStream,
                                                             BuildRequest request,

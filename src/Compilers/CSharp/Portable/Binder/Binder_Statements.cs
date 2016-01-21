@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (block != null)
                 {
-                    localSymbol.ComputeReturnType(block, returnNullIfUnknown: false, isIterator: false);
+                    localSymbol.ComputeReturnType();
 
                     // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
                     // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
@@ -2882,14 +2882,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual TypeSymbol GetCurrentReturnType()
         {
-            // Local functions usually report an error when their return type is used recursively. (symbol.ReturnType creates an error type named "var")
-            // We actually want to return null here instead of an error type + diagnostic (for return type inference)
-            var containingLocalFunction = this.ContainingMemberOrLambda as LocalFunctionSymbol;
-            if (containingLocalFunction != null)
-            {
-                return containingLocalFunction.ReturnTypeNoForce;
-            }
-
             TypeSymbolWithAnnotations returnType = (this.ContainingMemberOrLambda as MethodSymbol)?.ReturnType;
 
             if ((object)returnType == null || (object)returnType == LambdaSymbol.ReturnTypeIsBeingInferred)

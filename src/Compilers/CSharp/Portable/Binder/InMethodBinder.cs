@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
-            TypeSymbol returnType = (_methodSymbol as LocalFunctionSymbol)?.ReturnTypeIterator ?? _methodSymbol.ReturnType.TypeSymbol;
+            TypeSymbol returnType = _methodSymbol.ReturnType.TypeSymbol;
 
             if (!this.IsDirectlyInIterator)
             {
@@ -292,13 +292,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Type parameter declaration name conflicts are detected elsewhere
                     return false;
-                }
-
-                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
-                {
-                    // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
-                    diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
-                    return true;
                 }
 
                 if (newSymbolKind == SymbolKind.RangeVariable)

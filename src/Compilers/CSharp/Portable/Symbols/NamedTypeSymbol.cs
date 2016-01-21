@@ -625,13 +625,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var thisOriginalDefinition = this.OriginalDefinition;
             var otherOriginalDefinition = other.OriginalDefinition;
 
+            if (((object)this == (object)thisOriginalDefinition || (object)other == (object)otherOriginalDefinition) &&
+                !(ignoreCustomModifiersAndArraySizesAndLowerBounds && (this.HasTypeArgumentsCustomModifiers || other.HasTypeArgumentsCustomModifiers)))
+            {
+                return false;
+            }
+
             // CONSIDER: original definitions are not unique for missing metadata type
             // symbols.  Therefore this code may not behave correctly if 'this' is List<int>
             // where List`1 is a missing metadata type symbol, and other is similarly List<int>
             // but for a reference-distinct List`1.
-            if (((object)this == (object)thisOriginalDefinition) ||
-                ((object)other == (object)otherOriginalDefinition) ||
-                (thisOriginalDefinition != otherOriginalDefinition))
+            if (thisOriginalDefinition != otherOriginalDefinition)
             {
                 return false;
             }
@@ -664,7 +668,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if (thisIsNotConstructed || otherIsNotConstructed || this.IsUnboundGenericType != other.IsUnboundGenericType)
+            if (((thisIsNotConstructed || otherIsNotConstructed) && 
+                 !(ignoreCustomModifiersAndArraySizesAndLowerBounds && (this.HasTypeArgumentsCustomModifiers || other.HasTypeArgumentsCustomModifiers))) || 
+                this.IsUnboundGenericType != other.IsUnboundGenericType)
             {
                 return false;
             }

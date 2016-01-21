@@ -1184,6 +1184,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     diagnostics.Add(ERRID.WRN_DelaySignButNoKey, NoLocation.Singleton)
                 End If
 
+                If DeclaringCompilation.Options.PublicSign AndAlso Not Identity.HasPublicKey Then
+                    diagnostics.Add(ERRID.ERR_PublicSignNoKey, NoLocation.Singleton)
+                End If
+
                 ' If the options and attributes applied on the compilation imply real signing,
                 ' but we have no private key to sign it with report an error.
                 ' Note that if public key is set and delay sign is off we do OSS signing, which doesn't require private key.
@@ -1679,5 +1683,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
+        Public Overrides Function GetMetadata() As AssemblyMetadata
+            Return Nothing
+        End Function
     End Class
 End Namespace

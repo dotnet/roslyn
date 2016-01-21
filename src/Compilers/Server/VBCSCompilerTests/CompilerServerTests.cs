@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -253,13 +254,6 @@ End Module")
 
         #endregion
 
-        private static async Task Verify(ServerData serverData, int connections, int completed)
-        {
-            var serverStats = await serverData.Complete().ConfigureAwait(true);
-            Assert.Equal(connections, serverStats.Connections);
-            Assert.Equal(completed, serverStats.CompletedConnections);
-        }
-
         [Fact]
         public async Task FallbackToCsc()
         {
@@ -268,7 +262,7 @@ End Module")
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
-                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 
@@ -284,7 +278,7 @@ End Module")
                 Assert.Equal(result.ExitCode, 1);
                 Assert.True(result.ContainsErrors);
                 Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
-                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 
@@ -307,7 +301,7 @@ End Module")
                 Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'".Trim(),
                     tempOut.ReadAllText().Trim().Replace(srcFile, "test.cs"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 
@@ -329,7 +323,7 @@ End Module")
 
 ?
 ~", result.Output.Trim().Replace(srcFile, "test.vb"));
-                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 
@@ -354,7 +348,7 @@ End Module")
 ♕
 ~", tempOut.ReadAllText().Trim().Replace(srcFile, "test.vb"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 
@@ -365,7 +359,7 @@ End Module")
             {
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.vb", _tempDirectory, s_helloWorldSrcVb);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
-                await Verify(serverData, connections: 1, completed: 0).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
 
@@ -377,7 +371,7 @@ End Module")
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -408,7 +402,7 @@ End Module")
                                                     _tempDirectory,
                                                     files);
                 VerifyResult(result);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -424,7 +418,7 @@ End Module")
                                                     _tempDirectory,
                                                     files);
                 VerifyResult(result);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -439,7 +433,7 @@ End Module")
                                                     _tempDirectory,
                                                     s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -454,7 +448,7 @@ End Module")
                                                     _tempDirectory,
                                                     s_helloWorldSrcVb);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -469,7 +463,7 @@ End Module")
                     _tempDirectory,
                     s_helloWorldSrcVb);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -497,7 +491,7 @@ class Hello
                 Assert.Equal("", result.Errors);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -527,7 +521,7 @@ End Class"}};
                 Assert.Equal("", result.Errors);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -545,7 +539,7 @@ End Class"}};
                 Assert.Contains("error CS2001: Source file", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -563,7 +557,7 @@ End Class"}};
                 Assert.Contains("error CS0006: Metadata file", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -588,7 +582,7 @@ End Class"}};
                 Assert.Contains("error CS0009: Metadata file", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -606,7 +600,7 @@ End Class"}};
                 Assert.Contains("error BC2001", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -635,7 +629,7 @@ End Module"}};
                 Assert.Contains("error BC2017: could not find library", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hellovb.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -664,7 +658,7 @@ End Module"}};
                 Assert.Contains("error BC31519", result.Output, StringComparison.Ordinal);
                 Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -786,7 +780,7 @@ End Module
                     }
                 }
 
-                await Verify(serverData, connections: 5, completed: 5).ConfigureAwait(true);
+                await serverData.Verify(connections: 5, completed: 5).ConfigureAwait(true);
             }
 
             GC.KeepAlive(rootDirectory);
@@ -906,7 +900,7 @@ class Hello
                     }
                 }
 
-                await Verify(serverData, connections: 5, completed: 5).ConfigureAwait(true);
+                await serverData.Verify(connections: 5, completed: 5).ConfigureAwait(true);
             }
 
             GC.KeepAlive(rootDirectory);
@@ -964,7 +958,7 @@ End Module", i));
 
         [WorkItem(997372)]
         [WorkItem(761326, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7618")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MultipleSimultaneousCompiles()
         {
@@ -1007,7 +1001,7 @@ End Module", i));
                 }
 
                 var total = numberOfCompiles * 2;
-                await Verify(serverData, total, total);
+                await serverData.Verify(total, total);
             }
         }
 
@@ -1063,7 +1057,7 @@ class Hello
                 Assert.Equal(0, result.ExitCode);
 
                 var resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
-                await Verify(serverData, connections: 2, completed: 2).ConfigureAwait(true);
+                await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
             }
         }
 
@@ -1116,7 +1110,7 @@ End Module
                 Assert.Equal(0, result.ExitCode);
 
                 var resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
-                await Verify(serverData, connections: 2, completed: 2).ConfigureAwait(true);
+                await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
             }
         }
 
@@ -1141,7 +1135,7 @@ End Module
                 Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '?'".Trim(),
                     tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -1169,7 +1163,7 @@ End Module
 ".Trim(),
                             tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.VB"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -1193,7 +1187,7 @@ End Module
                 Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '♕'".Trim(),
                     tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -1221,7 +1215,7 @@ End Module
 ".Trim(),
                             tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.VB"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -1279,7 +1273,7 @@ class Program
                 Assert.Equal("", result.Output);
                 Assert.Equal("", result.Errors);
                 Assert.Equal(0, result.ExitCode);
-                await Verify(serverData, connections: 2, completed: 2).ConfigureAwait(true);
+                await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
             }
         }
 
@@ -1306,7 +1300,7 @@ class Program
                 Assert.Equal("src.cs(1,1): error CS1056: Unexpected character '♕'",
                     tempOut.ReadAllText().Trim().Replace(srcFile, "src.cs"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -1335,7 +1329,7 @@ class Program
 ♕
 ~", tempOut.ReadAllText().Trim().Replace(srcFile, "src.vb"));
                 Assert.Equal(1, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -1359,7 +1353,7 @@ class Program
             var exited = proc.HasExited;
             if (!exited)
             {
-                proc.Kill();
+                Kill(proc);
                 Assert.True(false, "Compiler server did not exit in time");
             }
         }
@@ -1408,7 +1402,8 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact, WorkItem(1024619, "DevDiv")]
+        [Fact] 
+        [WorkItem(1024619, "DevDiv")]
         public async Task Bug1024619_01()
         {
             using (var serverData = ServerUtil.CreateServer())
@@ -1436,11 +1431,12 @@ class Program
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(0, result.ExitCode);
-                await Verify(serverData, connections: 1, completed: 1).ConfigureAwait(true);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
-        [Fact, WorkItem(1024619, "DevDiv")]
+        [Fact]
+        [WorkItem(1024619, "DevDiv")]
         public async Task Bug1024619_02()
         {
             using (var serverData = ServerUtil.CreateServer())
@@ -1469,7 +1465,7 @@ class Program
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(0, result.ExitCode);
-                await Verify(serverData, connections: 2, completed: 2).ConfigureAwait(true);
+                await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
             }
         }
     }

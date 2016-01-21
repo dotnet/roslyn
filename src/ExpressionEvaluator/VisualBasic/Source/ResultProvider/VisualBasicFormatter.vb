@@ -14,6 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Partial Friend NotInheritable Class VisualBasicFormatter
         Inherits Formatter
 
+        ''' <summary>
+        ''' Singleton instance of VisualBasicFormatter (created using default constructor).
+        ''' </summary>
+        Friend Shared ReadOnly Instance As VisualBasicFormatter = New VisualBasicFormatter()
+
         Public Sub New()
             MyBase.New(defaultFormat:="{{{0}}}", nullString:="Nothing")
         End Sub

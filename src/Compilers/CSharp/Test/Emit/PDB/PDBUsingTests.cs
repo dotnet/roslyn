@@ -2154,33 +2154,34 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
 
             comp.VerifyDiagnostics(
-                // (6,11): error CS0246: The type or namespace name 'F<int>' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,11): error CS0246: The type or namespace name 'F<>' could not be found (are you missing a using directive or an assembly reference?)
                 // using Z = F<int>;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F<int>").WithArguments("F<int>"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F<int>").WithArguments("F<>").WithLocation(6, 11),
                 // (5,14): error CS0234: The type or namespace name 'E' does not exist in the namespace 'A' (are you missing an assembly reference?)
                 // using Y = A::E;
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "E").WithArguments("E", "A"),
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "E").WithArguments("E", "A").WithLocation(5, 14),
                 // (4,13): error CS0426: The type name 'D' does not exist in the type 'C'
                 // using X = C.D;
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "D").WithArguments("D", "C"),
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "D").WithArguments("D", "C").WithLocation(4, 13),
                 // (2,14): error CS0430: The extern alias 'A' was not specified in a /reference option
                 // extern alias A;
-                Diagnostic(ErrorCode.ERR_BadExternAlias, "A").WithArguments("A"),
+                Diagnostic(ErrorCode.ERR_BadExternAlias, "A").WithArguments("A").WithLocation(2, 14),
                 // (3,7): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 // using B;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B"),
-                // (3,1): hidden CS8019: Unnecessary using directive.
-                // using B;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using B;"),
-                // (4,1): hidden CS8019: Unnecessary using directive.
-                // using X = C.D;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = C.D;"),
-                // (6,1): hidden CS8019: Unnecessary using directive.
-                // using Z = F<int>;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Z = F<int>;"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(3, 7),
                 // (5,1): hidden CS8019: Unnecessary using directive.
                 // using Y = A::E;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = A::E;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = A::E;").WithLocation(5, 1),
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using B;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using B;").WithLocation(3, 1),
+                // (4,1): hidden CS8019: Unnecessary using directive.
+                // using X = C.D;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = C.D;").WithLocation(4, 1),
+                // (6,1): hidden CS8019: Unnecessary using directive.
+                // using Z = F<int>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Z = F<int>;").WithLocation(6, 1)
+                );
         }
 
         [Fact]

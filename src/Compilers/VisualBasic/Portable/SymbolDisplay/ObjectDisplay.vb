@@ -131,10 +131,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
             Dim pooledBuilder = PooledStringBuilder.GetInstance()
             Dim sb = pooledBuilder.Builder
-            Dim useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes)
-            Dim useHex = options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers)
 
-            For Each token As Integer In TokenizeString(value, useQuotes, useHex)
+            For Each token As Integer In TokenizeString(value, options)
                 sb.Append(ChrW(token And &HFFFF)) ' lower 16 bits of token contains the Unicode char value
             Next
 
@@ -144,8 +142,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         Friend Function FormatLiteral(c As Char, options As ObjectDisplayOptions) As String
             ValidateOptions(options)
 
-            If Not options.IncludesOption(ObjectDisplayOptions.UseQuotes) Then
-                Return c.ToString()
+            If IsPrintable(c) OrElse Not options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters) Then
+                Return If(options.IncludesOption(ObjectDisplayOptions.UseQuotes),
+                    """" & EscapeQuote(c) & """c",
+                    c.ToString())
             End If
 
             Dim wellKnown = GetWellKnownCharacterName(c)
@@ -153,12 +153,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 Return wellKnown
             End If
 
-            If Not IsPrintable(c) Then
-                Dim codepoint = AscW(c)
-                Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
-            End If
-
-            Return """"c & EscapeQuote(c) & """"c & "c"
+            Dim codepoint = AscW(c)
+            Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
         End Function
 
         Private Function EscapeQuote(c As Char) As String
@@ -362,9 +358,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         End Function
 
         ' TODO: consider making "token" returned by this function a structure to abstract bit masking operations
-        Friend Iterator Function TokenizeString(str As String, quote As Boolean, useHexadecimalNumbers As Boolean) As IEnumerable(Of Integer)
+        Friend Iterator Function TokenizeString(str As String, options As ObjectDisplayOptions) As IEnumerable(Of Integer)
+            Dim useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes)
+            Dim useHexadecimalNumbers = options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers)
+            Dim escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters)
+
             If str.Length = 0 Then
-                If quote Then
+                If useQuotes Then
                     Yield Quotes()
                     Yield Quotes()
                 End If
@@ -380,23 +380,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 Dim c = str(i)
                 i += 1
                 Dim wellKnown As String
-                Dim isNonPrintable As Boolean
+                Dim shouldEscape As Boolean
                 Dim isCrLf As Boolean
 
-                ' vbCrLf
-                If c = s_Cr AndAlso i < str.Length AndAlso str(i) = s_Lf Then
+                If Not escapeNonPrintable Then
+                    wellKnown = Nothing
+                    shouldEscape = False
+                    isCrLf = False
+                ElseIf c = s_Cr AndAlso i < str.Length AndAlso str(i) = s_Lf Then
                     wellKnown = "vbCrLf"
-                    isNonPrintable = True
+                    shouldEscape = True
                     isCrLf = True
                     i += 1
                 Else
                     wellKnown = GetWellKnownCharacterName(c)
-                    isNonPrintable = wellKnown IsNot Nothing OrElse Not IsPrintable(c)
+                    shouldEscape = wellKnown IsNot Nothing OrElse Not IsPrintable(c)
                     isCrLf = False
                 End If
 
-                If isNonPrintable Then
-                    If quote Then
+                If shouldEscape Then
+                    If useQuotes Then
                         If lastConcatenandWasQuoted Then
                             Yield Quotes()
                             lastConcatenandWasQuoted = False
@@ -440,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                         Yield Character(c)
                     End If
                 Else
-                    If isFirst AndAlso quote Then
+                    If isFirst AndAlso useQuotes Then
                         Yield Quotes()
                     End If
 
@@ -454,7 +457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                     End If
 
                     lastConcatenandWasQuoted = True
-                    If c = """"c AndAlso quote Then
+                    If c = """"c AndAlso useQuotes Then
                         Yield Quotes()
                         Yield Quotes()
                     Else
@@ -463,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 End If
             End While
 
-            If quote AndAlso lastConcatenandWasQuoted Then
+            If useQuotes AndAlso lastConcatenandWasQuoted Then
                 Yield Quotes()
             End If
         End Function
@@ -498,6 +501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         Private Sub ValidateOptions(options As ObjectDisplayOptions)
             ' This option is not supported and has no meaning in Visual Basic...should not be passed...
             Debug.Assert(Not options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints))
+            Debug.Assert(Not options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters) Or options.IncludesOption(ObjectDisplayOptions.UseQuotes))
         End Sub
 
     End Module

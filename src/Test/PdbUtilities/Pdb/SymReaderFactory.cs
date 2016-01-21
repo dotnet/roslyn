@@ -42,6 +42,17 @@ namespace Roslyn.Test.PdbUtilities
             SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
             return reader;
         }
+        
+        private static ISymUnmanagedReader CreatePortableSymReader(Stream pdbStream, object metadataImporter)
+        {
+            var binder = new PortablePdb.SymBinder();
+
+            ISymUnmanagedReader reader;
+            int hr = binder.GetReaderFromStream(metadataImporter, new ComStreamWrapper(pdbStream), out reader);
+            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
+
+            return reader;
+        }
 
         public static ISymUnmanagedReader CreateReader(byte[] pdbImage, byte[] peImageOpt = null)
         {
@@ -79,13 +90,7 @@ namespace Roslyn.Test.PdbUtilities
 
             if (isPortable)
             {
-                var binder = new PortablePdb.SymBinder();
-
-                ISymUnmanagedReader reader;
-                int hr = binder.GetReaderFromStream(metadataImporter, new ComStreamWrapper(pdbStream), out reader);
-                SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
-
-                return reader;
+                return CreatePortableSymReader(pdbStream, metadataImporter);
             }
             else
             {

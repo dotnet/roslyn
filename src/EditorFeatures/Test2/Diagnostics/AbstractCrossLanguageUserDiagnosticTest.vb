@@ -46,25 +46,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 If fileNameToExpected Is Nothing Then
                     Dim updatedDocument = SolutionUtilities.GetSingleChangedDocument(oldSolution, updatedSolution)
 
-                    Verify(expected, verifyTokens, updatedDocument)
+                    Await VerifyAsync(expected, verifyTokens, updatedDocument)
                 Else
                     For Each kvp In fileNameToExpected
                         Dim updatedDocument = updatedSolution.Projects.SelectMany(Function(p) p.Documents).Single(Function(d) d.Name = kvp.Key)
-                        Verify(kvp.Value, verifyTokens, updatedDocument)
+                        Await VerifyAsync(kvp.Value, verifyTokens, updatedDocument)
                     Next
                 End If
             End Using
         End Function
 
-        Private Shared Sub Verify(expected As String, verifyTokens As Boolean, updatedDocument As Document)
-            Dim actual = updatedDocument.GetTextAsync().Result.ToString().Trim()
+        Private Shared Async Function VerifyAsync(expected As String, verifyTokens As Boolean, updatedDocument As Document) As Task
+            Dim actual = (Await updatedDocument.GetTextAsync()).ToString().Trim()
 
             If verifyTokens Then
                 Utilities.AssertEx.TokensAreEqual(expected, actual, updatedDocument.Project.Language)
             Else
                 AssertEx.Equal(expected, actual)
             End If
-        End Sub
+        End Function
 
         Friend Async Function GetDiagnosticAndFixAsync(workspace As TestWorkspace) As Task(Of Tuple(Of Diagnostic, CodeFixCollection))
             Return (Await GetDiagnosticAndFixesAsync(workspace)).FirstOrDefault()

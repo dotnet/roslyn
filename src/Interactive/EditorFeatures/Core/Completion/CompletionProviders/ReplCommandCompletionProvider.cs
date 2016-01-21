@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
     internal abstract class ReplCompletionProvider : CompletionListProvider
     {
         protected abstract Task<TextSpan> GetTextChangeSpanAsync(Document document, int position, CancellationToken cancellationToken);
-        protected abstract bool ShouldDisplayCommandCompletions(SyntaxTree tree, int position, CancellationToken cancellationToken);
+        protected abstract Task<bool> ShouldDisplayCommandCompletionsAsync(SyntaxTree tree, int position, CancellationToken cancellationToken);
         protected abstract string GetCompletionString(string commandName);
 
         public override async Task ProduceCompletionListAsync(CompletionListContext context)
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
                     var window = workspace.Engine.CurrentWindow;
                     var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-                    if (ShouldDisplayCommandCompletions(tree, position, cancellationToken))
+                    if (await ShouldDisplayCommandCompletionsAsync(tree, position, cancellationToken).ConfigureAwait(false))
                     {
                         var filterSpan = await this.GetTextChangeSpanAsync(document, position, cancellationToken).ConfigureAwait(false);
 

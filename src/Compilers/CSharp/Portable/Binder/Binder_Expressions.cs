@@ -2771,7 +2771,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeArguments: ImmutableArray<TypeSymbol>.Empty,
                         analyzedArguments: analyzedArguments,
                         invokedAsExtensionMethod: false,
-                        isDelegate: false);
+                        isDelegate: false,
+                        extensionMethodsOfSameViabilityAreAvailable: false);
                     result.WasCompilerGenerated = initializerArgumentListOpt == null;
                     return result;
                 }
@@ -5173,7 +5174,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods, methodGroup.TypeArguments, actualArguments, overloadResolutionResult, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments);
                 diagnostics.Add(expression, useSiteDiagnostics);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
-                var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, actualArguments, methodGroup.ResultKind, sealedDiagnostics);
+                var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, actualArguments, methodGroup.ResultKind, sealedDiagnostics,
+                                                       extensionMethodsOfSameViabilityAreAvailable: false);
 
                 // If the search in the current scope resulted in any applicable method (regardless of whether a best 
                 // applicable method could be determined) then our search is complete. Otherwise, store aside the
@@ -6167,7 +6169,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnostics = DiagnosticBag.GetInstance();
                 diagnostics.AddRange(methodResolution.Diagnostics); // Could still have use site warnings.
                 BindMemberAccessReportError(node, diagnostics);
-                return new MethodGroupResolution(methodResolution.MethodGroup, methodResolution.OtherSymbol, methodResolution.OverloadResolutionResult, methodResolution.AnalyzedArguments, methodResolution.ResultKind, diagnostics.ToReadOnlyAndFree());
+                return new MethodGroupResolution(methodResolution.MethodGroup, methodResolution.OtherSymbol, methodResolution.OverloadResolutionResult, methodResolution.AnalyzedArguments, methodResolution.ResultKind, diagnostics.ToReadOnlyAndFree(),
+                                                 methodResolution.ExtensionMethodsOfSameViabilityAreAvailable);
             }
             return methodResolution;
         }
@@ -6196,6 +6199,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var extensionMethodResolution = BindExtensionMethod(expression, methodName, analyzedArguments, methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt, isMethodGroupConversion);
 
             bool preferExtensionMethodResolution = false;
+            bool extensionMethodsOfSameViabilityAreAvailable = false;
+
             if (extensionMethodResolution.HasAnyApplicableMethod)
             {
                 preferExtensionMethodResolution = true;
@@ -6220,8 +6225,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 LookupResultKind methodResultKind = methodResolution.ResultKind;
                 LookupResultKind extensionMethodResultKind = extensionMethodResolution.ResultKind;
-                if (methodResultKind != extensionMethodResultKind &&
-                    methodResultKind == extensionMethodResultKind.WorseResultKind(methodResultKind))
+                if (methodResultKind == extensionMethodResultKind)
+                {
+                    // This information allows us to preserve more useful information for SemanticModel.
+                    extensionMethodsOfSameViabilityAreAvailable = true;
+                }
+                else if (methodResultKind == extensionMethodResultKind.WorseResultKind(methodResultKind))
                 {
                     preferExtensionMethodResolution = true;
                 }
@@ -6235,6 +6244,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             extensionMethodResolution.Free();
+
+            if (extensionMethodsOfSameViabilityAreAvailable)
+            {
+                return new MethodGroupResolution(methodResolution.MethodGroup,
+                                                 methodResolution.OtherSymbol,
+                                                 methodResolution.OverloadResolutionResult, 
+                                                 methodResolution.AnalyzedArguments, 
+                                                 methodResolution.ResultKind,
+                                                 methodResolution.Diagnostics,
+                                                 extensionMethodsOfSameViabilityAreAvailable: true);
+            }
+
             return methodResolution;
         }
 
@@ -6293,7 +6314,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments,
                     result, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments,
                     inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
-                return new MethodGroupResolution(methodGroup, null, result, analyzedArguments, methodGroup.ResultKind, sealedDiagnostics);
+                return new MethodGroupResolution(methodGroup, null, result, analyzedArguments, methodGroup.ResultKind, sealedDiagnostics,
+                                                 extensionMethodsOfSameViabilityAreAvailable: false);
             }
         }
 
