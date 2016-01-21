@@ -1687,14 +1687,18 @@ Implemented B");
             var test2 = cl1.GetMember<MethodSymbol>("Test2");
             Assert.Equal("void CL1<T1>.Test2(CL1<T1> t1)", test2.ToTestDisplayString());
 
-            var t1 = test1.Parameters[0].Type.TypeSymbol;
-            var t2 = test2.Parameters[0].Type.TypeSymbol;
+            var t1 = test1.Parameters[0].Type;
+            var t2 = test2.Parameters[0].Type;
 
-            Assert.False(t1.Equals(t2));
-            Assert.False(t2.Equals(t1));
+            Assert.False(t1.Equals(t2, TypeSymbolEqualityOptions.None));
+            Assert.False(t2.Equals(t1, TypeSymbolEqualityOptions.None));
+            Assert.False(t1.TypeSymbol.Equals(t2.TypeSymbol));
+            Assert.False(t2.TypeSymbol.Equals(t1.TypeSymbol));
 
-            Assert.True(t1.Equals(t2, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
-            Assert.True(t2.Equals(t1, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
+            Assert.True(t1.Equals(t2, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Assert.True(t2.Equals(t1, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Assert.True(t1.TypeSymbol.Equals(t2.TypeSymbol, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Assert.True(t2.TypeSymbol.Equals(t1.TypeSymbol, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
         }
 
     }

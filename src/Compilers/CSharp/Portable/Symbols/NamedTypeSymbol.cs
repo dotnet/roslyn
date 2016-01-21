@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var otherOriginalDefinition = other.OriginalDefinition;
 
             if (((object)this == (object)thisOriginalDefinition || (object)other == (object)otherOriginalDefinition) &&
-                !ignoreCustomModifiersAndArraySizesAndLowerBounds)
+                (options & TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0)
             {
                 return false;
             }
@@ -668,8 +668,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if (((thisIsNotConstructed || otherIsNotConstructed) && 
-                 !ignoreCustomModifiersAndArraySizesAndLowerBounds) || 
+            if (((thisIsNotConstructed || otherIsNotConstructed) &&
+                (options & TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0) || 
                 this.IsUnboundGenericType != other.IsUnboundGenericType)
             {
                 return false;
