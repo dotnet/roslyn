@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     if (signature == null)
                     {
                         int start = writer.Position;
-                        encoder = SerializeLocalVariableSignature(encoder.AddVariable(), local);
+                        encoder = SerializeLocalVariableType(encoder.AddVariable(), local);
                         signature = writer.ToArray(start, writer.Position - start);
                     }
                     else
