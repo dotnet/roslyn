@@ -122,10 +122,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 metadata.GetString("Console"));
 
             var consoleWriteLineSignature = new BlobEncoder(new BlobBuilder()).
-                MethodSignature(SignatureCallingConvention.Default, genericParameterCount: 0, isInstanceMethod: false).
+                MethodSignature().
                 Parameters(1).
-                    EndModifiers().Void().
-                    AddParameter().ModifiedType().EndModifiers().Type(isByRef: false).String().
+                    Void().
+                    AddParameter().Type().String().
                 EndParameters();
 
             var consoleWriteLineMemberRef = metadata.AddMemberReference(
@@ -134,8 +134,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 metadata.GetBlob(consoleWriteLineSignature.Builder));
 
             var parameterlessCtorSignature = new BlobEncoder(new BlobBuilder()).
-                MethodSignature(SignatureCallingConvention.Default, genericParameterCount: 0, isInstanceMethod: true).
-                Parameters(0).EndModifiers().Void().EndParameters();
+                MethodSignature(isInstanceMethod: true).
+                Parameters(0).Void().EndParameters();
 
             var parameterlessCtorBlobIndex = metadata.GetBlob(parameterlessCtorSignature.Builder);
 
@@ -145,8 +145,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 parameterlessCtorBlobIndex);
 
             var mainSignature = new BlobEncoder(new BlobBuilder()).
-                MethodSignature(SignatureCallingConvention.Default, genericParameterCount: 0, isInstanceMethod: false).
-                Parameters(0).EndModifiers().Void().EndParameters();
+                MethodSignature().
+                Parameters(0).Void().EndParameters();
 
             var methodBodies = new MethodBodiesEncoder(ilBuilder);
 

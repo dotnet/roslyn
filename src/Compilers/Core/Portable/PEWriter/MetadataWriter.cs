@@ -1075,7 +1075,7 @@ namespace Microsoft.Cci
             foreach (ITypeReference typeReference in methodInstanceReference.GetGenericArguments(Context))
             {
                 var typeRef = typeReference;
-                encoder = SerializeTypeReference(SerializeTypeReferenceModifiers(encoder.AddArgument(), ref typeRef), typeRef);
+                encoder = SerializeTypeReference(encoder.AddArgument(), typeRef);
             }
 
             encoder.EndArguments();
@@ -2947,7 +2947,7 @@ namespace Microsoft.Cci
             var encoder = new BlobEncoder(builder).LocalVariableSignature(localVariables.Length);
             foreach (ILocalDefinition local in localVariables)
             {
-                encoder = SerializeLocalVariableSignature(encoder.AddVariable(), local);
+                encoder = SerializeLocalVariableType(encoder.AddVariable(), local);
             }
 
             encoder.EndVariables();
@@ -2960,25 +2960,33 @@ namespace Microsoft.Cci
             return handle;
         }
 
-        protected T SerializeLocalVariableSignature<T>(LocalVariableEncoder<T> encoder, ILocalDefinition local)
+        protected T SerializeLocalVariableType<T>(LocalVariableTypeEncoder<T> encoder, ILocalDefinition local)
             where T : IBlobEncoder
         {
-            var typeEncoder = SerializeCustomModifiers(encoder.ModifiedType(), local.CustomModifiers);
+            if (local.CustomModifiers.Length > 0)
+            {
+                encoder = SerializeCustomModifiers(encoder.ModifiedType(), local.CustomModifiers);
+            }
 
             if (module.IsPlatformType(local.Type, PlatformType.SystemTypedReference))
             {
-                return typeEncoder.TypedReference();
+                return encoder.TypedReference();
             }
 
-            return SerializeTypeReference(typeEncoder.Type(local.IsPinned, local.IsReference), local.Type);
+            return SerializeTypeReference(encoder.Type(local.IsReference, local.IsPinned), local.Type);
         }
 
         internal StandaloneSignatureHandle SerializeLocalConstantStandAloneSignature(ILocalDefinition localConstant)
         {
             var builder = PooledBlobBuilder.GetInstance();
-            var encoder = new BlobEncoder(builder).FieldSignature();
-            var typeBuilder = SerializeCustomModifiers(encoder, localConstant.CustomModifiers);
-            SerializeTypeReference(typeBuilder, localConstant.Type);
+            var typeEncoder = new BlobEncoder(builder).FieldSignature();
+
+            if (localConstant.CustomModifiers.Length > 0)
+            {
+                typeEncoder = SerializeCustomModifiers(typeEncoder.ModifiedType(), localConstant.CustomModifiers);
+            }
+
+            SerializeTypeReference(typeEncoder, localConstant.Type);
 
             BlobHandle blobIndex = metadata.GetBlob(builder);
             var signatureHandle = GetOrAddStandAloneSignatureIndex(blobIndex);
@@ -3165,53 +3173,52 @@ namespace Microsoft.Cci
             return true;
         }
 
-        private T SerializeParameterInformation<T>(ParameterEncoder<T> encoder, IParameterTypeInformation parameterTypeInformation)
+        private T SerializeParameterInformation<T>(ParameterTypeEncoder<T> encoder, IParameterTypeInformation parameterTypeInformation)
             where T : IBlobEncoder
         {
-            ushort countOfCustomModifiersPrecedingByRef = parameterTypeInformation.CountOfCustomModifiersPrecedingByRef;
             var modifiers = parameterTypeInformation.CustomModifiers;
+            ushort numberOfModifiersPrecedingByRef = parameterTypeInformation.CountOfCustomModifiersPrecedingByRef;
+            int numberOfRemainingModifiers = modifiers.Length - numberOfModifiersPrecedingByRef;
 
-            Debug.Assert(countOfCustomModifiersPrecedingByRef == 0 || parameterTypeInformation.IsByReference);
+            Debug.Assert(numberOfModifiersPrecedingByRef == 0 || parameterTypeInformation.IsByReference);
 
-            var modifiersEncoder = encoder.ModifiedType();
-            var paramTypeEncoder = SerializeCustomModifiers(modifiersEncoder, modifiers, 0, countOfCustomModifiersPrecedingByRef);
+            if (numberOfModifiersPrecedingByRef > 0)
+            {
+                encoder = SerializeCustomModifiers(encoder.ModifiedType(), modifiers, 0, numberOfModifiersPrecedingByRef);
+            }
 
             var type = parameterTypeInformation.GetType(Context);
             if (module.IsPlatformType(type, PlatformType.SystemTypedReference))
             {
-                return paramTypeEncoder.TypedReference();
+                return encoder.TypedReference();
             }
 
-            // Workaround for C++ compiler bug.
-            // The spec requires all modifiers to precede BYREF marker, however C++ compiler emits them after BYREF.
-            // We need to be able to serialize signatures parsed from C++ emitted assemblies.
-#pragma warning disable CS0618
-            var modifiedType = paramTypeEncoder.ModifiedType(parameterTypeInformation.IsByReference);
-#pragma warning restore CS0618
+            var typeEncoder = encoder.Type(parameterTypeInformation.IsByReference);
 
-            var typeEncoder = SerializeCustomModifiers(modifiedType, modifiers, countOfCustomModifiersPrecedingByRef, modifiers.Length - countOfCustomModifiersPrecedingByRef);
+            if (numberOfRemainingModifiers > 0)
+            {
+                typeEncoder = SerializeCustomModifiers(typeEncoder.ModifiedType(), modifiers, numberOfModifiersPrecedingByRef, numberOfRemainingModifiers);
+            }
 
             return SerializeTypeReference(typeEncoder, type);
         }
 
         private void SerializeFieldSignature(IFieldReference fieldReference, BlobBuilder builder)
         {
-            var modifiedTypeBuilder = new BlobEncoder(builder).FieldSignature();
-            var typeReference = fieldReference.GetType(Context);
-            var typeBuilder = SerializeTypeReferenceModifiers(modifiedTypeBuilder, ref typeReference);
-            SerializeTypeReference(typeBuilder, typeReference);
+            var typeEncoder = new BlobEncoder(builder).FieldSignature();
+            SerializeTypeReference(typeEncoder, fieldReference.GetType(Context));
         }
 
         private void SerializeGenericMethodInstanceSignature(BlobBuilder builder, IGenericMethodInstanceReference genericMethodInstanceReference)
         {
-            var argsBuilder = new BlobEncoder(builder).MethodSpecificationSignature(genericMethodInstanceReference.GetGenericMethod(Context).GenericParameterCount);
+            var argsEncoder = new BlobEncoder(builder).MethodSpecificationSignature(genericMethodInstanceReference.GetGenericMethod(Context).GenericParameterCount);
             foreach (ITypeReference genericArgument in genericMethodInstanceReference.GetGenericArguments(Context))
             {
                 ITypeReference typeRef = genericArgument;
-                argsBuilder = SerializeTypeReference(SerializeTypeReferenceModifiers(argsBuilder.AddArgument(), ref typeRef), typeRef);
+                argsEncoder = SerializeTypeReference(argsEncoder.AddArgument(), typeRef);
             }
 
-            argsBuilder.EndArguments();
+            argsEncoder.EndArguments();
         }
 
         private void SerializeCustomAttributeSignature(ICustomAttribute customAttribute, BlobBuilder builder)
@@ -3525,12 +3532,26 @@ namespace Microsoft.Cci
             var declaredParameters = signature.GetParameters(Context);
 			var returnType = signature.GetType(Context);
 			
-            var customModifiersEncoder = encoder.Parameters(declaredParameters.Length + varargParameters.Length);
-			var returnTypeEncoder = SerializeCustomModifiers(customModifiersEncoder, signature.ReturnValueCustomModifiers);
+            var returnTypeEncoder = encoder.Parameters(declaredParameters.Length + varargParameters.Length);
+            if (signature.ReturnValueCustomModifiers.Length > 0)
+            {
+                returnTypeEncoder = SerializeCustomModifiers(returnTypeEncoder.ModifiedType(), signature.ReturnValueCustomModifiers);
+            }
 
-            var parametersEncoder = module.IsPlatformType(returnType, PlatformType.SystemTypedReference) ?
-                returnTypeEncoder.TypedReference() :
-                SerializeTypeReference(returnTypeEncoder.Type(signature.ReturnValueIsByRef), returnType);
+            ParametersEncoder<T> parametersEncoder;
+
+            if (module.IsPlatformType(returnType, PlatformType.SystemTypedReference))
+            {
+                parametersEncoder = returnTypeEncoder.TypedReference();
+            }
+            else if (module.IsPlatformType(returnType, PlatformType.SystemVoid))
+            {
+                parametersEncoder = returnTypeEncoder.Void();
+            }
+            else
+            {
+                parametersEncoder = SerializeTypeReference(returnTypeEncoder.Type(signature.ReturnValueIsByRef), returnType);
+            }
 
             foreach (IParameterTypeInformation parameter in declaredParameters)
             {
@@ -3560,7 +3581,13 @@ namespace Microsoft.Cci
                 // TYPEDREF is only allowed in RetType, Param, LocalVarSig signatures
                 Debug.Assert(!module.IsPlatformType(typeReference, PlatformType.SystemTypedReference));
 				
-                Debug.Assert(!(typeReference is IModifiedTypeReference));
+                var modifiedTypeReference = typeReference as IModifiedTypeReference;
+                if (modifiedTypeReference != null)
+                {
+                    encoder = SerializeCustomModifiers(encoder.ModifiedType(), modifiedTypeReference.CustomModifiers);
+                    typeReference = modifiedTypeReference.UnmodifiedType;
+                    continue;
+                }
 
                 var primitiveType = typeReference.TypeCode(Context);
                 if (primitiveType != PrimitiveTypeCode.Pointer && primitiveType != PrimitiveTypeCode.NotPrimitive)
@@ -3572,8 +3599,15 @@ namespace Microsoft.Cci
                 if (pointerTypeReference != null)
                 {
                     typeReference = pointerTypeReference.GetTargetType(Context);
-                    encoder = SerializeTypeReferenceModifiers(encoder.Pointer(), ref typeReference);
-                    continue;
+                    if (module.IsPlatformType(typeReference, PlatformType.SystemVoid))
+                    {
+                        return encoder.VoidPointer();
+                    }
+                    else
+                    {
+                        encoder = encoder.Pointer();
+                        continue;
+                    }
                 }
 
                 IGenericTypeParameterReference genericTypeParameterReference = typeReference.AsGenericTypeParameterReference;
@@ -3591,13 +3625,12 @@ namespace Microsoft.Cci
 
                     if (arrayTypeReference.IsSZArray)
                     {
-                        encoder = SerializeTypeReferenceModifiers(encoder.SZArray(), ref typeReference);
+                        encoder = encoder.SZArray();
                         continue;
                     }
                     else
                     {
-                        var elementTypeEncoder = SerializeTypeReferenceModifiers(encoder.Array(), ref typeReference);
-                        var shapeEncoder = SerializeTypeReference(elementTypeEncoder, typeReference);
+                        var shapeEncoder = SerializeTypeReference(encoder.Array(), typeReference);
                         return shapeEncoder.Shape(arrayTypeReference.Rank, arrayTypeReference.Sizes, arrayTypeReference.LowerBounds);
                     }
                 }
@@ -3630,11 +3663,7 @@ namespace Microsoft.Cci
 
                     foreach (ITypeReference typeArgument in consolidatedTypeArguments)
                     {
-                        ITypeReference typeArg = typeArgument;
-
-                        genericArgsEncoder = SerializeTypeReference(
-                            SerializeTypeReferenceModifiers(genericArgsEncoder.AddArgument(), ref typeArg), 
-                            typeArg);
+                        genericArgsEncoder = SerializeTypeReference(genericArgsEncoder.AddArgument(), typeArgument);
                     }
 
                     consolidatedTypeArguments.Free();
@@ -3692,23 +3721,10 @@ namespace Microsoft.Cci
             }
         }
 
-        private T SerializeTypeReferenceModifiers<T>(CustomModifiersEncoder<T> encoder, ref ITypeReference typeReference)
-            where T : IBlobEncoder
-        {
-            var modifiedTypeReference = typeReference as IModifiedTypeReference;
-            if (modifiedTypeReference == null)
-            {
-                return encoder.EndModifiers();
-            }
-
-            typeReference = modifiedTypeReference.UnmodifiedType;
-            return SerializeCustomModifiers(encoder, modifiedTypeReference.CustomModifiers);
-        }
-
         private T SerializeCustomModifiers<T>(CustomModifiersEncoder<T> encoder, ImmutableArray<ICustomModifier> modifiers)
             where T : IBlobEncoder
         {
-            return SerializeCustomModifiers<T>(encoder, modifiers, 0, modifiers.Length);
+            return SerializeCustomModifiers(encoder, modifiers, 0, modifiers.Length);
         }
 
         private T SerializeCustomModifiers<T>(CustomModifiersEncoder<T> encoder, ImmutableArray<ICustomModifier> modifiers, int start, int count)
