@@ -121,6 +121,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overridable Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Public Overridable Overloads Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
+            Throw ExceptionUtilities.Unreachable
+        End Sub
     End Class
 
     Partial Class BoundAssignmentOperator
@@ -206,6 +210,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return OperationKind.AssignmentExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            If Me.ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
+                visitor.VisitCompoundAssignmentExpression(Me)
+            Else
+                visitor.VisitAssignmentExpression(Me)
+            End If
+        End Sub
     End Class
 
     Partial Class BoundMeReference
@@ -226,6 +238,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.InstanceReferenceExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitInstanceReferenceExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundMyBaseReference
@@ -246,6 +262,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.BaseClassInstanceReferenceExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitInstanceReferenceExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundMyClassReference
@@ -266,6 +286,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ClassInstanceReferenceExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitInstanceReferenceExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundLiteral
@@ -280,6 +304,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.LiteralExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitLiteralExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundAwaitOperator
@@ -294,6 +322,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.AwaitExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitAwaitExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundLambda
@@ -314,6 +346,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.LambdaExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitLambdaExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundCall
@@ -358,6 +394,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.InvocationExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitInvocationExpression(Me)
+        End Sub
 
         Friend Shared Function ArgumentMatchingParameter(arguments As ImmutableArray(Of BoundExpression), parameter As IParameterSymbol, parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As IArgument
             Dim index As Integer = parameter.Ordinal
@@ -427,6 +467,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public MustOverride ReadOnly Property Value As IExpression Implements IArgument.Value
             Public MustOverride ReadOnly Property InConversion As IExpression Implements IArgument.InConversion
             Public MustOverride ReadOnly Property OutConversion As IExpression Implements IArgument.OutConversion
+
+            Public Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
+                visitor.VisitArgument(Me)
+            End Sub
         End Class
 
         Private Class Argument
@@ -507,6 +551,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.OmittedArgumentExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitOmittedArgumentExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundParenthesized
@@ -521,6 +569,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ParenthesizedExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitParenthesizedExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundArrayAccess
@@ -541,6 +593,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ArrayElementReferenceExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitArrayElementReferenceExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundUnaryOperator
@@ -573,6 +629,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.UnaryOperatorExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitUnaryOperatorExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundUserDefinedUnaryOperator
@@ -614,6 +674,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.UnaryOperatorExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitUnaryOperatorExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundBinaryOperator
@@ -653,6 +717,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.BinaryOperatorExpression
         End Function
 
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitBinaryOperatorExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundUserDefinedBinaryOperator
@@ -740,6 +807,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Throw ExceptionUtilities.UnexpectedValue(Me.OperatorKind And BinaryOperatorKind.OpMask)
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitBinaryOperatorExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundBinaryConditionalExpression
@@ -760,6 +831,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.NullCoalescingExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitNullCoalescingExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundUserDefinedShortCircuitingOperator
@@ -798,12 +873,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.BinaryOperatorExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitBinaryOperatorExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundBadExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.InvalidExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitInvalidExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundTryCast
@@ -842,6 +925,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ConversionExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitConversionExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundDirectCast
@@ -880,6 +967,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ConversionExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitConversionExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundConversion
@@ -918,6 +1009,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ConversionExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitConversionExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundUserDefinedConversion
@@ -956,6 +1051,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ConversionExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitConversionExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundTernaryConditionalExpression
@@ -982,6 +1081,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ConditionalChoiceExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitConditionalChoiceExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundTypeOf
@@ -1002,6 +1105,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.IsExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitIsExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundObjectCreationExpression
@@ -1057,6 +1164,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.ObjectCreationExpression
         End Function
 
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitObjectCreationExpression(Me)
+        End Sub
+
         Private Class FieldInitializer
             Implements IFieldInitializer
 
@@ -1068,6 +1179,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _field = field
                 _syntax = syntax
                 _value = value
+            End Sub
+
+            Public Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
+                visitor.VisitFieldInitializer(Me)
             End Sub
 
             Public ReadOnly Property Field As IFieldSymbol Implements IFieldInitializer.Field
@@ -1120,6 +1235,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _value = value
             End Sub
 
+            Public Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
+                visitor.VisitPropertyInitializer(Me)
+            End Sub
+
             Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
                 Get
                     Return OperationKind.PropertyInitializer
@@ -1163,6 +1282,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.TypeParameterObjectCreationExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitTypeParameterObjectCreationExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundArrayCreation
@@ -1195,6 +1318,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ArrayCreationExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitArrayCreationExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundArrayInitialization
@@ -1208,6 +1335,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ArrayInitializer
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitArrayInitializer(Me)
+        End Sub
     End Class
 
     Partial Class BoundPropertyAccess
@@ -1234,6 +1365,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.PropertyReferenceExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitPropertyReferenceExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundEventAccess
@@ -1260,6 +1395,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.EventReferenceExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitEventReferenceExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundDelegateCreationExpression
@@ -1292,6 +1431,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.MethodBindingExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitMethodBindingExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundFieldAccess
@@ -1318,6 +1461,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.FieldReferenceExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitFieldReferenceExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundConditionalAccess
@@ -1332,6 +1479,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ConditionalAccessExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitConditionalAccessExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundParameter
@@ -1346,6 +1497,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ParameterReferenceExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitParameterReferenceExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundLocal
@@ -1360,6 +1515,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.LocalReferenceExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitLocalReferenceExpression(Me)
+        End Sub
     End Class
 
     Partial Class BoundLateMemberAccess
@@ -1380,6 +1539,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.LateBoundMemberReferenceExpression
         End Function
+
+        Public Overrides Sub Accept(visitor As IOperationVisitor)
+            visitor.VisitLateBoundMemberReferenceExpression(Me)
+        End Sub
     End Class
 
     Module Expression

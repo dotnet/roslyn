@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,6 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         SyntaxNode IOperation.Syntax => this.Syntax;
 
         protected abstract OperationKind StatementKind { get; }
+
+        //public abstract TResult Accept<TResult>(IOperationVisitor<TResult> visitor);
+
+        public virtual void Accept(IOperationVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 
     partial class BoundBlock : IBlockStatement
@@ -25,6 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImmutableArray<ILocalSymbol> IBlockStatement.Locals => this.Locals.As<ILocalSymbol>();
 
         protected override OperationKind StatementKind => OperationKind.BlockStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitBlockStatement(this);
+        }
     }
 
     partial class BoundContinueStatement : IBranchStatement
@@ -32,6 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ILabelSymbol IBranchStatement.Target => this.Label;
 
         protected override OperationKind StatementKind => OperationKind.ContinueStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitBranchStatement(this);
+        }
     }
 
     partial class BoundBreakStatement : IBranchStatement
@@ -39,11 +57,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         ILabelSymbol IBranchStatement.Target => this.Label;
 
         protected override OperationKind StatementKind => OperationKind.BreakStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitBranchStatement(this);
+        }
     }
 
     partial class BoundYieldBreakStatement
     {
         protected override OperationKind StatementKind => OperationKind.YieldBreakStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitYieldBreakStatement(this);
+        }
     }
 
     partial class BoundGotoStatement : IBranchStatement
@@ -51,11 +79,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         ILabelSymbol IBranchStatement.Target => this.Label;
 
         protected override OperationKind StatementKind => OperationKind.GoToStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitBranchStatement(this);
+        }
     }
 
     partial class BoundNoOpStatement
     {
         protected override OperationKind StatementKind => OperationKind.EmptyStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitEmptyStatement(this);
+        }
     }
 
     partial class BoundIfStatement : IIfStatement
@@ -67,6 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement IIfStatement.IfFalse => this.AlternativeOpt;
 
         protected override OperationKind StatementKind => OperationKind.IfStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitIfStatement(this);
+        }
     }
 
     partial class BoundWhileStatement : IWhileUntilLoopStatement
@@ -82,6 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement ILoopStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitWhileUntilLoopStatement(this);
+        }
     }
 
     partial class BoundDoStatement : IWhileUntilLoopStatement
@@ -97,6 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement ILoopStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitWhileUntilLoopStatement(this);
+        }
     }
 
     partial class BoundForStatement : IForLoopStatement
@@ -129,6 +182,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return ImmutableArray.Create<IStatement>(statement);
         }
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitForLoopStatement(this);
+        }
     }
 
     partial class BoundForEachStatement : IForEachLoopStatement
@@ -142,6 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement ILoopStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LoopStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitForEachLoopStatement(this);
+        }
     }
 
     partial class BoundSwitchStatement : ISwitchStatement
@@ -151,6 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImmutableArray<ICase> ISwitchStatement.Cases => this.SwitchSections.As<ICase>();
 
         protected override OperationKind StatementKind => OperationKind.SwitchStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitSwitchStatement(this);
+        }
     }
 
     partial class BoundSwitchSection : ICase
@@ -160,6 +228,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImmutableArray<IStatement> ICase.Body => this.Statements.As<IStatement>();
 
         protected override OperationKind StatementKind => OperationKind.SwitchSection;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitCase(this);
+        }
     }
 
     partial class BoundSwitchLabel : ISingleValueCaseClause
@@ -210,6 +283,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool IOperation.IsInvalid => this.HasErrors;
 
         SyntaxNode IOperation.Syntax => this.Syntax;
+
+        public void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitSingleValueCaseClause(this);
+        }
     }
 
     partial class BoundTryStatement : ITryStatement
@@ -221,6 +299,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IBlockStatement ITryStatement.FinallyHandler => this.FinallyBlockOpt;
 
         protected override OperationKind StatementKind => OperationKind.TryStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitTryStatement(this);
+        }
     }
 
     partial class BoundCatchBlock : ICatch
@@ -238,6 +321,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool IOperation.IsInvalid => this.Body.HasErrors || (this.ExceptionFilterOpt != null && this.ExceptionFilterOpt.HasErrors);
 
         SyntaxNode IOperation.Syntax => this.Syntax;
+
+        public void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitCatch(this);
+        }
     }
 
     partial class BoundFixedStatement : IFixedStatement
@@ -247,6 +335,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement IFixedStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.FixedStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitFixedStatement(this);
+        }
     }
 
     partial class BoundUsingStatement : IUsingWithDeclarationStatement, IUsingWithExpressionStatement
@@ -258,6 +351,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement IUsingStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => this.ExpressionOpt != null ? OperationKind.UsingWithExpressionStatement : OperationKind.UsingWithDeclarationStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            if (this.StatementKind == OperationKind.UsingWithExpressionStatement)
+            {
+                visitor.VisitUsingWithExpressionStatement(this);
+            }
+            else
+            {
+                visitor.VisitUsingWithDeclarationStatement(this);
+            }
+        }
     }
 
     partial class BoundThrowStatement : IThrowStatement
@@ -265,6 +370,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression IThrowStatement.Thrown => this.ExpressionOpt;
 
         protected override OperationKind StatementKind => OperationKind.ThrowStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitThrowStatement(this);
+        }
     }
 
     partial class BoundReturnStatement : IReturnStatement
@@ -272,6 +382,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression IReturnStatement.Returned => this.ExpressionOpt;
 
         protected override OperationKind StatementKind => OperationKind.ReturnStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitReturnStatement(this);
+        }
     }
 
     partial class BoundYieldReturnStatement : IReturnStatement
@@ -279,6 +394,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression IReturnStatement.Returned => this.Expression;
 
         protected override OperationKind StatementKind => OperationKind.YieldReturnStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitReturnStatement(this);
+        }
     }
 
     partial class BoundLockStatement : ILockStatement
@@ -288,11 +408,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         IStatement ILockStatement.Body => this.Body;
 
         protected override OperationKind StatementKind => OperationKind.LockStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitLockStatement(this);
+        }
     }
 
     partial class BoundBadStatement
     {
         protected override OperationKind StatementKind => OperationKind.InvalidStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitInvalidStatement(this);
+        }
     }
 
     partial class BoundStatementList
@@ -335,6 +465,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitVariableDeclarationStatement(this);
+        }
     }
 
     partial class BoundMultipleLocalDeclarations : IVariableDeclarationStatement
@@ -354,6 +489,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitVariableDeclarationStatement(this);
+        }
     }
 
     partial class BoundLabelStatement : ILabelStatement
@@ -361,6 +501,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ILabelSymbol ILabelStatement.Label => this.Label;
 
         protected override OperationKind StatementKind => OperationKind.LabelStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitLabelStatement(this);
+        }
     }
 
     partial class BoundLabeledStatement : ILabeledStatement
@@ -370,6 +515,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ILabelSymbol ILabelStatement.Label => this.Label;
 
         protected override OperationKind StatementKind => OperationKind.LabeledStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitLabeledStatement(this);
+        }
     }
 
     partial class BoundExpressionStatement : IExpressionStatement
@@ -377,5 +527,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression IExpressionStatement.Expression => this.Expression;
 
         protected override OperationKind StatementKind => OperationKind.ExpressionStatement;
+
+        public override void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitExpressionStatement(this);
+        }
     }
 }

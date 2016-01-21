@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
     }
 
-    public sealed class ConditionalChoice : IConditionalChoiceExpression
+    internal sealed class ConditionalChoice : IConditionalChoiceExpression
     {
         public ConditionalChoice(IExpression condition, IExpression ifTrue, IExpression ifFalse, ITypeSymbol resultType, SyntaxNode syntax)
         {
@@ -107,9 +107,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         public bool IsInvalid => Condition == null || Condition.IsInvalid || IfTrue == null || IfTrue.IsInvalid || IfFalse == null || IfFalse.IsInvalid;
 
         public Optional<object> ConstantValue => default(Optional<object>);
+
+        public void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitConditionalChoiceExpression(this);
+        }
     }
 
-    public sealed class Assignment : IExpressionStatement
+    internal sealed class Assignment : IExpressionStatement
     {
         private readonly AssignmentExpression _assignment;
 
@@ -127,7 +132,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public IExpression Expression => _assignment;
 
-        class AssignmentExpression : IAssignmentExpression
+        public void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitExpressionStatement(this);
+        }
+
+        private class AssignmentExpression : IAssignmentExpression
         {
             public AssignmentExpression(IReferenceExpression target, IExpression value, SyntaxNode syntax)
             {
@@ -149,10 +159,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             public bool IsInvalid => Target == null || Target.IsInvalid || Value == null || Value.IsInvalid;
 
             public Optional<object> ConstantValue => default(Optional<object>);
+
+            public void Accept(IOperationVisitor visitor)
+            {
+                visitor.VisitAssignmentExpression(this);
+            }
         }
     }
 
-    public sealed class CompoundAssignment : IExpressionStatement
+    internal sealed class CompoundAssignment : IExpressionStatement
     {
         private readonly CompoundAssignmentExpression _compoundAssignment;
 
@@ -170,7 +185,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public IExpression Expression => _compoundAssignment;
 
-        class CompoundAssignmentExpression : ICompoundAssignmentExpression
+        public void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitExpressionStatement(this);
+        }
+
+        private class CompoundAssignmentExpression : ICompoundAssignmentExpression
         {
             public CompoundAssignmentExpression(IReferenceExpression target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
             {
@@ -200,10 +220,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             public Optional<object> ConstantValue => default(Optional<object>);
 
             public bool UsesOperatorMethod => this.Operator != null;
+
+            public void Accept(IOperationVisitor visitor)
+            {
+                visitor.VisitCompoundAssignmentExpression(this);
+            }
         }
     }
 
-    public sealed class IntegerLiteral : ILiteralExpression
+    internal sealed class IntegerLiteral : ILiteralExpression
     {
         private readonly long _value;
 
@@ -225,6 +250,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         public Optional<object> ConstantValue => new Optional<object>(_value);
 
         public SyntaxNode Syntax { get; }
+
+        public void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitLiteralExpression(this);
+        }
     }
 
     internal class Literal : ILiteralExpression
@@ -249,9 +279,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         public Optional<object> ConstantValue => new Optional<object>(_value.Value);
 
         public SyntaxNode Syntax { get; }
+
+        public void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitLiteralExpression(this);
+        }
     }
 
-    public sealed class Binary : IBinaryOperatorExpression
+    internal sealed class Binary : IBinaryOperatorExpression
     {
         public Binary(BinaryOperationKind binaryKind, IExpression left, IExpression right, ITypeSymbol resultType, SyntaxNode syntax)
         {
@@ -281,9 +316,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         public Optional<object> ConstantValue => default(Optional<object>);
 
         public SyntaxNode Syntax { get; }
+
+        public void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitBinaryOperatorExpression(this);
+        }
     }
 
-    public sealed class ArrayCreation: IArrayCreationExpression
+    internal sealed class ArrayCreation: IArrayCreationExpression
     {
         private readonly IArrayTypeSymbol _arrayType;
 
@@ -311,6 +351,11 @@ namespace Microsoft.CodeAnalysis.Semantics
        
         static bool IsInvalidInitializer(IArrayInitializer initializer) => initializer.IsInvalid;
 
+        public void Accept(IOperationVisitor visitor)
+        {
+            visitor.VisitArrayCreationExpression(this);
+        }
+
         public Optional<object> ConstantValue => default(Optional<object>);
 
         private class ArrayInitializer : IArrayInitializer
@@ -333,6 +378,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             public SyntaxNode Syntax { get; }
 
             public Optional<object> ConstantValue => default(Optional<object>);
+
+            public void Accept(IOperationVisitor visitor)
+            {
+                visitor.VisitArrayInitializer(this);
+            }
         }
     }
     

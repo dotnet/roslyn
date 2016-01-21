@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Syntax that was analyzed to produce the operation.
         /// </summary>
         SyntaxNode Syntax { get; }
+
+        //TResult Accept<TResult>(IOperationVisitor<TResult> visitor);
+
+        void Accept(IOperationVisitor visitor);
     }
 
     /// <summary>
