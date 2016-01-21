@@ -17,15 +17,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         public async Task<IEnumerable<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, CancellationToken cancellationToken)
         {
             var results = await NavigateToSymbolFinder.FindNavigableDeclaredSymbolInfos(project, searchPattern, cancellationToken).ConfigureAwait(false);
-            return results.Select(r => ConvertResult(r));
+            var containsDots = searchPattern.IndexOf('.') >= 0;
+            return results.Select(r => ConvertResult(containsDots, r));
         }
 
-        private INavigateToSearchResult ConvertResult(ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>> result)
+        private INavigateToSearchResult ConvertResult(bool containsDots, ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>> result)
         {
             var declaredSymbolInfo = result.Item1;
             var document = result.Item2;
             var matches = result.Item3;
-            var matchKind = GetNavigateToMatchKind(matches);
+            var matchKind = GetNavigateToMatchKind(containsDots, matches);
 
             // A match is considered to be case sensitive if all its constituent pattern matches are
             // case sensitive. 
@@ -71,23 +72,60 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
         }
 
-        private static MatchKind GetNavigateToMatchKind(IEnumerable<PatternMatch> matchResult)
+        private static MatchKind GetNavigateToMatchKind(bool containsDots, IEnumerable<PatternMatch> matchResult)
         {
-            // We may have matched the target string in multiple ways, but we'll answer with the
-            // "most optimistic" answer
-            if (matchResult.Any(r => r.Kind == PatternMatchKind.Exact))
+            // NOTE(cyrusn): Unfortunately, the editor owns how sorting of NavigateToItems works,
+            // and they only provide four buckets for sorting items before they sort by the name
+            // of the items.  Because of this, we only have coarse granularity for bucketing things.
+            //
+            // So the question becomes: what do we do if we have multiple match results, and we
+            // need to map to a single MatchKind.
+            //
+            // First, consider a main reason we have multiple match results.  And this happened
+            // when the user types a dotted name (like "Microsoft.CodeAnalysis.ISymbol").  Such
+            // a name would match actual entities: Microsoft.CodeAnalysis.ISymbol *and* 
+            // Microsoft.CodeAnalysis.IAliasSymbol.  The first will be an [Exact, Exact, Exact] 
+            // match, and the second will be an [Exact, Exact, CamelCase] match.  In this
+            // case our belief is that the names will go from least specific to most specific. 
+            // So, the left items may match lots of stuff, while the rightmost items will match
+            // a smaller set of items.  As such, we use the last pattern match to try to decide
+            // what type of editor MatchKind to map to.
+            if (containsDots)
             {
-                return MatchKind.Exact;
+                var lastResult = matchResult.LastOrNullable();
+                if (lastResult.HasValue)
+                {
+                    switch (lastResult.Value.Kind)
+                    {
+                        case PatternMatchKind.Exact:
+                            return MatchKind.Exact;
+                        case PatternMatchKind.Prefix:
+                            return MatchKind.Prefix;
+                        case PatternMatchKind.Substring:
+                            return MatchKind.Substring;
+                    }
+                }
             }
-
-            if (matchResult.Any(r => r.Kind == PatternMatchKind.Prefix))
+            else
             {
-                return MatchKind.Prefix;
-            }
+                // If it wasn't a dotted name, and we have multiple results, that's because they
+                // had a something like a space separated pattern.  In that case, there's no
+                // clear indication as to what is the most important part of the pattern.  So 
+                // we make the result as good as any constituent part.
+                if (matchResult.Any(r => r.Kind == PatternMatchKind.Exact))
+                {
+                    return MatchKind.Exact;
+                }
 
-            if (matchResult.Any(r => r.Kind == PatternMatchKind.Substring))
-            {
-                return MatchKind.Substring;
+                if (matchResult.Any(r => r.Kind == PatternMatchKind.Prefix))
+                {
+                    return MatchKind.Prefix;
+                }
+
+                if (matchResult.Any(r => r.Kind == PatternMatchKind.Substring))
+                {
+                    return MatchKind.Substring;
+                }
             }
 
             return MatchKind.Regular;

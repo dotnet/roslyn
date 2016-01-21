@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         End Function
 
         Public Async Function AssertItemsAreAsync(workspaceElement As XElement, workspaceSupportsChangeDocument As Boolean, ParamArray expectedItems As ExpectedItem()) As Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceElement)
                 workspace.CanApplyChangeDocument = workspaceSupportsChangeDocument
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         End Function
 
         Public Async Function AssertSelectedItemsAreAsync(workspaceElement As XElement, leftItem As ExpectedItem, leftItemGrayed As Boolean, rightItem As ExpectedItem, rightItemGrayed As Boolean) As Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceElement)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         End Function
 
         Public Async Function AssertGeneratedResultIsAsync(workspaceElement As XElement, leftItemToSelectText As String, rightItemToSelectText As String, expectedText As XElement) As Tasks.Task
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceElement)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                                          rightItemToSelectText As String,
                                          Optional expectedVirtualSpace As Integer = 0) As Tasks.Task
 
-            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceElement)
                 Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
                 Dim snapshot = (Await sourceDocument.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 

@@ -61,7 +61,9 @@
     <Compile Include="..\..\Shared\CoreClrBuildClient.cs">
       <Link>CoreClrBuildClient.cs</Link>
     </Compile>
-    <Compile Include="Vbc.cs" />
+    <Compile Include="..\..\Shared\Vbc.cs">
+      <Link>Vbc.cs</Link>
+    </Compile>
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -72,12 +74,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="vbc.cmd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="vbc.exe.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="vbc.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="project.json" />

@@ -101,6 +101,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public bool SnippetShortcutExists_NonBlocking(string shortcut)
         {
+            if (shortcut == null)
+            {
+                return false;
+            }
+
             // Check against the known set of snippets, even if we're still in the process of
             // calculating a more up-to-date list.
             lock (cacheGuard)

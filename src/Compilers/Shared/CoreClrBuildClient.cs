@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var clientDir = AppContext.BaseDirectory;
             var workingDir = Directory.GetCurrentDirectory();
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: null);
-            return client.RunCompilation(arguments, buildPaths);
+            return client.RunCompilation(arguments, buildPaths).ExitCode;
         }
 
-        protected override int RunLocalCompilation(List<string> arguments, string clientDir, string sdkDir)
+        protected override int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
         {
-            return _compileFunc(clientDir, sdkDir, arguments.ToArray(), CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault());
+            return _compileFunc(arguments, buildPaths, textWriter, CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault());
         }
 
         protected override string GetSessionKey(BuildPaths buildPaths)

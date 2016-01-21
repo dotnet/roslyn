@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private async Task VerifyItemWithReferenceWorkerAsync(string xmlString, string expectedItem, int expectedSymbols, bool hideAdvancedMembers)
         {
-            using (var testWorkspace = await TestWorkspaceFactory.CreateWorkspaceAsync(xmlString))
+            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
             {
                 var optionsService = testWorkspace.Services.GetService<IOptionService>();
                 var position = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private async Task VerifyItemWithMscorlib45WorkerAsync(string xmlString, string expectedItem, string expectedDescription)
         {
-            using (var testWorkspace = await TestWorkspaceFactory.CreateWorkspaceAsync(xmlString))
+            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
             {
                 var position = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         protected async Task VerifyItemInLinkedFilesAsync(string xmlString, string expectedItem, string expectedDescription)
         {
-            using (var testWorkspace = await TestWorkspaceFactory.CreateWorkspaceAsync(xmlString))
+            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
             {
                 var optionsService = testWorkspace.Services.GetService<IOptionService>();
                 var position = testWorkspace.Documents.First().CursorPosition.Value;

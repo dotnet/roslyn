@@ -3046,5 +3046,113 @@ class C
 
             Assert.Equal("System.Threading.Tasks.Task<AuthenticationResult> AuthenticationManager.AuthenticateAsync(System.String authenticationScheme)", group.Single().ToTestDisplayString());
         }
+
+        [Fact, WorkItem(7101, "https://github.com/dotnet/roslyn/issues/7101")]
+        public void UsingStatic_01()
+        {
+            var source =
+@"
+using System;
+using static ClassWithNonStaticMethod;
+using static Extension1;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var instace = new Program();
+        instace.NonStaticMethod();
+    }
+
+    private void NonStaticMethod()
+    {
+        MathMin(0, 1);
+        MathMax(0, 1);
+        MathMax2(0, 1);
+        
+        int x;
+        x = F1;
+        x = F2;
+
+        x.MathMax2(3);
+    }
+}
+
+class ClassWithNonStaticMethod
+{
+    public static int MathMax(int a, int b)
+    {
+        return Math.Max(a, b);
+    }
+
+    public int MathMin(int a, int b)
+    {
+        return Math.Min(a, b);
+    }
+
+    public int F2 = 0;
+}
+
+static class Extension1
+{
+    public static int MathMax2(this int a, int b)
+    {
+        return Math.Max(a, b);
+    }
+
+    public static int F1 = 0;
+}
+
+static class Extension2
+{
+    public static int MathMax3(this int a, int b)
+    {
+        return Math.Max(a, b);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+
+            comp.VerifyDiagnostics(
+    // (16,9): error CS0103: The name 'MathMin' does not exist in the current context
+    //         MathMin(0, 1);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "MathMin").WithArguments("MathMin").WithLocation(16, 9),
+    // (18,9): error CS0103: The name 'MathMax2' does not exist in the current context
+    //         MathMax2(0, 1);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "MathMax2").WithArguments("MathMax2").WithLocation(18, 9),
+    // (22,13): error CS0103: The name 'F2' does not exist in the current context
+    //         x = F2;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "F2").WithArguments("F2").WithLocation(22, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "MathMin").Single().Parent;
+            Assert.Equal("MathMin(0, 1)", node1.ToString());
+
+            var names = model.LookupNames(node1.SpanStart);
+            Assert.False(names.Contains("MathMin"));
+            Assert.True(names.Contains("MathMax"));
+            Assert.True(names.Contains("F1"));
+            Assert.False(names.Contains("F2"));
+            Assert.False(names.Contains("MathMax2"));
+            Assert.False(names.Contains("MathMax3"));
+
+            Assert.True(model.LookupSymbols(node1.SpanStart, name: "MathMin").IsEmpty);
+            Assert.Equal(1, model.LookupSymbols(node1.SpanStart, name: "MathMax").Length);
+            Assert.Equal(1, model.LookupSymbols(node1.SpanStart, name: "F1").Length);
+            Assert.True(model.LookupSymbols(node1.SpanStart, name: "F2").IsEmpty);
+            Assert.True(model.LookupSymbols(node1.SpanStart, name: "MathMax2").IsEmpty);
+            Assert.True(model.LookupSymbols(node1.SpanStart, name: "MathMax3").IsEmpty);
+
+            var symbols = model.LookupSymbols(node1.SpanStart);
+            Assert.False(symbols.Where(s => s.Name == "MathMin").Any());
+            Assert.True(symbols.Where(s => s.Name == "MathMax").Any());
+            Assert.True(symbols.Where(s => s.Name == "F1").Any());
+            Assert.False(symbols.Where(s => s.Name == "F2").Any());
+            Assert.False(symbols.Where(s => s.Name == "MathMax2").Any());
+            Assert.False(symbols.Where(s => s.Name == "MathMax3").Any());
+        }
     }
 }

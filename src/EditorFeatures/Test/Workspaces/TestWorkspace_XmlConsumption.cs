@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     using System.Threading.Tasks;
     using RelativePathResolver = WORKSPACES::Microsoft.CodeAnalysis.RelativePathResolver;
 
-    public partial class TestWorkspaceFactory
+    public partial class TestWorkspace
     {
         /// <summary>
         /// This place-holder value is used to set a project's file path to be null.  It was explicitly chosen to be
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public static Task<TestWorkspace> CreateWorkspaceAsync(string xmlDefinition, bool completed = true, bool openDocuments = true, ExportProvider exportProvider = null)
+        public static Task<TestWorkspace> CreateAsync(string xmlDefinition, bool completed = true, bool openDocuments = true, ExportProvider exportProvider = null)
         {
-            return CreateWorkspaceAsync(XElement.Parse(xmlDefinition), completed, openDocuments, exportProvider);
+            return CreateAsync(XElement.Parse(xmlDefinition), completed, openDocuments, exportProvider);
         }
 
         public static TestWorkspace CreateWorkspace(
@@ -72,10 +72,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ExportProvider exportProvider = null,
             string workspaceKind = null)
         {
-            return CreateWorkspaceAsync(workspaceElement, completed, openDocuments, exportProvider, workspaceKind).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+            return CreateAsync(workspaceElement, completed, openDocuments, exportProvider, workspaceKind).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
         }
 
-        public static Task<TestWorkspace> CreateWorkspaceAsync(
+        public static Task<TestWorkspace> CreateAsync(
             XElement workspaceElement,
             bool completed = true,
             bool openDocuments = true,

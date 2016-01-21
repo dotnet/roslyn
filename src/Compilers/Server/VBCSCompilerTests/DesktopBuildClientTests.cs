@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return _createServerFunc(pipeName);
             }
 
-            protected override int HandleResponse(BuildResponse response, List<string> arguments, BuildPaths buildPaths)
+            protected override RunCompilationResult HandleResponse(BuildResponse response, string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
             {
                 // Override the base so we don't print the compilation output to Console.Out
-                return 0;
+                return RunCompilationResult.Succeeded;
             }
         }
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                             ranLocal = true;
                             return 0;
                         });
-                    var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths);
+                    var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths).ExitCode;
                     Assert.Equal(0, exitCode);
                     Assert.True(ranLocal);
                 }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return 0;
                 });
 
-                var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths);
+                var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths).ExitCode;
                 Assert.Equal(0, exitCode);
                 Assert.True(ranLocal);
                 Assert.Equal(1, _failedCreatedServerCount);
