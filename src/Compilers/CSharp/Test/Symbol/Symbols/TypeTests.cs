@@ -777,6 +777,53 @@ namespace M
                 Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "N.C").WithArguments("A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "N.C", "B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
+        [WorkItem(320, "https://github.com/dotnet/cli/issues/320")]
+        [Fact]
+        public void DuplicateCoreFxPublicTypes()
+        {
+            var sysConsoleSrc = @"
+[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")]
+
+namespace System
+{
+    public static class Console 
+    {
+        public static void Foo() {} 
+    }
+}
+";
+            var sysConsoleRef = CreateCompilation(
+                sysConsoleSrc,
+                new[] { SystemRuntimePP7Ref },
+                TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_b03f5f7f11d50a3a),
+                assemblyName: "System.Console").EmitToImageReference();
+
+            var mainSrc = @"
+System.Console.Foo(); 
+Foo();
+";
+
+            var main1 = CreateCompilation(
+                new[] { Parse(mainSrc, options: TestOptions.Script) },
+                new[] { MscorlibRef_v46, sysConsoleRef },
+                TestOptions.ReleaseDll.WithUsings("System.Console"));
+
+            main1.VerifyDiagnostics(
+                // error CS0433: The type 'Console' exists in both 'System.Console, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' and 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                Diagnostic(ErrorCode.ERR_SameFullNameAggAgg).WithArguments("System.Console, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Console", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+                // (1,9): error CS0433: The type 'Console' exists in both 'System.Console, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' and 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "System.Console").WithArguments("System.Console, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Console", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+                // (2,9): error CS0103: The name 'Foo' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo"));
+
+            var main2 = CreateCompilation(
+                new[] { Parse(mainSrc, options: TestOptions.Script) }, 
+                new[] { MscorlibRef_v46, sysConsoleRef, SystemRuntimeFacadeRef }, 
+                TestOptions.ReleaseDll.WithUsings("System.Console").WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
+
+            main2.VerifyDiagnostics();
+        }
+
         [Fact]
         public void SimpleGeneric()
         {
