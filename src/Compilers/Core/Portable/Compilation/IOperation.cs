@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         //TResult Accept<TResult>(IOperationVisitor<TResult> visitor);
 
         void Accept(IOperationVisitor visitor);
+
+        TResult Accept<TResult>(IOperationVisitor<TResult> visitor);
     }
 
     /// <summary>

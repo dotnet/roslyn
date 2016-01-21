@@ -112,6 +112,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             visitor.VisitConditionalChoiceExpression(this);
         }
+
+        public TResult Accept<TResult>(IOperationVisitor<TResult> visitor)
+        {
+            return visitor.VisitConditionalChoiceExpression(this);
+        }
     }
 
     internal sealed class Assignment : IExpressionStatement
@@ -137,7 +142,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             visitor.VisitExpressionStatement(this);
         }
 
-        private class AssignmentExpression : IAssignmentExpression
+        public TResult Accept<TResult>(IOperationVisitor<TResult> visitor)
+        {
+            return visitor.VisitExpressionStatement(this);
+        }
+
+        private sealed class AssignmentExpression : IAssignmentExpression
         {
             public AssignmentExpression(IReferenceExpression target, IExpression value, SyntaxNode syntax)
             {
@@ -163,6 +173,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             public void Accept(IOperationVisitor visitor)
             {
                 visitor.VisitAssignmentExpression(this);
+            }
+
+            public TResult Accept<TResult>(IOperationVisitor<TResult> visitor)
+            {
+                return visitor.VisitAssignmentExpression(this);
             }
         }
     }
@@ -190,7 +205,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             visitor.VisitExpressionStatement(this);
         }
 
-        private class CompoundAssignmentExpression : ICompoundAssignmentExpression
+        public TResult Accept<TResult>(IOperationVisitor<TResult> visitor)
+        {
+            return visitor.VisitExpressionStatement(this);
+        }
+
+        private sealed class CompoundAssignmentExpression : ICompoundAssignmentExpression
         {
             public CompoundAssignmentExpression(IReferenceExpression target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
             {
@@ -225,6 +245,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 visitor.VisitCompoundAssignmentExpression(this);
             }
+
+            public TResult Accept<TResult>(IOperationVisitor<TResult> visitor)
+            {
+                return visitor.VisitCompoundAssignmentExpression(this);
+            }
         }
     }
 
@@ -255,6 +280,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             visitor.VisitLiteralExpression(this);
         }
+
+        public TResult Accept<TResult>(IOperationVisitor<TResult> visitor)
+        {
+            return visitor.VisitLiteralExpression(this);
+        }
     }
 
     internal class Literal : ILiteralExpression
@@ -283,6 +313,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         public void Accept(IOperationVisitor visitor)
         {
             visitor.VisitLiteralExpression(this);
+        }
+
+        public TResult Accept<TResult>(IOperationVisitor<TResult> visitor)
+        {
+            return visitor.VisitLiteralExpression(this);
         }
     }
 
@@ -321,6 +356,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             visitor.VisitBinaryOperatorExpression(this);
         }
+
+        public TResult Accept<TResult>(IOperationVisitor<TResult> visitor)
+        {
+            return visitor.VisitBinaryOperatorExpression(this);
+        }
     }
 
     internal sealed class ArrayCreation: IArrayCreationExpression
@@ -356,9 +396,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             visitor.VisitArrayCreationExpression(this);
         }
 
+        public TResult Accept<TResult>(IOperationVisitor<TResult> visitor)
+        {
+            return visitor.VisitArrayCreationExpression(this);
+        }
+
         public Optional<object> ConstantValue => default(Optional<object>);
 
-        private class ArrayInitializer : IArrayInitializer
+        private sealed class ArrayInitializer : IArrayInitializer
         {
             public ArrayInitializer(ImmutableArray<IExpression> elementValues, SyntaxNode syntax, ITypeSymbol arrayType)
             {
@@ -382,6 +427,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             public void Accept(IOperationVisitor visitor)
             {
                 visitor.VisitArrayInitializer(this);
+            }
+
+            public TResult Accept<TResult>(IOperationVisitor<TResult> visitor)
+            {
+                return visitor.VisitArrayInitializer(this);
             }
         }
     }

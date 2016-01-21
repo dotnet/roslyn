@@ -381,14 +381,362 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         public virtual TResult Visit(IOperation operation)
         {
-            // TODO: implement this
-            //return operation == null ? default(TResult) : operation.Accept(this);
-            return default(TResult);
+            return operation == null ? default(TResult) : operation.Accept(this);
         }
 
         public virtual TResult DefaultVisit(IOperation operation)
         {
             return default(TResult);
+        }
+
+        public virtual TResult VisitBlockStatement(IBlockStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitVariableDeclarationStatement(IVariableDeclarationStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitVariable(IVariable operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitSwitchStatement(ISwitchStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitCase(ICase operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitSingleValueCaseClause(ISingleValueCaseClause operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitRelationalCaseClause(IRelationalCaseClause operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitRangeCaseClause(IRangeCaseClause operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitIfStatement(IIfStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitForLoopStatement(IForLoopStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitForEachLoopStatement(IForEachLoopStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitLabelStatement(ILabelStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitLabeledStatement(ILabeledStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitBranchStatement(IBranchStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitYieldBreakStatement(IStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitEmptyStatement(IStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitThrowStatement(IThrowStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitReturnStatement(IReturnStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitLockStatement(ILockStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitTryStatement(ITryStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitCatch(ICatch operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitUsingWithDeclarationStatement(IUsingWithDeclarationStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitUsingWithExpressionStatement(IUsingWithExpressionStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitFixedStatement(IFixedStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitExpressionStatement(IExpressionStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitWithStatement(IWithStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitStopStatement(IStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitEndStatement(IStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitInvocationExpression(IInvocationExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitArgument(IArgument operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitOmittedArgumentExpression(IExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitLocalReferenceExpression(ILocalReferenceExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitParameterReferenceExpression(IParameterReferenceExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitFieldReferenceExpression(IFieldReferenceExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitMethodBindingExpression(IMethodBindingExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitEventReferenceExpression(IEventReferenceExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitEventAssignmentExpression(IEventAssignmentExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitConditionalAccessExpression(IConditionalAccessExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitBinaryOperatorExpression(IBinaryOperatorExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitConversionExpression(IConversionExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitConditionalChoiceExpression(IConditionalChoiceExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitNullCoalescingExpression(INullCoalescingExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitIsExpression(IIsExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitTypeOperationExpression(ITypeOperationExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitLambdaExpression(ILambdaExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitLiteralExpression(ILiteralExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitAwaitExpression(IAwaitExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitAddressOfExpression(IAddressOfExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitObjectCreationExpression(IObjectCreationExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitFieldInitializer(IFieldInitializer operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitPropertyInitializer(IPropertyInitializer operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitArrayCreationExpression(IArrayCreationExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitArrayInitializer(IArrayInitializer operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitAssignmentExpression(IAssignmentExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitIncrementExpression(IIncrementExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitParenthesizedExpression(IParenthesizedExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitUnboundLambdaExpression(IExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitDefaultValueExpression(IExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitTypeParameterObjectCreationExpression(IExpression operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitInvalidStatement(IStatement operation)
+        {
+            return this.DefaultVisit(operation);
+        }
+
+        public virtual TResult VisitInvalidExpression(IExpression operation)
+        {
+            return this.DefaultVisit(operation);
         }
     }
 }
