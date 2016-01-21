@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -336,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             public void AppendLine()
             {
-                // remove line length limit so that we can insert a new line even 
+                // remove line length limit so that we can insert a new line even
                 // if the previous one hit maxed out the line limit:
                 _currentLimit = _lengthLimit;
 
@@ -529,11 +530,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         internal virtual bool IsHiddenMember(MemberInfo member) => false;
 
+        internal static CultureInfo UIFormatCulture => CultureInfo.CurrentUICulture;
+
         internal static ObjectDisplayOptions GetObjectDisplayOptions(bool useHexadecimalNumbers)
         {
             return useHexadecimalNumbers
-                ? ObjectDisplayOptions.UseHexadecimalNumbers | ObjectDisplayOptions.UseCurrentCulture
-                : ObjectDisplayOptions.UseCurrentCulture;
+                ? ObjectDisplayOptions.UseHexadecimalNumbers
+                : ObjectDisplayOptions.None;
         }
 
         /// <summary>

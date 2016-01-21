@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static string FormatLiteral(sbyte value, ObjectDisplayOptions options)
+        internal static string FormatLiteral(sbyte value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
@@ -345,11 +345,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return value.ToString(FormatCulture(options));
+                return value.ToString(GetFormatCulture(cultureInfo));
             }
         }
 
-        internal static string FormatLiteral(byte value, ObjectDisplayOptions options)
+        internal static string FormatLiteral(byte value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
@@ -357,11 +357,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return value.ToString(FormatCulture(options));
+                return value.ToString(GetFormatCulture(cultureInfo));
             }
         }
 
-        internal static string FormatLiteral(short value, ObjectDisplayOptions options)
+        internal static string FormatLiteral(short value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
@@ -371,11 +371,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return value.ToString(FormatCulture(options));
+                return value.ToString(GetFormatCulture(cultureInfo));
             }
         }
 
-        internal static string FormatLiteral(ushort value, ObjectDisplayOptions options)
+        internal static string FormatLiteral(ushort value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
@@ -383,11 +383,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return value.ToString(FormatCulture(options));
+                return value.ToString(GetFormatCulture(cultureInfo));
             }
         }
 
-        internal static string FormatLiteral(int value, ObjectDisplayOptions options)
+        internal static string FormatLiteral(int value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
@@ -395,11 +395,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return value.ToString(FormatCulture(options));
+                return value.ToString(GetFormatCulture(cultureInfo));
             }
         }
 
-        internal static string FormatLiteral(uint value, ObjectDisplayOptions options)
+        internal static string FormatLiteral(uint value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var sb = pooledBuilder.Builder;
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                sb.Append(value.ToString(FormatCulture(options)));
+                sb.Append(value.ToString(GetFormatCulture(cultureInfo)));
             }
 
             if (options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix))
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static string FormatLiteral(long value, ObjectDisplayOptions options)
+        internal static string FormatLiteral(long value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var sb = pooledBuilder.Builder;
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                sb.Append(value.ToString(FormatCulture(options)));
+                sb.Append(value.ToString(GetFormatCulture(cultureInfo)));
             }
 
             if (options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix))
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static string FormatLiteral(ulong value, ObjectDisplayOptions options)
+        internal static string FormatLiteral(ulong value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var sb = pooledBuilder.Builder;
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                sb.Append(value.ToString(FormatCulture(options)));
+                sb.Append(value.ToString(GetFormatCulture(cultureInfo)));
             }
 
             if (options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix))
@@ -468,32 +468,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pooledBuilder.ToStringAndFree();
         }
 
-        internal static string FormatLiteral(double value, ObjectDisplayOptions options)
+        internal static string FormatLiteral(double value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
-            var result = value.ToString("R", FormatCulture(options));
+            var result = value.ToString("R", GetFormatCulture(cultureInfo));
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "D" : result;
         }
 
-        internal static string FormatLiteral(float value, ObjectDisplayOptions options)
+        internal static string FormatLiteral(float value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
-            var result = value.ToString("R", FormatCulture(options));
+            var result = value.ToString("R", GetFormatCulture(cultureInfo));
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "F" : result;
         }
 
-        internal static string FormatLiteral(decimal value, ObjectDisplayOptions options)
+        internal static string FormatLiteral(decimal value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
-            var result = value.ToString(FormatCulture(options));
+            var result = value.ToString(GetFormatCulture(cultureInfo));
 
             return options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) ? result + "M" : result;
         }
 
-        private static CultureInfo FormatCulture(ObjectDisplayOptions options)
+        private static CultureInfo GetFormatCulture(CultureInfo cultureInfo)
         {
-            return options.IncludesOption(ObjectDisplayOptions.UseCurrentCulture)
-                ? CultureInfo.CurrentCulture
-                : CultureInfo.InvariantCulture;
+            return cultureInfo ?? CultureInfo.InvariantCulture;
         }
     }
 }
