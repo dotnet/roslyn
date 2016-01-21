@@ -125,6 +125,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable Overloads Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
             Throw ExceptionUtilities.Unreachable
         End Sub
+
+        Public Overridable Overloads Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult Implements IOperation.Accept
+            Throw ExceptionUtilities.Unreachable
+        End Function
     End Class
 
     Partial Class BoundAssignmentOperator
@@ -218,6 +222,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 visitor.VisitAssignmentExpression(Me)
             End If
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            If Me.ExpressionKind() = OperationKind.CompoundAssignmentExpression Then
+                Return visitor.VisitCompoundAssignmentExpression(Me)
+            Else
+                Return visitor.VisitAssignmentExpression(Me)
+            End If
+        End Function
     End Class
 
     Partial Class BoundMeReference
@@ -242,6 +254,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitInstanceReferenceExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitInstanceReferenceExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundMyBaseReference
@@ -266,6 +282,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitInstanceReferenceExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitInstanceReferenceExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundMyClassReference
@@ -290,6 +310,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitInstanceReferenceExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitInstanceReferenceExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundLiteral
@@ -308,6 +332,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitLiteralExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitLiteralExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundAwaitOperator
@@ -326,6 +354,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitAwaitExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitAwaitExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundLambda
@@ -350,6 +382,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitLambdaExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitLambdaExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundCall
@@ -398,6 +434,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitInvocationExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitInvocationExpression(Me)
+        End Function
 
         Friend Shared Function ArgumentMatchingParameter(arguments As ImmutableArray(Of BoundExpression), parameter As IParameterSymbol, parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As IArgument
             Dim index As Integer = parameter.Ordinal
@@ -471,9 +511,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
                 visitor.VisitArgument(Me)
             End Sub
+
+            Public Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult Implements IOperation.Accept
+                Return visitor.VisitArgument(Me)
+            End Function
         End Class
 
-        Private Class Argument
+        Private NotInheritable Class Argument
             Inherits ArgumentBase
 
             Private ReadOnly _value As IExpression
@@ -510,7 +554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
         End Class
 
-        Private Class ByRefArgument
+        Private NotInheritable Class ByRefArgument
             Inherits ArgumentBase
 
             Private ReadOnly _argument As BoundByRefArgumentWithCopyBack
@@ -555,6 +599,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitOmittedArgumentExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitOmittedArgumentExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundParenthesized
@@ -573,6 +621,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitParenthesizedExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitParenthesizedExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundArrayAccess
@@ -597,6 +649,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitArrayElementReferenceExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitArrayElementReferenceExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundUnaryOperator
@@ -633,6 +689,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitUnaryOperatorExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitUnaryOperatorExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundUserDefinedUnaryOperator
@@ -678,6 +738,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitUnaryOperatorExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitUnaryOperatorExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundBinaryOperator
@@ -720,6 +784,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitBinaryOperatorExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitBinaryOperatorExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundUserDefinedBinaryOperator
@@ -811,6 +879,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitBinaryOperatorExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitBinaryOperatorExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundBinaryConditionalExpression
@@ -835,6 +907,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitNullCoalescingExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitNullCoalescingExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundUserDefinedShortCircuitingOperator
@@ -877,6 +953,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitBinaryOperatorExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitBinaryOperatorExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundBadExpression
@@ -887,6 +967,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitInvalidExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitInvalidExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundTryCast
@@ -929,6 +1013,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitConversionExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitConversionExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundDirectCast
@@ -971,6 +1059,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitConversionExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitConversionExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundConversion
@@ -1013,6 +1105,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitConversionExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitConversionExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundUserDefinedConversion
@@ -1055,6 +1151,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitConversionExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitConversionExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundTernaryConditionalExpression
@@ -1085,6 +1185,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitConditionalChoiceExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitConditionalChoiceExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundTypeOf
@@ -1109,6 +1213,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitIsExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitIsExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundObjectCreationExpression
@@ -1168,7 +1276,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             visitor.VisitObjectCreationExpression(Me)
         End Sub
 
-        Private Class FieldInitializer
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitObjectCreationExpression(Me)
+        End Function
+
+        Private NotInheritable Class FieldInitializer
             Implements IFieldInitializer
 
             Private _field As IFieldSymbol
@@ -1184,6 +1296,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
                 visitor.VisitFieldInitializer(Me)
             End Sub
+
+            Public Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult Implements IOperation.Accept
+                Return visitor.VisitFieldInitializer(Me)
+            End Function
 
             Public ReadOnly Property Field As IFieldSymbol Implements IFieldInitializer.Field
                 Get
@@ -1222,7 +1338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
         End Class
 
-        Private Class PropertyInitializer
+        Private NotInheritable Class PropertyInitializer
             Implements IPropertyInitializer
 
             Private _setter As IMethodSymbol
@@ -1238,6 +1354,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
                 visitor.VisitPropertyInitializer(Me)
             End Sub
+
+            Public Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult Implements IOperation.Accept
+                Return visitor.VisitPropertyInitializer(Me)
+            End Function
 
             Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
                 Get
@@ -1286,6 +1406,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitTypeParameterObjectCreationExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitTypeParameterObjectCreationExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundArrayCreation
@@ -1322,6 +1446,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitArrayCreationExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitArrayCreationExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundArrayInitialization
@@ -1339,6 +1467,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitArrayInitializer(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitArrayInitializer(Me)
+        End Function
     End Class
 
     Partial Class BoundPropertyAccess
@@ -1369,6 +1501,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitPropertyReferenceExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitPropertyReferenceExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundEventAccess
@@ -1399,6 +1535,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitEventReferenceExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitEventReferenceExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundDelegateCreationExpression
@@ -1435,6 +1575,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitMethodBindingExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitMethodBindingExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundFieldAccess
@@ -1465,6 +1609,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitFieldReferenceExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitFieldReferenceExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundConditionalAccess
@@ -1483,6 +1631,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitConditionalAccessExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitConditionalAccessExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundParameter
@@ -1501,6 +1653,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitParameterReferenceExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitParameterReferenceExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundLocal
@@ -1519,6 +1675,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitLocalReferenceExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitLocalReferenceExpression(Me)
+        End Function
     End Class
 
     Partial Class BoundLateMemberAccess
@@ -1543,6 +1703,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub Accept(visitor As IOperationVisitor)
             visitor.VisitLateBoundMemberReferenceExpression(Me)
         End Sub
+
+        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
+            Return visitor.VisitLateBoundMemberReferenceExpression(Me)
+        End Function
     End Class
 
     Module Expression
