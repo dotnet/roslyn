@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
         public async Task TestCheckBox()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(""))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(""))
             {
                 var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
                 using (var viewModel = new SpacingViewModel(workspace.Options, serviceProvider))
@@ -71,7 +71,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
         public async Task TestOptionLoading()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(""))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(""))
             {
                 var optionService = workspace.GetService<IOptionService>();
                 var optionSet = optionService.GetOptions();
@@ -90,7 +90,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
         public async Task TestOptionSaving()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(""))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(""))
             {
                 var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
                 using (var viewModel = new SpacingViewModel(workspace.Options, serviceProvider))
@@ -112,7 +112,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]
         public async Task TestFeatureBasedSaving()
         {
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(""))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(""))
             {
                 // Set an option for an unrelated feature
                 var optionService = workspace.GetService<IOptionService>();

@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
         Public Shared Async Function CreateAsync(test As XElement) As Task(Of CommitTestData)
-            Dim workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(test)
+            Dim workspace = Await TestWorkspace.CreateAsync(test)
             Return New CommitTestData(workspace)
         End Function
 
