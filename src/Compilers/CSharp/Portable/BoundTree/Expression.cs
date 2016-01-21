@@ -437,8 +437,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundObjectCreationExpression : IObjectCreationExpression
     {
-        private static readonly ConditionalWeakTable<BoundObjectCreationExpression, StrongBox<ImmutableArray<IMemberInitializer>>> s_memberInitializersMappings =
-            new ConditionalWeakTable<BoundObjectCreationExpression, StrongBox<ImmutableArray<IMemberInitializer>>>();
+        private static readonly ConditionalWeakTable<BoundObjectCreationExpression, object> s_memberInitializersMappings =
+            new ConditionalWeakTable<BoundObjectCreationExpression, object>();
 
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
@@ -453,8 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return s_memberInitializersMappings.GetValue(
-                    this,
+                return (ImmutableArray<IMemberInitializer>)s_memberInitializersMappings.GetValue(this,
                     objectCreationExpression =>
                     {
                         var objectInitializerExpression = this.InitializerExpressionOpt as BoundObjectInitializerExpression;
@@ -481,10 +480,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         break;
                                 }
                             }
-                            return new StrongBox<ImmutableArray<IMemberInitializer>>(builder.ToImmutableAndFree());
+                            return builder.ToImmutableAndFree();
                         }                        
-                        return new StrongBox<ImmutableArray<IMemberInitializer>>(ImmutableArray<IMemberInitializer>.Empty);
-                    }).Value;             
+                        return ImmutableArray<IMemberInitializer>.Empty;
+                    });             
             }
         }
 
