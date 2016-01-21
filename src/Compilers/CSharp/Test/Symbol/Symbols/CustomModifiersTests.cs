@@ -1687,8 +1687,8 @@ Implemented B");
             var test2 = cl1.GetMember<MethodSymbol>("Test2");
             Assert.Equal("void CL1<T1>.Test2(CL1<T1> t1)", test2.ToTestDisplayString());
 
-            var t1 = test1.Parameters[0].Type;
-            var t2 = test2.Parameters[0].Type;
+            var t1 = test1.Parameters[0].Type.TypeSymbol;
+            var t2 = test2.Parameters[0].Type.TypeSymbol;
 
             Assert.False(t1.Equals(t2));
             Assert.False(t2.Equals(t1));
