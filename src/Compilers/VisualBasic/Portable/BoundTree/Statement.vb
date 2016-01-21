@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Class CaseElse
                 Implements ISingleValueCaseClause
 
-                Private _boundCaseStatement As BoundCaseStatement
+                Private ReadOnly _boundCaseStatement As BoundCaseStatement
 
                 Public Sub New(boundCaseStatement As BoundCaseStatement)
                     _boundCaseStatement = boundCaseStatement
