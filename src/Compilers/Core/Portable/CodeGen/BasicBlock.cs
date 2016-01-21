@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Roslyn.Reflection;
+using Roslyn.Reflection.Metadata;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen

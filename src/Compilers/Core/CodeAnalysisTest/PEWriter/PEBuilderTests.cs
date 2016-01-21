@@ -10,8 +10,10 @@ using Roslyn.Reflection.Metadata.Ecma335.Blobs;
 using System.Reflection.PortableExecutable;
 using Xunit;
 using Roslyn.Reflection;
+using Roslyn.Reflection.Metadata;
 using Roslyn.Reflection.Metadata.Ecma335;
 using Roslyn.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -28,6 +30,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var r = new PEReader(peStream);
                 var h = r.PEHeaders;
                 var mdReader = r.GetMetadataReader();
+
+                peStream.Position = 0;
+                // File.WriteAllBytes(@"c:\temp\test.exe", peStream.ToArray());
             }
         }
 
@@ -143,39 +148,76 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 MethodSignature(SignatureCallingConvention.Default, genericParameterCount: 0, isInstanceMethod: false).
                 Parameters(0).EndModifiers().Void().EndParameters();
 
-            //
-            // Program::Main
-            //
-            int mainBodyOffset = ilBuilder.Count;
-            ilBuilder.WriteByte(((5 + 5 + 1) << 2) | 2); // IL length
+            var methodBodies = new MethodBodiesEncoder(ilBuilder);
 
-            // ldstr "Hello world"
-            ilBuilder.WriteByte(0x72);
-            ilBuilder.WriteInt32(metadata.GetUserStringToken("Hello world!"));
-
-            // call void [mscorlib]System.Console::WriteLine(string)
-            ilBuilder.WriteByte(0x28);
-            ilBuilder.WriteInt32(MetadataTokens.GetToken(consoleWriteLineMemberRef));
-
-            // ret
-            ilBuilder.WriteByte(0x2A);
+            var buffer = new BlobBuilder();
+            InstructionEncoder il;
 
             //
             // Program::.ctor
             //
-            int ctorBodyOffset = ilBuilder.Count;
-            ilBuilder.WriteByte(((1 + 5 + 1) << 2) | 2); // IL length
+            int ctorBodyOffset;
+            il = new InstructionEncoder(buffer);
 
             // ldarg.0
-            ilBuilder.WriteByte(0x02);
+            il.LoadArgument(0);
 
             // call instance void [mscorlib]System.Object::.ctor()
-            ilBuilder.WriteByte(0x28);
-            ilBuilder.WriteInt32(MetadataTokens.GetToken(objectCtorMemberRef));
+            il.Call(objectCtorMemberRef);
 
             // ret
-            ilBuilder.WriteByte(0x2A);
+            il.OpCode(ILOpCode.Ret);
 
+            methodBodies.AddMethodBody().WriteInstructions(buffer, out ctorBodyOffset);
+            buffer.Clear();
+
+            //
+            // Program::Main
+            //
+            int mainBodyOffset;
+            il = new InstructionEncoder(buffer);
+
+            // .try
+            int tryOffset = il.Offset;
+
+            //   ldstr "hello"
+            il.LoadString(metadata.GetUserStringToken("hello"));
+
+            //   call void [mscorlib]System.Console::WriteLine(string)
+            il.Call(consoleWriteLineMemberRef);
+
+            //   leave.s END
+            il.OpCode(ILOpCode.Leave_s);
+            Blob end = il.Builder.ReserveBytes(1);
+            int leaveOffset = il.Offset;
+
+            // .finally
+            int handlerOffset = il.Offset;
+
+            //   ldstr "world"
+            il.LoadString(metadata.GetUserStringToken("world"));
+
+            //   call void [mscorlib]System.Console::WriteLine(string)
+            il.Call(consoleWriteLineMemberRef);
+
+            // .endfinally
+            il.OpCode(ILOpCode.Endfinally);
+
+            // END: 
+            int handlerEnd = il.Offset;
+            new BlobWriter(end).WriteByte((byte)(handlerEnd - leaveOffset));
+
+            // ret
+            il.OpCode(ILOpCode.Ret);
+
+            var body = methodBodies.AddMethodBody(exceptionRegionCount: 1);
+            var eh = body.WriteInstructions(buffer, out mainBodyOffset);
+            eh.StartRegions();
+            eh.AddFinally(tryOffset, handlerOffset - tryOffset, handlerOffset, handlerEnd - handlerOffset);
+            eh.EndRegions();
+
+            buffer.Clear();
+            
             mainMethodDef = metadata.AddMethodDefinition(
                 MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
                 MethodImplAttributes.IL | MethodImplAttributes.Managed,
