@@ -4,6 +4,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     public struct CommonPrimitiveFormatterOptions
     {
+        /// <remarks>
+        /// Since <see cref="CommonPrimitiveFormatter"/> is an extension point, we don't
+        /// perform any validation on <see cref="NumberRadix"/> - it's up to the individual
+        /// subtype.
+        /// </remarks>
         public int NumberRadix { get; }
         public bool IncludeCharacterCodePoints { get; }
         public bool QuoteStringsAndCharacters { get; }

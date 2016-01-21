@@ -379,16 +379,18 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 options |= ObjectDisplayOptions.IncludeCodePoints;
             }
 
-            if (numberRadix == NumberRadixHexadecimal)
+            switch (numberRadix)
             {
-                options |= ObjectDisplayOptions.UseHexadecimalNumbers;
-            }
-            else
-            {
-                // If we ever support a radix other than decimal or hex, we'll
-                // need to propagate the numeric (vs boolean) option down to
-                // ObjectDisplay.
-                Debug.Assert(numberRadix == NumberRadixDecimal);
+                case NumberRadixDecimal:
+                    break;
+                case NumberRadixHexadecimal:
+                    options |= ObjectDisplayOptions.UseHexadecimalNumbers;
+                    break;
+                default:
+                    // If we ever support a radix other than decimal or hex, we'll
+                    // need to propagate the numeric (vs boolean) option down to
+                    // ObjectDisplay.
+                    throw new ArgumentNullException(nameof(numberRadix));
             }
 
             return options;

@@ -40,6 +40,7 @@ Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
 Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat.Hidden = 2 -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
 Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat.SeparateLines = 1 -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
 Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat.SingleLine = 0 -> Microsoft.CodeAnalysis.Scripting.Hosting.MemberDisplayFormat
+Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy.DocumentationFile.get -> Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopy.Metadata.get -> Microsoft.CodeAnalysis.Metadata
@@ -52,7 +53,6 @@ Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.IsShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.MetadataShadowCopyProvider(string directory = null, System.Collections.Generic.IEnumerable<string> noShadowCopyDirectories = null, System.Globalization.CultureInfo documentationCommentsCulture = null) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.NeedsShadowCopy(string fullPath) -> bool
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.SuppressShadowCopy(string originalPath) -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter
 Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.Ellipsis.get -> string
@@ -187,3 +187,4 @@ virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatT
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatter.FormatTypeName(System.Type type, Microsoft.CodeAnalysis.Scripting.Hosting.CommonTypeNameFormatterOptions options) -> string
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter.Include(System.Diagnostics.StackFrame frame) -> bool
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter.Include(System.Reflection.MemberInfo member) -> bool
+virtual Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.IsValidRadix(int radix) -> bool

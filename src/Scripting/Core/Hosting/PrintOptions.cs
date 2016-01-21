@@ -32,7 +32,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private static bool IsValidRadix(int radix)
+        /// <remarks>
+        /// Virtual so that extenders can support other radices.
+        /// </remarks>
+        protected virtual bool IsValidRadix(int radix)
         {
             switch (radix)
             {
