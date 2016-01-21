@@ -117,6 +117,12 @@
     <EmbeddedResource Include="MetadataTests\Invalid\ManyMethodSpecs.vb" />
     <EmbeddedResource Include="MetadataTests\Invalid\Obfuscated.dll" />
     <EmbeddedResource Include="MetadataTests\Invalid\Obfuscated2.dll" />
+    <Content Include="MetadataTests\Invalid\Signatures\build.bat" />
+    <Content Include="MetadataTests\Invalid\Signatures\munge.csx" />
+    <Content Include="MetadataTests\Invalid\Signatures\SignatureCycle2.il" />
+    <Content Include="MetadataTests\Invalid\Signatures\TypeSpecInWrongPlace.il" />
+    <EmbeddedResource Include="MetadataTests\Invalid\Signatures\SignatureCycle2.exe" />
+    <EmbeddedResource Include="MetadataTests\Invalid\Signatures\TypeSpecInWrongPlace.exe" />
     <Content Include="MetadataTests\Members.cs" />
     <EmbeddedResource Include="MetadataTests\Members.dll" />
     <EmbeddedResource Include="MetadataTests\NativeApp.exe" />
