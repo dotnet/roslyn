@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             await TestWithOptionsAsync(document, provider, position, expectedResults);
 
             // speculative semantic model
-            if (CanUseSpeculativeSemanticModel(document, position))
+            if (await CanUseSpeculativeSemanticModelAsync(document, position))
             {
                 var buffer = testDocument.TextBuffer;
                 using (var edit = buffer.CreateEdit())
@@ -1264,6 +1264,23 @@ class C
 }";
             await TestAsync(markup, MainDescription($"({CSharpFeaturesResources.Awaitable}) class System.Threading.Tasks.Task<TResult>"),
                          TypeParameterMap($"\r\nTResult {FeaturesResources.Is} int"));
+        }
+
+        [WorkItem(7100, "https://github.com/dotnet/roslyn/issues/7100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDynamicIsntAwaitable()
+        {
+            var markup = @"
+class C
+{
+    dynamic D() { return null; }
+    void M()
+    {
+        D$$();
+    }
+}
+";
+            await TestAsync(markup, MainDescription("dynamic C.D()"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

@@ -2,7 +2,7 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="Version.targets" />
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\build\Targets\Settings.targets" />
   </ImportGroup>
   <ItemGroup Label="Redist">
     <NuSpec Include="Microsoft.DiaSymReader.PortablePdb.nuspec" />

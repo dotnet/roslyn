@@ -202,6 +202,38 @@ class D { }
             }
         }
 
+        [Fact]
+        public async void TestAddedSubmissionParseTreeHasEmptyFilePath()
+        {
+            using (var workspace = CreateWorkspace())
+            {
+                var document1 = new TestHostDocument("var x = 1;", displayName: "Sub1", sourceCodeKind: SourceCodeKind.Script);
+                var project1 = new TestHostProject(workspace, document1, name: "Submission");
+
+                var document2 = new TestHostDocument("var x = 2;", displayName: "Sub2", sourceCodeKind: SourceCodeKind.Script, filePath: "a.csx");
+                var project2 = new TestHostProject(workspace, document2, name: "Script");
+
+                workspace.AddTestProject(project1);
+                workspace.AddTestProject(project2);
+
+                workspace.TryApplyChanges(workspace.CurrentSolution);
+
+                // Check that a parse tree for a submission has an empty file path.
+                SyntaxTree tree1 = await workspace.CurrentSolution
+                    .GetProjectState(project1.Id)
+                    .GetDocumentState(document1.Id)
+                    .GetSyntaxTreeAsync(CancellationToken.None);
+                Assert.Equal("", tree1.FilePath);
+
+                // Check that a parse tree for a script does not have an empty file path.
+                SyntaxTree tree2 = await workspace.CurrentSolution
+                    .GetProjectState(project2.Id)
+                    .GetDocumentState(document2.Id)
+                    .GetSyntaxTreeAsync(CancellationToken.None);
+                Assert.Equal("a.csx", tree2.FilePath);
+            }
+        }
+
         private static async Task VerifyRootTypeNameAsync(TestWorkspace workspaceSnapshotBuilder, string typeName)
         {
             var currentSnapshot = workspaceSnapshotBuilder.CurrentSolution;

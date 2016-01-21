@@ -932,6 +932,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(CryptoPublicKey), NameOf(CryptoKeyContainer)))
                 End If
             End If
+
+            If PublicSign AndAlso DelaySign = True Then
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_MutuallyExclusiveOptions, NameOf(PublicSign), NameOf(DelaySign)))
+            End If
         End Sub
 
         ''' <summary>

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Implementation of SourceText based on a <see cref="String"/> input
     /// </summary>
-    internal sealed partial class StringText : SourceText
+    internal sealed class StringText : SourceText
     {
         private readonly string _source;
         private readonly Encoding _encodingOpt;

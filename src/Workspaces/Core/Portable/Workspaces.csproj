@@ -741,7 +741,6 @@
     <Compile Include="Shared\Utilities\ExtensionOrderer.cs" />
     <Compile Include="Shared\Utilities\ExtensionOrderer.Graph.cs" />
     <Compile Include="Shared\Utilities\ExtensionOrderer.Node.cs" />
-    <Compile Include="Shared\Utilities\FindTokenHelper.cs" />
     <Compile Include="Shared\Utilities\IntegerUtilities.cs" />
     <Compile Include="Shared\Utilities\Matcher.ChoiceMatcher.cs" />
     <Compile Include="Shared\Utilities\Matcher.cs" />

@@ -18,7 +18,7 @@ namespace Roslyn.Utilities
         {
 #if DEBUG
             var threadKind = ForegroundThreadDataInfo.CurrentForegroundThreadDataKind;
-            if (threadKind != ForegroundThreadDataKind.Wpf && threadKind != ForegroundThreadDataKind.StaUnitTest)
+            if (threadKind == ForegroundThreadDataKind.Unknown)
             {
                 // If you hit this when running tests then your code is in error.  WaitAndGetResult
                 // should only be called from a foreground thread.  There are a few ways you may 

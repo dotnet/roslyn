@@ -293,6 +293,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get { return null; }
         }
 
+        public override ModuleMetadata GetMetadata() => _underlyingModule.GetMetadata();
+
         internal override bool NullableOptOut
         {
             get

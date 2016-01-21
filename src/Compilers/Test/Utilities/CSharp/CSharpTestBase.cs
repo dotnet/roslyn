@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CSharpTestBaseBase
     {
-        protected new CSharpCompilation GetCompilationForEmit(
+        protected CSharpCompilation GetCSharpCompilationForEmit(
             IEnumerable<string> source,
             IEnumerable<MetadataReference> additionalRefs,
             CompilationOptions options,
@@ -90,6 +90,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 verify: verify);
         }
 
+        internal CompilationVerifier CompileAndVerify(
+            string[] sources,
+            MetadataReference[] additionalRefs = null,
+            IEnumerable<ModuleData> dependencies = null,
+            Action<ModuleSymbol> sourceSymbolValidator = null,
+            Action<PEAssembly> validator = null,
+            Action<ModuleSymbol> symbolValidator = null,
+            SignatureDescription[] expectedSignatures = null,
+            string expectedOutput = null,
+            CompilationOptions options = null,
+            ParseOptions parseOptions = null,
+            bool verify = true)
+        {
+            return base.CompileAndVerify(
+                sources,
+                additionalRefs,
+                dependencies,
+                Translate2(sourceSymbolValidator),
+                validator,
+                Translate2(symbolValidator),
+                expectedSignatures,
+                expectedOutput,
+                options,
+                parseOptions,
+                verify);
+        }
+
         internal CompilationVerifier CompileAndVerifyExperimental(
             string source,
             string expectedOutput = null,
@@ -149,33 +176,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 additionalRefs: additionalRefs,
                 expectedOutput: isWin8 ? expectedOutput : null,
                 verify: isWin8);
-        }
-
-        internal CompilationVerifier CompileAndVerify(
-            string[] sources,
-            MetadataReference[] additionalRefs = null,
-            IEnumerable<ModuleData> dependencies = null,
-            Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> validator = null,
-            Action<ModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
-            CompilationOptions options = null,
-            ParseOptions parseOptions = null,
-            bool verify = true)
-        {
-            return base.CompileAndVerify(
-                sources,
-                additionalRefs,
-                dependencies,
-                Translate2(sourceSymbolValidator),
-                validator,
-                Translate2(symbolValidator),
-                expectedSignatures,
-                expectedOutput,
-                options,
-                parseOptions,
-                verify);
         }
 
         internal CompilationVerifier CompileAndVerify(
@@ -311,6 +311,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CreateCompilation(source, refs, options, assemblyName);
         }
 
+        public static CSharpCompilation CreateCompilationWithMscorlib46(
+            IEnumerable<SyntaxTree> source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            string assemblyName = "")
+        {
+            var refs = new List<MetadataReference>();
+            if (references != null)
+            {
+                refs.AddRange(references);
+            }
+            refs.Add(MscorlibRef_v46);
+            return CreateCompilation(source, refs, options, assemblyName);
+        }
+
+        public static CSharpCompilation CreateCompilationWithMscorlib46(
+            string[] sources,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string sourceFileName = "",
+            string assemblyName = "")
+        {
+            return CreateCompilationWithMscorlib46(
+                sources.Select((source) => Parse(source, sourceFileName, parseOptions)).ToArray(),
+                references,
+                options,
+                assemblyName);
+        }
+
         public static CSharpCompilation CreateCompilationWithMscorlib45(
             string source,
             IEnumerable<MetadataReference> references = null,
@@ -321,6 +351,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return CreateCompilationWithMscorlib45(
                 new SyntaxTree[] { Parse(source, sourceFileName, parseOptions) },
+                references,
+                options,
+                assemblyName);
+        }
+
+        public static CSharpCompilation CreateCompilationWithMscorlib45(
+            string[] sources,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string sourceFileName = "",
+            string assemblyName = "")
+        {
+            return CreateCompilationWithMscorlib45(
+                sources.Select((source) => Parse(source, sourceFileName, parseOptions)).ToArray(),
                 references,
                 options,
                 assemblyName);
@@ -380,7 +425,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             return CreateCompilation(new[] { Parse(text, options: parseOptions) }, refs, options);
         }
-
 
         public static CSharpCompilation CreateCompilationWithMscorlib(
             IEnumerable<string> sources,

@@ -116,9 +116,9 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function EndConstruct_NotOnLineFollowingToken() As Threading.Tasks.Task
             Await VerifyStatementEndConstructNotAppliedAsync(
-                text:={"Class C",
-                        "",
-                       ""},
+                text:="Class C
+
+",
                 caret:={2, 0})
         End Function
     End Class

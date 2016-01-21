@@ -439,15 +439,15 @@ namespace Microsoft.CodeAnalysis
                 {
 #if SCRIPTING
 
-                    throw new ArgumentException(Scripting.ScriptingResources.InvalidCharactersInAssemblyName, "name");
+                    throw new ArgumentException(Scripting.ScriptingResources.InvalidCharactersInAssemblyName, nameof(name));
 
 #elif WORKSPACE_DESKTOP
 
-                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.InvalidCharactersInAssemblyName, "name");
+                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.InvalidCharactersInAssemblyName, nameof(name));
 
 #else
 
-                    throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, "name");
+                    throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, nameof(name));
 #endif
                 }
 
@@ -469,15 +469,15 @@ namespace Microsoft.CodeAnalysis
                 {
 #if SCRIPTING
 
-                    throw new ArgumentException(Microsoft.CodeAnalysis.Scripting.ScriptingResources.InvalidCharactersInAssemblyName, "name");
+                    throw new ArgumentException(Microsoft.CodeAnalysis.Scripting.ScriptingResources.InvalidCharactersInAssemblyName, nameof(name));
 
 #elif WORKSPACE_DESKTOP
 
-                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.InvalidCharactersInAssemblyName, "name");
+                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.InvalidCharactersInAssemblyName, nameof(name));
 
 #else
 
-                    throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, "name");
+                    throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, nameof(name));
 #endif
                 }
 

@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis
                 this.ApplyDocumentRemoved(documentId);
             }
 
-            // removed documents
+            // removed additional documents
             foreach (var documentId in projectChanges.GetRemovedAdditionalDocuments())
             {
                 this.ApplyAdditionalDocumentRemoved(documentId);

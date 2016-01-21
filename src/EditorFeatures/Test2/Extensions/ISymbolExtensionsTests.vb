@@ -22,7 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim commonSyntaxToken = (Await document.GetSyntaxTreeAsync()).GetTouchingToken(cursorPosition, Nothing)
+                Dim tree = Await document.GetSyntaxTreeAsync()
+                Dim commonSyntaxToken = Await tree.GetTouchingTokenAsync(cursorPosition, Nothing)
 
                 Dim semanticModel = Await document.GetSemanticModelAsync()
                 Dim symbol = semanticModel.GetSymbols(commonSyntaxToken, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType:=False, cancellationToken:=Nothing).First()

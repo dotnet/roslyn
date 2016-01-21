@@ -3777,5 +3777,176 @@ class Program
             CompileAndVerify(comp);
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
         }
+
+        [Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")]
+        public void HoistUsing001()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(M(0).Result);
+    }
+
+    class D : IDisposable
+    {
+        public void Dispose()
+        {
+            Console.WriteLine(""disposed"");
+        }
+    }
+
+    static async Task<string> M(int input)
+    {
+        Console.WriteLine(""Pre"");
+        var window = new D();
+        try
+        {
+            Console.WriteLine(""show"");
+
+            for (int i = 0; i < 2; i++)
+            {
+                await Task.Delay(100);
+            }
+        }
+        finally
+        {
+            window.Dispose();
+        }
+
+        Console.WriteLine(""Post"");
+        return ""result"";
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            var expectedOutput = @"Pre
+show
+disposed
+Post
+result";
+
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")]
+        public void HoistUsing002()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(M(0).Result);
+    }
+
+    class D : IDisposable
+    {
+        public void Dispose()
+        {
+            Console.WriteLine(""disposed"");
+        }
+    }
+
+    static async Task<string> M(int input)
+    {
+        Console.WriteLine(""Pre"");
+
+        using (var window = new D())
+        {
+            Console.WriteLine(""show"");
+
+            for (int i = 0; i < 2; i++)
+            {
+                await Task.Delay(100);
+            }
+        }
+
+        Console.WriteLine(""Post"");
+        return ""result"";
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            var expectedOutput = @"Pre
+show
+disposed
+Post
+result";
+
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(7669, "https://github.com/dotnet/roslyn/issues/7669")]
+        public void HoistUsing003()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(M(0).Result);
+    }
+
+    class D : IDisposable
+    {
+        public void Dispose()
+        {
+            Console.WriteLine(""disposed"");
+        }
+    }
+
+    static async Task<string> M(int input)
+    {
+        Console.WriteLine(""Pre"");
+
+        using (var window1 = new D())
+        {
+            Console.WriteLine(""show"");
+
+            using (var window = new D())
+            {
+                Console.WriteLine(""show"");
+
+                for (int i = 0; i < 2; i++)
+                {
+                    await Task.Delay(100);
+                }
+            }
+        }
+
+        Console.WriteLine(""Post"");
+        return ""result"";
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            var expectedOutput = @"Pre
+show
+show
+disposed
+disposed
+Post
+result";
+
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
+        }
+
     }
 }

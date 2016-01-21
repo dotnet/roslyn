@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var d = obj as DiagnosticDescription;
 
-            if (obj == null)
+            if (d == null)
                 return false;
 
             if (!_code.Equals(d._code))

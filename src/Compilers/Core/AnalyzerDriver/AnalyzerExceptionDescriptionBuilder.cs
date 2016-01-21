@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var fileNotFoundException = exception as FileNotFoundException;
             if (fileNotFoundException == null)
             {
-                return exception.Message;
+                return exception.ToString();
             }
 
             var fusionLog = DesktopShim.FileNotFoundException.TryGetFusionLog(fileNotFoundException);
             if (fusionLog == null)
             {
-                return exception.Message;
+                return exception.ToString();
             }
 
             return string.Join(s_separator, fileNotFoundException.Message, fusionLog);

@@ -124,6 +124,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' If this symbol represents a metadata module returns the underlying <see cref="ModuleMetadata"/>.
+        ''' 
+        ''' Otherwise, this returns <code>nothing</code>.
+        ''' </summary>
+        Public MustOverride Function GetMetadata() As ModuleMetadata Implements IModuleSymbol.GetMetadata
+
+        ''' <summary>
         ''' Returns an array of assembly identities for assemblies referenced by this module.
         ''' Items at the same position from GetReferencedAssemblies and from GetReferencedAssemblySymbols 
         ''' should correspond to each other.

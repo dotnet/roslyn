@@ -1639,5 +1639,63 @@ namespace ConsoleApplication21
             CompileAndVerify(compilation, expectedOutput: @"Implemented A
 Implemented B");
         }
+
+        [Fact, WorkItem(6372, "https://github.com/dotnet/roslyn/issues/6372")]
+        public void ModifiedTypeParameterAsTypeArgument_01()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit CL1`1<T1>
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006:
+        ret
+    } // end of method CL1`1::.ctor
+
+    .method public hidebysig newslot virtual
+            instance void  Test1(class CL1`1<!T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)> t1) cil managed
+    {
+      // Code size       1 (0x1)
+      .maxstack  0
+      IL_0000:
+        ret
+    } // end of method CL1`1::Test
+
+    .method public hidebysig newslot virtual
+            instance void  Test2(class CL1`1<!T1> t1) cil managed
+    {
+      // Code size       1 (0x1)
+      .maxstack  0
+      IL_0000:
+        ret
+    } // end of method CL1`1::Test
+} // end of class CL1`1
+";
+            var source = @"";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+
+            var cl1 = compilation.GetTypeByMetadataName("CL1`1");
+            var test1 = cl1.GetMember<MethodSymbol>("Test1");
+            Assert.Equal("void CL1<T1>.Test1(CL1<T1 modopt(System.Runtime.CompilerServices.IsConst)> t1)", test1.ToTestDisplayString());
+
+            var test2 = cl1.GetMember<MethodSymbol>("Test2");
+            Assert.Equal("void CL1<T1>.Test2(CL1<T1> t1)", test2.ToTestDisplayString());
+
+            var t1 = test1.Parameters[0].Type.TypeSymbol;
+            var t2 = test2.Parameters[0].Type.TypeSymbol;
+
+            Assert.False(t1.Equals(t2));
+            Assert.False(t2.Equals(t1));
+
+            Assert.True(t1.Equals(t2, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
+            Assert.True(t2.Equals(t1, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
+        }
+
     }
 }

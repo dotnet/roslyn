@@ -7,6 +7,7 @@ using Xunit;
 
 namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 {
+    using System.Runtime.InteropServices;
     using static SymTestHelpers;
 
     public class SymReaderTests
@@ -27,6 +28,54 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
                     0x89, 0x03, 0x86, 0xAD, 0xFF, 0x27, 0x56, 0x46, 0x9F, 0x3F, 0xE2, 0x18, 0x4B, 0xEF, 0xFC, 0xC0, 0xBE, 0x0C, 0x52, 0xA0
                 }, pdbReader.DebugMetadataHeader.Id);
             }
+        }
+
+        [Fact]
+        public void MatchesModule()
+        {
+            var symReader = (ISymUnmanagedReader4)CreateSymReaderFromResource(TestResources.Documents.PortableDllAndPdb);
+
+            var expectedGuid = new Guid(new byte[] { 0x89, 0x03, 0x86, 0xAD, 0xFF, 0x27, 0x56, 0x46, 0x9F, 0x3F, 0xE2, 0x18, 0x4B, 0xEF, 0xFC, 0xC0 });
+            uint expectedStamp = 0xA0520CBE;
+
+            var anotherGuid = new Guid(new byte[] { 0x88, 0x03, 0x86, 0xAD, 0xFF, 0x27, 0x56, 0x46, 0x9F, 0x3F, 0xE2, 0x18, 0x4B, 0xEF, 0xFC, 0xC0 });
+            var anotherStamp = 0xA0520CBF;
+
+            bool matches;
+            Assert.Equal(HResult.S_OK, symReader.MatchesModule(expectedGuid, expectedStamp, 1, out matches));
+            Assert.True(matches);
+            Assert.Equal(HResult.S_OK, symReader.MatchesModule(expectedGuid, expectedStamp, -1, out matches));
+            Assert.False(matches);
+            Assert.Equal(HResult.S_OK, symReader.MatchesModule(expectedGuid, expectedStamp, 2, out matches));
+            Assert.False(matches);
+            Assert.Equal(HResult.S_OK, symReader.MatchesModule(anotherGuid, expectedStamp, 1, out matches));
+            Assert.False(matches);
+            Assert.Equal(HResult.S_OK, symReader.MatchesModule(expectedGuid, anotherStamp, 1, out matches));
+            Assert.False(matches);
+        }
+
+        [Fact]
+        public unsafe void GetPortableDebugMetadata()
+        {
+            var symReader = (ISymUnmanagedReader4)CreateSymReaderFromResource(TestResources.Documents.PortableDllAndPdb);
+            byte* ptr;
+            int size;
+            Assert.Equal(HResult.S_OK, symReader.GetPortableDebugMetadata(out ptr, out size));
+            Assert.Equal(size, TestResources.Documents.PortablePdb.Length);
+            byte[] actual = new byte[size];
+            Marshal.Copy((IntPtr)ptr, actual, 0, size);
+            AssertEx.Equal(TestResources.Documents.PortablePdb, actual);
+        }
+
+        [Fact]
+        public unsafe void GetSourceServerData()
+        {
+            var symReader = (ISymUnmanagedReader4)CreateSymReaderFromResource(TestResources.Documents.PortableDllAndPdb);
+            byte* ptr;
+            int size;
+            Assert.Equal(HResult.S_OK, symReader.GetSourceServerData(out ptr, out size));
+            Assert.Equal(size, 0);
+            Assert.Equal(IntPtr.Zero, (IntPtr)ptr);
         }
 
         [Fact]

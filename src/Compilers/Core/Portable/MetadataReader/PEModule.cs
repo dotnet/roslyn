@@ -24,6 +24,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class PEModule : IDisposable
     {
+        /// <summary>
+        /// We need to store reference to the module metadata to keep the metadata alive while 
+        /// symbols have reference to PEModule.
+        /// </summary>
+        private readonly ModuleMetadata _owner;
+
         // Either we have PEReader or we have pointer and size of the metadata blob:
         private readonly PEReader _peReaderOpt;
         private readonly IntPtr _metadataPointerOpt;
@@ -82,13 +88,14 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractor = CrackObsoleteAttributeData;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
 
-        internal PEModule(PEReader peReader, IntPtr metadataOpt, int metadataSizeOpt, bool includeEmbeddedInteropTypes = false)
+        internal PEModule(ModuleMetadata owner, PEReader peReader, IntPtr metadataOpt, int metadataSizeOpt, bool includeEmbeddedInteropTypes = false)
         {
             // shall not throw
 
             Debug.Assert((peReader == null) ^ (metadataOpt == IntPtr.Zero && metadataSizeOpt == 0));
             Debug.Assert(metadataOpt == IntPtr.Zero || metadataSizeOpt > 0);
 
+            _owner = owner;
             _peReaderOpt = peReader;
             _metadataPointerOpt = metadataOpt;
             _metadataSizeOpt = metadataSizeOpt;
@@ -3043,5 +3050,7 @@ namespace Microsoft.CodeAnalysis
                 return StringTable.AddSharedUTF8(bytes, byteCount);
             }
         }
+
+        public ModuleMetadata GetNonDisposableMetadata() => _owner.Copy();
     }
 }

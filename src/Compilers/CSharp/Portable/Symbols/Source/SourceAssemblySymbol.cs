@@ -837,6 +837,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return _compilation.Options.DelaySign.Value;
                 }
 
+                // The public sign argument should also override the attribute
+                if (_compilation.Options.PublicSign)
+                {
+                    return false;
+                }
+
                 return (this.AssemblyDelaySignAttributeSetting == ThreeState.True);
             }
         }
@@ -2576,5 +2582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return null;
         }
+
+        public override AssemblyMetadata GetMetadata() => null;
     }
 }

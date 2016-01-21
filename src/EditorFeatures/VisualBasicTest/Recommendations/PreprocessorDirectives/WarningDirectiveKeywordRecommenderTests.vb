@@ -3,155 +3,154 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class WarningDirectiveKeywordRecommenderTests
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashEnableWarningInFile()
-            VerifyRecommendationsContain(<File>|</File>, "#Enable Warning")
-        End Sub
+        Public Async Function HashEnableWarningInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>|</File>, "#Enable Warning")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashDisableWarningInFile()
-            VerifyRecommendationsContain(<File>|</File>, "#Disable Warning")
-        End Sub
+        Public Async Function HashDisableWarningInFileTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>|</File>, "#Disable Warning")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoHashEnableInFile()
-            VerifyRecommendationsMissing(<File>|</File>, "#Enable")
-        End Sub
+        Public Async Function NoHashEnableInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>|</File>, "#Enable")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoHashDisableInFile()
-            VerifyRecommendationsMissing(<File>|</File>, "#Disable")
-        End Sub
+        Public Async Function NoHashDisableInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>|</File>, "#Disable")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoWarningInFile()
-            VerifyRecommendationsMissing(<File>|</File>, "Warning")
-        End Sub
+        Public Async Function NoWarningInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>|</File>, "Warning")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoHashWarningInFile()
-            VerifyRecommendationsMissing(<File>|</File>, "#Warning")
-        End Sub
+        Public Async Function NoHashWarningInFileTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>|</File>, "#Warning")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub HashEnableWarningInCode()
-            VerifyRecommendationsContain(<ClassDeclaration>Dim x = Function()
+        Public Async Function HashEnableWarningInCodeTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Dim x = Function()
 |
 End Function</ClassDeclaration>, "#Enable Warning")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub WarningAfterEnable()
-            VerifyRecommendationsContain(<File>
+        Public Async Function WarningAfterEnableTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 #Enable |
                                          </File>, "Warning")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub WarningAfterDisable()
-            VerifyRecommendationsContain(<File>
+        Public Async Function WarningAfterDisableTest() As Task
+            Await VerifyRecommendationsContainAsync(<File>
 #Disable |
                                          </File>, "Warning")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoEnableAfterEnable()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NoEnableAfterEnableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #Enable |
                                          </File>, "Enable")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoDisableAfterWarning()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NoDisableAfterWarningTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #Enable Warning |
                                          </File>, "Disable")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoHashDisableAfterEnable()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NoHashDisableAfterEnableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #Enable |
                                          </File>, "#Disable")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoHashEnableAfterWarning()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NoHashEnableAfterWarningTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #Enable Warning |
                                          </File>, "#Enable")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoHashDisableWarningAfterEnable()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NoHashDisableWarningAfterEnableTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #Enable |
                                          </File>, "#Disable Warning")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoHashEnableWarningAfterWarning()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NoHashEnableWarningAfterWarningTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #Disable Warning |
                                          </File>, "#Enable Warning")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoWarningAfterWarning()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NoWarningAfterWarningTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #Disable Warning |
                                          </File>, "Warning")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoDisableAfterIf()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NoDisableAfterIfTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #If |
                                          </File>, "Disable")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoHashEnableAfterIf()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NoHashEnableAfterIfTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #If |
                                          </File>, "#Enable")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoHashDisableWarningAfterIf()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NoHashDisableWarningAfterIfTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #If |
                                          </File>, "#Disable Warning")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoWarningAfterIf()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NoWarningAfterIfTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 #If |
                                          </File>, "Warning")
-        End Sub
+        End Function
 
         <WorkItem(1020079)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInEnum()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NotInEnumTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
 Enum E
     A
     |
 End Enum
                                          </File>, "#Enable Warning", "#Disable Warning")
-        End Sub
+        End Function
 
         <WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotAfterHashRegion()
-            VerifyRecommendationsMissing(<File>
+        Public Async Function NotAfterHashRegionTest() As Task
+            Await VerifyRecommendationsMissingAsync(<File>
                                          Class C
 
                                              #Region |
 
                                          End Class
                                          </File>, "#Enable Warning", "#Disable Warning")
-        End Sub
-
+        End Function
     End Class
 End Namespace

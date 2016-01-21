@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestCurlies()
         {
-            var code = new string[] { "public class C {", "} " };
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code, parseOptions: Options.Script))
+            var code = "public class C {\r\n}";
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code, parseOptions: Options.Script))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestTouchingItems()
         {
-            var code = new string[] { "public class C {", "  public void Foo(){}", "}" };
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code, Options.Script))
+            var code = "public class C {\r\n  public void Foo(){}\r\n}";
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code, Options.Script))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestAngles()
         {
-            var code = new string[] { "/// <summary>Foo</summary>", "public class C<T> {", "  void Foo() {", "    bool a = b < c;", "    bool d = e > f;", "  }", "} " };
-            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code, parseOptions: Options.Script))
+            var code = "/// <summary>Foo</summary>\r\npublic class C<T> {\r\n  void Foo() {\r\n    bool a = b < c;\r\n    bool d = e > f;\r\n  }\r\n} ";
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code, parseOptions: Options.Script))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 

@@ -23,21 +23,21 @@ namespace CSharpAnalyzers {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources() {
+        public Resources() {
         }
         
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CSharpAnalyzers.Resources", typeof(Resources).GetTypeInfo().Assembly);
@@ -52,7 +52,7 @@ namespace CSharpAnalyzers {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -64,7 +64,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Remove unnecessary methods..
         /// </summary>
-        internal static string CodeBlockAnalyzerDescription {
+        public static string CodeBlockAnalyzerDescription {
             get {
                 return ResourceManager.GetString("CodeBlockAnalyzerDescription", resourceCulture);
             }
@@ -73,7 +73,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Method &apos;{0}&apos; is a non-virtual method with an empty body. Consider removing this method from your assembly..
         /// </summary>
-        internal static string CodeBlockAnalyzerMessageFormat {
+        public static string CodeBlockAnalyzerMessageFormat {
             get {
                 return ResourceManager.GetString("CodeBlockAnalyzerMessageFormat", resourceCulture);
             }
@@ -82,7 +82,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Remove unnecessary methods.
         /// </summary>
-        internal static string CodeBlockAnalyzerTitle {
+        public static string CodeBlockAnalyzerTitle {
             get {
                 return ResourceManager.GetString("CodeBlockAnalyzerTitle", resourceCulture);
             }
@@ -91,7 +91,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Remove unused parameters..
         /// </summary>
-        internal static string CodeBlockStartedAnalyzerDescription {
+        public static string CodeBlockStartedAnalyzerDescription {
             get {
                 return ResourceManager.GetString("CodeBlockStartedAnalyzerDescription", resourceCulture);
             }
@@ -100,7 +100,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Parameter &apos;{0}&apos; is unused in the method &apos;{1}&apos;..
         /// </summary>
-        internal static string CodeBlockStartedAnalyzerMessageFormat {
+        public static string CodeBlockStartedAnalyzerMessageFormat {
             get {
                 return ResourceManager.GetString("CodeBlockStartedAnalyzerMessageFormat", resourceCulture);
             }
@@ -109,7 +109,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Remove unused parameters.
         /// </summary>
-        internal static string CodeBlockStartedAnalyzerTitle {
+        public static string CodeBlockStartedAnalyzerTitle {
             get {
                 return ResourceManager.GetString("CodeBlockStartedAnalyzerTitle", resourceCulture);
             }
@@ -118,7 +118,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Dont suppress analyzer diagnostics..
         /// </summary>
-        internal static string CompilationAnalyzerDescription {
+        public static string CompilationAnalyzerDescription {
             get {
                 return ResourceManager.GetString("CompilationAnalyzerDescription", resourceCulture);
             }
@@ -127,7 +127,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Analyzer diagnostic &apos;{0}&apos; is suppressed, consider removing this compilation wide suppression..
         /// </summary>
-        internal static string CompilationAnalyzerMessageFormat {
+        public static string CompilationAnalyzerMessageFormat {
             get {
                 return ResourceManager.GetString("CompilationAnalyzerMessageFormat", resourceCulture);
             }
@@ -136,7 +136,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Dont suppress analyzer diagnostics.
         /// </summary>
-        internal static string CompilationAnalyzerTitle {
+        public static string CompilationAnalyzerTitle {
             get {
                 return ResourceManager.GetString("CompilationAnalyzerTitle", resourceCulture);
             }
@@ -145,16 +145,16 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Do not implement unsupported interface..
         /// </summary>
-        internal static string CompilationStartedAnalyzerDescription {
+        public static string CompilationStartedAnalyzerDescription {
             get {
                 return ResourceManager.GetString("CompilationStartedAnalyzerDescription", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{0}&apos; implements interface &apos;{1}&apos;, which is only meant for internal implementation and might change in future. You should avoid implementing this interface..
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; implements interface &apos;{1}&apos;, which is only meant for public implementation and might change in future. You should avoid implementing this interface..
         /// </summary>
-        internal static string CompilationStartedAnalyzerMessageFormat {
+        public static string CompilationStartedAnalyzerMessageFormat {
             get {
                 return ResourceManager.GetString("CompilationStartedAnalyzerMessageFormat", resourceCulture);
             }
@@ -163,7 +163,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Do not implement unsupported interface.
         /// </summary>
-        internal static string CompilationStartedAnalyzerTitle {
+        public static string CompilationStartedAnalyzerTitle {
             get {
                 return ResourceManager.GetString("CompilationStartedAnalyzerTitle", resourceCulture);
             }
@@ -172,7 +172,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Secure types must not implement interfaces with unsecure methods..
         /// </summary>
-        internal static string CompilationStartedAnalyzerWithCompilationWideAnalysisDescription {
+        public static string CompilationStartedAnalyzerWithCompilationWideAnalysisDescription {
             get {
                 return ResourceManager.GetString("CompilationStartedAnalyzerWithCompilationWideAnalysisDescription", resourceCulture);
             }
@@ -181,7 +181,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; is a secure type as it implements interface &apos;{1}&apos;, but it also implements interface &apos;{2}&apos; which has unsecure method(s)..
         /// </summary>
-        internal static string CompilationStartedAnalyzerWithCompilationWideAnalysisMessageFormat {
+        public static string CompilationStartedAnalyzerWithCompilationWideAnalysisMessageFormat {
             get {
                 return ResourceManager.GetString("CompilationStartedAnalyzerWithCompilationWideAnalysisMessageFormat", resourceCulture);
             }
@@ -190,7 +190,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Secure types must not implement interfaces with unsecure methods.
         /// </summary>
-        internal static string CompilationStartedAnalyzerWithCompilationWideAnalysisTitle {
+        public static string CompilationStartedAnalyzerWithCompilationWideAnalysisTitle {
             get {
                 return ResourceManager.GetString("CompilationStartedAnalyzerWithCompilationWideAnalysisTitle", resourceCulture);
             }
@@ -199,7 +199,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Source file declaration diagnostic count..
         /// </summary>
-        internal static string SemanticModelAnalyzerDescription {
+        public static string SemanticModelAnalyzerDescription {
             get {
                 return ResourceManager.GetString("SemanticModelAnalyzerDescription", resourceCulture);
             }
@@ -208,7 +208,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Source file &apos;{0}&apos; has &apos;{1}&apos; declaration diagnostic(s).
         /// </summary>
-        internal static string SemanticModelAnalyzerMessageFormat {
+        public static string SemanticModelAnalyzerMessageFormat {
             get {
                 return ResourceManager.GetString("SemanticModelAnalyzerMessageFormat", resourceCulture);
             }
@@ -217,7 +217,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Source file declaration diagnostics count.
         /// </summary>
-        internal static string SemanticModelAnalyzerTitle {
+        public static string SemanticModelAnalyzerTitle {
             get {
                 return ResourceManager.GetString("SemanticModelAnalyzerTitle", resourceCulture);
             }
@@ -226,7 +226,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Do not declare members with same name as containing type..
         /// </summary>
-        internal static string SymbolAnalyzerDescription {
+        public static string SymbolAnalyzerDescription {
             get {
                 return ResourceManager.GetString("SymbolAnalyzerDescription", resourceCulture);
             }
@@ -235,7 +235,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; has one or more members with the same name, considering renaming the type or the members..
         /// </summary>
-        internal static string SymbolAnalyzerMessageFormat {
+        public static string SymbolAnalyzerMessageFormat {
             get {
                 return ResourceManager.GetString("SymbolAnalyzerMessageFormat", resourceCulture);
             }
@@ -244,7 +244,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Do not declare members with same name as containing type.
         /// </summary>
-        internal static string SymbolAnalyzerTitle {
+        public static string SymbolAnalyzerTitle {
             get {
                 return ResourceManager.GetString("SymbolAnalyzerTitle", resourceCulture);
             }
@@ -253,7 +253,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Declare explicit type for local declarations..
         /// </summary>
-        internal static string SyntaxNodeAnalyzerDescription {
+        public static string SyntaxNodeAnalyzerDescription {
             get {
                 return ResourceManager.GetString("SyntaxNodeAnalyzerDescription", resourceCulture);
             }
@@ -262,7 +262,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Local &apos;{0}&apos; is implicitly typed. Consider specifying its type explicitly in the declaration..
         /// </summary>
-        internal static string SyntaxNodeAnalyzerMessageFormat {
+        public static string SyntaxNodeAnalyzerMessageFormat {
             get {
                 return ResourceManager.GetString("SyntaxNodeAnalyzerMessageFormat", resourceCulture);
             }
@@ -271,7 +271,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Declare explicit type for local declarations.
         /// </summary>
-        internal static string SyntaxNodeAnalyzerTitle {
+        public static string SyntaxNodeAnalyzerTitle {
             get {
                 return ResourceManager.GetString("SyntaxNodeAnalyzerTitle", resourceCulture);
             }
@@ -280,7 +280,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Do not suppress documentation comment diagnostics..
         /// </summary>
-        internal static string SyntaxTreeAnalyzerDescription {
+        public static string SyntaxTreeAnalyzerDescription {
             get {
                 return ResourceManager.GetString("SyntaxTreeAnalyzerDescription", resourceCulture);
             }
@@ -289,7 +289,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Enable documentation comment diagnostics on source file &apos;{0}&apos;..
         /// </summary>
-        internal static string SyntaxTreeAnalyzerMessageFormat {
+        public static string SyntaxTreeAnalyzerMessageFormat {
             get {
                 return ResourceManager.GetString("SyntaxTreeAnalyzerMessageFormat", resourceCulture);
             }
@@ -298,7 +298,7 @@ namespace CSharpAnalyzers {
         /// <summary>
         ///   Looks up a localized string similar to Do not suppress documentation comment diagnostics.
         /// </summary>
-        internal static string SyntaxTreeAnalyzerTitle {
+        public static string SyntaxTreeAnalyzerTitle {
             get {
                 return ResourceManager.GetString("SyntaxTreeAnalyzerTitle", resourceCulture);
             }
