@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
@@ -329,6 +330,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnSolutionAdded(Solution solution)
             {
+                // first make sure full solution analysis is on.
+                _optionService.SetOptions(solution.Workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, true));
+
                 var asyncToken = _listener.BeginAsyncOperation("OnSolutionAdded");
                 _eventProcessingQueue.ScheduleTask(() =>
                 {

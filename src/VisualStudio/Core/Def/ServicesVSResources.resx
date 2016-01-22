@@ -514,6 +514,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
     <value>Synchronizing with {0}...</value>
   </data>
   <data name="FullSolutionAnalysisOff" xml:space="preserve">
-    <value>Full solution analysis disabled due to low memory. go to tools-&gt;options and search "Enable full solution analysis" to turn it back on or restart VS to restore full solution analysis.</value>
+    <value>Low memory detected. Full solution analysis disabled for this solution.</value>
   </data>
 </root>
