@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# case or VB Case statement.
     /// </summary>
-    public interface ICase : IStatement
+    public interface ICase : IOperation
     {
         /// <summary>
         /// Clauses of the case. For C# there is one clause per case, but for VB there can be multiple.
