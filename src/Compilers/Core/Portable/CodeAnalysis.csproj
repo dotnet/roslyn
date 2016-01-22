@@ -97,7 +97,6 @@
     <Compile Include="CodeGen\ILBuilder.cs" />
     <Compile Include="CodeGen\ILBuilderConversions.cs" />
     <Compile Include="CodeGen\ILBuilderEmit.cs" />
-    <Compile Include="CodeGen\ILOpCode.cs" />
     <Compile Include="CodeGen\ILOpCodeExtensions.cs" />
     <Compile Include="CodeGen\ITokenDeferral.cs" />
     <Compile Include="CodeGen\LabelInfo.cs" />
