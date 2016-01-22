@@ -61,11 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class Collector : BoundTreeWalkerWithStackGuard
         {
-            private readonly List<IOperation> nodes;
+            private readonly List<IOperation> _nodes;
 
             public Collector(List<IOperation> nodes)
             {
-                this.nodes = nodes;
+                this._nodes = nodes;
             }
 
             public override BoundNode Visit(BoundNode node)
@@ -73,23 +73,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IOperation operation = node as IOperation;
                 if (operation != null)
                 {
-                    this.nodes.Add(operation);
-                    // Following operations are not bound node, therefore have to be added explicitly:
+                    this._nodes.Add(operation);
+                    // Certain child-operation of following operation kinds do not occur in bound nodes, 
+                    // and those child-operation nodes have to be added explicitly.
                     //  1. IArgument
                     //  2. IMemberInitializer
                     //  3. ICase
                     switch (operation.Kind)
                     {
                         case OperationKind.InvocationExpression:
-                            nodes.AddRange(((IInvocationExpression)operation).ArgumentsInSourceOrder);
+                            _nodes.AddRange(((IInvocationExpression)operation).ArgumentsInSourceOrder);
                             break;
                         case OperationKind.ObjectCreationExpression:
                             var objCreationExp = (IObjectCreationExpression)operation;
-                            nodes.AddRange(objCreationExp.ConstructorArguments);
-                            nodes.AddRange(objCreationExp.MemberInitializers);
+                            _nodes.AddRange(objCreationExp.ConstructorArguments);
+                            _nodes.AddRange(objCreationExp.MemberInitializers);
                             break;
                         case OperationKind.SwitchStatement:
-                            nodes.AddRange(((ISwitchStatement)operation).Cases);
+                            _nodes.AddRange(((ISwitchStatement)operation).Cases);
                             break;
                     }
                 }

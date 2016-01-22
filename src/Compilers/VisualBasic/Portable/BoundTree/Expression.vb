@@ -10,34 +10,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IOperationSearchable
 
         Public Function Descendants() As IEnumerable(Of IOperation) Implements IOperationSearchable.Descendants
-            Dim _list = New List(Of IOperation)
-            Dim collector = New Collector(_list)
+            Dim list = New List(Of IOperation)
+            Dim collector = New Collector(list)
             collector.Visit(Me)
-            _list.RemoveAt(0)
-            Return _list
+            list.RemoveAt(0)
+            Return list
         End Function
 
         Public Function DescendantsAndSelf() As IEnumerable(Of IOperation) Implements IOperationSearchable.DescendantsAndSelf
-            Dim _list = New List(Of IOperation)
-            Dim collector = New Collector(_list)
+            Dim list = New List(Of IOperation)
+            Dim collector = New Collector(list)
             collector.Visit(Me)
-            Return _list
+            Return list
         End Function
 
         Private Class Collector
             Inherits BoundTreeWalkerWithStackGuard
 
-            Private nodes As List(Of IOperation)
+            Private _nodes As List(Of IOperation)
 
             Public Sub New(nodes As List(Of IOperation))
-                Me.nodes = nodes
+                Me._nodes = nodes
             End Sub
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
                 Dim operation = TryCast(node, IOperation)
                 If operation IsNot Nothing Then
-                    Me.nodes.Add(operation)
-                    ' Following operations are not bound node, therefore have to be added explicitly:
+                    Me._nodes.Add(operation)
+                    ' Certain child-operation of following operation kinds do not occur in bound nodes, 
+                    ' and those child-operation nodes have to be added explicitly.
                     '   1. IArgument
                     '   2. IMemberInitializer
                     '   3. ICase
@@ -45,28 +46,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '   5. IEventAssignmentExpression
                     Select Case operation.Kind
                         Case OperationKind.InvocationExpression
-                            Me.nodes.AddRange(DirectCast(operation, IInvocationExpression).ArgumentsInSourceOrder)
+                            Me._nodes.AddRange(DirectCast(operation, IInvocationExpression).ArgumentsInSourceOrder)
                         Case OperationKind.ObjectCreationExpression
                             Dim objectCreationExpression = DirectCast(operation, IObjectCreationExpression)
-                            Me.nodes.AddRange(objectCreationExpression.ConstructorArguments)
-                            Me.nodes.AddRange(objectCreationExpression.MemberInitializers)
+                            Me._nodes.AddRange(objectCreationExpression.ConstructorArguments)
+                            Me._nodes.AddRange(objectCreationExpression.MemberInitializers)
                         Case OperationKind.SwitchStatement
                             Dim switchStatement = DirectCast(operation, ISwitchStatement)
                             For Each caseBlock In switchStatement.Cases
-                                Me.nodes.Add(caseBlock)
+                                Me._nodes.Add(caseBlock)
                                 ' "Case Else" clause needs to be added explicitly.
                                 Dim caseClauses = caseBlock.Clauses
                                 If caseClauses.IsSingle Then
                                     Dim caseClause = caseClauses(0)
                                     If caseClause.CaseKind = CaseKind.Default Then
-                                        Me.nodes.Add(caseClause)
+                                        Me._nodes.Add(caseClause)
                                     End If
                                 End If
                             Next
                         Case OperationKind.ExpressionStatement
                             Dim expression = DirectCast(operation, IExpressionStatement).Expression
                             If expression.Kind = OperationKind.EventAssignmentExpression Then
-                                Me.nodes.Add(expression)
+                                Me._nodes.Add(expression)
                             End If
                     End Select
                 End If
