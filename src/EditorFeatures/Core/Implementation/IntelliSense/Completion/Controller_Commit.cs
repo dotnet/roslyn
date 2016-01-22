@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // We could only be called if we had a model at this point.
             Contract.ThrowIfNull(model);
 
+            CompletionLog.Log($"Controller: commit{item}");
+
             item = Controller.GetExternallyUsableCompletionItem(item);
 
             // Now that we've captured the model at this point, we can stop ourselves entirely.  

@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return;
             }
 
+            CompletionLog.Log("CompletionPresenterSession: presenting items to editor");
+
             _completionSet.SetTrackingSpan(triggerSpan);
 
             _ignoreSelectionStatusChangedEvent = true;
@@ -152,6 +154,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // No editor session, nothing to do here.
                 return;
             }
+
+            CompletionLog.Log("CompletionPresenterSession: dismissing editor session");
 
             _editorSessionOpt.Dismiss();
             _editorSessionOpt = null;

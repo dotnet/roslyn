@@ -1,1 +1,3 @@
-
+Microsoft.CodeAnalysis.Completion.CompletionLog
+static Microsoft.CodeAnalysis.Completion.CompletionLog.GetLog() -> string
+static Microsoft.CodeAnalysis.Completion.CompletionLog.Log(string entry) -> void
