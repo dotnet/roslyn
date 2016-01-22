@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -26,6 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Global namespace usings.
         /// </summary>
         public ImmutableArray<string> Usings { get; private set; }
+
+        /// <summary>
+        /// Flags applied to the top-level binder created for each syntax tree in the compilation 
+        /// as well as for the binder of global imports.
+        /// </summary>
+        internal BinderFlags TopLevelBinderFlags { get; private set; }
 
         // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
         // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
@@ -68,7 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    assemblyIdentityComparer: assemblyIdentityComparer,
                    strongNameProvider: strongNameProvider,
                    metadataImportOptions: MetadataImportOptions.Public,
-                   publicSign: publicSign)
+                   publicSign: publicSign,
+                   topLevelBinderFlags: BinderFlags.None)
         {
         }
 
@@ -101,7 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
             MetadataImportOptions metadataImportOptions,
-            bool publicSign)
+            bool publicSign,
+            BinderFlags topLevelBinderFlags)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
@@ -111,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Usings = usings.AsImmutableOrEmpty();
             this.AllowUnsafe = allowUnsafe;
+            this.TopLevelBinderFlags = topLevelBinderFlags;
         }
 
         private CSharpCompilationOptions(CSharpCompilationOptions other) : this(
@@ -141,8 +151,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             strongNameProvider: other.StrongNameProvider,
             metadataImportOptions: other.MetadataImportOptions,
             reportSuppressedDiagnostics: other.ReportSuppressedDiagnostics,
-            publicSign: other.PublicSign)
+            publicSign: other.PublicSign,
+            topLevelBinderFlags: other.TopLevelBinderFlags)
         {
+        }
+
+        internal CSharpCompilationOptions WithTopLevelBinderFlags(BinderFlags flags)
+        {
+            return (flags == TopLevelBinderFlags) ? this : new CSharpCompilationOptions(this) { TopLevelBinderFlags = flags };
         }
 
         internal override ImmutableArray<string> GetImports() => Usings;
@@ -585,6 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return this.AllowUnsafe == other.AllowUnsafe &&
+                   this.TopLevelBinderFlags == other.TopLevelBinderFlags &&
                    (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal));
         }
 
@@ -597,7 +614,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Hash.Combine(base.GetHashCodeHelper(),
                    Hash.Combine(this.AllowUnsafe,
-                   Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal), 0)));
+                   Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal),
+                   Hash.Combine(TopLevelBinderFlags.GetHashCode(), 0))));
         }
 
         internal override Diagnostic FilterDiagnostic(Diagnostic diagnostic)
@@ -606,6 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public CSharpCompilationOptions(
             OutputKind outputKind,
             string moduleName,
@@ -645,6 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         // 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public CSharpCompilationOptions(
             OutputKind outputKind,
             string moduleName,
@@ -685,6 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Bad constructor -- DO NOT USE
         // Violates the rules for optional parameter overloads detailed at
         // https://github.com/dotnet/roslyn/blob/e8fdb391703dcb5712ff6a5b83d768d784cba4cf/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public CSharpCompilationOptions(
             OutputKind outputKind,
             bool reportSuppressedDiagnostics,
@@ -723,7 +744,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    assemblyIdentityComparer: assemblyIdentityComparer,
                    strongNameProvider: strongNameProvider,
                    metadataImportOptions: MetadataImportOptions.Public,
-                   publicSign: false)
+                   publicSign: false,
+                   topLevelBinderFlags: BinderFlags.None)
         {
         }
     }

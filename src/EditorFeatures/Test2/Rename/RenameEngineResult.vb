@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Sub
 
         Public Shared Function Create(workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
-            Dim workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
 
             Dim engineResult As RenameEngineResult = Nothing
             Try

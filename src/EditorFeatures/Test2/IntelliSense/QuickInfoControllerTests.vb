@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         ' Create an empty document to use as a non-null parameter when needed
         Private Shared ReadOnly s_document As Document =
             (Function()
-                 Dim workspace = TestWorkspaceFactory.CreateWorkspace(
+                 Dim workspace = TestWorkspace.CreateWorkspace(
                      <Workspace>
                          <Project Language="C#">
                              <Document>

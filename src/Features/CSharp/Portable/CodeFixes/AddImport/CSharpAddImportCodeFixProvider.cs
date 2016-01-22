@@ -647,8 +647,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             var semanticInfo = semanticModel.GetTypeInfo(leftExpression, cancellationToken);
             var leftExpressionType = semanticInfo.Type;
-
-            return leftExpressionType != null && method.ReduceExtensionMethod(leftExpressionType) != null;
+            
+            return IsViableExtensionMethod(method, leftExpressionType);
         }
 
         internal override bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)

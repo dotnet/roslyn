@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
 
         <HandleProcessCorruptedStateExceptions()>
         Friend Async Function CreateLibraryManagerAsync(definition As XElement) As Threading.Tasks.Task(Of TestState)
-            Dim workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+            Dim workspace = Await TestWorkspace.CreateAsync(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
             Dim result As TestState = Nothing
 
             Try

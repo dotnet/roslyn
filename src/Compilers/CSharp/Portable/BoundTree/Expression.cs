@@ -64,6 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operation != null)
                 {
                     this.nodes.Add(operation);
+                    // Following operations are not bound node, therefore have to be added explicitly:
+                    //  1. IArgument
+                    //  2. IMemberInitializer
+                    //  3. ICase
                     switch (operation.Kind)
                     {
                         case OperationKind.InvocationExpression:
@@ -73,6 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var objCreationExp = (IObjectCreationExpression)operation;
                             nodes.AddRange(objCreationExp.ConstructorArguments);
                             nodes.AddRange(objCreationExp.MemberInitializers);
+                            break;
+                        case OperationKind.SwitchStatement:
+                            nodes.AddRange(((ISwitchStatement)operation).Cases);
                             break;
                     }
                 }
