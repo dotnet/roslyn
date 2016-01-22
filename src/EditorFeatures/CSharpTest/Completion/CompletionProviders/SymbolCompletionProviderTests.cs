@@ -6306,7 +6306,7 @@ class Program
 
             var description = $@"({CSharpFeaturesResources.Awaitable}) Task Program.foo()
 {WorkspacesResources.Usage}
-  {CSharpFeaturesResources.Await} foo();";
+  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} foo();";
 
             await VerifyItemWithMscorlib45Async(markup, "foo", description, "C#");
         }
@@ -6327,7 +6327,7 @@ class Program
 
             var description = $@"({CSharpFeaturesResources.Awaitable}) Task<int> Program.foo()
 {WorkspacesResources.Usage}
-  int x = {CSharpFeaturesResources.Await} foo();";
+  int x = {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} foo();";
 
             await VerifyItemWithMscorlib45Async(markup, "foo", description, "C#");
         }
