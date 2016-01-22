@@ -104,6 +104,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void NotifyEditors(NormalizedSnapshotSpanCollection changes, TaggerDelay delay)
             {
+                _tagSource.AssertIsForeground();
+
+                if (changes.Count == 0)
+                {
+                    // nothing to do.
+                    return;
+                }
+
                 if (delay == TaggerDelay.NearImmediate)
                 {
                     // if delay is immediate, we let notifier knows about the change right away

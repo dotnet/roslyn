@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RecalculateTagsOnChanged(new TaggerEventArgs(TaggerDelay.Short));
             }
 
-            public TaggerDelay NewTagsNotificationDelay => _dataSource.NewTagsNotificationDelay;
-            public TaggerDelay OldTagNotificationDelay => _dataSource.OldTagNotificationDelay;
+            public TaggerDelay NewTagsNotificationDelay => _dataSource.AddedTagNotificationDelay;
+            public TaggerDelay OldTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
 
             private ITaggerEventSource CreateEventSource()
             {
@@ -302,13 +302,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private static DiffResult Difference<T>(IEnumerable<ITagSpan<T>> latestSpans, IEnumerable<ITagSpan<T>> previousSpans, IEqualityComparer<T> comparer)
                 where T : ITag
             {
-                List<SnapshotSpan> added = null;
-                List<SnapshotSpan> removed = null;
-
-                var latestEnumerator = latestSpans.GetEnumerator();
-                var previousEnumerator = previousSpans.GetEnumerator();
-                try
+                using (var addedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject())
+                using (var removedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject())
+                using (var latestEnumerator = latestSpans.GetEnumerator())
+                using (var previousEnumerator = previousSpans.GetEnumerator())
                 {
+                    var added = addedPool.Object;
+                    var removed = removedPool.Object;
+
                     var latest = NextOrDefault(latestEnumerator);
                     var previous = NextOrDefault(previousEnumerator);
 
@@ -319,12 +320,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                         if (latestSpan.Start < previousSpan.Start)
                         {
-                            AddToList(ref added, latestSpan);
+                            added.Add(latestSpan);
                             latest = NextOrDefault(latestEnumerator);
                         }
                         else if (previousSpan.Start < latestSpan.Start)
                         {
-                            AddToList(ref removed, previousSpan);
+                            removed.Add(previousSpan);
                             previous = NextOrDefault(previousEnumerator);
                         }
                         else
@@ -333,19 +334,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                             // region to be conservative.
                             if (previousSpan.End > latestSpan.End)
                             {
-                                AddToList(ref removed, previousSpan);
+                                removed.Add(previousSpan);
                                 latest = NextOrDefault(latestEnumerator);
                             }
                             else if (latestSpan.End > previousSpan.End)
                             {
-                                AddToList(ref added, latestSpan);
+                                added.Add(latestSpan);
                                 previous = NextOrDefault(previousEnumerator);
                             }
                             else
                             {
                                 if (!comparer.Equals(latest.Tag, previous.Tag))
                                 {
-                                    AddToList(ref added, latestSpan);
+                                    added.Add(latestSpan);
                                 }
 
                                 latest = NextOrDefault(latestEnumerator);
@@ -356,29 +357,18 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     while (latest != null)
                     {
-                        AddToList(ref added, latest.Span);
+                        added.Add(latest.Span);
                         latest = NextOrDefault(latestEnumerator);
                     }
 
                     while (previous != null)
                     {
-                        AddToList(ref removed, previous.Span);
+                        removed.Add(previous.Span);
                         previous = NextOrDefault(previousEnumerator);
                     }
-                }
-                finally
-                {
-                    latestEnumerator.Dispose();
-                    previousEnumerator.Dispose();
-                }
 
-                return new DiffResult(added, removed);
-            }
-
-            private static void AddToList<T>(ref List<T> list, T item)
-            {
-                list = list ?? new List<T>();
-                list.Add(item);
+                    return new DiffResult(added, removed);
+                }
             }
         }
     }

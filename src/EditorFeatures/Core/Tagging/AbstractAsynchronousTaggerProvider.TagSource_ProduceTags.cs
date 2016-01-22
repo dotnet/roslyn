@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 var snapshot = _subjectBuffer.CurrentSnapshot;
                 var oldTagTree = GetTagTree(snapshot, oldTagTrees);
-                
+
                 // everything from old tree is removed.
                 RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: oldTagTree.GetSpans(snapshot).Select(s => s.Span)));
             }
@@ -189,8 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 var snapshot = e.After;
 
-                var oldTagTrees = this.CachedTagTrees;
-                this.CachedTagTrees = oldTagTrees.SetItem(snapshot.TextBuffer, newTagTree);
+                this.CachedTagTrees = this.CachedTagTrees.SetItem(snapshot.TextBuffer, newTagTree);
 
                 // Not sure why we are diffing when we already have tagsToRemove. is it due to _tagSpanComparer might return
                 // different result than GetIntersectingSpans?

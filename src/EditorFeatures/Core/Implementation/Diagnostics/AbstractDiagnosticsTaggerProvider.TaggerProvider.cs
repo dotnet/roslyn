@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             // we will show new tags to users very slowly. 
             // don't confused this with data changed event which is for tag producer (which is set to NearImmediate).
             // this delay is for letting editor know about newly added tags.
-            protected override TaggerDelay NewTagsNotificationDelay => TaggerDelay.OnIdle;
+            protected override TaggerDelay AddedTagNotificationDelay => TaggerDelay.OnIdle;
 
             protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
             {

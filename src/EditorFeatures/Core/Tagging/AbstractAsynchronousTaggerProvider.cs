@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <summary>
         /// This controls what delay tagger will use to let editor know about newly inserted tags
         /// </summary>
-        protected virtual TaggerDelay NewTagsNotificationDelay => TaggerDelay.NearImmediate;
+        protected virtual TaggerDelay AddedTagNotificationDelay => TaggerDelay.NearImmediate;
 
         /// <summary>
         /// This controls what delay tagger will use to let editor know about just deleted tags.
         /// </summary>
-        protected virtual TaggerDelay OldTagNotificationDelay => TaggerDelay.NearImmediate;
+        protected virtual TaggerDelay RemovedTagNotificationDelay => TaggerDelay.NearImmediate;
 
 #if DEBUG
         public readonly string StackTrace;
@@ -227,6 +227,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             public NormalizedSnapshotSpanCollection Added { get; }
             public NormalizedSnapshotSpanCollection Removed { get; }
+
+            public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed) :
+                this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)removed)
+            {
+            }
 
             public DiffResult(IEnumerable<SnapshotSpan> added, IEnumerable<SnapshotSpan> removed)
             {
