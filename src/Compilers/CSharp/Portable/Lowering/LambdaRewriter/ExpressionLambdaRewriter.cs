@@ -202,7 +202,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DelegateCreationExpression:
                     return VisitDelegateCreationExpression((BoundDelegateCreationExpression)node);
                 case BoundKind.FieldAccess:
-                    return VisitFieldAccess((BoundFieldAccess)node);
+                    var fieldAccess = (BoundFieldAccess)node;
+                    if (fieldAccess.FieldSymbol.IsCapturedFrame)
+                    {
+                        return Constant(fieldAccess);
+                    }
+                    return VisitFieldAccess(fieldAccess);
                 case BoundKind.IsOperator:
                     return VisitIsOperator((BoundIsOperator)node);
                 case BoundKind.Lambda:
@@ -310,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(index);
             }
 
-            return _bound.Array(ExpressionType, builder.ToImmutableAndFree());
+            return _bound.ArrayOrEmpty(ExpressionType, builder.ToImmutableAndFree());
         }
 
         private BoundExpression Expressions(ImmutableArray<BoundExpression> expressions)
@@ -321,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(Visit(arg));
             }
 
-            return _bound.Array(ExpressionType, builder.ToImmutableAndFree());
+            return _bound.ArrayOrEmpty(ExpressionType, builder.ToImmutableAndFree());
         }
 
         private BoundExpression VisitArrayCreation(BoundArrayCreation node)
@@ -754,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     "Lambda",
                     ImmutableArray.Create<TypeSymbol>(underlyingDelegateType),
                     TranslateLambdaBody(node.Body),
-                    _bound.Array(ParameterExpressionType, parameters.ToImmutableAndFree())));
+                    _bound.ArrayOrEmpty(ParameterExpressionType, parameters.ToImmutableAndFree())));
 
             foreach (var p in node.Symbol.Parameters)
             {
@@ -800,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExprFactory(
                     "Lambda",
                     convertedValue,
-                    _bound.Array(ParameterExpressionType, ImmutableArray.Create<BoundExpression>(parameterReference))));
+                    _bound.ArrayOrEmpty(ParameterExpressionType, ImmutableArray.Create<BoundExpression>(parameterReference))));
             return result;
         }
 
@@ -879,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         kind = InitializerKind.MemberInitializer;
-                        return _bound.Array(MemberBindingType, builder.ToImmutableAndFree());
+                        return _bound.ArrayOrEmpty(MemberBindingType, builder.ToImmutableAndFree());
                     }
 
                 case BoundKind.CollectionInitializerExpression:
@@ -898,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             builder.Add(elementInit);
                         }
 
-                        return _bound.Array(ElementInitType, builder.ToImmutableAndFree());
+                        return _bound.ArrayOrEmpty(ElementInitType, builder.ToImmutableAndFree());
                     }
 
                 default:
@@ -957,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     membersBuilder.Add(_bound.MethodInfo(AnonymousTypeManager.GetAnonymousTypeProperty(anonType, i).GetMethod));
                 }
 
-                return ExprFactory("New", ctor, args, _bound.Array(MemberInfoType, membersBuilder.ToImmutableAndFree()));
+                return ExprFactory("New", ctor, args, _bound.ArrayOrEmpty(MemberInfoType, membersBuilder.ToImmutableAndFree()));
             }
             else
             {

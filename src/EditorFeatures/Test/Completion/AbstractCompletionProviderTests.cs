@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             base.Dispose();
         }
 
-        protected static bool CanUseSpeculativeSemanticModel(Document document, int position)
+        protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
             var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var node = document.GetSyntaxRootAsync().Result.FindToken(position).Parent;
+            var node = (await document.GetSyntaxRootAsync()).FindToken(position).Parent;
 
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var document1 = await WorkspaceFixture.UpdateDocumentAsync(code, sourceCodeKind);
             await CheckResultsAsync(document1, position, expectedItemOrNull, expectedDescriptionOrNull, usePreviousCharAsTrigger, checkForAbsence, expectedGlyph);
 
-            if (CanUseSpeculativeSemanticModel(document1, position))
+            if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
                 var document2 = await WorkspaceFixture.UpdateDocumentAsync(code, sourceCodeKind, cleanBeforeUpdate: false);
                 await CheckResultsAsync(document2, position, expectedItemOrNull, expectedDescriptionOrNull, usePreviousCharAsTrigger, checkForAbsence, expectedGlyph);
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var document1 = await WorkspaceFixture.UpdateDocumentAsync(codeBeforeCommit, sourceCodeKind);
             await VerifyCustomCommitProviderCheckResultsAsync(document1, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
 
-            if (CanUseSpeculativeSemanticModel(document1, position))
+            if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
                 var document2 = await WorkspaceFixture.UpdateDocumentAsync(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
                 await VerifyCustomCommitProviderCheckResultsAsync(document2, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var document1 = await WorkspaceFixture.UpdateDocumentAsync(codeBeforeCommit, sourceCodeKind);
             await VerifyProviderCommitCheckResultsAsync(document1, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
 
-            if (CanUseSpeculativeSemanticModel(document1, position))
+            if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
                 var document2 = await WorkspaceFixture.UpdateDocumentAsync(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
                 await VerifyProviderCommitCheckResultsAsync(document2, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);

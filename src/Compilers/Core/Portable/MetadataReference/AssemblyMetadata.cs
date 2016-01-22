@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
 
         // creates a copy
         private AssemblyMetadata(AssemblyMetadata other)
-            : base(isImageOwner: false)
+            : base(isImageOwner: false, id: other.Id)
         {
             this.CachedSymbols = other.CachedSymbols;
             _lazyData = other._lazyData;
@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal AssemblyMetadata(ImmutableArray<ModuleMetadata> modules)
-            : base(isImageOwner: true)
+            : base(isImageOwner: true, id: new MetadataId())
         {
             Debug.Assert(!modules.IsDefaultOrEmpty);
             _initialModules = modules;
         }
 
         internal AssemblyMetadata(ModuleMetadata manifestModule, Func<string, ModuleMetadata> moduleFactory)
-            : base(isImageOwner: true)
+            : base(isImageOwner: true, id: new MetadataId())
         {
             Debug.Assert(manifestModule != null);
             Debug.Assert(moduleFactory != null);

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 {
     public abstract class AbstractAutomaticLineEnderTests
     {
-        protected abstract Task<TestWorkspace> CreateWorkspaceAsync(string[] code);
+        protected abstract Task<TestWorkspace> CreateWorkspaceAsync(string code);
         protected abstract Action CreateNextHandler(TestWorkspace workspace);
 
         internal abstract ICommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         protected async Task TestAsync(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
         {
-            using (var workspace = await CreateWorkspaceAsync(new string[] { code }))
+            using (var workspace = await CreateWorkspaceAsync(code))
             {
                 var view = workspace.Documents.Single().GetTextView();
                 var buffer = workspace.Documents.Single().GetTextBuffer();

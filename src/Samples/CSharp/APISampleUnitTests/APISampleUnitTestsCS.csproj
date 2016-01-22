@@ -14,26 +14,26 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <Reference Include="Microsoft.CodeAnalysis">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Workspaces">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Workspaces.Desktop">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp.Workspaces">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.CSharp.Workspaces.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>Microsoft.CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
+      <Name>Microsoft.CodeAnalysis.CSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
+      <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
+      <Name>Microsoft.CodeAnalysis.Workspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
+      <Project>{2E87FA96-50BB-4607-8676-46521599F998}</Project>
+      <Name>Microsoft.CodeAnalysis.Workspaces.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
+      <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
+      <Name>Microsoft.CodeAnalysis.CSharp.Workspaces</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <NonShipping>true</NonShipping>
@@ -51,9 +51,6 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>

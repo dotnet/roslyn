@@ -164,7 +164,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal DkmEvaluationResult FormatResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, bool[] declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
         {
-            DkmEvaluationResult evaluationResult = null;
+            var asyncResult = FormatAsyncResult(name, fullName, value, declaredType, declaredTypeInfo, inspectionContext);
+            var exception = asyncResult.Exception;
+            if (exception != null)
+            {
+                ExceptionDispatchInfo.Capture(exception).Throw();
+            }
+            return asyncResult.Result;
+        }
+
+        internal DkmEvaluationAsyncResult FormatAsyncResult(string name, string fullName, DkmClrValue value, DkmClrType declaredType = null, bool[] declaredTypeInfo = null, DkmInspectionContext inspectionContext = null)
+        {
+            DkmEvaluationAsyncResult asyncResult = default(DkmEvaluationAsyncResult);
             var workList = new DkmWorkList();
             value.GetResult(
                 workList,
@@ -174,9 +185,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 FormatSpecifiers: Formatter.NoFormatSpecifiers,
                 ResultName: name,
                 ResultFullName: fullName,
-                CompletionRoutine: asyncResult => evaluationResult = asyncResult.Result);
+                CompletionRoutine: r => asyncResult = r);
             workList.Execute();
-            return evaluationResult;
+            return asyncResult;
         }
 
         internal DkmEvaluationResult[] GetChildren(DkmEvaluationResult evalResult, DkmInspectionContext inspectionContext = null)

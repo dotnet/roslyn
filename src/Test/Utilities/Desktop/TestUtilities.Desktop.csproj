@@ -124,7 +124,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>TestResource.resx</DependentUpon>
     </Compile>
-    <Compile Include="TraceListener.cs" />
+    <Compile Include="ThrowingTraceListener.cs" />
     <Compile Include="Traits.cs" />
     <Compile Include="Win32Res.cs" />
   </ItemGroup>
@@ -170,7 +170,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\App.config" />
+    <None Include="..\app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\Shared\TestUtilities.projitems" Label="Shared" />

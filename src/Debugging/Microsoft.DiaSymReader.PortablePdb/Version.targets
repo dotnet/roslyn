@@ -1,7 +1,26 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <RoslynSemanticVersion>1.0.0</RoslynSemanticVersion>
-    <NuGetVersion>$(RoslynSemanticVersion)-beta1</NuGetVersion>
-    <NuGetVersionType>PreRelease</NuGetVersionType>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <NuGetVersion>$(AssemblyVersion)-beta1</NuGetVersion>
   </PropertyGroup>
+
+  <!-- AssemblyFileVersion -->
+  <Choose>
+    <When Condition="'$(BuildNumber)' != ''">
+      <!-- Lab build. -->
+      <PropertyGroup>
+        <BuildVersion>$(AssemblyVersion).$(BuildNumber.Split('.')[0])</BuildVersion>
+        <NuGetVersion>$(NuGetVersion)-$(BuildNumber.Split('.')[0])</NuGetVersion>
+        <NuGetVersionType>PerBuildPreRelease</NuGetVersionType>
+      </PropertyGroup>
+    </When>
+
+    <Otherwise>
+      <!-- Local build. -->
+      <PropertyGroup>
+        <BuildVersion>$(AssemblyVersion).0</BuildVersion>
+        <NuGetVersionType>PreRelease</NuGetVersionType>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 </Project>

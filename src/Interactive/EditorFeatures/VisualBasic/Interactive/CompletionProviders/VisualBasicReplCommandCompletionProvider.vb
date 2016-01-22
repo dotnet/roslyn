@@ -32,8 +32,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             Return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
 
-        Protected Overrides Function ShouldDisplayCommandCompletions(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
-            Return tree.IsBeforeFirstToken(position, cancellationToken) AndAlso tree.IsPreProcessorKeywordContext(position, cancellationToken)
+        Protected Overrides Async Function ShouldDisplayCommandCompletionsAsync(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Task(Of Boolean)
+            Return Await tree.IsBeforeFirstTokenAsync(position, cancellationToken).ConfigureAwait(False) AndAlso
+                tree.IsPreProcessorKeywordContext(position, cancellationToken)
         End Function
     End Class
 

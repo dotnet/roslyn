@@ -104,7 +104,7 @@ public class Bar
         public async Task GetStartPoint_Attributes()
         {
             CodeClass testObject = await GetCodeClassAsync("Bar");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -136,7 +136,7 @@ public class Bar
         public async Task GetStartPoint_BodyWithDelimiter()
         {
             CodeClass testObject = await GetCodeClassAsync("Bar");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -156,7 +156,7 @@ public class Bar
         public async Task GetStartPoint_HeaderWithAttributes()
         {
             CodeClass testObject = await GetCodeClassAsync("Bar");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -164,7 +164,7 @@ public class Bar
         public async Task GetStartPoint_Name()
         {
             CodeClass testObject = await GetCodeClassAsync("Bar");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -184,7 +184,7 @@ public class Bar
         public async Task GetStartPoint_Whole()
         {
             CodeClass testObject = await GetCodeClassAsync("Bar");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -204,7 +204,7 @@ public class Bar
         public async Task GetEndPoint_Attributes()
         {
             CodeClass testObject = await GetCodeClassAsync("Bar");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -236,7 +236,7 @@ public class Bar
         public async Task GetEndPoint_BodyWithDelimiter()
         {
             CodeClass testObject = await GetCodeClassAsync("Bar");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -245,7 +245,7 @@ public class Bar
         {
             CodeClass testObject = await GetCodeClassAsync("Bar");
 
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -253,7 +253,7 @@ public class Bar
         public async Task GetEndPoint_HeaderWithAttributes()
         {
             CodeClass testObject = await GetCodeClassAsync("Bar");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -261,7 +261,7 @@ public class Bar
         public async Task GetEndPoint_Name()
         {
             CodeClass testObject = await GetCodeClassAsync("Bar");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -281,7 +281,7 @@ public class Bar
         public async Task GetEndPoint_Whole()
         {
             CodeClass testObject = await GetCodeClassAsync("Bar");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]

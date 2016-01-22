@@ -1606,17 +1606,14 @@ class C
                 Dim projectionBufferFactory = state.GetExportedValue(Of IProjectionBufferFactoryService)()
                 Dim projection = projectionBufferFactory.CreateProjectionBuffer(Nothing, New Object() {otherExposedSpan, subjectBufferExposedSpan}.ToList(), ProjectionBufferOptions.None)
 
-                Dim view = textViewFactory.CreateTextView(projection)
-                Try
-                    view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, 0))
+                Using disposableView As DisposableTextView = textViewFactory.CreateDisposableTextView(projection)
+                    disposableView.TextView.Caret.MoveTo(New SnapshotPoint(disposableView.TextView.TextBuffer.CurrentSnapshot, 0))
 
-                    Dim editorOperations = editorOperationsFactory.GetEditorOperations(view)
-                    state.CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, state.SubjectBuffer), Sub() editorOperations.Delete())
+                    Dim editorOperations = editorOperationsFactory.GetEditorOperations(disposableView.TextView)
+                    state.CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(disposableView.TextView, state.SubjectBuffer), Sub() editorOperations.Delete())
 
                     Await state.AssertNoCompletionSession()
-                Finally
-                    view.Close()
-                End Try
+                End Using
             End Using
         End Function
 

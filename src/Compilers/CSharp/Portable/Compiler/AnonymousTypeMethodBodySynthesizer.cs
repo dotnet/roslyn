@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     //  Generate expression for return statement
                     //      retExpression <= System.String.Format(args)
                     var formatMethod = manager.System_String__Format_IFormatProvider;
-                    retExpression = F.StaticCall(manager.System_String, formatMethod, F.Null(formatMethod.Parameters[0].Type.TypeSymbol), format, F.Array(manager.System_Object, arguments));
+                    retExpression = F.StaticCall(manager.System_String, formatMethod, F.Null(formatMethod.Parameters[0].Type.TypeSymbol), format, F.ArrayOrEmpty(manager.System_Object, arguments));
                 }
                 else
                 {

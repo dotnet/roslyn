@@ -87,10 +87,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         // This is the string used to represent the FilePath property on a SyntaxTree object.
-        // if the document does not yet have a file path, use the document's name instead.
+        // if the document does not yet have a file path, use the document's name instead in regular code
+        // or an empty string in script code.
         private static string GetSyntaxTreeFilePath(DocumentInfo info)
         {
-            return info.FilePath ?? info.Name;
+            if (info.FilePath != null)
+            {
+                return info.FilePath;
+            }
+            return info.SourceCodeKind == SourceCodeKind.Regular
+                ? info.Name
+                : "";
         }
 
         private static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(

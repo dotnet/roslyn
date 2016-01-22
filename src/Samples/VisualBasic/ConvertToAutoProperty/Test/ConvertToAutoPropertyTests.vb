@@ -1,10 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports ConvertToAutoPropertyVB
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.UnitTestFramework
 Imports Xunit
 

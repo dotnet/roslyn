@@ -354,9 +354,9 @@ namespace Microsoft.CodeAnalysis
             return _solution.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken);
         }
 
-        internal Task<IEnumerable<Document>> GetDocumentsWithName(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        internal Task<IEnumerable<Document>> GetDocumentsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            return _solution.GetDocumentsWithName(Id, predicate, filter, cancellationToken);
+            return _solution.GetDocumentsWithNameAsync(Id, predicate, filter, cancellationToken);
         }
 
         private static readonly Func<DocumentId, Project, Document> s_createDocumentFunction = CreateDocument;

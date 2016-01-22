@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
 
             ' speculative semantic model
             Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
-            If CanUseSpeculativeSemanticModel(document, position) Then
+            If Await CanUseSpeculativeSemanticModelAsync(document, position) Then
                 Dim buffer = workspace.Documents.Single().TextBuffer
                 Using edit = buffer.CreateEdit()
                     edit.Replace(0, buffer.CurrentSnapshot.Length, buffer.CurrentSnapshot.GetText())
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, code, position)
 
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync({code}, Nothing, metadataReferences)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code, Nothing, metadataReferences:=metadataReferences)
                 Await TestSharedAsync(workspace, position, expectedResults)
             End Using
         End Function
@@ -1441,6 +1441,23 @@ End Class
 
             Await TestFromXmlAsync(markup,
                  MainDescription(description), Usage(doc))
+        End Function
+
+        <WorkItem(7100, "https://github.com/dotnet/roslyn/issues/7100")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestObjectWithOptionStrictOffIsntAwaitable() As Task
+            Dim markup = "
+Option Strict Off
+Class C
+    Function D() As Object
+        Return Nothing
+    End Function
+    Sub M()
+        D$$()
+    End Sub
+End Class
+"
+            Await TestAsync(markup, MainDescription("Function C.D() As Object"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>

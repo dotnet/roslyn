@@ -6,6 +6,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using Roslyn.Utilities;
 
 namespace Microsoft.DiaSymReader.PortablePdb
 {
@@ -14,7 +15,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
     // ISymUnmanagedSourceServerModule?
 
     [ComVisible(false)]
-    public sealed class SymReader : ISymUnmanagedReader3, ISymUnmanagedDispose
+    public sealed class SymReader : ISymUnmanagedReader4, ISymUnmanagedDispose
     {
         private readonly PortablePdbReader _pdbReader;
         private readonly Lazy<DocumentMap> _lazyDocumentMap;
@@ -24,7 +25,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         private int _version;
 
         // Takes ownership of <paramref name="pdbReader"/>.
-        internal SymReader(PortablePdbReader pdbReader)
+        private SymReader(PortablePdbReader pdbReader)
         {
             Debug.Assert(pdbReader != null);
 
@@ -34,6 +35,31 @@ namespace Microsoft.DiaSymReader.PortablePdb
             _lazyDocumentMap = new Lazy<DocumentMap>(() => new DocumentMap(MetadataReader));
             _lazyVbSemantics = new Lazy<bool>(() => IsVisualBasicAssembly());
             _lazyMethodMap = new Lazy<MethodMap>(() => new MethodMap(MetadataReader));
+        }
+
+        internal static SymReader CreateFromFile(string path, LazyMetadataImport metadataImport)
+        {
+            byte[] bytes;
+            try
+            {
+                // TODO: use memory mapped files?
+                bytes = PortableShim.File.ReadAllBytes(path);
+            }
+            catch
+            {
+                return null;
+            }
+
+            return new SymReader(new PortablePdbReader(bytes, bytes.Length, metadataImport));
+        }
+
+        internal static ISymUnmanagedReader CreateFromStream(IStream stream, LazyMetadataImport metadataImport)
+        {
+            byte[] bytes;
+            int size;
+            stream.ReadAllBytes(out bytes, out size);
+            
+            return new SymReader(new PortablePdbReader(bytes, size, metadataImport));
         }
 
         internal MetadataReader MetadataReader => _pdbReader.MetadataReader;
@@ -471,6 +497,62 @@ namespace Microsoft.DiaSymReader.PortablePdb
         {
             // TODO:
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Checkes whether the id stored in the PDB matches the PDB ID stored in the PE/COFF Debug Directory.
+        /// </summary>
+        [PreserveSig]
+        public int MatchesModule(Guid guid, uint stamp, int age, [MarshalAs(UnmanagedType.Bool)]out bool result)
+        {
+            result = _pdbReader.MatchesModule(guid, stamp, age);
+            return HResult.S_OK;
+        }
+
+        /// <summary>
+        /// Returns a pointer to Portable Debug Metadata. Only available for Portable PDBs.
+        /// </summary>
+        /// <param name="metadata">
+        /// A pointer to memory where Portable Debug Metadata start. The memory is owned by the SymReader and 
+        /// valid until <see cref="ISymUnmanagedDispose.Destroy"/> is invoked. 
+        /// 
+        /// Null if the PDB is not portable.
+        /// </param>
+        /// <param name="size">Size of the metadata block.</param>
+        [PreserveSig]
+        public unsafe int GetPortableDebugMetadata(out byte* metadata, out int size)
+        {
+            try
+            {
+                metadata = (byte*)_pdbReader.ImagePtr;
+            }
+            catch (InvalidOperationException)
+            {
+                metadata = null;
+                size = 0;
+                return HResult.E_UNEXPECTED;
+            }
+
+            size = _pdbReader.ImageSize;
+            return HResult.S_OK;
+        }
+
+        /// <summary>
+        /// Returns a pointer to Source Server data stored in the PDB.
+        /// </summary>
+        /// <param name="data">
+        /// A pointer to memory where Source Server data start. The memory is owned by the SymReader and 
+        /// valid until <see cref="ISymUnmanagedDispose.Destroy"/> is invoked. 
+        /// 
+        /// Null if the PDB doesn't contain Source Server data.
+        /// </param>
+        /// <param name="size">Size of the data in bytes.</param>
+        [PreserveSig]
+        public unsafe int GetSourceServerData(out byte* data, out int size)
+        {
+            data = null;
+            size = 0;
+            return HResult.S_OK;
         }
     }
 }

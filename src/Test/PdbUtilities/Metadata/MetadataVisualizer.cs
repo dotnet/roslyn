@@ -138,7 +138,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             // debug tables:
             WriteDocument();
-            WriteMethodBody();
+            WriteMethodDebugInformation();
             WriteLocalScope();
             WriteLocalVariable();
             WriteLocalConstant();
@@ -331,12 +331,12 @@ namespace Roslyn.Test.MetadataUtilities
             return Literal(handle, BlobKind.None, (r, h) => "{" + r.GetGuid((GuidHandle)h) + "}");
         }
 
-        private static Guid CSharpGuid = new Guid("3f5162f8-07c6-11d3-9053-00c04fa302a1");
-        private static Guid VisualBasicGuid = new Guid("3a12d0b8-c26c-11d0-b442-00a0244a1dd2");
-        private static Guid FSharpGuid = new Guid("ab4f38c9-b6e6-43ba-be3b-58080b2ccce3");
-        private static Guid Sha1Guid = new Guid("ff1816ec-aa5e-4d10-87f7-6f4963833460");
-        private static Guid Sha256Guid = new Guid("8829d00f-11b8-4213-878b-770e8597ac16");
-
+        private static readonly Guid CSharpGuid = new Guid("3f5162f8-07c6-11d3-9053-00c04fa302a1");
+        private static readonly Guid VisualBasicGuid = new Guid("3a12d0b8-c26c-11d0-b442-00a0244a1dd2");
+        private static readonly Guid FSharpGuid = new Guid("ab4f38c9-b6e6-43ba-be3b-58080b2ccce3");
+        private static readonly Guid Sha1Guid = new Guid("ff1816ec-aa5e-4d10-87f7-6f4963833460");
+        private static readonly Guid Sha256Guid = new Guid("8829d00f-11b8-4213-878b-770e8597ac16");
+        
         private string GetLanguage(Guid guid)
         {
             if (guid == CSharpGuid) return "C#";
@@ -354,6 +354,18 @@ namespace Roslyn.Test.MetadataUtilities
             return "{" + guid + "}";
         }
 
+        private string GetCustomDebugInformationKind(Guid guid)
+        {
+            if (guid == Microsoft.CodeAnalysis.PortableCustomDebugInfoKinds.AsyncMethodSteppingInformationBlob) return "Async Method Stepping Information";
+            if (guid == Microsoft.CodeAnalysis.PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes) return "State Machine Hoisted Local Scopes";
+            if (guid == Microsoft.CodeAnalysis.PortableCustomDebugInfoKinds.DynamicLocalVariables) return "Dynamic Local Variables";
+            if (guid == Microsoft.CodeAnalysis.PortableCustomDebugInfoKinds.DefaultNamespace) return "Default Namespace";
+            if (guid == Microsoft.CodeAnalysis.PortableCustomDebugInfoKinds.EncLocalSlotMap) return "EnC Local Slot Map";
+            if (guid == Microsoft.CodeAnalysis.PortableCustomDebugInfoKinds.EncLambdaAndClosureMap) return "EnC Lambda and Closure Map";
+
+            return "{" + guid + "}";
+        }
+
         private string Language(GuidHandle handle)
         {
             return Literal(handle, BlobKind.None, (r, h) => GetLanguage(r.GetGuid((GuidHandle)h)));
@@ -362,6 +374,11 @@ namespace Roslyn.Test.MetadataUtilities
         private string HashAlgorithm(GuidHandle handle)
         {
             return Literal(handle, BlobKind.None, (r, h) => GetHashAlgorithm(r.GetGuid((GuidHandle)h)));
+        }
+
+        private string CustomDebugInformationKind(GuidHandle handle)
+        {
+            return Literal(handle, BlobKind.None, (r, h) => GetCustomDebugInformationKind(r.GetGuid((GuidHandle)h)));
         }
 
         private string Literal(DocumentNameBlobHandle handle)
@@ -1463,7 +1480,7 @@ namespace Roslyn.Test.MetadataUtilities
             WriteTableName(TableIndex.Document);
         }
 
-        private void WriteMethodBody()
+        private void WriteMethodDebugInformation()
         {
             if (_reader.MethodDebugInformation.Count == 0)
             {
@@ -1727,6 +1744,7 @@ namespace Roslyn.Test.MetadataUtilities
         {
             AddHeader(
                 "Parent",
+                "Kind",
                 "Value"
             );
 
@@ -1736,6 +1754,7 @@ namespace Roslyn.Test.MetadataUtilities
 
                 AddRow(
                     Token(() => entry.Parent),
+                    CustomDebugInformationKind(entry.Kind),
                     Literal(entry.Value, BlobKind.CustomDebugInformation)
                );
             }

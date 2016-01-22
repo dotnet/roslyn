@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Iterator;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
@@ -32,76 +33,91 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         {
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbol = model.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
-            if (methodSymbol.ReturnsVoid)
+            // IMethod symbol can either be a regular method or an accessor
+            if (methodSymbol?.ReturnType == null || methodSymbol.ReturnsVoid)
             {
                 return null;
             }
 
-            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
-            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerator");
-            var ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1");
-            var ienumeratorGenericSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerator`1");
+            var type = methodSymbol.ReturnType;
 
-            if (ienumerableGenericSymbol == null ||
-                ienumerableSymbol == null ||
-                ienumeratorGenericSymbol == null ||
-                ienumeratorSymbol == null)
+            INamedTypeSymbol ienumerableSymbol, ienumerableGenericSymbol;
+            if (!TryGetIEnumerableSymbols(model, out ienumerableSymbol, out ienumerableGenericSymbol))
             {
                 return null;
             }
 
-            var returnType = methodSymbol.ReturnType;
-
-            if (returnType.InheritsFromOrEquals(ienumerableSymbol))
+            if (type.InheritsFromOrEquals(ienumerableSymbol, includeInterfaces: true))
             {
-                if (returnType.GetArity() != 1)
+                var arity = type.GetArity();
+                if (arity == 1)
+                {
+                    var typeArg = type.GetTypeArguments().First();
+                    ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeArg);
+                }
+                else if (arity == 0 && type is IArrayTypeSymbol)
+                {
+                    ienumerableGenericSymbol = ienumerableGenericSymbol.Construct((type as IArrayTypeSymbol).ElementType);
+                }
+                else
                 {
                     return null;
                 }
-
-                var typeArg = returnType.GetTypeArguments().First();
-                ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeArg);
             }
             else
             {
-                ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(returnType);
+                ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(type);
             }
 
-            TypeSyntax oldReturnType;
             var newReturnType = ienumerableGenericSymbol.GenerateTypeSyntax();
-            var newMethodDeclarationNode = WithReturnType(node, newReturnType, out oldReturnType);
-            if (newMethodDeclarationNode == null)
+            Document newDocument = null;
+            var newMethodDeclarationSyntax = (node as MethodDeclarationSyntax)?.WithReturnType(newReturnType);
+            if (newMethodDeclarationSyntax != null)
             {
-                // the language updated and added a new kind of MethodDeclarationSyntax without updating this file
+                newDocument = document.WithSyntaxRoot(root.ReplaceNode(node, newMethodDeclarationSyntax));
+            }
+
+            var newOperator = (node as OperatorDeclarationSyntax)?.WithReturnType(newReturnType);
+            if (newOperator != null)
+            {
+                newDocument = document.WithSyntaxRoot(root.ReplaceNode(node, newOperator));
+            }
+
+            var oldAccessor = (node?.Parent?.Parent as PropertyDeclarationSyntax);
+            if (oldAccessor != null)
+            {
+                newDocument = document.WithSyntaxRoot(root.ReplaceNode(oldAccessor, oldAccessor.WithType(newReturnType)));
+            }
+
+            var oldIndexer = (node?.Parent?.Parent as IndexerDeclarationSyntax);
+            if (oldIndexer != null)
+            {
+                newDocument = document.WithSyntaxRoot(root.ReplaceNode(oldIndexer, oldIndexer.WithType(newReturnType)));
+            }
+
+            if (newDocument == null)
+            {
                 return null;
             }
 
-            root = root.ReplaceNode(node, newMethodDeclarationNode);
-            var newDocument = document.WithSyntaxRoot(root);
             return new MyCodeAction(
                 string.Format(CSharpFeaturesResources.ChangeReturnType,
-                    oldReturnType.ToString(),
+                    type.ToMinimalDisplayString(model, node.SpanStart),
                     ienumerableGenericSymbol.ToMinimalDisplayString(model, node.SpanStart)), newDocument);
         }
 
-        private SyntaxNode WithReturnType(SyntaxNode methodOrFunction, TypeSyntax newReturnType, out TypeSyntax oldReturnType)
+        private static bool TryGetIEnumerableSymbols(SemanticModel model, out INamedTypeSymbol ienumerableSymbol, out INamedTypeSymbol ienumerableGenericSymbol)
         {
-            var method = methodOrFunction as MethodDeclarationSyntax;
-            if (method != null)
+            ienumerableSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
+            ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1");
+
+            if (ienumerableGenericSymbol == null ||
+                ienumerableSymbol == null)
             {
-                oldReturnType = method.ReturnType;
-                return method.WithReturnType(newReturnType);
+                return false;
             }
 
-            var localFunction = methodOrFunction as LocalFunctionStatementSyntax;
-            if (localFunction != null)
-            {
-                oldReturnType = localFunction.ReturnType;
-                return localFunction.WithReturnType(newReturnType);
-            }
-
-            oldReturnType = null;
-            return null;
+            return true;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

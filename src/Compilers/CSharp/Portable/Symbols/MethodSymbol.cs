@@ -753,12 +753,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (typeArguments.Any(NamedTypeSymbol.TypeSymbolIsNullFunction))
             {
-                throw new ArgumentException(CSharpResources.TypeArgumentCannotBeNull, "typeArguments");
+                throw new ArgumentException(CSharpResources.TypeArgumentCannotBeNull, nameof(typeArguments));
             }
 
             if (typeArguments.Length != this.Arity)
             {
-                throw new ArgumentException(CSharpResources.WrongNumberOfTypeArguments, "typeArguments");
+                throw new ArgumentException(CSharpResources.WrongNumberOfTypeArguments, nameof(typeArguments));
             }
 
             if (ConstructedNamedTypeSymbol.TypeParametersMatchTypeArguments(this.TypeParameters, typeArguments))

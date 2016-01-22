@@ -2004,9 +2004,8 @@ End Module</text>.Value
         <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestSmartIndenterConstructorThrows1()
-            AssertEx.Throws(Of ArgumentNullException)(
-                Function() New SmartIndent(Nothing),
-                allowDerived:=True)
+            Assert.Throws(Of ArgumentNullException)(
+                Function() New SmartIndent(Nothing))
         End Sub
 
         <WpfFact>
@@ -2831,7 +2830,7 @@ End Class
 
         Private Shared Async Function AssertSmartIndentIndentationInProjectionAsync(markup As String,
                                                                     expectedIndentation As Integer) As Tasks.Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync({markup})
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(markup)
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents, LanguageNames.CSharp)
 
@@ -2880,7 +2879,7 @@ End Class
 
         ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>
         Private Shared Async Function AssertSmartIndentAsync(code As String, indentationLine As Integer, expectedIndentation As Integer?, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart) As Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync({code})
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code)
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 SetIndentStyle(buffer, indentStyle)

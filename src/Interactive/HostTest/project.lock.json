@@ -3,7 +3,7 @@
   "version": 1,
   "targets": {
     ".NETFramework,Version=v4.6": {
-      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {
         "compile": {
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         },
@@ -27,7 +27,7 @@
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
         }
       },
-      "Microsoft.DiaSymReader/1.0.7-beta1": {
+      "Microsoft.DiaSymReader/1.0.7-beta1-51221": {
         "compile": {
           "lib/net20/Microsoft.DiaSymReader.dll": {}
         },
@@ -36,7 +36,7 @@
         }
       },
       "Microsoft.DiaSymReader.Native/1.3.3": {},
-      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
         "compile": {
           "ref/net45/_._": {}
         },
@@ -324,7 +324,7 @@
       "xunit.runner.console/2.1.0": {}
     },
     ".NETFramework,Version=v4.6/win7-x64": {
-      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {
         "compile": {
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         },
@@ -348,7 +348,7 @@
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
         }
       },
-      "Microsoft.DiaSymReader/1.0.7-beta1": {
+      "Microsoft.DiaSymReader/1.0.7-beta1-51221": {
         "compile": {
           "lib/net20/Microsoft.DiaSymReader.dll": {}
         },
@@ -357,7 +357,7 @@
         }
       },
       "Microsoft.DiaSymReader.Native/1.3.3": {},
-      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
         "compile": {
           "ref/net45/_._": {}
         },
@@ -645,7 +645,7 @@
       "xunit.runner.console/2.1.0": {}
     },
     ".NETFramework,Version=v4.6/win7-x86": {
-      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {
         "compile": {
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         },
@@ -669,7 +669,7 @@
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
         }
       },
-      "Microsoft.DiaSymReader/1.0.7-beta1": {
+      "Microsoft.DiaSymReader/1.0.7-beta1-51221": {
         "compile": {
           "lib/net20/Microsoft.DiaSymReader.dll": {}
         },
@@ -678,7 +678,7 @@
         }
       },
       "Microsoft.DiaSymReader.Native/1.3.3": {},
-      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
         "compile": {
           "ref/net45/_._": {}
         },
@@ -967,15 +967,15 @@
     }
   },
   "libraries": {
-    "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
-      "sha512": "zsE8FvVez0iaoyWutVewackGkJsJXjavomMMdme5NZTXS2/5aG6gdLuaFvGeslq/XMsh4CqIgdvMOOFr5TmpFQ==",
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta1-20160105-04": {
+      "sha512": "QIkINpihvcij/pZhZdLmSTt4wMgjSwvRjXavvcR86lIRXi7pk4+mNgjFF5FXiR8B4WEmttdb5diyVZq7ZP4unw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll",
         "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
-        "package/services/metadata/core-properties/f64bfc9a6f91426492917a4c8a1b955e.psmdcp"
+        "package/services/metadata/core-properties/275c92add53e4a7fa1029dcdf1d6499a.psmdcp"
       ]
     },
     "Microsoft.Composition/1.0.27": {
@@ -999,8 +999,8 @@
         "package/services/metadata/core-properties/12e2c94035674b25b911285cc26e3260.psmdcp"
       ]
     },
-    "Microsoft.DiaSymReader/1.0.7-beta1": {
-      "sha512": "0B6ZT7riIG8GvLWTjatj06a9s+s65/mVRE0G30Ao3wLKkavzsftPyQC5D3defJfnrI9duSpAIMx5eT1eXJCaRQ==",
+    "Microsoft.DiaSymReader/1.0.7-beta1-51221": {
+      "sha512": "sQ/I7+gi4Si8K7fqyJgMswip9RNvKjUD9CmmWwzcCxnX2sMLDA5X54thgX+cQn7nF0+C35a1nAYgafDsqiPOkg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -1010,7 +1010,7 @@
         "lib/portable-net45+win8/Microsoft.DiaSymReader.dll",
         "lib/portable-net45+win8/Microsoft.DiaSymReader.xml",
         "Microsoft.DiaSymReader.nuspec",
-        "package/services/metadata/core-properties/db4a7501f1f04b9994a56439822e66a7.psmdcp"
+        "package/services/metadata/core-properties/2e8b0ffd43c2417296e93e7c2ee8d686.psmdcp"
       ]
     },
     "Microsoft.DiaSymReader.Native/1.3.3": {
@@ -1030,8 +1030,8 @@
         "runtimes/win-x86/native/Microsoft.DiaSymReader.Native.x86.dll"
       ]
     },
-    "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
-      "sha512": "q5wj+WWjvZ/GhT+Q42aub5rIcw45pEE/TvIfFBEgvxK2MTODxsDIKKSBHEdfJablXhfRZfY79YBdTbcfUzZqlA==",
+    "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23504": {
+      "sha512": "/12zABXWCTHNRBN6bNHxoqvmnJ1UKVaDSOR1BsAM+sv2aXjGMEM7bcDecvT/1zMKilWDmJpiPJJNCxjdZPQRTA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -1065,7 +1065,7 @@
         "lib/wp80/_._",
         "lib/wpa81/_._",
         "Microsoft.NETCore.Portable.Compatibility.nuspec",
-        "package/services/metadata/core-properties/850feb86a46b458c8a8875eb3bbc1591.psmdcp",
+        "package/services/metadata/core-properties/59347eb927634aa588ffb5e7d86d33e5.psmdcp",
         "ref/dotnet/mscorlib.dll",
         "ref/dotnet/System.ComponentModel.DataAnnotations.dll",
         "ref/dotnet/System.Core.dll",

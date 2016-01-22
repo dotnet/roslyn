@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class TodoListTableDataSourceTests
         <Fact>
         Public Async Function TestCreation() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Empty)
                 Dim provider = New TestTodoListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestInitialEntries() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim provider = New TestTodoListProvider(CreateItem(workspace, documentId))
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -67,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestEntryChanged() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim provider = New TestTodoListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -92,7 +92,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestEntry() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(workspace, documentId)
@@ -133,7 +133,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestSnapshotEntry() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(workspace, documentId)
@@ -181,7 +181,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestSnapshotTranslateTo() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(workspace, documentId)
@@ -211,7 +211,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestSnapshotTranslateTo2() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(workspace, documentId)
@@ -244,7 +244,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestSnapshotTranslateTo3() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(workspace, documentId)
@@ -277,7 +277,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         <Fact>
         Public Async Function TestInvalidEntry() As Task
-            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(workspace, documentId)

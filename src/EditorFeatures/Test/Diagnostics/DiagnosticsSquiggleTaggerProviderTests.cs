@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     analyzer.ChangeSeverity();
 
                     var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                    var text = document.GetTextAsync().Result;
+                    var text = await document.GetTextAsync();
                     workspace.TryApplyChanges(document.WithText(text.WithChanges(new TextChange(new TextSpan(text.Length - 1, 1), string.Empty))).Project.Solution);
 
                     await wrapper.WaitForTags();

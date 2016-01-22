@@ -35,6 +35,8 @@ namespace TestHelper
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source classes are in</param>
         /// <param name="analyzer">The analyzer to be run on the sources</param>
+        /// <param name="parseOptions">The parse options for the compilation.</param>
+        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
         private static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer, ParseOptions parseOptions, CompilationOptions compilationOptions)
         {
@@ -105,6 +107,8 @@ namespace TestHelper
         /// </summary>
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source code is in</param>
+        /// <param name="parseOptions">The parse options for the compilation.</param>
+        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         /// <returns>A Tuple containing the Documents produced from the sources and their TextSpans if relevant</returns>
         private static Document[] GetDocuments(string[] sources, string language, ParseOptions parseOptions, CompilationOptions compilationOptions)
         {
@@ -129,6 +133,8 @@ namespace TestHelper
         /// </summary>
         /// <param name="source">Classes in the form of a string</param>
         /// <param name="language">The language the source code is in</param>
+        /// <param name="parseOptions">The parse options for the compilation.</param>
+        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         /// <returns>A Document created from the source string</returns>
         protected static Document CreateDocument(string source, ParseOptions parseOptions, CompilationOptions compilationOptions, string language = LanguageNames.CSharp)
         {
@@ -140,6 +146,8 @@ namespace TestHelper
         /// </summary>
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source code is in</param>
+        /// <param name="parseOptions">The parse options for the compilation.</param>
+        /// <param name="compilationOptions">The compilation options for the compilation.</param>
         /// <returns>A Project created out of the Documents created from the source strings</returns>
         private static Project CreateProject(string[] sources, ParseOptions parseOptions, CompilationOptions compilationOptions, string language = LanguageNames.CSharp)
         {

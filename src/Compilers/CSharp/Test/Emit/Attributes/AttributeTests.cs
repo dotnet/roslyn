@@ -3596,7 +3596,7 @@ class A
             string source = @"
 using CustomAttribute;
 [Base(1)]
-[BaseAttribute(""SOS"")]
+[@BaseAttribute(""SOS"")]
 static class AttributeMod
 {
     [Derived('Q')]
@@ -3617,13 +3617,17 @@ static class AttributeMod
 
             compilation.VerifyDiagnostics(
                 // (4,2): error CS0579: Duplicate 'BaseAttribute' attribute
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, @"BaseAttribute").WithArguments("BaseAttribute"),
+                // [@BaseAttribute("SOS")]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "@BaseAttribute").WithArguments("BaseAttribute").WithLocation(4, 2),
                 // (7,6): error CS0592: Attribute 'Derived' is not valid on this declaration type. It is only valid on 'struct, method, parameter' declarations.
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Derived").WithArguments("Derived", "struct, method, parameter"),
+                //     [Derived('Q')]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Derived").WithArguments("Derived", "struct, method, parameter").WithLocation(7, 6),
                 // (8,6): error CS0579: Duplicate 'Derived' attribute
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Derived").WithArguments("Derived"),
+                //     [Derived('C')]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Derived").WithArguments("Derived").WithLocation(8, 6),
                 // (13,6): error CS0579: Duplicate 'Base' attribute
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, @"Base").WithArguments("Base"));
+                //     [Base("")]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Base").WithArguments("Base").WithLocation(13, 6));
         }
 
         [Fact]
@@ -3681,9 +3685,9 @@ class Class3 { }
             var compilation = CreateCompilationWithMscorlib(source);
 
             compilation.VerifyDiagnostics(
-                // (13,2): error CS0246: The type or namespace name '@X' could not be found (are you missing a using directive or an assembly reference?)
+                // (13,2): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
                 // [@X]                // Error: No attribute named X
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@X").WithArguments("@X").WithLocation(13, 2));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@X").WithArguments("X").WithLocation(13, 2));
         }
 
         [Fact]

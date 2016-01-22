@@ -61,7 +61,7 @@ End Namespace";
 
                 using (var context = await TestContext.CreateAsync(LanguageNames.VisualBasic))
                 {
-                    context.GenerateAndVerifySource("System.ObsoleteAttribute", expected);
+                    await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected);
                 }
             }
 

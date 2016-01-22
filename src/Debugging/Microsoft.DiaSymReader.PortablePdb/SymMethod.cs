@@ -417,9 +417,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
         public int GetAsyncStepInfo(
             int bufferLength,
             out int count,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] yieldOffsets,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] breakpointOffsets,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] breakpointMethods)
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] yieldOffsets,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] breakpointOffsets,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] breakpointMethods)
         {
             if (AsyncMethodData.IsNone)
             {

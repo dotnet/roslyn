@@ -11,267 +11,267 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
     Public Class AsKeywordRecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInAggregateClause1()
-            VerifyRecommendationsContain(<MethodBody>Dim x = From x In {1, 2, 3} Aggregate x |</MethodBody>, "As")
-        End Sub
+        Public Async Function AsInAggregateClause1Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = From x In {1, 2, 3} Aggregate x |</MethodBody>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInAggregateClause2()
-            VerifyRecommendationsContain(<MethodBody>Dim x = From x In {1, 2, 3} Aggregate x | As Type1 In collection, element2 |</MethodBody>, "As")
-        End Sub
+        Public Async Function AsInAggregateClause2Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = From x In {1, 2, 3} Aggregate x | As Type1 In collection, element2 |</MethodBody>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInConst1()
-            VerifyRecommendationsContain(<ClassDeclaration>Const foo |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInConst1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Const foo |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInConst2()
-            VerifyRecommendationsContain(<ClassDeclaration>Const foo As Integer = 42, bar |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInConst2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Const foo As Integer = 42, bar |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInExternalMethodSub1()
-            VerifyRecommendationsContain(<ClassDeclaration>Declare Sub foo Lib "foo.dll" (x |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInExternalMethodSub1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Declare Sub foo Lib "foo.dll" (x |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInExternalMethodSub2()
-            VerifyRecommendationsContain(<ClassDeclaration>Declare Sub foo Lib "foo.dll" (x As Integer, y |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInExternalMethodSub2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Declare Sub foo Lib "foo.dll" (x As Integer, y |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsNotInExternalMethodSubReturnType()
-            VerifyRecommendationsMissing(<ClassDeclaration>Declare Sub foo Lib "foo.dll" (x As Integer) |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsNotInExternalMethodSubReturnTypeTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Declare Sub foo Lib "foo.dll" (x As Integer) |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInExternalMethodFunction1()
-            VerifyRecommendationsContain(<ClassDeclaration>Declare Function foo Lib "foo.dll" (x |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInExternalMethodFunction1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Declare Function foo Lib "foo.dll" (x |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInExternalMethodFunction2()
-            VerifyRecommendationsContain(<ClassDeclaration>Declare Function foo Lib "foo.dll" (x As Integer, y |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInExternalMethodFunction2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Declare Function foo Lib "foo.dll" (x As Integer, y |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInExternalMethodFunctionReturnType()
-            VerifyRecommendationsContain(<ClassDeclaration>Declare Function foo Lib "foo.dll" (x As Integer) |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInExternalMethodFunctionReturnTypeTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Declare Function foo Lib "foo.dll" (x As Integer) |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInDelegateSub1()
-            VerifyRecommendationsContain(<ClassDeclaration>Delegate Sub foo (x |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInDelegateSub1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Delegate Sub foo (x |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInDelegateSub2()
-            VerifyRecommendationsContain(<ClassDeclaration>Delegate Sub foo (x As Integer, y |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInDelegateSub2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Delegate Sub foo (x As Integer, y |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsNotInDelegateSubReturnType()
-            VerifyRecommendationsMissing(<ClassDeclaration>Delegate Sub foo (x As Integer) |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsNotInDelegateSubReturnTypeTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Delegate Sub foo (x As Integer) |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInDelegateFunction1()
-            VerifyRecommendationsContain(<ClassDeclaration>Delegate Function foo (x |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInDelegateFunction1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Delegate Function foo (x |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInDelegateFunction2()
-            VerifyRecommendationsContain(<ClassDeclaration>Delegate Function foo (x As Integer, y |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInDelegateFunction2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Delegate Function foo (x As Integer, y |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInDelegateFunctionReturnType()
-            VerifyRecommendationsContain(<ClassDeclaration>Delegate Function foo (x As Integer) |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInDelegateFunctionReturnTypeTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Delegate Function foo (x As Integer) |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInDim1()
-            VerifyRecommendationsContain(<ClassDeclaration>Dim x |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInDim1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Dim x |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInDim2()
-            VerifyRecommendationsContain(<ClassDeclaration>Dim x As Integer, y |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInDim2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Dim x As Integer, y |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInEnum()
-            VerifyRecommendationsContain(<ClassDeclaration>Enum Foo |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInEnumTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Enum Foo |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInAddHandler()
-            VerifyRecommendationsContain(<ClassDeclaration>
+        Public Async Function AsInAddHandlerTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
 Custom Event Foo As Action
 AddHandler(value |</ClassDeclaration>, "As")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInRemoveHandler()
-            VerifyRecommendationsContain(<ClassDeclaration>
+        Public Async Function AsInRemoveHandlerTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
 Custom Event Foo As Action
 RemoveHandler(value |</ClassDeclaration>, "As")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInForLoop()
-            VerifyRecommendationsContain(<MethodBody>For x |</MethodBody>, "As")
-        End Sub
+        Public Async Function AsInForLoopTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>For x |</MethodBody>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInForLoopWithTypeCharacter()
-            VerifyRecommendationsMissing(<MethodBody>For x% |</MethodBody>, "As")
-        End Sub
+        Public Async Function AsInForLoopWithTypeCharacterTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>For x% |</MethodBody>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInForEachLoop()
-            VerifyRecommendationsContain(<MethodBody>For Each x |</MethodBody>, "As")
-        End Sub
+        Public Async Function AsInForEachLoopTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>For Each x |</MethodBody>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInFromClause1()
-            VerifyRecommendationsContain(<MethodBody>Dim x = From x |</MethodBody>, "As")
-        End Sub
+        Public Async Function AsInFromClause1Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = From x |</MethodBody>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInFromClause2()
-            VerifyRecommendationsContain(<MethodBody>Dim x = From x As Integer in collection1, y |</MethodBody>, "As")
-        End Sub
+        Public Async Function AsInFromClause2Test() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = From x As Integer in collection1, y |</MethodBody>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInFunctionArguments1()
-            VerifyRecommendationsContain(<ClassDeclaration>Function Foo(x |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInFunctionArguments1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Function Foo(x |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInFunctionArguments2()
-            VerifyRecommendationsContain(<ClassDeclaration>Function Foo(x As Integer, y |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInFunctionArguments2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Function Foo(x As Integer, y |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsNotInFunctionArgumentsWithTypeCharacter()
-            VerifyRecommendationsMissing(<ClassDeclaration>Function Foo(x% |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsNotInFunctionArgumentsWithTypeCharacterTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Function Foo(x% |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInFunctionReturnValue()
-            VerifyRecommendationsContain(<ClassDeclaration>Function Foo(x As Integer) |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInFunctionReturnValueTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Function Foo(x As Integer) |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInFunctionLambdaArguments1()
-            VerifyRecommendationsContain(<ClassDeclaration>Dim x = Function(x |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInFunctionLambdaArguments1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Dim x = Function(x |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInFunctionLambdaArguments2()
-            VerifyRecommendationsContain(<ClassDeclaration>Dim x = Function(x As Integer, y |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInFunctionLambdaArguments2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Dim x = Function(x As Integer, y |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInFunctionLambdaReturnValue()
-            VerifyRecommendationsContain(<ClassDeclaration>Dim x = Function(x As Integer) |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInFunctionLambdaReturnValueTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Dim x = Function(x As Integer) |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInGroupJoin()
-            VerifyRecommendationsContain(<ClassDeclaration>Dim x = From i In {1, 2, 3} Group Join x |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInGroupJoinTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Dim x = From i In {1, 2, 3} Group Join x |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInOperatorArguments1()
-            VerifyRecommendationsContain(<ClassDeclaration>Public Shared Operator +(x |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInOperatorArguments1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public Shared Operator +(x |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInOperatorArguments2()
-            VerifyRecommendationsContain(<ClassDeclaration>Public Shared Operator +(x As Integer, y |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInOperatorArguments2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public Shared Operator +(x As Integer, y |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInOperatorReturnValue()
-            VerifyRecommendationsContain(<ClassDeclaration>Public Shared Operator +(x As Integer, y As Integer) |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInOperatorReturnValueTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public Shared Operator +(x As Integer, y As Integer) |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInPropertyArguments1()
-            VerifyRecommendationsContain(<ClassDeclaration>Public Property Foo(x |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInPropertyArguments1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public Property Foo(x |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInPropertyArguments2()
-            VerifyRecommendationsContain(<ClassDeclaration>Public Property Foo(x As Integer, y |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInPropertyArguments2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public Property Foo(x As Integer, y |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInPropertyType()
-            VerifyRecommendationsContain(<ClassDeclaration>Public Property Foo(x As Integer, y As Integer) |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInPropertyTypeTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public Property Foo(x As Integer, y As Integer) |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInPropertySetArgument()
-            VerifyRecommendationsContain(<ClassDeclaration>
+        Public Async Function AsInPropertySetArgumentTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
 Public Property Foo(x As Integer, y As Integer) 
     Set(value |</ClassDeclaration>, "As")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInSubArguments1()
-            VerifyRecommendationsContain(<ClassDeclaration>Sub Foo(x |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInSubArguments1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Foo(x |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInSubArguments2()
-            VerifyRecommendationsContain(<ClassDeclaration>Sub Foo(x As Integer, y |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInSubArguments2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Foo(x As Integer, y |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsNotInSubReturnValue()
-            VerifyRecommendationsMissing(<ClassDeclaration>Sub Foo(x As Integer) |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsNotInSubReturnValueTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Foo(x As Integer) |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInSubLambdaArguments1()
-            VerifyRecommendationsContain(<ClassDeclaration>Dim x = Sub(x |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInSubLambdaArguments1Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Dim x = Sub(x |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInSubLambdaArguments2()
-            VerifyRecommendationsContain(<ClassDeclaration>Dim x = Sub(x As Integer, y |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInSubLambdaArguments2Test() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Dim x = Sub(x As Integer, y |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsNotInSubLambdaReturnValue()
-            VerifyRecommendationsMissing(<ClassDeclaration>Dim x = Sub(x As Integer) |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsNotInSubLambdaReturnValueTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = Sub(x As Integer) |</ClassDeclaration>, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInCatchBlock()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function AsInCatchBlockTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Try
 Catch foo |</MethodBody>, "As")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInEventDeclaration()
-            VerifyRecommendationsContain(<ClassDeclaration>Event Foo |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsInEventDeclarationTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Event Foo |</ClassDeclaration>, "As")
+        End Function
 
         <WorkItem(543118)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsAfterLetIdentifier()
-            VerifyRecommendationsContain(<MethodBody>From i1 In New Integer() {4, 5} Let i2  |</MethodBody>, "As")
-        End Sub
+        Public Async Function AsAfterLetIdentifierTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>From i1 In New Integer() {4, 5} Let i2  |</MethodBody>, "As")
+        End Function
 
         <WorkItem(543637)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInGenericTypeParameterList()
+        Public Async Function AsInGenericTypeParameterListTest() As Task
             Dim code =
 <File>
 Module Module1
@@ -280,12 +280,12 @@ Module Module1
 End Module
 </File>
 
-            VerifyRecommendationsContain(code, "As")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "As")
+        End Function
 
         <WorkItem(543637)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoAsInGenericTypeArgumentList()
+        Public Async Function NoAsInGenericTypeArgumentListTest() As Task
             Dim code =
 <File>
 Module Module1
@@ -295,12 +295,12 @@ Module Module1
 End Module
 </File>
 
-            VerifyRecommendationsMissing(code, "As")
-        End Sub
+            Await VerifyRecommendationsMissingAsync(code, "As")
+        End Function
 
         <WorkItem(544192)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsAfterPropertyName()
+        Public Async Function AsAfterPropertyNameTest() As Task
             Dim code =
 <File>
 Class C
@@ -308,12 +308,12 @@ Class C
 End Class
 </File>
 
-            VerifyRecommendationsContain(code, "As")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "As")
+        End Function
 
         <WorkItem(544192)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoAsAfterPropertyOpenParen()
+        Public Async Function NoAsAfterPropertyOpenParenTest() As Task
             Dim code =
 <File>
 Class C
@@ -321,12 +321,12 @@ Class C
 End Class
 </File>
 
-            VerifyRecommendationsMissing(code, "As")
-        End Sub
+            Await VerifyRecommendationsMissingAsync(code, "As")
+        End Function
 
         <WorkItem(544192)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsAfterPropertyCloseParen()
+        Public Async Function AsAfterPropertyCloseParenTest() As Task
             Dim code =
 <File>
 Class C
@@ -334,29 +334,29 @@ Class C
 End Class
 </File>
 
-            VerifyRecommendationsContain(code, "As")
-        End Sub
+            Await VerifyRecommendationsContainAsync(code, "As")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsAfterFunctionName()
-            VerifyRecommendationsContain(<ClassDeclaration>Function Foo |</ClassDeclaration>, "As")
-        End Sub
-
-        <WorkItem(530387)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoAsAfterSubName()
-            VerifyRecommendationsMissing(<ClassDeclaration>Sub Foo |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AsAfterFunctionNameTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Function Foo |</ClassDeclaration>, "As")
+        End Function
 
         <WorkItem(530387)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoAsAfterSubNameWithParens()
-            VerifyRecommendationsMissing(<ClassDeclaration>Sub Foo() |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function NoAsAfterSubNameTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Foo |</ClassDeclaration>, "As")
+        End Function
 
         <WorkItem(530387)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoAsAfterSubNameWithBody()
+        Public Async Function NoAsAfterSubNameWithParensTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Foo() |</ClassDeclaration>, "As")
+        End Function
+
+        <WorkItem(530387)>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function NoAsAfterSubNameWithBodyTest() As Task
             Dim code =
 <File>
 Class C
@@ -364,12 +364,12 @@ Class C
     End Sub
 End Class
 </File>
-            VerifyRecommendationsMissing(code, "As")
-        End Sub
+            Await VerifyRecommendationsMissingAsync(code, "As")
+        End Function
 
         <WorkItem(530387)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoAsAfterSubNameWithBodyAndParameters()
+        Public Async Function NoAsAfterSubNameWithBodyAndParametersTest() As Task
             Dim code =
 <File>
 Class C
@@ -377,49 +377,49 @@ Class C
     End Sub
 End Class
 </File>
-            VerifyRecommendationsMissing(code, "As")
-        End Sub
+            Await VerifyRecommendationsMissingAsync(code, "As")
+        End Function
 
         <WorkItem(546659)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsInUsingBlock()
-            VerifyRecommendationsContain(<MethodBody>Using Foo |</MethodBody>, "As")
-        End Sub
+        Public Async Function AsInUsingBlockTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Using Foo |</MethodBody>, "As")
+        End Function
 
         <WorkItem(530953)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoAsAfterEol()
-            VerifyRecommendationsMissing(
+        Public Async Function NoAsAfterEolTest() As Task
+            Await VerifyRecommendationsMissingAsync(
 <MethodBody>
 Dim Foo 
 | </MethodBody>,
                 "As")
-        End Sub
+        End Function
 
         <WorkItem(530953)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoAsAfterColon()
-            VerifyRecommendationsMissing(
+        Public Async Function NoAsAfterColonTest() As Task
+            Await VerifyRecommendationsMissingAsync(
 <MethodBody>
 Dim Foo : | 
 </MethodBody>,
                 "As")
-        End Sub
+        End Function
 
         <WorkItem(530953)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AsAfterExplicitLineContinuation()
-            VerifyRecommendationsContain(
+        Public Async Function AsAfterExplicitLineContinuationTest() As Task
+            Await VerifyRecommendationsContainAsync(
 <MethodBody>
 Dim Foo _
 | </MethodBody>,
                 "As")
-        End Sub
+        End Function
 
         <WorkItem(547254)>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AfterPublicAsync()
-            VerifyRecommendationsContain(<ClassDeclaration>Public Async |</ClassDeclaration>, "As")
-        End Sub
+        Public Async Function AfterPublicAsyncTest() As Task
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Public Async |</ClassDeclaration>, "As")
+        End Function
     End Class
 End Namespace

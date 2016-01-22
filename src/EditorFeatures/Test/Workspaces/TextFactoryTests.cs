@@ -3,6 +3,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         [Fact]
-        public void TestCreateFromTemporaryStorage()
+        public async Task TestCreateFromTemporaryStorage()
         {
             var textFactory = CreateMockTextFactoryService();
             var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
@@ -65,10 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
             {
                 // Write text into it
-                temporaryStorage.WriteTextAsync(text).Wait();
+                await temporaryStorage.WriteTextAsync(text);
 
                 // Read text back from it
-                var text2 = temporaryStorage.ReadTextAsync().Result;
+                var text2 = await temporaryStorage.ReadTextAsync();
 
                 Assert.NotSame(text, text2);
                 Assert.Equal(text.ToString(), text2.ToString());
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         [Fact]
-        public void TestCreateFromTemporaryStorageWithEncoding()
+        public async Task TestCreateFromTemporaryStorageWithEncoding()
         {
             var textFactory = CreateMockTextFactoryService();
             var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
@@ -88,10 +89,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
             {
                 // Write text into it
-                temporaryStorage.WriteTextAsync(text).Wait();
+                await temporaryStorage.WriteTextAsync(text);
 
                 // Read text back from it
-                var text2 = temporaryStorage.ReadTextAsync().Result;
+                var text2 = await temporaryStorage.ReadTextAsync();
 
                 Assert.NotSame(text, text2);
                 Assert.Equal(text.ToString(), text2.ToString());

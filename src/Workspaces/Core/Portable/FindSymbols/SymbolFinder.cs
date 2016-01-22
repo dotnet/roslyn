@@ -14,6 +14,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
+        public static ISymbol FindSymbolAtPosition(
+            SemanticModel semanticModel,
+            int position,
+            Workspace workspace,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FindSymbolAtPositionAsync(semanticModel, position, workspace, cancellationToken).WaitAndGetResult(cancellationToken);
+        }
+
         /// <summary>
         /// Finds the symbol that is associated with a position in the text of a document.
         /// </summary>
@@ -21,16 +30,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="position">The character position within the document.</param>
         /// <param name="workspace">A workspace to provide context.</param>
         /// <param name="cancellationToken">A CancellationToken.</param>
-        public static ISymbol FindSymbolAtPosition(
+        public static Task<ISymbol> FindSymbolAtPositionAsync(
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return FindSymbolAtPosition(semanticModel, position, workspace, bindLiteralsToUnderlyingType: false, cancellationToken: cancellationToken);
+            return FindSymbolAtPositionAsync(semanticModel, position, workspace, bindLiteralsToUnderlyingType: false, cancellationToken: cancellationToken);
         }
 
-        internal static ISymbol FindSymbolAtPosition(
+        internal static async Task<ISymbol> FindSymbolAtPositionAsync(
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
@@ -39,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var syntaxTree = semanticModel.SyntaxTree;
             var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
-            var token = syntaxTree.GetTouchingToken(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true);
+            var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
             if (token != default(SyntaxToken))
             {
@@ -58,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return FindSymbolAtPosition(semanticModel, position, document.Project.Solution.Workspace, cancellationToken);
+            return await FindSymbolAtPositionAsync(semanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

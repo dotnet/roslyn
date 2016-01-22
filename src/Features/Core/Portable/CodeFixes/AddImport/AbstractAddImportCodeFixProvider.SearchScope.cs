@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 return SymbolFinder.FindDeclarationsAsync(
-                    _solution, _assembly, _metadataReference.FilePath, searchQuery, filter, cancellationToken);
+                    _solution, _assembly, _metadataReference, searchQuery, filter, cancellationToken);
             }
         }
     }

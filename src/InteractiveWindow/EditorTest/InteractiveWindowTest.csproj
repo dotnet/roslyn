@@ -88,7 +88,7 @@
     <Compile Include="TestWaitIndicator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

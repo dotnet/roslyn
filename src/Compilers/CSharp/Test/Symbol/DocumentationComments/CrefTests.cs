@@ -1563,8 +1563,8 @@ class C<T, U, V>
 
             foreach (var p in actualTypeParameters)
             {
-                AssertEx.Throws<Exception>(() => p.GetEffectiveBaseClass(null), allowDerived: true);
-                AssertEx.Throws<Exception>(() => p.GetDeducedBaseType(null), allowDerived: true);
+                Assert.ThrowsAny<Exception>(() => p.GetEffectiveBaseClass(null));
+                Assert.ThrowsAny<Exception>(() => p.GetDeducedBaseType(null));
             }
 
             Assert.Equal(actualTypeParameters[0], actualTypeParameters[1]);
