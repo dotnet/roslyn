@@ -2396,7 +2396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // and bind as as type.
             var speculativeSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(memberAccess.SpanStart, memberAccess.Expression, SpeculativeBindingOption.BindAsTypeOrNamespace);
             var typeSymbol = speculativeSymbolInfo.Symbol as INamedTypeSymbol;
-            if (typeSymbol?.SpecialType == SpecialType.System_Enum)
+            if (typeSymbol?.TypeKind == TypeKind.Enum)
             {
                 return true;
             }
