@@ -2814,7 +2814,7 @@ index: 2);
 
         [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerationFromStaticProperty()
+        public async Task TestGenerationFromStaticProperty_Field()
         {
             await TestAsync(
 @"using System ; public class Test { public static int Property1 { get { return [|_field|] ; } } } ",
@@ -2823,7 +2823,7 @@ index: 2);
 
         [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerationFromStaticProperty2()
+        public async Task TestGenerationFromStaticProperty_ReadonlyField()
         {
             await TestAsync(
 @"using System ; public class Test { public static int Property1 { get { return [|_field|] ; } } } ",
@@ -2833,7 +2833,7 @@ index: 1);
 
         [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerationFromStaticProperty3()
+        public async Task TestGenerationFromStaticProperty_Property()
         {
             await TestAsync(
 @"using System ; public class Test { public static int Property1 { get { return [|_field|] ; } } } ",
@@ -2843,7 +2843,7 @@ index: 2);
 
         [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerationFromStaticProperty4()
+        public async Task TestGenerationFromStaticProperty_Local()
         {
             await TestAsync(
 @"using System ; public class Test { public static int Property1 { get { return [|_field|] ; } } } ",
