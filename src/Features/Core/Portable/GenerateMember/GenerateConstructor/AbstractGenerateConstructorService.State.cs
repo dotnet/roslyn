@@ -98,52 +98,32 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             private bool ClashesWithExistingConstructor(SemanticDocument document, CancellationToken cancellationToken)
             {
-                if (this.ParameterTypes == null ||
-                    this.ParameterRefKinds == null)
-                {
-                    return false;
-                }
-
-                if(this.ParameterTypes.Count != this.ParameterRefKinds.Count)
-                {
-                    return false;
-                }
-
-                if (!this.TypeToGenerateIn.InstanceConstructors.Any(c => c.Parameters.Length == this.ParameterTypes.Count))
-                {
-                    return false;
-                }
-
                 var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.TypeToGenerateIn.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
-                for (int i = 0; i < ParameterTypes.Count; i++)
+                return this.TypeToGenerateIn.InstanceConstructors.Any(c => Matches(c, this.ParameterTypes, this.ParameterRefKinds, this.Arguments, syntaxFacts));
+            }
+
+            private static bool Matches(IMethodSymbol ctor, IList<ITypeSymbol> parameterTypes, IList<RefKind> parameterRefKinds, IList<TArgumentSyntax> arguments, ISyntaxFactsService service)
+            {
+                if (ctor.Parameters.Length != parameterTypes.Count)
                 {
-                    var compareParameterName = false;
-                    var type = this.ParameterTypes[i];
-                    var refKind = this.ParameterRefKinds[i];
-                    string parameterName = GetParameterName(syntaxFacts, i);
+                    return false;
+                }
+
+                for (int i = 0; i < parameterTypes.Count; i++)
+                {
+                    var ctorParameter = ctor.Parameters[i];
+                    var result = SymbolEquivalenceComparer.Instance.Equals(ctorParameter.Type, parameterTypes[i]) &&
+                        ctorParameter.RefKind == parameterRefKinds[i];
+                    
+                    string parameterName = GetParameterName(arguments, i, service);
                     if (!string.IsNullOrEmpty(parameterName))
                     {
-                        compareParameterName = true;
+                        result &= service.IsCaseSensitive 
+                            ? ctorParameter.Name == parameterName
+                            : string.Equals(ctorParameter.Name, parameterName, StringComparison.OrdinalIgnoreCase);
                     }
-                    var parameterSymbol = CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: null,
-                        refKind: refKind,
-                        isParams: false,
-                        type: type,
-                        name: parameterName);
-                    var result = this.TypeToGenerateIn.InstanceConstructors.Any(c =>
-                    {
-                        if (i >= c.Parameters.Length)
-                        {
-                            return false;
-                        }
 
-                        return SymbolEquivalenceComparer
-                            .Instance
-                            .ParameterEquivalenceComparer
-                            .Equals(parameterSymbol, c.Parameters[i], compareParameterName, syntaxFacts.IsCaseSensitive);
-                    });
                     if (result == false)
                     {
                         return false;
@@ -153,14 +133,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return true;
             }
 
-            private string GetParameterName(ISyntaxFactsService service, int i)
+            private static string GetParameterName(IList<TArgumentSyntax> arguments, int index, ISyntaxFactsService service)
             {
-                if (i >= this.Arguments?.Count)
+                if (index >= arguments?.Count)
                 {
                     return string.Empty;
                 }
 
-                return service.GetNameForArgument(this.Arguments?[i]);
+                return service.GetNameForArgument(arguments?[index]);
             }
 
             internal List<ITypeSymbol> GetParameterTypes(
