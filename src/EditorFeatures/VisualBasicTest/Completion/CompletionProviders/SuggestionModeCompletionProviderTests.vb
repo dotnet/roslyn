@@ -323,7 +323,7 @@ End Class
                 Dim document1 = Await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular)
                 Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)
 
-                If CanUseSpeculativeSemanticModel(document1, position) Then
+                If Await CanUseSpeculativeSemanticModelAsync(document1, position) Then
                     Dim document2 = Await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
                     Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
                 End If

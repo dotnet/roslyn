@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             _workspace = workspace;
         }
 
-        internal override Workspace Workspace
+        public override Workspace Workspace
         {
             get
             {

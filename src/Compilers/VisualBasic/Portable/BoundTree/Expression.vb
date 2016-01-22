@@ -10,34 +10,73 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IOperationSearchable
 
         Public Function Descendants() As IEnumerable(Of IOperation) Implements IOperationSearchable.Descendants
-            Dim _list = New List(Of BoundNode)
+            Dim _list = New List(Of IOperation)
             Dim collector = New Collector(_list)
             collector.Visit(Me)
             _list.RemoveAt(0)
-            Return _list.OfType(Of IOperation)()
+            Return _list
         End Function
 
         Public Function DescendantsAndSelf() As IEnumerable(Of IOperation) Implements IOperationSearchable.DescendantsAndSelf
-            Dim _list = New List(Of BoundNode)
+            Dim _list = New List(Of IOperation)
             Dim collector = New Collector(_list)
             collector.Visit(Me)
-            Return _list.OfType(Of IOperation)()
+            Return _list
         End Function
 
         Private Class Collector
             Inherits BoundTreeWalkerWithStackGuard
 
-            Private nodes As List(Of BoundNode)
+            Private nodes As List(Of IOperation)
 
-            Public Sub New(nodes As List(Of BoundNode))
+            Public Sub New(nodes As List(Of IOperation))
                 Me.nodes = nodes
             End Sub
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
-                Me.nodes.Add(node)
+                Dim operation = TryCast(node, IOperation)
+                If operation IsNot Nothing Then
+                    Me.nodes.Add(operation)
+                    Select Case operation.Kind
+                        Case OperationKind.InvocationExpression
+                            Me.nodes.AddRange(DirectCast(operation, IInvocationExpression).ArgumentsInSourceOrder)
+                        Case OperationKind.ObjectCreationExpression
+                            Dim objectCreationExpression = DirectCast(operation, IObjectCreationExpression)
+                            Me.nodes.AddRange(objectCreationExpression.ConstructorArguments)
+                            Me.nodes.AddRange(objectCreationExpression.MemberInitializers)
+                        Case OperationKind.SwitchSection
+                            ' "Case Else" clause is not a bound node, so it needs to be added explicitly.
+                            Dim caseClauses = DirectCast(operation, ICase).Clauses
+                            If caseClauses.IsSingle Then
+                                Dim caseClause = caseClauses(0)
+                                If caseClause.CaseKind = CaseKind.Default Then
+                                    Me.nodes.Add(caseClause)
+                                End If
+                            End If
+                        Case OperationKind.ExpressionStatement
+                            Dim expression = DirectCast(operation, IExpressionStatement).Expression
+                            If expression.Kind = OperationKind.EventAssignmentExpression Then
+                                Me.nodes.Add(expression)
+                            End If
+                    End Select
+                End If
                 Return MyBase.Visit(node)
             End Function
 
+            ' Skip visiting `BoundAssignmentOperator` nodes (but Not their children) if they are used for initializing members in object creation.
+            ' The corresponding operations are covered by `IMemberInitializer`.
+            Public Overrides Function VisitObjectInitializerExpression(node As BoundObjectInitializerExpression) As BoundNode
+                For Each expression In node.Initializers
+                    If expression.HasErrors Then
+                        Continue For
+                    End If
+                    Dim assignment = DirectCast(expression, BoundAssignmentOperator)
+                    Me.Visit(assignment.Left)
+                    Me.Visit(assignment.LeftOnTheRightOpt)
+                    Me.Visit(assignment.Right)
+                Next
+                Return Nothing
+            End Function
         End Class
     End Class
 
@@ -78,8 +117,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.Syntax
             End Get
         End Property
-
-        'Protected MustOverride Function ExpressionKind() As OperationKind
 
         Protected Overridable Function ExpressionKind() As OperationKind
             Return OperationKind.None
@@ -341,36 +378,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return arguments.ToImmutable()
         End Function
 
-        Private Shared ArgumentMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundExpression, IArgument)
+        Private Shared ReadOnly s_argumentMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundExpression, IArgument)
 
         Private Shared Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As IArgument
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
-                    Return ArgumentMappings.GetValue(argument, Function(a) New ByRefArgument(parameters(index), DirectCast(argument, BoundByRefArgumentWithCopyBack)))
+                    Return s_argumentMappings.GetValue(argument, Function(a) New ByRefArgument(parameters(index), DirectCast(argument, BoundByRefArgumentWithCopyBack)))
                 Case Else
                     ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
-                    Return ArgumentMappings.GetValue(argument, Function(a) If(index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray, New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), a), New Argument(ArgumentKind.Positional, parameters(index), a)))
+                    Return s_argumentMappings.GetValue(argument, Function(a) If(index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray, New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), a), New Argument(ArgumentKind.Positional, parameters(index), a)))
             End Select
         End Function
 
-        Private Class Argument
+        Private MustInherit Class ArgumentBase
             Implements IArgument
 
-            Private ReadOnly _value As IExpression
-            Private ReadOnly _kind As ArgumentKind
             Private ReadOnly _parameter As IParameterSymbol
 
-            Public Sub New(kind As ArgumentKind, parameter As IParameterSymbol, value As IExpression)
-                _value = value
-                _kind = kind
+            Public Sub New(parameter As IParameterSymbol)
                 _parameter = parameter
             End Sub
-
-            Public ReadOnly Property Kind As ArgumentKind Implements IArgument.Kind
-                Get
-                    Return _kind
-                End Get
-            End Property
 
             Public ReadOnly Property Parameter As IParameterSymbol Implements IArgument.Parameter
                 Get
@@ -378,62 +405,97 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public ReadOnly Property Value As IExpression Implements IArgument.Value
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return Me.Parameter Is Nothing OrElse Me.Value.IsInvalid
+                End Get
+            End Property
+
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                Get
+                    Return OperationKind.Argument
+                End Get
+            End Property
+
+            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                Get
+                    Return Me.Value.Syntax
+                End Get
+            End Property
+
+            Public MustOverride ReadOnly Property ArgumentKind As ArgumentKind Implements IArgument.ArgumentKind
+            Public MustOverride ReadOnly Property Value As IExpression Implements IArgument.Value
+            Public MustOverride ReadOnly Property InConversion As IExpression Implements IArgument.InConversion
+            Public MustOverride ReadOnly Property OutConversion As IExpression Implements IArgument.OutConversion
+        End Class
+
+        Private Class Argument
+            Inherits ArgumentBase
+
+            Private ReadOnly _value As IExpression
+            Private ReadOnly _kind As ArgumentKind
+
+            Public Sub New(kind As ArgumentKind, parameter As IParameterSymbol, value As IExpression)
+                MyBase.New(parameter)
+                _value = value
+                _kind = kind
+            End Sub
+
+            Public Overrides ReadOnly Property Value As IExpression
                 Get
                     Return Me._value
                 End Get
             End Property
 
-            Public ReadOnly Property InConversion As IExpression Implements IArgument.InConversion
+            Public Overrides ReadOnly Property InConversion As IExpression
                 Get
                     Return Nothing
                 End Get
             End Property
 
-            Public ReadOnly Property OutConversion As IExpression Implements IArgument.OutConversion
+            Public Overrides ReadOnly Property OutConversion As IExpression
                 Get
                     Return Nothing
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property ArgumentKind As ArgumentKind
+                Get
+                    Return _kind
                 End Get
             End Property
         End Class
 
         Private Class ByRefArgument
-            Implements IArgument
+            Inherits ArgumentBase
 
-            Private ReadOnly _parameter As IParameterSymbol
             Private ReadOnly _argument As BoundByRefArgumentWithCopyBack
 
             Public Sub New(parameter As IParameterSymbol, argument As BoundByRefArgumentWithCopyBack)
-                _parameter = parameter
+                MyBase.New(parameter)
                 _argument = argument
             End Sub
 
-            Public ReadOnly Property InConversion As IExpression Implements IArgument.InConversion
-                Get
-                    Return _argument.InConversion
-                End Get
-            End Property
-
-            Public ReadOnly Property Kind As ArgumentKind Implements IArgument.Kind
+            Public Overrides ReadOnly Property ArgumentKind As ArgumentKind
                 Get
                     ' Do the VB bound trees encode named arguments?
                     Return ArgumentKind.Positional
                 End Get
             End Property
 
-            Public ReadOnly Property OutConversion As IExpression Implements IArgument.OutConversion
+            Public Overrides ReadOnly Property InConversion As IExpression
+                Get
+                    Return _argument.InConversion
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property OutConversion As IExpression
                 Get
                     Return _argument.OutConversion
                 End Get
             End Property
 
-            Public ReadOnly Property Parameter As IParameterSymbol Implements IArgument.Parameter
-                Get
-                    Return _parameter
-                End Get
-            End Property
-
-            Public ReadOnly Property Value As IExpression Implements IArgument.Value
+            Public Overrides ReadOnly Property Value As IExpression
                 Get
                     Return _argument.OriginalArgument
                 End Get
@@ -502,7 +564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IUnaryKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryKind
+        Private ReadOnly Property IUnaryKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryOperationKind
             Get
                 Return DeriveUnaryOperationKind(Me.OperatorKind, Me.Operand)
             End Get
@@ -534,7 +596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IUnaryKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryKind
+        Private ReadOnly Property IUnaryKind As UnaryOperationKind Implements IUnaryOperatorExpression.UnaryOperationKind
             Get
                 Select Case OperatorKind And UnaryOperatorKind.OpMask
                     Case UnaryOperatorKind.Plus
@@ -563,7 +625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryKind
+        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
                 Return DeriveBinaryOperationKind(Me.OperatorKind, Me.Left)
             End Get
@@ -602,7 +664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryKind
+        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
                 Select Case OperatorKind And BinaryOperatorKind.OpMask
                     Case BinaryOperatorKind.Add
@@ -709,7 +771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryKind
+        Private ReadOnly Property IBinaryKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
                 Return If((Me.BitwiseOperator.OperatorKind And BinaryOperatorKind.And) <> 0, BinaryOperationKind.OperatorConditionalAnd, BinaryOperationKind.OperatorConditionalOr)
             End Get
@@ -747,7 +809,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundTryCast
         Implements IConversionExpression
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.Conversion
+        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
                 Return Semantics.ConversionKind.AsCast
             End Get
@@ -785,7 +847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundDirectCast
         Implements IConversionExpression
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.Conversion
+        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
                 Return Semantics.ConversionKind.Cast
             End Get
@@ -823,7 +885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundConversion
         Implements IConversionExpression
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.Conversion
+        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
                 Return Semantics.ConversionKind.Basic
             End Get
@@ -861,7 +923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundUserDefinedConversion
         Implements IConversionExpression
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.Conversion
+        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
                 Return Semantics.ConversionKind.Operator
             End Get
@@ -945,6 +1007,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundObjectCreationExpression
         Implements IObjectCreationExpression
 
+        Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
+
         Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IObjectCreationExpression.ArgumentMatchingParameter
             Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.ConstructorOpt.Parameters)
         End Function
@@ -963,18 +1027,136 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IMemberInitializers As ImmutableArray(Of IMemberInitializer) Implements IObjectCreationExpression.MemberInitializers
             Get
-                Dim initializer As BoundObjectInitializerExpressionBase = Me.InitializerOpt
-                If initializer IsNot Nothing Then
-                    ' ZZZ What's the representation in bound trees?
-                End If
+                Dim initializer = s_memberInitializersMappings.GetValue(Me, Function(objectCreationStatement)
+                                                                                Dim objectInitializerExpression As BoundObjectInitializerExpressionBase = Me.InitializerOpt
+                                                                                If objectInitializerExpression IsNot Nothing Then
+                                                                                    Dim builder = ArrayBuilder(Of IMemberInitializer).GetInstance(objectInitializerExpression.Initializers.Length)
+                                                                                    For Each memberAssignment In objectInitializerExpression.Initializers
+                                                                                        Dim assignment = TryCast(memberAssignment, BoundAssignmentOperator)
+                                                                                        Dim left = assignment?.Left
+                                                                                        If left IsNot Nothing Then
+                                                                                            Select Case left.Kind
+                                                                                                Case BoundKind.FieldAccess
+                                                                                                    builder.Add(New FieldInitializer(assignment.Syntax, DirectCast(left, BoundFieldAccess).FieldSymbol, assignment.Right))
+                                                                                                Case BoundKind.PropertyAccess
+                                                                                                    builder.Add(New PropertyInitializer(assignment.Syntax, DirectCast(left, BoundPropertyAccess).PropertySymbol.SetMethod, assignment.Right))
+                                                                                            End Select
+                                                                                        End If
+                                                                                    Next
+                                                                                    Return builder.ToImmutableAndFree()
+                                                                                End If
 
-                Return ImmutableArray.Create(Of IMemberInitializer)()
+                                                                                Return ImmutableArray(Of IMemberInitializer).Empty
+                                                                            End Function)
+
+                Return DirectCast(initializer, ImmutableArray(Of IMemberInitializer))
             End Get
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ObjectCreationExpression
         End Function
+
+        Private Class FieldInitializer
+            Implements IFieldInitializer
+
+            Private _field As IFieldSymbol
+            Private _syntax As SyntaxNode
+            Private _value As IExpression
+
+            Public Sub New(syntax As SyntaxNode, field As IFieldSymbol, value As IExpression)
+                _field = field
+                _syntax = syntax
+                _value = value
+            End Sub
+
+            Public ReadOnly Property Field As IFieldSymbol Implements IFieldInitializer.Field
+                Get
+                    Return _field
+                End Get
+            End Property
+
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                Get
+                    Return OperationKind.FieldInitializer
+                End Get
+            End Property
+
+            Public ReadOnly Property MemberInitializerKind As MemberInitializerKind Implements IMemberInitializer.MemberInitializerKind
+                Get
+                    Return MemberInitializerKind.Field
+                End Get
+            End Property
+
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return Me.Value.IsInvalid OrElse Me.Field Is Nothing
+                End Get
+            End Property
+
+            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                Get
+                    Return _syntax
+                End Get
+            End Property
+
+            Public ReadOnly Property Value As IExpression Implements IMemberInitializer.Value
+                Get
+                    Return _value
+                End Get
+            End Property
+        End Class
+
+        Private Class PropertyInitializer
+            Implements IPropertyInitializer
+
+            Private _setter As IMethodSymbol
+            Private _syntax As SyntaxNode
+            Private _value As IExpression
+
+            Public Sub New(syntax As SyntaxNode, setter As IMethodSymbol, value As IExpression)
+                _setter = setter
+                _syntax = syntax
+                _value = value
+            End Sub
+
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                Get
+                    Return OperationKind.PropertyInitializer
+                End Get
+            End Property
+
+            Public ReadOnly Property MemberInitializerKind As MemberInitializerKind Implements IMemberInitializer.MemberInitializerKind
+                Get
+                    Return MemberInitializerKind.Property
+                End Get
+            End Property
+
+            Public ReadOnly Property Setter As IMethodSymbol Implements IPropertyInitializer.Setter
+                Get
+                    Return _setter
+                End Get
+            End Property
+
+            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                Get
+                    Return Me.Value.IsInvalid OrElse Me.Setter Is Nothing
+                End Get
+            End Property
+
+            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                Get
+                    Return _syntax
+                End Get
+            End Property
+
+            Public ReadOnly Property Value As IExpression Implements IMemberInitializer.Value
+                Get
+                    Return _value
+                End Get
+            End Property
+        End Class
+
     End Class
 
     Partial Class BoundNewT
@@ -1003,83 +1185,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IElementValues As IArrayInitializer Implements IArrayCreationExpression.ElementValues
+        Private ReadOnly Property IInitializer As IArrayInitializer Implements IArrayCreationExpression.Initializer
             Get
                 Dim initializer As BoundArrayInitialization = Me.InitializerOpt
-                If initializer IsNot Nothing Then
-                    Return MakeInitializer(initializer)
-                End If
-
-                Return Nothing
+                Return initializer
             End Get
         End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ArrayCreationExpression
         End Function
+    End Class
 
-        Private Shared ArrayInitializerMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundArrayInitialization, IArrayInitializer)
+    Partial Class BoundArrayInitialization
+        Implements IArrayInitializer
 
-        Private Function MakeInitializer(initializer As BoundArrayInitialization) As IArrayInitializer
-            Return ArrayInitializerMappings.GetValue(
-                initializer,
-                Function(arrayInitalizer)
-                    Dim dimension As ImmutableArray(Of IArrayInitializer).Builder = ImmutableArray.CreateBuilder(Of IArrayInitializer)(arrayInitalizer.Initializers.Length)
-
-                    For index As Integer = 0 To arrayInitalizer.Initializers.Length - 1
-                        Dim elementInitializer As BoundExpression = arrayInitalizer.Initializers(index)
-                        Dim elementArray As BoundArrayInitialization = TryCast(elementInitializer, BoundArrayInitialization)
-                        dimension.Add(If(elementArray IsNot Nothing, MakeInitializer(elementArray), New ElementInitializer(elementInitializer)))
-                    Next
-
-                    Return New DimensionInitializer(dimension.ToImmutable())
-                End Function)
-
+        Public ReadOnly Property ElementValues As ImmutableArray(Of IExpression) Implements IArrayInitializer.ElementValues
+            Get
+                Return Me.Initializers.As(Of IExpression)()
+            End Get
+        End Property
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.ArrayInitializer
         End Function
-
-        Private Class ElementInitializer
-            Implements IExpressionArrayInitializer
-
-            ReadOnly _element As BoundExpression
-
-            Public Sub New(element As BoundExpression)
-                Me._element = element
-            End Sub
-
-            ReadOnly Property ElementValue As IExpression Implements IExpressionArrayInitializer.ElementValue
-                Get
-                    Return Me._element
-                End Get
-            End Property
-
-            ReadOnly Property ArrayClass As ArrayInitializerKind Implements IExpressionArrayInitializer.ArrayClass
-                Get
-                    Return ArrayInitializerKind.Expression
-                End Get
-            End Property
-        End Class
-
-        Private Class DimensionInitializer
-            Implements IDimensionArrayInitializer
-
-            ReadOnly _dimension As ImmutableArray(Of IArrayInitializer)
-
-            Public Sub New(dimension As ImmutableArray(Of IArrayInitializer))
-                Me._dimension = dimension
-            End Sub
-
-            ReadOnly Property ElementValues As ImmutableArray(Of IArrayInitializer) Implements IDimensionArrayInitializer.ElementValues
-                Get
-                    Return Me._dimension
-                End Get
-            End Property
-
-            ReadOnly Property ArrayClass As ArrayInitializerKind Implements IDimensionArrayInitializer.ArrayClass
-                Get
-                    Return ArrayInitializerKind.Dimension
-                End Get
-            End Property
-        End Class
     End Class
 
     Partial Class BoundPropertyAccess
@@ -1091,6 +1219,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+            Get
+                Return Me.PropertySymbol
+            End Get
+        End Property
+
         Private ReadOnly Property IProperty As IPropertySymbol Implements IPropertyReferenceExpression.Property
             Get
                 Return Me.PropertySymbol
@@ -1099,6 +1233,64 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.PropertyReferenceExpression
+        End Function
+    End Class
+
+    Partial Class BoundEventAccess
+        Implements IEventReferenceExpression
+
+        Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
+            Get
+                Return Me.ReceiverOpt
+            End Get
+        End Property
+
+        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+            Get
+                Return Me.EventSymbol
+            End Get
+        End Property
+
+        Private ReadOnly Property IEvent As IEventSymbol Implements IEventReferenceExpression.Event
+            Get
+                Return Me.EventSymbol
+            End Get
+        End Property
+
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.EventReferenceExpression
+        End Function
+    End Class
+
+    Partial Class BoundDelegateCreationExpression
+        Implements IMethodBindingExpression
+
+        Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
+            Get
+                Return Me.ReceiverOpt
+            End Get
+        End Property
+
+        Private ReadOnly Property IIsVirtual As Boolean Implements IMethodBindingExpression.IsVirtual
+            Get
+                Return Me.Method IsNot Nothing AndAlso (Me.Method.IsOverridable OrElse Me.Method.IsOverrides OrElse Me.Method.IsMustOverride) AndAlso Not Me.SuppressVirtualCalls
+            End Get
+        End Property
+
+        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+            Get
+                Return Me.Method
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethod As IMethodSymbol Implements IMethodBindingExpression.Method
+            Get
+                Return Me.Method
+            End Get
+        End Property
+
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.MethodBindingExpression
         End Function
     End Class
 
@@ -1114,6 +1306,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
             Get
                 Return Me.ReceiverOpt
+            End Get
+        End Property
+
+        Private ReadOnly Property IMember As ISymbol Implements IMemberReferenceExpression.Member
+            Get
+                Return Me.FieldSymbol
             End Get
         End Property
 

@@ -565,6 +565,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_MutuallyExclusiveOptions, nameof(CryptoPublicKey), nameof(CryptoKeyContainer)));
                 }
             }
+
+            if (PublicSign && DelaySign == true)
+            {
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_MutuallyExclusiveOptions, nameof(PublicSign), nameof(DelaySign)));
+            }
         }
 
         public bool Equals(CSharpCompilationOptions other)

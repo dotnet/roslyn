@@ -2273,8 +2273,8 @@ class Program
                 }
                 else
                 {
-                    thread1.Start();
                     thread2.Start();
+                    thread1.Start();
                 }
 
                 comp.VerifyDiagnostics();

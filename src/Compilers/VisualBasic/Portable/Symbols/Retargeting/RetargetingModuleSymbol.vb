@@ -273,5 +273,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
             Return _underlyingModule.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
+
+        Public Overrides Function GetMetadata() As ModuleMetadata
+            Return _underlyingModule.GetMetadata()
+        End Function
     End Class
 End Namespace

@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "Microsoft.DiaSymReader": "1.0.7-beta1",
+    "Microsoft.DiaSymReader": "1.0.7-beta1-51221",
     "System.Collections.Immutable": "1.1.37",
     "System.Reflection.Metadata": "1.2.0-rc2-23608"
   },

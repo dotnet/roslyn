@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis
         public string ErrorLogPath { get; internal set; }
 
         /// <summary>
-        /// An absolute path of the App.config file or null if not specified.
+        /// An absolute path of the app.config file or null if not specified.
         /// </summary>
         public string AppConfigPath { get; internal set; }
 

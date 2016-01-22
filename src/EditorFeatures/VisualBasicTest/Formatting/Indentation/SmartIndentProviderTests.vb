@@ -33,9 +33,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 
             Dim provider = New SmartIndentProvider()
 
-            AssertEx.Throws(Of Exception)(
-                Function() provider.CreateSmartIndent(Nothing),
-                allowDerived:=True)
+            Assert.ThrowsAny(Of ArgumentException)(
+                Function() provider.CreateSmartIndent(Nothing))
         End Sub
 
         <Fact>

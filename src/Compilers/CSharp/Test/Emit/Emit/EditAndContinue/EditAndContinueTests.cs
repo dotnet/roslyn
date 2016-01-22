@@ -5269,6 +5269,34 @@ class C
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
+            var baselineIL0 = @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (<>f__AnonymousType0<dynamic, int> V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  ldc.i4.1
+  IL_0003:  newobj     ""<>f__AnonymousType0<dynamic, int>..ctor(dynamic, int)""
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  callvirt   ""int <>f__AnonymousType0<dynamic, int>.B.get""
+  IL_000f:  call       ""void System.Console.WriteLine(int)""
+  IL_0014:  nop
+  IL_0015:  ret
+}
+";
+            v0.VerifyIL("C.F", baselineIL0);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "<>f__AnonymousType0<<A>j__TPar, <B>j__TPar>: {Equals, GetHashCode, ToString}");
+
+
             var baselineIL = @"
 {
   // Code size       24 (0x18)
@@ -5288,15 +5316,6 @@ class C
   IL_0017:  ret
 }
 ";
-            v0.VerifyIL("C.F", baselineIL.Replace("<<VALUE>>", "0"));
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
-
-            diff1.VerifySynthesizedMembers(
-                "<>f__AnonymousType0<<A>j__TPar, <B>j__TPar>: {Equals, GetHashCode, ToString}");
 
             diff1.VerifyIL("C.F", baselineIL.Replace("<<VALUE>>", "1"));
 
@@ -5930,7 +5949,7 @@ class C
 
             v0.VerifyIL("C.F", @"
 {
-  // Code size       84 (0x54)
+  // Code size       82 (0x52)
   .maxstack  3
   .locals init (object V_0) //x
   IL_0000:  nop
@@ -5953,11 +5972,9 @@ class C
   IL_0040:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
   IL_0045:  ldloc.0
   IL_0046:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_004b:  ldc.i4.0
-  IL_004c:  add
-  IL_004d:  call       ""void System.Console.WriteLine(int)""
-  IL_0052:  nop
-  IL_0053:  ret
+  IL_004b:  call       ""void System.Console.WriteLine(int)""
+  IL_0050:  nop
+  IL_0051:  ret
 }
 ");
 

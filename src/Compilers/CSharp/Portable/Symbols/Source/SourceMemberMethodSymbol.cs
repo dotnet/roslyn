@@ -823,10 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = identifier.GetLocation();
                 var name = identifier.ValueText;
 
-                if (name == this.Name)
-                {
-                    diagnostics.Add(ErrorCode.ERR_TypeVariableSameAsParent, location, name);
-                }
+                // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
 
                 for (int i = 0; i < result.Count; i++)
                 {

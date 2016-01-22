@@ -104,5 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             return null;
         }
+
+        public override AssemblyMetadata GetMetadata() => null;
     }
 }

@@ -5623,6 +5623,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 var result = this.ParseType(parentIsParameter: false);
 
+                // Consider the case where someone supplies an invalid type argument
+                // Such as Action<0> or Action<static>.  In this case we generate a missing 
+                // identifer in ParseType, but if we continue as is we'll immediately start to 
+                // interpret 0 as the start of a new expression when we can tell it's most likely
+                // meant to be part of the type list.  
+                //
+                // To solve this we check if the current token is not comma or greater than and 
+                // the next token is a comma or greater than. If so we assume that the found 
+                // token is part of this expression and we attempt to recover. This does open 
+                // the door for cases where we have an  incomplete line to be interpretted as 
+                // a single expression.  For example:
+                //
+                // Action< // Incomplete line
+                // a>b;
+                //
+                // However, this only happens when the following expression is of the form a>... 
+                // or a,... which  means this case should happen less frequently than what we're 
+                // trying to solve here so we err on the side of better error messages
+                // for the majority of cases.
+                SyntaxKind nextTokenKind = SyntaxKind.None;
+
+                if (result.IsMissing &&
+                    (this.CurrentToken.Kind != SyntaxKind.CommaToken && this.CurrentToken.Kind != SyntaxKind.GreaterThanToken) && 
+                    ((nextTokenKind = this.PeekToken(1).Kind) == SyntaxKind.CommaToken || nextTokenKind == SyntaxKind.GreaterThanToken))
+                {
+                    // Eat the current token and add it as skipped so we recover
+                    result = AddTrailingSkippedSyntax(result, this.EatToken());
+                }
+
                 if (varianceToken != null)
                 {
                     result = AddLeadingSkippedSyntax(result, varianceToken);

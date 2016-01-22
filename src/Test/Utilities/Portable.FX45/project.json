@@ -1,7 +1,7 @@
 ﻿{
   "dependencies": {
-    "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.2.0-beta-20151016-11",
-    "Microsoft.DiaSymReader": "1.0.7-beta1",
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.2.0-beta1-20160105-04",
+    "Microsoft.DiaSymReader": "1.0.7-beta1-51221",
     "System.Collections.Immutable": "1.1.37",
     "System.Reflection.Metadata": "1.2.0-rc2-23608",
     "xunit": "2.1.0"

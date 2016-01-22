@@ -376,8 +376,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 throw new NotImplementedException();
             }
 
-            using (var module = new PEModule(new PEReader(assembly), metadataOpt: IntPtr.Zero, metadataSizeOpt: 0))
+            using (var metadata = ModuleMetadata.CreateFromImage(assembly))
             {
+                var module = metadata.Module;
                 var reader = module.MetadataReader;
                 var typeDef = reader.GetTypeDef(parts[0]);
                 var methodName = parts[1];

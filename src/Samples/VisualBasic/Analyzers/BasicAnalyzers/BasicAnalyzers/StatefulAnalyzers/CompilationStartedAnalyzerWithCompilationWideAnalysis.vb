@@ -34,8 +34,8 @@ Namespace BasicAnalyzers
         Friend Shared Rule As New DiagnosticDescriptor(DiagnosticIds.CompilationStartedAnalyzerWithCompilationWideAnalysisRuleId, Title, MessageFormat, DiagnosticCategories.Stateful, DiagnosticSeverity.Warning, isEnabledByDefault:=True, description:=Description)
 #End Region
 
-        Friend Const UnsecureMethodAttributeName As String = "MyNamespace.UnsecureMethodAttribute"
-        Friend Const SecureTypeInterfaceName As String = "MyNamespace.ISecureType"
+        Public Const UnsecureMethodAttributeName As String = "MyNamespace.UnsecureMethodAttribute"
+        Public Const SecureTypeInterfaceName As String = "MyNamespace.ISecureType"
 
         Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
             Get

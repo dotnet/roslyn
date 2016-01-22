@@ -388,6 +388,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitModule(this);
         }
 
+        /// <summary>
+        /// If this symbol represents a metadata module returns the underlying <see cref="ModuleMetadata"/>.
+        /// 
+        /// Otherwise, this returns <code>null</code>.
+        /// </summary>
+        public abstract ModuleMetadata GetMetadata();
+
         #endregion
     }
 }

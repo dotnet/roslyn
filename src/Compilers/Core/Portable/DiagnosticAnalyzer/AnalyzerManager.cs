@@ -158,6 +158,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Returns <see cref="GeneratedCodeAnalysisFlags"/> for the given analyzer.
+        /// If an analyzer hasn't configured generated code analysis, returns <see cref="GeneratedCodeAnalysisFlags.Default"/>.
+        /// </summary>
+        public async Task<GeneratedCodeAnalysisFlags> GetGeneratedCodeAnalysisFlagsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        {
+            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            return sessionScope.GetGeneratedCodeAnalysisFlags(analyzer);
+        }
+
+        /// <summary>
         /// Return <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetSupportedDiagnosticDescriptors(

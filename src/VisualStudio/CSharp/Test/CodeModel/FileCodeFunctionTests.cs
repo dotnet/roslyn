@@ -282,7 +282,7 @@ public class Ref<T> where T : Entity
         public async Task GetStartPoint_Attributes()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -290,7 +290,7 @@ public class Ref<T> where T : Entity
         public async Task GetStartPoint_AttributesWithDelimiter()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
+            Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -310,7 +310,7 @@ public class Ref<T> where T : Entity
         public async Task GetStartPoint_BodyWithDelimiter()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -330,7 +330,7 @@ public class Ref<T> where T : Entity
         public async Task GetStartPoint_HeaderWithAttributes()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -338,7 +338,7 @@ public class Ref<T> where T : Entity
         public async Task GetStartPoint_Name()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -370,7 +370,7 @@ public class Ref<T> where T : Entity
         public async Task GetStartPoint_Whole()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
+            Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -390,7 +390,7 @@ public class Ref<T> where T : Entity
         public async Task GetEndPoint_Attributes()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -398,7 +398,7 @@ public class Ref<T> where T : Entity
         public async Task GetEndPoint_AttributesWithDelimiter()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
+            Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -418,7 +418,7 @@ public class Ref<T> where T : Entity
         public async Task GetEndPoint_BodyWithDelimiter()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -426,7 +426,7 @@ public class Ref<T> where T : Entity
         public async Task GetEndPoint_Header()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -434,7 +434,7 @@ public class Ref<T> where T : Entity
         public async Task GetEndPoint_HeaderWithAttributes()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -442,7 +442,7 @@ public class Ref<T> where T : Entity
         public async Task GetEndPoint_Name()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -462,7 +462,7 @@ public class Ref<T> where T : Entity
         public async Task GetEndPoint_Whole()
         {
             CodeFunction testObject = await GetCodeFunctionAsync("A", "MethodA");
-            AssertEx.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
+            Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]

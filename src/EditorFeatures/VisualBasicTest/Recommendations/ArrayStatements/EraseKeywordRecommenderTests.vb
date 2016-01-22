@@ -11,34 +11,34 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ar
     Public Class EraseKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EraseInMethodBody()
-            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Erase")
-        End Sub
+        Public Async Function EraseInMethodBodyTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Erase")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EraseAfterStatement()
-            VerifyRecommendationsContain(<MethodBody>
+        Public Async Function EraseAfterStatementTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>
 Dim x 
 |</MethodBody>, "Erase")
-        End Sub
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EraseMissingInClassBlock()
-            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "Erase")
-        End Sub
+        Public Async Function EraseMissingInClassBlockTest() As Task
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "Erase")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EraseInSingleLineLambda()
-            VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "Erase")
-        End Sub
+        Public Async Function EraseInSingleLineLambdaTest() As Task
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Sub() |</MethodBody>, "Erase")
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub EraseNotInSingleLineFunctionLambda()
-            VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "Erase")
-        End Sub
+        Public Async Function EraseNotInSingleLineFunctionLambdaTest() As Task
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Function() |</MethodBody>, "Erase")
+        End Function
     End Class
 End Namespace

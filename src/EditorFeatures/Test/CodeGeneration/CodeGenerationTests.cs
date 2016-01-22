@@ -799,7 +799,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 bool compareTokens,
                 bool ignoreResult,
                 string language,
-                TestWorkspace workspace)
+                TestWorkspace workspace,
+                SemanticModel semanticModel)
             {
                 _expected = expected.NormalizeLineEndings();
                 _language = language;
@@ -808,7 +809,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 _ignoreResult = ignoreResult;
                 _workspace = workspace;
                 this.Document = _workspace.CurrentSolution.Projects.Single().Documents.Single();
-                this.SemanticModel = Document.GetSemanticModelAsync().Result;
+                this.SemanticModel = semanticModel;
                 this.SyntaxTree = SemanticModel.SyntaxTree;
                 this.Service = Document.Project.LanguageServices.GetService<ICodeGenerationService>();
             }
@@ -818,8 +819,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var language = forceLanguage != null ? forceLanguage : GetLanguage(initial);
                 var isVisualBasic = language == LanguageNames.VisualBasic;
                 var workspace = await CreateWorkspaceFromFileAsync(initial.NormalizeLineEndings(), isVisualBasic, null, null);
+                var semanticModel = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetSemanticModelAsync();
 
-                return new TestContext(initial, expected, compareTokens, ignoreResult, language, workspace);
+                return new TestContext(initial, expected, compareTokens, ignoreResult, language, workspace, semanticModel);
             }
 
             public Solution Solution { get { return _workspace.CurrentSolution; } }

@@ -69,8 +69,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         ParameterReferenceExpression,
         SyntheticLocalReferenceExpression,
         FieldReferenceExpression,
-        MethodReferenceExpression,
+        MethodBindingExpression,
         PropertyReferenceExpression,
+        EventReferenceExpression,
         LateBoundMemberReferenceExpression,
         UnaryOperatorExpression,
         BinaryOperatorExpression,
@@ -93,6 +94,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         ParenthesizedExpression,
 
         UnboundLambdaExpression,
+        EventAssignmentExpression,
 
         // VB only
 
@@ -104,6 +106,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         // Newly added
 
         ConditionalAccessExpression,
-        IncrementExpression
+        IncrementExpression,
+
+        Argument,
+        FieldInitializer,
+        PropertyInitializer,
+        ArrayInitializer,
+        VariableDeclaration,
+        SwitchSection,
+        SingleValueCaseClause,
+        RelationalCaseClause,
+        RangeCaseClause
     }
 }

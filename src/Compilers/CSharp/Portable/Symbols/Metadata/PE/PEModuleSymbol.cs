@@ -683,6 +683,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override ModuleMetadata GetMetadata() => _module.GetNonDisposableMetadata();
+
         internal override bool UtilizesNullableReferenceTypes
         {
             get

@@ -354,8 +354,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Select Case binaryOpKind
+                Case BinaryOperatorKind.Subtract
+                    If right.IsDefaultValueConstant Then
+                        Return left
+                    End If
+
                 Case BinaryOperatorKind.Add,
-                     BinaryOperatorKind.Subtract,
                      BinaryOperatorKind.Or,
                      BinaryOperatorKind.OrElse
 

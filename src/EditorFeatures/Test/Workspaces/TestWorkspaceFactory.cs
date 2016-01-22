@@ -57,33 +57,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// Creates a single buffer in a workspace.
         /// </summary>
         /// <param name="content">Lines of text, the buffer contents</param>
-        internal static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(
+        internal static Task<TestWorkspace> CreateWorkspaceFromFileAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
-            params string[] content)
+            string content)
         {
-            var total = content.Join(Environment.NewLine);
-            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, total);
+            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, new[] { content });
         }
 
         /// <summary>
         /// Creates a single buffer in a workspace.
         /// </summary>
         /// <param name="content">Lines of text, the buffer contents</param>
-        internal static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(
+        internal static Task<TestWorkspace> CreateWorkspaceFromFileAsync(
             string workspaceKind,
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
-            params string[] content)
+            string content)
         {
-            var total = content.Join(Environment.NewLine);
-            return CreateWorkspaceFromFilesAsync(workspaceKind, language, compilationOptions, parseOptions, total);
+            return CreateWorkspaceFromFilesAsync(workspaceKind, language, compilationOptions, parseOptions, new[] { content });
         }
 
-        /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
-        internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
+/// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
+internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
