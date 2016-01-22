@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Test.Utilities;
@@ -394,6 +397,90 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expectedTypeArguments: null,
                 expectedPointerCount: 0,
                 expectedArrayRanks: new[] { 1 });
+        }
+
+        [Fact, WorkItem(7396, "https://github.com/dotnet/roslyn/issues/7396")]
+        public void ObfuscatedNamespaceNames_01()
+        {
+            var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>();
+
+            foreach (var namespaceName in new[] { "A.", "A.a", "A..", "A.-" })
+            {
+                result.Add(new Grouping<string, TypeDefinitionHandle>(namespaceName, new[] { new TypeDefinitionHandle() }));
+            }
+
+            result.Sort(new PEModule.TypesByNamespaceSortComparer(StringComparer.Ordinal));
+
+            // This is equivalent to the result of PEModule.GroupTypesByNamespaceOrThrow
+            IEnumerable<IGrouping<string, TypeDefinitionHandle>> typesByNS = result;
+
+            // The following code is equivalent to code in PENamespaceSymbol.LoadAllMembers
+
+            IEnumerable<IGrouping<string, TypeDefinitionHandle>> nestedTypes = null;
+            IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>> nestedNamespaces = null;
+
+            MetadataHelpers.GetInfoForImmediateNamespaceMembers(
+                false,
+                "A".Length,
+                typesByNS,
+                StringComparer.Ordinal,
+                out nestedTypes, out nestedNamespaces);
+
+            // We don't expect duplicate keys in nestedNamespaces at this point.
+            Assert.False(nestedNamespaces.GroupBy(pair => pair.Key).Where(g => g.Count() > 1).Any());
+
+            var array = nestedNamespaces.ToArray();
+            Assert.Equal(3, array.Length);
+            Assert.Equal("", array[0].Key);
+            Assert.Equal(2, array[0].Value.Count());
+            Assert.Equal("-", array[1].Key);
+            Assert.Equal(1, array[1].Value.Count());
+            Assert.Equal("a", array[2].Key);
+            Assert.Equal(1, array[2].Value.Count());
+        }
+
+        [Fact, WorkItem(7396, "https://github.com/dotnet/roslyn/issues/7396")]
+        public void ObfuscatedNamespaceNames_02()
+        {
+            var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>();
+
+            foreach (var namespaceName in new[] { ".a", ".b" })
+            {
+                result.Add(new Grouping<string, TypeDefinitionHandle>(namespaceName, new[] { new TypeDefinitionHandle() }));
+            }
+
+            result.Sort(new PEModule.TypesByNamespaceSortComparer(StringComparer.Ordinal));
+
+            // This is equivalent to the result of PEModule.GroupTypesByNamespaceOrThrow
+            IEnumerable<IGrouping<string, TypeDefinitionHandle>> typesByNS = result;
+
+            // The following code is equivalent to code in PENamespaceSymbol.LoadAllMembers
+
+            IEnumerable<IGrouping<string, TypeDefinitionHandle>> nestedTypes = null;
+            IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>> nestedNamespaces = null;
+
+            MetadataHelpers.GetInfoForImmediateNamespaceMembers(
+                true, // global namespace
+                0, // global namespace
+                typesByNS,
+                StringComparer.Ordinal,
+                out nestedTypes, out nestedNamespaces);
+
+            var nestedNS = nestedNamespaces.Single();
+
+            Assert.Equal("", nestedNS.Key);
+            Assert.Equal(2, nestedNS.Value.Count());
+
+            MetadataHelpers.GetInfoForImmediateNamespaceMembers(
+                false,
+                nestedNS.Key.Length,
+                nestedNS.Value,
+                StringComparer.Ordinal,
+                out nestedTypes, out nestedNamespaces);
+
+            Assert.Equal(2, nestedNamespaces.Count());
+            Assert.Equal("a", nestedNamespaces.ElementAt(0).Key);
+            Assert.Equal("b", nestedNamespaces.ElementAt(1).Key);
         }
     }
 }
