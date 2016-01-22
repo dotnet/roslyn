@@ -41,7 +41,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <NoWarn>1591</NoWarn>
     <NoStdLib>true</NoStdLib>
-    <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -50,7 +49,6 @@
     <Optimize>true</Optimize>
     <NoWarn>1591</NoWarn>
     <NoStdLib>true</NoStdLib>
-    <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
