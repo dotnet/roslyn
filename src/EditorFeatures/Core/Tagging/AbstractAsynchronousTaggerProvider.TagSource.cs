@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RecalculateTagsOnChanged(new TaggerEventArgs(TaggerDelay.Short));
             }
 
-            public TaggerDelay NewTagsNotificationDelay => _dataSource.AddedTagNotificationDelay;
-            public TaggerDelay OldTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
+            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
+            public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
 
             private ITaggerEventSource CreateEventSource()
             {
