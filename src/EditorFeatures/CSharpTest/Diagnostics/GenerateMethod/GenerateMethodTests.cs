@@ -2793,11 +2793,46 @@ class Class1
 
         [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public async Task TestGenerateMethodFromStaticProperty2()
+        public async Task TestGenerateMethodFromStaticProperty_FieldInitializer()
         {
             await TestAsync(
-@"using System ; public class OtherClass { } public class Test { public static OtherClass Property { get { if ( s_field == null ) s_field = [|InitializeProperty|] ( ) ; return s_field ; } } private static OtherClass s_field ; } ",
-@"using System ; public class OtherClass { } public class Test { public static OtherClass Property { get { if ( s_field == null ) s_field = InitializeProperty ( ) ; return s_field ; } } private static OtherClass InitializeProperty ( ) { throw new NotImplementedException ( ) ; } private static OtherClass s_field ; } ");
+@"using System;
+public class OtherClass {}
+public class Test
+{
+    public static OtherClass Property
+    {
+        get
+        {
+            if ( s_field == null)
+                s_field = [|InitializeProperty|]();
+            return s_field;
+        }
+    }
+
+    private static OtherClass s_field;
+}",
+@"using System;
+public class OtherClass {}
+public class Test
+{
+    public static OtherClass Property
+    {
+        get
+        {
+            if ( s_field == null)
+                s_field = InitializeProperty();
+            return s_field;
+        }
+    }
+
+    private static OtherClass InitializeProperty()
+    {
+        throw new NotImplementedException();
+    }
+
+    private static OtherClass s_field;
+}");
         }
 
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
