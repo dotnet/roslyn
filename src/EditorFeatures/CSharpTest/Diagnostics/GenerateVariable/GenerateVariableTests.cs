@@ -2811,5 +2811,44 @@ index: 1);
 @"using System ; class Program { static void Main ( string [ ] args ) { Func < int > foo = ( ) => { return 0 ; } ; } } ",
 index: 2);
         }
+
+        [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerationFromStaticProperty()
+        {
+            await TestAsync(
+@"using System ; public class Test { public static int Property1 { get { return [|_field|] ; } } } ",
+@"using System ; public class Test { private static int _field ; public static int Property1 { get { return _field ; } } } ");
+        }
+
+        [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerationFromStaticProperty2()
+        {
+            await TestAsync(
+@"using System ; public class Test { public static int Property1 { get { return [|_field|] ; } } } ",
+@"using System ; public class Test { private static readonly int _field ; public static int Property1 { get { return _field ; } } } ",
+index: 1);
+        }
+
+        [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerationFromStaticProperty3()
+        {
+            await TestAsync(
+@"using System ; public class Test { public static int Property1 { get { return [|_field|] ; } } } ",
+@"using System ; public class Test { public static int Property1 { get { return _field ; } } public static int _field { get ; private set ; } } ",
+index: 2);
+        }
+
+        [WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerationFromStaticProperty4()
+        {
+            await TestAsync(
+@"using System ; public class Test { public static int Property1 { get { return [|_field|] ; } } } ",
+@"using System ; public class Test { public static int Property1 { get { int _field = 0 ; return _field ; } } } ",
+index: 3);
+        }
     }
 }

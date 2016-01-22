@@ -111,7 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword);
 
                 case SyntaxKind.PropertyDeclaration:
-                    return node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
+                    if (!memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword))
+                    {
+                        return node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
+                    }
+
+                    return true;
 
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
