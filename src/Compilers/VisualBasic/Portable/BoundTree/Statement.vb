@@ -77,9 +77,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundSelectStatement
         Implements ISwitchStatement
 
+        Private Shared ReadOnly s_caseBlocksMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundSelectStatement, Object)
+
         Private ReadOnly Property ICases As ImmutableArray(Of ICase) Implements ISwitchStatement.Cases
             Get
-                Return Me.CaseBlocks.As(Of ICase)()
+                Dim cases = s_caseBlocksMappings.GetValue(Me, Function(boundSelect)
+                                                                  Return boundSelect.CaseBlocks.SelectAsArray(Function(boundCaseBlock)
+                                                                                                                  Return DirectCast(New CaseBlock(boundCaseBlock), ICase)
+                                                                                                              End Function)
+                                                              End Function)
+                Return DirectCast(cases, ImmutableArray(Of ICase))
             End Get
         End Property
 
@@ -100,97 +107,129 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
             Return visitor.VisitSwitchStatement(Me)
         End Function
-    End Class
 
-    Partial Class BoundCaseBlock
-        Implements ICase
+        Private NotInheritable Class CaseBlock
+            Implements ICase
 
-        Private ReadOnly Property IBody As ImmutableArray(Of IStatement) Implements ICase.Body
-            Get
-                Return ImmutableArray.Create(Of IStatement)(Me.Body)
-            End Get
-        End Property
+            Private ReadOnly _clauses As ImmutableArray(Of ICaseClause)
+            Private ReadOnly _body As ImmutableArray(Of IStatement)
+            Private ReadOnly _isInvalid As Boolean
+            Private ReadOnly _syntax As SyntaxNode
 
-        Private Shared ReadOnly CaseElseMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundCaseStatement, Object)
-
-        Private ReadOnly Property IClauses As ImmutableArray(Of ICaseClause) Implements ICase.Clauses
-            Get
+            Public Sub New(boundCaseBlock As BoundCaseBlock)
                 ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses, 
                 ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
-                If Me.CaseStatement.CaseClauses.IsEmpty AndAlso Me.CaseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
-                    Dim caseElse = CaseElseMappings.GetValue(Me.CaseStatement, Function(caseStatement) ImmutableArray.Create(Of ICaseClause)(New CaseElse(caseStatement)))
-                    Return DirectCast(caseElse, ImmutableArray(Of ICaseClause))
+                Dim caseStatement = boundCaseBlock.CaseStatement
+                If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
+                    _clauses = ImmutableArray.Create(Of ICaseClause)(New CaseElse(caseStatement))
+                Else
+                    _clauses = caseStatement.CaseClauses.As(Of ICaseClause)()
                 End If
 
-                Return Me.CaseStatement.CaseClauses.As(Of ICaseClause)()
-            End Get
-        End Property
-
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.SwitchSection
-        End Function
-
-        Public Overrides Sub Accept(visitor As IOperationVisitor)
-            visitor.VisitCase(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult
-            Return visitor.VisitCase(Me)
-        End Function
-
-        Private NotInheritable Class CaseElse
-            Implements ISingleValueCaseClause
-
-            Private _boundCaseStatement As BoundCaseStatement
-
-            Public Sub New(boundCaseStatement As BoundCaseStatement)
-                _boundCaseStatement = boundCaseStatement
+                _body = ImmutableArray.Create(Of IStatement)(boundCaseBlock.Body)
+                _isInvalid = boundCaseBlock.HasErrors
+                _syntax = boundCaseBlock.Syntax
             End Sub
 
-            Public ReadOnly Property Equality As BinaryOperationKind Implements ISingleValueCaseClause.Equality
+            Public Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
+                visitor.VisitCase(Me)
+            End Sub
+
+            Public Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult Implements IOperation.Accept
+                Return visitor.VisitCase(Me)
+            End Function
+
+            Public ReadOnly Property Body As ImmutableArray(Of IStatement) Implements ICase.Body
                 Get
-                    Return BinaryOperationKind.None
+                    Return _body
                 End Get
             End Property
 
-            Public ReadOnly Property Value As IExpression Implements ISingleValueCaseClause.Value
+            Public ReadOnly Property Clauses As ImmutableArray(Of ICaseClause) Implements ICase.Clauses
                 Get
-                    Return Nothing
+                    Return _clauses
                 End Get
             End Property
 
             Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
                 Get
-                    Return _boundCaseStatement.HasErrors
+                    Return _isInvalid
                 End Get
             End Property
 
             Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
                 Get
-                    Return OperationKind.SingleValueCaseClause
+                    Return OperationKind.SwitchSection
                 End Get
             End Property
 
             Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
                 Get
-                    Return _boundCaseStatement.Syntax
+                    Return _syntax
                 End Get
             End Property
 
-            Private ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseKind
-                Get
-                    Return CaseKind.Default
-                End Get
-            End Property
+            Private NotInheritable Class CaseElse
+                Implements ISingleValueCaseClause
 
-            Public Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
-                visitor.VisitSingleValueCaseClause(Me)
-            End Sub
+                Private ReadOnly _boundCaseStatement As BoundCaseStatement
 
-            Public Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult Implements IOperation.Accept
-                Return visitor.VisitSingleValueCaseClause(Me)
-            End Function
+                Public Sub New(boundCaseStatement As BoundCaseStatement)
+                    _boundCaseStatement = boundCaseStatement
+                End Sub
+
+                Public Sub Accept(visitor As IOperationVisitor) Implements IOperation.Accept
+                    visitor.VisitSingleValueCaseClause(Me)
+                End Sub
+
+                Public Function Accept(Of TResult)(visitor As IOperationVisitor(Of TResult)) As TResult Implements IOperation.Accept
+                    Return visitor.VisitSingleValueCaseClause(Me)
+                End Function
+
+                Public ReadOnly Property Equality As BinaryOperationKind Implements ISingleValueCaseClause.Equality
+                    Get
+                        Return BinaryOperationKind.None
+                    End Get
+                End Property
+
+                Public ReadOnly Property Value As IExpression Implements ISingleValueCaseClause.Value
+                    Get
+                        Return Nothing
+                    End Get
+                End Property
+
+                Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
+                    Get
+                        Return _boundCaseStatement.HasErrors
+                    End Get
+                End Property
+
+                Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                    Get
+                        Return OperationKind.SingleValueCaseClause
+                    End Get
+                End Property
+
+                Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                    Get
+                        Return _boundCaseStatement.Syntax
+                    End Get
+                End Property
+
+                Private ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseKind
+                    Get
+                        Return CaseKind.Default
+                    End Get
+                End Property
+            End Class
+
         End Class
+    End Class
+
+    Partial Class BoundCaseBlock
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
     End Class
 
     Partial Class BoundCaseClause

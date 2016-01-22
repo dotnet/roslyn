@@ -37,6 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim operation = TryCast(node, IOperation)
                 If operation IsNot Nothing Then
                     Me.nodes.Add(operation)
+                    ' Following operations are not bound node, therefore have to be added explicitly:
+                    '   1. IArgument
+                    '   2. IMemberInitializer
+                    '   3. ICase
+                    '   4. ICaseClause with CaseKind == CaseKind.Default (i.e. Case Else)
+                    '   5. IEventAssignmentExpression
                     Select Case operation.Kind
                         Case OperationKind.InvocationExpression
                             Me.nodes.AddRange(DirectCast(operation, IInvocationExpression).ArgumentsInSourceOrder)
@@ -44,15 +50,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim objectCreationExpression = DirectCast(operation, IObjectCreationExpression)
                             Me.nodes.AddRange(objectCreationExpression.ConstructorArguments)
                             Me.nodes.AddRange(objectCreationExpression.MemberInitializers)
-                        Case OperationKind.SwitchSection
-                            ' "Case Else" clause is not a bound node, so it needs to be added explicitly.
-                            Dim caseClauses = DirectCast(operation, ICase).Clauses
-                            If caseClauses.IsSingle Then
-                                Dim caseClause = caseClauses(0)
-                                If caseClause.CaseKind = CaseKind.Default Then
-                                    Me.nodes.Add(caseClause)
+                        Case OperationKind.SwitchStatement
+                            Dim switchStatement = DirectCast(operation, ISwitchStatement)
+                            For Each caseBlock In switchStatement.Cases
+                                Me.nodes.Add(caseBlock)
+                                ' "Case Else" clause needs to be added explicitly.
+                                Dim caseClauses = caseBlock.Clauses
+                                If caseClauses.IsSingle Then
+                                    Dim caseClause = caseClauses(0)
+                                    If caseClause.CaseKind = CaseKind.Default Then
+                                        Me.nodes.Add(caseClause)
+                                    End If
                                 End If
-                            End If
+                            Next
                         Case OperationKind.ExpressionStatement
                             Dim expression = DirectCast(operation, IExpressionStatement).Expression
                             If expression.Kind = OperationKind.EventAssignmentExpression Then

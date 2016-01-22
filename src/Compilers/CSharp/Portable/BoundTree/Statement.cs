@@ -267,9 +267,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundSwitchStatement : ISwitchStatement
     {
+        private static readonly ConditionalWeakTable<BoundSwitchStatement, object> s_switchSectionsMappings =
+            new ConditionalWeakTable<BoundSwitchStatement, object>();
+
         IExpression ISwitchStatement.Value => this.BoundExpression;
 
-        ImmutableArray<ICase> ISwitchStatement.Cases => this.SwitchSections.As<ICase>();
+        ImmutableArray<ICase> ISwitchStatement.Cases
+        {
+            get
+            {
+                return (ImmutableArray<ICase>) s_switchSectionsMappings.GetValue(this, 
+                    switchStatement =>
+                    {
+                        return switchStatement.SwitchSections.SelectAsArray(switchSection => (ICase)new SwitchSection(switchSection));   
+                    });
+            }
+        }
 
         protected override OperationKind StatementKind => OperationKind.SwitchStatement;
 
@@ -282,25 +295,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return visitor.VisitSwitchStatement(this);
         }
+
+        private sealed class SwitchSection : ICase
+        {
+            public SwitchSection(BoundSwitchSection boundNode)
+            {
+                this.Body = boundNode.Statements.As<IStatement>();
+                this.Clauses = boundNode.BoundSwitchLabels.As<ICaseClause>();
+                this.IsInvalid = boundNode.HasErrors;
+                this.Syntax = boundNode.Syntax;
+            }
+
+            public ImmutableArray<IStatement> Body { get; }
+
+            public ImmutableArray<ICaseClause> Clauses { get; }
+
+            public bool IsInvalid { get; }
+
+            OperationKind IOperation.Kind => OperationKind.SwitchSection;
+
+            public SyntaxNode Syntax { get; }
+
+            void IOperation.Accept(IOperationVisitor visitor)
+            {
+                visitor.VisitCase(this);
+            }
+
+            TResult IOperation.Accept<TResult>(IOperationVisitor<TResult> visitor)
+            {
+                return visitor.VisitCase(this);
+            }
+        }
     }
 
-    partial class BoundSwitchSection : ICase
+    partial class BoundSwitchSection
     {
-        ImmutableArray<ICaseClause> ICase.Clauses => this.BoundSwitchLabels.As<ICaseClause>();
-
-        ImmutableArray<IStatement> ICase.Body => this.Statements.As<IStatement>();
-
-        protected override OperationKind StatementKind => OperationKind.SwitchSection;
-
-        public override void Accept(IOperationVisitor visitor)
-        {
-            visitor.VisitCase(this);
-        }
-
-        public override TResult Accept<TResult>(IOperationVisitor<TResult> visitor)
-        {
-            return visitor.VisitCase(this);
-        }
+        protected override OperationKind StatementKind => OperationKind.None;
     }
 
     partial class BoundSwitchLabel : ISingleValueCaseClause
