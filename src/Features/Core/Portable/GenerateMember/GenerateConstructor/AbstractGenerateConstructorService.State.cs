@@ -100,23 +100,23 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.TypeToGenerateIn.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
-                return this.TypeToGenerateIn.InstanceConstructors.Any(c => Matches(c, this.ParameterTypes, this.ParameterRefKinds, this.Arguments, syntaxFacts));
+                return this.TypeToGenerateIn.InstanceConstructors.Any(c => Matches(c, syntaxFacts));
             }
 
-            private static bool Matches(IMethodSymbol ctor, IList<ITypeSymbol> parameterTypes, IList<RefKind> parameterRefKinds, IList<TArgumentSyntax> arguments, ISyntaxFactsService service)
+            private bool Matches(IMethodSymbol ctor, ISyntaxFactsService service)
             {
-                if (ctor.Parameters.Length != parameterTypes.Count)
+                if (ctor.Parameters.Length != this.ParameterTypes.Count)
                 {
                     return false;
                 }
 
-                for (int i = 0; i < parameterTypes.Count; i++)
+                for (int i = 0; i < this.ParameterTypes.Count; i++)
                 {
                     var ctorParameter = ctor.Parameters[i];
-                    var result = SymbolEquivalenceComparer.Instance.Equals(ctorParameter.Type, parameterTypes[i]) &&
-                        ctorParameter.RefKind == parameterRefKinds[i];
+                    var result = SymbolEquivalenceComparer.Instance.Equals(ctorParameter.Type, this.ParameterTypes[i]) &&
+                        ctorParameter.RefKind == this.ParameterRefKinds[i];
                     
-                    string parameterName = GetParameterName(arguments, i, service);
+                    string parameterName = GetParameterName(service, i);
                     if (!string.IsNullOrEmpty(parameterName))
                     {
                         result &= service.IsCaseSensitive 
@@ -133,14 +133,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return true;
             }
 
-            private static string GetParameterName(IList<TArgumentSyntax> arguments, int index, ISyntaxFactsService service)
+            private string GetParameterName(ISyntaxFactsService service, int index)
             {
-                if (index >= arguments?.Count)
+                if (index >= this.Arguments?.Count)
                 {
                     return string.Empty;
                 }
 
-                return service.GetNameForArgument(arguments?[index]);
+                return service.GetNameForArgument(this.Arguments?[index]);
             }
 
             internal List<ITypeSymbol> GetParameterTypes(
