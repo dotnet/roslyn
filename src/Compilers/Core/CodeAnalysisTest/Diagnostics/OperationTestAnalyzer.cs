@@ -1078,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      IFieldInitializer equalsValue = (IFieldInitializer)operationContext.Operation;
-                     if (equalsValue.Field.Name.StartsWith("F"))
+                     if (equalsValue.InitializedField.Name.StartsWith("F"))
                      {
                          operationContext.ReportDiagnostic(Diagnostic.Create(EqualsValueDescriptor, equalsValue.Syntax.GetLocation()));
                      }

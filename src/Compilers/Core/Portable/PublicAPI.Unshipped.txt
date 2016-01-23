@@ -378,7 +378,7 @@ Microsoft.CodeAnalysis.Semantics.IExpressionExtensions
 Microsoft.CodeAnalysis.Semantics.IExpressionStatement
 Microsoft.CodeAnalysis.Semantics.IExpressionStatement.Expression.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IFieldInitializer
-Microsoft.CodeAnalysis.Semantics.IFieldInitializer.Field.get -> Microsoft.CodeAnalysis.IFieldSymbol
+Microsoft.CodeAnalysis.Semantics.IFieldInitializer.InitializedField.get -> Microsoft.CodeAnalysis.IFieldSymbol
 Microsoft.CodeAnalysis.Semantics.IFieldReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IFieldReferenceExpression.Field.get -> Microsoft.CodeAnalysis.IFieldSymbol
 Microsoft.CodeAnalysis.Semantics.IFixedStatement
@@ -461,7 +461,7 @@ Microsoft.CodeAnalysis.Semantics.IParenthesizedExpression.Operand.get -> Microso
 Microsoft.CodeAnalysis.Semantics.IPointerIndirectionReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IPointerIndirectionReferenceExpression.Pointer.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IPropertyInitializer
-Microsoft.CodeAnalysis.Semantics.IPropertyInitializer.Setter.get -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.Semantics.IPropertyInitializer.InitializedProperty.get -> Microsoft.CodeAnalysis.IPropertySymbol
 Microsoft.CodeAnalysis.Semantics.IPropertyReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IPropertyReferenceExpression.Property.get -> Microsoft.CodeAnalysis.IPropertySymbol
 Microsoft.CodeAnalysis.Semantics.IRangeCaseClause

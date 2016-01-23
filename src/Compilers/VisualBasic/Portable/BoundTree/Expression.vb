@@ -1039,7 +1039,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                 Case BoundKind.FieldAccess
                                                                                                     builder.Add(New FieldInitializer(assignment.Syntax, DirectCast(left, BoundFieldAccess).FieldSymbol, assignment.Right))
                                                                                                 Case BoundKind.PropertyAccess
-                                                                                                    builder.Add(New PropertyInitializer(assignment.Syntax, DirectCast(left, BoundPropertyAccess).PropertySymbol.SetMethod, assignment.Right))
+                                                                                                    builder.Add(New PropertyInitializer(assignment.Syntax, DirectCast(left, BoundPropertyAccess).PropertySymbol, assignment.Right))
                                                                                             End Select
                                                                                         End If
                                                                                     Next
@@ -1064,13 +1064,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _syntax As SyntaxNode
             Private _value As IExpression
 
-            Public Sub New(syntax As SyntaxNode, field As IFieldSymbol, value As IExpression)
-                _field = field
+            Public Sub New(syntax As SyntaxNode, initializedField As IFieldSymbol, value As IExpression)
+                _field = initializedField
                 _syntax = syntax
                 _value = value
             End Sub
 
-            Public ReadOnly Property Field As IFieldSymbol Implements IFieldInitializer.Field
+            Public ReadOnly Property InitializedField As IFieldSymbol Implements IFieldInitializer.InitializedField
                 Get
                     Return _field
                 End Get
@@ -1084,7 +1084,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
                 Get
-                    Return Me.Value.IsInvalid OrElse Me.Field Is Nothing
+                    Return Me.Value.IsInvalid OrElse Me.InitializedField Is Nothing
                 End Get
             End Property
 
@@ -1104,12 +1104,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class PropertyInitializer
             Implements IPropertyInitializer
 
-            Private _setter As IMethodSymbol
+            Private _property As IPropertySymbol
             Private _syntax As SyntaxNode
             Private _value As IExpression
 
-            Public Sub New(syntax As SyntaxNode, setter As IMethodSymbol, value As IExpression)
-                _setter = setter
+            Public Sub New(syntax As SyntaxNode, initializedProperty As IPropertySymbol, value As IExpression)
+                _property = initializedProperty
                 _syntax = syntax
                 _value = value
             End Sub
@@ -1120,15 +1120,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public ReadOnly Property Setter As IMethodSymbol Implements IPropertyInitializer.Setter
+            Public ReadOnly Property InitializedProperty As IPropertySymbol Implements IPropertyInitializer.InitializedProperty
                 Get
-                    Return _setter
+                    Return _property
                 End Get
             End Property
 
             Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
                 Get
-                    Return Me.Value.IsInvalid OrElse Me.Setter Is Nothing
+                    Return Me.Value.IsInvalid OrElse Me.InitializedProperty Is Nothing
                 End Get
             End Property
 
@@ -1370,19 +1370,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Class BoundFieldOrPropertyInitializer
-        Implements IFieldInitializer, IPropertyInitializer
+    Partial Class BoundFieldInitializer
+        Implements IFieldInitializer
 
-        Private ReadOnly Property IField As IFieldSymbol Implements IFieldInitializer.Field
+        Private ReadOnly Property IInitializedField As IFieldSymbol Implements IFieldInitializer.InitializedField
             Get
-                Return TryCast(Me.InitializedSymbols.FirstOrDefault(), IFieldSymbol)
-            End Get
-        End Property
-
-        Private ReadOnly Property ISetter As IMethodSymbol Implements IPropertyInitializer.Setter
-            Get
-                Dim initializedProperty As IPropertySymbol = TryCast(Me.InitializedSymbols.FirstOrDefault(), IPropertySymbol)
-                Return If(initializedProperty IsNot Nothing, initializedProperty.SetMethod, Nothing)
+                Return Me.InitializedFields.FirstOrDefault()
             End Get
         End Property
 
@@ -1393,12 +1386,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function StatementKind() As OperationKind
-            Return If(TypeOf Me.InitializedSymbols.FirstOrDefault() Is IPropertySymbol, OperationKind.PropertyInitializerAtDeclaration, OperationKind.FieldInitializerAtDeclaration)
+            Return OperationKind.FieldInitializerAtDeclaration
         End Function
     End Class
 
-    Partial Class BoundEqualsValue
-        Implements ISymbolInitializer
+    Partial Class BoundPropertyInitializer
+        Implements IPropertyInitializer
+
+        Private ReadOnly Property IInitializedProperty As IPropertySymbol Implements IPropertyInitializer.InitializedProperty
+            Get
+                Return Me.InitializedProperties.FirstOrDefault()
+            End Get
+        End Property
+
+        Private ReadOnly Property IValue As IExpression Implements ISymbolInitializer.Value
+            Get
+                Return Me.InitialValue
+            End Get
+        End Property
+
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.PropertyInitializerAtDeclaration
+        End Function
+    End Class
+
+    Partial Class BoundParameterEqualsValue
+        Implements IParameterInitializer
 
         Private ReadOnly Property IIsInvalid As Boolean Implements IOperation.IsInvalid
             Get
@@ -1408,7 +1421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IKind As OperationKind Implements IOperation.Kind
             Get
-                Return Me.OperationKind()
+                Return OperationKind.ParameterInitializerAtDeclaration
             End Get
         End Property
 
@@ -1424,49 +1437,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected MustOverride Function OperationKind() As OperationKind
-    End Class
-
-    Partial Class BoundFieldEqualsValue
-        Implements IFieldInitializer
-
-        Private ReadOnly Property IField As IFieldSymbol Implements IFieldInitializer.Field
-            Get
-                Return Me.Field
-            End Get
-        End Property
-
-        Protected Overrides Function OperationKind() As OperationKind
-            Return OperationKind.FieldInitializerAtDeclaration
-        End Function
-    End Class
-
-    Partial Class BoundPropertyEqualsValue
-        Implements IPropertyInitializer
-
-        Private ReadOnly Property ISetter As IMethodSymbol Implements IPropertyInitializer.Setter
-            Get
-                Return Me.PropertySymbol?.SetMethod
-            End Get
-        End Property
-
-        Protected Overrides Function OperationKind() As OperationKind
-            Return OperationKind.PropertyInitializerAtDeclaration
-        End Function
-    End Class
-
-    Partial Class BoundParameterEqualsValue
-        Implements IParameterInitializer
-
         Private ReadOnly Property IParameter As IParameterSymbol Implements IParameterInitializer.Parameter
             Get
                 Return Me._Parameter
             End Get
         End Property
-
-        Protected Overrides Function OperationKind() As OperationKind
-            Return OperationKind.ParameterInitializerAtDeclaration
-        End Function
     End Class
 
     Module Expression

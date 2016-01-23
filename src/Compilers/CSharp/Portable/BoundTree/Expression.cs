@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         builder.Add(new FieldInitializer(assignment.Syntax, (IFieldSymbol)leftSymbol, assignment.Right));
                                         break;
                                     case SymbolKind.Property:
-                                        builder.Add(new PropertyInitializer(assignment.Syntax, ((IPropertySymbol)leftSymbol).SetMethod, assignment.Right));
+                                        builder.Add(new PropertyInitializer(assignment.Syntax, (IPropertySymbol)leftSymbol, assignment.Right));
                                         break;
                                 }
                             }
@@ -484,14 +484,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class FieldInitializer : IFieldInitializer
         {
-            public FieldInitializer(SyntaxNode syntax, IFieldSymbol field, IExpression value)
+            public FieldInitializer(SyntaxNode syntax, IFieldSymbol initializedField, IExpression value)
             {
                 this.Syntax = syntax;
-                this.Field = field;
+                this.InitializedField = initializedField;
                 this.Value = value;
             }
 
-            public IFieldSymbol Field { get; }
+            public IFieldSymbol InitializedField { get; }
 
             public IExpression Value { get; }
 
@@ -499,19 +499,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public SyntaxNode Syntax { get; }
 
-            bool IOperation.IsInvalid => this.Value.IsInvalid || this.Field == null;
+            bool IOperation.IsInvalid => this.Value.IsInvalid || this.InitializedField == null;
         }
 
         private class PropertyInitializer : IPropertyInitializer
         {
-            public PropertyInitializer(SyntaxNode syntax, IMethodSymbol setter, IExpression value)
+            public PropertyInitializer(SyntaxNode syntax, IPropertySymbol initializedProperty, IExpression value)
             {
                 this.Syntax = syntax;
-                this.Setter = setter;
+                this.InitializedProperty = initializedProperty;
                 this.Value = value;
             }
 
-            public IMethodSymbol Setter { get; }
+            public IPropertySymbol InitializedProperty { get; }
 
             public IExpression Value { get; }
 
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public SyntaxNode Syntax { get; }
 
-            bool IOperation.IsInvalid => this.Value.IsInvalid || this.Setter == null;
+            bool IOperation.IsInvalid => this.Value.IsInvalid || this.InitializedProperty == null;
         }
     }
 
@@ -913,14 +913,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundFieldEqualsValue : IFieldInitializer
     {
-        IFieldSymbol IFieldInitializer.Field => this.Field;
+        IFieldSymbol IFieldInitializer.InitializedField => this.Field;
         
         protected override OperationKind OperationKind => OperationKind.FieldInitializerAtDeclaration;
     }
 
     partial class BoundPropertyEqualsValue : IPropertyInitializer
     {
-        IMethodSymbol IPropertyInitializer.Setter => this.Property?.SetMethod;
+        IPropertySymbol IPropertyInitializer.InitializedProperty => this.Property;
 
         protected override OperationKind OperationKind => OperationKind.PropertyInitializerAtDeclaration;
     }

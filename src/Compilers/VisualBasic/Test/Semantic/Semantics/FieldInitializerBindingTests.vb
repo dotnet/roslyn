@@ -1536,7 +1536,7 @@ String
                 For Each expectedInitializer In expectedInitializers
                     Dim boundInit = boundInitializers(i)
                     i += 1
-                    Assert.Equal(BoundKind.FieldOrPropertyInitializer, boundInit.Kind)
+                    Assert.[True](boundInit.Kind = BoundKind.FieldInitializer OrElse boundInit.Kind = BoundKind.PropertyInitializer)
                     Dim boundFieldInit = DirectCast(boundInit, BoundFieldOrPropertyInitializer)
                     Dim initValueSyntax = boundFieldInit.InitialValue.Syntax
                     If boundInit.Syntax.Kind <> SyntaxKind.AsNewClause Then
@@ -1545,7 +1545,12 @@ String
                     End If
                     Dim initValueLineNumber = syntaxTree.GetLineSpan(initValueSyntax.Span).StartLinePosition.Line
                     Assert.Equal(expectedInitializer.LineNumber, initValueLineNumber)
-                    Dim fieldSymbol = boundFieldInit.InitializedSymbols.First
+                    Dim fieldSymbol As Symbol
+                    If boundInit.Kind = BoundKind.FieldInitializer Then
+                        fieldSymbol = DirectCast(boundFieldInit, BoundFieldInitializer).InitializedFields.First
+                    Else
+                        fieldSymbol = DirectCast(boundFieldInit, BoundPropertyInitializer).InitializedProperties.First
+                    End If
                     Assert.Equal(expectedInitializer.FieldName, fieldSymbol.Name)
 
                     Dim boundReceiver As BoundExpression

@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
                         If initializer IsNot Nothing Then
                             ' bind const and non const field initializers the same to get a bound expression back and not a constant value.
-                            binder.BindFieldInitializer(ImmutableArray.Create(Of Symbol)(fieldSymbol), initializer, boundInitializers, diagnostics, bindingForSemanticModel:=True)
+                            binder.BindFieldInitializer(ImmutableArray.Create(Of FieldSymbol)(fieldSymbol), initializer, boundInitializers, diagnostics, bindingForSemanticModel:=True)
                         Else
                             binder.BindArrayFieldImplicitInitializer(fieldSymbol, boundInitializers, diagnostics)
                         End If
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '  get property symbol
                     Dim propertySymbol = DirectCast(Me.MemberSymbol, SourcePropertySymbol)
                     Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
-                    binder.BindPropertyInitializer(ImmutableArray.Create(Of Symbol)(propertySymbol), initializer, boundInitializers, diagnostics)
+                    binder.BindPropertyInitializer(ImmutableArray.Create(Of PropertySymbol)(propertySymbol), initializer, boundInitializers, diagnostics)
                     boundInitializer = boundInitializers.First
                     boundInitializers.Free()
 
@@ -135,17 +135,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
             If expressionInitializer IsNot Nothing Then
-                If Me.MemberSymbol.Kind = SymbolKind.Parameter Then
-                    Return New BoundParameterEqualsValue(initializer, DirectCast(Me.RootBinder.ContainingMember, ParameterSymbol), expressionInitializer)
-                End If
-
-                If Me.MemberSymbol.Kind = SymbolKind.Property Then
-                    Return New BoundPropertyEqualsValue(initializer, DirectCast(Me.MemberSymbol, PropertySymbol), expressionInitializer)
-                End If
-
-                If Me.MemberSymbol.Kind = SymbolKind.Field Then
-                    Return New BoundFieldEqualsValue(initializer, DirectCast(Me.MemberSymbol, FieldSymbol), expressionInitializer)
-                End If
+                Select Case Me.MemberSymbol.Kind
+                    Case SymbolKind.Parameter
+                        Return New BoundParameterEqualsValue(initializer, DirectCast(Me.RootBinder.ContainingMember, ParameterSymbol), expressionInitializer)
+                    Case SymbolKind.Property
+                        Return New BoundPropertyInitializer(initializer, ImmutableArray.Create(DirectCast(Me.MemberSymbol, PropertySymbol)), Nothing, expressionInitializer)
+                    Case SymbolKind.Field
+                        Return New BoundFieldInitializer(initializer, ImmutableArray.Create(DirectCast(Me.MemberSymbol, FieldSymbol)), Nothing, expressionInitializer)
+                    Case Else
+                        Throw ExceptionUtilities.Unreachable
+                End Select
             End If
 
             Return boundInitializer

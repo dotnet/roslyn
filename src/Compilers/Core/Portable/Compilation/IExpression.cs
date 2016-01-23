@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents an object member initializer.
+    /// Represents an initializer for a field, property, or parameter.
     /// </summary>
     public interface ISymbolInitializer : IOperation
     {
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Initialized field.
         /// </summary>
-        IFieldSymbol Field { get; }
+        IFieldSymbol InitializedField { get; }
     }
 
     /// <summary>
@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Set method used to initialize the property.
         /// </summary>
-        IMethodSymbol Setter { get; }
+        IPropertySymbol InitializedProperty { get; }
     }
 
     /// <summary>

@@ -2506,7 +2506,12 @@ EnteredRegion:
             Return Nothing
         End Function
 
-        Public Overrides Function VisitFieldOrPropertyInitializer(node As BoundFieldOrPropertyInitializer) As BoundNode
+        Public Overrides Function VisitFieldInitializer(node As BoundFieldInitializer) As BoundNode
+            VisitRvalue(node.InitialValue)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitPropertyInitializer(node As BoundPropertyInitializer) As BoundNode
             VisitRvalue(node.InitialValue)
             Return Nothing
         End Function
@@ -2600,16 +2605,6 @@ EnteredRegion:
             VisitRvalue(node.Expression)
             VisitRvalue(node.AlignmentOpt)
             VisitRvalue(node.FormatStringOpt)
-            Return Nothing
-        End Function
-
-        Public Overrides Function VisitFieldEqualsValue(node As BoundFieldEqualsValue) As BoundNode
-            VisitRvalue(node.Value)
-            Return Nothing
-        End Function
-
-        Public Overrides Function VisitPropertyEqualsValue(node As BoundPropertyEqualsValue) As BoundNode
-            VisitRvalue(node.Value)
             Return Nothing
         End Function
 
