@@ -372,8 +372,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
+                    var clientDir = TryGetClientDir() ?? Path.GetDirectoryName(pathToTool);
+                    pathToTool = Path.Combine(clientDir, ToolExe);
+
+                    Log.LogMessage(ErrorString.UsingSharedCompilation, clientDir);
+
                     var buildPaths = new BuildPaths(
-                        clientDir: TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
+                        clientDir: clientDir,
                         // MSBuild doesn't need the .NET SDK directory
                         sdkDir: null,
                         workingDir: CurrentDirectoryToUse());
@@ -395,6 +400,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     }
                     else
                     {
+                        Log.LogMessage(ErrorString.SharedCompilationFallback, pathToTool);
+
                         ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                     }
                 }
