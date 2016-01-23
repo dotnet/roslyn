@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
