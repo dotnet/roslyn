@@ -2454,7 +2454,7 @@ class C
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.Overload})");
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.Overload})");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2469,7 +2469,7 @@ class C
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 2 {FeaturesResources.Overloads})");
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 2 {FeaturesResources.Overloads})");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2483,7 +2483,7 @@ class C
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(T i) (+ 1 {FeaturesResources.GenericOverload})");
+            await VerifyItemExistsAsync(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(T i) (+ 1 {FeaturesResources.GenericOverload})");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2498,7 +2498,7 @@ class C
     {
         $$";
 
-            await VerifyItemExistsAsync(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(int i) (+ 2 {FeaturesResources.GenericOverloads})");
+            await VerifyItemExistsAsync(markup, "M<>", expectedDescriptionOrNull: $"void C.M<T>(int i) (+ 2 {FeaturesResources.GenericOverloads})");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2703,7 +2703,7 @@ class C
             await VerifyItemExistsAsync(markup, "a");
             await VerifyItemExistsAsync(markup, "b");
             await VerifyItemExistsAsync(markup, "c");
-            await VerifyItemIsAbsentAsync(markup, "Equals");
+            await VerifyItemExistsAsync(markup, "Equals");
         }
 
         [WorkItem(543104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543104")]
@@ -8490,7 +8490,8 @@ namespace S
     enum Pass { A };
 }
 ";
-            await VerifyItemIsAbsentAsync(markup, "CompareTo");
+            await VerifyItemIsAbsentAsync(markup, "TryParse");
+            await VerifyItemExistsAsync(markup, "CompareTo");
             await VerifyItemExistsAsync(markup, "A");
         }
     }

@@ -2509,7 +2509,7 @@ End Class
             Await VerifyItemExistsAsync(markup, "a")
             Await VerifyItemExistsAsync(markup, "b")
             Await VerifyItemExistsAsync(markup, "c")
-            Await VerifyItemIsAbsentAsync(markup, "Equals")
+            Await VerifyItemExistsAsync(markup, "Equals")
         End Function
 
         <WorkItem(539450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")>

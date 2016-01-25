@@ -88,7 +88,20 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
                 if (_context.IsEnumTypeMemberAccessContext)
                 {
-                    return symbol.Kind == SymbolKind.Field;
+                    // If you have a field and an enum with the same name,
+                    // we want to show instance members (through the field)
+                    // so you can call CompareTo, etc, in addition to the 
+                    // enum fields. However, we don't want to show statics
+                    // from the Enum base type.
+                    if (symbol.Kind == SymbolKind.Field)
+                    {
+                        return true;
+                    }
+
+                    if (symbol.IsStatic && symbol.ContainingType?.SpecialType == SpecialType.System_Enum)
+                    {
+                        return false;
+                    }
                 }
 
                 // In an expression or statement context, we don't want to display instance members declared in outer containing types.
