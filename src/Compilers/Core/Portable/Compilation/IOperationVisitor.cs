@@ -371,372 +371,376 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     /// <summary>
     /// Represents a <see cref="IOperation"/> visitor that visits only the single IOperation
-    /// passed into its Visit method and produces 
-    /// a value of the type specified by the <typeparamref name="TResult"/> parameter.
+    /// passed into its Visit method with an additional argument of the type specified by the 
+    /// <typeparamref name="TArg"/> parameter and produces a value of the type specified by 
+    /// the <typeparamref name="TResult"/> parameter.
     /// </summary>
-    /// <typeparam name="TResult">
-    /// The type of the return value this visitor's Visit method.
+    /// <typeparam name="TArg">
+    /// The type of the additional argument passed to this visitor's Visit method.
     /// </typeparam>
-    public abstract class IOperationVisitor<TResult>
+    /// <typeparam name="TResult">
+    /// The type of the return value of this visitor's Visit method.
+    /// </typeparam>
+    public abstract class IOperationVisitor<TArg, TResult>
     {
-        public virtual TResult Visit(IOperation operation)
+        public virtual TResult Visit(IOperation operation, TArg arg)
         {
-            return operation == null ? default(TResult) : operation.Accept(this);
+            return operation == null ? default(TResult) : operation.Accept(this, arg);
         }
 
-        public virtual TResult DefaultVisit(IOperation operation)
+        public virtual TResult DefaultVisit(IOperation operation, TArg arg)
         {
             return default(TResult);
         }
 
-        public virtual TResult VisitBlockStatement(IBlockStatement operation)
+        public virtual TResult VisitBlockStatement(IBlockStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitVariableDeclarationStatement(IVariableDeclarationStatement operation)
+        public virtual TResult VisitVariableDeclarationStatement(IVariableDeclarationStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitVariable(IVariable operation)
+        public virtual TResult VisitVariable(IVariable operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitSwitchStatement(ISwitchStatement operation)
+        public virtual TResult VisitSwitchStatement(ISwitchStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitCase(ICase operation)
+        public virtual TResult VisitCase(ICase operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitSingleValueCaseClause(ISingleValueCaseClause operation)
+        public virtual TResult VisitSingleValueCaseClause(ISingleValueCaseClause operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitRelationalCaseClause(IRelationalCaseClause operation)
+        public virtual TResult VisitRelationalCaseClause(IRelationalCaseClause operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitRangeCaseClause(IRangeCaseClause operation)
+        public virtual TResult VisitRangeCaseClause(IRangeCaseClause operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitIfStatement(IIfStatement operation)
+        public virtual TResult VisitIfStatement(IIfStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
+        public virtual TResult VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitForLoopStatement(IForLoopStatement operation)
+        public virtual TResult VisitForLoopStatement(IForLoopStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitForEachLoopStatement(IForEachLoopStatement operation)
+        public virtual TResult VisitForEachLoopStatement(IForEachLoopStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitLabelStatement(ILabelStatement operation)
+        public virtual TResult VisitLabelStatement(ILabelStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitLabeledStatement(ILabeledStatement operation)
+        public virtual TResult VisitLabeledStatement(ILabeledStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitBranchStatement(IBranchStatement operation)
+        public virtual TResult VisitBranchStatement(IBranchStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitYieldBreakStatement(IStatement operation)
+        public virtual TResult VisitYieldBreakStatement(IStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitEmptyStatement(IStatement operation)
+        public virtual TResult VisitEmptyStatement(IStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitThrowStatement(IThrowStatement operation)
+        public virtual TResult VisitThrowStatement(IThrowStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitReturnStatement(IReturnStatement operation)
+        public virtual TResult VisitReturnStatement(IReturnStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitLockStatement(ILockStatement operation)
+        public virtual TResult VisitLockStatement(ILockStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitTryStatement(ITryStatement operation)
+        public virtual TResult VisitTryStatement(ITryStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitCatch(ICatch operation)
+        public virtual TResult VisitCatch(ICatch operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitUsingWithDeclarationStatement(IUsingWithDeclarationStatement operation)
+        public virtual TResult VisitUsingWithDeclarationStatement(IUsingWithDeclarationStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitUsingWithExpressionStatement(IUsingWithExpressionStatement operation)
+        public virtual TResult VisitUsingWithExpressionStatement(IUsingWithExpressionStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitFixedStatement(IFixedStatement operation)
+        public virtual TResult VisitFixedStatement(IFixedStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitExpressionStatement(IExpressionStatement operation)
+        public virtual TResult VisitExpressionStatement(IExpressionStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitWithStatement(IWithStatement operation)
+        public virtual TResult VisitWithStatement(IWithStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitStopStatement(IStatement operation)
+        public virtual TResult VisitStopStatement(IStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitEndStatement(IStatement operation)
+        public virtual TResult VisitEndStatement(IStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitInvocationExpression(IInvocationExpression operation)
+        public virtual TResult VisitInvocationExpression(IInvocationExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitArgument(IArgument operation)
+        public virtual TResult VisitArgument(IArgument operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitOmittedArgumentExpression(IExpression operation)
+        public virtual TResult VisitOmittedArgumentExpression(IExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
+        public virtual TResult VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
+        public virtual TResult VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitLocalReferenceExpression(ILocalReferenceExpression operation)
+        public virtual TResult VisitLocalReferenceExpression(ILocalReferenceExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitParameterReferenceExpression(IParameterReferenceExpression operation)
+        public virtual TResult VisitParameterReferenceExpression(IParameterReferenceExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation)
+        public virtual TResult VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
+        public virtual TResult VisitInstanceReferenceExpression(IInstanceReferenceExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitFieldReferenceExpression(IFieldReferenceExpression operation)
+        public virtual TResult VisitFieldReferenceExpression(IFieldReferenceExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitMethodBindingExpression(IMethodBindingExpression operation)
+        public virtual TResult VisitMethodBindingExpression(IMethodBindingExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
+        public virtual TResult VisitPropertyReferenceExpression(IPropertyReferenceExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitEventReferenceExpression(IEventReferenceExpression operation)
+        public virtual TResult VisitEventReferenceExpression(IEventReferenceExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitEventAssignmentExpression(IEventAssignmentExpression operation)
+        public virtual TResult VisitEventAssignmentExpression(IEventAssignmentExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitConditionalAccessExpression(IConditionalAccessExpression operation)
+        public virtual TResult VisitConditionalAccessExpression(IConditionalAccessExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
+        public virtual TResult VisitUnaryOperatorExpression(IUnaryOperatorExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitBinaryOperatorExpression(IBinaryOperatorExpression operation)
+        public virtual TResult VisitBinaryOperatorExpression(IBinaryOperatorExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitConversionExpression(IConversionExpression operation)
+        public virtual TResult VisitConversionExpression(IConversionExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitConditionalChoiceExpression(IConditionalChoiceExpression operation)
+        public virtual TResult VisitConditionalChoiceExpression(IConditionalChoiceExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitNullCoalescingExpression(INullCoalescingExpression operation)
+        public virtual TResult VisitNullCoalescingExpression(INullCoalescingExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitIsExpression(IIsExpression operation)
+        public virtual TResult VisitIsExpression(IIsExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitTypeOperationExpression(ITypeOperationExpression operation)
+        public virtual TResult VisitTypeOperationExpression(ITypeOperationExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitLambdaExpression(ILambdaExpression operation)
+        public virtual TResult VisitLambdaExpression(ILambdaExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitLiteralExpression(ILiteralExpression operation)
+        public virtual TResult VisitLiteralExpression(ILiteralExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitAwaitExpression(IAwaitExpression operation)
+        public virtual TResult VisitAwaitExpression(IAwaitExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitAddressOfExpression(IAddressOfExpression operation)
+        public virtual TResult VisitAddressOfExpression(IAddressOfExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitObjectCreationExpression(IObjectCreationExpression operation)
+        public virtual TResult VisitObjectCreationExpression(IObjectCreationExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitFieldInitializer(IFieldInitializer operation)
+        public virtual TResult VisitFieldInitializer(IFieldInitializer operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitPropertyInitializer(IPropertyInitializer operation)
+        public virtual TResult VisitPropertyInitializer(IPropertyInitializer operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitArrayCreationExpression(IArrayCreationExpression operation)
+        public virtual TResult VisitArrayCreationExpression(IArrayCreationExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitArrayInitializer(IArrayInitializer operation)
+        public virtual TResult VisitArrayInitializer(IArrayInitializer operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitAssignmentExpression(IAssignmentExpression operation)
+        public virtual TResult VisitAssignmentExpression(IAssignmentExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation)
+        public virtual TResult VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitIncrementExpression(IIncrementExpression operation)
+        public virtual TResult VisitIncrementExpression(IIncrementExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitParenthesizedExpression(IParenthesizedExpression operation)
+        public virtual TResult VisitParenthesizedExpression(IParenthesizedExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation)
+        public virtual TResult VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitUnboundLambdaExpression(IExpression operation)
+        public virtual TResult VisitUnboundLambdaExpression(IExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitDefaultValueExpression(IExpression operation)
+        public virtual TResult VisitDefaultValueExpression(IExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitTypeParameterObjectCreationExpression(IExpression operation)
+        public virtual TResult VisitTypeParameterObjectCreationExpression(IExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitInvalidStatement(IStatement operation)
+        public virtual TResult VisitInvalidStatement(IStatement operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
 
-        public virtual TResult VisitInvalidExpression(IExpression operation)
+        public virtual TResult VisitInvalidExpression(IExpression operation, TArg arg)
         {
-            return this.DefaultVisit(operation);
+            return this.DefaultVisit(operation, arg);
         }
     }
 }

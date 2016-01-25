@@ -25,11 +25,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         SyntaxNode Syntax { get; }
 
-        //TResult Accept<TResult>(IOperationVisitor<TResult> visitor);
-
         void Accept(IOperationVisitor visitor);
 
-        TResult Accept<TResult>(IOperationVisitor<TResult> visitor);
+        TResult Accept<TArg, TResult>(IOperationVisitor<TArg, TResult> visitor, TArg arg);
     }
 
     /// <summary>
