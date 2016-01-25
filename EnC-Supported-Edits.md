@@ -25,23 +25,23 @@ Edit & Continue lets you modify/add to your source code in break-mode while debu
 | Modifying async lambda and LINQ expressions in combination | You can edit various nested expressions provided that they otherwise satisfy the EnC rules | 
 
 ### Not Supported Edits
-| Edit operation | Planned? | Additional Info |
+| Edit operation | Additional Info |
 | ------------------- |--------------| --------------------|
-| Modify [method signatures](https://msdn.microsoft.com/en-us/library/ms173114.aspx) | - | - |
-| Add or modify [generics](https://msdn.microsoft.com/en-us/library/512aeb7t.aspx) | - | - |
-| Modify interfaces | - | - |
-| Add a method body such that an abstract method becomes non-abstract | - | - |
-| Add new abstract, virtual, or override member to a type | - | You CAN add a non-abstract member to an abstract type |
-| Add [destructor](https://msdn.microsoft.com/en-us/library/66x5fx1b.aspx) to an existing type | - | - |
-| Modify a type parameter, base type, delegate type, or return type of an event/property/operator/indexer | - | - |
-| Modify a catch-block if it contains an active statement (leaf or internal) | - | - |
-| Modify a try-catch-finally block if the finally clause contains an active statement | - | - |
-| Renaming of any kind | - | - |
-| Delete members or types | - | - |
-| Delete entire method bodies | - | Not supported because deleting an entire method body would make the method “abstract”—which is not currently supported |
-| Add using statements | We hope to add this! | - | 
-| Edit a member with On Error statements (VB) | - | - |
-| Edit a member containing an Aggregate, Group By, Simple Join, or Group Join LINQ query clause (VB) | - | - |
+| Modify [method signatures](https://msdn.microsoft.com/en-us/library/ms173114.aspx) | - |
+| Add or modify [generics](https://msdn.microsoft.com/en-us/library/512aeb7t.aspx) | - |
+| Modify interfaces | - |
+| Add a method body such that an abstract method becomes non-abstract | - |
+| Add new abstract, virtual, or override member to a type | You CAN add a non-abstract member to an abstract type |
+| Add [destructor](https://msdn.microsoft.com/en-us/library/66x5fx1b.aspx) to an existing type |  - |
+| Modify a type parameter, base type, delegate type, or return type of an event/property/operator/indexer | - |
+| Modify a catch-block if it contains an active statement (leaf or internal) | - |
+| Modify a try-catch-finally block if the finally clause contains an active statement | - |
+| Renaming of any kind | - |
+| Delete members or types | - |
+| Delete entire method bodies | Not supported because deleting an entire method body would make the method “abstract”—which is not currently supported |
+| Add using statements | - | 
+| Edit a member with On Error statements (VB) | - |
+| Edit a member containing an Aggregate, Group By, Simple Join, or Group Join LINQ query clause (VB) | - |
 
 ### App Model EnC Support
 
