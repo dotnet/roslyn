@@ -40,8 +40,8 @@ Edit & Continue lets you modify/add to your source code in break-mode while debu
 | Delete members or types | - |
 | Delete entire method bodies | Not supported because deleting an entire method body would make the method “abstract”—which is not currently supported |
 | Add using statements | - | 
-| Edit a member with On Error statements (VB) | - |
-| Edit a member containing an Aggregate, Group By, Simple Join, or Group Join LINQ query clause (VB) | - |
+| Edit a member with On Error or Resume statements | Specific to Visual Basic |
+| Edit a member containing an Aggregate, Group By, Simple Join, or Group Join LINQ query clause | Specific to Visual Basic |
 
 ### App Model EnC Support
 
