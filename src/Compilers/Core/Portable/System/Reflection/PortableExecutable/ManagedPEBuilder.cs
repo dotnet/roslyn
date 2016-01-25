@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 
 #if !SRM
@@ -30,7 +31,7 @@ namespace Roslyn.Reflection.PortableExecutable
             BlobBuilder managedResourceData,
             Action<BlobBuilder, PESectionLocation> nativeResourceSectionSerializer, // opt
             int strongNameSignatureSize, // TODO
-            int entryPointToken,
+            MethodDefinitionHandle entryPoint,
             string pdbPathOpt, // TODO
             ContentId nativePdbContentId, // TODO
             ContentId portablePdbContentId, // TODO
@@ -77,7 +78,7 @@ namespace Roslyn.Reflection.PortableExecutable
                 textSection.Serialize(
                     sectionBuilder,
                     location.RelativeVirtualAddress,
-                    entryPointToken,
+                    entryPoint.IsNil ? 0 : MetadataTokens.GetToken(entryPoint),
                     corFlags,
                     peBuilder.ImageBase,
                     metadataBuilder,

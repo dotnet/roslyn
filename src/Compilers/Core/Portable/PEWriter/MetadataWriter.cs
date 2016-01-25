@@ -425,9 +425,9 @@ namespace Microsoft.Cci
         // progress:
         private bool _tableIndicesAreComplete;
 
-        private int[] _pseudoSymbolTokenToTokenMap;
+        private EntityHandle[] _pseudoSymbolTokenToTokenMap;
         private IReference[] _pseudoSymbolTokenToReferenceMap;
-        private int[] _pseudoStringTokenToTokenMap;
+        private UserStringHandle[] _pseudoStringTokenToTokenMap;
         private List<string> _pseudoStringTokenToStringMap;
         private ReferenceIndexer _referenceVisitor;
 
@@ -469,7 +469,7 @@ namespace Microsoft.Cci
             int count;
             var referencesInIL = module.ReferencesInIL(out count);
 
-            _pseudoSymbolTokenToTokenMap = new int[count];
+            _pseudoSymbolTokenToTokenMap = new EntityHandle[count];
             _pseudoSymbolTokenToReferenceMap = new IReference[count];
 
             int cur = 0;
@@ -506,7 +506,7 @@ namespace Microsoft.Cci
                 _pseudoStringTokenToStringMap.Add(str);
             }
 
-            _pseudoStringTokenToTokenMap = new int[_pseudoStringTokenToStringMap.Count];
+            _pseudoStringTokenToTokenMap = new UserStringHandle[_pseudoStringTokenToStringMap.Count];
         }
 
         protected virtual void CreateIndicesForModule()
@@ -836,7 +836,7 @@ namespace Microsoft.Cci
             return result;
         }
 
-        internal virtual int GetFieldToken(IFieldReference fieldReference)
+        internal EntityHandle GetFieldHandle(IFieldReference fieldReference)
         {
             IFieldDefinition fieldDef = null;
             IUnitReference definingUnit = GetDefiningUnitReference(fieldReference.GetContainingType(Context), Context);
@@ -846,8 +846,8 @@ namespace Microsoft.Cci
             }
 
             return fieldDef != null
-                ? MetadataTokens.GetToken(GetFieldDefIndex(fieldDef))
-                : MetadataTokens.GetToken(GetMemberRefIndex(fieldReference));
+                ? (EntityHandle)GetFieldDefIndex(fieldDef)
+                : GetMemberRefIndex(fieldReference);
         }
 
         internal AssemblyFileHandle GetFileRefIndex(IFileReference fileReference)
@@ -1121,8 +1121,7 @@ namespace Microsoft.Cci
                 return this.GetMethodSignatureIndex(methodReference);
             }
 
-            // TODO: error
-            return default(BlobHandle);
+            throw ExceptionUtilities.Unreachable;
         }
 
         internal BlobHandle GetMethodSignatureIndex(IMethodReference methodReference)
@@ -1187,7 +1186,7 @@ namespace Microsoft.Cci
             return this.GetOrAddMethodSpecIndex(methodSpec);
         }
 
-        internal virtual int GetMethodToken(IMethodReference methodReference)
+        internal EntityHandle GetMethodHandle(IMethodReference methodReference)
         {
             MethodDefinitionHandle methodDefHandle;
             IMethodDefinition methodDef = null;
@@ -1199,13 +1198,13 @@ namespace Microsoft.Cci
 
             if (methodDef != null && (methodReference == methodDef || !methodReference.AcceptsExtraArguments) && this.TryGetMethodDefIndex(methodDef, out methodDefHandle))
             {
-                return MetadataTokens.GetToken(methodDefHandle);
+                return methodDefHandle;
             }
 
             IGenericMethodInstanceReference methodSpec = methodReference.AsGenericMethodInstanceReference;
             return methodSpec != null
-                ? MetadataTokens.GetToken(GetMethodSpecIndex(methodSpec))
-                : MetadataTokens.GetToken(GetMemberRefIndex(methodReference));
+                ? (EntityHandle)GetMethodSpecIndex(methodSpec)
+                : GetMemberRefIndex(methodReference);
         }
 
         public static ParameterAttributes GetParameterAttributes(IParameterDefinition parDef)
@@ -1777,33 +1776,33 @@ namespace Microsoft.Cci
             return new TypeSystemMetadataSerializer(metadata, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
         }
 
-        public StandaloneDebugMetadataSerializer GetStandaloneDebugMetadataSerializer(MetadataSizes metadataSizes, int debugEntryPointToken)
+        public StandaloneDebugMetadataSerializer GetStandaloneDebugMetadataSerializer(MetadataSizes metadataSizes, MethodDefinitionHandle debugEntryPoint)
         {
-            return new StandaloneDebugMetadataSerializer(_debugMetadataOpt, metadataSizes.RowCounts, debugEntryPointToken, IsMinimalDelta);
+            return new StandaloneDebugMetadataSerializer(_debugMetadataOpt, metadataSizes.RowCounts, debugEntryPoint, IsMinimalDelta);
         }
 
-        internal void GetEntryPointTokens(out int entryPointToken, out int debugEntryPointToken)
+        internal void GetEntryPoints(out MethodDefinitionHandle entryPointHandle, out MethodDefinitionHandle debugEntryPointHandle)
         {
             if (IsFullMetadata)
             {
                 // PE entry point is set for executable programs
                 IMethodReference entryPoint = module.PEEntryPoint;
-                entryPointToken = entryPoint != null ? GetMethodToken((IMethodDefinition)entryPoint.AsDefinition(Context)) : 0;
+                entryPointHandle = entryPoint != null ? (MethodDefinitionHandle)GetMethodHandle((IMethodDefinition)entryPoint.AsDefinition(Context)) : default(MethodDefinitionHandle);
 
                 // debug entry point may be different from PE entry point, it may also be set for libraries
                 IMethodReference debugEntryPoint = module.DebugEntryPoint;
                 if (debugEntryPoint != null && debugEntryPoint != entryPoint)
                 {
-                    debugEntryPointToken = GetMethodToken((IMethodDefinition)debugEntryPoint.AsDefinition(Context));
+                    debugEntryPointHandle = (MethodDefinitionHandle)GetMethodHandle((IMethodDefinition)debugEntryPoint.AsDefinition(Context));
                 }
                 else
                 {
-                    debugEntryPointToken = entryPointToken;
+                    debugEntryPointHandle = entryPointHandle;
                 }
             }
             else
             {
-                entryPointToken = debugEntryPointToken = 0;
+                entryPointHandle = debugEntryPointHandle = default(MethodDefinitionHandle);
             }
         }
 
@@ -1969,7 +1968,7 @@ namespace Microsoft.Cci
             // TODO: standalone signature entries 11
             if (this.IsFullMetadata)
             {
-                this.AddCustomAttributesToTable(module.ModuleReferences, HandleKind.ModuleReference);
+                this.AddCustomAttributesToTable(module.ModuleReferences, TableIndex.ModuleRef);
             }
 
             // TODO: type spec entries 13
@@ -1978,7 +1977,7 @@ namespace Microsoft.Cci
             // TODO: exported types 17
             // TODO: this.AddCustomAttributesToTable(assembly.Resources, 18);
 
-            this.AddCustomAttributesToTable(sortedGenericParameters, HandleKind.GenericParameter);
+            this.AddCustomAttributesToTable(sortedGenericParameters, TableIndex.GenericParam);
         }
 
         private void AddAssemblyAttributesToTable()
@@ -2050,24 +2049,18 @@ namespace Microsoft.Cci
             }
         }
 
-        private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, HandleKind kind)
+        private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, TableIndex tableIndex)
             where T : IReference
         {
             int parentRowId = 1;
             foreach (var parent in parentList)
             {
-                var parentHandle = MakeEntityHandle(kind, parentRowId++);
+                var parentHandle = MetadataTokens.Handle(tableIndex, parentRowId++);
                 foreach (ICustomAttribute customAttribute in parent.GetAttributes(Context))
                 {
                     AddCustomAttributeToTable(parentHandle, customAttribute);
                 }
             }
-        }
-
-        // TODO: move to MetadataTokens
-        private static EntityHandle MakeEntityHandle(HandleKind kind, int rowNumber)
-        {
-            return MetadataTokens.EntityHandle((int)kind << 24 | rowNumber);
         }
 
         private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, Func<T, EntityHandle> getDefinitionHandle)
@@ -2967,32 +2960,30 @@ namespace Microsoft.Cci
             return buffer[pos] | buffer[pos + 1] << 8 | buffer[pos + 2] << 16 | buffer[pos + 3] << 24;
         }
 
-        private int ResolveTokenFromReference(IReference reference)
+        private EntityHandle GetHandle(IReference reference)
         {
-            ITypeReference typeReference = reference as ITypeReference;
-
+            var typeReference = reference as ITypeReference;
             if (typeReference != null)
             {
-                return MetadataTokens.GetToken(GetTypeHandle(typeReference));
+                return GetTypeHandle(typeReference);
             }
 
-            IFieldReference fieldReference = reference as IFieldReference;
-
+            var fieldReference = reference as IFieldReference;
             if (fieldReference != null)
             {
-                return this.GetFieldToken(fieldReference);
+                return GetFieldHandle(fieldReference);
             }
 
-            IMethodReference methodReference = reference as IMethodReference;
+            var methodReference = reference as IMethodReference;
             if (methodReference != null)
             {
-                return this.GetMethodToken(methodReference);
+                return GetMethodHandle(methodReference);
             }
 
             throw ExceptionUtilities.UnexpectedValue(reference);
         }
 
-        private int ResolveSymbolTokenFromPseudoSymbolToken(int pseudoSymbolToken)
+        private EntityHandle ResolveEntityHandleFromPseudoToken(int pseudoSymbolToken)
         {
             int index = pseudoSymbolToken;
             var reference = _pseudoSymbolTokenToReferenceMap[index];
@@ -3002,25 +2993,25 @@ namespace Microsoft.Cci
                 // that would have been done on them are done here.
                 _referenceVisitor.VisitMethodBodyReference(reference);
 
-                int token = ResolveTokenFromReference(reference);
-                _pseudoSymbolTokenToTokenMap[index] = token;
+                EntityHandle handle = GetHandle(reference);
+                _pseudoSymbolTokenToTokenMap[index] = handle;
                 _pseudoSymbolTokenToReferenceMap[index] = null; // Set to null to bypass next lookup
-                return token;
+                return handle;
             }
 
             return _pseudoSymbolTokenToTokenMap[index];
         }
 
-        private int ResolveStringTokenFromPseudoStringToken(int pseudoStringToken)
+        private UserStringHandle ResolveUserStringHandleFromPseudoToken(int pseudoStringToken)
         {
             int index = pseudoStringToken;
             var str = _pseudoStringTokenToStringMap[index];
             if (str != null)
             {
-                var token = metadata.GetUserStringToken(str);
-                _pseudoStringTokenToTokenMap[index] = token;
+                var handle = metadata.GetUserString(str);
+                _pseudoStringTokenToTokenMap[index] = handle;
                 _pseudoStringTokenToStringMap[index] = null; // Set to null to bypass next lookup
-                return token;
+                return handle;
             }
 
             return _pseudoStringTokenToTokenMap[index];
@@ -3042,13 +3033,13 @@ namespace Microsoft.Cci
                     case OperandType.InlineTok:
                     case OperandType.InlineType:
                         writer.Offset = offset;
-                        writer.WriteInt32(ResolveSymbolTokenFromPseudoSymbolToken(ReadInt32(methodBodyIL, offset)));
+                        writer.WriteInt32(MetadataTokens.GetToken(ResolveEntityHandleFromPseudoToken(ReadInt32(methodBodyIL, offset))));
                         offset += 4;
                         break;
 
                     case OperandType.InlineString:
                         writer.Offset = offset;
-                        writer.WriteInt32(ResolveStringTokenFromPseudoStringToken(ReadInt32(methodBodyIL, offset)));
+                        writer.WriteInt32(MetadataTokens.GetToken(ResolveUserStringHandleFromPseudoToken(ReadInt32(methodBodyIL, offset))));
                         offset += 4;
                         break;
 

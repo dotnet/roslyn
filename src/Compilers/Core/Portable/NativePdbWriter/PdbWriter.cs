@@ -303,9 +303,9 @@ namespace Microsoft.Cci
                 return;
             }
 
-            int methodToken = _metadataWriter.GetMethodToken(methodBody.MethodDefinition);
+            int methodToken = MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(methodBody.MethodDefinition));
 
-            OpenMethod((uint)methodToken, methodBody.MethodDefinition);
+            OpenMethod(methodToken, methodBody.MethodDefinition);
 
             var localScopes = methodBody.LocalScopes;
 
@@ -325,7 +325,7 @@ namespace Microsoft.Cci
                 {
                     if (forwardToMethod != null)
                     {
-                        UsingNamespace("@" + _metadataWriter.GetMethodToken(forwardToMethod), methodBody.MethodDefinition);
+                        UsingNamespace("@" + MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(forwardToMethod)), methodBody.MethodDefinition);
                     }
                     // otherwise, the forwarding is done via custom debug info
                 }
@@ -344,7 +344,7 @@ namespace Microsoft.Cci
             {
                 SetAsyncInfo(
                     methodToken,
-                    _metadataWriter.GetMethodToken(asyncDebugInfo.KickoffMethod),
+                    MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(asyncDebugInfo.KickoffMethod)),
                     asyncDebugInfo.CatchHandlerOffset,
                     asyncDebugInfo.YieldOffsets,
                     asyncDebugInfo.ResumeOffsets);
@@ -968,11 +968,11 @@ namespace Microsoft.Cci
             return writer;
         }
 
-        private void OpenMethod(uint methodToken, IMethodDefinition method)
+        private void OpenMethod(int methodToken, IMethodDefinition method)
         {
             try
             {
-                _symWriter.OpenMethod(methodToken);
+                _symWriter.OpenMethod((uint)methodToken);
                 if (_callLogger.LogOperation(OP.OpenMethod))
                 {
                     _callLogger.LogArgument(methodToken);

@@ -65,10 +65,10 @@ namespace Roslyn.Reflection.Metadata.Ecma335.Blobs
             Builder.WriteByte(ilOffset);
         }
 
-        public void LoadString(int token)
+        public void LoadString(UserStringHandle handle)
         {
             OpCode(ILOpCode.Ldstr);
-            Token(token);
+            Token(MetadataTokens.GetToken(handle));
         }
 
         public void Call(EntityHandle methodHandle)

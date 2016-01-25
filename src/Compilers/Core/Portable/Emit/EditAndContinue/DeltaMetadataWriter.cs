@@ -741,9 +741,6 @@ namespace Microsoft.CodeAnalysis.Emit
             TableIndex mapTable)
             where T : ITypeDefinitionMember
         {
-            int tokenType = (int)table << 24;
-            int mapTokenType = (int)mapTable << 24;
-
             foreach (var member in index.GetRows())
             {
                 if (index.IsAddedNotChanged(member))
@@ -751,17 +748,17 @@ namespace Microsoft.CodeAnalysis.Emit
                     int typeIndex = _typeDefs[member.ContainingTypeDefinition];
                     Debug.Assert(typeIndex > 0);
 
-                    int mapIndex;
-                    var ok = map.TryGetValue(typeIndex, out mapIndex);
+                    int mapRowId;
+                    var ok = map.TryGetValue(typeIndex, out mapRowId);
                     Debug.Assert(ok);
 
                     metadata.AddEncLogEntry(
-                        entity: MetadataTokens.EntityHandle(mapTokenType | mapIndex),
+                        entity: MetadataTokens.Handle(mapTable, mapRowId),
                         code: addCode);
                 }
 
                 metadata.AddEncLogEntry(
-                    entity: MetadataTokens.EntityHandle(tokenType | index[member]),
+                    entity: MetadataTokens.Handle(table, index[member]),
                     code: EditAndContinueOperation.Default);
             }
         }
@@ -772,8 +769,6 @@ namespace Microsoft.CodeAnalysis.Emit
             EditAndContinueOperation addCode)
             where T : ITypeDefinitionMember
         {
-            int tokenType = (int)tableIndex << 24;
-
             foreach (var member in index.GetRows())
             {
                 if (index.IsAddedNotChanged(member))
@@ -784,7 +779,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 metadata.AddEncLogEntry(
-                    entity: MetadataTokens.EntityHandle(tokenType | index[member]),
+                    entity: MetadataTokens.Handle(tableIndex, index[member]),
                     code: EditAndContinueOperation.Default);
             }
         }
@@ -809,12 +804,10 @@ namespace Microsoft.CodeAnalysis.Emit
         private void PopulateEncLogTableRows<T>(DefinitionIndex<T> index, TableIndex tableIndex)
             where T : IDefinition
         {
-            int tokenType = (int)tableIndex << 24;
-
             foreach (var member in index.GetRows())
             {
                 metadata.AddEncLogEntry(
-                    entity: MetadataTokens.EntityHandle(tokenType | index[member]),
+                    entity: MetadataTokens.Handle(tableIndex, index[member]),
                     code: EditAndContinueOperation.Default);
             }
         }
@@ -826,12 +819,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private void PopulateEncLogTableRows(TableIndex tableIndex, int firstRowId, int tokenCount)
         {
-            int tokenType = (int)tableIndex << 24;
-
             for (int i = 0; i < tokenCount; i++)
             {
                 metadata.AddEncLogEntry(
-                    entity: MetadataTokens.EntityHandle(tokenType | (firstRowId + i)),
+                    entity: MetadataTokens.Handle(tableIndex, firstRowId + i),
                     code: EditAndContinueOperation.Default);
             }
         }
@@ -955,21 +946,18 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private static void AddReferencedTokens(ArrayBuilder<EntityHandle> builder, TableIndex tableIndex, int firstRowId, int nTokens)
         {
-            int tokenType = (int)tableIndex << 24;
             for (int i = 0; i < nTokens; i++)
             {
-                builder.Add(MetadataTokens.EntityHandle(tokenType | (firstRowId + i)));
+                builder.Add(MetadataTokens.Handle(tableIndex, firstRowId + i));
             }
         }
 
         private static void AddDefinitionTokens<T>(ArrayBuilder<EntityHandle> tokens, DefinitionIndex<T> index, TableIndex tableIndex)
             where T : IDefinition
         {
-            int tokenType = (int)tableIndex << 24;
-
             foreach (var member in index.GetRows())
             {
-                tokens.Add(MetadataTokens.EntityHandle(tokenType | index[member]));
+                tokens.Add(MetadataTokens.Handle(tableIndex, index[member]));
             }
         }
 

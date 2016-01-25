@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Threading;
@@ -61,17 +62,13 @@ namespace Microsoft.Cci
                 managedResourceBuilder,
                 out mvidFixup);
 
-            int entryPointToken;
-            int debugEntryPointToken;
-            mdWriter.GetEntryPointTokens(out entryPointToken, out debugEntryPointToken);
-
-            // entry point can only be a MethodDef:
-            Debug.Assert(entryPointToken == 0 || (entryPointToken & 0xff000000) == 0x06000000);
-            Debug.Assert(debugEntryPointToken == 0 || (debugEntryPointToken & 0xff000000) == 0x06000000);
-
-            if (debugEntryPointToken != 0)
+            MethodDefinitionHandle entryPointHandle;
+            MethodDefinitionHandle debugEntryPointHandle;
+            mdWriter.GetEntryPoints(out entryPointHandle, out debugEntryPointHandle);
+            
+            if (!debugEntryPointHandle.IsNil)
             {
-                nativePdbWriterOpt?.SetEntryPoint((uint)debugEntryPointToken);
+                nativePdbWriterOpt?.SetEntryPoint((uint)MetadataTokens.GetToken(debugEntryPointHandle));
             }
 
             if (nativePdbWriterOpt != null)
@@ -134,7 +131,7 @@ namespace Microsoft.Cci
                 Debug.Assert(getPortablePdbStreamOpt != null);
 
                 var debugMetadataBuilder = new BlobBuilder();
-                var debugMetadataSerializer = mdWriter.GetStandaloneDebugMetadataSerializer(metadataSerializer.MetadataSizes, debugEntryPointToken);
+                var debugMetadataSerializer = mdWriter.GetStandaloneDebugMetadataSerializer(metadataSerializer.MetadataSizes, debugEntryPointHandle);
                 debugMetadataSerializer.SerializeMetadata(debugMetadataBuilder, peBuilder.IdProvider, out portablePdbContentId);
 
                 // write to Portable PDB stream:
@@ -159,7 +156,7 @@ namespace Microsoft.Cci
                 managedResourceBuilder,
                 CreateNativeResourceSectionSerializer(context.Module),
                 CalculateStrongNameSignatureSize(context.Module),
-                entryPointToken,
+                entryPointHandle,
                 pdbPathOpt,
                 nativePdbContentId,
                 portablePdbContentId,
