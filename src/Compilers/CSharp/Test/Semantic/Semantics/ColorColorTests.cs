@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1727,6 +1728,35 @@ class X
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [WorkItem(5362, "https://github.com/dotnet/roslyn/issues/5362")]
+        [Fact]
+        public void TestColorColorSymbolInfoInArrowExpressionClauseSyntax()
+        {
+            const string source = @"public enum Lifetime
+{
+    Persistent,
+    Transient,
+    Scoped
+}
+public class Example
+{
+    public Lifetime Lifetime => Lifetime.Persistent;
+    //                          ^^^^^^^^
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var syntaxRoot = syntaxTree.GetRoot();
+
+            var semanticModel = comp.GetSemanticModel(syntaxTree, false);
+
+            var actualSymbol = semanticModel.GetSymbolInfo(syntaxRoot.FindNode(TextSpan.FromBounds(130, 138)));
+            var expectedSymbol = semanticModel.GetDeclaredSymbol(syntaxRoot.FindNode(TextSpan.FromBounds(0, 71)));
+
+            Assert.Equal(expectedSymbol, actualSymbol.Symbol);
         }
 
         #endregion Regression cases
