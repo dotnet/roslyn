@@ -580,5 +580,23 @@ Public Class [|;;|]Derived
 
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorNotOfferedForDuplicate() As Task
+            Await TestMissingAsync(
+"Imports System
+
+Class X
+    Private v As String
+
+    Public Sub New(v As String)
+        Me.v = v
+    End Sub
+
+    Sub Test()
+        Dim x As X = New X(New [|String|]())
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

@@ -910,6 +910,11 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public string GetNameForArgument(SyntaxNode argument)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

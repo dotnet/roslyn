@@ -3276,7 +3276,7 @@ class C
 
             var documentation = $@"
 {WorkspacesResources.Usage}
-  {CSharpFeaturesResources.Await} Foo();";
+  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Foo();";
 
             await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description), Usage(documentation) });
         }

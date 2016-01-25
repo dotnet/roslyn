@@ -7,7 +7,7 @@ $nugetZipFilename = ($nugetZipUrl.Segments | select -Last 1)
 $outFilePath = "${env:TEMP}\$nugetZipFilename"
 if (-not(Test-Path $outFilePath)) {
     write-host "Downloading $nugetZipUrl -> $outFilePath"
-    wget -Uri "$nugetZipUrl" -OutFile "$outFilePath"
+    (New-Object System.Net.WebClient).DownloadFile($nugetZipUrl, $outFilePath)
 }
 
 # It's possible for restore to run in parallel on the test machines.  As such
