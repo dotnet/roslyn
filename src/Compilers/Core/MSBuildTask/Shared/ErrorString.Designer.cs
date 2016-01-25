@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Roslyn.Compilers.Internal.BoundTreeGenerator.ErrorString", typeof(ErrorString).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.BuildTasks.ErrorString", typeof(ErrorString).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
