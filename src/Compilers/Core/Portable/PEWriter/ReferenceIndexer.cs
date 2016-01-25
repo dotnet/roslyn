@@ -167,7 +167,7 @@ namespace Microsoft.Cci
 
         protected override void RecordTypeReference(ITypeReference typeReference)
         {
-            this.metadataWriter.RecordTypeReference(typeReference);
+            this.metadataWriter.GetTypeHandle(typeReference);
         }
 
         protected override void RecordTypeMemberReference(ITypeMemberReference typeMemberReference)

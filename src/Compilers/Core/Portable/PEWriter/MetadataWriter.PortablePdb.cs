@@ -170,14 +170,14 @@ namespace Microsoft.Cci
             if (value is decimal)
             {
                 builder.WriteByte(0x11);
-                builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true)));
+                builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeHandle(type)));
 
                 builder.WriteDecimal((decimal)value);
             }
             else if (value is DateTime)
             {
                 builder.WriteByte(0x11);
-                builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true)));
+                builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeHandle(type)));
 
                 builder.WriteDateTime((DateTime)value);
             }
@@ -205,7 +205,7 @@ namespace Microsoft.Cci
                 // EnumType
                 if (type.IsEnum)
                 {
-                    builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true)));
+                    builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeHandle(type)));
                 }
             }
             else if (this.module.IsPlatformType(type, PlatformType.SystemObject))
@@ -215,7 +215,7 @@ namespace Microsoft.Cci
             else
             {
                 builder.WriteByte((byte)(type.IsValueType ? 0x11 : 0x12));
-                builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true)));
+                builder.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeHandle(type)));
             }
 
             return _debugMetadataOpt.GetBlob(builder);
@@ -263,7 +263,7 @@ namespace Microsoft.Cci
                     writer.WriteByte((byte)ImportDefinitionKind.ImportType);
                 }
 
-                writer.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeDefOrRefCodedIndex(import.TargetTypeOpt, treatRefAsPotentialTypeSpec: true))); // TODO: index in release build
+                writer.WriteCompressedInteger((uint)CodedIndex.ToTypeDefOrRef(GetTypeHandle(import.TargetTypeOpt))); // TODO: index in release build
             }
             else if (import.TargetNamespaceOpt != null)
             {
